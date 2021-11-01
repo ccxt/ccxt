@@ -282,6 +282,7 @@ module.exports = class bitmart extends Exchange {
                 'CPC': 'CPCoin',
                 'GDT': 'Gorilla Diamond',
                 '$HERO': 'Step Hero',
+                '$PAC': 'PAC',
                 'MVP': 'MVP Coin',
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
@@ -1556,16 +1557,15 @@ module.exports = class bitmart extends Exchange {
         if (market !== undefined) {
             status = this.parseOrderStatusByType (market['type'], this.safeString (order, 'status'));
         }
-        let price = this.safeNumber (order, 'price');
-        let average = this.safeNumber2 (order, 'price_avg', 'done_avg_price');
-        const amount = this.safeNumber2 (order, 'size', 'vol');
-        const filled = this.safeNumber2 (order, 'filled_size', 'done_vol');
-        let side = this.safeString (order, 'side');
+        const amount = this.safeString2 (order, 'size', 'vol');
+        const filled = this.safeString2 (order, 'filled_size', 'done_vol');
+        const average = this.safeString2 (order, 'price_avg', 'done_avg_price');
+        const price = this.safeString (order, 'price');
+        const side = this.safeString2 (order, 'way', 'side');
         // 1 = Open long
         // 2 = Close short
         // 3 = Close long
         // 4 = Open short
-        side = this.safeString (order, 'way', side);
         const category = this.safeInteger (order, 'category');
         let type = this.safeString (order, 'type');
         if (category === 1) {
@@ -1573,15 +1573,7 @@ module.exports = class bitmart extends Exchange {
         } else if (category === 2) {
             type = 'market';
         }
-        if (type === 'market') {
-            if (price === 0.0) {
-                price = undefined;
-            }
-            if (average === 0.0) {
-                average = undefined;
-            }
-        }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
@@ -2104,6 +2096,7 @@ module.exports = class bitmart extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined, // TODO: parse
             'info': response,
         };
     }

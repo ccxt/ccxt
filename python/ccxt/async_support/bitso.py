@@ -437,11 +437,11 @@ class bitso(Exchange):
         symbol = self.safe_symbol(marketId, market, '_')
         orderType = self.safe_string(order, 'type')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'original_amount')
-        remaining = self.safe_number(order, 'unfilled_amount')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'original_amount')
+        remaining = self.safe_string(order, 'unfilled_amount')
         clientOrderId = self.safe_string(order, 'client_id')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -530,6 +530,7 @@ class bitso(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

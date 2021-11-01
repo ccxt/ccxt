@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -77,7 +77,7 @@ module.exports = class okex extends Exchange {
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs-v5/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
-                'referral': 'https://www.okex.com/join/1888677',
+                // 'referral': 'https://www.okex.com/join/1888677',
                 'test': {
                     'rest': 'https://testnet.okex.com',
                 },
@@ -382,7 +382,7 @@ module.exports = class okex extends Exchange {
                     '51407': BadRequest, // Either order ID or client order ID is required
                     '51408': ExchangeError, // Pair ID or name does not match the order info
                     '51409': ExchangeError, // Either pair ID or pair name ID is required
-                    '51410': ExchangeError, // Cancellation failed as the order is already under cancelling status
+                    '51410': CancelPending, // Cancellation failed as the order is already under cancelling status
                     '51500': ExchangeError, // Either order price or amount is required
                     '51501': ExchangeError, // Maximum {0} orders can be modified
                     '51502': InsufficientFunds, // Order modification failed for insufficient margin
@@ -514,7 +514,7 @@ module.exports = class okex extends Exchange {
                     'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
-                'createMarketBuyOrderRequiresPrice': true,
+                'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 // 'fetchBalance': {
@@ -694,6 +694,10 @@ module.exports = class okex extends Exchange {
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const contractSize = this.safeString (market, 'ctVal');
         const leverage = this.safeNumber (market, 'lever', 1);
+        let expiry = undefined;
+        if (futures || option) {
+            expiry = this.safeNumber (market, 'expTime');
+        }
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -712,6 +716,8 @@ module.exports = class okex extends Exchange {
             'active': active,
             'contractSize': contractSize,
             'precision': precision,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
             'limits': {
                 'amount': {
                     'min': minAmount,
@@ -1933,8 +1939,13 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const options = this.safeValue (this.options, 'fetchMyTrades', {});
+        let type = this.safeString (options, 'type', defaultType);
+        params = this.omit (params, 'type');
+        await this.loadMarkets ();
         const request = {
-            'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
             // 'instId': market['id'],
             // 'ordId': orderId,
@@ -1943,11 +1954,12 @@ module.exports = class okex extends Exchange {
             // 'limit': limit, // default 100, max 100
         };
         let market = undefined;
-        await this.loadMarkets ();
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
+            type = market['type'];
         }
+        request['instType'] = type.toUpperCase ();
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }

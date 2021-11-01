@@ -897,7 +897,7 @@ module.exports = class bitfinex extends Exchange {
         }
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const id = this.safeString (order, 'id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -909,12 +909,12 @@ module.exports = class bitfinex extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeNumber (order, 'price'),
+            'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
-            'average': this.safeNumber (order, 'avg_execution_price'),
-            'amount': this.safeNumber (order, 'original_amount'),
-            'remaining': this.safeNumber (order, 'remaining_amount'),
-            'filled': this.safeNumber (order, 'executed_amount'),
+            'average': this.safeString (order, 'avg_execution_price'),
+            'amount': this.safeString (order, 'original_amount'),
+            'remaining': this.safeString (order, 'remaining_amount'),
+            'filled': this.safeString (order, 'executed_amount'),
             'status': status,
             'fee': undefined,
             'cost': undefined,
@@ -1047,6 +1047,7 @@ module.exports = class bitfinex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

@@ -174,13 +174,13 @@ class coincheck(Exchange):
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'order_type')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        amount = self.safe_number(order, 'pending_amount')
-        remaining = self.safe_number(order, 'pending_amount')
-        price = self.safe_number(order, 'rate')
+        amount = self.safe_string(order, 'pending_amount')
+        remaining = self.safe_string(order, 'pending_amount')
+        price = self.safe_string(order, 'rate')
         status = None
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

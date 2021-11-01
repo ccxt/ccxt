@@ -1238,6 +1238,7 @@ module.exports = class vcc extends Exchange {
             'currency': this.safeCurrencyCode (currencyId),
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': data,
         };
     }

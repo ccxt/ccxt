@@ -221,21 +221,114 @@ module.exports = class kraken extends Exchange {
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
                 'networks': {
-                    'ETH': 'Tether USD (ERC20)',
-                    'ERC20': 'Tether USD (ERC20)',
-                    'TRX': 'Tether USD (TRC20)',
-                    'TRC20': 'Tether USD (TRC20)',
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                },
+                'depositMethods': {
+                    '1INCH': '1inch (1INCH)',
+                    'AAVE': 'Aave',
+                    'ADA': 'ADA',
+                    'ALGO': 'Algorand',
+                    'ANKR': 'ANKR (ANKR)',
+                    'ANT': 'Aragon (ANT)',
+                    'ATOM': 'Cosmos',
+                    'AXS': 'Axie Infinity Shards (AXS)',
+                    'BADGER': 'Bager DAO (BADGER)',
+                    'BAL': 'Balancer (BAL)',
+                    'BAND': 'Band Protocol (BAND)',
+                    'BAT': 'BAT',
+                    'BCH': 'Bitcoin Cash',
+                    'BNC': 'Bifrost (BNC)',
+                    'BNT': 'Bancor (BNT)',
+                    'BTC': 'Bitcoin',
+                    'CHZ': 'Chiliz (CHZ)',
+                    'COMP': 'Compound (COMP)',
+                    'CQT': '\tCovalent Query Token (CQT)',
+                    'CRV': 'Curve DAO Token (CRV)',
+                    'CTSI': 'Cartesi (CTSI)',
+                    'DAI': 'Dai',
+                    'DASH': 'Dash',
+                    'DOGE': 'Dogecoin',
+                    'DOT': 'Polkadot',
+                    'DYDX': 'dYdX (DYDX)',
+                    'ENJ': 'Enjin Coin (ENJ)',
+                    'EOS': 'EOS',
+                    'ETC': 'Ether Classic (Hex)',
+                    'ETH': 'Ether (Hex)',
+                    'EWT': 'Energy Web Token',
+                    'FEE': 'Kraken Fee Credit',
+                    'FIL': 'Filecoin',
+                    'FLOW': 'Flow',
+                    'GHST': 'Aavegotchi (GHST)',
+                    'GNO': 'GNO',
+                    'GRT': 'GRT',
+                    'ICX': 'Icon',
+                    'INJ': 'Injective Protocol (INJ)',
+                    'KAR': 'Karura (KAR)',
+                    'KAVA': 'Kava',
+                    'KEEP': 'Keep Token (KEEP)',
+                    'KNC': 'Kyber Network (KNC)',
+                    'KSM': 'Kusama',
+                    'LINK': 'Link',
+                    'LPT': 'Livepeer Token (LPT)',
+                    'LRC': 'Loopring (LRC)',
+                    'LSK': 'Lisk',
+                    'LTC': 'Litecoin',
+                    'MANA': 'MANA',
+                    'MATIC': 'Polygon (MATIC)',
+                    'MINA': 'Mina', // inspected from webui
+                    'MIR': 'Mirror Protocol (MIR)',
+                    'MKR': 'Maker (MKR)',
+                    'MLN': 'MLN',
+                    'MOVR': 'Moonriver (MOVR)',
+                    'NANO': 'NANO',
+                    'OCEAN': 'OCEAN',
+                    'OGN': 'Origin Protocol (OGN)',
+                    'OMG': 'OMG',
+                    'OXT': 'Orchid (OXT)',
+                    'OXY': 'Oxygen (OXY)',
+                    'PAXG': 'PAX (Gold)',
+                    'PERP': 'Perpetual Protocol (PERP)',
+                    'PHA': 'Phala (PHA)',
+                    'QTUM': 'QTUM',
+                    'RARI': 'Rarible (RARI)',
+                    'RAY': 'Raydium (RAY)',
+                    'REN': 'Ren Protocol (REN)',
+                    'REP': 'REPv2',
+                    'REPV1': 'REP',
+                    'SAND': 'The Sandbox (SAND)',
+                    'SC': 'Siacoin',
+                    'SDN': 'Shiden (SDN)',
+                    'SOL': 'Solana',  // their deposit method api doesn't work for SOL - was guessed
+                    'SNX': 'Synthetix  Network (SNX)',
+                    'SRM': 'Serum', // inspected from webui
+                    'STORJ': 'Storj (STORJ)',
+                    'SUSHI': 'Sushiswap (SUSHI)',
+                    'TBTC': 'tBTC',
+                    'TRX': 'Tron',
+                    'UNI': 'UNI',
+                    'USDC': 'USDC',
+                    'USDT': 'Tether USD (ERC20)',
+                    'WAVES': 'Waves',
+                    'WBTC': 'Wrapped Bitcoin (WBTC)',
+                    'XLM': 'Stellar XLM',
+                    'XMR': 'Monero',
+                    'XRP': 'Ripple XRP',
+                    'XTZ': 'XTZ',
+                    'YFI': 'YFI',
+                    'ZEC': 'Zcash (Transparent)',
+                    'ZRX': '0x (ZRX)',
                 },
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
                 'EAPI:Invalid key': AuthenticationError,
-                'EFunding:Unknown withdraw key': ExchangeError,
+                'EFunding:Unknown withdraw key': InvalidAddress, // {"error":["EFunding:Unknown withdraw key"]}
                 'EFunding:Invalid amount': InsufficientFunds,
                 'EService:Unavailable': ExchangeNotAvailable,
                 'EDatabase:Internal error': ExchangeNotAvailable,
                 'EService:Busy': ExchangeNotAvailable,
-                'EQuery:Unknown asset': ExchangeError,
+                'EQuery:Unknown asset': BadSymbol, // {"error":["EQuery:Unknown asset"]}
                 'EAPI:Rate limit exceeded': DDoSProtection,
                 'EOrder:Rate limit exceeded': DDoSProtection,
                 'EGeneral:Internal error': ExchangeNotAvailable,
@@ -246,6 +339,8 @@ module.exports = class kraken extends Exchange {
                 'EGeneral:Invalid arguments': BadRequest,
                 'ESession:Invalid session': AuthenticationError,
                 'EAPI:Invalid nonce': InvalidNonce,
+                'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
+                'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
             },
         });
     }
@@ -383,12 +478,14 @@ module.exports = class kraken extends Exchange {
     }
 
     safeCurrency (currencyId, currency = undefined) {
-        if (currencyId.length > 3) {
-            if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
-                if (currencyId.indexOf ('.') > 0) {
-                    return super.safeCurrency (currencyId, currency);
-                } else {
-                    currencyId = currencyId.slice (1);
+        if (currencyId !== undefined) {
+            if (currencyId.length > 3) {
+                if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
+                    if (currencyId.indexOf ('.') > 0) {
+                        return super.safeCurrency (currencyId, currency);
+                    } else {
+                        currencyId = currencyId.slice (1);
+                    }
                 }
             }
         }
@@ -1525,16 +1622,6 @@ module.exports = class kraken extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchDepositMethods (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'asset': currency['id'],
-        };
-        const response = await this.privatePostDepositMethods (this.extend (request, params));
-        return this.safeValue (response, 'result');
-    }
-
     parseTransactionStatus (status) {
         // IFEX transaction states
         const statuses = {
@@ -1696,49 +1783,111 @@ module.exports = class kraken extends Exchange {
         const request = {
             'new': 'true',
         };
-        if ((code === 'USDT') && ('network' in params)) {
-            const networks = this.safeValue (this.options, 'networks', {});
-            const network = this.safeStringUpper (params, 'network');
-            request['method'] = this.safeString (networks, network, network);
-            params = this.omit (params, 'network');
-        }
-        const response = await this.fetchDepositAddress (code, this.extend (request, params));
-        const address = this.safeString (response, 'address');
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'info': response,
-        };
+        return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositMethods (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
         };
-        // USDT is the only currency with multiple networks on kraken, you may check
-        if ((code === 'USDT') && ('network' in params)) {
-            const networks = this.safeValue (this.options, 'networks', {});
-            const network = this.safeStringUpper (params, 'network');
-            request['method'] = this.safeString (networks, network, network);
-            params = this.omit (params, 'network');
+        const response = await this.privatePostDepositMethods (this.extend (request, params));
+        //
+        //     {
+        //         "error":[],
+        //         "result":[
+        //             {"method":"Ether (Hex)","limit":false,"gen-address":true}
+        //         ]
+        //     }
+        //
+        //     {
+        //         "error":[],
+        //         "result":[
+        //             {"method":"Tether USD (ERC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true},
+        //             {"method":"Tether USD (TRC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true}
+        //         ]
+        //     }
+        //
+        //     {
+        //         "error":[],
+        //         "result":[
+        //             {"method":"Bitcoin","limit":false,"fee":"0.0000000000","gen-address":true}
+        //         ]
+        //     }
+        //
+        return this.safeValue (response, 'result');
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const defaultDepositMethods = this.safeValue (this.options, 'depositMethods', {});
+        const defaultDepositMethod = this.safeString (defaultDepositMethods, code);
+        let depositMethod = this.safeString (params, 'method', defaultDepositMethod);
+        let network = this.safeString (params, 'network');
+        // if the user has specified an exchange-specific method in params
+        // we pass it as is, otherwise we take the 'network' unified param
+        if (depositMethod === undefined) {
+            const depositMethods = await this.fetchDepositMethods (code);
+            if (network !== undefined) {
+                const networks = this.safeValue (this.options, 'networks', {});
+                network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
+                params = this.omit (params, 'network');
+                // find best matching deposit method, or fallback to the first one
+                for (let i = 0; i < depositMethods.length; i++) {
+                    const entry = this.safeString (depositMethods[i], 'method');
+                    if (entry.indexOf (network) >= 0) {
+                        depositMethod = entry;
+                        break;
+                    }
+                }
+            }
+            // if depositMethod was not specified, fallback to the first available deposit method
+            if (depositMethod === undefined) {
+                const firstDepositMethod = this.safeValue (depositMethods, 0, {});
+                depositMethod = this.safeString (firstDepositMethod, 'method');
+            }
         }
-        const response = await this.privatePostDepositAddresses (this.extend (request, params)); // overwrite methods
-        const result = response['result'];
-        const numResults = result.length;
-        if (numResults < 1) {
-            throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses');
+        const request = {
+            'asset': currency['id'],
+            'method': depositMethod,
+        };
+        const response = await this.privatePostDepositAddresses (this.extend (request, params));
+        //
+        //     {
+        //         "error":[],
+        //         "result":[
+        //             {"address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3","expiretm":"0"}
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const firstResult = this.safeValue (result, 0, {});
+        if (firstResult === undefined) {
+            throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses for ' + code);
         }
-        const address = this.safeString (result[0], 'address');
-        const tag = this.safeString2 (result[0], 'tag', 'memo');
+        return this.parseDepositAddress (firstResult, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
+        //         "expiretm":"0"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'tag');
+        currency = this.safeCurrency (undefined, currency);
+        const code = currency['code'];
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'info': response,
+            'network': undefined,
+            'info': depositAddress,
         };
     }
 

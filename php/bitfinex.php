@@ -899,7 +899,7 @@ class bitfinex extends Exchange {
         }
         $timestamp = $this->safe_timestamp($order, 'timestamp');
         $id = $this->safe_string($order, 'id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -911,12 +911,12 @@ class bitfinex extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $this->safe_number($order, 'price'),
+            'price' => $this->safe_string($order, 'price'),
             'stopPrice' => null,
-            'average' => $this->safe_number($order, 'avg_execution_price'),
-            'amount' => $this->safe_number($order, 'original_amount'),
-            'remaining' => $this->safe_number($order, 'remaining_amount'),
-            'filled' => $this->safe_number($order, 'executed_amount'),
+            'average' => $this->safe_string($order, 'avg_execution_price'),
+            'amount' => $this->safe_string($order, 'original_amount'),
+            'remaining' => $this->safe_string($order, 'remaining_amount'),
+            'filled' => $this->safe_string($order, 'executed_amount'),
             'status' => $status,
             'fee' => null,
             'cost' => null,
@@ -1049,6 +1049,7 @@ class bitfinex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $response,
         );
     }

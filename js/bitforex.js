@@ -98,6 +98,7 @@ module.exports = class bitforex extends Exchange {
                 'CTC': 'Culture Ticket Chain',
                 'IQ': 'IQ.Cash',
                 'MIR': 'MIR COIN',
+                'NOIA': 'METANOIA',
                 'TON': 'To The Moon',
             },
             'exceptions': {
@@ -353,10 +354,10 @@ module.exports = class bitforex extends Exchange {
         const sideId = this.safeInteger (order, 'tradeType');
         const side = this.parseSide (sideId);
         const type = undefined;
-        const price = this.safeNumber (order, 'orderPrice');
-        const average = this.safeNumber (order, 'avgPrice');
-        const amount = this.safeNumber (order, 'orderAmount');
-        const filled = this.safeNumber (order, 'dealAmount');
+        const price = this.safeString (order, 'orderPrice');
+        const average = this.safeString (order, 'avgPrice');
+        const amount = this.safeString (order, 'orderAmount');
+        const filled = this.safeString (order, 'dealAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'orderState'));
         const feeSide = (side === 'buy') ? 'base' : 'quote';
         const feeCurrency = market[feeSide];
@@ -364,7 +365,7 @@ module.exports = class bitforex extends Exchange {
             'cost': this.safeNumber (order, 'tradeFee'),
             'currency': feeCurrency,
         };
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

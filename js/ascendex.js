@@ -997,10 +997,10 @@ module.exports = class ascendex extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '/');
         const timestamp = this.safeInteger2 (order, 'timestamp', 'sendingTime');
         const lastTradeTimestamp = this.safeInteger (order, 'lastExecTime');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'orderQty');
-        const average = this.safeNumber (order, 'avgPx');
-        const filled = this.safeNumber2 (order, 'cumFilledQty', 'cumQty');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'orderQty');
+        const average = this.safeString (order, 'avgPx');
+        const filled = this.safeString2 (order, 'cumFilledQty', 'cumQty');
         const id = this.safeString (order, 'orderId');
         let clientOrderId = this.safeString (order, 'id');
         if (clientOrderId !== undefined) {
@@ -1021,10 +1021,10 @@ module.exports = class ascendex extends Exchange {
             };
         }
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1452,6 +1452,7 @@ module.exports = class ascendex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined, // TODO: parse network
             'info': depositAddress,
         };
     }
@@ -1685,7 +1686,7 @@ module.exports = class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (symbol, marginType = '', params = {}) {
+    async setMarginMode (marginType, symbol = undefined, params = {}) {
         if (marginType !== 'isolated' && marginType !== 'crossed') {
             throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or crossed');
         }

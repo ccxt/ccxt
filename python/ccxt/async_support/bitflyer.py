@@ -315,10 +315,10 @@ class bitflyer(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(self.safe_string(order, 'child_order_date'))
-        amount = self.safe_number(order, 'size')
-        remaining = self.safe_number(order, 'outstanding_size')
-        filled = self.safe_number(order, 'executed_size')
-        price = self.safe_number(order, 'price')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'size')
+        filled = self.safe_string(order, 'executed_size')
+        remaining = self.safe_string(order, 'outstanding_size')
         status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = self.safe_string_lower(order, 'child_order_type')
         side = self.safe_string_lower(order, 'side')
@@ -333,7 +333,7 @@ class bitflyer(Exchange):
                 'rate': None,
             }
         id = self.safe_string(order, 'child_order_acceptance_id')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'info': order,

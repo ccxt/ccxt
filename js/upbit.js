@@ -1372,6 +1372,7 @@ module.exports = class upbit extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': depositAddress,
         };
     }

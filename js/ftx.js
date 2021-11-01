@@ -1004,21 +1004,32 @@ module.exports = class ftx extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
         //
         // Gets a history of funding rates with their timestamps
         //  (param) symbol: Future currency pair (e.g. "BTC-PERP")
         //  (param) limit: Not used by ftx
         //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) params: Object containing more params for the request
+        //             - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
         //  return: [{symbol, fundingRate, timestamp}]
         //
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'future': market['id'],
-        };
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['future'] = market['id'];
+        }
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
+        }
+        const till = this.safeInteger (params, 'till'); // unified in milliseconds
+        const endTime = this.safeString (params, 'end_time'); // exchange-specific in seconds
+        params = this.omit (params, [ 'end_time', 'till' ]);
+        if (till !== undefined) {
+            request['end_time'] = parseInt (till / 1000);
+        } else if (endTime !== undefined) {
+            request['end_time'] = endTime;
         }
         const response = await this.publicGetFundingRates (this.extend (request, params));
         //
@@ -1036,10 +1047,16 @@ module.exports = class ftx extends Exchange {
         const result = this.safeValue (response, 'result');
         const rates = [];
         for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'future');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.parse8601 (this.safeString (result[i], 'time'));
             rates.push ({
-                'symbol': this.safeString (result[i], 'future'),
-                'fundingRate': this.safeNumber (result[i], 'rate'),
-                'timestamp': this.parse8601 (this.safeString (result[i], 'time')),
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
             });
         }
         return this.sortBy (rates, 'timestamp');
@@ -1195,12 +1212,12 @@ module.exports = class ftx extends Exchange {
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const amount = this.safeNumber (order, 'size');
-        const filled = this.safeNumber (order, 'filledSize');
-        let remaining = this.safeNumber (order, 'remainingSize');
-        if ((remaining === 0.0) && (amount !== undefined) && (filled !== undefined)) {
-            remaining = Math.max (amount - filled, 0);
-            if (remaining > 0) {
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'filledSize');
+        let remaining = this.safeString (order, 'remainingSize');
+        if (Precise.stringEquals (remaining, '0')) {
+            remaining = Precise.stringSub (amount, filled);
+            if (Precise.stringGt (remaining, '0')) {
                 status = 'canceled';
             }
         }
@@ -1221,17 +1238,13 @@ module.exports = class ftx extends Exchange {
         }
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
-        const average = this.safeNumber (order, 'avgFillPrice');
-        const price = this.safeNumber2 (order, 'price', 'triggerPrice', average);
-        let cost = undefined;
-        if (filled !== undefined && price !== undefined) {
-            cost = filled * price;
-        }
+        const average = this.safeString (order, 'avgFillPrice');
+        const price = this.safeString2 (order, 'price', 'triggerPrice', average);
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
         const clientOrderId = this.safeString (order, 'clientId');
         const stopPrice = this.safeNumber (order, 'triggerPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return {
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1246,14 +1259,14 @@ module.exports = class ftx extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1886,6 +1899,7 @@ module.exports = class ftx extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

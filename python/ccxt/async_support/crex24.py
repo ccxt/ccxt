@@ -156,6 +156,7 @@ class crex24(Exchange):
                 'GHOST': 'GHOSTPRISM',
                 'GTC': 'GastroCoin',  # conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
+                'ONE': 'One Hundred Coin',
                 'PUT': 'PutinCoin',
                 'SBTC': 'SBTCT',  # SiamBitcoin
                 'UNI': 'Universe',
@@ -1270,6 +1271,7 @@ class crex24(Exchange):
             'currency': code,
             'address': self.check_address(address),
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

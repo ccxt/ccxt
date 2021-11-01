@@ -155,6 +155,7 @@ module.exports = class yobit extends Exchange {
                 'PIVX': 'Darknet',
                 'PRS': 'PRE',
                 'PUTIN': 'PutinCoin',
+                'SPACE': 'Spacecoin',
                 'STK': 'StakeCoin',
                 'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
@@ -164,6 +165,7 @@ module.exports = class yobit extends Exchange {
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'SBTC': 'Super Bitcoin',
+                'SOLO': 'SoloCoin',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
                 'UST': 'Uservice',
@@ -385,7 +387,7 @@ module.exports = class yobit extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const symbol = this.safeSymbol (id);
-            result[symbol] = this.parseOrderBook (response[id]);
+            result[symbol] = this.parseOrderBook (response[id], symbol);
         }
         return result;
     }
@@ -736,6 +738,7 @@ module.exports = class yobit extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response,
         };
     }

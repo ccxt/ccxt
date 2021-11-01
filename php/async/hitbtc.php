@@ -1164,6 +1164,7 @@ class hitbtc extends Exchange {
             'currency' => $currency['code'],
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $response,
         );
     }

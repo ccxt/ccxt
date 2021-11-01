@@ -110,7 +110,8 @@ module.exports = class kucoin extends Exchange {
                         'market/orderbook/level3',
                         'accounts',
                         'accounts/{accountId}',
-                        'accounts/{accountId}/ledgers',
+                        // 'accounts/{accountId}/ledgers', Deprecated endpoint
+                        'accounts/ledgers',
                         'accounts/{accountId}/holds',
                         'accounts/transferable',
                         'sub/user',
@@ -960,6 +961,7 @@ module.exports = class kucoin extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
         };
     }
 
@@ -1293,18 +1295,16 @@ module.exports = class kucoin extends Exchange {
         const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
         const datetime = this.iso8601 (timestamp);
-        let price = this.safeNumber (order, 'price');
-        if (price === 0.0) {
-            // market orders
-            price = undefined;
-        }
+        const price = this.safeString (order, 'price');
+        // price is zero for market order
+        // omitZero is called in safeOrder2
         const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         const feeCost = this.safeNumber (order, 'fee');
-        const amount = this.safeNumber (order, 'size');
-        const filled = this.safeNumber (order, 'dealSize');
-        const cost = this.safeNumber (order, 'dealFunds');
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'dealSize');
+        const cost = this.safeString (order, 'dealFunds');
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
@@ -1318,7 +1318,7 @@ module.exports = class kucoin extends Exchange {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
@@ -2069,143 +2069,190 @@ module.exports = class kucoin extends Exchange {
         }
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code param');
-        }
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        const currency = this.currency (code);
-        let accountId = this.safeString (params, 'accountId');
-        if (accountId === undefined) {
-            for (let i = 0; i < this.accounts.length; i++) {
-                const account = this.accounts[i];
-                if (account['currency'] === code && account['type'] === 'main') {
-                    accountId = account['id'];
-                    break;
-                }
-            }
-        }
-        if (accountId === undefined) {
-            throw new ExchangeError (this.id + ' ' + code + 'main account is not loaded in loadAccounts');
-        }
-        const request = {
-            'accountId': accountId,
+    parseLedgerEntryType (type) {
+        const types = {
+            'Assets Transferred in After Upgrading': 'transfer', // Assets Transferred in After V1 to V2 Upgrading
+            'Deposit': 'transaction', // Deposit
+            'Withdrawal': 'transaction', // Withdrawal
+            'Transfer': 'transfer', // Transfer
+            'Trade_Exchange': 'trade', // Trade
+            // 'Vote for Coin': 'Vote for Coin', // Vote for Coin
+            'KuCoin Bonus': 'bonus', // KuCoin Bonus
+            'Referral Bonus': 'referral', // Referral Bonus
+            'Rewards': 'bonus', // Activities Rewards
+            // 'Distribution': 'Distribution', // Distribution, such as get GAS by holding NEO
+            'Airdrop/Fork': 'airdrop', // Airdrop/Fork
+            'Other rewards': 'bonus', // Other rewards, except Vote, Airdrop, Fork
+            'Fee Rebate': 'rebate', // Fee Rebate
+            'Buy Crypto': 'trade', // Use credit card to buy crypto
+            'Sell Crypto': 'sell', // Use credit card to sell crypto
+            'Public Offering Purchase': 'trade', // Public Offering Purchase for Spotlight
+            // 'Send red envelope': 'Send red envelope', // Send red envelope
+            // 'Open red envelope': 'Open red envelope', // Open red envelope
+            // 'Staking': 'Staking', // Staking
+            // 'LockDrop Vesting': 'LockDrop Vesting', // LockDrop Vesting
+            // 'Staking Profits': 'Staking Profits', // Staking Profits
+            // 'Redemption': 'Redemption', // Redemption
+            'Refunded Fees': 'fee', // Refunded Fees
+            'KCS Pay Fees': 'fee', // KCS Pay Fees
+            'Margin Trade': 'trade', // Margin Trade
+            'Loans': 'Loans', // Loans
+            // 'Borrowings': 'Borrowings', // Borrowings
+            // 'Debt Repayment': 'Debt Repayment', // Debt Repayment
+            // 'Loans Repaid': 'Loans Repaid', // Loans Repaid
+            // 'Lendings': 'Lendings', // Lendings
+            // 'Pool transactions': 'Pool transactions', // Pool-X transactions
+            'Instant Exchange': 'trade', // Instant Exchange
+            'Sub-account transfer': 'transfer', // Sub-account transfer
+            'Liquidation Fees': 'fee', // Liquidation Fees
+            // 'Soft Staking Profits': 'Soft Staking Profits', // Soft Staking Profits
+            // 'Voting Earnings': 'Voting Earnings', // Voting Earnings on Pool-X
+            // 'Redemption of Voting': 'Redemption of Voting', // Redemption of Voting on Pool-X
+            // 'Voting': 'Voting', // Voting on Pool-X
+            // 'Convert to KCS': 'Convert to KCS', // Convert to KCS
         };
-        if (since !== undefined) {
-            request['startAt'] = Math.floor (since / 1000);
-        }
-        const response = await this.privateGetAccountsAccountIdLedgers (this.extend (request, params));
-        //
-        //     {
-        //         code: '200000',
-        //         data: {
-        //             totalNum: 1,
-        //             totalPage: 1,
-        //             pageSize: 50,
-        //             currentPage: 1,
-        //             items: [
-        //                 {
-        //                     createdAt: 1561897880000,
-        //                     amount: '0.0111123',
-        //                     bizType: 'Exchange',
-        //                     balance: '0.13224427',
-        //                     fee: '0.0000111',
-        //                     context: '{"symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806"}',
-        //                     currency: 'ETH',
-        //                     direction: 'out'
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const items = response['data']['items'];
-        return this.parseLedger (items, currency, since, limit);
+        return this.safeString (types, type, type);
     }
 
     parseLedgerEntry (item, currency = undefined) {
         //
-        // trade
-        //
         //     {
-        //         createdAt: 1561897880000,
-        //         amount: '0.0111123',
-        //         bizType: 'Exchange',
-        //         balance: '0.13224427',
-        //         fee: '0.0000111',
-        //         context: '{"symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806"}',
-        //         currency: 'ETH',
-        //         direction: 'out'
+        //         "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
+        //         "currency": "USDT", //Currency
+        //         "amount": "10.00059547", //The total amount of assets (fees included) involved in assets changes such as transaction, withdrawal and bonus distribution.
+        //         "fee": "0", //Deposit or withdrawal fee
+        //         "balance": "0", //Total assets of a currency remaining funds after transaction
+        //         "accountType": "MAIN", //Account Type
+        //         "bizType": "Loans Repaid", //business type
+        //         "direction": "in", //side, in or out
+        //         "createdAt": 1629101692950, //Creation time
+        //         "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}" //Business core parameters
         //     }
         //
-        // withdrawal
-        //
-        //     {
-        //         createdAt: 1561900264000,
-        //         amount: '0.14333217',
-        //         bizType: 'Withdrawal',
-        //         balance: '0',
-        //         fee: '0.01',
-        //         context: '{"orderId":"5d18b4e687111437cf1c48b9","txId":"0x1d136ee065c5c4c5caa293faa90d43e213c953d7cdd575c89ed0b54eb87228b8"}',
-        //         currency: 'ETH',
-        //         direction: 'out'
-        //     }
-        //
+        const id = this.safeString (item, 'id');
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const fee = {
-            'cost': this.safeNumber (item, 'fee'),
-            'code': code,
-        };
         const amount = this.safeNumber (item, 'amount');
-        const after = this.safeNumber (item, 'balance');
+        const balanceAfter = undefined;
+        // const balanceAfter = this.safeNumber (item, 'balance'); only returns zero string
+        const bizType = this.safeString (item, 'bizType');
+        const type = this.parseLedgerEntryType (bizType);
         const direction = this.safeString (item, 'direction');
-        let before = undefined;
-        if (after !== undefined && amount !== undefined) {
-            const difference = (direction === 'out') ? amount : -amount;
-            before = this.sum (after, difference);
-        }
         const timestamp = this.safeInteger (item, 'createdAt');
-        const type = this.parseLedgerEntryType (this.safeString (item, 'bizType'));
-        const contextString = this.safeString (item, 'context');
-        let id = undefined;
+        const datetime = this.iso8601 (timestamp);
+        const account = this.safeString (item, 'accountType'); // MAIN, TRADE, MARGIN, or CONTRACT
+        const context = this.safeString (item, 'context'); // contains other information about the ledger entry
+        //
+        // withdrawal transaction
+        //
+        //     "{\"orderId\":\"617bb2d09e7b3b000196dac8\",\"txId\":\"0x79bb9855f86b351a45cab4dc69d78ca09586a94c45dde49475722b98f401b054\"}"
+        //
+        // deposit to MAIN, trade via MAIN
+        //
+        //     "{\"orderId\":\"617ab9949e7b3b0001948081\",\"txId\":\"0x7a06b16bbd6b03dbc3d96df5683b15229fc35e7184fd7179a5f3a310bd67d1fa@default@0\"}"
+        //
+        // sell trade
+        //
+        //     "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
+        //
         let referenceId = undefined;
-        if (this.isJsonEncodedObject (contextString)) {
-            const context = this.parseJson (contextString);
-            id = this.safeString (context, 'orderId');
-            if (type === 'trade') {
-                referenceId = this.safeString (context, 'tradeId');
-            } else if (type === 'transaction') {
-                referenceId = this.safeString (context, 'txId');
+        if (context !== undefined) {
+            const parsed = JSON.parse (context);
+            const orderId = this.safeString (parsed, 'orderId');
+            const tradeId = this.safeString (parsed, 'tradeId');
+            // transactions only have an orderId but for trades we wish to use tradeId
+            if (tradeId !== undefined) {
+                referenceId = tradeId;
+            } else {
+                referenceId = orderId;
             }
+        }
+        let fee = undefined;
+        const feeCost = this.safeNumber (item, 'fee');
+        let feeCurrency = undefined;
+        if (feeCost !== 0) {
+            feeCurrency = code;
+            fee = { 'cost': feeCost, 'currency': feeCurrency };
         }
         return {
             'id': id,
-            'currency': code,
-            'account': undefined,
-            'referenceAccount': undefined,
-            'referenceId': referenceId,
-            'status': undefined,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'fee': fee,
             'direction': direction,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': account,
             'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'before': undefined,
+            'after': balanceAfter, // undefined
+            'status': undefined,
+            'fee': fee,
             'info': item,
         };
     }
 
-    parseLedgerEntryType (type) {
-        const types = {
-            'Exchange': 'trade',
-            'Withdrawal': 'transaction',
-            'Deposit': 'transaction',
-            'Transfer': 'transfer',
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const request = {
+            // 'currency': currency['id'], // can choose up to 10, if not provided returns for all currencies by default
+            // 'direction': 'in', // 'out'
+            // 'bizType': 'DEPOSIT', // DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS (optional)
+            // 'startAt': since,
+            // 'endAt': exchange.milliseconds (),
         };
-        return this.safeString (types, type, type);
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        // atm only single currency retrieval is supported
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetAccountsLedgers (this.extend (request, params));
+        //
+        //     {
+        //         "code":"200000",
+        //         "data":{
+        //             "currentPage":1,
+        //             "pageSize":50,
+        //             "totalNum":1,
+        //             "totalPage":1,
+        //             "items":[
+        //                 {
+        //                     "id":"617cc528729f5f0001c03ceb",
+        //                     "currency":"GAS",
+        //                     "amount":"0.00000339",
+        //                     "fee":"0",
+        //                     "balance":"0",
+        //                     "accountType":"MAIN",
+        //                     "bizType":"Distribution",
+        //                     "direction":"in",
+        //                     "createdAt":1635566888183,
+        //                     "context":"{\"orderId\":\"617cc47a1c47ed0001ce3606\",\"description\":\"Holding NEO,distribute GAS(2021/10/30)\"}"
+        //                 }
+        //                 {
+        //                     "id": "611a1e7c6a053300067a88d9",//unique key
+        //                     "currency": "USDT", //Currency
+        //                     "amount": "10.00059547", //Change amount of the funds
+        //                     "fee": "0", //Deposit or withdrawal fee
+        //                     "balance": "0", //Total assets of a currency
+        //                     "accountType": "MAIN", //Account Type
+        //                     "bizType": "Loans Repaid", //business type
+        //                     "direction": "in", //side, in or out
+        //                     "createdAt": 1629101692950, //Creation time
+        //                     "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const items = this.safeValue (data, 'items');
+        return this.parseLedger (items, currency, since, limit);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {

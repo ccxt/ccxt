@@ -584,16 +584,10 @@ module.exports = class btcturk extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'id');
-        const priceString = this.safeString (order, 'price');
-        const precisePrice = new Precise (priceString);
-        let price = undefined;
-        const isZero = precisePrice.toString () === '0';
-        if (!isZero) {
-            price = this.parseNumber (precisePrice);
-        }
-        const amountString = this.safeString (order, 'quantity');
-        const amount = this.parseNumber (Precise.stringAbs (amountString));
-        const remaining = this.safeNumber (order, 'leftAmount');
+        const price = this.safeString (order, 'price');
+        const amountString = this.safeString (order, 'amount');
+        const amount = Precise.stringAbs (amountString);
+        const remaining = this.safeString (order, 'leftAmount');
         const marketId = this.safeNumber (order, 'pairSymbol');
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeString (order, 'type');
@@ -602,7 +596,7 @@ module.exports = class btcturk extends Exchange {
         const timestamp = this.safeInteger2 (order, 'updateTime', 'datetime');
         const rawStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (rawStatus);
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'price': price,

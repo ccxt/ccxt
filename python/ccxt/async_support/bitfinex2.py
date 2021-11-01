@@ -958,10 +958,10 @@ class bitfinex2(bitfinex):
         # https://github.com/ccxt/ccxt/issues/6686
         # timestamp = self.safe_timestamp(order, 5)
         timestamp = self.safe_integer(order, 5)
-        remaining = abs(self.safe_number(order, 6))
-        signedAmount = self.safe_number(order, 7)
-        amount = abs(signedAmount)
-        side = 'sell' if (signedAmount < 0) else 'buy'
+        remaining = Precise.string_abs(self.safe_string(order, 6))
+        signedAmount = self.safe_string(order, 7)
+        amount = Precise.string_abs(signedAmount)
+        side = 'sell' if Precise.string_lt(signedAmount, '0') else 'buy'
         orderType = self.safe_string(order, 8)
         type = self.safe_string(self.safe_value(self.options, 'exchangeTypes'), orderType)
         status = None
@@ -969,10 +969,10 @@ class bitfinex2(bitfinex):
         if statusString is not None:
             parts = statusString.split(' @ ')
             status = self.parse_order_status(self.safe_string(parts, 0))
-        price = self.safe_number(order, 16)
-        average = self.safe_number(order, 17)
+        price = self.safe_string(order, 16)
+        average = self.safe_string(order, 17)
         clientOrderId = self.safe_string(order, 2)
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1251,6 +1251,7 @@ class bitfinex2(bitfinex):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

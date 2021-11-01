@@ -992,21 +992,30 @@ class ftx(Exchange):
             'taker': self.safe_number(result, 'takerFee'),
         }
 
-    async def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+    async def fetch_funding_rate_history(self, symbol=None, limit=None, since=None, params={}):
         #
         # Gets a history of funding rates with their timestamps
         #  (param) symbol: Future currency pair(e.g. "BTC-PERP")
         #  (param) limit: Not used by ftx
         #  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        #  (param) params: Object containing more params for the request
+        #             - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
         #  return: [{symbol, fundingRate, timestamp}]
         #
         await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'future': market['id'],
-        }
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['future'] = market['id']
         if since is not None:
             request['start_time'] = int(since / 1000)
+        till = self.safe_integer(params, 'till')  # unified in milliseconds
+        endTime = self.safe_string(params, 'end_time')  # exchange-specific in seconds
+        params = self.omit(params, ['end_time', 'till'])
+        if till is not None:
+            request['end_time'] = int(till / 1000)
+        elif endTime is not None:
+            request['end_time'] = endTime
         response = await self.publicGetFundingRates(self.extend(request, params))
         #
         #     {
@@ -1023,10 +1032,16 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result')
         rates = []
         for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'future')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.parse8601(self.safe_string(result[i], 'time'))
             rates.append({
-                'symbol': self.safe_string(result[i], 'future'),
-                'fundingRate': self.safe_number(result[i], 'rate'),
-                'timestamp': self.parse8601(self.safe_string(result[i], 'time')),
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
             })
         return self.sort_by(rates, 'timestamp')
 
@@ -1177,12 +1192,12 @@ class ftx(Exchange):
         id = self.safe_string(order, 'id')
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        amount = self.safe_number(order, 'size')
-        filled = self.safe_number(order, 'filledSize')
-        remaining = self.safe_number(order, 'remainingSize')
-        if (remaining == 0.0) and (amount is not None) and (filled is not None):
-            remaining = max(amount - filled, 0)
-            if remaining > 0:
+        amount = self.safe_string(order, 'size')
+        filled = self.safe_string(order, 'filledSize')
+        remaining = self.safe_string(order, 'remainingSize')
+        if Precise.string_equals(remaining, '0'):
+            remaining = Precise.string_sub(amount, filled)
+            if Precise.string_gt(remaining, '0'):
                 status = 'canceled'
         symbol = None
         marketId = self.safe_string(order, 'market')
@@ -1198,16 +1213,13 @@ class ftx(Exchange):
             symbol = market['symbol']
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')
-        average = self.safe_number(order, 'avgFillPrice')
-        price = self.safe_number_2(order, 'price', 'triggerPrice', average)
-        cost = None
-        if filled is not None and price is not None:
-            cost = filled * price
+        average = self.safe_string(order, 'avgFillPrice')
+        price = self.safe_string_2(order, 'price', 'triggerPrice', average)
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'triggeredAt'))
         clientOrderId = self.safe_string(order, 'clientId')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return {
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1222,14 +1234,14 @@ class ftx(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -1819,6 +1831,7 @@ class ftx(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

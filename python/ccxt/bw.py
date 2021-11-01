@@ -953,6 +953,7 @@ class bw(Exchange):
             'currency': code,
             'address': self.check_address(address),
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

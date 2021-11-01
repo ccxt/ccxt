@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -38,12 +38,164 @@ module.exports = class kuna extends Exchange {
                 'extension': '.json',
                 'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg',
-                'api': 'https://kuna.io',
+                'api': {
+                    'xreserve': 'https://api.xreserve.fund',
+                    'v3': 'https://api.kuna.io',
+                    'public': 'https://kuna.io', // v2
+                    'private': 'https://kuna.io', // v2
+                },
                 'www': 'https://kuna.io',
                 'doc': 'https://kuna.io/documents/api',
                 'fees': 'https://kuna.io/documents/api',
             },
             'api': {
+                'xreserve': {
+                    'get': {
+                        'nonce': 1,
+                        'fee': 1,
+                        'delegated-transactions': 1,
+                    },
+                    'post': {
+                        'delegate-transfer': 1,
+                    },
+                },
+                'v3': {
+                    'public': {
+                        'get': {
+                            'timestamp': 1,
+                            'currencies': 1,
+                            'markets': 1,
+                            'tickers': 1,
+                            'k': 1,
+                            'trades_history': 1,
+                            'fees': 1,
+                            'exchange-rates': 1,
+                            'exchange-rates/currency': 1,
+                            'book/market': 1,
+                            'kuna_codes/code/check': 1,
+                            'landing_page_statistic': 1,
+                            'translations/locale': 1,
+                            'trades/market/hist': 1,
+                        },
+                        'post': {
+                            'http_test': 1,
+                            'deposit_channels': 1,
+                            'withdraw_channels': 1,
+                            'subscription_plans': 1,
+                            'send_to': 1,
+                            'confirm_token': 1,
+                            'kunaid': 1,
+                            'withdraw/prerequest': 1,
+                            'deposit/prerequest': 1,
+                            'deposit/exchange-rates': 1,
+                        },
+                    },
+                    'sign': {
+                        'get': {
+                            'reset_password/token': 1,
+                        },
+                        'post': {
+                            'signup/google': 1,
+                            'signup/resend_confirmation': 1,
+                            'signup': 1,
+                            'signin': 1,
+                            'signin/two_factor': 1,
+                            'signin/resend_confirm_device': 1,
+                            'signin/confirm_device': 1,
+                            'reset_password': 1,
+                            'cool-signin': 1,
+                        },
+                        'put': {
+                            'reset_password/token': 1,
+                            'signup/code/confirm': 1,
+                        },
+                    },
+                    'private': {
+                        'post': {
+                            'auth/w/order/submit': 1,
+                            'auth/r/orders': 1,
+                            'auth/r/orders/market': 1,
+                            'auth/r/orders/markets': 1,
+                            'auth/api_tokens/delete': 1,
+                            'auth/api_tokens/create': 1,
+                            'auth/api_tokens': 1,
+                            'auth/signin_history/uniq': 1,
+                            'auth/signin_history': 1,
+                            'auth/disable_withdraw_confirmation': 1,
+                            'auth/change_password': 1,
+                            'auth/deposit_address': 1,
+                            'auth/announcements/accept': 1,
+                            'auth/announcements/unaccepted': 1,
+                            'auth/otp/deactivate': 1,
+                            'auth/otp/activate': 1,
+                            'auth/otp/secret': 1,
+                            'auth/r/order/market/:order_id/trades': 1,
+                            'auth/r/orders/market/hist': 1,
+                            'auth/r/orders/hist': 1,
+                            'auth/r/orders/hist/markets': 1,
+                            'auth/r/orders/details': 1,
+                            'auth/assets-history': 1,
+                            'auth/assets-history/withdraws': 1,
+                            'auth/assets-history/deposits': 1,
+                            'auth/r/wallets': 1,
+                            'auth/markets/favorites': 1,
+                            'auth/markets/favorites/list': 1,
+                            'auth/me/update': 1,
+                            'auth/me': 1,
+                            'auth/fund_sources': 1,
+                            'auth/fund_sources/list': 1,
+                            'auth/withdraw/resend_confirmation': 1,
+                            'auth/withdraw': 1,
+                            'auth/withdraw/details': 1,
+                            'auth/withdraw/info': 1,
+                            'auth/payment_addresses': 1,
+                            'auth/deposit/prerequest': 1,
+                            'auth/deposit/exchange-rates': 1,
+                            'auth/deposit': 1,
+                            'auth/deposit/details': 1,
+                            'auth/deposit/info': 1,
+                            'auth/kuna_codes/count': 1,
+                            'auth/kuna_codes/details': 1,
+                            'auth/kuna_codes/edit': 1,
+                            'auth/kuna_codes/send-pdf': 1,
+                            'auth/kuna_codes': 1,
+                            'auth/kuna_codes/redeemed-by-me': 1,
+                            'auth/kuna_codes/issued-by-me': 1,
+                            'auth/payment_requests/invoice': 1,
+                            'auth/payment_requests/type': 1,
+                            'auth/referral_program/weekly_earnings': 1,
+                            'auth/referral_program/stats': 1,
+                            'auth/merchant/payout_services': 1,
+                            'auth/merchant/withdraw': 1,
+                            'auth/merchant/payment_services': 1,
+                            'auth/merchant/deposit': 1,
+                            'auth/verification/auth_token': 1,
+                            'auth/kunaid_purchase/create': 1,
+                            'auth/devices/list': 1,
+                            'auth/sessions/list': 1,
+                            'auth/subscriptions/reactivate': 1,
+                            'auth/subscriptions/cancel': 1,
+                            'auth/subscriptions/prolong': 1,
+                            'auth/subscriptions/create': 1,
+                            'auth/subscriptions/list': 1,
+                            'auth/kuna_ids/list': 1,
+                            'order/cancel/multi': 1,
+                            'order/cancel': 1,
+                        },
+                        'put': {
+                            'auth/fund_sources/id': 1,
+                            'auth/kuna_codes/redeem': 1,
+                        },
+                        'delete': {
+                            'auth/markets/favorites': 1,
+                            'auth/fund_sources': 1,
+                            'auth/devices': 1,
+                            'auth/devices/list': 1,
+                            'auth/sessions/list': 1,
+                            'auth/sessions': 1,
+                        },
+                    },
+                },
                 'public': {
                     'get': [
                         'depth', // Get depth or specified market Both asks and bids are sorted from highest price to lowest.
@@ -402,7 +554,7 @@ module.exports = class kuna extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const id = this.safeString (order, 'id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -414,11 +566,11 @@ module.exports = class kuna extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeNumber (order, 'price'),
+            'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
-            'amount': this.safeNumber (order, 'volume'),
-            'filled': this.safeNumber (order, 'executed_volume'),
-            'remaining': this.safeNumber (order, 'remaining_volume'),
+            'amount': this.safeString (order, 'volume'),
+            'filled': this.safeString (order, 'executed_volume'),
+            'remaining': this.safeString (order, 'remaining_volume'),
             'trades': undefined,
             'fee': undefined,
             'info': order,
@@ -488,31 +640,49 @@ module.exports = class kuna extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
-        if ('extension' in this.urls) {
-            request += this.urls['extension'];
-        }
-        const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + request;
-        if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+        let url = undefined;
+        if (Array.isArray (api)) {
+            const [ version, access ] = api;
+            url = this.urls['api'][version] + '/' + version + '/' + this.implodeParams (path, params);
+            if (access === 'public') {
+                if (method === 'GET') {
+                    if (Object.keys (params).length) {
+                        url += '?' + this.urlencode (params);
+                    }
+                } else if ((method === 'POST') || (method === 'PUT')) {
+                    headers = { 'Content-Type': 'application/json' };
+                    body = this.json (params);
+                }
+            } else if (access === 'private') {
+                throw new NotSupported (this.id + ' private v3 API is not supported yet');
             }
         } else {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const query = this.encodeParams (this.extend ({
-                'access_key': this.apiKey,
-                'tonce': nonce,
-            }, params));
-            const auth = method + '|' + request + '|' + query;
-            const signed = this.hmac (this.encode (auth), this.encode (this.secret));
-            const suffix = query + '&signature=' + signed;
-            if (method === 'GET') {
-                url += '?' + suffix;
+            let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
+            if ('extension' in this.urls) {
+                request += this.urls['extension'];
+            }
+            const query = this.omit (params, this.extractParams (path));
+            url = this.urls['api'][api] + request;
+            if (api === 'public') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
             } else {
-                body = suffix;
-                headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+                this.checkRequiredCredentials ();
+                const nonce = this.nonce ().toString ();
+                const query = this.encodeParams (this.extend ({
+                    'access_key': this.apiKey,
+                    'tonce': nonce,
+                }, params));
+                const auth = method + '|' + request + '|' + query;
+                const signed = this.hmac (this.encode (auth), this.encode (this.secret));
+                const suffix = query + '&signature=' + signed;
+                if (method === 'GET') {
+                    url += '?' + suffix;
+                } else {
+                    body = suffix;
+                    headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

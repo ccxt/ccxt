@@ -165,9 +165,11 @@ module.exports = class probit extends Exchange {
                 'GOL': 'Goldofir',
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
+                'LBK': 'Legal Block',
                 'ORC': 'Oracle System',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
+                'SST': 'SocialSwap',
                 'TCT': 'Top Coin Token',
                 'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
@@ -1055,6 +1057,7 @@ module.exports = class probit extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': depositAddress,
         };
     }

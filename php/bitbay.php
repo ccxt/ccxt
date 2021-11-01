@@ -337,10 +337,10 @@ class bitbay extends Exchange {
         $marketId = $this->safe_string($order, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->safe_integer($order, 'time');
-        $amount = $this->safe_number($order, 'startAmount');
-        $remaining = $this->safe_number($order, 'currentAmount');
+        $amount = $this->safe_string($order, 'startAmount');
+        $remaining = $this->safe_string($order, 'currentAmount');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'info' => $order,
@@ -353,7 +353,7 @@ class bitbay extends Exchange {
             'timeInForce' => null,
             'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'offerType'),
-            'price' => $this->safe_number($order, 'rate'),
+            'price' => $this->safe_string($order, 'rate'),
             'stopPrice' => null,
             'amount' => $amount,
             'cost' => null,

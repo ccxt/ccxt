@@ -16,6 +16,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import CancelPending
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -96,7 +97,7 @@ class okex(Exchange):
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs-v5/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
-                'referral': 'https://www.okex.com/join/1888677',
+                # 'referral': 'https://www.okex.com/join/1888677',
                 'test': {
                     'rest': 'https://testnet.okex.com',
                 },
@@ -401,7 +402,7 @@ class okex(Exchange):
                     '51407': BadRequest,  # Either order ID or client order ID is required
                     '51408': ExchangeError,  # Pair ID or name does not match the order info
                     '51409': ExchangeError,  # Either pair ID or pair name ID is required
-                    '51410': ExchangeError,  # Cancellation failed as the order is already under cancelling status
+                    '51410': CancelPending,  # Cancellation failed as the order is already under cancelling status
                     '51500': ExchangeError,  # Either order price or amount is required
                     '51501': ExchangeError,  # Maximum {0} orders can be modified
                     '51502': InsufficientFunds,  # Order modification failed for insufficient margin
@@ -533,7 +534,7 @@ class okex(Exchange):
                     'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder'
-                'createMarketBuyOrderRequiresPrice': True,
+                'createMarketBuyOrderRequiresPrice': False,
                 'fetchMarkets': ['spot', 'futures', 'swap'],  # spot, futures, swap, option
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 # 'fetchBalance': {
@@ -702,6 +703,9 @@ class okex(Exchange):
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         contractSize = self.safe_string(market, 'ctVal')
         leverage = self.safe_number(market, 'lever', 1)
+        expiry = None
+        if futures or option:
+            expiry = self.safe_number(market, 'expTime')
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -720,6 +724,8 @@ class okex(Exchange):
             'active': active,
             'contractSize': contractSize,
             'precision': precision,
+            'expiry': expiry,
+            'expiryDatetime': self.iso8601(expiry),
             'limits': {
                 'amount': {
                     'min': minAmount,
@@ -1872,8 +1878,13 @@ class okex(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        defaultType = self.safe_string(self.options, 'defaultType')
+        options = self.safe_value(self.options, 'fetchMyTrades', {})
+        type = self.safe_string(options, 'type', defaultType)
+        params = self.omit(params, 'type')
+        self.load_markets()
         request = {
-            'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
+            # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'uly': currency['id'],
             # 'instId': market['id'],
             # 'ordId': orderId,
@@ -1882,10 +1893,11 @@ class okex(Exchange):
             # 'limit': limit,  # default 100, max 100
         }
         market = None
-        self.load_markets()
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
+            type = market['type']
+        request['instType'] = type.upper()
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         response = self.privateGetTradeFillsHistory(self.extend(request, params))

@@ -1100,6 +1100,7 @@ class hitbtc(Exchange):
             'currency': currency['code'],
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

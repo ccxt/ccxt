@@ -450,11 +450,11 @@ class bitso extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $orderType = $this->safe_string($order, 'type');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'original_amount');
-        $remaining = $this->safe_number($order, 'unfilled_amount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'original_amount');
+        $remaining = $this->safe_string($order, 'unfilled_amount');
         $clientOrderId = $this->safe_string($order, 'client_id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -552,6 +552,7 @@ class bitso extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $response,
         );
     }

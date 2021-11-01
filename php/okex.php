@@ -80,7 +80,7 @@ class okex extends Exchange {
                 'www' => 'https://www.okex.com',
                 'doc' => 'https://www.okex.com/docs-v5/en/',
                 'fees' => 'https://www.okex.com/pages/products/fees.html',
-                'referral' => 'https://www.okex.com/join/1888677',
+                // 'referral' => 'https://www.okex.com/join/1888677',
                 'test' => array(
                     'rest' => 'https://testnet.okex.com',
                 ),
@@ -385,7 +385,7 @@ class okex extends Exchange {
                     '51407' => '\\ccxt\\BadRequest', // Either order ID or client order ID is required
                     '51408' => '\\ccxt\\ExchangeError', // Pair ID or name does not match the order info
                     '51409' => '\\ccxt\\ExchangeError', // Either pair ID or pair name ID is required
-                    '51410' => '\\ccxt\\ExchangeError', // Cancellation failed as the order is already under cancelling status
+                    '51410' => '\\ccxt\\CancelPending', // Cancellation failed as the order is already under cancelling status
                     '51500' => '\\ccxt\\ExchangeError', // Either order price or amount is required
                     '51501' => '\\ccxt\\ExchangeError', // Maximum {0} orders can be modified
                     '51502' => '\\ccxt\\InsufficientFunds', // Order modification failed for insufficient margin
@@ -517,7 +517,7 @@ class okex extends Exchange {
                     'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
-                'createMarketBuyOrderRequiresPrice' => true,
+                'createMarketBuyOrderRequiresPrice' => false,
                 'fetchMarkets' => array( 'spot', 'futures', 'swap' ), // spot, futures, swap, option
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 // 'fetchBalance' => array(
@@ -697,6 +697,10 @@ class okex extends Exchange {
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
         $contractSize = $this->safe_string($market, 'ctVal');
         $leverage = $this->safe_number($market, 'lever', 1);
+        $expiry = null;
+        if ($futures || $option) {
+            $expiry = $this->safe_number($market, 'expTime');
+        }
         return array_merge($fees, array(
             'id' => $id,
             'symbol' => $symbol,
@@ -715,6 +719,8 @@ class okex extends Exchange {
             'active' => $active,
             'contractSize' => $contractSize,
             'precision' => $precision,
+            'expiry' => $expiry,
+            'expiryDatetime' => $this->iso8601($expiry),
             'limits' => array(
                 'amount' => array(
                     'min' => $minAmount,
@@ -1936,8 +1942,13 @@ class okex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $options = $this->safe_value($this->options, 'fetchMyTrades', array());
+        $type = $this->safe_string($options, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        $this->load_markets();
         $request = array(
-            'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly' => currency['id'],
             // 'instId' => $market['id'],
             // 'ordId' => orderId,
@@ -1946,11 +1957,12 @@ class okex extends Exchange {
             // 'limit' => $limit, // default 100, max 100
         );
         $market = null;
-        $this->load_markets();
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
+            $type = $market['type'];
         }
+        $request['instType'] = strtoupper($type);
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }

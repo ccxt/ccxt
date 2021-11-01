@@ -231,6 +231,7 @@ class poloniex(Exchange):
                 'broad': {
                     'Total must be at least': InvalidOrder,  # {"error":"Total must be at least 0.0001."}
                     'This account is frozen.': AccountSuspended,
+                    'This account is locked.': AccountSuspended,  # {"error":"This account is locked."}
                     'Not enough': InsufficientFunds,
                     'Nonce must be greater': InvalidNonce,
                     'You have already called cancelOrder or moveOrder on self order.': CancelPending,
@@ -1199,6 +1200,7 @@ class poloniex(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

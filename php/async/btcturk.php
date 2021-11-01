@@ -586,16 +586,10 @@ class btcturk extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'id');
-        $priceString = $this->safe_string($order, 'price');
-        $precisePrice = new Precise ($priceString);
-        $price = null;
-        $isZero = (string) $precisePrice === '0';
-        if (!$isZero) {
-            $price = $this->parse_number($precisePrice);
-        }
-        $amountString = $this->safe_string($order, 'quantity');
-        $amount = $this->parse_number(Precise::string_abs($amountString));
-        $remaining = $this->safe_number($order, 'leftAmount');
+        $price = $this->safe_string($order, 'price');
+        $amountString = $this->safe_string($order, 'amount');
+        $amount = Precise::string_abs($amountString);
+        $remaining = $this->safe_string($order, 'leftAmount');
         $marketId = $this->safe_number($order, 'pairSymbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $side = $this->safe_string($order, 'type');
@@ -604,7 +598,7 @@ class btcturk extends Exchange {
         $timestamp = $this->safe_integer_2($order, 'updateTime', 'datetime');
         $rawStatus = $this->safe_string($order, 'status');
         $status = $this->parse_order_status($rawStatus);
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'price' => $price,

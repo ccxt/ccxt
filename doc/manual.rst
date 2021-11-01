@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 105 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -147,11 +147,11 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com/en/register?ref=BLEJC98C
+          :target: https://www.binance.com
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com/en/register?ref=BLEJC98C>`__
+     - `Binance <https://www.binance.com>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/spot/en
           :alt: API Version *
@@ -165,11 +165,11 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=BLEJC98C
+          :target: https://www.binance.com
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com/en/register?ref=BLEJC98C>`__
+     - `Binance COIN-M <https://www.binance.com>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/delivery/en/
           :alt: API Version *
@@ -198,11 +198,11 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=BLEJC98C
+          :target: https://www.binance.com
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=BLEJC98C>`__
+     - `Binance USDⓈ-M <https://www.binance.com>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/futures/en/
           :alt: API Version *
@@ -394,6 +394,18 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
      - `Bitpanda Pro <https://www.bitpanda.com/en/pro>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://developers.bitpanda.com/exchange/
+          :alt: API Version 1
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg
+          :target: https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000
+          :alt: bitrue
+     
+     - bitrue
+     - `Bitrue <https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://github.com/Bitrue-exchange/bitrue-official-api-docs
           :alt: API Version 1
      
      - 
@@ -656,18 +668,6 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg
-          :target: https://www.coinegg.com/user/register?invite=523218
-          :alt: coinegg
-     
-     - coinegg
-     - `CoinEgg <https://www.coinegg.com/user/register?invite=523218>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://www.coinegg.com/explain.api.html
-          :alt: API Version *
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg
           :target: https://www.coinex.com/register?refer_code=yw5fz
           :alt: coinex
@@ -917,6 +917,21 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
+          :target: https://hitbtc.com/?ref_id=5a5d39a65d466
+          :alt: hitbtc3
+     
+     - hitbtc3
+     - `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://api.hitbtc.com
+          :alt: API Version 3
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg
           :target: https://pro.hollaex.com/signup?affiliation_code=QSWA6G
           :alt: hollaex
@@ -930,11 +945,11 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
+          :target: https://www.huobi.com
           :alt: huobi
      
      - huobi
-     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
+     - `Huobi <https://www.huobi.com>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
@@ -1185,11 +1200,11 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com/join/1888677
+          :target: https://www.okex.com
           :alt: okex
      
      - okex
-     - `OKEX <https://www.okex.com/join/1888677>`__
+     - `OKEX <https://www.okex.com>`__
      - .. image:: https://img.shields.io/badge/5-lightgray
           :target: https://www.okex.com/docs-v5/en/
           :alt: API Version 5
@@ -3371,7 +3386,7 @@ Timestamp and datetime are both Universal Time Coordinated (UTC) in milliseconds
 
 Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some exchanges even serve top bid/ask volumes) you should not treat a ticker as a ``fetchOrderBook`` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent ``fetchTicker`` requests by imposing stricter rate limits on these queries. If you need a unified way to access bids and asks you should use ``fetchL[123]OrderBook`` family instead.
 
-To get historical prices and volumes use the unified :ref:`\ ``fetchOHLCV`` <ohlcv candlestick charts>` method where available.
+To get historical prices and volumes use the unified :ref:`\ ``fetchOHLCV`` <ohlcv candlestick charts>` method where available. To get historical mark, index, and premium index prices, add one of ``'price': 'mark'``\ , ``'price': 'index'``\ , ``'price': 'premiumIndex'`` respectively to the :ref:`params-overrides <overriding unified api params>` of ``fetchOHLCV``. There are also convenience methods ``fetchMarkPriceOHLCV``\ , ``fetchIndexPriceOHLCV``\ , and ``fetchPremiumIndexOHLCV`` that obtain the mark, index and premiumIndex historical prices and volumes.
 
 Methods for fetching tickers:
 
@@ -3571,6 +3586,56 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
    ]
 
 The list of candles is returned sorted in ascending (historical/chronological) order, oldest candle first, most recent candle last.
+
+Mark, Index and PremiumIndex Candlestick Charts
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To obtain historical Mark, Index Price and Premium Index candlesticks pass the ``'price'`` :doc:`params-override <overriding unified api params>` to ``fetchOHLCV``. The ``'price'`` parameter accepts one of the following values:
+
+
+ * ``'mark'``
+ * ``'index'``
+ * ``'premiumIndex'``
+
+.. code-block:: JavaScript
+
+   // JavaScript
+   async function main () {
+       const exchange = new ccxt.binanceusdm ()
+       const markKlines = await exchange.fetchOHLCV ('ADA/USDT', '1h', undefined, undefined, { 'price': 'mark' })
+       console.log (markKlines)
+       const indexKlines = await exchange.fetchOHLCV ('ADA/USDT', '1h', undefined, undefined, { 'price': 'index' })
+       console.log (indexKlines)
+   }
+
+   main ()
+
+There are also convenience methods ``fetchMarkOHLCV``\ , ``fetchIndexOHLCV`` and ``fetchPremiumIndexOHLCV``
+
+.. code-block:: JavaScript
+
+   // JavaScript
+   async function main () {
+       const exchange = new ccxt.binanceusdm ()
+       const markKlines = await exchange.fetchMarkOHLCV ('ADA/USDT', '1h')
+       console.log (markKlines)
+       const indexKlines = await exchange.fetchIndexOHLCV ('ADA/USDT', '1h')
+       console.log (indexKlines)
+   }
+
+   main ()
+
+.. code-block:: Python
+
+   # Python
+   exchange = ccxt.binance()
+   response = exchange.fetch_ohlcv('ADA/USDT', '1h', params={'price':'index'})
+   pprint(response)
+   # Convenience methods
+   mark_klines = exchange.fetch_mark_ohlcv('ADA/USDT', '1h')
+   index_klines = exchange.fetch_index_ohlcv('ADA/USDT', '1h')
+   pprint(mark_klines)
+   pprint(index_klines)
 
 OHLCV Emulation
 ^^^^^^^^^^^^^^^
@@ -4823,7 +4888,8 @@ Position Structure
       'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
       'side': 'long',              // string, long or short
       'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
-      'price': 20000,              // float, the average entry price of the position
+      'contractSize': 100,         // float, the size of one contract in quote units
+      'entryPrice': 20000,         // float, the average entry price of the position
       'markPrice': 20050,          // float, a price that is used for funding calculations
       'notional': 100000,          // float, the value of the position in the settlement currency
       'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
@@ -4834,7 +4900,8 @@ Position Structure
       'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
       'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
       'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
-      'status': 'open',            // string, can be "open", "closed" or "liquidating"
+      'marginType': 'cross',       // string, can be cross or isolated
+      'percentage': 3.32,          // float, represents unrealizedPnl / initialMargin * 100
    }
 
 Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.

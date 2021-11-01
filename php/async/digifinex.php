@@ -1240,6 +1240,7 @@ class digifinex extends Exchange {
             'code' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
         );
     }
 
