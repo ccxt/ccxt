@@ -1520,28 +1520,22 @@ class bitmart(Exchange):
         status = None
         if market is not None:
             status = self.parse_order_status_by_type(market['type'], self.safe_string(order, 'status'))
-        price = self.safe_number(order, 'price')
-        average = self.safe_number_2(order, 'price_avg', 'done_avg_price')
-        amount = self.safe_number_2(order, 'size', 'vol')
-        filled = self.safe_number_2(order, 'filled_size', 'done_vol')
-        side = self.safe_string(order, 'side')
+        amount = self.safe_string_2(order, 'size', 'vol')
+        filled = self.safe_string_2(order, 'filled_size', 'done_vol')
+        average = self.safe_string_2(order, 'price_avg', 'done_avg_price')
+        price = self.safe_string(order, 'price')
+        side = self.safe_string_2(order, 'way', 'side')
         # 1 = Open long
         # 2 = Close short
         # 3 = Close long
         # 4 = Open short
-        side = self.safe_string(order, 'way', side)
         category = self.safe_integer(order, 'category')
         type = self.safe_string(order, 'type')
         if category == 1:
             type = 'limit'
         elif category == 2:
             type = 'market'
-        if type == 'market':
-            if price == 0.0:
-                price = None
-            if average == 0.0:
-                average = None
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'info': order,
