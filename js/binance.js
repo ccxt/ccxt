@@ -4493,23 +4493,21 @@ module.exports = class binance extends Exchange {
             throw NotSupported (this.id + ' fetchIsolatedPositions() supports linear and inverse contracts only');
         }
         const response = await this[method] (this.extend (request, params));
+        const result = [];
         if (symbol === undefined) {
-            const result = [];
             for (let i = 0; i < response.length; i++) {
                 const parsed = this.parsePositionRisk (response[i], market);
                 result.push (parsed);
             }
-            return result;
         } else {
-            const result = [];
             for (let i = 0; i < response.length; i++) {
                 const parsed = this.parsePositionRisk (response[i], market);
                 if (parsed['symbol'] === symbol) {
                     result.push (parsed);
                 }
             }
-            return result;
         }
+        return result;
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
