@@ -4203,6 +4203,8 @@ module.exports = class binance extends Exchange {
             }
             liquidationPrice = this.parseNumber (truncatedLiquidationPrice);
         }
+        const positionSide = this.safeString (position, 'positionSide');
+        const hedged = positionSide !== 'BOTH';
         return {
             'info': position,
             'symbol': symbol,
@@ -4224,6 +4226,7 @@ module.exports = class binance extends Exchange {
             'collateral': collateral,
             'marginType': marginType,
             'side': side,
+            'hedged': hedged,
             'percentage': percentage,
         };
     }
@@ -4358,6 +4361,8 @@ module.exports = class binance extends Exchange {
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
+        const positionSide = this.safeString (position, 'positionSide');
+        const hedged = positionSide !== 'BOTH';
         return {
             'info': position,
             'symbol': symbol,
@@ -4379,6 +4384,7 @@ module.exports = class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'marginType': marginType,
             'side': side,
+            'hedged': hedged,
             'percentage': percentage,
         };
     }
@@ -4495,7 +4501,14 @@ module.exports = class binance extends Exchange {
             }
             return result;
         } else {
-            return this.parsePositionRisk (this.safeValue (response, 0), market);
+            const result = [];
+            for (let i = 0; i < response.length; i++) {
+                const parsed = this.parsePositionRisk (response[i], market);
+                if (parsed['symbol'] === symbol) {
+                    result.push (parsed);
+                }
+            }
+            return result;
         }
     }
 
@@ -4590,6 +4603,29 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'marginType': marginType,
         };
+        return await this[method] (this.extend (request, params));
+    }
+
+    async setHedgeMode (hedge, symbol = undefined, params = {}) {
+        const defaultType = this.safeString (this.options, 'defaultType', 'future');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, [ 'type' ]);
+        let dualSidePosition = undefined;
+        if (hedge) {
+            dualSidePosition = 'true';
+        } else {
+            dualSidePosition = 'false';
+        }
+        const request = {
+            'dualSidePosition': dualSidePosition,
+        };
+        let method = undefined;
+        if (type === 'delivery') {
+            method = 'dapiPrivatePostPositionSideDual';
+        } else {
+            // default to future
+            method = 'fapiPrivatePostPositionSideDual';
+        }
         return await this[method] (this.extend (request, params));
     }
 
