@@ -151,6 +151,7 @@ class crex24(Exchange):
                 'BULL': 'BuySell',
                 'CLC': 'CaluraCoin',
                 'CREDIT': 'TerraCredit',
+                'EGG': 'NestEGG Coin',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
