@@ -8,10 +8,10 @@ const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class latoken extends Exchange {
+module.exports = class latoken2 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'latoken',
+            'id': 'latoken2',
             'name': 'Latoken',
             'countries': [ 'KY' ], // Cayman Islands
             'version': 'v2',
@@ -153,26 +153,31 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetExchangeInfoPairs (params);
+        const response = await this.publicGetPair (params);
         //
         //     [
         //         {
-        //             "pairId": 502,
-        //             "symbol": "LAETH",
-        //             "baseCurrency": "LA",
-        //             "quotedCurrency": "ETH",
-        //             "makerFee": 0.01,
-        //             "takerFee": 0.01,
-        //             "pricePrecision": 8,
-        //             "amountPrecision": 8,
-        //             "minQty": 0.1
+        //             "id":"dba4289b-6b46-4d94-bf55-49eec9a163ad",
+        //             "status":"PAIR_STATUS_ACTIVE",
+        //             "baseCurrency":"fb9b53d6-bbf6-472f-b6ba-73cc0d606c9b",
+        //             "quoteCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //             "priceTick":"0.000000100000000000",
+        //             "priceDecimals":7,
+        //             "quantityTick":"0.010000000",
+        //             "quantityDecimals":2,
+        //             "costDisplayDecimals":7,
+        //             "created":1572957210501,
+        //             "minOrderQuantity":"0",
+        //             "maxOrderCostUsd":"999999999999999999",
+        //             "minOrderCostUsd":"0",
+        //             "externalSymbol":""
         //         }
         //     ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const id = this.safeString (market, 'symbol');
+            const id = this.safeString (market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quotedCurrency');
