@@ -287,8 +287,8 @@ module.exports = class bit2c extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.safeInteger (order, 'created');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -301,7 +301,7 @@ module.exports = class bit2c extends Exchange {
         }
         const id = this.safeString (order, 'id');
         const status = this.safeString (order, 'status');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
