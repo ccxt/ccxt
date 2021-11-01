@@ -1200,11 +1200,11 @@ The CCXT library currently supports the following 106 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com/join/1888677
+          :target: https://www.okex.com
           :alt: okex
      
      - okex
-     - `OKEX <https://www.okex.com/join/1888677>`__
+     - `OKEX <https://www.okex.com>`__
      - .. image:: https://img.shields.io/badge/5-lightgray
           :target: https://www.okex.com/docs-v5/en/
           :alt: API Version 5

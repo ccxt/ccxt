@@ -97,7 +97,7 @@ class okex(Exchange):
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs-v5/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
-                'referral': 'https://www.okex.com/join/1888677',
+                # 'referral': 'https://www.okex.com/join/1888677',
                 'test': {
                     'rest': 'https://testnet.okex.com',
                 },
