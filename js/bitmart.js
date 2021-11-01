@@ -1557,10 +1557,10 @@ module.exports = class bitmart extends Exchange {
         if (market !== undefined) {
             status = this.parseOrderStatusByType (market['type'], this.safeString (order, 'status'));
         }
-        let price = this.safeNumber (order, 'price');
-        let average = this.safeNumber2 (order, 'price_avg', 'done_avg_price');
-        const amount = this.safeNumber2 (order, 'size', 'vol');
-        const filled = this.safeNumber2 (order, 'filled_size', 'done_vol');
+        const amount = this.safeString2 (order, 'size', 'vol');
+        const filled = this.safeString2 (order, 'filled_size', 'done_vol');
+        let average = this.safeString2 (order, 'price_avg', 'done_avg_price');
+        let price = this.safeString (order, 'price');
         let side = this.safeString (order, 'side');
         // 1 = Open long
         // 2 = Close short
@@ -1582,7 +1582,7 @@ module.exports = class bitmart extends Exchange {
                 average = undefined;
             }
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
