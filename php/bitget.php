@@ -1919,11 +1919,11 @@ class bitget extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $amount = $this->safe_number_2($order, 'amount', 'size');
-        $filled = $this->safe_number_2($order, 'filled_amount', 'filled_qty');
-        $cost = $this->safe_number($order, 'filled_cash_amount');
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'price_avg');
+        $amount = $this->safe_string_2($order, 'amount', 'size');
+        $filled = $this->safe_string_2($order, 'filled_amount', 'filled_qty');
+        $cost = $this->safe_string($order, 'filled_cash_amount');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'price_avg');
         $status = $this->parse_order_status($this->safe_string_2($order, 'state', 'status'));
         $feeCost = $this->safe_number_2($order, 'filled_fees', 'fee');
         $fee = null;
@@ -1935,7 +1935,7 @@ class bitget extends Exchange {
             );
         }
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
