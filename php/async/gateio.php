@@ -273,6 +273,7 @@ class gateio extends Exchange {
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
                 'BYN' => 'Beyond Finance',
+                'EGG' => 'Goose Finance',
                 'GTC' => 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'GTC_HT' => 'Game.com HT',
                 'GTC_BSC' => 'Game.com BSC',
