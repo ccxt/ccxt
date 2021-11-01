@@ -3128,9 +3128,6 @@ module.exports = class okex extends Exchange {
         const market = this.market (symbol);
         const marginMode = this.safeStringLower (params, 'mgnMode');
         params = this.omit (params, [ 'mgnMode' ]);
-        if (marginMode === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage requires parameter mgnMode');
-        }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"');
         }
