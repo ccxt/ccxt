@@ -695,9 +695,10 @@ class bigone extends Exchange {
         $marketId = $this->safe_string($order, 'asset_pair_name');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'filled_amount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
+        $average = $this->safe_string($order, 'avg_deal_price');
+        $filled = $this->safe_string($order, 'filled_amount');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string($order, 'side');
         if ($side === 'BID') {
@@ -706,8 +707,7 @@ class bigone extends Exchange {
             $side = 'sell';
         }
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'updated_at'));
-        $average = $this->safe_number($order, 'avg_deal_price');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
