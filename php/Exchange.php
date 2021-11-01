@@ -3337,7 +3337,7 @@ class Exchange {
         // Takes a key and a dictionary, and returns the dictionary's value for that key
         // :throws:
         //      NotSupported if the dictionary does not contain the key
-        if (in_array($key, $mapping)) {
+        if (array_key_exists($key, $mapping)) {
             return $mapping[$key];
         } else {
             throw new NotSupported ($this->id . ' ' . $key . ' does not have a value in mapping');
