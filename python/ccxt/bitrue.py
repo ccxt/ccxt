@@ -160,8 +160,8 @@ class bitrue(Exchange):
                     'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
-                    'taker': self.parse_number('0.001'),
-                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.0098'),
+                    'maker': self.parse_number('0.0098'),
                 },
                 'future': {
                     'trading': {

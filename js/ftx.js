@@ -1047,10 +1047,16 @@ module.exports = class ftx extends Exchange {
         const result = this.safeValue (response, 'result');
         const rates = [];
         for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'future');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.parse8601 (this.safeString (result[i], 'time'));
             rates.push ({
-                'symbol': this.safeString (result[i], 'future'),
-                'fundingRate': this.safeNumber (result[i], 'rate'),
-                'timestamp': this.parse8601 (this.safeString (result[i], 'time')),
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
             });
         }
         return this.sortBy (rates, 'timestamp');

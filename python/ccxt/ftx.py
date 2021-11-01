@@ -1032,10 +1032,16 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result')
         rates = []
         for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'future')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.parse8601(self.safe_string(result[i], 'time'))
             rates.append({
-                'symbol': self.safe_string(result[i], 'future'),
-                'fundingRate': self.safe_number(result[i], 'rate'),
-                'timestamp': self.parse8601(self.safe_string(result[i], 'time')),
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
             })
         return self.sort_by(rates, 'timestamp')
 

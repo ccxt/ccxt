@@ -679,6 +679,7 @@ class binance(Exchange):
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
+                'fetchPositions': 'positionRisk',  # or 'account'
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
@@ -696,6 +697,7 @@ class binance(Exchange):
                 'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
+                    'pay': 'PAY',
                     'margin': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
@@ -3185,11 +3187,13 @@ class binance(Exchange):
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
         currency = self.currency(code)
+        fromAccount = fromAccount.lower()
+        toAccount = toAccount.lower()
         type = self.safe_string(params, 'type')
         if type is None:
             accountsByType = self.safe_value(self.options, 'accountsByType', {})
-            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-            toId = self.safe_string(accountsByType, toAccount, toAccount)
+            fromId = self.safe_string(accountsByType, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount)
             if fromId is None:
                 keys = list(accountsByType.keys())
                 raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
@@ -3735,12 +3739,16 @@ class binance(Exchange):
         #
         rates = []
         for i in range(0, len(response)):
+            entry = response[i]
+            timestamp = self.safe_integer(entry, 'fundingTime')
             rates.append({
-                'symbol': self.safe_string(response[i], 'symbol'),
-                'fundingRate': self.safe_number(response[i], 'fundingRate'),
-                'timestamp': self.safe_number(response[i], 'fundingTime'),
+                'info': entry,
+                'symbol': self.safe_string(entry, 'symbol'),
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
             })
-        return rates
+        return self.sort_by(rates, 'timestamp')
 
     async def fetch_funding_rates(self, symbols=None, params={}):
         await self.load_markets()
@@ -3825,14 +3833,14 @@ class binance(Exchange):
             code = market['quote'] if (self.options['defaultType'] == 'future') else market['base']
             # sometimes not all the codes are correctly returned...
             if code in balances:
-                parsed = self.parse_position(self.extend(position, {
+                parsed = self.parse_account_position(self.extend(position, {
                     'crossMargin': balances[code]['crossMargin'],
                     'crossWalletBalance': balances[code]['crossWalletBalance'],
                 }), market)
                 result.append(parsed)
         return result
 
-    def parse_position(self, position, market=None):
+    def parse_account_position(self, position, market=None):
         #
         # usdm
         #    {
@@ -3937,12 +3945,12 @@ class binance(Exchange):
             entryPrice = None
         else:
             side = 'short' if (notionalFloat < 0) else 'long'
-            marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
+            marginRatio = self.parse_number(Precise.string_div(Precise.string_add(Precise.string_div(maintenanceMarginString, collateralString), '5e-5'), '1', 4))
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
             if usdm:
                 # calculate liquidation price
                 #
-                # liquidationPrice = (walletBalance / (contracts * (±1 + mmp)))(±entryPrice / (±1 + mmp))
+                # liquidationPrice = (walletBalance / (contracts * (±1 + mmp))) + (±entryPrice / (±1 + mmp))
                 #
                 # mmp = maintenanceMarginPercentage
                 # where ± is negative for long and positive for short
@@ -3997,7 +4005,7 @@ class binance(Exchange):
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'entryPrice': entryPrice,
             'notional': notional,
-            'leverage': leverage,
+            'leverage': self.parse_number(leverageString),
             'unrealizedPnl': unrealizedPnl,
             'contracts': contracts,
             'contractSize': self.parse_number(market['contractSize']),
@@ -4071,17 +4079,51 @@ class binance(Exchange):
         unrealizedPnl = self.parse_number(unrealizedPnlString)
         leverageString = self.safe_string(position, 'leverage')
         leverage = int(leverageString)
-        liquidationPrice = self.safe_number(position, 'liquidationPrice')
-        collateralString = self.safe_string(position, 'isolatedMargin')
+        liquidationPriceString = self.omit_zero(self.safe_string(position, 'liquidationPrice'))
+        liquidationPrice = self.parse_number(liquidationPriceString)
+        collateralString = None
+        marginType = self.safe_string(position, 'marginType')
+        side = None
+        if notionalFloat > 0:
+            side = 'long'
+        elif notionalFloat < 0:
+            side = 'short'
+        entryPriceString = self.safe_string(position, 'entryPrice')
+        entryPrice = self.parse_number(entryPriceString)
+        if marginType == 'cross':
+            # calculate collateral
+            if market['linear']:
+                # walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
+                onePlusMaintenanceMarginPercentageString = None
+                entryPriceSignString = entryPriceString
+                if side == 'short':
+                    onePlusMaintenanceMarginPercentageString = Precise.string_add('1', maintenanceMarginPercentageString)
+                    entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+                else:
+                    onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
+                inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
+                leftSide = Precise.string_add(inner, entryPriceSignString)
+                collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', market['precision']['quote'])
+            else:
+                # walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
+                onePlusMaintenanceMarginPercentageString = None
+                entryPriceSignString = entryPriceString
+                if side == 'short':
+                    onePlusMaintenanceMarginPercentageString = Precise.string_sub('1', maintenanceMarginPercentageString)
+                else:
+                    onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
+                    entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+                leftSide = Precise.string_mul(contractsAbs, market['contractSize'])
+                rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
+                collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', market['precision']['base'])
+        else:
+            collateralString = self.safe_string(position, 'isolatedMargin')
         collateralFloat = float(collateralString)
         collateral = self.parse_number(collateralString)
-        markPriceString = self.safe_string(position, 'markPrice')
-        markPriceFloat = float(markPriceString)
-        markPrice = None
-        if markPriceFloat != 0.0:
-            markPrice = self.parse_number(markPriceString)
-        entryPrice = self.safe_number(position, 'entryPrice')
+        markPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'markPrice')))
         timestamp = self.safe_integer(position, 'updateTime')
+        if timestamp == 0:
+            timestamp = None
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
         maintenanceMarginString = Precise.string_mul(maintenanceMarginPercentageString, notionalStringAbs)
         maintenanceMargin = self.parse_number(maintenanceMarginString)
@@ -4092,19 +4134,17 @@ class binance(Exchange):
         initialMarginString = Precise.string_div(Precise.string_mul(notionalStringAbs, initialMarginPercentageString), '1', 8)
         initialMargin = self.parse_number(initialMarginString)
         marginRatio = None
-        side = None
         percentage = None
         if collateralFloat != 0.0:
-            marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
-            side = 'short' if (notionalFloat < 0) else 'long'
+            marginRatio = self.parse_number(Precise.string_div(Precise.string_add(Precise.string_div(maintenanceMarginString, collateralString), '5e-5'), '1', 4))
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
-        marginType = self.safe_string(position, 'marginType')
         return {
             'info': position,
             'symbol': symbol,
             'contracts': contracts,
+            'contractSize': self.parse_number(market['contractSize']),
             'unrealizedPnl': unrealizedPnl,
-            'leverage': leverage,
+            'leverage': self.parse_number(leverageString),
             'liquidationPrice': liquidationPrice,
             'collateral': collateral,
             'notional': notional,
@@ -4129,7 +4169,7 @@ class binance(Exchange):
         leverageBrackets = self.safe_value(self.options, 'leverageBrackets')
         if (leverageBrackets is None) or (reload):
             method = None
-            defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType', 'future')
+            defaultType = self.safe_string(self.options, 'defaultType', 'future')
             type = self.safe_string(params, 'type', defaultType)
             query = self.omit(params, 'type')
             if type == 'future':
@@ -4155,11 +4195,23 @@ class binance(Exchange):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbolOrSymbols=None, params={}):
+        defaultMethod = self.safe_string(self.options, 'fetchPositions', 'positionRisk')
+        if defaultMethod == 'positionRisk':
+            return await self.fetch_positions_risk(symbolOrSymbols, params)
+        elif defaultMethod == 'account':
+            return await self.fetch_account_positions(symbolOrSymbols, params)
+        else:
+            raise NotSupported(self.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
+
+    async def fetch_account_positions(self, symbols=None, params={}):
+        if symbols is not None:
+            if not isinstance(symbols, list):
+                symbols = [symbols]
         await self.load_markets()
         await self.load_leverage_brackets()
         method = None
-        defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType', 'future')
+        defaultType = self.safe_string(self.options, 'defaultType', 'future')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
         if type == 'future':
@@ -4172,8 +4224,9 @@ class binance(Exchange):
         result = self.parse_account_positions(account)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
-    async def fetch_isolated_positions(self, symbol=None, params={}):
-        # only supported in usdm futures
+    async def fetch_positions_risk(self, symbol=None, params={}):
+        if isinstance(symbol, list):
+            raise BadSymbol(self.id + ' fetchPositionsRisk only accepts a string argument as a symbol')
         await self.load_markets()
         await self.load_leverage_brackets()
         request = {}
@@ -4182,14 +4235,15 @@ class binance(Exchange):
         defaultType = 'future'
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
             if market['linear']:
+                request['symbol'] = market['id']
                 defaultType = 'future'
             elif market['inverse']:
+                request['pair'] = market['info']['pair']
                 defaultType = 'delivery'
             else:
-                raise NotSupported(self.id + ' fetchIsolatedPositions() supports linear and inverse contracts only')
-        defaultType = self.safe_string_2(self.options, 'fetchIsolatedPositions', 'defaultType', defaultType)
+                raise NotSupported(self.id + ' fetchPositionsRisk supports linear and inverse contracts only')
+        defaultType = self.safe_string(self.options, 'defaultType', defaultType)
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         if (type == 'future') or (type == 'linear'):
@@ -4203,8 +4257,7 @@ class binance(Exchange):
             result = []
             for i in range(0, len(response)):
                 parsed = self.parse_position_risk(response[i], market)
-                if parsed['marginType'] == 'isolated':
-                    result.append(parsed)
+                result.append(parsed)
             return result
         else:
             return self.parse_position_risk(self.safe_value(response, 0), market)
@@ -4264,7 +4317,7 @@ class binance(Exchange):
         }
         return await getattr(self, method)(self.extend(request, params))
 
-    async def set_margin_mode(self, symbol, marginType, params={}, leverage=None):
+    async def set_margin_mode(self, marginType, symbol=None, params={}):
         #
         # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
         #
@@ -4272,8 +4325,6 @@ class binance(Exchange):
         #
         # {"code": 200, "msg": "success"}
         #
-        if leverage:  # Needed because other exchanges require self argument
-            leverage = None
         marginType = marginType.upper()
         if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
             raise BadRequest(self.id + ' marginType must be either isolated or crossed')

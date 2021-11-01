@@ -2572,7 +2572,7 @@ class bybit extends Exchange {
         }
     }
 
-    public function set_margin_mode($symbol, $marginType, $params = array ()) {
+    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
         //
         // {
         //     "ret_code" => 0,
@@ -2620,7 +2620,7 @@ class bybit extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function set_leverage($leverage = null, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }

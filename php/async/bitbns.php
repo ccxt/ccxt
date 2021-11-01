@@ -465,12 +465,12 @@ class bitbns extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($order, 'time'));
-        $price = $this->safe_number($order, 'rate');
-        $amount = $this->safe_number_2($order, 'amount', 'btc');
-        $filled = $this->safe_number($order, 'filled');
-        $remaining = $this->safe_number($order, 'remaining');
-        $average = $this->safe_number($order, 'avg_cost');
-        $cost = $this->safe_number($order, 'cost');
+        $price = $this->safe_string($order, 'rate');
+        $amount = $this->safe_string_2($order, 'amount', 'btc');
+        $filled = $this->safe_string($order, 'filled');
+        $remaining = $this->safe_string($order, 'remaining');
+        $average = $this->safe_string($order, 'avg_cost');
+        $cost = $this->safe_string($order, 'cost');
         $type = $this->safe_string_lower($order, 'type');
         if ($type === '0') {
             $type = 'limit';
@@ -486,7 +486,7 @@ class bitbns extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
