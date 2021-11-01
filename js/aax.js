@@ -612,19 +612,16 @@ module.exports = class aax extends Exchange {
     }
 
     safeTrade (trade, market = undefined) {
-        const amount = this.safeValue (trade, 'amount');
-        const price = this.safeValue (trade, 'price');
-        let cost = this.safeValue (trade, 'cost');
-        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
-            if (price instanceof String) {
-                cost = Precise.stringMul (price, amount);
-                cost = this.parseNumber (cost);
-            } else {
-                cost = price * amount;
-            }
+        const amount = this.safeString (trade, 'amount');
+        const price = this.safeString (trade, 'price');
+        let cost = this.safeString (trade, 'cost');
+        if (cost === undefined) {
+            cost = Precise.stringMul (price, amount);
         }
         return this.extend (trade, {
-            'cost': cost,
+            'amount': this.parseNumber (amount),
+            'price': this.parseNumber (price),
+            'cost': this.parseNumber (cost),
         });
     }
 
@@ -633,9 +630,11 @@ module.exports = class aax extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "p":"9395.50000000",
-        //         "q":"50.000000",
-        //         "t":1592563996718
+        //         "i":"T1qzQeZG9g",
+        //         "p":"-61348.81000000",
+        //         "q":"0.045400",
+        //         "s":"sell",
+        //         "t":1635731102731
         //     }
         //
         // private fetchMyTrades
@@ -674,14 +673,12 @@ module.exports = class aax extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'createTime'));
         }
-        const id = this.safeString2 (trade, 'tid', 'tradeID');
-        let symbol = undefined;
+        let id = this.safeString2 (trade, 'tid', 'tradeID');
+        id = this.safeString (trade, 'i', id);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        let priceString = this.safeString2 (trade, 'p', 'filledPrice');
+        const symbol = market['symbol'];
+        const priceString = Precise.stringAbs (this.safeString2 (trade, 'p', 'filledPrice'));
         const amountString = this.safeString2 (trade, 'q', 'filledQty');
         const orderId = this.safeString (trade, 'orderID');
         const isTaker = this.safeValue (trade, 'taker');
@@ -698,10 +695,6 @@ module.exports = class aax extends Exchange {
         if (side === undefined) {
             side = (priceString[0] === '-') ? 'sell' : 'buy';
         }
-        priceString = Precise.stringAbs (priceString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderType = this.parseOrderType (this.safeString (trade, 'orderType'));
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'commission');
@@ -719,7 +712,7 @@ module.exports = class aax extends Exchange {
                 'cost': feeCost,
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -729,11 +722,11 @@ module.exports = class aax extends Exchange {
             'side': side,
             'order': orderId,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        });
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -748,11 +741,12 @@ module.exports = class aax extends Exchange {
         const response = await this.publicGetMarketTrades (request);
         //
         //     {
-        //         "e":"BTCUSDFP@trades",
-        //         "trades": [
-        //             {"p":"9395.50000000","q":"50.000000","t":1592563996718},
-        //             {"p":"9395.50000000","q":"50.000000","t":1592563993577},
-        //         ],
+        //         "e":"BTCUSDT@trades",
+        //         "trades":[
+        //             {"i":"T1qzQeZG9g","p":"-61348.81000000","q":"0.045400","s":"sell","t":1635731102731},
+        //             {"i":"T1qzQeU6UK","p":"61343.10000000","q":"0.179300","s":"buy","t":1635731102133},
+        //             {"i":"T1qzQe5BQm","p":"-61346.02000000","q":"0.021100","s":"sell","t":1635731099231},
+        //         ]
         //     }
         //
         const trades = this.safeValue (response, 'trades', []);
