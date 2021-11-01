@@ -59,6 +59,7 @@ module.exports = class binance extends Exchange {
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,
+                'setHedgeMode': true,
                 'transfer': true,
                 'withdraw': true,
             },

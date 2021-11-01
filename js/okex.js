@@ -49,6 +49,9 @@ module.exports = class okex extends Exchange {
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
+                'setLeverage': true,
+                'setHedgeMode': true,
+                'setMarginMode': true,
             },
             'timeframes': {
                 '1m': '1m',
