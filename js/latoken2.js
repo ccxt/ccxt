@@ -890,7 +890,7 @@ module.exports = class latoken2 extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
-        let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
+        let request = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             const nonce = this.nonce ();
@@ -904,15 +904,28 @@ module.exports = class latoken2 extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const signature = this.hmac (this.encode (request), this.encode (this.secret), 'sha512');
+            let queryString = '';
+            let bodyQueryString = '';
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    queryString = this.urlencode (query);
+                }
+            } else if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+                body = this.json (query);
+                if (Object.keys (query).length) {
+                    bodyQueryString = this.urlencode (query);
+                }
+            }
+            const auth = method + request + queryString + bodyQueryString;
+            console.log (auth);
+            process.exit ();
+            const signature = this.hmac (this.encode (request), this.encode (this.secret));
             headers = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,
+                // 'X-LA-DIGEST': 'HMAC-SHA256', // HMAC-SHA384, HMAC-SHA512, optional
             };
-            if (method === 'POST') {
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                body = urlencodedQuery;
-            }
         }
         const url = this.urls['api'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
