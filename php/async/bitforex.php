@@ -95,6 +95,7 @@ class bitforex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'BKC' => 'Bank Coin',
                 'CAPP' => 'Crypto Application Token',
                 'CREDIT' => 'TerraCredit',
                 'CTC' => 'Culture Ticket Chain',

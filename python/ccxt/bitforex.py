@@ -108,6 +108,7 @@ class bitforex(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BKC': 'Bank Coin',
                 'CAPP': 'Crypto Application Token',
                 'CREDIT': 'TerraCredit',
                 'CTC': 'Culture Ticket Chain',
