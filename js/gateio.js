@@ -2856,7 +2856,12 @@ module.exports = class gateio extends Exchange {
         market = this.safeMarket (contract, market);
         const now = this.milliseconds ();
         const size = this.safeValue (position, 'size');
-        const side = size > 0 ? 'buy' : 'sell';
+        let side = undefined;
+        if (size > 0) {
+            side = 'buy';
+        } else if (size < 0) {
+            side = 'sell';
+        }
         const maintenance_rate = this.safeValue (position, 'maintenance_rate');
         const markPrice = this.safeValue (position, 'mark_price');
         // const contractSize = this.safeValue (position, 'size');
