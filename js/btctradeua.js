@@ -343,11 +343,7 @@ module.exports = class btctradeua extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.milliseconds ();
-        const datetime = this.iso8601 (timestamp);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const side = this.safeString (order, 'type');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'amnt_trade');
@@ -356,7 +352,7 @@ module.exports = class btctradeua extends Exchange {
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'timestamp': timestamp, // until they fix their timestamp
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': symbol,
