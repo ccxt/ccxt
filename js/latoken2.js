@@ -423,14 +423,14 @@ module.exports = class latoken2 extends Exchange {
     parseTicker (ticker, market = undefined) {
         //
         //     {
-        //         "pairId":"63b41092-f3f6-4ea4-9e7c-4525ed250dad",
-        //         "symbol":"ETHBTC",
-        //         "volume":11317.037494474000000000,
-        //         "open":0.020033000000000000,
-        //         "low":0.019791000000000000,
-        //         "high":0.020375000000000000,
-        //         "close":0.019923000000000000,
-        //         "priceChange":-0.1500
+        //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "volume24h":"76411867.852585600000000000",
+        //         "volume7d":"637809926.759451100000000000",
+        //         "change24h":"2.5300",
+        //         "change7d":"5.1300",
+        //         "lastPrice":"4426.9"
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
@@ -471,19 +471,20 @@ module.exports = class latoken2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'base': market['baseId'],
+            'quote': market['quoteId'],
         };
-        const response = await this.publicGetMarketDataTickerSymbol (this.extend (request, params));
+        const response = await this.publicGetTickerBaseQuote (this.extend (request, params));
         //
         //     {
-        //         "pairId": 502,
-        //         "symbol": "LAETH",
-        //         "volume": 1023314.3202,
-        //         "open": 134.82,
-        //         "low": 133.95,
-        //         "high": 136.22,
-        //         "close": 135.12,
-        //         "priceChange": 0.22
+        //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "volume24h":"76411867.852585600000000000",
+        //         "volume7d":"637809926.759451100000000000",
+        //         "change24h":"2.5300",
+        //         "change7d":"5.1300",
+        //         "lastPrice":"4426.9"
         //     }
         //
         return this.parseTicker (response, market);
