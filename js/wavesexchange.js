@@ -272,6 +272,9 @@ module.exports = class wavesexchange extends Exchange {
                     'BSC': 'BEP20',
                 },
             },
+            'commonCurrencies': {
+                'EGG': 'Waves Ducks',
+            },
             'requiresEddsa': true,
             'exceptions': {
                 '3147270': InsufficientFunds,  // https://github.com/wavesplatform/matcher/wiki/List-of-all-errors

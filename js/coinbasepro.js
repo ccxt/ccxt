@@ -1053,9 +1053,9 @@ module.exports = class coinbasepro extends Exchange {
         const id = this.safeString (item, 'id');
         let amountString = this.safeString (item, 'amount');
         let direction = undefined;
-        const afterString = this.safeNumber (item, 'balance');
+        const afterString = this.safeString (item, 'balance');
         const beforeString = Precise.stringSub (afterString, amountString);
-        if (Precise.lt (amountString, '0')) {
+        if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
             amountString = Precise.stringAbs (amountString);
         } else {

@@ -1916,11 +1916,11 @@ module.exports = class bitget extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const amount = this.safeNumber2 (order, 'amount', 'size');
-        const filled = this.safeNumber2 (order, 'filled_amount', 'filled_qty');
-        const cost = this.safeNumber (order, 'filled_cash_amount');
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'price_avg');
+        const amount = this.safeString2 (order, 'amount', 'size');
+        const filled = this.safeString2 (order, 'filled_amount', 'filled_qty');
+        const cost = this.safeString (order, 'filled_cash_amount');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'price_avg');
         const status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         const feeCost = this.safeNumber2 (order, 'filled_fees', 'fee');
         let fee = undefined;
@@ -1932,7 +1932,7 @@ module.exports = class bitget extends Exchange {
             };
         }
         const clientOrderId = this.safeString (order, 'client_oid');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

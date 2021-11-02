@@ -147,7 +147,9 @@ class currencycom extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ACN' => 'Accenture',
                 'BNS' => 'Bank of Nova Scotia',
+                'CAR' => 'Avis Budget Group Inc',
                 'EDU' => 'New Oriental Education & Technology Group Inc',
                 'ETN' => 'Eaton',
                 'IQ' => 'iQIYI',

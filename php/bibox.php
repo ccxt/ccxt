@@ -982,11 +982,11 @@ class bibox extends Exchange {
         $rawType = $this->safe_string($order, 'order_type');
         $type = ($rawType === '1') ? 'market' : 'limit';
         $timestamp = $this->safe_integer($order, 'createdAt');
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'deal_price');
-        $filled = $this->safe_number($order, 'deal_amount');
-        $amount = $this->safe_number($order, 'amount');
-        $cost = $this->safe_number_2($order, 'deal_money', 'money');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'deal_price');
+        $filled = $this->safe_string($order, 'deal_amount');
+        $amount = $this->safe_string($order, 'amount');
+        $cost = $this->safe_string_2($order, 'deal_money', 'money');
         $rawSide = $this->safe_string($order, 'order_side');
         $side = ($rawSide === '1') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -999,7 +999,7 @@ class bibox extends Exchange {
                 'currency' => null,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

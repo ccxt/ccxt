@@ -114,6 +114,7 @@ class yobit extends Exchange {
                 'DIRT' => 'DIRTY',
                 'DROP' => 'FaucetCoin',
                 'DSH' => 'DASH',
+                'EGG' => 'EggCoin',
                 'EKO' => 'EkoCoin',
                 'ENTER' => 'ENTRC',
                 'EPC' => 'ExperienceCoin',

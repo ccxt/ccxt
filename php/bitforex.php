@@ -355,10 +355,10 @@ class bitforex extends Exchange {
         $sideId = $this->safe_integer($order, 'tradeType');
         $side = $this->parse_side($sideId);
         $type = null;
-        $price = $this->safe_number($order, 'orderPrice');
-        $average = $this->safe_number($order, 'avgPrice');
-        $amount = $this->safe_number($order, 'orderAmount');
-        $filled = $this->safe_number($order, 'dealAmount');
+        $price = $this->safe_string($order, 'orderPrice');
+        $average = $this->safe_string($order, 'avgPrice');
+        $amount = $this->safe_string($order, 'orderAmount');
+        $filled = $this->safe_string($order, 'dealAmount');
         $status = $this->parse_order_status($this->safe_string($order, 'orderState'));
         $feeSide = ($side === 'buy') ? 'base' : 'quote';
         $feeCurrency = $market[$feeSide];
@@ -366,7 +366,7 @@ class bitforex extends Exchange {
             'cost' => $this->safe_number($order, 'tradeFee'),
             'currency' => $feeCurrency,
         );
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

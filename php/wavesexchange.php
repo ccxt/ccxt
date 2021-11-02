@@ -277,6 +277,9 @@ class wavesexchange extends Exchange {
                     'BSC' => 'BEP20',
                 ),
             ),
+            'commonCurrencies' => array(
+                'EGG' => 'Waves Ducks',
+            ),
             'requiresEddsa' => true,
             'exceptions' => array(
                 '3147270' => '\\ccxt\\InsufficientFunds',  // https://github.com/wavesplatform/matcher/wiki/List-of-all-errors
