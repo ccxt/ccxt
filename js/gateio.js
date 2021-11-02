@@ -770,7 +770,7 @@ module.exports = class gateio extends Exchange {
     }
 
     prepareRequest (market) {
-        if (market['contract']) {
+        if (market['derivative']) {
             return {
                 'contract': market['id'],
                 'settle': market['settleId'],
