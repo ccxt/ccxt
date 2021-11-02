@@ -1516,10 +1516,13 @@ class gateio extends Exchange {
         $params = $this->omit($params, 'price');
         $request = $this->prepare_request($market);
         $request['interval'] = $this->timeframes[$timeframe];
-        $isMark = $price === 'mark';
-        $isIndex = $price === 'index';
-        if ($isMark || $isIndex) {
-            $prefix = $isMark ? 'mark_' : 'index_';
+        $isMark = ($price === 'mark');
+        $isIndex = ($price === 'index');
+        $method = 'publicSpotGetCandlesticks';
+        $isMarkOrIndex = ($isMark || $isIndex);
+        if ($isMarkOrIndex || $market['swap'] || $market['futures']) {
+            $method = $market['futures'] ? 'publicDeliveryGetSettleCandlesticks' : 'publicFuturesGetSettleCandlesticks';
+            $prefix = $isMarkOrIndex ? ($price . '_') : '';
             $request['contract'] = $prefix . $market['id'];
         }
         if ($since === null) {
@@ -1532,12 +1535,6 @@ class gateio extends Exchange {
                 $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe) - 1);
             }
         }
-        $method = $this->get_supported_mapping($market['type'], array(
-            'spot' => 'publicSpotGetCandlesticks',
-            'margin' => 'publicSpotGetCandlesticks',
-            'swap' => 'publicFuturesGetSettleCandlesticks',
-            'futures' => 'publicDeliveryGetSettleCandlesticks',
-        ));
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }

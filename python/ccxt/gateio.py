@@ -1484,10 +1484,13 @@ class gateio(Exchange):
         params = self.omit(params, 'price')
         request = self.prepare_request(market)
         request['interval'] = self.timeframes[timeframe]
-        isMark = price == 'mark'
-        isIndex = price == 'index'
-        if isMark or isIndex:
-            prefix = 'mark_' if isMark else 'index_'
+        isMark = (price == 'mark')
+        isIndex = (price == 'index')
+        method = 'publicSpotGetCandlesticks'
+        isMarkOrIndex = (isMark or isIndex)
+        if isMarkOrIndex or market['swap'] or market['futures']:
+            method = 'publicDeliveryGetSettleCandlesticks' if market['futures'] else 'publicFuturesGetSettleCandlesticks'
+            prefix = (price + '_') if isMarkOrIndex else ''
             request['contract'] = prefix + market['id']
         if since is None:
             if limit is not None:
@@ -1496,12 +1499,6 @@ class gateio(Exchange):
             request['from'] = int(since / 1000)
             if limit is not None:
                 request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
-        method = self.get_supported_mapping(market['type'], {
-            'spot': 'publicSpotGetCandlesticks',
-            'margin': 'publicSpotGetCandlesticks',
-            'swap': 'publicFuturesGetSettleCandlesticks',
-            'futures': 'publicDeliveryGetSettleCandlesticks',
-        })
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
