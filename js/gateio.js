@@ -2843,7 +2843,7 @@ module.exports = class gateio extends Exchange {
         //         adl_ranking: "5",
         //         maintenance_rate: "0.005",
         //         unrealised_pnl: "-0.008948",
-        //         user: "6645677",
+        //         user: "663337",
         //         leverage_max: "100",
         //         history_pnl: "14.98868396636",
         //         risk_limit: "1000000",
@@ -2855,6 +2855,12 @@ module.exports = class gateio extends Exchange {
         const contract = this.safeValue (position, 'contract');
         market = this.safeMarket (contract, market);
         const now = this.milliseconds ();
+        const size = this.safeValue (position, 'size');
+        const side = size > 0 ? 'buy' : 'sell';
+        const maintenance_rate = this.safeValue (position, 'maintenance_rate');
+        // const markPrice = this.safeValue (position, 'mark_price');
+        // const contractSize = this.safeValue (position, 'size');
+        const notional = this.safeValue (position, 'value');
         return {
             'info': position,
             'symbol': market['symbol'],
@@ -2862,21 +2868,21 @@ module.exports = class gateio extends Exchange {
             'datetime': this.iso8601 (now),
             'initialMargin': this.safeValue (position, 'margin'),
             'initialMarginPercentage': undefined,
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': undefined,
+            'maintenanceMargin': maintenance_rate * notional,
+            'maintenanceMarginPercentage': maintenance_rate * 100,
             'entryPrice': this.safeValue (position, 'entry_price'),
-            'notional': undefined,
+            'notional': notional,
             'leverage': this.safeValue (position, 'leverage'),
             'unrealizedPnl': this.safeValue (position, 'unrealised_pnl'),
             'contracts': undefined,
-            'contractSize': this.safeValue (position, 'size'),
+            'contractSize': size,
             //     realisedPnl: position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeValue (position, 'liq_price'),
             'markPrice': this.safeValue (position, 'mark_price'),
             'collateral': this.safeValue (position, 'margin'),
             'marginType': undefined,
-            'side': undefined,
+            'side': side,
             'percentage': undefined,
         };
     }
