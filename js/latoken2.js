@@ -21,6 +21,10 @@ module.exports = class latoken2 extends Exchange {
             'has': {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
@@ -543,7 +547,11 @@ module.exports = class latoken2 extends Exchange {
         if (cost === undefined) {
             cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
-        const side = this.safeString (trade, 'side');
+        const makerBuyer = this.safeValue (trade, 'makerBuyer');
+        let side = this.safeString (trade, 'side');
+        if (side === undefined) {
+            side = makerBuyer ? 'sell' : 'buy';
+        }
         const symbol = this.safeSymbol (undefined, market);
         const id = this.safeString (trade, 'id');
         // const orderId = this.safeString (trade, 'orderId');
