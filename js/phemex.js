@@ -159,6 +159,12 @@ module.exports = class phemex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'fees': {
+                'swap': {
+                    'fundingFee': {
+                        'start': '00:00',
+                        'interval': 8,
+                    },
+                },
                 'trading': {
                     'tierBased': false,
                     'percentage': true,

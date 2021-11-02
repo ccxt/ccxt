@@ -91,6 +91,12 @@ module.exports = class bitforex extends Exchange {
                     'deposit': {},
                     'withdraw': {},
                 },
+                'swap': {
+                    'fundingFee': {
+                        'start': '00:00',
+                        'interval': 8,
+                    },
+                },
             },
             'commonCurrencies': {
                 'BKC': 'Bank Coin',

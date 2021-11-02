@@ -212,6 +212,10 @@ module.exports = class okex extends Exchange {
                 'swap': {
                     'taker': this.parseNumber ('0.00050'),
                     'maker': this.parseNumber ('0.00020'),
+                    'fundingFee': {
+                        'start': '00:00',
+                        'interval': 8,
+                    },
                 },
             },
             'requiredCredentials': {

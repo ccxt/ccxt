@@ -100,7 +100,8 @@ module.exports = class bibox extends Exchange {
                 },
                 'future': {
                     'fundingFee': {
-                        'exchangedAt': [0, 8, 16],  // hours of the day in UTC
+                        'start': '00:00',
+                        'interval': 8,
                     },
                 },
                 'funding': {

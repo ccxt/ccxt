@@ -155,6 +155,14 @@ module.exports = class bitmex extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'swap': {
+                    'fundingFee': {
+                        'start': '00:00',
+                        'interval': 8,
+                    },
+                },
+            },
             'exceptions': {
                 'exact': {
                     'Invalid API Key.': AuthenticationError,

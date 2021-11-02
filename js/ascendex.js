@@ -183,6 +183,12 @@ module.exports = class ascendex extends Exchange {
                 },
             },
             'fees': {
+                'swap': {
+                    'fundingFee': {
+                        'start': '00:00',
+                        'interval': 8,
+                    },
+                },
                 'trading': {
                     'feeSide': 'get',
                     'tierBased': true,

@@ -144,6 +144,12 @@ module.exports = class aax extends Exchange {
                 },
             },
             'fees': {
+                'swap': {
+                    'fundingFee': {
+                        'start': '00:00',
+                        'interval': 8,
+                    },
+                },
                 'trading': {
                     'tierBased': false,
                     'percentage': true,

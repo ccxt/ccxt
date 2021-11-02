@@ -324,6 +324,14 @@ module.exports = class deribit extends Exchange {
                     'code': 'BTC',
                 },
             },
+            'fees': {
+                'swap': {
+                    'fundingFee': {
+                        'start': '00:00',
+                        'interval': 8,
+                    },
+                },
+            }
         });
     }
 

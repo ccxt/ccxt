@@ -198,6 +198,12 @@ module.exports = class bitfinex extends Exchange {
                         ],
                     },
                 },
+                'swap': {
+                    'fundingFee': {
+                        'start': '00:00',
+                        'interval': 8,
+                    },
+                },
                 'funding': {
                     'tierBased': false, // true for tier-based/progressive
                     'percentage': false, // fixed commission

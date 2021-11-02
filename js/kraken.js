@@ -106,7 +106,8 @@ module.exports = class kraken extends Exchange {
                 },
                 'future': {
                     'fundingFee': {
-                        'exchangedAt': [0, 4, 8, 12, 16, 20],     // hours of the day in UTC
+                        'start': '00:00',
+                        'interval': 4,
                     },
                 },
                 // this is a bad way of hardcoding fees that change on daily basis

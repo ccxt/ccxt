@@ -236,6 +236,12 @@ module.exports = class huobi extends Exchange {
                 },
             },
             'fees': {
+                'swap': {
+                    'fundingFee': {
+                        'start': '00:00',
+                        'interval': 8,
+                    },
+                },
                 'trading': {
                     'feeSide': 'get',
                     'tierBased': false,

@@ -302,7 +302,8 @@ module.exports = class kucoin extends Exchange {
                 },
                 'future': {
                     'fundingFee': {
-                        'exchangedAt': [4, 12, 20],    // hours of the day in UTC
+                        'start': '04:00',
+                        'interval': 8,
                     },
                 },
                 'funding': {
