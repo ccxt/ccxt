@@ -66,14 +66,14 @@ class okex extends Exchange {
                 '1h' => '1H',
                 '2h' => '2H',
                 '4h' => '4H',
-                '6h' => '6H',
-                '12h' => '12H',
-                '1d' => '1D',
-                '1w' => '1W',
-                '1M' => '1M',
-                '3M' => '3M',
-                '6M' => '6M',
-                '1y' => '1Y',
+                '6h' => '6Hutc',
+                '12h' => '12Hutc',
+                '1d' => '1Dutc',
+                '1w' => '1Wutc',
+                '1M' => '1Mutc',
+                '3M' => '3Mutc',
+                '6M' => '6Mutc',
+                '1y' => '1Yutc',
             ),
             'hostname' => 'www.okex.com',
             'urls' => array(
@@ -518,7 +518,7 @@ class okex extends Exchange {
                     'Liquid' => true,
                 ),
                 'fetchOHLCV' => array(
-                    'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
                 'createMarketBuyOrderRequiresPrice' => false,
@@ -1223,15 +1223,30 @@ class okex extends Exchange {
         $market = $this->market($symbol);
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
+        if ($limit === null) {
+            $limit = 100; // default 100, max 100
+        }
         $request = array(
             'instId' => $market['id'],
             'bar' => $this->timeframes[$timeframe],
+            'limit' => $limit,
         );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 100, max 100
+        $defaultType = 'Candles';
+        if ($since !== null) {
+            $duration = $this->parse_timeframe($timeframe);
+            $now = $this->milliseconds();
+            $difference = $now - $since;
+            // if the $since timestamp is more than $limit candles back in the past
+            if ($difference > $limit * $duration * 1000) {
+                $defaultType = 'HistoryCandles';
+            }
+            $durationInMilliseconds = $duration * 1000;
+            $startTime = $since - 1;
+            $request['before'] = $startTime;
+            $request['after'] = $this->sum($startTime, $durationInMilliseconds * $limit);
         }
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
-        $defaultType = $this->safe_string($options, 'type', 'Candles'); // Candles or HistoryCandles
+        $defaultType = $this->safe_string($options, 'type', $defaultType); // Candles or HistoryCandles
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
         $method = 'publicGetMarket' . $type;
@@ -1239,9 +1254,6 @@ class okex extends Exchange {
             $method = 'publicGetMarketMarkPriceCandles';
         } else if ($price === 'index') {
             $method = 'publicGetMarketIndexCandles';
-        }
-        if ($since !== null) {
-            $request['before'] = $since - 1;
         }
         $response = $this->$method (array_merge($request, $params));
         //
