@@ -1510,18 +1510,19 @@ module.exports = class gateio extends Exchange {
         const price = this.safeString (params, 'price');
         const request = this.prepareRequest (market);
         request['interval'] = this.timeframes[timeframe];
-        const isMark = (price === 'mark');
-        const isIndex = (price === 'index');
         let method = 'publicSpotGetCandlesticks';
-        const isMarkOrIndex = (isMark || isIndex) && market['derivative'];
-        if (isMarkOrIndex) {
-            request['contract'] = price + '_' + market['id'];
-            params = this.omit (params, 'price');
-        }
-        if (market['futures']) {
-            method = 'publicDeliveryGetSettleCandlesticks';
-        } else if (market['swap']) {
-            method = 'publicFuturesGetSettleCandlesticks';
+        if (market['derivative']) {
+            if (market['futures']) {
+                method = 'publicDeliveryGetSettleCandlesticks';
+            } else if (market['swap']) {
+                method = 'publicFuturesGetSettleCandlesticks';
+            }
+            const isMark = (price === 'mark');
+            const isIndex = (price === 'index');
+            if (isMark || isIndex) {
+                request['contract'] = price + '_' + market['id'];
+                params = this.omit (params, 'price');
+            }
         }
         if (since === undefined) {
             if (limit !== undefined) {
