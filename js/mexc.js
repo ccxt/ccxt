@@ -178,6 +178,12 @@ module.exports = class mexc extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'fees': {
+                'swap': {
+                    'fundingFee': {
+                        'start': '04:00',
+                        'interval': 8,
+                    },
+                },
                 'trading': {
                     'tierBased': false,
                     'percentage': true,

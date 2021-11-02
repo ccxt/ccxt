@@ -120,6 +120,12 @@ module.exports = class poloniex extends Exchange {
                     'maker': this.parseNumber ('0.0009'),
                     'taker': this.parseNumber ('0.0009'),
                 },
+                'swap': {
+                    'fundingFee': {
+                        'start': '04:00',
+                        'interval': 8,
+                    },
+                },
                 'funding': {},
             },
             'limits': {

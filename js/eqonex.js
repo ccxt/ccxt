@@ -110,6 +110,14 @@ module.exports = class eqonex extends Exchange {
                     'symbol not found': BadSymbol,
                 },
             },
+            'fees': {
+                'swap': {
+                    'fundingFee': {
+                        'start': '04:00',
+                        'interval': 8,
+                    },
+                },
+            },
         });
     }
 

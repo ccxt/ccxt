@@ -187,6 +187,12 @@ module.exports = class liquid extends Exchange {
                         },
                     },
                 },
+                'swap': {
+                    'fundingFee': {
+                        'start': '04:00',
+                        'interval': 8,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

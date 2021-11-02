@@ -331,7 +331,7 @@ module.exports = class deribit extends Exchange {
                         'interval': 8,
                     },
                 },
-            }
+            },
         });
     }
 
