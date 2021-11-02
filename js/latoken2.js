@@ -435,15 +435,10 @@ module.exports = class latoken2 extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const open = this.safeNumber (ticker, 'open');
-        const close = this.safeNumber (ticker, 'close');
-        let change = undefined;
-        if (open !== undefined && close !== undefined) {
-            change = close - open;
-        }
-        const percentage = this.safeNumber (ticker, 'priceChange');
+        const last = this.safeNumber (ticker, 'lastPrice');
+        const change = this.safeNumber (ticker, 'change24h');
         const timestamp = this.nonce ();
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -454,17 +449,17 @@ module.exports = class latoken2 extends Exchange {
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
-            'close': close,
-            'last': close,
+            'open': undefined,
+            'close': last,
+            'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': percentage,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (ticker, 'volume'),
+            'quoteVolume': this.safeNumber (ticker, 'volume24h'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -492,28 +487,22 @@ module.exports = class latoken2 extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetMarketDataTickers (params);
+        const response = await this.publicGetTicker (params);
         //
         //     [
         //         {
-        //             "pairId": 502,
-        //             "symbol": "LAETH",
-        //             "volume": 1023314.3202,
-        //             "open": 134.82,
-        //             "low": 133.95,
-        //             "high": 136.22,
-        //             "close": 135.12,
-        //             "priceChange": 0.22
-        //         }
+        //             "symbol":"DASH/BTC",
+        //             "baseCurrency":"ed75c263-4ab9-494b-8426-031dab1c7cc1",
+        //             "quoteCurrency":"92151d82-df98-4d88-9a4d-284fa9eca49f",
+        //             "volume24h":"1.977753278000000000",
+        //             "volume7d":"18.964342670000000000",
+        //             "change24h":"-1.4800",
+        //             "change7d":"-5.5200",
+        //             "lastPrice":"0.003066"
+        //         },
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
-        }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseTickers (response, symbols);
     }
 
     parseTrade (trade, market = undefined) {
