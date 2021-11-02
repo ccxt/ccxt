@@ -2482,7 +2482,7 @@ class Exchange(object):
         return '1e' + Precise.string_neg(precision)
 
     def omit_zero(self, string_number):
-        if string_number is None:
+        if string_number is None or string_number == '':
             return None
         if float(string_number) == 0:
             return None

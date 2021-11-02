@@ -3310,7 +3310,7 @@ class Exchange {
     }
 
     public function omit_zero($string_number) {
-        if ($string_number === null) {
+        if ($string_number === null || $string_number === '') {
             return null;
         }
         if (floatval($string_number) === 0.0) {
