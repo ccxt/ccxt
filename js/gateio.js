@@ -2324,19 +2324,19 @@ module.exports = class gateio extends Exchange {
         const entirePath = '/' + type + endPart;
         let url = this.urls['api'][authentication] + entirePath;
         if (authentication === 'public') {
-            if (Object.keys (query).length > 0) {
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {
             let queryString = '';
             if ((method === 'GET') || (method === 'DELETE')) {
-                if (Object.keys (query).length > 0) {
+                if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
                 }
             } else {
                 const urlQueryParams = this.safeValue (query, 'query', {});
-                if (Object.keys (urlQueryParams).length > 0) {
+                if (Object.keys (urlQueryParams).length) {
                     queryString = this.urlencode (urlQueryParams);
                     url += '?' + queryString;
                 }
