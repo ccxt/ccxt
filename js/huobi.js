@@ -74,6 +74,7 @@ module.exports = class huobi extends Exchange {
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'api': {
+                    'index': 'https://{hostname}',
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
@@ -1694,6 +1695,8 @@ module.exports = class huobi extends Exchange {
             url += this.version;
         } else if ((api === 'v2Public') || (api === 'v2Private')) {
             url += 'v2';
+        } else if (api instanceof Array && api[0] === 'index' && api[1] === 'market') {
+            url += 'index/market';
         }
         url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
