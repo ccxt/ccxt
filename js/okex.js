@@ -50,7 +50,7 @@ module.exports = class okex extends Exchange {
                 'transfer': true,
                 'withdraw': true,
                 'setLeverage': true,
-                'setHedgeMode': true,
+                'setPositionMode': true,
                 'setMarginMode': true,
             },
             'timeframes': {
@@ -3154,7 +3154,7 @@ module.exports = class okex extends Exchange {
         return response;
     }
 
-    async setHedgeMode (hedge, symbol = undefined, params = {}) {
+    async setPositionMode (hedge, symbol = undefined, params = {}) {
         let hedgeMode = undefined;
         if (hedge) {
             hedgeMode = 'long_short_mode';

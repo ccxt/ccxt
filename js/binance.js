@@ -59,7 +59,7 @@ module.exports = class binance extends Exchange {
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,
-                'setHedgeMode': true,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -4605,7 +4605,7 @@ module.exports = class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setHedgeMode (hedge, symbol = undefined, params = {}) {
+    async setPositionMode (hedge, symbol = undefined, params = {}) {
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, [ 'type' ]);
