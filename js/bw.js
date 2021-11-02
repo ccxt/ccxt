@@ -725,13 +725,13 @@ module.exports = class bw extends Exchange {
         } else if (side === '1') {
             side = 'buy';
         }
-        const amount = this.safeNumber (order, 'amount');
-        const price = this.safeNumber (order, 'price');
-        const filled = this.safeNumber (order, 'completeAmount');
-        const remaining = this.safeNumber2 (order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
-        const cost = this.safeNumber (order, 'totalMoney');
+        const amount = this.safeString (order, 'amount');
+        const price = this.safeString (order, 'price');
+        const filled = this.safeString (order, 'completeAmount');
+        const remaining = this.safeString2 (order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
+        const cost = this.safeString (order, 'totalMoney');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': this.safeString (order, 'entrustId'),
             'clientOrderId': undefined,
