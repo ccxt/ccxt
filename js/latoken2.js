@@ -394,27 +394,30 @@ module.exports = class latoken2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
-            'limit': 10,
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 10, max 100
+            request['limit'] = limit; // max 1000
         }
-        const response = await this.publicGetMarketDataOrderBookSymbolLimit (this.extend (request, params));
+        const response = await this.publicGetBookCurrencyQuote (this.extend (request, params));
         //
         //     {
-        //         "pairId": 502,
-        //         "symbol": "LAETH",
-        //         "spread": 0.07,
-        //         "asks": [
-        //             { "price": 136.3, "quantity": 7.024 }
+        //         "ask":[
+        //             {"price":"4428.76","quantity":"0.08136","cost":"360.3239136","accumulated":"360.3239136"},
+        //             {"price":"4429.77","quantity":"1.11786","cost":"4951.8626922","accumulated":"5312.1866058"},
+        //             {"price":"4430.94","quantity":"1.78418","cost":"7905.5945292","accumulated":"13217.781135"},
         //         ],
-        //         "bids": [
-        //             { "price": 136.2, "quantity": 6.554 }
-        //         ]
+        //         "bid":[
+        //             {"price":"4428.43","quantity":"0.13675","cost":"605.5878025","accumulated":"605.5878025"},
+        //             {"price":"4428.19","quantity":"0.03619","cost":"160.2561961","accumulated":"765.8439986"},
+        //             {"price":"4428.15","quantity":"0.02926","cost":"129.567669","accumulated":"895.4116676"},
+        //         ],
+        //         "totalAsk":"53.14814",
+        //         "totalBid":"112216.9029791"
         //     }
         //
-        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'quantity');
+        return this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 'price', 'quantity');
     }
 
     parseTicker (ticker, market = undefined) {
