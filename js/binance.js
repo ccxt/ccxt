@@ -4610,7 +4610,7 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, [ 'type' ]);
         let dualSidePosition = undefined;
-        if (hedge) {
+        if (hedged) {
             dualSidePosition = 'true';
         } else {
             dualSidePosition = 'false';
