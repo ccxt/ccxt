@@ -510,10 +510,15 @@ module.exports = class latoken2 extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         side: 'buy',
-        //         price: 0.33634,
-        //         amount: 0.01,
-        //         timestamp: 1564240008000 // milliseconds
+        //         "id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf",
+        //         "isMakerBuyer":false,
+        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "price":"4435.56",
+        //         "quantity":"0.32534",
+        //         "cost":"1443.0650904",
+        //         "timestamp":1635854642725,
+        //         "makerBuyer":false
         //     }
         //
         // fetchMyTrades (private)
@@ -529,47 +534,41 @@ module.exports = class latoken2 extends Exchange {
         //     }
         //
         const type = undefined;
-        let timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
-        if (timestamp !== undefined) {
-            // 03 Jan 2009 - first block
-            if (timestamp < 1230940800000) {
-                timestamp *= 1000;
-            }
-        }
+        const timestamp = this.safeInteger (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
+        const amountString = this.safeString (trade, 'quantity');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        let cost = this.safeString (trade, 'cost');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        }
         const side = this.safeString (trade, 'side');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const id = this.safeString (trade, 'id');
-        const orderId = this.safeString (trade, 'orderId');
-        const feeCost = this.safeNumber (trade, 'commission');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': undefined,
-            };
-        }
+        // const orderId = this.safeString (trade, 'orderId');
+        // const feeCost = this.safeNumber (trade, 'commission');
+        // let fee = undefined;
+        // if (feeCost !== undefined) {
+        //     fee = {
+        //         'cost': feeCost,
+        //         'currency': undefined,
+        //     };
+        // }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': orderId,
+            'order': undefined,
             'type': type,
             'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
+            'fee': undefined,
         };
     }
 
