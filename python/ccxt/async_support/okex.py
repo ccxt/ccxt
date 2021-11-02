@@ -49,6 +49,7 @@ class okex(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressByNetwork': True,
                 'fetchDeposits': True,
+                'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
@@ -1244,6 +1245,52 @@ class okex(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    async def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+        }
+        if since is not None:
+            request['after'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetPublicFundingRateHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code":"0",
+        #         "msg":"",
+        #         "data":[
+        #             {
+        #                 "instType":"SWAP",
+        #                 "instId":"BTC-USDT-SWAP",
+        #                 "fundingRate":"0.018",
+        #                 "realizedRate":"0.017",
+        #                 "fundingTime":"1597026383085"
+        #             },
+        #             {
+        #                 "instType":"SWAP",
+        #                 "instId":"BTC-USDT-SWAP",
+        #                 "fundingRate":"0.018",
+        #                 "realizedRate":"0.017",
+        #                 "fundingTime":"1597026383085"
+        #             }
+        #         ]
+        #     }
+        #
+        rates = []
+        data = self.safe_value(response, 'data')
+        for i in range(0, len(data)):
+            rate = data[i]
+            timestamp = self.safe_number(rate, 'fundingTime')
+            rates.append({
+                'symbol': self.safe_string(rate, 'instId'),
+                'fundingRate': self.safe_number(rate, 'realizedRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        return rates
 
     async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
