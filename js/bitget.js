@@ -173,6 +173,12 @@ module.exports = class bitget extends Exchange {
                 'swap': {
                     'taker': this.parseNumber ('0.0006'),
                     'maker': this.parseNumber ('0.0004'),
+                    'swap': {
+                        'fundingFee': {
+                            'start': '00:00',
+                            'interval': 8,
+                        },
+                    },
                 },
             },
             'requiredCredentials': {

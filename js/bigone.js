@@ -105,6 +105,12 @@ module.exports = class bigone extends Exchange {
                 'funding': {
                     'withdraw': {},
                 },
+                'swap': {
+                    'fundingFee': {
+                        'start': '06:00',
+                        'interval': 8,
+                    },
+                },
             },
             'exceptions': {
                 'exact': {

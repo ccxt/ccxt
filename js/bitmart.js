@@ -140,6 +140,12 @@ module.exports = class bitmart extends Exchange {
                 '1M': 43200,
             },
             'fees': {
+                'swap': {
+                    'fundingFee': {
+                        'start': '00:00',
+                        'interval': 8,
+                    },
+                },
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
