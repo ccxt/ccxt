@@ -1508,17 +1508,20 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
         const request = this.prepareRequest (market);
         request['interval'] = this.timeframes[timeframe];
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
         let method = 'publicSpotGetCandlesticks';
-        const isMarkOrIndex = (isMark || isIndex);
-        if (isMarkOrIndex || market['swap'] || market['futures']) {
-            method = market['futures'] ? 'publicDeliveryGetSettleCandlesticks' : 'publicFuturesGetSettleCandlesticks';
-            const prefix = isMarkOrIndex ? (price + '_') : '';
-            request['contract'] = prefix + market['id'];
+        const isMarkOrIndex = (isMark || isIndex) && market['derivative'];
+        if (isMarkOrIndex) {
+            request['contract'] = price + '_' + market['id'];
+            params = this.omit (params, 'price');
+        }
+        if (market['futures']) {
+            method = 'publicDeliveryGetSettleCandlesticks';
+        } else if (market['swap']) {
+            method = 'publicFuturesGetSettleCandlesticks';
         }
         if (since === undefined) {
             if (limit !== undefined) {
