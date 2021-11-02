@@ -2858,28 +2858,30 @@ module.exports = class gateio extends Exchange {
         const size = this.safeValue (position, 'size');
         const side = size > 0 ? 'buy' : 'sell';
         const maintenance_rate = this.safeValue (position, 'maintenance_rate');
-        // const markPrice = this.safeValue (position, 'mark_price');
+        const markPrice = this.safeValue (position, 'mark_price');
         // const contractSize = this.safeValue (position, 'size');
         const notional = this.safeValue (position, 'value');
+        const margin = this.safeValue (position, 'margin');
+        const marginRatio = Precise.stringDiv (margin, notional);
         return {
             'info': position,
             'symbol': market['symbol'],
             'timestamp': now,
             'datetime': this.iso8601 (now),
-            'initialMargin': this.safeValue (position, 'margin'),
-            'initialMarginPercentage': undefined,
+            'initialMargin': margin,
+            'initialMarginPercentage': Precise.stringMul (marginRatio, '100'),
             'maintenanceMargin': maintenance_rate * notional,
-            'maintenanceMarginPercentage': maintenance_rate * 100,
+            'maintenanceMarginPercentage': Precise.stringMul (maintenance_rate, '100'),
             'entryPrice': this.safeValue (position, 'entry_price'),
             'notional': notional,
             'leverage': this.safeValue (position, 'leverage'),
             'unrealizedPnl': this.safeValue (position, 'unrealised_pnl'),
             'contracts': size,
-            'contractSize': notional / size,
+            'contractSize': Precise.stringDiv (notional, Precise.stringMul (size, markPrice)),
             //     realisedPnl: position['realised_pnl'],
-            'marginRatio': undefined,
+            'marginRatio': marginRatio,
             'liquidationPrice': this.safeValue (position, 'liq_price'),
-            'markPrice': this.safeValue (position, 'mark_price'),
+            'markPrice': markPrice,
             'collateral': this.safeValue (position, 'margin'),
             'marginType': undefined,
             'side': side,
