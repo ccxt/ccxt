@@ -277,6 +277,7 @@ module.exports = class bybit extends Exchange {
                     '10002': InvalidNonce, // request expired, check your timestamp and recv_window
                     '10003': AuthenticationError, // Invalid apikey
                     '10004': AuthenticationError, // invalid sign
+                    '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
                     '10005': PermissionDenied, // permission denied for current apikey
                     '10006': RateLimitExceeded, // too many requests
                     '10007': AuthenticationError, // api_key not found in your request parameters
