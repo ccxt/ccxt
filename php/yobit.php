@@ -169,6 +169,7 @@ class yobit extends Exchange {
                 'RUR' => 'RUB',
                 'SBTC' => 'Super Bitcoin',
                 'SOLO' => 'SoloCoin',
+                'SUPER' => 'SuperFarm',
                 'TTC' => 'TittieCoin',
                 'UNI' => 'Universe',
                 'UST' => 'Uservice',
