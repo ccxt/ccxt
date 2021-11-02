@@ -577,29 +577,26 @@ module.exports = class latoken2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+            // 'from': since.toString (), // milliseconds
+            // 'limit': limit, // default 100
         };
+        if (since !== undefined) {
+            request['from'] = since.toString ();
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
-        const response = await this.publicGetMarketDataTradesSymbol (this.extend (request, params));
+        const response = await this.publicGetTradeHistoryCurrencyQuote (this.extend (request, params));
         //
-        //     {
-        //         "pairId":370,
-        //         "symbol":"ETHBTC",
-        //         "tradeCount":51,
-        //         "trades": [
-        //             {
-        //                 side: 'buy',
-        //                 price: 0.33634,
-        //                 amount: 0.01,
-        //                 timestamp: 1564240008000 // milliseconds
-        //             }
-        //         ]
-        //     }
+        //     [
+        //         {"id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf","isMakerBuyer":false,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.56","quantity":"0.32534","cost":"1443.0650904","timestamp":1635854642725,"makerBuyer":false},
+        //         {"id":"cfecbefb-3d11-43d7-b9d4-fa16211aad8a","isMakerBuyer":false,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.13","quantity":"0.26540","cost":"1177.083502","timestamp":1635854641114,"makerBuyer":false},
+        //         {"id":"f43d3ec8-db94-49f3-b534-91dbc2779296","isMakerBuyer":true,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.00","quantity":"0.41738","cost":"1851.0803","timestamp":1635854640323,"makerBuyer":true},
+        //     ]
         //
-        const trades = this.safeValue (response, 'trades', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
