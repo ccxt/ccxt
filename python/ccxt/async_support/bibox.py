@@ -31,7 +31,7 @@ class bibox(Exchange):
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
-            'hostname': 'bibox365.com',
+            'hostname': 'bibox.com',
             'has': {
                 'cancelOrder': True,
                 'CORS': None,

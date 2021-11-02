@@ -19,7 +19,7 @@ class bibox extends Exchange {
             'name' => 'Bibox',
             'countries' => array( 'CN', 'US', 'KR' ),
             'version' => 'v1',
-            'hostname' => 'bibox365.com',
+            'hostname' => 'bibox.com',
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => null,
