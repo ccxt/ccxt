@@ -19,6 +19,8 @@ module.exports = class latoken2 extends Exchange {
             'certified': false,
             'userAgent': this.userAgents['chrome'],
             'has': {
+                'fetchCurrencies': true,
+                'fetchMarkets': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
@@ -27,6 +29,7 @@ module.exports = class latoken2 extends Exchange {
                 'doc': [
                     'https://api.latoken.com',
                 ],
+                'fees': 'https://latoken.com/fees',
             },
             'api': {
                 'public': {
@@ -97,16 +100,14 @@ module.exports = class latoken2 extends Exchange {
                     'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
-                    'maker': this.parseNumber ('0.001'),
-                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0.0049'),
+                    'taker': this.parseNumber ('0.0049'),
                 },
             },
             'commonCurrencies': {
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
                 'TSL': 'Treasure SL',
-            },
-            'options': {
             },
             'exceptions': {
                 'exact': {
@@ -153,12 +154,45 @@ module.exports = class latoken2 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        const currencies = await this.fetchCurrenciesFromCache (params);
+        //
+        //     [
+        //         {
+        //             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
+        //             "status":"CURRENCY_STATUS_ACTIVE",
+        //             "type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
+        //             "name":"MyCryptoBank",
+        //             "tag":"MCB",
+        //             "description":"",
+        //             "logo":"",
+        //             "decimals":18,
+        //             "created":1572912000000,
+        //             "tier":1,
+        //             "assetClass":"ASSET_CLASS_UNKNOWN",
+        //             "minTransferAmount":0
+        //         },
+        //         {
+        //             "id":"db02758e-2507-46a5-a805-7bc60355b3eb",
+        //             "status":"CURRENCY_STATUS_ACTIVE",
+        //             "type":"CURRENCY_TYPE_FUTURES_CONTRACT",
+        //             "name":"BTC USDT Futures Contract",
+        //             "tag":"BTCUSDT",
+        //             "description":"",
+        //             "logo":"",
+        //             "decimals":8,
+        //             "created":1589459984395,
+        //             "tier":1,
+        //             "assetClass":"ASSET_CLASS_UNKNOWN",
+        //             "minTransferAmount":0
+        //         },
+        //     ]
+        //
         const response = await this.publicGetPair (params);
         //
         //     [
         //         {
         //             "id":"dba4289b-6b46-4d94-bf55-49eec9a163ad",
-        //             "status":"PAIR_STATUS_ACTIVE",
+        //             "status":"PAIR_STATUS_ACTIVE", // CURRENCY_STATUS_INACTIVE
         //             "baseCurrency":"fb9b53d6-bbf6-472f-b6ba-73cc0d606c9b",
         //             "quoteCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
         //             "priceTick":"0.000000100000000000",
@@ -174,91 +208,140 @@ module.exports = class latoken2 extends Exchange {
         //         }
         //     ]
         //
+        const currenciesById = this.indexBy (currencies, 'id');
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quotedCurrency');
-            const numericId = this.safeInteger (market, 'pairId');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const pricePrecisionString = this.safeString (market, 'pricePrecision');
-            const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'price': parseInt (pricePrecisionString),
-                'amount': this.safeInteger (market, 'amountPrecision'),
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'minQty'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': this.parseNumber (priceLimit),
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            result.push ({
-                'id': id,
-                'numericId': numericId,
-                'info': market,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'type': 'spot',
-                'spot': true,
-                'active': undefined, // assuming true
-                'precision': precision,
-                'limits': limits,
-            });
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const baseCurrency = this.safeValue (currenciesById, baseId);
+            const quoteCurrency = this.safeValue (currenciesById, quoteId);
+            if (baseCurrency !== undefined && quoteCurrency !== undefined) {
+                const base = this.safeCurrencyCode (this.safeString (baseCurrency, 'tag'));
+                const quote = this.safeCurrencyCode (this.safeString (quoteCurrency, 'tag'));
+                const symbol = base + '/' + quote;
+                const precision = {
+                    'price': this.safeNumber (market, 'priceTick'),
+                    'amount': this.safeNumber (market, 'quantityTick'),
+                };
+                const lowercaseQuote = quote.toLowerCase ();
+                const capitalizedQuote = this.capitalize (lowercaseQuote);
+                const limits = {
+                    'amount': {
+                        'min': this.safeNumber (market, 'minOrderQuantity'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'minOrderCost' + capitalizedQuote),
+                        'max': this.safeNumber (market, 'maxOrderCost' + capitalizedQuote),
+                    },
+                };
+                const status = this.safeString (market, 'status');
+                const active = (status === 'PAIR_STATUS_ACTIVE');
+                result.push ({
+                    'id': id,
+                    'info': market,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'type': 'spot',
+                    'spot': true,
+                    'active': active, // assuming true
+                    'precision': precision,
+                    'limits': limits,
+                });
+            }
         }
         return result;
     }
 
+    async fetchCurrenciesFromCache (params = {}) {
+        // this method is now redundant
+        // currencies are now fetched before markets
+        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const response = await this.publicGetCurrency (params);
+            this.options['fetchCurrencies'] = this.extend (options, {
+                'response': response,
+                'timestamp': now,
+            });
+        }
+        return this.safeValue (this.options['fetchCurrencies'], 'response');
+    }
+
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetExchangeInfoCurrencies (params);
+        const response = await this.fetchCurrenciesFromCache (params);
         //
         //     [
         //         {
-        //             "currencyId": 102,
-        //             "symbol": "LA",
-        //             "name": "Latoken",
-        //             "precission": 8,
-        //             "type": "ERC20",
-        //             "fee": 0.1
-        //         }
+        //             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
+        //             "status":"CURRENCY_STATUS_ACTIVE",
+        //             "type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
+        //             "name":"MyCryptoBank",
+        //             "tag":"MCB",
+        //             "description":"",
+        //             "logo":"",
+        //             "decimals":18,
+        //             "created":1572912000000,
+        //             "tier":1,
+        //             "assetClass":"ASSET_CLASS_UNKNOWN",
+        //             "minTransferAmount":0
+        //         },
+        //         {
+        //             "id":"db02758e-2507-46a5-a805-7bc60355b3eb",
+        //             "status":"CURRENCY_STATUS_ACTIVE",
+        //             "type":"CURRENCY_TYPE_FUTURES_CONTRACT",
+        //             "name":"BTC USDT Futures Contract",
+        //             "tag":"BTCUSDT",
+        //             "description":"",
+        //             "logo":"",
+        //             "decimals":8,
+        //             "created":1589459984395,
+        //             "tier":1,
+        //             "assetClass":"ASSET_CLASS_UNKNOWN",
+        //             "minTransferAmount":0
+        //         },
         //     ]
         //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
-            const id = this.safeString (currency, 'symbol');
-            const numericId = this.safeInteger (currency, 'currencyId');
-            const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'precission');
+            const id = this.safeString (currency, 'id');
+            const tag = this.safeString (currency, 'tag');
+            const code = this.safeCurrencyCode (tag);
+            const decimals = this.safeString (currency, 'decimals');
+            const precision = this.parseNumber ('1e-' + decimals);
             const fee = this.safeNumber (currency, 'fee');
-            const active = undefined;
+            const currencyType = this.safeString (currency, 'type');
+            const parts = currencyType.split ('_');
+            const lastPart = this.safeValue (parts, parts.length - 1);
+            const type = lastPart.toLowerCase ();
+            const status = this.safeString (currency, 'status');
+            const active = (status === 'CURRENCY_STATUS_ACTIVE');
+            const name = this.safeString (currency, 'name');
             result[code] = {
                 'id': id,
-                'numericId': numericId,
                 'code': code,
                 'info': currency,
-                'name': code,
+                'name': name,
+                'type': type,
                 'active': active,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeNumber (currency, 'minTransferAmount'),
                         'max': undefined,
                     },
                     'withdraw': {
