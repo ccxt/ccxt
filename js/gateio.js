@@ -633,6 +633,7 @@ module.exports = class gateio extends Exchange {
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     const feeIndex = (type === 'futures') ? 'swap' : type;
+                    const contractSize = this.safeString (market, 'contractSize');
                     result.push ({
                         'info': market,
                         'id': id,
@@ -649,13 +650,13 @@ module.exports = class gateio extends Exchange {
                         'swap': swap,
                         'option': option,
                         'derivative': true,
-                        'contract': true,
+                        'contract': (contractSize !== '1'),
                         'linear': linear,
                         'inverse': inverse,
                         // Fee is in %, so divide by 100
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
-                        'contractSize': this.safeString (market, 'contractSize', '1'),
+                        'contractSize': contractSize,
                         'limits': {
                             'leverage': {
                                 'max': this.safeNumber (market, 'leverage_max'),
@@ -1667,7 +1668,7 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        if (since !== undefined && (market['contract'])) {
+        if (since !== undefined && (market['derivative'])) {
             request['from'] = parseInt (since / 1000);
         }
         const response = await this[method] (this.extend (request, params));
@@ -1800,7 +1801,7 @@ module.exports = class gateio extends Exchange {
             const milliseconds = timestampString.split ('.');
             timestamp = parseInt (milliseconds[0]);
         }
-        if (market['contract']) {
+        if (market['derivative']) {
             timestamp = timestamp * 1000;
         }
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
