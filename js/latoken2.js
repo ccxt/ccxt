@@ -26,6 +26,7 @@ module.exports = class latoken2 extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTransactions': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
@@ -900,6 +901,129 @@ module.exports = class latoken2 extends Exchange {
         return result;
     }
 
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'page': '1',
+            // 'size': 100,
+        };
+        const response = await this.privateGetAuthTransaction (this.extend (request, params));
+        //
+        //     {
+        //         "hasNext":false,
+        //         "content":[
+        //             {
+        //                 "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
+        //                 "status":"TRANSACTION_STATUS_CONFIRMED",
+        //                 "type":"TRANSACTION_TYPE_DEPOSIT",
+        //                 "senderAddress":"",
+        //                 "recipientAddress":"0x3c46fa2e3f9023bc4897828ed173f8ecb3a554bc",
+        //                 "amount":"200.000000000000000000",
+        //                 "transactionFee":"0.000000000000000000",
+        //                 "timestamp":1635893208404,
+        //                 "transactionHash":"0x28bad3b74a042df13d64ddfbca855566a51bf7f190b8cd565c236a18d5cd493f#42",
+        //                 "blockHeight":13540262,
+        //                 "currency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //                 "memo":null,
+        //                 "paymentProvider":"a8d6d1cb-f84a-4e9d-aa82-c6a08b356ee1",
+        //                 "requiresCode":false
+        //             }
+        //         ],
+        //         "first":true,
+        //         "hasContent":true,
+        //         "pageSize":10
+        //     }
+        //
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const content = this.safeValue (response, 'content', []);
+        return this.parseTransactions (content, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
+        //         "status":"TRANSACTION_STATUS_CONFIRMED",
+        //         "type":"TRANSACTION_TYPE_DEPOSIT",
+        //         "senderAddress":"",
+        //         "recipientAddress":"0x3c46fa2e3f9023bc4897828ed173f8ecb3a554bc",
+        //         "amount":"200.000000000000000000",
+        //         "transactionFee":"0.000000000000000000",
+        //         "timestamp":1635893208404,
+        //         "transactionHash":"0x28bad3b74a042df13d64ddfbca855566a51bf7f190b8cd565c236a18d5cd493f#42",
+        //         "blockHeight":13540262,
+        //         "currency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "memo":null,
+        //         "paymentProvider":"a8d6d1cb-f84a-4e9d-aa82-c6a08b356ee1",
+        //         "requiresCode":false
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.safeNumber (transaction, 'amount');
+        let addressFrom = this.safeString (transaction, 'senderAddress');
+        if (addressFrom === '') {
+            addressFrom = undefined;
+        }
+        let addressTo = this.safeString (transaction, 'recipientAddress');
+        if (addressTo === '') {
+            addressTo = undefined;
+        }
+        const txid = this.safeString (transaction, 'transactionHash');
+        const tagTo = this.safeString (transaction, 'memo');
+        let fee = undefined;
+        const feeCost = this.safeNumber (transaction, 'transactionFee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
+            'address': addressTo,
+            'tagFrom': undefined,
+            'tagTo': tagTo,
+            'tag': tagTo,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': fee,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'TRANSACTION_STATUS_CONFIRMED': 'ok',
+            'TRANSACTION_STATUS_EXECUTED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransactionType (type) {
+        const types = {
+            'TRANSACTION_TYPE_DEPOSIT': 'deposit',
+            'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
+    }
+
     sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let requestString = request;
@@ -912,11 +1036,7 @@ module.exports = class latoken2 extends Exchange {
             this.checkRequiredCredentials ();
             // let queryString = '';
             // let bodyQueryString = '';
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    requestString += '?' + urlencodedQuery;
-                }
-            } else if (method === 'POST') {
+            if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (query);
             }
