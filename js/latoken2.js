@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, DDoSProtection, BadRequest, AuthenticationError } = require ('./base/errors');
 const Precise = require ('./base/Precise');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -101,6 +102,7 @@ module.exports = class latoken2 extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'feeSide': 'get',
@@ -819,15 +821,24 @@ module.exports = class latoken2 extends Exchange {
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
+        const market = this.market (symbol);
+        const uppercaseType = type.toUpperCase ();
+        const orderSide = (side === 'buy') ? 'BID' : 'ASK';
         const request = {
-            'symbol': this.marketId (symbol),
-            'side': side,
-            'price': this.priceToPrecision (symbol, price),
-            'amount': this.amountToPrecision (symbol, amount),
-            'orderType': type,
+            'baseCurrency': market['baseId'],
+            'quoteCurrency': market['quoteId'],
+            'side': orderSide, // "BUY", "BID", "SELL", "ASK"
+            'condition': 'GOOD_TILL_CANCELLED', // "GTC", "GOOD_TILL_CANCELLED", "IOC", "IMMEDIATE_OR_CANCEL", "FOK", "FILL_OR_KILL"
+            'type': uppercaseType, // "LIMIT", "MARKET"
+            // 'clientOrderId': this.uuid (), // 50 characters max
+            // 'price': this.priceToPrecision (symbol, price),
+            'quantity': parseFloat (this.amountToPrecision (symbol, amount)),
+            'timestamp': this.milliseconds (),
         };
-        const method = this.safeString (this.options, 'createOrderMethod', 'private_post_order_new');
-        const response = await this[method] (this.extend (request, params));
+        if (uppercaseType === 'LIMIT') {
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+        }
+        const response = await this.privatePostAuthOrderPlace (this.extend (request, params));
         //
         //     {
         //         "orderId":"1563460093.134037.704945@0370:2",
@@ -840,7 +851,7 @@ module.exports = class latoken2 extends Exchange {
         //         "amount":1.0
         //     }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1033,9 +1044,8 @@ module.exports = class latoken2 extends Exchange {
             requestString += '?' + urlencodedQuery;
         }
         if (api === 'private') {
+            headers = {};
             this.checkRequiredCredentials ();
-            // let queryString = '';
-            // let bodyQueryString = '';
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (query);
@@ -1060,6 +1070,8 @@ module.exports = class latoken2 extends Exchange {
         }
         //
         // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+        // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
+        // {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
         //
         const message = this.safeString (response, 'message');
         const feedback = this.id + ' ' + body;
