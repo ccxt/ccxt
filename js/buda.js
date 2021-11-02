@@ -572,7 +572,7 @@ module.exports = class buda extends Exchange {
         const filled = this.safeString (tradedAmount, 0);
         const totalExchanged = this.safeValue (order, 'totalExchanged', []);
         const cost = this.safeString (totalExchanged, 0);
-        const limitPrice = this.safeString (order, 'limit', []);
+        const limitPrice = this.safeValue (order, 'limit', []);
         let price = this.safeString (limitPrice, 0);
         if (price === undefined) {
             if (limitPrice !== undefined) {
