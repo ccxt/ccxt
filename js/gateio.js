@@ -306,7 +306,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'swap',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -2875,7 +2875,7 @@ module.exports = class gateio extends Exchange {
             'leverage': this.safeValue (position, 'leverage'),
             'unrealizedPnl': this.safeValue (position, 'unrealised_pnl'),
             'contracts': size,
-            'contractSize': undefined,
+            'contractSize': notional / size,
             //     realisedPnl: position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeValue (position, 'liq_price'),
