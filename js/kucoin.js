@@ -2156,7 +2156,7 @@ module.exports = class kucoin extends Exchange {
         //     "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
         //
         let referenceId = undefined;
-        if (context !== undefined) {
+        if (context !== undefined && context !== '') {
             const parsed = JSON.parse (context);
             const orderId = this.safeString (parsed, 'orderId');
             const tradeId = this.safeString (parsed, 'tradeId');
