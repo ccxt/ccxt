@@ -449,6 +449,7 @@ declare module 'ccxt' {
     export class bitmart extends Exchange {}
     export class bitmex extends Exchange {}
     export class bitpanda extends Exchange {}
+    export class bitrue extends Exchange {}
     export class bitso extends Exchange {}
     export class bitstamp extends Exchange {}
     export class bitstamp1 extends Exchange {}
@@ -470,7 +471,6 @@ declare module 'ccxt' {
     export class coinbaseprime extends coinbasepro {}
     export class coinbasepro extends Exchange {}
     export class coincheck extends Exchange {}
-    export class coinegg extends Exchange {}
     export class coinex extends Exchange {}
     export class coinfalcon extends Exchange {}
     export class coinmarketcap extends Exchange {}
@@ -490,6 +490,7 @@ declare module 'ccxt' {
     export class gateio extends Exchange {}
     export class gemini extends Exchange {}
     export class hitbtc extends Exchange {}
+    export class hitbtc3 extends Exchange {}
     export class hollaex extends Exchange {}
     export class huobi extends Exchange {}
     export class huobijp extends huobipro {}
@@ -562,6 +563,7 @@ declare module 'ccxt' {
         | 'bitmart'
         | 'bitmex'
         | 'bitpanda'
+        | 'bitrue'
         | 'bitso'
         | 'bitstamp'
         | 'bitstamp1'
@@ -583,7 +585,6 @@ declare module 'ccxt' {
         | 'coinbaseprime'
         | 'coinbasepro'
         | 'coincheck'
-        | 'coinegg'
         | 'coinex'
         | 'coinfalcon'
         | 'coinmarketcap'
@@ -603,6 +604,7 @@ declare module 'ccxt' {
         | 'gateio'
         | 'gemini'
         | 'hitbtc'
+        | 'hitbtc3'
         | 'hollaex'
         | 'huobi'
         | 'huobijp'

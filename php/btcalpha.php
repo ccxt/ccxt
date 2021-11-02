@@ -290,34 +290,53 @@ class btcalpha extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        $symbol = null;
-        if ($market === null) {
-            $market = $this->safe_value($this->markets_by_id, $order['pair']);
+        //
+        // fetchClosedOrders / fetchOrder
+        //     {
+        //       "$id" => "923763073",
+        //       "date" => "1635451090368",
+        //       "type" => "sell",
+        //       "pair" => "XRP_USDT",
+        //       "$price" => "1.00000000",
+        //       "$amount" => "0.00000000",
+        //       "$status" => "3",
+        //       "amount_filled" => "10.00000000",
+        //       "amount_original" => "10.0"
+        //       "$trades" => array(),
+        //     }
+        //
+        // createOrder
+        //     {
+        //       "$success" => true,
+        //       "date" => "1635451754.497541",
+        //       "type" => "sell",
+        //       "oid" => "923776755",
+        //       "$price" => "1.0",
+        //       "$amount" => "10.0",
+        //       "amount_filled" => "0.0",
+        //       "amount_original" => "10.0",
+        //       "$trades" => array()
+        //     }
+        //
+        $marketId = $this->safe_string($order, 'pair');
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
+        $success = $this->safe_value($order, 'success', false);
+        $timestamp = null;
+        if ($success) {
+            $timestamp = $this->safe_timestamp($order, 'date');
+        } else {
+            $timestamp = $this->safe_integer($order, 'date');
         }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $timestamp = $this->safe_timestamp($order, 'date');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
+        $price = $this->safe_string($order, 'price');
+        $remaining = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string($order, 'amount_filled');
+        $amount = $this->safe_string($order, 'amount_original');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string_2($order, 'oid', 'id');
-        $trades = $this->safe_value($order, 'trades', array());
-        $trades = $this->parse_trades($trades, $market);
+        $trades = $this->safe_value($order, 'trades');
         $side = $this->safe_string_2($order, 'my_side', 'type');
-        $filled = null;
-        $numTrades = is_array($trades) ? count($trades) : 0;
-        if ($numTrades > 0) {
-            $filled = 0.0;
-            for ($i = 0; $i < $numTrades; $i++) {
-                $filled = $this->sum($filled, $trades[$i]['amount']);
-            }
-        }
-        $remaining = null;
-        if (($amount !== null) && ($amount > 0) && ($filled !== null)) {
-            $remaining = max (0, $amount - $filled);
-        }
-        return array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -339,7 +358,7 @@ class btcalpha extends Exchange {
             'info' => $order,
             'lastTradeTimestamp' => null,
             'average' => null,
-        );
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

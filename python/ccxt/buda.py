@@ -528,21 +528,22 @@ class buda(Exchange):
         #
         id = self.safe_string(order, 'id')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
+        datetime = self.iso8601(timestamp)
         marketId = self.safe_string(order, 'market_id')
         symbol = self.safe_symbol(marketId, market, '-')
         type = self.safe_string(order, 'price_type')
         side = self.safe_string_lower(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         originalAmount = self.safe_value(order, 'original_amount', [])
-        amount = self.safe_number(originalAmount, 0)
+        amount = self.safe_string(originalAmount, 0)
         remainingAmount = self.safe_value(order, 'amount', [])
-        remaining = self.safe_number(remainingAmount, 0)
+        remaining = self.safe_string(remainingAmount, 0)
         tradedAmount = self.safe_value(order, 'traded_amount', [])
-        filled = self.safe_number(tradedAmount, 0)
+        filled = self.safe_string(tradedAmount, 0)
         totalExchanged = self.safe_value(order, 'totalExchanged', [])
-        cost = self.safe_number(totalExchanged, 0)
+        cost = self.safe_string(totalExchanged, 0)
         limitPrice = self.safe_value(order, 'limit', [])
-        price = self.safe_number(limitPrice, 0)
+        price = self.safe_string(limitPrice, 0)
         if price is None:
             if limitPrice is not None:
                 price = limitPrice
@@ -556,11 +557,11 @@ class buda(Exchange):
                 'cost': feeCost,
                 'code': feeCurrencyCode,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
-            'datetime': self.iso8601(timestamp),
+            'datetime': datetime,
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
@@ -614,6 +615,7 @@ class buda(Exchange):
             'currency': code,
             'address': address,
             'tag': None,
+            'network': None,
             'info': receiveAddresses,
         }
 

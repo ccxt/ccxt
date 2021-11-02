@@ -1251,6 +1251,7 @@ module.exports = class bittrex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

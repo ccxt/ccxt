@@ -268,6 +268,7 @@ class aax(Exchange):
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
+                    'SOL': 'SPL',
                 },
             },
         })
@@ -1578,16 +1579,16 @@ class aax(Exchange):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        price = self.safe_number(order, 'price')
+        price = self.safe_string(order, 'price')
         stopPrice = self.safe_number(order, 'stopPrice')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         execInst = self.safe_string(order, 'execInst')
         postOnly = (execInst == 'Post-Only')
-        average = self.safe_number(order, 'avgPrice')
-        amount = self.safe_number(order, 'orderQty')
-        filled = self.safe_number(order, 'cumQty')
-        remaining = self.safe_number(order, 'leavesQty')
-        if (filled == 0) and (remaining == 0):
+        average = self.safe_string(order, 'avgPrice')
+        amount = self.safe_string(order, 'orderQty')
+        filled = self.safe_string(order, 'cumQty')
+        remaining = self.safe_string(order, 'leavesQty')
+        if (Precise.string_equals(filled, '0')) and (Precise.string_equals(remaining, '0')):
             remaining = None
         lastTradeTimestamp = self.safe_value(order, 'transactTime')
         if isinstance(lastTradeTimestamp, basestring):
@@ -1605,7 +1606,7 @@ class aax(Exchange):
                 'currency': feeCurrency,
                 'cost': feeCost,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.59.23'
+__version__ = '1.60.10'
 
 # -----------------------------------------------------------------------------
 
@@ -75,6 +75,7 @@ from ccxt.async_support.bithumb import bithumb                            # noqa
 from ccxt.async_support.bitmart import bitmart                            # noqa: F401
 from ccxt.async_support.bitmex import bitmex                              # noqa: F401
 from ccxt.async_support.bitpanda import bitpanda                          # noqa: F401
+from ccxt.async_support.bitrue import bitrue                              # noqa: F401
 from ccxt.async_support.bitso import bitso                                # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                          # noqa: F401
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
@@ -96,7 +97,6 @@ from ccxt.async_support.coinbase import coinbase                          # noqa
 from ccxt.async_support.coinbaseprime import coinbaseprime                # noqa: F401
 from ccxt.async_support.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
-from ccxt.async_support.coinegg import coinegg                            # noqa: F401
 from ccxt.async_support.coinex import coinex                              # noqa: F401
 from ccxt.async_support.coinfalcon import coinfalcon                      # noqa: F401
 from ccxt.async_support.coinmarketcap import coinmarketcap                # noqa: F401
@@ -116,6 +116,7 @@ from ccxt.async_support.ftx import ftx                                    # noqa
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
+from ccxt.async_support.hitbtc3 import hitbtc3                            # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.huobi import huobi                                # noqa: F401
 from ccxt.async_support.huobijp import huobijp                            # noqa: F401
@@ -186,6 +187,7 @@ exchanges = [
     'bitmart',
     'bitmex',
     'bitpanda',
+    'bitrue',
     'bitso',
     'bitstamp',
     'bitstamp1',
@@ -207,7 +209,6 @@ exchanges = [
     'coinbaseprime',
     'coinbasepro',
     'coincheck',
-    'coinegg',
     'coinex',
     'coinfalcon',
     'coinmarketcap',
@@ -227,6 +228,7 @@ exchanges = [
     'gateio',
     'gemini',
     'hitbtc',
+    'hitbtc3',
     'hollaex',
     'huobi',
     'huobijp',

@@ -1194,6 +1194,7 @@ class digifinex(Exchange):
             'code': code,
             'address': address,
             'tag': tag,
+            'network': None,
         }
 
     async def fetch_deposit_address(self, code, params={}):

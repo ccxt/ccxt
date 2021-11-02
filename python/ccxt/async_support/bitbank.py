@@ -421,15 +421,15 @@ class bitbank(Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'ordered_at')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'start_amount')
-        filled = self.safe_number(order, 'executed_amount')
-        remaining = self.safe_number(order, 'remaining_amount')
-        average = self.safe_number(order, 'average_price')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'start_amount')
+        filled = self.safe_string(order, 'executed_amount')
+        remaining = self.safe_string(order, 'remaining_amount')
+        average = self.safe_string(order, 'average_price')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -538,6 +538,7 @@ class bitbank(Exchange):
             'currency': currency,
             'address': address,
             'tag': None,
+            'network': None,
             'info': response,
         }
 

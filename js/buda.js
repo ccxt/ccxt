@@ -558,21 +558,22 @@ module.exports = class buda extends Exchange {
         //
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const datetime = this.iso8601 (timestamp);
         const marketId = this.safeString (order, 'market_id');
         const symbol = this.safeSymbol (marketId, market, '-');
         const type = this.safeString (order, 'price_type');
         const side = this.safeStringLower (order, 'type');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const originalAmount = this.safeValue (order, 'original_amount', []);
-        const amount = this.safeNumber (originalAmount, 0);
+        const amount = this.safeString (originalAmount, 0);
         const remainingAmount = this.safeValue (order, 'amount', []);
-        const remaining = this.safeNumber (remainingAmount, 0);
+        const remaining = this.safeString (remainingAmount, 0);
         const tradedAmount = this.safeValue (order, 'traded_amount', []);
-        const filled = this.safeNumber (tradedAmount, 0);
+        const filled = this.safeString (tradedAmount, 0);
         const totalExchanged = this.safeValue (order, 'totalExchanged', []);
-        const cost = this.safeNumber (totalExchanged, 0);
+        const cost = this.safeString (totalExchanged, 0);
         const limitPrice = this.safeValue (order, 'limit', []);
-        let price = this.safeNumber (limitPrice, 0);
+        let price = this.safeString (limitPrice, 0);
         if (price === undefined) {
             if (limitPrice !== undefined) {
                 price = limitPrice;
@@ -589,11 +590,11 @@ module.exports = class buda extends Exchange {
                 'code': feeCurrencyCode,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
@@ -653,6 +654,7 @@ module.exports = class buda extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': receiveAddresses,
         };
     }

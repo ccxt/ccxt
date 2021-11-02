@@ -49,6 +49,9 @@ module.exports = class okex extends Exchange {
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
+                'setLeverage': true,
+                'setPositionMode': true,
+                'setMarginMode': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -59,14 +62,14 @@ module.exports = class okex extends Exchange {
                 '1h': '1H',
                 '2h': '2H',
                 '4h': '4H',
-                '6h': '6H',
-                '12h': '12H',
-                '1d': '1D',
-                '1w': '1W',
-                '1M': '1M',
-                '3M': '3M',
-                '6M': '6M',
-                '1y': '1Y',
+                '6h': '6Hutc',
+                '12h': '12Hutc',
+                '1d': '1Dutc',
+                '1w': '1Wutc',
+                '1M': '1Mutc',
+                '3M': '3Mutc',
+                '6M': '6Mutc',
+                '1y': '1Yutc',
             },
             'hostname': 'www.okex.com',
             'urls': {
@@ -77,7 +80,7 @@ module.exports = class okex extends Exchange {
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs-v5/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
-                'referral': 'https://www.okex.com/join/1888677',
+                // 'referral': 'https://www.okex.com/join/1888677',
                 'test': {
                     'rest': 'https://testnet.okex.com',
                 },
@@ -511,10 +514,10 @@ module.exports = class okex extends Exchange {
                     'Liquid': true,
                 },
                 'fetchOHLCV': {
-                    'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
-                'createMarketBuyOrderRequiresPrice': true,
+                'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 // 'fetchBalance': {
@@ -665,6 +668,7 @@ module.exports = class okex extends Exchange {
         const futures = (type === 'futures');
         const swap = (type === 'swap');
         const option = (type === 'option');
+        const derivative = swap || futures;
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy');
         const settleCurrency = this.safeString (market, 'settleCcy');
@@ -693,6 +697,7 @@ module.exports = class okex extends Exchange {
         const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const contractSize = this.safeString (market, 'ctVal');
+        const contract = derivative && (contractSize !== '1');
         const leverage = this.safeNumber (market, 'lever', 1);
         let expiry = undefined;
         if (futures || option) {
@@ -710,6 +715,8 @@ module.exports = class okex extends Exchange {
             'spot': spot,
             'futures': futures,
             'swap': swap,
+            'derivative': derivative,
+            'contract': contract,
             'option': option,
             'linear': linear,
             'inverse': inverse,
@@ -1212,15 +1219,30 @@ module.exports = class okex extends Exchange {
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
+        if (limit === undefined) {
+            limit = 100; // default 100, max 100
+        }
         const request = {
             'instId': market['id'],
             'bar': this.timeframes[timeframe],
+            'limit': limit,
         };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 100
+        let defaultType = 'Candles';
+        if (since !== undefined) {
+            const duration = this.parseTimeframe (timeframe);
+            const now = this.milliseconds ();
+            const difference = now - since;
+            // if the since timestamp is more than limit candles back in the past
+            if (difference > limit * duration * 1000) {
+                defaultType = 'HistoryCandles';
+            }
+            const durationInMilliseconds = duration * 1000;
+            const startTime = since - 1;
+            request['before'] = startTime;
+            request['after'] = this.sum (startTime, durationInMilliseconds * limit);
         }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
-        const defaultType = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles
+        defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         let method = 'publicGetMarket' + type;
@@ -1228,9 +1250,6 @@ module.exports = class okex extends Exchange {
             method = 'publicGetMarketMarkPriceCandles';
         } else if (price === 'index') {
             method = 'publicGetMarketIndexCandles';
-        }
-        if (since !== undefined) {
-            request['before'] = since - 1;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1459,7 +1478,6 @@ module.exports = class okex extends Exchange {
             //     - Cross FUTURES/SWAP/OPTION: cross
             //     - Isolated FUTURES/SWAP/OPTION: isolated
             //
-            'tdMode': 'cash', // cash, cross, isolated
             // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             // 'clOrdId': clientOrderId, // up to 32 characters, must be unique
             // 'tag': tag, // up to 8 characters
@@ -1484,6 +1502,16 @@ module.exports = class okex extends Exchange {
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
             // 'reduceOnly': false, // MARGIN orders only
         };
+        const tdMode = this.safeStringLower (params, 'tdMode');
+        if (market['spot']) {
+            request['tdMode'] = 'cash';
+        } else if (market['derivative']) {
+            if (tdMode === undefined) {
+                throw new ArgumentsRequired (this.id + ' params["tdMode"] is required to be either "isolated" or "cross"');
+            } else if ((tdMode !== 'isolated') && (tdMode !== 'cross')) {
+                throw new BadRequest (this.id + ' params["tdMode"] must be either "isolated" or "cross"');
+            }
+        }
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId');
@@ -2840,8 +2868,17 @@ module.exports = class okex extends Exchange {
         const symbol = market['symbol'];
         const contractsString = this.safeString (position, 'pos');
         let contracts = undefined;
+        let side = this.safeString (position, 'posSide');
+        const hedged = side !== 'net';
         if (contractsString !== undefined) {
-            contracts = parseInt (contractsString);
+            contracts = this.parseNumber (Precise.stringAbs (contractsString));
+            if (side === 'net') {
+                if (Precise.stringGt (contractsString, '0')) {
+                    side = 'long';
+                } else {
+                    side = 'short';
+                }
+            }
         }
         const notionalString = this.safeString (position, 'notionalUsd');
         const notional = this.parseNumber (notionalString);
@@ -2872,9 +2909,8 @@ module.exports = class okex extends Exchange {
         const liquidationPrice = this.safeNumber (position, 'liqPx');
         const percentageString = this.safeString (position, 'uplRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
-        const side = this.safeString (position, 'posSide');
         const timestamp = this.safeInteger (position, 'uTime');
-        const leverage = this.safeInteger (position, 'lever');
+        const leverage = this.safeNumber (position, 'lever');
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
         return {
             'info': position,
@@ -2888,6 +2924,7 @@ module.exports = class okex extends Exchange {
             'contracts': contracts,
             'contractSize': this.parseNumber (market['contractSize']),
             'side': side,
+            'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'maintenanceMargin': maintenanceMargin,
@@ -3088,6 +3125,109 @@ module.exports = class okex extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const entry = this.safeValue (data, 0, {});
         return this.parseFundingRate (entry, market);
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' setLeverage leverage should be between 1 and 125');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marginMode = this.safeStringLower (params, 'mgnMode');
+        params = this.omit (params, [ 'mgnMode' ]);
+        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+            throw new BadRequest (this.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"');
+        }
+        const request = {
+            'lever': leverage,
+            'mgnMode': marginMode,
+            'instId': market['id'],
+        };
+        const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "instId": "BTC-USDT-SWAP",
+        //           "lever": "5",
+        //           "mgnMode": "isolated",
+        //           "posSide": "long"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        return response;
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        let hedgeMode = undefined;
+        if (hedged) {
+            hedgeMode = 'long_short_mode';
+        } else {
+            hedgeMode = 'net_mode';
+        }
+        const request = {
+            'posMode': hedgeMode,
+        };
+        const response = await this.privatePostAccountSetPositionMode (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "posMode": "net_mode"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        return response;
+    }
+
+    async setMarginMode (marginType, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((marginType !== 'cross') && (marginType !== 'isolated')) {
+            throw new BadRequest (this.id + ' setMarginMode marginType must be either "cross" or "isolated"');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const lever = this.safeInteger (params, 'lever');
+        if ((lever === undefined) || (lever < 1) || (lever > 125)) {
+            throw new BadRequest (this.id + ' setMarginMode params["lever"] should be between 1 and 125');
+        }
+        params = this.omit (params, [ 'lever' ]);
+        const request = {
+            'lever': lever,
+            'mgnMode': marginType,
+            'instId': market['id'],
+        };
+        const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "instId": "BTC-USDT-SWAP",
+        //           "lever": "5",
+        //           "mgnMode": "isolated",
+        //           "posSide": "long"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        return response;
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

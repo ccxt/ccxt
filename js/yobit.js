@@ -112,6 +112,7 @@ module.exports = class yobit extends Exchange {
                 'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
                 'DSH': 'DASH',
+                'EGG': 'EggCoin',
                 'EKO': 'EkoCoin',
                 'ENTER': 'ENTRC',
                 'EPC': 'ExperienceCoin',
@@ -165,6 +166,8 @@ module.exports = class yobit extends Exchange {
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'SBTC': 'Super Bitcoin',
+                'SOLO': 'SoloCoin',
+                'SUPER': 'SuperCoin',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
                 'UST': 'Uservice',
@@ -386,7 +389,7 @@ module.exports = class yobit extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const symbol = this.safeSymbol (id);
-            result[symbol] = this.parseOrderBook (response[id]);
+            result[symbol] = this.parseOrderBook (response[id], symbol);
         }
         return result;
     }
@@ -737,6 +740,7 @@ module.exports = class yobit extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response,
         };
     }

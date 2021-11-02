@@ -557,7 +557,7 @@ class kuna extends Exchange {
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $id = $this->safe_string($order, 'id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -569,11 +569,11 @@ class kuna extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $this->safe_number($order, 'price'),
+            'price' => $this->safe_string($order, 'price'),
             'stopPrice' => null,
-            'amount' => $this->safe_number($order, 'volume'),
-            'filled' => $this->safe_number($order, 'executed_volume'),
-            'remaining' => $this->safe_number($order, 'remaining_volume'),
+            'amount' => $this->safe_string($order, 'volume'),
+            'filled' => $this->safe_string($order, 'executed_volume'),
+            'remaining' => $this->safe_string($order, 'remaining_volume'),
             'trades' => null,
             'fee' => null,
             'info' => $order,

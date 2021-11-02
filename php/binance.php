@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
@@ -60,11 +61,12 @@ class binance extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => null,
+                'fetchTransactions' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -667,10 +669,10 @@ class binance extends Exchange {
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
+                'fetchPositions' => 'positionRisk', // or 'account'
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
-                'parseOrderToPrecision' => false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType' => array(
                     'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit' => 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
@@ -685,6 +687,7 @@ class binance extends Exchange {
                 'accountsByType' => array(
                     'main' => 'MAIN',
                     'spot' => 'MAIN',
+                    'pay' => 'PAY',
                     'margin' => 'MARGIN',
                     'future' => 'UMFUTURE',
                     'delivery' => 'CMFUTURE',
@@ -932,7 +935,7 @@ class binance extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
+        $defaultType = $this->safe_string_2($this->options, 'fetchTime', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
         $method = 'publicGetTime';
@@ -2669,7 +2672,7 @@ class binance extends Exchange {
         }
         $query = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
@@ -3339,11 +3342,13 @@ class binance extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
+        $fromAccount = strtolower($fromAccount);
+        $toAccount = strtolower($toAccount);
         $type = $this->safe_string($params, 'type');
         if ($type === null) {
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+            $fromId = $this->safe_string($accountsByType, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount);
             if ($fromId === null) {
                 $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
                 throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
@@ -3883,10 +3888,10 @@ class binance extends Exchange {
         // Gets a history of funding $rates with their timestamps
         //  (param) $symbol => Future currency pair (e.g. "BTC/USDT")
         //  (param) $limit => maximum number of data points returned
-        //  (param) $since => Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) $since => Unix $timestamp in miliseconds for the time of the earliest requested funding rate
         //  (param) $params => Object containing more $params for the $request
-        //          - until => Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  return => [array($symbol, fundingRate, timestamp)]
+        //          - until => Unix $timestamp in miliseconds for the time of the earliest requested funding rate
+        //  return => [array($symbol, fundingRate, $timestamp)]
         //
         $this->load_markets();
         $request = array();
@@ -3933,13 +3938,17 @@ class binance extends Exchange {
         //
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $timestamp = $this->safe_integer($entry, 'fundingTime');
             $rates[] = array(
-                'symbol' => $this->safe_string($response[$i], 'symbol'),
-                'fundingRate' => $this->safe_number($response[$i], 'fundingRate'),
-                'timestamp' => $this->safe_number($response[$i], 'fundingTime'),
+                'info' => $entry,
+                'symbol' => $this->safe_string($entry, 'symbol'),
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
             );
         }
-        return $rates;
+        return $this->sort_by($rates, 'timestamp');
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
@@ -4030,7 +4039,7 @@ class binance extends Exchange {
             $code = ($this->options['defaultType'] === 'future') ? $market['quote'] : $market['base'];
             // sometimes not all the codes are correctly returned...
             if (is_array($balances) && array_key_exists($code, $balances)) {
-                $parsed = $this->parse_position(array_merge($position, array(
+                $parsed = $this->parse_account_position (array_merge($position, array(
                     'crossMargin' => $balances[$code]['crossMargin'],
                     'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
                 )), $market);
@@ -4040,7 +4049,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_account_position($position, $market = null) {
         //
         // $usdm
         //    {
@@ -4054,7 +4063,7 @@ class binance extends Exchange {
         //       "$isolated" => false,
         //       "$entryPrice" => "0.0000",
         //       "maxNotional" => "100000",
-        //       "positionSide" => "BOTH",
+        //       "$positionSide" => "BOTH",
         //       "positionAmt" => "0.000",
         //       "$notional" => "0",
         //       "isolatedWallet" => "0",
@@ -4072,7 +4081,7 @@ class binance extends Exchange {
         //       "openOrderInitialMargin" => "0",
         //       "$leverage" => "10",
         //       "$isolated" => false,
-        //       "positionSide" => "BOTH",
+        //       "$positionSide" => "BOTH",
         //       "$entryPrice" => "41021.20000069",
         //       "maxQty" => "100",
         //       "notionalValue" => "0.00243939",
@@ -4151,12 +4160,12 @@ class binance extends Exchange {
             $entryPrice = null;
         } else {
             $side = ($notionalFloat < 0) ? 'short' : 'long';
-            $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
+            $marginRatio = $this->parse_number(Precise::string_div(Precise::string_add(Precise::string_div($maintenanceMarginString, $collateralString), '5e-5'), '1', 4));
             $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100'));
             if ($usdm) {
                 // calculate liquidation price
                 //
-                // $liquidationPrice = ($walletBalance / ($contracts * (±1 . mmp))) (±$entryPrice / (±1 . mmp))
+                // $liquidationPrice = ($walletBalance / ($contracts * (±1 . mmp))) . (±$entryPrice / (±1 . mmp))
                 //
                 // mmp = $maintenanceMarginPercentage
                 // where ± is negative for long and positive for short
@@ -4205,6 +4214,8 @@ class binance extends Exchange {
             }
             $liquidationPrice = $this->parse_number($truncatedLiquidationPrice);
         }
+        $positionSide = $this->safe_string($position, 'positionSide');
+        $hedged = $positionSide !== 'BOTH';
         return array(
             'info' => $position,
             'symbol' => $symbol,
@@ -4216,7 +4227,7 @@ class binance extends Exchange {
             'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
             'entryPrice' => $entryPrice,
             'notional' => $notional,
-            'leverage' => $leverage,
+            'leverage' => $this->parse_number($leverageString),
             'unrealizedPnl' => $unrealizedPnl,
             'contracts' => $contracts,
             'contractSize' => $this->parse_number($market['contractSize']),
@@ -4226,6 +4237,7 @@ class binance extends Exchange {
             'collateral' => $collateral,
             'marginType' => $marginType,
             'side' => $side,
+            'hedged' => $hedged,
             'percentage' => $percentage,
         );
     }
@@ -4245,7 +4257,7 @@ class binance extends Exchange {
         //       "$marginType" => "isolated",
         //       "isolatedMargin" => "21.77841506",
         //       "isAutoAddMargin" => "false",
-        //       "positionSide" => "BOTH",
+        //       "$positionSide" => "BOTH",
         //       "$notional" => "43.53230000",
         //       "isolatedWallet" => "21.82418506",
         //       "updateTime" => "1621358023886"
@@ -4264,7 +4276,7 @@ class binance extends Exchange {
         //       "$marginType" => "isolated",
         //       "isolatedMargin" => "0.00274471",
         //       "isAutoAddMargin" => "false",
-        //       "positionSide" => "BOTH",
+        //       "$positionSide" => "BOTH",
         //       "notionalValue" => "0.00524892",
         //       "isolatedWallet" => "0.00268058"
         //     }
@@ -4293,18 +4305,57 @@ class binance extends Exchange {
         $unrealizedPnl = $this->parse_number($unrealizedPnlString);
         $leverageString = $this->safe_string($position, 'leverage');
         $leverage = intval($leverageString);
-        $liquidationPrice = $this->safe_number($position, 'liquidationPrice');
-        $collateralString = $this->safe_string($position, 'isolatedMargin');
+        $liquidationPriceString = $this->omit_zero($this->safe_string($position, 'liquidationPrice'));
+        $liquidationPrice = $this->parse_number($liquidationPriceString);
+        $collateralString = null;
+        $marginType = $this->safe_string($position, 'marginType');
+        $side = null;
+        if ($notionalFloat > 0) {
+            $side = 'long';
+        } else if ($notionalFloat < 0) {
+            $side = 'short';
+        }
+        $entryPriceString = $this->safe_string($position, 'entryPrice');
+        $entryPrice = $this->parse_number($entryPriceString);
+        if ($marginType === 'cross') {
+            // calculate $collateral
+            if ($market['linear']) {
+                // walletBalance = ($liquidationPrice * (±1 . mmp) ± $entryPrice) * $contracts
+                $onePlusMaintenanceMarginPercentageString = null;
+                $entryPriceSignString = $entryPriceString;
+                if ($side === 'short') {
+                    $onePlusMaintenanceMarginPercentageString = Precise::string_add('1', $maintenanceMarginPercentageString);
+                    $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
+                } else {
+                    $onePlusMaintenanceMarginPercentageString = Precise::string_add('-1', $maintenanceMarginPercentageString);
+                }
+                $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
+                $leftSide = Precise::string_add($inner, $entryPriceSignString);
+                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $market['precision']['quote']);
+            } else {
+                // walletBalance = ($contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / $liquidationPrice)
+                $onePlusMaintenanceMarginPercentageString = null;
+                $entryPriceSignString = $entryPriceString;
+                if ($side === 'short') {
+                    $onePlusMaintenanceMarginPercentageString = Precise::string_sub('1', $maintenanceMarginPercentageString);
+                } else {
+                    $onePlusMaintenanceMarginPercentageString = Precise::string_sub('-1', $maintenanceMarginPercentageString);
+                    $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
+                }
+                $leftSide = Precise::string_mul($contractsAbs, $market['contractSize']);
+                $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
+                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $market['precision']['base']);
+            }
+        } else {
+            $collateralString = $this->safe_string($position, 'isolatedMargin');
+        }
         $collateralFloat = floatval($collateralString);
         $collateral = $this->parse_number($collateralString);
-        $markPriceString = $this->safe_string($position, 'markPrice');
-        $markPriceFloat = floatval($markPriceString);
-        $markPrice = null;
-        if ($markPriceFloat !== 0.0) {
-            $markPrice = $this->parse_number($markPriceString);
-        }
-        $entryPrice = $this->safe_number($position, 'entryPrice');
+        $markPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'markPrice')));
         $timestamp = $this->safe_integer($position, 'updateTime');
+        if ($timestamp === 0) {
+            $timestamp = null;
+        }
         $maintenanceMarginPercentage = $this->parse_number($maintenanceMarginPercentageString);
         $maintenanceMarginString = Precise::string_mul($maintenanceMarginPercentageString, $notionalStringAbs);
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -4316,25 +4367,20 @@ class binance extends Exchange {
         $initialMarginString = Precise::string_div(Precise::string_mul($notionalStringAbs, $initialMarginPercentageString), '1', 8);
         $initialMargin = $this->parse_number($initialMarginString);
         $marginRatio = null;
-        $side = null;
         $percentage = null;
-        if ($collateralFloat === 0.0) {
-            $liquidationPrice = null;
-        } else {
-            $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
-            $side = ($notionalFloat < 0) ? 'short' : 'long';
+        if ($collateralFloat !== 0.0) {
+            $marginRatio = $this->parse_number(Precise::string_div(Precise::string_add(Precise::string_div($maintenanceMarginString, $collateralString), '5e-5'), '1', 4));
             $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100'));
         }
-        $marginType = $this->safe_string($position, 'marginType');
-        if ($marginType === 'cross') {
-            $liquidationPrice = null;
-        }
+        $positionSide = $this->safe_string($position, 'positionSide');
+        $hedged = $positionSide !== 'BOTH';
         return array(
             'info' => $position,
             'symbol' => $symbol,
             'contracts' => $contracts,
+            'contractSize' => $this->parse_number($market['contractSize']),
             'unrealizedPnl' => $unrealizedPnl,
-            'leverage' => $leverage,
+            'leverage' => $this->parse_number($leverageString),
             'liquidationPrice' => $liquidationPrice,
             'collateral' => $collateral,
             'notional' => $notional,
@@ -4349,6 +4395,7 @@ class binance extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'marginType' => $marginType,
             'side' => $side,
+            'hedged' => $hedged,
             'percentage' => $percentage,
         );
     }
@@ -4360,7 +4407,7 @@ class binance extends Exchange {
         $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets');
         if (($leverageBrackets === null) || ($reload)) {
             $method = null;
-            $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType', 'future');
+            $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
             $type = $this->safe_string($params, 'type', $defaultType);
             $query = $this->omit($params, 'type');
             if ($type === 'future') {
@@ -4391,11 +4438,27 @@ class binance extends Exchange {
         return $this->options['leverageBrackets'];
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions($symbolOrSymbols = null, $params = array ()) {
+        $defaultMethod = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
+        if ($defaultMethod === 'positionRisk') {
+            return $this->fetch_positions_risk($symbolOrSymbols, $params);
+        } else if ($defaultMethod === 'account') {
+            return $this->fetch_account_positions($symbolOrSymbols, $params);
+        } else {
+            throw new NotSupported($this->id . '.options["fetchPositions"] = "' . $defaultMethod . '" is invalid, please choose between "account" and "positionRisk"');
+        }
+    }
+
+    public function fetch_account_positions($symbols = null, $params = array ()) {
+        if ($symbols !== null) {
+            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
+                $symbols = array( $symbols );
+            }
+        }
         $this->load_markets();
         $this->load_leverage_brackets();
         $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType', 'future');
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
         if ($type === 'future') {
@@ -4410,8 +4473,10 @@ class binance extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
-    public function fetch_isolated_positions($symbol = null, $params = array ()) {
-        // only supported in usdm futures
+    public function fetch_positions_risk($symbol = null, $params = array ()) {
+        if (gettype($symbol) === 'array' && count(array_filter(array_keys($symbol), 'is_string')) == 0) {
+            throw new BadSymbol($this->id . ' fetchPositionsRisk only accepts a string argument as a symbol');
+        }
         $this->load_markets();
         $this->load_leverage_brackets();
         $request = array();
@@ -4420,16 +4485,17 @@ class binance extends Exchange {
         $defaultType = 'future';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
             if ($market['linear']) {
+                $request['symbol'] = $market['id'];
                 $defaultType = 'future';
             } else if ($market['inverse']) {
+                $request['pair'] = $market['info']['pair'];
                 $defaultType = 'delivery';
             } else {
-                throw NotSupported ($this->id . ' fetchIsolatedPositions() supports linear and inverse contracts only');
+                throw NotSupported ($this->id . ' fetchPositionsRisk supports linear and inverse contracts only');
             }
         }
-        $defaultType = $this->safe_string_2($this->options, 'fetchIsolatedPositions', 'defaultType', $defaultType);
+        $defaultType = $this->safe_string($this->options, 'defaultType', $defaultType);
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
         if (($type === 'future') || ($type === 'linear')) {
@@ -4440,18 +4506,21 @@ class binance extends Exchange {
             throw NotSupported ($this->id . ' fetchIsolatedPositions() supports linear and inverse contracts only');
         }
         $response = $this->$method (array_merge($request, $params));
+        $result = array();
         if ($symbol === null) {
-            $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $parsed = $this->parse_position_risk ($response[$i], $market);
-                if ($parsed['marginType'] === 'isolated') {
+                $result[] = $parsed;
+            }
+        } else {
+            for ($i = 0; $i < count($response); $i++) {
+                $parsed = $this->parse_position_risk ($response[$i], $market);
+                if ($parsed['symbol'] === $symbol) {
                     $result[] = $parsed;
                 }
             }
-            return $result;
-        } else {
-            return $this->parse_position_risk ($this->safe_value($response, 0), $market);
         }
+        return $result;
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -4519,7 +4588,7 @@ class binance extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function set_margin_mode($symbol, $marginType, $params = array (), $leverage = null) {
+    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
         //
         // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
         //
@@ -4527,9 +4596,6 @@ class binance extends Exchange {
         //
         // array( "code" => 200, "msg" => "success" )
         //
-        if ($leverage) { // Needed because other exchanges require this argument
-            $leverage = null;
-        }
         $marginType = strtoupper($marginType);
         if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
             throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');
@@ -4548,6 +4614,35 @@ class binance extends Exchange {
             'symbol' => $market['id'],
             'marginType' => $marginType,
         );
+        return $this->$method (array_merge($request, $params));
+    }
+
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, array( 'type' ));
+        $dualSidePosition = null;
+        if ($hedged) {
+            $dualSidePosition = 'true';
+        } else {
+            $dualSidePosition = 'false';
+        }
+        $request = array(
+            'dualSidePosition' => $dualSidePosition,
+        );
+        $method = null;
+        if ($type === 'delivery') {
+            $method = 'dapiPrivatePostPositionSideDual';
+        } else {
+            // default to future
+            $method = 'fapiPrivatePostPositionSideDual';
+        }
+        //
+        //     {
+        //       "code" => 200,
+        //       "msg" => "success"
+        //     }
+        //
         return $this->$method (array_merge($request, $params));
     }
 

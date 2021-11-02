@@ -1002,10 +1002,10 @@ class ascendex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '/');
         $timestamp = $this->safe_integer_2($order, 'timestamp', 'sendingTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastExecTime');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'orderQty');
-        $average = $this->safe_number($order, 'avgPx');
-        $filled = $this->safe_number_2($order, 'cumFilledQty', 'cumQty');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'orderQty');
+        $average = $this->safe_string($order, 'avgPx');
+        $filled = $this->safe_string_2($order, 'cumFilledQty', 'cumQty');
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'id');
         if ($clientOrderId !== null) {
@@ -1026,10 +1026,10 @@ class ascendex extends Exchange {
             );
         }
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -1457,6 +1457,7 @@ class ascendex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null, // TODO => parse network
             'info' => $depositAddress,
         );
     }
@@ -1690,7 +1691,7 @@ class ascendex extends Exchange {
         return yield $this->v2PrivateAccountGroupPostFuturesLeverage (array_merge($request, $params));
     }
 
-    public function set_margin_mode($symbol, $marginType = '', $params = array ()) {
+    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
         if ($marginType !== 'isolated' && $marginType !== 'crossed') {
             throw new BadRequest($this->id . ' setMarginMode() $marginType argument should be isolated or crossed');
         }

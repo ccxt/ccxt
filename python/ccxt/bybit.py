@@ -291,6 +291,7 @@ class bybit(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    '-2015': AuthenticationError,  # Invalid API-key, IP, or permissions for action.
                     '10001': BadRequest,  # parameter error
                     '10002': InvalidNonce,  # request expired, check your timestamp and recv_window
                     '10003': AuthenticationError,  # Invalid apikey
@@ -1280,14 +1281,12 @@ class bybit(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
-        price = self.safe_number(order, 'price')
-        if price == 0.0:
-            price = None
-        average = self.safe_number(order, 'average_price')
-        amount = self.safe_number(order, 'qty')
-        cost = self.safe_number(order, 'cum_exec_value')
-        filled = self.safe_number(order, 'cum_exec_qty')
-        remaining = self.safe_number(order, 'leaves_qty')
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'average_price')
+        amount = self.safe_string(order, 'qty')
+        cost = self.safe_string(order, 'cum_exec_value')
+        filled = self.safe_string(order, 'cum_exec_qty')
+        remaining = self.safe_string(order, 'leaves_qty')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
         if market is not None:
@@ -1300,10 +1299,10 @@ class bybit(Exchange):
             lastTradeTimestamp = None
         status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
-        feeCost = self.safe_number(order, 'cum_exec_fee')
+        feeCostString = self.safe_string(order, 'cum_exec_fee')
+        feeCost = self.parse_number(Precise.string_abs(feeCostString))
         fee = None
         if feeCost is not None:
-            feeCost = abs(feeCost)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1314,7 +1313,7 @@ class bybit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_number_2(order, 'trigger_price', 'stop_px')
         postOnly = (timeInForce == 'PO')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2444,7 +2443,7 @@ class bybit(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
 
-    def set_margin_mode(self, symbol, marginType, params={}):
+    def set_margin_mode(self, marginType, symbol=None, params={}):
         #
         # {
         #     "ret_code": 0,
@@ -2488,7 +2487,7 @@ class bybit(Exchange):
         }
         return getattr(self, method)(self.extend(request, params))
 
-    def set_leverage(self, leverage=None, symbol=None, params={}):
+    def set_leverage(self, leverage, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         self.load_markets()

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.59.23';
+$version = '1.60.10';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.59.23';
+    const VERSION = '1.60.10';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -86,6 +86,7 @@ class Exchange {
         'bitmart',
         'bitmex',
         'bitpanda',
+        'bitrue',
         'bitso',
         'bitstamp',
         'bitstamp1',
@@ -107,7 +108,6 @@ class Exchange {
         'coinbaseprime',
         'coinbasepro',
         'coincheck',
-        'coinegg',
         'coinex',
         'coinfalcon',
         'coinmarketcap',
@@ -127,6 +127,7 @@ class Exchange {
         'gateio',
         'gemini',
         'hitbtc',
+        'hitbtc3',
         'hollaex',
         'huobi',
         'huobijp',
@@ -3336,7 +3337,7 @@ class Exchange {
         // Takes a key and a dictionary, and returns the dictionary's value for that key
         // :throws:
         //      NotSupported if the dictionary does not contain the key
-        if (in_array($key, $mapping)) {
+        if (array_key_exists($key, $mapping)) {
             return $mapping[$key];
         } else {
             throw new NotSupported ($this->id . ' ' . $key . ' does not have a value in mapping');

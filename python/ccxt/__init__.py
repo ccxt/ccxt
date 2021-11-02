@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.59.23'
+__version__ = '1.60.10'
 
 # ----------------------------------------------------------------------------
 
@@ -93,6 +93,7 @@ from ccxt.bithumb import bithumb                            # noqa: F401
 from ccxt.bitmart import bitmart                            # noqa: F401
 from ccxt.bitmex import bitmex                              # noqa: F401
 from ccxt.bitpanda import bitpanda                          # noqa: F401
+from ccxt.bitrue import bitrue                              # noqa: F401
 from ccxt.bitso import bitso                                # noqa: F401
 from ccxt.bitstamp import bitstamp                          # noqa: F401
 from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
@@ -114,7 +115,6 @@ from ccxt.coinbase import coinbase                          # noqa: F401
 from ccxt.coinbaseprime import coinbaseprime                # noqa: F401
 from ccxt.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
-from ccxt.coinegg import coinegg                            # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
 from ccxt.coinfalcon import coinfalcon                      # noqa: F401
 from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
@@ -134,6 +134,7 @@ from ccxt.ftx import ftx                                    # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
+from ccxt.hitbtc3 import hitbtc3                            # noqa: F401
 from ccxt.hollaex import hollaex                            # noqa: F401
 from ccxt.huobi import huobi                                # noqa: F401
 from ccxt.huobijp import huobijp                            # noqa: F401
@@ -204,6 +205,7 @@ exchanges = [
     'bitmart',
     'bitmex',
     'bitpanda',
+    'bitrue',
     'bitso',
     'bitstamp',
     'bitstamp1',
@@ -225,7 +227,6 @@ exchanges = [
     'coinbaseprime',
     'coinbasepro',
     'coincheck',
-    'coinegg',
     'coinex',
     'coinfalcon',
     'coinmarketcap',
@@ -245,6 +246,7 @@ exchanges = [
     'gateio',
     'gemini',
     'hitbtc',
+    'hitbtc3',
     'hollaex',
     'huobi',
     'huobijp',

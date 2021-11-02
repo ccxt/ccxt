@@ -433,15 +433,15 @@ class bitbank extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($order, 'ordered_at');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'start_amount');
-        $filled = $this->safe_number($order, 'executed_amount');
-        $remaining = $this->safe_number($order, 'remaining_amount');
-        $average = $this->safe_number($order, 'average_price');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'start_amount');
+        $filled = $this->safe_string($order, 'executed_amount');
+        $remaining = $this->safe_string($order, 'remaining_amount');
+        $average = $this->safe_string($order, 'average_price');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -563,6 +563,7 @@ class bitbank extends Exchange {
             'currency' => $currency,
             'address' => $address,
             'tag' => null,
+            'network' => null,
             'info' => $response,
         );
     }

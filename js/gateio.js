@@ -13,7 +13,7 @@ module.exports = class gateio extends Exchange {
             'name': 'Gate.io',
             'countries': [ 'KR' ],
             'rateLimit': 10 / 3, // 300 requests per second or 3.33ms
-            'version': '4',
+            'version': 'v4',
             'certified': true,
             'pro': true,
             'urls': {
@@ -268,6 +268,7 @@ module.exports = class gateio extends Exchange {
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'BYN': 'Beyond Finance',
+                'EGG': 'Goose Finance',
                 'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'GTC_HT': 'Game.com HT',
                 'GTC_BSC': 'Game.com BSC',
@@ -275,6 +276,7 @@ module.exports = class gateio extends Exchange {
                 'MPH': 'Morpher', // conflict with 88MPH
                 'RAI': 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
+                'STX': 'Stox',
                 'TNC': 'Trinity Network Credit',
                 'TON': 'TONToken',
                 'VAI': 'VAIOT',
@@ -519,7 +521,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'publicFuturesGetSettleContracts',
             'futures': 'publicDeliveryGetSettleContracts',
         });
-        if (futures || swap) {
+        if (swap || futures || option) {
             const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
                 const settle = settlementCurrencies[c];
@@ -646,6 +648,8 @@ module.exports = class gateio extends Exchange {
                         'futures': futures,
                         'swap': swap,
                         'option': option,
+                        'derivative': true,
+                        'contract': true,
                         'linear': linear,
                         'inverse': inverse,
                         // Fee is in %, so divide by 100
@@ -730,6 +734,8 @@ module.exports = class gateio extends Exchange {
                     'futures': futures,
                     'swap': swap,
                     'option': option,
+                    'contract': false,
+                    'derivative': false,
                     'linear': false,
                     'inverse': false,
                     // Fee is in %, so divide by 100
@@ -764,7 +770,7 @@ module.exports = class gateio extends Exchange {
     }
 
     prepareRequest (market) {
-        if (market['type'] === 'futures' || market['type'] === 'swap') {
+        if (market['contract']) {
             return {
                 'contract': market['id'],
                 'settle': market['settleId'],
@@ -1084,6 +1090,7 @@ module.exports = class gateio extends Exchange {
             'code': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
         };
     }
 
@@ -1161,6 +1168,43 @@ module.exports = class gateio extends Exchange {
             'withdraw': withdrawFees,
             'deposit': {},
         };
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        // let defaultType = 'future';
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires the argument "symbol"');
+        }
+        const market = this.market (symbol);
+        const request = this.prepareRequest (market);
+        request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'swap': 'privateFuturesGetSettleAccountBook',
+            'futures': 'privateDeliveryGetSettleAccountBook',
+        });
+        const response = await this[method] (this.extend (request, params));
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const timestamp = this.safeTimestamp (entry, 'time');
+            result.push ({
+                'info': entry,
+                'symbol': symbol,
+                'code': this.safeCurrencyCode (this.safeString (entry, 'text')),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': undefined,
+                'amount': this.safeNumber (entry, 'change'),
+            });
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1465,13 +1509,17 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
+        const request = this.prepareRequest (market);
+        request['interval'] = this.timeframes[timeframe];
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
-        const futures = market['futures'];
-        const swap = market['swap'];
-        const request = {
-            'interval': this.timeframes[timeframe],
-        };
+        let method = 'publicSpotGetCandlesticks';
+        const isMarkOrIndex = (isMark || isIndex);
+        if (isMarkOrIndex || market['swap'] || market['futures']) {
+            method = market['futures'] ? 'publicDeliveryGetSettleCandlesticks' : 'publicFuturesGetSettleCandlesticks';
+            const prefix = isMarkOrIndex ? (price + '_') : '';
+            request['contract'] = prefix + market['id'];
+        }
         if (since === undefined) {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -1481,23 +1529,6 @@ module.exports = class gateio extends Exchange {
             if (limit !== undefined) {
                 request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
             }
-        }
-        let method = 'publicSpotGetCandlesticks';
-        if (isMark || isIndex || futures || swap) {
-            request['contract'] = market['id'];
-            if (futures) {
-                method = 'publicDeliveryGetSettleCandlesticks';
-            } else {
-                method = 'publicFuturesGetSettleCandlesticks';
-            }
-            request['settle'] = market['settleId'];
-            if (isMark) {
-                request['contract'] = 'mark_' + request['contract'];
-            } else if (isIndex) {
-                request['contract'] = 'index_' + request['contract'];
-            }
-        } else {
-            request['currency_pair'] = market['id'];
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -1527,19 +1558,23 @@ module.exports = class gateio extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //         "fundingRate": "0.00063521",
-        //         "fundingTime": "1621267200000",
+        //         "r": "0.00063521",
+        //         "t": "1621267200000",
         //     }
         //
         const rates = [];
         for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const timestamp = this.safeTimestamp (entry, 't');
             rates.push ({
+                'info': entry,
                 'symbol': symbol,
-                'fundingRate': this.safeNumber (response[i], 'r'),
-                'timestamp': this.safeNumber (response[i], 't'),
+                'fundingRate': this.safeNumber (entry, 'r'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
             });
         }
-        return rates;
+        return this.sortBy (rates, 'timestamp');
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1628,7 +1663,7 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        if (since !== undefined && (market['swap'] || market['futures'])) {
+        if (since !== undefined && (market['contract'])) {
             request['from'] = parseInt (since / 1000);
         }
         const response = await this[method] (this.extend (request, params));
@@ -1761,7 +1796,7 @@ module.exports = class gateio extends Exchange {
             const milliseconds = timestampString.split ('.');
             timestamp = parseInt (milliseconds[0]);
         }
-        if (market['swap']) {
+        if (market['contract']) {
             timestamp = timestamp * 1000;
         }
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
@@ -2010,10 +2045,10 @@ module.exports = class gateio extends Exchange {
         timestamp = this.safeInteger (order, 'create_time_ms', timestamp);
         let lastTradeTimestamp = this.safeTimestamp (order, 'update_time');
         lastTradeTimestamp = this.safeInteger (order, 'update_time_ms', lastTradeTimestamp);
-        const amount = this.safeNumber (order, 'amount');
-        const price = this.safeNumber (order, 'price');
-        const remaining = this.safeNumber (order, 'left');
-        const cost = this.safeNumber (order, 'filled_total'); // same as filled_price
+        const amount = this.safeString (order, 'amount');
+        const price = this.safeString (order, 'price');
+        const remaining = this.safeString (order, 'left');
+        const cost = this.safeString (order, 'filled_total'); // same as filled_price
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
         // open, closed, cancelled - almost already ccxt unified!
@@ -2036,7 +2071,7 @@ module.exports = class gateio extends Exchange {
             'currency': this.safeCurrencyCode (this.safeString (order, 'rebated_fee_currency')),
             'cost': this.parseNumber (Precise.stringNeg (rebate)),
         });
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': id,
             'timestamp': timestamp,
@@ -2221,34 +2256,96 @@ module.exports = class gateio extends Exchange {
         };
     }
 
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((leverage < 0) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const method = this.getSupportedMapping (market['type'], {
+            'swap': 'privateFuturesPostSettlePositionsContractLeverage',
+            'futures': 'privateDeliveryPostSettlePositionsContractLeverage',
+        });
+        const request = this.prepareRequest (market);
+        request['query'] = {
+            'leverage': leverage.toString (),
+        };
+        if ('cross_leverage_limit' in params) {
+            if (leverage !== 0) {
+                throw new BadRequest (this.id + ' cross margin leverage(valid only when leverage is 0)');
+            }
+            request['cross_leverage_limit'] = params['cross_leverage_limit'].toString ();
+            params = this.omit (params, 'cross_leverage_limit');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "value":"0",
+        //         "leverage":"5",
+        //         "mode":"single",
+        //         "realised_point":"0",
+        //         "contract":"BTC_USDT",
+        //         "entry_price":"0",
+        //         "mark_price":"62035.86",
+        //         "history_point":"0",
+        //         "realised_pnl":"0",
+        //         "close_order":null,
+        //         "size":0,
+        //         "cross_leverage_limit":"0",
+        //         "pending_orders":0,
+        //         "adl_ranking":6,
+        //         "maintenance_rate":"0.005",
+        //         "unrealised_pnl":"0",
+        //         "user":2436035,
+        //         "leverage_max":"100",
+        //         "history_pnl":"0",
+        //         "risk_limit":"1000000",
+        //         "margin":"0",
+        //         "last_close_pnl":"0",
+        //         "liq_price":"0"
+        //     }
+        //
+        return response;
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, futures, delivery
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '' ? '' : '/' + path);
         const entirePath = '/' + type + endPart;
         let url = this.urls['api'][authentication] + entirePath;
-        let queryString = '';
         if (authentication === 'public') {
-            queryString = this.urlencode (query);
             if (Object.keys (query).length) {
-                url += '?' + queryString;
+                url += '?' + this.urlencode (query);
             }
         } else {
+            let queryString = '';
             if ((method === 'GET') || (method === 'DELETE')) {
-                queryString = this.urlencode (query);
                 if (Object.keys (query).length) {
+                    queryString = this.urlencode (query);
                     url += '?' + queryString;
                 }
             } else {
+                const urlQueryParams = this.safeValue (query, 'query', {});
+                if (Object.keys (urlQueryParams).length) {
+                    queryString = this.urlencode (urlQueryParams);
+                    url += '?' + queryString;
+                }
+                query = this.omit (query, 'query');
                 body = this.json (query);
             }
             const bodyPayload = (body === undefined) ? '' : body;
             const bodySignature = this.hash (this.encode (bodyPayload), 'sha512');
             const timestamp = this.seconds ();
             const timestampString = timestamp.toString ();
-            const signaturePath = '/api/v4' + entirePath;
+            const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join ("\n");

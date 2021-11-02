@@ -270,29 +270,52 @@ class btcalpha(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        symbol = None
-        if market is None:
-            market = self.safe_value(self.markets_by_id, order['pair'])
-        if market is not None:
-            symbol = market['symbol']
-        timestamp = self.safe_timestamp(order, 'date')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
+        #
+        # fetchClosedOrders / fetchOrder
+        #     {
+        #       "id": "923763073",
+        #       "date": "1635451090368",
+        #       "type": "sell",
+        #       "pair": "XRP_USDT",
+        #       "price": "1.00000000",
+        #       "amount": "0.00000000",
+        #       "status": "3",
+        #       "amount_filled": "10.00000000",
+        #       "amount_original": "10.0"
+        #       "trades": [],
+        #     }
+        #
+        # createOrder
+        #     {
+        #       "success": True,
+        #       "date": "1635451754.497541",
+        #       "type": "sell",
+        #       "oid": "923776755",
+        #       "price": "1.0",
+        #       "amount": "10.0",
+        #       "amount_filled": "0.0",
+        #       "amount_original": "10.0",
+        #       "trades": []
+        #     }
+        #
+        marketId = self.safe_string(order, 'pair')
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
+        success = self.safe_value(order, 'success', False)
+        timestamp = None
+        if success:
+            timestamp = self.safe_timestamp(order, 'date')
+        else:
+            timestamp = self.safe_integer(order, 'date')
+        price = self.safe_string(order, 'price')
+        remaining = self.safe_string(order, 'amount')
+        filled = self.safe_string(order, 'amount_filled')
+        amount = self.safe_string(order, 'amount_original')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string_2(order, 'oid', 'id')
-        trades = self.safe_value(order, 'trades', [])
-        trades = self.parse_trades(trades, market)
+        trades = self.safe_value(order, 'trades')
         side = self.safe_string_2(order, 'my_side', 'type')
-        filled = None
-        numTrades = len(trades)
-        if numTrades > 0:
-            filled = 0.0
-            for i in range(0, numTrades):
-                filled = self.sum(filled, trades[i]['amount'])
-        remaining = None
-        if (amount is not None) and (amount > 0) and (filled is not None):
-            remaining = max(0, amount - filled)
-        return {
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -314,7 +337,7 @@ class btcalpha(Exchange):
             'info': order,
             'lastTradeTimestamp': None,
             'average': None,
-        }
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
