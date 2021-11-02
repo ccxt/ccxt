@@ -1511,10 +1511,13 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'price');
         const request = this.prepareRequest (market);
         request['interval'] = this.timeframes[timeframe];
-        const isMark = price === 'mark';
-        const isIndex = price === 'index';
-        if (isMark || isIndex) {
-            const prefix = isMark ? 'mark_' : 'index_';
+        const isMark = (price === 'mark');
+        const isIndex = (price === 'index');
+        let method = 'publicSpotGetCandlesticks';
+        const isMarkOrIndex = (isMark || isIndex);
+        if (isMarkOrIndex || market['swap'] || market['futures']) {
+            method = market['futures'] ? 'publicDeliveryGetSettleCandlesticks' : 'publicFuturesGetSettleCandlesticks';
+            const prefix = isMarkOrIndex ? (price + '_') : '';
             request['contract'] = prefix + market['id'];
         }
         if (since === undefined) {
@@ -1527,12 +1530,6 @@ module.exports = class gateio extends Exchange {
                 request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
             }
         }
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'publicSpotGetCandlesticks',
-            'margin': 'publicSpotGetCandlesticks',
-            'swap': 'publicFuturesGetSettleCandlesticks',
-            'futures': 'publicDeliveryGetSettleCandlesticks',
-        });
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
