@@ -19,6 +19,7 @@ module.exports = class latoken2 extends Exchange {
             'certified': false,
             'userAgent': this.userAgents['chrome'],
             'has': {
+                'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
@@ -136,6 +137,7 @@ module.exports = class latoken2 extends Exchange {
                     // TOO_MANY_REQUESTS - too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                 },
                 'broad': {
+                    'invalid API key, signature or digest': AuthenticationError,
                 },
             },
         });
@@ -360,17 +362,17 @@ module.exports = class latoken2 extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountBalances (params);
+        const response = await this.privateGetAuthAccount (params);
         //
         //     [
         //         {
-        //             "currencyId": 102,
-        //             "symbol": "LA",
-        //             "name": "Latoken",
-        //             "amount": 1054.66,
-        //             "available": 900.66,
-        //             "frozen": 154,
-        //             "pending": 0
+        //             "id":"e5852e02-8711-431c-9749-a6f5503c6dbe",
+        //             "status":"ACCOUNT_STATUS_ACTIVE",
+        //             "type":"ACCOUNT_TYPE_WALLET",
+        //             "timestamp":1635893387282,
+        //             "currency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "available":"200.000000",
+        //             "blocked":"0.000000"
         //         }
         //     ]
         //
@@ -379,18 +381,26 @@ module.exports = class latoken2 extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
+        let maxTimestamp = undefined;
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currencyId = this.safeString (balance, 'symbol');
+            const currencyId = this.safeString (balance, 'currency');
+            const timestamp = this.safeInteger (balance, 'timestamp');
+            if (timestamp !== undefined) {
+                if (maxTimestamp === undefined) {
+                    maxTimestamp = timestamp;
+                } else {
+                    maxTimestamp = Math.max (maxTimestamp, timestamp);
+                }
+            }
             const code = this.safeCurrencyCode (currencyId);
-            const frozen = this.safeString (balance, 'frozen');
-            const pending = this.safeString (balance, 'pending');
             const account = this.account ();
-            account['used'] = Precise.stringAdd (frozen, pending);
             account['free'] = this.safeString (balance, 'available');
-            account['total'] = this.safeString (balance, 'amount');
+            account['used'] = this.safeString (balance, 'blocked');
             result[code] = account;
         }
+        result['timestamp'] = maxTimestamp;
+        result['datetime'] = this.iso8601 (maxTimestamp);
         return this.parseBalance (result);
     }
 
@@ -543,10 +553,11 @@ module.exports = class latoken2 extends Exchange {
         const amountString = this.safeString (trade, 'quantity');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
-        let cost = this.safeString (trade, 'cost');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        let costString = this.safeString (trade, 'cost');
+        if (costString === undefined) {
+            costString = Precise.stringMul (priceString, amountString);
         }
+        const cost = this.parseNumber (costString);
         const makerBuyer = this.safeValue (trade, 'makerBuyer');
         let side = this.safeString (trade, 'side');
         if (side === undefined) {
@@ -890,44 +901,36 @@ module.exports = class latoken2 extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
-        let request = '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        if (api === 'private') {
-            const nonce = this.nonce ();
-            query = this.extend ({
-                'timestamp': nonce,
-            }, query);
-        }
+        const request = '/' + this.version + '/' + this.implodeParams (path, params);
+        let requestString = request;
+        const query = this.omit (params, this.extractParams (path));
         const urlencodedQuery = this.urlencode (query);
         if (Object.keys (query).length) {
-            request += '?' + urlencodedQuery;
+            requestString += '?' + urlencodedQuery;
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let queryString = '';
-            let bodyQueryString = '';
+            // let queryString = '';
+            // let bodyQueryString = '';
             if (method === 'GET') {
                 if (Object.keys (query).length) {
-                    queryString = this.urlencode (query);
+                    requestString += '?' + urlencodedQuery;
                 }
             } else if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (query);
-                if (Object.keys (query).length) {
-                    bodyQueryString = this.urlencode (query);
-                }
             }
-            const auth = method + request + queryString + bodyQueryString;
-            console.log (auth);
-            process.exit ();
-            const signature = this.hmac (this.encode (request), this.encode (this.secret));
+            const auth = method + request + urlencodedQuery + urlencodedQuery;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             headers = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,
                 // 'X-LA-DIGEST': 'HMAC-SHA256', // HMAC-SHA384, HMAC-SHA512, optional
             };
+            // console.log (auth);
+            // process.exit ();
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api'] + requestString;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -936,15 +939,7 @@ module.exports = class latoken2 extends Exchange {
             return;
         }
         //
-        //     { "message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)." }
-        //     { "error": { "message": "Pair 370 is not found","errorType":"RequestError","statusCode":400 }}
-        //     { "error": { "message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 }}
-        //     { "error": { "message": "Request is out of time", "errorType": "RequestError", "statusCode":400 }}
-        //     { "error": { "message": "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 }}
-        //     { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
-        //     { "error": { "message": "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 }}
-        //     { "error": { "message": "Symbol must be specified","errorType":"RequestError","statusCode":400 }}
-        //     { "error": { "message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 }}
+        // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
         //
         const message = this.safeString (response, 'message');
         const feedback = this.id + ' ' + body;
