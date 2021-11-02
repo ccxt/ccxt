@@ -276,6 +276,7 @@ class bybit extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '-2015' => '\\ccxt\\AuthenticationError', // Invalid API-key, IP, or permissions for action.
                     '10001' => '\\ccxt\\BadRequest', // parameter error
                     '10002' => '\\ccxt\\InvalidNonce', // request expired, check your timestamp and recv_window
                     '10003' => '\\ccxt\\AuthenticationError', // Invalid apikey
