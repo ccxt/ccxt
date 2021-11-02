@@ -185,7 +185,7 @@ class yobit(Exchange):
                 'RUR': 'RUB',
                 'SBTC': 'Super Bitcoin',
                 'SOLO': 'SoloCoin',
-                'SUPER': 'SuperFarm',
+                'SUPER': 'SuperCoin',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
                 'UST': 'Uservice',
