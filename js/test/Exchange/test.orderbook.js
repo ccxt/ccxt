@@ -63,6 +63,7 @@ module.exports = (exchange, orderbook, method, symbol) => {
     if (![
 
         'coinmarketcap',
+        'mexc',
         'xbtce',
         'upbit', // an orderbook might have a 0-price ask occasionally
 
