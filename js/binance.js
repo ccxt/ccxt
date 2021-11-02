@@ -4605,7 +4605,7 @@ module.exports = class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setPositionMode (hedge, symbol = undefined, params = {}) {
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, [ 'type' ]);

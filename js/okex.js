@@ -3154,7 +3154,7 @@ module.exports = class okex extends Exchange {
         return response;
     }
 
-    async setPositionMode (hedge, symbol = undefined, params = {}) {
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
         let hedgeMode = undefined;
         if (hedge) {
             hedgeMode = 'long_short_mode';
