@@ -454,7 +454,7 @@ module.exports = class coinbasepro extends Exchange {
         const timestamp = this.parse8601 (this.safeValue (ticker, 'time'));
         const bid = this.safeNumber (ticker, 'bid');
         const ask = this.safeNumber (ticker, 'ask');
-        const last = this.safeNumber (ticker, 'price');
+        const last = (ticker['price'] !== undefined ) ? this.safeNumber (ticker, 'price') : this.safeNumber (ticker, 'last');
         const symbol = (market === undefined) ? undefined : market['symbol'];
         return {
             'symbol': symbol,
