@@ -913,11 +913,11 @@ class digifinex(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'executed_amount')
-        price = self.safe_number(order, 'price')
-        average = self.safe_number(order, 'avg_price')
-        return self.safe_order({
+        amount = self.safe_string(order, 'amount')
+        filled = self.safe_string(order, 'executed_amount')
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'avg_price')
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
