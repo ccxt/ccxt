@@ -1177,13 +1177,14 @@ module.exports = class huobi extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
         const clientOrderId = this.safeString (order, 'client-order-id');
-        const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
-        let price = this.safeNumber (order, 'price');
-        if (price === 0.0) {
+        const amount = this.safeString (order, 'amount');
+        const filled = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
+        let price = this.safeString (order, 'price');
+        const isPriceZero = Precise.stringEquals (price, '0');
+        if (isPriceZero) {
             price = undefined;
         }
-        const cost = this.safeNumber2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
+        const cost = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         const feeCost = this.safeNumber2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1196,7 +1197,7 @@ module.exports = class huobi extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
