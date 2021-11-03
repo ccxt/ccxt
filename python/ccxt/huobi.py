@@ -1126,12 +1126,10 @@ class huobi(Exchange):
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(order, 'created-at')
         clientOrderId = self.safe_string(order, 'client-order-id')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
-        price = self.safe_number(order, 'price')
-        if price == 0.0:
-            price = None
-        cost = self.safe_number_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
+        amount = self.safe_string(order, 'amount')
+        filled = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
+        price = self.safe_string(order, 'price')
+        cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
         feeCost = self.safe_number_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
         fee = None
         if feeCost is not None:
@@ -1142,7 +1140,7 @@ class huobi(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

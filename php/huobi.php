@@ -1182,13 +1182,10 @@ class huobi extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($order, 'created-at');
         $clientOrderId = $this->safe_string($order, 'client-$order-id');
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
-        $price = $this->safe_number($order, 'price');
-        if ($price === 0.0) {
-            $price = null;
-        }
-        $cost = $this->safe_number_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
+        $amount = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
+        $price = $this->safe_string($order, 'price');
+        $cost = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         $feeCost = $this->safe_number_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled fees
         $fee = null;
         if ($feeCost !== null) {
@@ -1201,7 +1198,7 @@ class huobi extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
