@@ -77,6 +77,7 @@ class binance(Exchange):
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -3994,6 +3995,8 @@ class binance(Exchange):
                 # since he has more collateral than the size of the position
                 truncatedLiquidationPrice = None
             liquidationPrice = self.parse_number(truncatedLiquidationPrice)
+        positionSide = self.safe_string(position, 'positionSide')
+        hedged = positionSide != 'BOTH'
         return {
             'info': position,
             'symbol': symbol,
@@ -4015,6 +4018,7 @@ class binance(Exchange):
             'collateral': collateral,
             'marginType': marginType,
             'side': side,
+            'hedged': hedged,
             'percentage': percentage,
         }
 
@@ -4138,6 +4142,8 @@ class binance(Exchange):
         if collateralFloat != 0.0:
             marginRatio = self.parse_number(Precise.string_div(Precise.string_add(Precise.string_div(maintenanceMarginString, collateralString), '5e-5'), '1', 4))
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
+        positionSide = self.safe_string(position, 'positionSide')
+        hedged = positionSide != 'BOTH'
         return {
             'info': position,
             'symbol': symbol,
@@ -4159,6 +4165,7 @@ class binance(Exchange):
             'datetime': self.iso8601(timestamp),
             'marginType': marginType,
             'side': side,
+            'hedged': hedged,
             'percentage': percentage,
         }
 
@@ -4253,14 +4260,17 @@ class binance(Exchange):
         else:
             raise NotSupported(self.id + ' fetchIsolatedPositions() supports linear and inverse contracts only')
         response = getattr(self, method)(self.extend(request, params))
+        result = []
         if symbol is None:
-            result = []
             for i in range(0, len(response)):
                 parsed = self.parse_position_risk(response[i], market)
                 result.append(parsed)
-            return result
         else:
-            return self.parse_position_risk(self.safe_value(response, 0), market)
+            for i in range(0, len(response)):
+                parsed = self.parse_position_risk(response[i], market)
+                if parsed['symbol'] == symbol:
+                    result.append(parsed)
+        return result
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -4341,6 +4351,32 @@ class binance(Exchange):
             'symbol': market['id'],
             'marginType': marginType,
         }
+        return getattr(self, method)(self.extend(request, params))
+
+    def set_position_mode(self, hedged, symbol=None, params={}):
+        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, ['type'])
+        dualSidePosition = None
+        if hedged:
+            dualSidePosition = 'true'
+        else:
+            dualSidePosition = 'false'
+        request = {
+            'dualSidePosition': dualSidePosition,
+        }
+        method = None
+        if type == 'delivery':
+            method = 'dapiPrivatePostPositionSideDual'
+        else:
+            # default to future
+            method = 'fapiPrivatePostPositionSideDual'
+        #
+        #     {
+        #       "code": 200,
+        #       "msg": "success"
+        #     }
+        #
         return getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

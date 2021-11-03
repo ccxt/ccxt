@@ -2057,7 +2057,7 @@ class kucoin(Exchange):
         #     "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
         #
         referenceId = None
-        if context is not None:
+        if context is not None and context != '':
             parsed = json.loads(context)
             orderId = self.safe_string(parsed, 'orderId')
             tradeId = self.safe_string(parsed, 'tradeId')

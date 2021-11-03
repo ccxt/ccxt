@@ -31,7 +31,7 @@ class bibox(Exchange):
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
-            'hostname': 'bibox365.com',
+            'hostname': 'bibox.com',
             'has': {
                 'cancelOrder': True,
                 'CORS': None,
@@ -942,11 +942,11 @@ class bibox(Exchange):
         rawType = self.safe_string(order, 'order_type')
         type = 'market' if (rawType == '1') else 'limit'
         timestamp = self.safe_integer(order, 'createdAt')
-        price = self.safe_number(order, 'price')
-        average = self.safe_number(order, 'deal_price')
-        filled = self.safe_number(order, 'deal_amount')
-        amount = self.safe_number(order, 'amount')
-        cost = self.safe_number_2(order, 'deal_money', 'money')
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'deal_price')
+        filled = self.safe_string(order, 'deal_amount')
+        amount = self.safe_string(order, 'amount')
+        cost = self.safe_string_2(order, 'deal_money', 'money')
         rawSide = self.safe_string(order, 'order_side')
         side = 'buy' if (rawSide == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -958,7 +958,7 @@ class bibox(Exchange):
                 'cost': feeCost,
                 'currency': None,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,

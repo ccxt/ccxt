@@ -337,10 +337,10 @@ class bitflyer extends Exchange {
 
     public function parse_order($order, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($order, 'child_order_date'));
-        $amount = $this->safe_number($order, 'size');
-        $remaining = $this->safe_number($order, 'outstanding_size');
-        $filled = $this->safe_number($order, 'executed_size');
-        $price = $this->safe_number($order, 'price');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'size');
+        $filled = $this->safe_string($order, 'executed_size');
+        $remaining = $this->safe_string($order, 'outstanding_size');
         $status = $this->parse_order_status($this->safe_string($order, 'child_order_state'));
         $type = $this->safe_string_lower($order, 'child_order_type');
         $side = $this->safe_string_lower($order, 'side');
@@ -356,7 +356,7 @@ class bitflyer extends Exchange {
             );
         }
         $id = $this->safe_string($order, 'child_order_acceptance_id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,

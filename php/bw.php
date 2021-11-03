@@ -727,13 +727,13 @@ class bw extends Exchange {
         } else if ($side === '1') {
             $side = 'buy';
         }
-        $amount = $this->safe_number($order, 'amount');
-        $price = $this->safe_number($order, 'price');
-        $filled = $this->safe_number($order, 'completeAmount');
-        $remaining = $this->safe_number_2($order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
-        $cost = $this->safe_number($order, 'totalMoney');
+        $amount = $this->safe_string($order, 'amount');
+        $price = $this->safe_string($order, 'price');
+        $filled = $this->safe_string($order, 'completeAmount');
+        $remaining = $this->safe_string_2($order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
+        $cost = $this->safe_string($order, 'totalMoney');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'entrustId'),
             'clientOrderId' => null,

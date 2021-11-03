@@ -49,6 +49,7 @@ class okex(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressByNetwork': True,
                 'fetchDeposits': True,
+                'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
@@ -69,6 +70,9 @@ class okex(Exchange):
                 'fetchWithdrawals': True,
                 'transfer': True,
                 'withdraw': True,
+                'setLeverage': True,
+                'setPositionMode': True,
+                'setMarginMode': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -79,14 +83,14 @@ class okex(Exchange):
                 '1h': '1H',
                 '2h': '2H',
                 '4h': '4H',
-                '6h': '6H',
-                '12h': '12H',
-                '1d': '1D',
-                '1w': '1W',
-                '1M': '1M',
-                '3M': '3M',
-                '6M': '6M',
-                '1y': '1Y',
+                '6h': '6Hutc',
+                '12h': '12Hutc',
+                '1d': '1Dutc',
+                '1w': '1Wutc',
+                '1M': '1Mutc',
+                '3M': '3Mutc',
+                '6M': '6Mutc',
+                '1y': '1Yutc',
             },
             'hostname': 'www.okex.com',
             'urls': {
@@ -97,7 +101,7 @@ class okex(Exchange):
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs-v5/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
-                'referral': 'https://www.okex.com/join/1888677',
+                # 'referral': 'https://www.okex.com/join/1888677',
                 'test': {
                     'rest': 'https://testnet.okex.com',
                 },
@@ -531,7 +535,7 @@ class okex(Exchange):
                     'Liquid': True,
                 },
                 'fetchOHLCV': {
-                    'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder'
                 'createMarketBuyOrderRequiresPrice': False,
@@ -676,6 +680,7 @@ class okex(Exchange):
         futures = (type == 'futures')
         swap = (type == 'swap')
         option = (type == 'option')
+        derivative = swap or futures
         baseId = self.safe_string(market, 'baseCcy')
         quoteId = self.safe_string(market, 'quoteCcy')
         settleCurrency = self.safe_string(market, 'settleCcy')
@@ -702,6 +707,7 @@ class okex(Exchange):
         active = True
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         contractSize = self.safe_string(market, 'ctVal')
+        contract = derivative and (contractSize != '1')
         leverage = self.safe_number(market, 'lever', 1)
         expiry = None
         if futures or option:
@@ -718,6 +724,8 @@ class okex(Exchange):
             'spot': spot,
             'futures': futures,
             'swap': swap,
+            'derivative': derivative,
+            'contract': contract,
             'option': option,
             'linear': linear,
             'inverse': inverse,
@@ -1195,14 +1203,27 @@ class okex(Exchange):
         market = self.market(symbol)
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
+        if limit is None:
+            limit = 100  # default 100, max 100
         request = {
             'instId': market['id'],
             'bar': self.timeframes[timeframe],
+            'limit': limit,
         }
-        if limit is not None:
-            request['limit'] = limit  # default 100, max 100
+        defaultType = 'Candles'
+        if since is not None:
+            duration = self.parse_timeframe(timeframe)
+            now = self.milliseconds()
+            difference = now - since
+            # if the since timestamp is more than limit candles back in the past
+            if difference > limit * duration * 1000:
+                defaultType = 'HistoryCandles'
+            durationInMilliseconds = duration * 1000
+            startTime = since - 1
+            request['before'] = startTime
+            request['after'] = self.sum(startTime, durationInMilliseconds * limit)
         options = self.safe_value(self.options, 'fetchOHLCV', {})
-        defaultType = self.safe_string(options, 'type', 'Candles')  # Candles or HistoryCandles
+        defaultType = self.safe_string(options, 'type', defaultType)  # Candles or HistoryCandles
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         method = 'publicGetMarket' + type
@@ -1210,8 +1231,6 @@ class okex(Exchange):
             method = 'publicGetMarketMarkPriceCandles'
         elif price == 'index':
             method = 'publicGetMarketIndexCandles'
-        if since is not None:
-            request['before'] = since - 1
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1226,6 +1245,52 @@ class okex(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+        }
+        if since is not None:
+            request['after'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetPublicFundingRateHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code":"0",
+        #         "msg":"",
+        #         "data":[
+        #             {
+        #                 "instType":"SWAP",
+        #                 "instId":"BTC-USDT-SWAP",
+        #                 "fundingRate":"0.018",
+        #                 "realizedRate":"0.017",
+        #                 "fundingTime":"1597026383085"
+        #             },
+        #             {
+        #                 "instType":"SWAP",
+        #                 "instId":"BTC-USDT-SWAP",
+        #                 "fundingRate":"0.018",
+        #                 "realizedRate":"0.017",
+        #                 "fundingTime":"1597026383085"
+        #             }
+        #         ]
+        #     }
+        #
+        rates = []
+        data = self.safe_value(response, 'data')
+        for i in range(0, len(data)):
+            rate = data[i]
+            timestamp = self.safe_number(rate, 'fundingTime')
+            rates.append({
+                'symbol': self.safe_string(rate, 'instId'),
+                'fundingRate': self.safe_number(rate, 'realizedRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        return rates
 
     def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
@@ -1427,7 +1492,6 @@ class okex(Exchange):
             #     - Cross FUTURES/SWAP/OPTION: cross
             #     - Isolated FUTURES/SWAP/OPTION: isolated
             #
-            'tdMode': 'cash',  # cash, cross, isolated
             # 'ccy': currency['id'],  # only applicable to cross MARGIN orders in single-currency margin
             # 'clOrdId': clientOrderId,  # up to 32 characters, must be unique
             # 'tag': tag,  # up to 8 characters
@@ -1452,6 +1516,14 @@ class okex(Exchange):
             # 'px': self.price_to_precision(symbol, price),  # limit orders only
             # 'reduceOnly': False,  # MARGIN orders only
         }
+        tdMode = self.safe_string_lower(params, 'tdMode')
+        if market['spot']:
+            request['tdMode'] = 'cash'
+        elif market['derivative']:
+            if tdMode is None:
+                raise ArgumentsRequired(self.id + ' params["tdMode"] is required to be either "isolated" or "cross"')
+            elif (tdMode != 'isolated') and (tdMode != 'cross'):
+                raise BadRequest(self.id + ' params["tdMode"] must be either "isolated" or "cross"')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
@@ -2734,8 +2806,15 @@ class okex(Exchange):
         symbol = market['symbol']
         contractsString = self.safe_string(position, 'pos')
         contracts = None
+        side = self.safe_string(position, 'posSide')
+        hedged = side != 'net'
         if contractsString is not None:
-            contracts = int(contractsString)
+            contracts = self.parse_number(Precise.string_abs(contractsString))
+            if side == 'net':
+                if Precise.string_gt(contractsString, '0'):
+                    side = 'long'
+                else:
+                    side = 'short'
         notionalString = self.safe_string(position, 'notionalUsd')
         notional = self.parse_number(notionalString)
         marginType = self.safe_string(position, 'mgnMode')
@@ -2763,9 +2842,8 @@ class okex(Exchange):
         liquidationPrice = self.safe_number(position, 'liqPx')
         percentageString = self.safe_string(position, 'uplRatio')
         percentage = self.parse_number(Precise.string_mul(percentageString, '100'))
-        side = self.safe_string(position, 'posSide')
         timestamp = self.safe_integer(position, 'uTime')
-        leverage = self.safe_integer(position, 'lever')
+        leverage = self.safe_number(position, 'lever')
         marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
         return {
             'info': position,
@@ -2779,6 +2857,7 @@ class okex(Exchange):
             'contracts': contracts,
             'contractSize': self.parse_number(market['contractSize']),
             'side': side,
+            'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'maintenanceMargin': maintenanceMargin,
@@ -2966,6 +3045,99 @@ class okex(Exchange):
         data = self.safe_value(response, 'data', [])
         entry = self.safe_value(data, 0, {})
         return self.parse_funding_rate(entry, market)
+
+    def set_leverage(self, leverage, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (leverage < 1) or (leverage > 125):
+            raise BadRequest(self.id + ' setLeverage leverage should be between 1 and 125')
+        self.load_markets()
+        market = self.market(symbol)
+        marginMode = self.safe_string_lower(params, 'mgnMode')
+        params = self.omit(params, ['mgnMode'])
+        if (marginMode != 'cross') and (marginMode != 'isolated'):
+            raise BadRequest(self.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"')
+        request = {
+            'lever': leverage,
+            'mgnMode': marginMode,
+            'instId': market['id'],
+        }
+        response = self.privatePostAccountSetLeverage(self.extend(request, params))
+        #
+        #     {
+        #       "code": "0",
+        #       "data": [
+        #         {
+        #           "instId": "BTC-USDT-SWAP",
+        #           "lever": "5",
+        #           "mgnMode": "isolated",
+        #           "posSide": "long"
+        #         }
+        #       ],
+        #       "msg": ""
+        #     }
+        #
+        return response
+
+    def set_position_mode(self, hedged, symbol=None, params={}):
+        hedgeMode = None
+        if hedged:
+            hedgeMode = 'long_short_mode'
+        else:
+            hedgeMode = 'net_mode'
+        request = {
+            'posMode': hedgeMode,
+        }
+        response = self.privatePostAccountSetPositionMode(self.extend(request, params))
+        #
+        #     {
+        #       "code": "0",
+        #       "data": [
+        #         {
+        #           "posMode": "net_mode"
+        #         }
+        #       ],
+        #       "msg": ""
+        #     }
+        #
+        return response
+
+    def set_margin_mode(self, marginType, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (marginType != 'cross') and (marginType != 'isolated'):
+            raise BadRequest(self.id + ' setMarginMode marginType must be either "cross" or "isolated"')
+        self.load_markets()
+        market = self.market(symbol)
+        lever = self.safe_integer(params, 'lever')
+        if (lever is None) or (lever < 1) or (lever > 125):
+            raise BadRequest(self.id + ' setMarginMode params["lever"] should be between 1 and 125')
+        params = self.omit(params, ['lever'])
+        request = {
+            'lever': lever,
+            'mgnMode': marginType,
+            'instId': market['id'],
+        }
+        response = self.privatePostAccountSetLeverage(self.extend(request, params))
+        #
+        #     {
+        #       "code": "0",
+        #       "data": [
+        #         {
+        #           "instId": "BTC-USDT-SWAP",
+        #           "lever": "5",
+        #           "mgnMode": "isolated",
+        #           "posSide": "long"
+        #         }
+        #       ],
+        #       "msg": ""
+        #     }
+        #
+        return response
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

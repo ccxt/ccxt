@@ -2161,7 +2161,7 @@ class kucoin extends Exchange {
         //     "array(\"symbol\":\"ETH-USDT\",\"$orderId\":\"617adcd1eb3fa20001dd29a1\",\"$tradeId\":\"617adcd12e113d2b91222ff9\")"
         //
         $referenceId = null;
-        if ($context !== null) {
+        if ($context !== null && $context !== '') {
             $parsed = json_decode($context, $as_associative_array = true);
             $orderId = $this->safe_string($parsed, 'orderId');
             $tradeId = $this->safe_string($parsed, 'tradeId');

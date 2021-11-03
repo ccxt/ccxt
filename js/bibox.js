@@ -15,7 +15,7 @@ module.exports = class bibox extends Exchange {
             'name': 'Bibox',
             'countries': [ 'CN', 'US', 'KR' ],
             'version': 'v1',
-            'hostname': 'bibox365.com',
+            'hostname': 'bibox.com',
             'has': {
                 'cancelOrder': true,
                 'CORS': undefined,
@@ -978,11 +978,11 @@ module.exports = class bibox extends Exchange {
         const rawType = this.safeString (order, 'order_type');
         const type = (rawType === '1') ? 'market' : 'limit';
         const timestamp = this.safeInteger (order, 'createdAt');
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'deal_price');
-        const filled = this.safeNumber (order, 'deal_amount');
-        const amount = this.safeNumber (order, 'amount');
-        const cost = this.safeNumber2 (order, 'deal_money', 'money');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'deal_price');
+        const filled = this.safeString (order, 'deal_amount');
+        const amount = this.safeString (order, 'amount');
+        const cost = this.safeString2 (order, 'deal_money', 'money');
         const rawSide = this.safeString (order, 'order_side');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -995,7 +995,7 @@ module.exports = class bibox extends Exchange {
                 'currency': undefined,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

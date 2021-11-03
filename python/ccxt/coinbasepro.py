@@ -1009,9 +1009,9 @@ class coinbasepro(Exchange):
         id = self.safe_string(item, 'id')
         amountString = self.safe_string(item, 'amount')
         direction = None
-        afterString = self.safe_number(item, 'balance')
+        afterString = self.safe_string(item, 'balance')
         beforeString = Precise.string_sub(afterString, amountString)
-        if Precise.lt(amountString, '0'):
+        if Precise.string_lt(amountString, '0'):
             direction = 'out'
             amountString = Precise.string_abs(amountString)
         else:

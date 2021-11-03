@@ -13,7 +13,7 @@ module.exports = class gateio extends Exchange {
             'name': 'Gate.io',
             'countries': [ 'KR' ],
             'rateLimit': 10 / 3, // 300 requests per second or 3.33ms
-            'version': '4',
+            'version': 'v4',
             'certified': true,
             'pro': true,
             'urls': {
@@ -268,6 +268,7 @@ module.exports = class gateio extends Exchange {
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'BYN': 'Beyond Finance',
+                'EGG': 'Goose Finance',
                 'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'GTC_HT': 'Game.com HT',
                 'GTC_BSC': 'Game.com BSC',
@@ -1510,10 +1511,13 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'price');
         const request = this.prepareRequest (market);
         request['interval'] = this.timeframes[timeframe];
-        const isMark = price === 'mark';
-        const isIndex = price === 'index';
-        if (isMark || isIndex) {
-            const prefix = isMark ? 'mark_' : 'index_';
+        const isMark = (price === 'mark');
+        const isIndex = (price === 'index');
+        let method = 'publicSpotGetCandlesticks';
+        const isMarkOrIndex = (isMark || isIndex);
+        if (isMarkOrIndex || market['swap'] || market['futures']) {
+            method = market['futures'] ? 'publicDeliveryGetSettleCandlesticks' : 'publicFuturesGetSettleCandlesticks';
+            const prefix = isMarkOrIndex ? (price + '_') : '';
             request['contract'] = prefix + market['id'];
         }
         if (since === undefined) {
@@ -1526,12 +1530,6 @@ module.exports = class gateio extends Exchange {
                 request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
             }
         }
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'publicSpotGetCandlesticks',
-            'margin': 'publicSpotGetCandlesticks',
-            'swap': 'publicFuturesGetSettleCandlesticks',
-            'futures': 'publicDeliveryGetSettleCandlesticks',
-        });
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -2258,34 +2256,96 @@ module.exports = class gateio extends Exchange {
         };
     }
 
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((leverage < 0) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const method = this.getSupportedMapping (market['type'], {
+            'swap': 'privateFuturesPostSettlePositionsContractLeverage',
+            'futures': 'privateDeliveryPostSettlePositionsContractLeverage',
+        });
+        const request = this.prepareRequest (market);
+        request['query'] = {
+            'leverage': leverage.toString (),
+        };
+        if ('cross_leverage_limit' in params) {
+            if (leverage !== 0) {
+                throw new BadRequest (this.id + ' cross margin leverage(valid only when leverage is 0)');
+            }
+            request['cross_leverage_limit'] = params['cross_leverage_limit'].toString ();
+            params = this.omit (params, 'cross_leverage_limit');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "value":"0",
+        //         "leverage":"5",
+        //         "mode":"single",
+        //         "realised_point":"0",
+        //         "contract":"BTC_USDT",
+        //         "entry_price":"0",
+        //         "mark_price":"62035.86",
+        //         "history_point":"0",
+        //         "realised_pnl":"0",
+        //         "close_order":null,
+        //         "size":0,
+        //         "cross_leverage_limit":"0",
+        //         "pending_orders":0,
+        //         "adl_ranking":6,
+        //         "maintenance_rate":"0.005",
+        //         "unrealised_pnl":"0",
+        //         "user":2436035,
+        //         "leverage_max":"100",
+        //         "history_pnl":"0",
+        //         "risk_limit":"1000000",
+        //         "margin":"0",
+        //         "last_close_pnl":"0",
+        //         "liq_price":"0"
+        //     }
+        //
+        return response;
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, futures, delivery
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '' ? '' : '/' + path);
         const entirePath = '/' + type + endPart;
         let url = this.urls['api'][authentication] + entirePath;
-        let queryString = '';
         if (authentication === 'public') {
-            queryString = this.urlencode (query);
             if (Object.keys (query).length) {
-                url += '?' + queryString;
+                url += '?' + this.urlencode (query);
             }
         } else {
+            let queryString = '';
             if ((method === 'GET') || (method === 'DELETE')) {
-                queryString = this.urlencode (query);
                 if (Object.keys (query).length) {
+                    queryString = this.urlencode (query);
                     url += '?' + queryString;
                 }
             } else {
+                const urlQueryParams = this.safeValue (query, 'query', {});
+                if (Object.keys (urlQueryParams).length) {
+                    queryString = this.urlencode (urlQueryParams);
+                    url += '?' + queryString;
+                }
+                query = this.omit (query, 'query');
                 body = this.json (query);
             }
             const bodyPayload = (body === undefined) ? '' : body;
             const bodySignature = this.hash (this.encode (bodyPayload), 'sha512');
             const timestamp = this.seconds ();
             const timestampString = timestamp.toString ();
-            const signaturePath = '/api/v4' + entirePath;
+            const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join ("\n");

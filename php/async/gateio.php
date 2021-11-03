@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\Precise;
 
 class gateio extends Exchange {
@@ -18,7 +19,7 @@ class gateio extends Exchange {
             'name' => 'Gate.io',
             'countries' => array( 'KR' ),
             'rateLimit' => 10 / 3, // 300 requests per second or 3.33ms
-            'version' => '4',
+            'version' => 'v4',
             'certified' => true,
             'pro' => true,
             'urls' => array(
@@ -273,6 +274,7 @@ class gateio extends Exchange {
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
                 'BYN' => 'Beyond Finance',
+                'EGG' => 'Goose Finance',
                 'GTC' => 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'GTC_HT' => 'Game.com HT',
                 'GTC_BSC' => 'Game.com BSC',
@@ -1515,10 +1517,13 @@ class gateio extends Exchange {
         $params = $this->omit($params, 'price');
         $request = $this->prepare_request($market);
         $request['interval'] = $this->timeframes[$timeframe];
-        $isMark = $price === 'mark';
-        $isIndex = $price === 'index';
-        if ($isMark || $isIndex) {
-            $prefix = $isMark ? 'mark_' : 'index_';
+        $isMark = ($price === 'mark');
+        $isIndex = ($price === 'index');
+        $method = 'publicSpotGetCandlesticks';
+        $isMarkOrIndex = ($isMark || $isIndex);
+        if ($isMarkOrIndex || $market['swap'] || $market['futures']) {
+            $method = $market['futures'] ? 'publicDeliveryGetSettleCandlesticks' : 'publicFuturesGetSettleCandlesticks';
+            $prefix = $isMarkOrIndex ? ($price . '_') : '';
             $request['contract'] = $prefix . $market['id'];
         }
         if ($since === null) {
@@ -1531,12 +1536,6 @@ class gateio extends Exchange {
                 $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe) - 1);
             }
         }
-        $method = $this->get_supported_mapping($market['type'], array(
-            'spot' => 'publicSpotGetCandlesticks',
-            'margin' => 'publicSpotGetCandlesticks',
-            'swap' => 'publicFuturesGetSettleCandlesticks',
-            'futures' => 'publicDeliveryGetSettleCandlesticks',
-        ));
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
@@ -2263,6 +2262,63 @@ class gateio extends Exchange {
         );
     }
 
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (($leverage < 0) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $method = $this->get_supported_mapping($market['type'], array(
+            'swap' => 'privateFuturesPostSettlePositionsContractLeverage',
+            'futures' => 'privateDeliveryPostSettlePositionsContractLeverage',
+        ));
+        $request = $this->prepare_request($market);
+        $request['query'] = array(
+            'leverage' => (string) $leverage,
+        );
+        if (is_array($params) && array_key_exists('cross_leverage_limit', $params)) {
+            if ($leverage !== 0) {
+                throw new BadRequest($this->id . ' cross margin $leverage(valid only when $leverage is 0)');
+            }
+            $request['cross_leverage_limit'] = (string) $params['cross_leverage_limit'];
+            $params = $this->omit($params, 'cross_leverage_limit');
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "value":"0",
+        //         "$leverage":"5",
+        //         "mode":"single",
+        //         "realised_point":"0",
+        //         "contract":"BTC_USDT",
+        //         "entry_price":"0",
+        //         "mark_price":"62035.86",
+        //         "history_point":"0",
+        //         "realised_pnl":"0",
+        //         "close_order":null,
+        //         "size":0,
+        //         "cross_leverage_limit":"0",
+        //         "pending_orders":0,
+        //         "adl_ranking":6,
+        //         "maintenance_rate":"0.005",
+        //         "unrealised_pnl":"0",
+        //         "user":2436035,
+        //         "leverage_max":"100",
+        //         "history_pnl":"0",
+        //         "risk_limit":"1000000",
+        //         "margin":"0",
+        //         "last_close_pnl":"0",
+        //         "liq_price":"0"
+        //     }
+        //
+        return $response;
+    }
+
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, futures, delivery
@@ -2271,26 +2327,31 @@ class gateio extends Exchange {
         $endPart = ($path === '' ? '' : '/' . $path);
         $entirePath = '/' . $type . $endPart;
         $url = $this->urls['api'][$authentication] . $entirePath;
-        $queryString = '';
         if ($authentication === 'public') {
-            $queryString = $this->urlencode($query);
             if ($query) {
-                $url .= '?' . $queryString;
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
+            $queryString = '';
             if (($method === 'GET') || ($method === 'DELETE')) {
-                $queryString = $this->urlencode($query);
                 if ($query) {
+                    $queryString = $this->urlencode($query);
                     $url .= '?' . $queryString;
                 }
             } else {
+                $urlQueryParams = $this->safe_value($query, 'query', array());
+                if ($urlQueryParams) {
+                    $queryString = $this->urlencode($urlQueryParams);
+                    $url .= '?' . $queryString;
+                }
+                $query = $this->omit($query, 'query');
                 $body = $this->json($query);
             }
             $bodyPayload = ($body === null) ? '' : $body;
             $bodySignature = $this->hash($this->encode($bodyPayload), 'sha512');
             $timestamp = $this->seconds();
             $timestampString = (string) $timestamp;
-            $signaturePath = '/api/v4' . $entirePath;
+            $signaturePath = '/api/' . $this->version . $entirePath;
             $payloadArray = array( strtoupper($method), $signaturePath, $queryString, $bodySignature, $timestampString );
             // eslint-disable-next-line quotes
             $payload = implode("\n", $payloadArray);

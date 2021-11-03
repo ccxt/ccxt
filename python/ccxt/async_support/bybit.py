@@ -291,6 +291,7 @@ class bybit(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    '-2015': AuthenticationError,  # Invalid API-key, IP, or permissions for action.
                     '10001': BadRequest,  # parameter error
                     '10002': InvalidNonce,  # request expired, check your timestamp and recv_window
                     '10003': AuthenticationError,  # Invalid apikey
