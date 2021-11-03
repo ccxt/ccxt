@@ -1179,11 +1179,7 @@ module.exports = class huobi extends Exchange {
         const clientOrderId = this.safeString (order, 'client-order-id');
         const amount = this.safeString (order, 'amount');
         const filled = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
-        let price = this.safeString (order, 'price');
-        const isPriceZero = Precise.stringEquals (price, '0');
-        if (isPriceZero) {
-            price = undefined;
-        }
+        const price = this.safeString (order, 'price');
         const cost = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         const feeCost = this.safeNumber2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
