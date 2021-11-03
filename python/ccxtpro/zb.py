@@ -21,7 +21,7 @@ class zb(Exchange, ccxt.zb):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.zb.today/websocket',
+                    'ws': 'wss://api.zb.work/websocket',
                 },
             },
             'options': {

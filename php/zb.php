@@ -22,7 +22,7 @@ class zb extends \ccxt\async\zb {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://api.zb.today/websocket',
+                    'ws' => 'wss://api.zb.work/websocket',
                 ),
             ),
             'options' => array(
