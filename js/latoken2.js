@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, DDoSProtection, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
 
@@ -17,12 +17,10 @@ module.exports = class latoken2 extends Exchange {
             'countries': [ 'KY' ], // Cayman Islands
             'version': 'v2',
             'rateLimit': 2000,
-            'certified': false,
-            'userAgent': this.userAgents['chrome'],
             'has': {
                 'cancelAllOrders': true,
-                'cancelOrder': true,
-                'createOrder': true,
+                'cancelOrder': undefined,
+                'createOrder': undefined,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
@@ -762,7 +760,7 @@ module.exports = class latoken2 extends Exchange {
         //         "amount":1.0
         //     }
         //
-        // cancelOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        // fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
         //         "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
@@ -832,6 +830,42 @@ module.exports = class latoken2 extends Exchange {
         });
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        };
+        const response = await this.privateGetAuthOrderPairCurrencyQuoteActive (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
+        //             "status":"ORDER_STATUS_PLACED",
+        //             "side":"ORDER_SIDE_BUY",
+        //             "condition":"ORDER_CONDITION_GOOD_TILL_CANCELLED",
+        //             "type":"ORDER_TYPE_LIMIT",
+        //             "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //             "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "clientOrderId":"web-macos_chrome_1a6a6659-6f7c-4fac-be0b-d1d7ac06d",
+        //             "price":"4000.00",
+        //             "quantity":"0.01000",
+        //             "cost":"40.00",
+        //             "filled":"0.00000",
+        //             "trader":"7244bb3a-b6b2-446a-ac78-fa4bce5b59a9",
+        //             "creator":"USER",
+        //             "creatorId":"",
+        //             "timestamp":1635920767648
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -871,60 +905,6 @@ module.exports = class latoken2 extends Exchange {
         //             "creator":"USER",
         //             "creatorId":"",
         //             "timestamp":1635920767648
-        //         }
-        //     ]
-        //
-        return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersWithMethod ('private_get_order_active', symbol, since, limit, params);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('filled', symbol, since, limit, params);
-    }
-
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('cancelled', symbol, since, limit, params);
-    }
-
-    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'status': status,
-        };
-        return this.fetchOrdersWithMethod ('private_get_order_status', symbol, since, limit, this.extend (request, params));
-    }
-
-    async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersWithMethod() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "orderId": "1555492358.126073.126767@0502:2",
-        //             "cliOrdId": "myNewOrder",
-        //             "pairId": 502,
-        //             "symbol": "LAETH",
-        //             "side": "buy",
-        //             "orderType": "limit",
-        //             "price": 136.2,
-        //             "amount": 0.57,
-        //             "orderStatus": "partiallyFilled",
-        //             "executedAmount": 0.27,
-        //             "reaminingAmount": 0.3,
-        //             "timeCreated": 155551580736,
-        //             "timeFilled": 0
         //         }
         //     ]
         //
@@ -1025,7 +1005,7 @@ module.exports = class latoken2 extends Exchange {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            method = 'privateGetAuthOrderCancelAllCurrencyQuote';
+            method = 'privatePostAuthOrderCancelAllCurrencyQuote';
         }
         const response = await this[method] (this.extend (request, params));
         //
