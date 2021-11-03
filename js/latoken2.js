@@ -16,7 +16,7 @@ module.exports = class latoken2 extends Exchange {
             'name': 'Latoken',
             'countries': [ 'KY' ], // Cayman Islands
             'version': 'v2',
-            'rateLimit': 2000,
+            'rateLimit': 1000,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': undefined,
@@ -25,6 +25,7 @@ module.exports = class latoken2 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -357,7 +358,8 @@ module.exports = class latoken2 extends Exchange {
             const fee = this.safeNumber (currency, 'fee');
             const currencyType = this.safeString (currency, 'type');
             const parts = currencyType.split ('_');
-            const lastPart = this.safeValue (parts, parts.length - 1);
+            const numParts = parts.length;
+            const lastPart = this.safeValue (parts, numParts - 1);
             const type = lastPart.toLowerCase ();
             const status = this.safeString (currency, 'status');
             const active = (status === 'CURRENCY_STATUS_ACTIVE');
