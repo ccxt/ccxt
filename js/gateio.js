@@ -2116,7 +2116,7 @@ module.exports = class gateio extends Exchange {
         if (status === 'cancelled' || finishAs === 'cancelled') {
             status = 'canceled';
         }
-        const timeInForce = this.safeStringUpper (order, 'time_in_force', 'tif');
+        const timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
         const fees = [];
         const gtFee = this.safeNumber (order, 'gt_fee');
         if (gtFee) {
