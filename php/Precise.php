@@ -10,7 +10,6 @@ class Precise {
     public $base;
 
     public function __construct($number, $decimals = null) {
-        global $ten;
         if ($decimals === null) {
             $modifier = 0;
             $number = strtolower($number);
@@ -27,6 +26,7 @@ class Precise {
             $this->integer = $number;
             $this->decimals = $decimals;
         }
+        global $ten;
         $this->base = $ten;
     }
 
