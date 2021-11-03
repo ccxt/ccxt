@@ -1996,7 +1996,7 @@ module.exports = class gateio extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         //
         // :param (str) symbol: base/quote currency pair
-        // :param (str) type: Order type (limit, market, ...)
+        // :param (str) type: Order type (limit, market, stop_loss_limit, take_profit_limit, ...)
         // :param (str) side: buy or sell
         // :param (number) amount: Amount of base currency ordered
         // :param (number) price: Price of the base currency using quote currency
@@ -2011,6 +2011,61 @@ module.exports = class gateio extends Exchange {
         const request = this.prepareRequest (market);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         params = this.omit (params, 'reduceOnly');
+        const uppercaseType = type.toUpperCase ();
+        const limit = uppercaseType === 'LIMIT';
+        const stop_limit = uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT_LIMIT';
+        const stop_market = uppercaseType === 'STOP_LOSS_MARKET' || uppercaseType === 'TAKE_PROFIT_MARKET';
+        let method = undefined;
+        if (stop_limit || stop_market) {
+            const stopPrice = this.safeNumber (params, 'stopPrice');
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+            }
+            params = this.omit (params, 'stopPrice');
+            request['trigger'] = {
+                "strategy_type": 0,
+                "price_type": 0,
+                "price": this.priceToPrecision (symbol, stopPrice),
+                "rule": side === 'buy' ? '<=' : '>=',
+                //? "expiration": 86400 
+            }
+            if (derivative)
+                request["initial"] = {
+                    "size": amount,
+                    "price": price,
+                    // "close": false,  Set to true if trying to close the position
+                    "tif": this.safeValue (params, 'tif'),
+                    "text": "web"
+                }
+                request['contract'] = market['symbol'];
+            } else {
+                request["put"] = {
+                    "type": stop_limit ? 'limit' : 'market',
+                    "side": side,
+                    "price": price,
+                    "amount": amount,
+                    "tif": this.safeValue (params, 'tif'),
+
+                    "size": amount,
+                    // "close": false,  Set to true if trying to close the position
+                    "text": "web"
+                }
+                request['market'] = market['symbol'];
+            }
+            method = this.getSupportedMapping (market['type'], {
+                'spot': 'privateSpotPostPriceOrders',
+                'margin': 'privateSpotPostPriceOrders',
+                'swap': 'privateFuturesPostSettlePriceOrders',
+                'future': 'privateDeliveryPostSettlePriceOrders',
+            });
+        } else {
+            method = this.getSupportedMapping (market['type'], {
+                'spot': 'privateSpotPostOrders',
+                'margin': 'privateSpotPostOrders',
+                'swap': 'privateFuturesPostSettleOrders',
+                'future': 'privateDeliveryPostSettleOrders',
+            });
+        }
         if (reduceOnly !== undefined) {
             if (!contract) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
@@ -2035,7 +2090,7 @@ module.exports = class gateio extends Exchange {
             //     }
             // }
         }
-        if (type === 'limit') {
+        if (limit || stop_limit) {
             if (!price) {
                 throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
             }
@@ -2044,12 +2099,7 @@ module.exports = class gateio extends Exchange {
             request['tif'] = 'ioc';
             request['price'] = 0;
         }
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'privateSpotPostOrders',
-            // 'margin': 'privateSpotPostOrders',
-            'swap': 'privateFuturesPostSettleOrders',
-            'future': 'privateDeliveryPostSettleOrders',
-        });
+        let method = "";
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
