@@ -457,7 +457,7 @@ class coinbasepro extends Exchange {
         $timestamp = $this->parse8601($this->safe_value($ticker, 'time'));
         $bid = $this->safe_number($ticker, 'bid');
         $ask = $this->safe_number($ticker, 'ask');
-        $last = $this->safe_number($ticker, 'price');
+        $last = $this->safe_number_2($ticker, 'price', 'last');
         $symbol = ($market === null) ? null : $market['symbol'];
         return array(
             'symbol' => $symbol,

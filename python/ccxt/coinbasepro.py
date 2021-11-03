@@ -463,7 +463,7 @@ class coinbasepro(Exchange):
         timestamp = self.parse8601(self.safe_value(ticker, 'time'))
         bid = self.safe_number(ticker, 'bid')
         ask = self.safe_number(ticker, 'ask')
-        last = self.safe_number(ticker, 'price')
+        last = self.safe_number_2(ticker, 'price', 'last')
         symbol = None if (market is None) else market['symbol']
         return {
             'symbol': symbol,
