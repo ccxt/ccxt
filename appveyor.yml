@@ -12,7 +12,6 @@ install:
   - set PATH=%PATH:C:\Python27;=%
   - set PATH=%PATH:C:\Python27\Scripts;=%
   - echo %PATH%
-  - dir C:\
   - npm install
   - python --version
   - pip --version
@@ -30,6 +29,7 @@ install:
   - echo extension_dir=ext >> php.ini
   - echo extension=php_curl.dll >> php.ini
   - echo extension=php_mbstring.dll >> php.ini
+  - echo extension=php_gmp.dll >> php.ini
   - cd %APPVEYOR_BUILD_FOLDER%
 matrix:
   fast_finish: true
