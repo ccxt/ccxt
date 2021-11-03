@@ -23,6 +23,7 @@ module.exports = class latoken2 extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOrderBook': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -657,35 +658,38 @@ module.exports = class latoken2 extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            // 'from': this.milliseconds (),
+            // 'limit': limit, // default '100'
         };
-        const response = await this.privateGetOrderTrades (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
+        const response = await this.privateGetAuthTrade (this.extend (request, params));
         //
-        //     {
-        //         "pairId": 502,
-        //         "symbol": "LAETH",
-        //         "tradeCount": 1,
-        //         "trades": [
-        //             {
-        //                 id: '1564223032.892829.3.tg15',
-        //                 orderId: '1564223032.671436.707548@1379:1',
-        //                 commission: 0,
-        //                 side: 'buy',
-        //                 price: 0.32874,
-        //                 amount: 0.607,
-        //                 timestamp: 1564223033 // seconds
-        //             }
-        //         ]
-        //     }
+        //     [
+        //         {
+        //             "id":"02e02533-b4bf-4ba9-9271-24e2108dfbf7",
+        //             "isMakerBuyer":false,
+        //             "direction":"TRADE_DIRECTION_BUY",
+        //             "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //             "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "price":"4564.32",
+        //             "quantity":"0.01000",
+        //             "cost":"45.6432",
+        //             "fee":"0.223651680000000000",
+        //             "order":"c9cac6a0-484c-4892-88e7-ad51b39f2ce1",
+        //             "timestamp":1635921580399,
+        //             "makerBuyer":false
+        //         }
+        //     ]
         //
-        const trades = this.safeValue (response, 'trades', []);
-        return this.parseTrades (trades, market, since, limit);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -779,10 +783,10 @@ module.exports = class latoken2 extends Exchange {
         await this.loadMarkets ();
         const request = {
             // 'from': this.milliseconds (),
-            // 'limit': limit, // default '100'
+            // 'limit': limit, // default 100
         };
         if (limit !== undefined) {
-            request['limit'] = limit.toString (); // default 100
+            request['limit'] = limit; // default 100
         }
         const response = await this.privateGetAuthOrder (this.extend (request, params));
         //
