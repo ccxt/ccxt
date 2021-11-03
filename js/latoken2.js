@@ -578,13 +578,18 @@ module.exports = class latoken2 extends Exchange {
         // fetchMyTrades (private)
         //
         //     {
-        //         id: '1564223032.892829.3.tg15',
-        //         orderId: '1564223032.671436.707548@1379:1',
-        //         commission: 0,
-        //         side: 'buy',
-        //         price: 0.32874,
-        //         amount: 0.607,
-        //         timestamp: 1564223033 // seconds
+        //         "id":"02e02533-b4bf-4ba9-9271-24e2108dfbf7",
+        //         "isMakerBuyer":false,
+        //         "direction":"TRADE_DIRECTION_BUY",
+        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "price":"4564.32",
+        //         "quantity":"0.01000",
+        //         "cost":"45.6432",
+        //         "fee":"0.223651680000000000",
+        //         "order":"c9cac6a0-484c-4892-88e7-ad51b39f2ce1",
+        //         "timestamp":1635921580399,
+        //         "makerBuyer":false
         //     }
         //
         const type = undefined;
@@ -603,17 +608,23 @@ module.exports = class latoken2 extends Exchange {
         if (side === undefined) {
             side = makerBuyer ? 'sell' : 'buy';
         }
+        const baseId = this.safeString (trade, 'baseCurrency');
+        const quoteId = this.safeString (trade, 'quoteCurrency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        const market = this.market (symbol);
         const symbol = this.safeSymbol (undefined, market);
         const id = this.safeString (trade, 'id');
-        // const orderId = this.safeString (trade, 'orderId');
-        // const feeCost = this.safeNumber (trade, 'commission');
-        // let fee = undefined;
-        // if (feeCost !== undefined) {
-        //     fee = {
-        //         'cost': feeCost,
-        //         'currency': undefined,
-        //     };
-        // }
+        const orderId = this.safeString (trade, 'order');
+        const feeCost = this.safeNumber (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -660,13 +671,23 @@ module.exports = class latoken2 extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
+            // 'currency': market['baseId'],
+            // 'quote': market['quoteId'],
             // 'from': this.milliseconds (),
             // 'limit': limit, // default '100'
         };
+        let method = 'privateGetAuthTrade';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currency'] = market['baseId'];
+            request['quote'] = market['quoteId'];
+            method = 'privateGetAuthTradePairCurrencyQuote';
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const response = await this.privateGetAuthTrade (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     [
         //         {
@@ -685,10 +706,6 @@ module.exports = class latoken2 extends Exchange {
         //         }
         //     ]
         //
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
         return this.parseTrades (response, market, since, limit);
     }
 
