@@ -2,12 +2,15 @@
 
 namespace ccxt;
 
+$ten = gmp_init(10);
+
 class Precise {
     public $integer;
     public $decimals;
     public $base;
 
     public function __construct($number, $decimals = null) {
+        global $ten;
         if ($decimals === null) {
             $modifier = 0;
             $number = strtolower($number);
@@ -24,7 +27,7 @@ class Precise {
             $this->integer = $number;
             $this->decimals = $decimals;
         }
-        $this->base = gmp_init(10);
+        $this->base = $ten;
     }
 
     public function mul($other) {
