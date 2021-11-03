@@ -1306,7 +1306,6 @@ module.exports = class eqonex extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.toMilliseconds (this.safeString (order, 'timeStamp'));
         const lastTradeTimestamp = undefined;
-        //
         let priceString = this.safeString (order, 'price');
         const priceScale = this.safeInteger (order, 'price_scale');
         priceString = this.convertFromScale (priceString, priceScale);
