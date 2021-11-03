@@ -143,23 +143,39 @@ module.exports = class latoken2 extends Exchange {
                     'invalid API key, signature or digest': AuthenticationError,
                 },
             },
+            'options': {
+                'defaultType': 'spot',
+                'types': {
+                    'wallet': 'ACCOUNT_TYPE_WALLET',
+                    'spot': 'ACCOUNT_TYPE_SPOT',
+                },
+                'accounts': {
+                    'ACCOUNT_TYPE_WALLET': 'wallet',
+                    'ACCOUNT_TYPE_SPOT': 'spot',
+                },
+            }
         });
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetExchangeInfoTime (params);
+        const response = await this.publicGetTime (params);
         //
         //     {
-        //         "time": "2019-04-18T9:00:00.0Z",
-        //         "unixTimeSeconds": 1555578000,
-        //         "unixTimeMiliseconds": 1555578000000
+        //         "serverTime": 1570615577321
         //     }
         //
-        return this.safeInteger (response, 'unixTimeMiliseconds');
+        return this.safeInteger (response, 'serverTime');
+    }
+
+    async loadTimeDifference (params = {}) {
+        const serverTime = await this.fetchTime (params);
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = after - serverTime;
+        return this.options['timeDifference'];
     }
 
     async fetchMarkets (params = {}) {
@@ -217,6 +233,9 @@ module.exports = class latoken2 extends Exchange {
         //         }
         //     ]
         //
+        if (this.safeValue (this.options, 'adjustForTimeDifference', true)) {
+            await this.loadTimeDifference ();
+        }
         const currenciesById = this.indexBy (currencies, 'id');
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -369,13 +388,22 @@ module.exports = class latoken2 extends Exchange {
         //
         //     [
         //         {
-        //             "id":"e5852e02-8711-431c-9749-a6f5503c6dbe",
-        //             "status":"ACCOUNT_STATUS_ACTIVE",
-        //             "type":"ACCOUNT_TYPE_WALLET",
-        //             "timestamp":1635893387282,
-        //             "currency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //             "available":"200.000000",
-        //             "blocked":"0.000000"
+        //             id: "e5852e02-8711-431c-9749-a6f5503c6dbe",
+        //             status: "ACCOUNT_STATUS_ACTIVE",
+        //             type: "ACCOUNT_TYPE_WALLET",
+        //             timestamp: "1635920106506",
+        //             currency: "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             available: "100.000000",
+        //             blocked: "0.000000"
+        //         },
+        //         {
+        //             id: "369df204-acbc-467e-a25e-b16e3cc09cf6",
+        //             status: "ACCOUNT_STATUS_ACTIVE",
+        //             type: "ACCOUNT_TYPE_SPOT",
+        //             timestamp: "1635920106504",
+        //             currency: "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             available: "100.000000",
+        //             blocked: "0.000000"
         //         }
         //     ]
         //
@@ -385,8 +413,14 @@ module.exports = class latoken2 extends Exchange {
             'datetime': undefined,
         };
         let maxTimestamp = undefined;
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const types = this.safeValue (this.options, 'types', {});
+        const accountType = this.safeString (types, type, type);
+        const balancesByType = this.groupBy (response, 'type');
+        const balances = this.safeValue (balancesByType, accountType, []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const timestamp = this.safeInteger (balance, 'timestamp');
             if (timestamp !== undefined) {
@@ -736,6 +770,45 @@ module.exports = class latoken2 extends Exchange {
         });
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'from': this.milliseconds (),
+            // 'limit': limit, // default '100'
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit.toString (); // default 100
+        }
+        const response = await this.privateGetAuthOrder (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
+        //             "status":"ORDER_STATUS_PLACED",
+        //             "side":"ORDER_SIDE_BUY",
+        //             "condition":"ORDER_CONDITION_GOOD_TILL_CANCELLED",
+        //             "type":"ORDER_TYPE_LIMIT",
+        //             "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //             "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "clientOrderId":"web-macos_chrome_1a6a6659-6f7c-4fac-be0b-d1d7ac06d",
+        //             "price":"4000.00",
+        //             "quantity":"0.01000",
+        //             "cost":"40.00",
+        //             "filled":"0.00000",
+        //             "trader":"7244bb3a-b6b2-446a-ac78-fa4bce5b59a9",
+        //             "creator":"USER",
+        //             "creatorId":"",
+        //             "timestamp":1635920767648
+        //         }
+        //     ]
+        //
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseOrders (response, market, since, limit);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchOrdersWithMethod ('private_get_order_active', symbol, since, limit, params);
     }
@@ -818,9 +891,6 @@ module.exports = class latoken2 extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const orderSide = (side === 'buy') ? 'BID' : 'ASK';
@@ -828,16 +898,17 @@ module.exports = class latoken2 extends Exchange {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
             'side': orderSide, // "BUY", "BID", "SELL", "ASK"
-            'condition': 'GOOD_TILL_CANCELLED', // "GTC", "GOOD_TILL_CANCELLED", "IOC", "IMMEDIATE_OR_CANCEL", "FOK", "FILL_OR_KILL"
+            'condition': 'GTC', // "GTC", "GOOD_TILL_CANCELLED", "IOC", "IMMEDIATE_OR_CANCEL", "FOK", "FILL_OR_KILL"
             'type': uppercaseType, // "LIMIT", "MARKET"
-            // 'clientOrderId': this.uuid (), // 50 characters max
-            // 'price': this.priceToPrecision (symbol, price),
-            'quantity': parseFloat (this.amountToPrecision (symbol, amount)),
-            'timestamp': this.milliseconds (),
+            'clientOrderId': this.uuid (), // 50 characters max
+            'price': '4000.1', // this.priceToPrecision (symbol, price),
+            'quantity': '0.01', // this.amountToPrecision (symbol, amount),
+            'timestamp': this.milliseconds ().toString (), // this.sum (this.milliseconds (), -7 * 24 * 60 * 60 * 1000),
+            // 'timeAlive': this.sum (this.milliseconds (), 7 * 24 * 60 * 60 * 1000),
         };
-        if (uppercaseType === 'LIMIT') {
-            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
-        }
+        // if (uppercaseType === 'LIMIT') {
+        //     request['price'] = this.priceToPrecision (symbol, price);
+        // }
         const response = await this.privatePostAuthOrderPlace (this.extend (request, params));
         //
         //     {
@@ -1040,8 +1111,10 @@ module.exports = class latoken2 extends Exchange {
         let requestString = request;
         const query = this.omit (params, this.extractParams (path));
         const urlencodedQuery = this.urlencode (query);
-        if (Object.keys (query).length) {
-            requestString += '?' + urlencodedQuery;
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                requestString += '?' + urlencodedQuery;
+            }
         }
         if (api === 'private') {
             headers = {};
@@ -1050,15 +1123,13 @@ module.exports = class latoken2 extends Exchange {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (query);
             }
-            const auth = method + request + urlencodedQuery + urlencodedQuery;
+            const auth = method + request + urlencodedQuery;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             headers = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,
                 // 'X-LA-DIGEST': 'HMAC-SHA256', // HMAC-SHA384, HMAC-SHA512, optional
             };
-            // console.log (auth);
-            // process.exit ();
         }
         const url = this.urls['api'] + requestString;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -1072,6 +1143,7 @@ module.exports = class latoken2 extends Exchange {
         // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
         // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
         // {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
+        // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
         //
         const message = this.safeString (response, 'message');
         const feedback = this.id + ' ' + body;
