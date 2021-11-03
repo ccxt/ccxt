@@ -24,6 +24,8 @@ module.exports = class latoken2 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -714,19 +716,22 @@ module.exports = class latoken2 extends Exchange {
         // cancelOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
-        //         "orderId": "1555492358.126073.126767@0502:2",
-        //         "cliOrdId": "myNewOrder",
-        //         "pairId": 502,
-        //         "symbol": "LAETH",
-        //         "side": "buy",
-        //         "orderType": "limit",
-        //         "price": 136.2,
-        //         "amount": 0.57,
-        //         "orderStatus": "partiallyFilled",
-        //         "executedAmount": 0.27,
-        //         "reaminingAmount": 0.3,
-        //         "timeCreated": 155551580736,
-        //         "timeFilled": 0
+        //         "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
+        //         "status":"ORDER_STATUS_PLACED",
+        //         "side":"ORDER_SIDE_BUY",
+        //         "condition":"ORDER_CONDITION_GOOD_TILL_CANCELLED",
+        //         "type":"ORDER_TYPE_LIMIT",
+        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "clientOrderId":"web-macos_chrome_1a6a6659-6f7c-4fac-be0b-d1d7ac06d",
+        //         "price":"4000.00",
+        //         "quantity":"0.01",
+        //         "cost":"40.000000000000000000",
+        //         "filled":"0",
+        //         "trader":"7244bb3a-b6b2-446a-ac78-fa4bce5b59a9",
+        //         "creator":"ORDER_CREATOR_USER",
+        //         "creatorId":"",
+        //         "timestamp":1635920767648
         //     }
         //
         const id = this.safeString (order, 'orderId');
@@ -866,24 +871,27 @@ module.exports = class latoken2 extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'orderId': id,
+            'id': id,
         };
-        const response = await this.privateGetOrderGetOrder (this.extend (request, params));
+        const response = await this.privateGetAuthOrderGetOrderId (this.extend (request, params));
         //
         //     {
-        //         "orderId": "1555492358.126073.126767@0502:2",
-        //         "cliOrdId": "myNewOrder",
-        //         "pairId": 502,
-        //         "symbol": "LAETH",
-        //         "side": "buy",
-        //         "orderType": "limit",
-        //         "price": 136.2,
-        //         "amount": 0.57,
-        //         "orderStatus": "partiallyFilled",
-        //         "executedAmount": 0.27,
-        //         "reaminingAmount": 0.3,
-        //         "timeCreated": 155551580736,
-        //         "timeFilled": 0
+        //         "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
+        //         "status":"ORDER_STATUS_PLACED",
+        //         "side":"ORDER_SIDE_BUY",
+        //         "condition":"ORDER_CONDITION_GOOD_TILL_CANCELLED",
+        //         "type":"ORDER_TYPE_LIMIT",
+        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "clientOrderId":"web-macos_chrome_1a6a6659-6f7c-4fac-be0b-d1d7ac06d",
+        //         "price":"4000.00",
+        //         "quantity":"0.01",
+        //         "cost":"40.000000000000000000",
+        //         "filled":"0",
+        //         "trader":"7244bb3a-b6b2-446a-ac78-fa4bce5b59a9",
+        //         "creator":"ORDER_CREATOR_USER",
+        //         "creatorId":"",
+        //         "timestamp":1635920767648
         //     }
         //
         return this.parseOrder (response);
