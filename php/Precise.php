@@ -2,6 +2,8 @@
 
 namespace ccxt;
 
+use function gmp_init;
+
 class Precise {
     public $integer;
     public $decimals;

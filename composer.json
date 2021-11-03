@@ -231,7 +231,7 @@
         "files": [ "ccxt.php" ]
     },
     "require": {
-        "php": ">=5.5",
+        "php": ">=5.6",
         "ext-bcmath": "*",
         "ext-curl": "*",
         "ext-iconv": "*",
