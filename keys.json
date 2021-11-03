@@ -31,6 +31,7 @@
     "huobipro":      { "skip": true },
     "itbit":         { "skip": true },
     "kuna":          { "skip": true },
+    "latoken2":      { "skip": true },
     "lbank":         { "skip": true },
     "luno":          { "skip": true },
     "mixcoins":      { "skip": true },
