@@ -20,6 +20,9 @@ module.exports = class latoken2 extends Exchange {
             'certified': false,
             'userAgent': this.userAgents['chrome'],
             'has': {
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
@@ -156,7 +159,7 @@ module.exports = class latoken2 extends Exchange {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
                 },
-            }
+            },
         });
     }
 
@@ -794,7 +797,7 @@ module.exports = class latoken2 extends Exchange {
         let side = undefined;
         if (orderSide !== undefined) {
             const parts = orderSide.split ('_');
-            side = this.safeStringLower (parts, parts.length -1);
+            side = this.safeStringLower (parts, parts.length - 1);
         }
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const price = this.safeString (order, 'price');
