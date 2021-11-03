@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-use function gmp_init;
-
 class Precise {
     public $integer;
     public $decimals;
@@ -267,4 +265,4 @@ class Precise {
     }
 }
 
-Precise::$base = gmp_init(10);
+Precise::$base = \gmp_init(10);
