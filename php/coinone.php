@@ -446,7 +446,7 @@ class coinone extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'orderId');
-        $price = $this->safe_number($order, 'price');
+        $price = $this->safe_string($order, 'price');
         $timestamp = $this->safe_timestamp($order, 'timestamp');
         $side = $this->safe_string($order, 'type');
         if ($side === 'ask') {
@@ -454,13 +454,14 @@ class coinone extends Exchange {
         } else if ($side === 'bid') {
             $side = 'buy';
         }
-        $remaining = $this->safe_number($order, 'remainQty');
-        $amount = $this->safe_number($order, 'qty');
+        $remaining = $this->safe_string($order, 'remainQty');
+        $amount = $this->safe_string($order, 'qty');
         $status = $this->safe_string($order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if ($status === 'live') {
             if (($remaining !== null) && ($amount !== null)) {
-                if ($remaining < $amount) {
+                $isLessThan = Precise::string_lt($remaining, $amount);
+                if ($isLessThan) {
                     $status = 'canceled';
                 }
             }
@@ -494,7 +495,7 @@ class coinone extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
