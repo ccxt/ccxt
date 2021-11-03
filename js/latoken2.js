@@ -604,17 +604,26 @@ module.exports = class latoken2 extends Exchange {
         }
         const cost = this.parseNumber (costString);
         const makerBuyer = this.safeValue (trade, 'makerBuyer');
-        let side = this.safeString (trade, 'side');
+        let side = this.safeString (trade, 'direction');
         if (side === undefined) {
             side = makerBuyer ? 'sell' : 'buy';
+        } else {
+            if (side === 'TRADE_DIRECTION_BUY') {
+                side = 'buy';
+            } else if (side === 'TRADE_DIRECTION_SELL') {
+                side = 'sell';
+            }
         }
+        const isBuy = (side === 'buy');
+        const takerOrMaker = (makerBuyer && isBuy) ? 'maker' : 'taker';
         const baseId = this.safeString (trade, 'baseCurrency');
         const quoteId = this.safeString (trade, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        const market = this.market (symbol);
-        const symbol = this.safeSymbol (undefined, market);
+        if (symbol in this.markets) {
+            market = this.market (symbol);
+        }
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
         const feeCost = this.safeNumber (trade, 'fee');
@@ -622,7 +631,7 @@ module.exports = class latoken2 extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': undefined,
+                'currency': quote,
             };
         }
         return {
@@ -631,14 +640,14 @@ module.exports = class latoken2 extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': orderId,
             'type': type,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
