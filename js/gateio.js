@@ -2003,85 +2003,63 @@ module.exports = class gateio extends Exchange {
         // :param (dict) params:
         //          - type: market type (spot, futures, ...)
         //          - reduceOnly
+        //          - close
+        //          - text
+        //          - tif
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
-        const marketType = this.safeString (params, 'type', defaultType);
-        const contract = market['contract'];
-        const request = this.prepareRequest (market);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        params = this.omit (params, 'reduceOnly');
         const uppercaseType = type.toUpperCase ();
-        const limit = uppercaseType === 'LIMIT';
         const stop_limit = uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT_LIMIT';
         const stop_market = uppercaseType === 'STOP_LOSS_MARKET' || uppercaseType === 'TAKE_PROFIT_MARKET';
-        let method = undefined;
-        if (stop_limit || stop_market) {
-            const stopPrice = this.safeNumber (params, 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+        const limit = uppercaseType === 'LIMIT';
+        const derivative = market['derivative'];
+        if (limit || stop_limit) {
+            if (!price) {
+                throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
             }
-            params = this.omit (params, 'stopPrice');
-            request['trigger'] = {
-                "strategy_type": 0,
-                "price_type": 0,
-                "price": this.priceToPrecision (symbol, stopPrice),
-                "rule": side === 'buy' ? '<=' : '>=',
-                //? "expiration": 86400 
-            }
-            if (derivative)
-                request["initial"] = {
-                    "size": amount,
-                    "price": price,
-                    // "close": false,  Set to true if trying to close the position
-                    "tif": this.safeValue (params, 'tif'),
-                    "text": "web"
-                }
-                request['contract'] = market['symbol'];
-            } else {
-                request["put"] = {
-                    "type": stop_limit ? 'limit' : 'market',
-                    "side": side,
-                    "price": price,
-                    "amount": amount,
-                    "tif": this.safeValue (params, 'tif'),
-
-                    "size": amount,
-                    // "close": false,  Set to true if trying to close the position
-                    "text": "web"
-                }
-                request['market'] = market['symbol'];
-            }
-            method = this.getSupportedMapping (market['type'], {
-                'spot': 'privateSpotPostPriceOrders',
-                'margin': 'privateSpotPostPriceOrders',
-                'swap': 'privateFuturesPostSettlePriceOrders',
-                'future': 'privateDeliveryPostSettlePriceOrders',
-            });
-        } else {
-            method = this.getSupportedMapping (market['type'], {
-                'spot': 'privateSpotPostOrders',
-                'margin': 'privateSpotPostOrders',
-                'swap': 'privateFuturesPostSettleOrders',
-                'future': 'privateDeliveryPostSettleOrders',
-            });
+            price = this.priceToPrecision (symbol, price);
         }
+        let request = {};
+        let methodTail = '';
+        amount = this.parseNumber (this.amountToPrecision (symbol, amount));
+        if (stop_limit || stop_market) {
+            request = this.stopLossRequest (symbol, type, side, amount, price, params);
+            methodTail = 'PriceOrders';
+        } else {
+            request = this.orderRequest (symbol, type, side, amount, price, params);
+            methodTail = 'Orders';
+        }
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
-            if (!contract) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
+            if (!derivative) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for futures and perpetuals only');
             }
             request['reduce_only'] = reduceOnly;
         }
-        if (contract) {
+        request = this.omit (request, 'reduceOnly');
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotPost' + methodTail,
+            'margin': 'privateSpotPost' + methodTail,
+            'swap': 'privateFuturesPostSettle' + methodTail,
+            'future': 'privateDeliveryPostSettle' + methodTail,
+        });
+        const response = await this[method] (request);
+        return this.parseOrder (response, market);
+    }
+
+    orderRequest (symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market (symbol);
+        const request = this.prepareRequest (market);
+        if (market['derivative']) {
             if (side === 'sell') {
                 amount = 0 - amount;
             }
-            request['size'] = this.parseNumber (this.amountToPrecision (symbol, amount));
+            request['size'] = amount;
         } else {
             request['side'] = side;
             request['type'] = type;
-            request['amount'] = this.amountToPrecision (symbol, amount);
-            request['account'] = marketType;
+            request['amount'] = amount;
+            request['account'] = market['type'];
             // if (margin) {
             //     if (entering trade) {
             //         request['auto_borrow'] = true;
@@ -2090,18 +2068,59 @@ module.exports = class gateio extends Exchange {
             //     }
             // }
         }
-        if (limit || stop_limit) {
-            if (!price) {
-                throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
-            }
-            request['price'] = this.priceToPrecision (symbol, price);
-        } else if (type === 'market' && contract) {
+        if (type === 'market' && market['derivative']) {
             request['tif'] = 'ioc';
             request['price'] = 0;
+        } else {
+            request['price'] = price;
         }
-        let method = "";
-        const response = await this[method] (this.extend (request, params));
-        return this.parseOrder (response, market);
+        return this.extend (request, params);
+    }
+
+    stopLossRequest (symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market (symbol);
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stopPrice === undefined) {
+            throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+        }
+        params = this.omit (params, 'stopPrice');
+        const request = {};
+        const trigger = {
+            'price': this.priceToPrecision (symbol, stopPrice),
+            'expiration': this.safeValue (params, 'expiration'),
+        };
+        if (market['derivative']) {
+            trigger['rule'] = side === 'buy' ? 2 : 1;
+            trigger['strategy_type'] = this.safeValue (params, 'strategy_type', 0);
+            trigger['price_type'] = this.safeValue (params, 'price_type');
+            const initial = this.safeValue (params, 'initial');
+            request['initial'] = this.extend ({
+                'contract': market['symbol'],
+                'size': amount,
+                'price': price,
+                'tif': this.safeValue (params, 'tif', 'time_in_force'),
+                'close': this.safeValue (params, 'close'),
+                'text': this.safeValue (params, 'text'),
+            }, initial);
+            request['settle'] = market['settleId'];
+        } else {
+            trigger['rule'] = side === 'buy' ? '<=' : '>=';
+            const uppercaseType = type.toUpperCase ();
+            const stop_limit = uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT_LIMIT';
+            const put = this.safeValue (params, 'put');
+            const defaultAccount = type === 'margin' ? 'margin' : 'normal';
+            request['put'] = this.extend ({
+                'type': stop_limit ? 'limit' : 'market',
+                'side': side,
+                'price': price,
+                'amount': amount,
+                'account': this.safeValue (params, 'account', defaultAccount),
+                'tif': this.safeValue2 (params, 'tif', 'time_in_force'),
+            }, put);
+            request['market'] = market['symbol'];
+        }
+        request['trigger'] = this.extend (trigger, this.safeValue (params, 'trigger'));
+        return this.extend (request, params);
     }
 
     parseOrder (order, market = undefined) {
