@@ -609,20 +609,20 @@ module.exports = class coinmate extends Exchange {
         const id = this.safeString (order, 'id');
         const timestamp = this.safeInteger (order, 'timestamp');
         const side = this.safeStringLower (order, 'type');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'originalAmount');
-        let remaining = this.safeNumber (order, 'remainingAmount');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'originalAmount');
+        let remaining = this.safeString (order, 'remainingAmount');
         if (remaining === undefined) {
-            remaining = this.safeNumber (order, 'amount');
+            remaining = this.safeString (order, 'amount');
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
-        const average = this.safeNumber (order, 'avgPrice');
+        const average = this.safeString (order, 'avgPrice');
         const marketId = this.safeString (order, 'currencyPair');
         const symbol = this.safeSymbol (marketId, market, '_');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
