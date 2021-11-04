@@ -173,11 +173,6 @@ module.exports = class Exchange {
                 '401': AuthenticationError,
                 '511': AuthenticationError,
             },
-            // some exchanges report only 'free' on `fetchBlance` call (i.e. report no 'used' funds)
-            // in this case ccxt will try to infer 'used' funds from open order cache, which might be stale
-            // still, some exchanges report number of open orders together with balance
-            // if you set the following flag to 'true' ccxt will leave 'used' funds undefined in case of discrepancy
-            'dontGetUsedBalanceFromStaleCache': false,
             'commonCurrencies': { // gets extended/overwritten in subclasses
                 'XBT': 'BTC',
                 'BCC': 'BCH',
@@ -228,6 +223,7 @@ module.exports = class Exchange {
         this.substituteCommonCurrencyCodes = true  // reserved
         this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
         this.number = Number // or String (a pointer to a function)
+        this.handleContentTypeApplicationZip = false
 
         // whether fees should be summed by currency code
         this.reduceFees = true
@@ -637,9 +633,24 @@ module.exports = class Exchange {
     }
 
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
+        const responseHeaders = this.getResponseHeaders (response)
+
+        if (this.handleContentTypeApplicationZip && (responseHeaders['Content-Type'] === 'application/zip')) {
+            const responseBuffer = response.buffer ();
+            if (this.enableLastResponseHeaders) {
+                this.last_response_headers = responseHeaders
+            }
+            if (this.enableLastHttpResponse) {
+                this.last_http_response = responseBuffer
+            }
+            if (this.verbose) {
+                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "ZIP redacted", "\n")
+            }
+            // no error handler needed, because it would not be a zip response in case of an error
+            return responseBuffer;
+        }
 
         return response.text ().then ((responseBody) => {
-            const responseHeaders = this.getResponseHeaders (response)
             const bodyText = this.onRestResponse (response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
             const json = this.parseJson (bodyText)
             if (this.enableLastResponseHeaders) {

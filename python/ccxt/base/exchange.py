@@ -300,6 +300,7 @@ class Exchange(object):
     substituteCommonCurrencyCodes = True
     quoteJsonNumbers = True
     number = float  # or str (a pointer to a class)
+    handleContentTypeApplicationZip = False
     # whether fees should be summed by currency code
     reduceFees = True
     lastRestRequestTimestamp = 0
