@@ -47,6 +47,7 @@ module.exports = class latoken extends Exchange {
                 'doc': [
                     'https://api.latoken.com',
                 ],
+                'referral': 'https://latoken.com/invite?r=mvgp2djk',
             },
             'api': {
                 'public': {
