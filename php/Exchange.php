@@ -3255,6 +3255,13 @@ class Exchange {
                 $cost = Precise::string_mul($average, $filled);
             }
         }
+        // futures trading )
+        if ($this->safe_string($market, 'contractSize') !== null) {
+            if ($market['inverse']) {
+                $cost = Precise::string_div('1', $cost);
+            }
+            $cost = Precise::string_mul($cost, $market['contractSize']);
+        }
         // support for $market orders
         $orderType = $this->safe_value($order, 'type');
         $emptyPrice = ($price === null) || Precise::string_equals($price, '0');
