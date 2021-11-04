@@ -675,7 +675,7 @@ module.exports = class gateio extends Exchange {
                             'price': {
                                 'min': minPrice,
                                 'max': maxPrice,
-                            }
+                            },
                         },
                         'expiry': this.safeInteger (market, 'expire_time'),
                         'fees': this.safeValue (this.fees, feeIndex, {}),
@@ -2123,19 +2123,17 @@ module.exports = class gateio extends Exchange {
         const price = this.safeString (order, 'price');
         const remaining = this.safeString (order, 'left');
         const cost = this.safeString2 (order, 'filled_total'); // same as filled_price
-        let status = undefined;
+        let rawStatus = undefined;
         let side = undefined;
         if (market['contract']) {
             side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
-            status = this.parseOrderStatus (this.safeString (order, 'finish_as', 'open'));
+            rawStatus = this.safeString (order, 'finish_as', 'open');
         } else {
             // open, closed, cancelled - almost already ccxt unified!
-            status = this.safeString (order, 'status');
-            if (status === 'cancelled') {
-                status = 'canceled';
-            }
+            rawStatus = this.safeString (order, 'status');
             side = this.safeString (order, 'side');
         }
+        const status = this.parseOrderStatus (rawStatus);
         const type = this.safeString (order, 'type');
         const timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
         const fees = [];
