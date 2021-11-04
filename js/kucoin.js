@@ -471,7 +471,7 @@ module.exports = class kucoin extends Exchange {
     async fetchMarkets (params = {}) {
         const spotResponse = await this.publicGetSymbols (params);
         const futuresResponse = await this.futuresPublicGetContractsActive (params);
-        //
+        //  SPOT
         //     {
         //         "code": "200000",
         //         "data": [
@@ -495,10 +495,77 @@ module.exports = class kucoin extends Exchange {
         //             },
         //         ]
         //     }
-        //
-        const responses = [ futuresResponse];
+        //  FUTURES
+        //  {
+        //     "code": "200000",
+        //     "data": {
+        //         "symbol": "ETHUSDTM",
+        //         "rootSymbol": "USDT",
+        //         "type": "FFWCSX",
+        //         "firstOpenDate": 1591086000000,
+        //         "expireDate": null,
+        //         "settleDate": null,
+        //         "baseCurrency": "ETH",
+        //         "quoteCurrency": "USDT",
+        //         "settleCurrency": "USDT",
+        //         "maxOrderQty": 1000000,
+        //         "maxPrice": 1000000.0000000000,
+        //         "lotSize": 1,
+        //         "tickSize": 0.05,
+        //         "indexPriceTickSize": 0.01,
+        //         "multiplier": 0.01,
+        //         "initialMargin": 0.01,
+        //         "maintainMargin": 0.005,
+        //         "maxRiskLimit": 1000000,
+        //         "minRiskLimit": 1000000,
+        //         "riskStep": 500000,
+        //         "makerFeeRate": 0.00020,
+        //         "takerFeeRate": 0.00060,
+        //         "takerFixFee": 0.0000000000,
+        //         "makerFixFee": 0.0000000000,
+        //         "settlementFee": null,
+        //         "isDeleverage": true,
+        //         "isQuanto": true,
+        //         "isInverse": false,
+        //         "markMethod": "FairPrice",
+        //         "fairMethod": "FundingRate",
+        //         "fundingBaseSymbol": ".ETHINT8H",
+        //         "fundingQuoteSymbol": ".USDTINT8H",
+        //         "fundingRateSymbol": ".ETHUSDTMFPI8H",
+        //         "indexSymbol": ".KETHUSDT",
+        //         "settlementSymbol": "",
+        //         "status": "Open",
+        //         "fundingFeeRate": 0.000535,
+        //         "predictedFundingFeeRate": 0.002197,
+        //         "openInterest": "8724443",
+        //         "turnoverOf24h": 341156641.03354263,
+        //         "volumeOf24h": 74833.54000000,
+        //         "markPrice": 4534.07,
+        //         "indexPrice":4531.92,
+        //         "lastTradePrice": 4545.4500000000,
+        //         "nextFundingRateTime": 25481884,
+        //         "maxLeverage": 100,
+        //         "sourceExchanges":  [
+        //             "huobi",
+        //             "Okex",
+        //             "Binance",
+        //             "Kucoin",
+        //             "Poloniex",
+        //             "Hitbtc"
+        //         ],
+        //         "premiumsSymbol1M": ".ETHUSDTMPI",
+        //         "premiumsSymbol8H": ".ETHUSDTMPI8H",
+        //         "fundingBaseSymbol1M": ".ETHINT",
+        //         "fundingQuoteSymbol1M": ".USDTINT",
+        //         "lowPrice": 4456.90,
+        //         "highPrice":  4674.25,
+        //         "priceChgPct": 0.0046,
+        //         "priceChg": 21.15
+        //     }
+        // }
+        const responses = [spotResponse, futuresResponse];  // * Spot must remain as the first response in responses
         for (let i = 0; i < responses.length; i++) {
-            const spot = false;
+            const spot = i === 0;   // * Spot must remain as the first response in responses
             const data = this.safeValue (responses[i], 'data');
             const options = this.safeValue (this.options, 'fetchMarkets', {});
             const fetchTickersFees = this.safeValue (options, 'fetchTickersFees', true);
