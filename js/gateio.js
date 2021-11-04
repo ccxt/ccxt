@@ -656,9 +656,10 @@ module.exports = class gateio extends Exchange {
                         // Fee is in %, so divide by 100
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
-                        'contractSize': this.safeString (market, 'contractSize', '1'),
+                        'contractSize': this.safeString (market, 'quanto_multiplier'),
                         'limits': {
                             'leverage': {
+                                'min': this.safeNumber (market, 'leverage_min'),
                                 'max': this.safeNumber (market, 'leverage_max'),
                             },
                             'amount': {
@@ -1509,17 +1510,21 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
         const request = this.prepareRequest (market);
         request['interval'] = this.timeframes[timeframe];
-        const isMark = (price === 'mark');
-        const isIndex = (price === 'index');
         let method = 'publicSpotGetCandlesticks';
-        const isMarkOrIndex = (isMark || isIndex);
-        if (isMarkOrIndex || market['swap'] || market['futures']) {
-            method = market['futures'] ? 'publicDeliveryGetSettleCandlesticks' : 'publicFuturesGetSettleCandlesticks';
-            const prefix = isMarkOrIndex ? (price + '_') : '';
-            request['contract'] = prefix + market['id'];
+        if (market['contract']) {
+            if (market['futures']) {
+                method = 'publicDeliveryGetSettleCandlesticks';
+            } else if (market['swap']) {
+                method = 'publicFuturesGetSettleCandlesticks';
+            }
+            const isMark = (price === 'mark');
+            const isIndex = (price === 'index');
+            if (isMark || isIndex) {
+                request['contract'] = price + '_' + market['id'];
+                params = this.omit (params, 'price');
+            }
         }
         if (since === undefined) {
             if (limit !== undefined) {
@@ -2040,7 +2045,7 @@ module.exports = class gateio extends Exchange {
                 throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
             }
             request['price'] = this.priceToPrecision (symbol, price);
-        } else if (type === 'market' && contract) {
+        } else if ((type === 'market') && contract) {
             request['tif'] = 'ioc';
             request['price'] = 0;
         }
@@ -2052,6 +2057,15 @@ module.exports = class gateio extends Exchange {
         });
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'liquidated': 'closed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -2094,21 +2108,25 @@ module.exports = class gateio extends Exchange {
         timestamp = this.safeInteger (order, 'create_time_ms', timestamp);
         let lastTradeTimestamp = this.safeTimestamp (order, 'update_time');
         lastTradeTimestamp = this.safeInteger (order, 'update_time_ms', lastTradeTimestamp);
-        const amount = this.safeString2 (order, 'amount', 'size');
+        const amountRaw = this.safeString2 (order, 'amount', 'size');
+        const amount = Precise.stringAbs (amountRaw);
         const price = this.safeString (order, 'price');
         const remaining = this.safeString (order, 'left');
         const cost = this.safeString2 (order, 'filled_total'); // same as filled_price
-        let side = this.safeString (order, 'side');
+        let status = undefined;
+        let side = undefined;
         if (market['contract']) {
-            side = amount > 0 ? 'buy' : 'sell';
+            side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
+            status = this.parseOrderStatus (this.safeString (order, 'finish_as', 'open'));
+        } else {
+            // open, closed, cancelled - almost already ccxt unified!
+            status = this.safeString (order, 'status');
+            if (status === 'cancelled') {
+                status = 'canceled';
+            }
+            side = this.safeString (order, 'side');
         }
         const type = this.safeString (order, 'type');
-        // open, closed, cancelled - almost already ccxt unified!
-        const finishAs = this.safeString (order, 'finish_as'); // Perpetual Swap/Delivery Futures
-        let status = this.safeString (order, 'status');
-        if (status === 'cancelled' || finishAs === 'cancelled') {
-            status = 'canceled';
-        }
         const timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
         const fees = [];
         const gtFee = this.safeNumber (order, 'gt_fee');
