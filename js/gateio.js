@@ -2855,28 +2855,30 @@ module.exports = class gateio extends Exchange {
         const contract = this.safeValue (position, 'contract');
         market = this.safeMarket (contract, market);
         const now = this.milliseconds ();
-        const size = this.safeValue (position, 'size');
+        const size = this.safeNumber (position, 'size');
         let side = undefined;
         if (size > 0) {
             side = 'buy';
         } else if (size < 0) {
             side = 'sell';
         }
-        const maintenance_rate = this.safeValue (position, 'maintenance_rate');
+        const maintenanceRate = this.safeValue (position, 'maintenance_rate');
         const markPrice = this.safeValue (position, 'mark_price');
         // const contractSize = this.safeValue (position, 'size');
         const notional = this.safeValue (position, 'value');
-        const margin = this.safeValue (position, 'margin');
-        const marginRatio = Precise.stringDiv (margin, notional);
+        const collateral = this.safeValue (position, 'margin');
+        const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
+        const initialMargin = '';
+        const unrealisedPnl = this.safeValue (position, 'unrealised_pnl');
         return {
             'info': position,
             'symbol': market['symbol'],
             'timestamp': now,
             'datetime': this.iso8601 (now),
-            'initialMargin': margin,
-            'initialMarginPercentage': Precise.stringMul (marginRatio, '100'),
-            'maintenanceMargin': maintenance_rate * notional,
-            'maintenanceMarginPercentage': Precise.stringMul (maintenance_rate, '100'),
+            'initialMargin': collateral,
+            'initialMarginPercentage': Precise.stringDiv (initialMargin, collateral),
+            'maintenanceMargin': Precise.stringMul (maintenanceRate, notional),
+            'maintenanceMarginPercentage': maintenanceRate,
             'entryPrice': this.safeValue (position, 'entry_price'),
             'notional': notional,
             'leverage': this.safeValue (position, 'leverage'),
@@ -2890,7 +2892,7 @@ module.exports = class gateio extends Exchange {
             'collateral': this.safeValue (position, 'margin'),
             'marginType': undefined,
             'side': side,
-            'percentage': undefined,
+            'percentage': Precise.stringDiv (unrealisedPnl, initialMargin),
         };
     }
 
