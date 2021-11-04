@@ -1843,13 +1843,13 @@ module.exports = class Exchange {
             } else {
                 cost = Precise.stringMul (average, filled);
             }
-        }
-        // futures trading )
-        if (this.safeString (market, 'contractSize') !== undefined) {
-            if (market['inverse']) {
-                cost = Precise.stringDiv ('1', cost);
+            // futures trading )
+            if (this.safeString (market, 'contractSize') !== undefined) {
+                if (market['inverse']) {
+                    cost = Precise.stringDiv ('1', cost);
+                }
+                cost = Precise.stringMul (cost, market['contractSize']);
             }
-            cost = Precise.stringMul (cost, market['contractSize']);
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
