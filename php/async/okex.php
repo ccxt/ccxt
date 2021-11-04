@@ -674,7 +674,7 @@ class okex extends Exchange {
         $futures = ($type === 'futures');
         $swap = ($type === 'swap');
         $option = ($type === 'option');
-        $derivative = $swap || $futures;
+        $contract = $swap || $futures;
         $baseId = $this->safe_string($market, 'baseCcy');
         $quoteId = $this->safe_string($market, 'quoteCcy');
         $settleCurrency = $this->safe_string($market, 'settleCcy');
@@ -703,7 +703,6 @@ class okex extends Exchange {
         $active = true;
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
         $contractSize = $this->safe_string($market, 'ctVal');
-        $contract = $derivative && ($contractSize !== '1');
         $leverage = $this->safe_number($market, 'lever', 1);
         $expiry = null;
         if ($futures || $option) {
@@ -721,7 +720,6 @@ class okex extends Exchange {
             'spot' => $spot,
             'futures' => $futures,
             'swap' => $swap,
-            'derivative' => $derivative,
             'contract' => $contract,
             'option' => $option,
             'linear' => $linear,
@@ -1561,7 +1559,7 @@ class okex extends Exchange {
         $tdMode = $this->safe_string_lower($params, 'tdMode');
         if ($market['spot']) {
             $request['tdMode'] = 'cash';
-        } else if ($market['derivative']) {
+        } else if ($market['contract']) {
             if ($tdMode === null) {
                 throw new ArgumentsRequired($this->id . ' $params["$tdMode"] is required to be either "isolated" or "cross"');
             } else if (($tdMode !== 'isolated') && ($tdMode !== 'cross')) {
