@@ -167,6 +167,7 @@ class kraken extends Exchange {
                     ),
                 ),
             ),
+            'handleContentTypeApplicationZip' => true,
             'api' => array(
                 'zendesk' => array(
                     'get' => array(

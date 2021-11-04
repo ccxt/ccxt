@@ -182,6 +182,7 @@ class kraken(Exchange):
                     },
                 },
             },
+            'handleContentTypeApplicationZip': True,
             'api': {
                 'zendesk': {
                     'get': [
