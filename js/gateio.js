@@ -2203,7 +2203,7 @@ module.exports = class gateio extends Exchange {
             'fees': fees,
             'trades': undefined,
             'info': order,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
