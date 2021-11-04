@@ -323,6 +323,9 @@ class kucoin extends Exchange {
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
                 'fetchBalance' => 'trade',
+                'fetchMarkets' => array(
+                    'fetchTickersFees' => true,
+                ),
                 // endpoint versions
                 'versions' => array(
                     'public' => array(
@@ -434,21 +437,67 @@ class kucoin extends Exchange {
         $response = $this->publicGetSymbols ($params);
         //
         //     {
-        //         quoteCurrency => 'BTC',
-        //         $symbol => 'KCS-BTC',
-        //         $quoteMaxSize => '9999999',
-        //         $quoteIncrement => '0.000001',
-        //         $baseMinSize => '0.01',
-        //         $quoteMinSize => '0.00001',
-        //         enableTrading => true,
-        //         priceIncrement => '0.00000001',
-        //         name => 'KCS-BTC',
-        //         baseIncrement => '0.01',
-        //         $baseMaxSize => '9999999',
-        //         baseCurrency => 'KCS'
+        //         "code" => "200000",
+        //         "$data" => array(
+        //             array(
+        //                 "$symbol" => "XLM-USDT",
+        //                 "name" => "XLM-USDT",
+        //                 "baseCurrency" => "XLM",
+        //                 "quoteCurrency" => "USDT",
+        //                 "feeCurrency" => "USDT",
+        //                 "$market" => "USDS",
+        //                 "$baseMinSize" => "0.1",
+        //                 "$quoteMinSize" => "0.01",
+        //                 "$baseMaxSize" => "10000000000",
+        //                 "$quoteMaxSize" => "99999999",
+        //                 "baseIncrement" => "0.0001",
+        //                 "$quoteIncrement" => "0.000001",
+        //                 "priceIncrement" => "0.000001",
+        //                 "priceLimitRate" => "0.1",
+        //                 "isMarginEnabled" => true,
+        //                 "enableTrading" => true
+        //             ),
+        //         )
         //     }
         //
-        $data = $response['data'];
+        $data = $this->safe_value($response, 'data');
+        $options = $this->safe_value($this->options, 'fetchMarkets', array());
+        $fetchTickersFees = $this->safe_value($options, 'fetchTickersFees', true);
+        $tickersResponse = array();
+        if ($fetchTickersFees) {
+            $tickersResponse = $this->publicGetMarketAllTickers ($params);
+        }
+        //
+        //     {
+        //         "code" => "200000",
+        //         "$data" => {
+        //             "time":1602832092060,
+        //             "$ticker":array(
+        //                 {
+        //                     "$symbol" => "BTC-USDT",   // $symbol
+        //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+        //                     "buy" => "11328.9",   // bestAsk
+        //                     "sell" => "11329",    // bestBid
+        //                     "changeRate" => "-0.0055",    // 24h change rate
+        //                     "changePrice" => "-63.6", // 24h change price
+        //                     "high" => "11610",    // 24h highest price
+        //                     "low" => "11200", // 24h lowest price
+        //                     "vol" => "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+        //                     "volValue" => "25984946.157790431",   // 24h total, the trading volume in $quote currency of last 24 hours
+        //                     "last" => "11328.9",  // last price
+        //                     "averagePrice" => "11360.66065903",   // 24h average transaction price yesterday
+        //                     "$takerFeeRate" => "0.001",    // Basic Taker Fee
+        //                     "$makerFeeRate" => "0.001",    // Basic Maker Fee
+        //                     "$takerCoefficient" => "1",    // Taker Fee Coefficient
+        //                     "$makerCoefficient" => "1" // Maker Fee Coefficient
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $tickersData = $this->safe_value($tickersResponse, 'data', array());
+        $tickers = $this->safe_value($tickersData, 'ticker', array());
+        $tickersByMarketId = $this->index_by($tickers, 'symbol');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -458,6 +507,7 @@ class kucoin extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = $this->safe_value($market, 'enableTrading');
+            $margin = $this->safe_value($market, 'isMarginEnabled');
             $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
             $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
             $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
@@ -483,9 +533,16 @@ class kucoin extends Exchange {
                     'max' => $quoteMaxSize,
                 ),
                 'leverage' => array(
-                    'max' => $this->safe_number($market, 'maxLeverage', 1), // * Don't default to 1 for margin markets, leverage is located elsewhere
+                    'max' => $this->safe_number($market, 'maxLeverage', 1), // * Don't default to 1 for $margin markets, leverage is located elsewhere
                 ),
             );
+            $ticker = $this->safe_value($tickersByMarketId, $id, array());
+            $makerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
+            $takerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
+            $makerCoefficient = $this->safe_string($ticker, 'makerCoefficient');
+            $takerCoefficient = $this->safe_string($ticker, 'takerCoefficient');
+            $maker = $this->parse_number(Precise::string_mul($makerFeeRate, $makerCoefficient));
+            $taker = $this->parse_number(Precise::string_mul($takerFeeRate, $takerCoefficient));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -495,7 +552,10 @@ class kucoin extends Exchange {
                 'quote' => $quote,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => $margin,
                 'active' => $active,
+                'maker' => $maker,
+                'taker' => $taker,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
@@ -696,18 +756,22 @@ class kucoin extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
-        //         $symbol => "ETH-BTC",
-        //         high => "0.019518",
-        //         vol => "7997.82836194",
-        //         $last => "0.019329",
-        //         low => "0.019",
-        //         buy => "0.019329",
-        //         sell => "0.01933",
-        //         changePrice => "-0.000139",
-        //         time =>  1580553706304,
-        //         averagePrice => "0.01926386",
-        //         changeRate => "-0.0071",
-        //         volValue => "154.40791568183474"
+        //         "$symbol" => "BTC-USDT",   // $symbol
+        //         "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+        //         "buy" => "11328.9",   // bestAsk
+        //         "sell" => "11329",    // bestBid
+        //         "changeRate" => "-0.0055",    // 24h change rate
+        //         "changePrice" => "-63.6", // 24h change price
+        //         "high" => "11610",    // 24h highest price
+        //         "low" => "11200", // 24h lowest price
+        //         "vol" => "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+        //         "volValue" => "25984946.157790431",   // 24h total, the trading volume in quote currency of $last 24 hours
+        //         "$last" => "11328.9",  // $last price
+        //         "averagePrice" => "11360.66065903",   // 24h average transaction price yesterday
+        //         "takerFeeRate" => "0.001",    // Basic Taker Fee
+        //         "makerFeeRate" => "0.001",    // Basic Maker Fee
+        //         "takerCoefficient" => "1",    // Taker Fee Coefficient
+        //         "makerCoefficient" => "1" // Maker Fee Coefficient
         //     }
         //
         //     {
@@ -788,27 +852,37 @@ class kucoin extends Exchange {
         //
         //     {
         //         "code" => "200000",
-        //         "$data" => array(
-        //             "date" => 1550661940645,
-        //             "$ticker" => array(
-        //                 'buy' => '0.00001168',
-        //                 'changePrice' => '-0.00000018',
-        //                 'changeRate' => '-0.0151',
-        //                 'datetime' => 1550661146316,
-        //                 'high' => '0.0000123',
-        //                 'last' => '0.00001169',
-        //                 'low' => '0.00001159',
-        //                 'sell' => '0.00001182',
-        //                 'symbol' => 'LOOM-BTC',
-        //                 'vol' => '44399.5669'
-        //             ),
-        //         )
+        //         "$data" => {
+        //             "$time":1602832092060,
+        //             "$ticker":array(
+        //                 {
+        //                     "$symbol" => "BTC-USDT",   // $symbol
+        //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+        //                     "buy" => "11328.9",   // bestAsk
+        //                     "sell" => "11329",    // bestBid
+        //                     "changeRate" => "-0.0055",    // 24h change rate
+        //                     "changePrice" => "-63.6", // 24h change price
+        //                     "high" => "11610",    // 24h highest price
+        //                     "low" => "11200", // 24h lowest price
+        //                     "vol" => "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+        //                     "volValue" => "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+        //                     "last" => "11328.9",  // last price
+        //                     "averagePrice" => "11360.66065903",   // 24h average transaction price yesterday
+        //                     "takerFeeRate" => "0.001",    // Basic Taker Fee
+        //                     "makerFeeRate" => "0.001",    // Basic Maker Fee
+        //                     "takerCoefficient" => "1",    // Taker Fee Coefficient
+        //                     "makerCoefficient" => "1" // Maker Fee Coefficient
+        //                 }
+        //             )
+        //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
         $tickers = $this->safe_value($data, 'ticker', array());
+        $time = $this->safe_integer($data, 'time');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
+            $tickers[$i]['time'] = $time;
             $ticker = $this->parse_ticker($tickers[$i]);
             $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
@@ -828,18 +902,24 @@ class kucoin extends Exchange {
         //
         //     {
         //         "code" => "200000",
-        //         "data" => array(
-        //             'buy' => '0.00001168',
-        //             'changePrice' => '-0.00000018',
-        //             'changeRate' => '-0.0151',
-        //             'datetime' => 1550661146316,
-        //             'high' => '0.0000123',
-        //             'last' => '0.00001169',
-        //             'low' => '0.00001159',
-        //             'sell' => '0.00001182',
-        //             'symbol' => 'LOOM-BTC',
-        //             'vol' => '44399.5669'
-        //         ),
+        //         "data" => {
+        //             "time" => 1602832092060,  // time
+        //             "$symbol" => "BTC-USDT",   // $symbol
+        //             "buy" => "11328.9",   // bestAsk
+        //             "sell" => "11329",    // bestBid
+        //             "changeRate" => "-0.0055",    // 24h change rate
+        //             "changePrice" => "-63.6", // 24h change price
+        //             "high" => "11610",    // 24h highest price
+        //             "low" => "11200", // 24h lowest price
+        //             "vol" => "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+        //             "volValue" => "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+        //             "last" => "11328.9",  // last price
+        //             "averagePrice" => "11360.66065903",   // 24h average transaction price yesterday
+        //             "takerFeeRate" => "0.001",    // Basic Taker Fee
+        //             "makerFeeRate" => "0.001",    // Basic Maker Fee
+        //             "takerCoefficient" => "1",    // Taker Fee Coefficient
+        //             "makerCoefficient" => "1" // Maker Fee Coefficient
+        //         }
         //     }
         //
         return $this->parse_ticker($response['data'], $market);
