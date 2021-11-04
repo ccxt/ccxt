@@ -1554,7 +1554,7 @@ module.exports = class okex extends Exchange {
         const tdMode = this.safeStringLower (params, 'tdMode');
         if (market['spot']) {
             request['tdMode'] = 'cash';
-        } else if (market['derivative']) {
+        } else if (market['contract']) {
             if (tdMode === undefined) {
                 throw new ArgumentsRequired (this.id + ' params["tdMode"] is required to be either "isolated" or "cross"');
             } else if ((tdMode !== 'isolated') && (tdMode !== 'cross')) {
