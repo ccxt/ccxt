@@ -436,8 +436,8 @@ module.exports = class lbank extends Exchange {
         // Limit Order Request Returns: Order Price
         // Market Order Returns: cny amount of market order
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'amount', 0.0);
-        const filled = this.safeString (order, 'deal_amount', 0.0);
+        const amount = this.safeString (order, 'amount');
+        const filled = this.safeString (order, 'deal_amount');
         const average = this.safeString (order, 'avg_price');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'order_id');
