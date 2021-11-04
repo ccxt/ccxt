@@ -55,6 +55,7 @@ class latoken(Exchange):
                 'doc': [
                     'https://api.latoken.com',
                 ],
+                'referral': 'https://latoken.com/invite?r=mvgp2djk',
             },
             'api': {
                 'public': {

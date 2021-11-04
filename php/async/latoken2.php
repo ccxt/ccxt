@@ -44,6 +44,7 @@ class latoken2 extends Exchange {
                     'https://api.latoken.com',
                 ),
                 'fees' => 'https://latoken.com/fees',
+                'referral' => 'https://latoken.com/invite?r=mvgp2djk',
             ),
             'api' => array(
                 'public' => array(

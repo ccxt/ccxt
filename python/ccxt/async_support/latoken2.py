@@ -46,6 +46,7 @@ class latoken2(Exchange):
                     'https://api.latoken.com',
                 ],
                 'fees': 'https://latoken.com/fees',
+                'referral': 'https://latoken.com/invite?r=mvgp2djk',
             },
             'api': {
                 'public': {

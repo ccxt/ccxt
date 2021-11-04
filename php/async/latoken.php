@@ -50,6 +50,7 @@ class latoken extends Exchange {
                 'doc' => array(
                     'https://api.latoken.com',
                 ),
+                'referral' => 'https://latoken.com/invite?r=mvgp2djk',
             ),
             'api' => array(
                 'public' => array(
