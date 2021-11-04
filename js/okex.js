@@ -669,7 +669,7 @@ module.exports = class okex extends Exchange {
         const futures = (type === 'futures');
         const swap = (type === 'swap');
         const option = (type === 'option');
-        const derivative = swap || futures;
+        const contract = swap || futures;
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy');
         const settleCurrency = this.safeString (market, 'settleCcy');
@@ -698,7 +698,6 @@ module.exports = class okex extends Exchange {
         const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const contractSize = this.safeString (market, 'ctVal');
-        const contract = derivative && (contractSize !== '1');
         const leverage = this.safeNumber (market, 'lever', 1);
         let expiry = undefined;
         if (futures || option) {
@@ -716,7 +715,6 @@ module.exports = class okex extends Exchange {
             'spot': spot,
             'futures': futures,
             'swap': swap,
-            'derivative': derivative,
             'contract': contract,
             'option': option,
             'linear': linear,
