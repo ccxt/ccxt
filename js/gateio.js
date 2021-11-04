@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const Precise = require ('./base/Precise');
+const { TICK_SIZE } = require ('./base/functions/number');
 const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 module.exports = class gateio extends Exchange {
@@ -310,6 +311,7 @@ module.exports = class gateio extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': true,
@@ -640,6 +642,7 @@ module.exports = class gateio extends Exchange {
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     const feeIndex = (type === 'futures') ? 'swap' : type;
+                    const pricePrecision = this.safeNumber (market, 'order_price_round');
                     result.push ({
                         'info': market,
                         'id': id,
@@ -664,8 +667,8 @@ module.exports = class gateio extends Exchange {
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                         'contractSize': this.safeString (market, 'quanto_multiplier'),
                         'precision': {
-                            'amount': 1,
-                            'price': undefined,
+                            'amount': this.parseNumber ('1'),
+                            'price': pricePrecision,
                         },
                         'limits': {
                             'leverage': {
@@ -731,10 +734,10 @@ module.exports = class gateio extends Exchange {
                 const symbol = base + '/' + quote;
                 const takerPercent = this.safeString (market, 'fee');
                 const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-                const amountPrecision = this.safeString (market, 'amount_precision');
-                const pricePrecision = this.safeString (market, 'precision');
-                const amountLimit = this.parsePrecision (amountPrecision);
-                const priceLimit = this.parsePrecision (pricePrecision);
+                const amountPrecisionString = this.safeString (market, 'amount_precision');
+                const pricePrecisionString = this.safeString (market, 'precision');
+                const amountPrecision = this.parseNumber (this.parsePrecision (amountPrecisionString));
+                const pricePrecision = this.parseNumber (this.parsePrecision (pricePrecisionString));
                 const tradeStatus = this.safeString (market, 'trade_status');
                 result.push ({
                     'info': market,
@@ -758,17 +761,17 @@ module.exports = class gateio extends Exchange {
                     'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                     'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                     'precision': {
-                        'amount': parseInt (amountPrecision),
-                        'price': parseInt (pricePrecision),
+                        'amount': amountPrecision,
+                        'price': pricePrecision,
                     },
                     'active': tradeStatus === 'tradable',
                     'limits': {
                         'amount': {
-                            'min': this.parseNumber (amountLimit),
+                            'min': amountPrecision,
                             'max': undefined,
                         },
                         'price': {
-                            'min': this.parseNumber (priceLimit),
+                            'min': pricePrecision,
                             'max': undefined,
                         },
                         'cost': {
@@ -819,7 +822,7 @@ module.exports = class gateio extends Exchange {
         //
         const result = {};
         // TODO: remove magic constants
-        const amountPrecision = 6;
+        const amountPrecision = this.parseNumber ('1e-6');
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
