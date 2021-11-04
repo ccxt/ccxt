@@ -680,7 +680,7 @@ class okex(Exchange):
         futures = (type == 'futures')
         swap = (type == 'swap')
         option = (type == 'option')
-        derivative = swap or futures
+        contract = swap or futures
         baseId = self.safe_string(market, 'baseCcy')
         quoteId = self.safe_string(market, 'quoteCcy')
         settleCurrency = self.safe_string(market, 'settleCcy')
@@ -707,7 +707,6 @@ class okex(Exchange):
         active = True
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         contractSize = self.safe_string(market, 'ctVal')
-        contract = derivative and (contractSize != '1')
         leverage = self.safe_number(market, 'lever', 1)
         expiry = None
         if futures or option:
@@ -724,7 +723,6 @@ class okex(Exchange):
             'spot': spot,
             'futures': futures,
             'swap': swap,
-            'derivative': derivative,
             'contract': contract,
             'option': option,
             'linear': linear,
@@ -1519,7 +1517,7 @@ class okex(Exchange):
         tdMode = self.safe_string_lower(params, 'tdMode')
         if market['spot']:
             request['tdMode'] = 'cash'
-        elif market['derivative']:
+        elif market['contract']:
             if tdMode is None:
                 raise ArgumentsRequired(self.id + ' params["tdMode"] is required to be either "isolated" or "cross"')
             elif (tdMode != 'isolated') and (tdMode != 'cross'):
