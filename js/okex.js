@@ -1746,9 +1746,9 @@ module.exports = class okex extends Exchange {
         }
         const marketId = this.safeString (order, 'instId');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const filled = this.safeNumber (order, 'accFillSz');
-        const price = this.safeNumber2 (order, 'px', 'slOrdPx');
-        const average = this.safeNumber (order, 'avgPx');
+        const filled = this.safeString (order, 'accFillSz');
+        const price = this.safeString2 (order, 'px', 'slOrdPx');
+        const average = this.safeString (order, 'avgPx');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCostString = this.safeString (order, 'fee');
         let amount = undefined;
@@ -1760,10 +1760,10 @@ module.exports = class okex extends Exchange {
         const instType = this.safeString (order, 'instType');
         if ((side === 'buy') && (type === 'market') && (instType === 'SPOT') && (tgtCcy === 'quote_ccy')) {
             // "sz" refers to the cost
-            cost = this.safeNumber (order, 'sz');
+            cost = this.safeString (order, 'sz');
         } else {
             // "sz" refers to the trade currency amount
-            amount = this.safeNumber (order, 'sz');
+            amount = this.safeString (order, 'sz');
         }
         let fee = undefined;
         if (feeCostString !== undefined) {
@@ -1780,7 +1780,7 @@ module.exports = class okex extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumber (order, 'slTriggerPx');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
