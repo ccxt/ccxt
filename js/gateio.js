@@ -631,6 +631,12 @@ module.exports = class gateio extends Exchange {
                     } else {
                         symbol = base + '/' + quote + ':' + this.safeCurrencyCode (settle);
                     }
+                    const priceDeviate = this.safeString (market, 'order_price_deviate');
+                    const markPrice = this.safeString (market, 'mark_price');
+                    const minMultiplier = Precise.stringSub ('1', priceDeviate);
+                    const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
+                    const minPrice = Precise.stringMul (minMultiplier, markPrice);
+                    const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     const feeIndex = (type === 'futures') ? 'swap' : type;
@@ -666,6 +672,10 @@ module.exports = class gateio extends Exchange {
                                 'min': this.safeNumber (market, 'order_size_min'),
                                 'max': this.safeNumber (market, 'order_size_max'),
                             },
+                            'price': {
+                                'min': minPrice,
+                                'max': maxPrice,
+                            }
                         },
                         'expiry': this.safeInteger (market, 'expire_time'),
                         'fees': this.safeValue (this.fees, feeIndex, {}),
