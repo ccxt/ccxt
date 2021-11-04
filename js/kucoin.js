@@ -319,6 +319,9 @@ module.exports = class kucoin extends Exchange {
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
                 'fetchBalance': 'trade',
+                'fetchMarkets': {
+                    'fetchTickersFees': true,
+                },
                 // endpoint versions
                 'versions': {
                     'public': {
@@ -454,7 +457,12 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const response2 = await this.publicGetMarketAllTickers (params);
+        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const fetchTickersFees = this.safeValue (options, 'fetchTickersFees', true);
+        let tickersResponse = {};
+        if (fetchTickersFees) {
+            tickersResponse = await this.publicGetMarketAllTickers (params);
+        }
         //
         //     {
         //         "code": "200000",
@@ -483,8 +491,9 @@ module.exports = class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data2 = this.safeValue (response2, 'data');
-        const tickers = this.safeValue (data2, 'ticker');
+        const tickersData = this.safeValue (tickersResponse, 'data', {});
+        const tickers = this.safeValue (tickersData, 'ticker', []);
+        const tickersByMarketId = this.indexBy (tickers, 'symbol');
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -523,21 +532,13 @@ module.exports = class kucoin extends Exchange {
                     'max': this.safeNumber (market, 'maxLeverage', 1), // * Don't default to 1 for margin markets, leverage is located elsewhere
                 },
             };
-            let maker = undefined;
-            let taker = undefined;
-            for (let j = 0; j < tickers.length; j++) {
-                const ticker = tickers[j];
-                const id2 = this.safeString (ticker, 'symbol');
-                if (id === id2) {
-                    const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
-                    const takerFeeRate = this.safeString (ticker, 'makerFeeRate');
-                    const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
-                    const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
-                    maker = this.parseNumber (Precise.stringMul (makerFeeRate, makerCoefficient));
-                    taker = this.parseNumber (Precise.stringMul (takerFeeRate, takerCoefficient));
-                    break;
-                }
-            }
+            const ticker = this.safeValue (tickersByMarketId, id, {});
+            const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
+            const takerFeeRate = this.safeString (ticker, 'makerFeeRate');
+            const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
+            const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
+            const maker = this.parseNumber (Precise.stringMul (makerFeeRate, makerCoefficient));
+            const taker = this.parseNumber (Precise.stringMul (takerFeeRate, takerCoefficient));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -2235,7 +2236,7 @@ module.exports = class kucoin extends Exchange {
         //     "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
         //
         let referenceId = undefined;
-        if (context !== undefined) {
+        if (context !== undefined && context !== '') {
             const parsed = JSON.parse (context);
             const orderId = this.safeString (parsed, 'orderId');
             const tradeId = this.safeString (parsed, 'tradeId');
