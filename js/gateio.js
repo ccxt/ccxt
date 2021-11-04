@@ -663,6 +663,10 @@ module.exports = class gateio extends Exchange {
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                         'contractSize': this.safeString (market, 'quanto_multiplier'),
+                        'precision': {
+                            'amount': 1,
+                            'price': undefined,
+                        },
                         'limits': {
                             'leverage': {
                                 'min': this.safeNumber (market, 'leverage_min'),
