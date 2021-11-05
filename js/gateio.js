@@ -670,7 +670,7 @@ module.exports = class gateio extends Exchange {
                         },
                         'precision': {
                             'amount': 0,
-                            // 'price': 1,
+                            'price': this.safeNumber (market, 'order_price_round'),
                         },
                         'expiry': this.safeInteger (market, 'expire_time'),
                         'fees': this.safeValue (this.fees, feeIndex, {}),
