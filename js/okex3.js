@@ -3274,8 +3274,8 @@ module.exports = class okex3 extends Exchange {
             const market = this.market (code); // we intentionally put a market inside here for the margin and swap ledgers
             const marketInfo = this.safeValue (market, 'info', {});
             const settlementCurrencyId = this.safeString (marketInfo, 'settlement_currency');
-            const settlementCurrencyСode = this.safeCurrencyCode (settlementCurrencyId);
-            currency = this.currency (settlementCurrencyСode);
+            const settlementCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
+            currency = this.currency (settlementCurrencyCode);
             const underlyingId = this.safeString (marketInfo, 'underlying');
             request['underlying'] = underlyingId;
         } else if ((type === 'margin') || (type === 'swap')) {
