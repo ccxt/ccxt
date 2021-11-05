@@ -3257,7 +3257,7 @@ class Exchange {
             // futures trading )
             if ($this->safe_string($market, 'contractSize') !== null) {
                 if ($market['inverse']) {
-                    $cost = Precise::string_div('1', $cost);
+                    $cost = Precise::string_div('1', $cost, 8);
                 }
                 $cost = Precise::string_mul($cost, $market['contractSize']);
             }

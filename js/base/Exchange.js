@@ -1846,7 +1846,8 @@ module.exports = class Exchange {
             // futures trading )
             if (this.safeString (market, 'contractSize') !== undefined) {
                 if (market['inverse']) {
-                    cost = Precise.stringDiv ('1', cost);
+                    // todo: remove constants
+                    cost = Precise.stringDiv ('1', cost, 8);
                 }
                 cost = Precise.stringMul (cost, market['contractSize']);
             }
