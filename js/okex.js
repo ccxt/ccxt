@@ -3192,10 +3192,11 @@ module.exports = class okex extends Exchange {
             const entry = data[i];
             const timestamp = this.safeTimestamp (entry, 'ts');
             const instId = this.safeString (entry, 'instId');
+            const market = this.safeMarket (instId);
             result.push ({
                 'info': entry,
-                'symbol': this.safeSymbol (instId),
-                'code': this.safeCurrencyCode (instId),
+                'symbol': market['symbol'],
+                'code': market['inverse'] ? market['base'] : market['quote'],
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'id': this.safeNumber (entry, 'billId'),
