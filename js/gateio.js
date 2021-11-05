@@ -298,7 +298,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'swap',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -656,7 +656,6 @@ module.exports = class gateio extends Exchange {
                         // Fee is in %, so divide by 100
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
-                        'contractSize': this.safeString (market, 'contractSize', '1'),
                         'limits': {
                             'leverage': {
                                 'max': this.safeNumber (market, 'leverage_max'),
@@ -665,6 +664,10 @@ module.exports = class gateio extends Exchange {
                                 'min': this.safeNumber (market, 'order_size_min'),
                                 'max': this.safeNumber (market, 'order_size_max'),
                             },
+                        },
+                        'precision': {
+                            'amount': 1,
+                            'price': this.safeString (market, 'quanto_multiplier'),
                         },
                         'expiry': this.safeInteger (market, 'expire_time'),
                         'fees': this.safeValue (this.fees, feeIndex, {}),
