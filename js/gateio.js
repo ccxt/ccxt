@@ -2099,7 +2099,7 @@ module.exports = class gateio extends Exchange {
         const remaining = this.safeString (order, 'left');
         const cost = this.safeString2 (order, 'filled_total'); // same as filled_price
         let side = this.safeString (order, 'side');
-        if (market['contract']) {
+        if (market && 'contract' in market) {
             side = amount > 0 ? 'buy' : 'sell';
         }
         const type = this.safeString (order, 'type');
