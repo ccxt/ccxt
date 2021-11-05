@@ -816,7 +816,11 @@ module.exports = class latoken2 extends Exchange {
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'filled');
         const cost = this.safeString (order, 'cost');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const message = this.safeString (order, 'message');
+        if (message.indexOf ('cancel') >= 0) {
+            status = 'canceled';
+        }
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'condition'));
         return this.safeOrder ({
