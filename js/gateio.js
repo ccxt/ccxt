@@ -1,10 +1,11 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
-
+const functions = require ('./base/functions');
 const Exchange = require ('./base/Exchange');
 const Precise = require ('./base/Precise');
 const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { TICK_SIZES } = functions.precisionConstants;
 
 module.exports = class gateio extends Exchange {
     describe () {
@@ -298,7 +299,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'swap',
+                'defaultType': 'spot',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -407,6 +408,7 @@ module.exports = class gateio extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZES,
             // https://www.gate.io/docs/apiv4/en/index.html#label-list
             'exceptions': {
                 'INVALID_PARAM_VALUE': BadRequest,
@@ -542,12 +544,12 @@ module.exports = class gateio extends Exchange {
                 //              "mark_price": "37985.6",
                 //              "index_price": "37954.92",
                 //              "funding_rate_indicative": "0.000219",
-                //              "mark_price_round": "0.01",
+                //              "mark_pricle_round": "0.01",
                 //              "funding_offset": 0,
                 //              "in_delisting": false,
                 //              "risk_limit_base": "1000000",
                 //              "interest_rate": "0.0003",
-                //              "order_price_round": "0.1",
+                //              "order_pricle_round": "0.1",
                 //              "order_size_min": 1,
                 //              "ref_rebate_rate": "0.2",
                 //              "funding_interval": 28800,
@@ -656,6 +658,7 @@ module.exports = class gateio extends Exchange {
                         // Fee is in %, so divide by 100
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+                        'contractSize': this.safeString (market, 'quanto_multiplier'),
                         'limits': {
                             'leverage': {
                                 'max': this.safeNumber (market, 'leverage_max'),
@@ -666,8 +669,8 @@ module.exports = class gateio extends Exchange {
                             },
                         },
                         'precision': {
-                            'amount': 1,
-                            'price': this.safeString (market, 'quanto_multiplier'),
+                            'amount': 0,
+                            // 'price': 1,
                         },
                         'expiry': this.safeInteger (market, 'expire_time'),
                         'fees': this.safeValue (this.fees, feeIndex, {}),
@@ -746,8 +749,8 @@ module.exports = class gateio extends Exchange {
                     'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                     'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                     'precision': {
-                        'amount': parseInt (amountPrecision),
-                        'price': parseInt (pricePrecision),
+                        'amount': this.parseNumber (amountPrecision),
+                        'price': this.parseNumber (pricePrecision),
                     },
                     'active': tradeStatus === 'tradable',
                     'limits': {
