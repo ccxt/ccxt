@@ -2017,6 +2017,9 @@ module.exports = class gateio extends Exchange {
                 throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
             }
             price = this.priceToPrecision (symbol, price);
+        } else if (!market['derivative']) {
+            // Gateio doesn't have market orders for spot
+            throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets');
         }
         let request = {};
         let methodTail = '';
@@ -2105,7 +2108,7 @@ module.exports = class gateio extends Exchange {
             request['initial'] = this.extend ({
                 'contract': market['id'],
                 'size': amount,
-                'price': price,
+                'price': stop_limit ? price : undefined,
                 'tif': this.safeValue (params, 'tif', 'time_in_force', defaultTif),
                 'close': this.safeValue (params, 'close'),
                 'text': this.safeValue (params, 'text'),
@@ -2176,7 +2179,11 @@ module.exports = class gateio extends Exchange {
         let side = this.safeString (order, 'side');
         const contract = this.safeValue (market, 'contract');
         if (contract) {
-            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            if (amount) {
+                side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            } else {
+                side = undefined;
+            }
         }
         const type = this.safeString (order, 'type');
         // open, closed, cancelled - almost already ccxt unified!
