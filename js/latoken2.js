@@ -820,6 +820,8 @@ module.exports = class latoken2 extends Exchange {
         const message = this.safeString (order, 'message');
         if (message.indexOf ('cancel') >= 0) {
             status = 'canceled';
+        } else if (message.indexOf ('accept') >= 0) {
+            status = 'open';
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'condition'));
