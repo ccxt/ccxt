@@ -20,7 +20,7 @@ class probit extends Exchange {
             'id' => 'probit',
             'name' => 'ProBit',
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea
-            'rateLimit' => 250, // ms
+            'rateLimit' => 50, // ms
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => true,
@@ -77,34 +77,34 @@ class probit extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'market',
-                        'currency',
-                        'currency_with_platform',
-                        'time',
-                        'ticker',
-                        'order_book',
-                        'trade',
-                        'candle',
+                        'market' => 1,
+                        'currency' => 1,
+                        'currency_with_platform' => 1,
+                        'time' => 1,
+                        'ticker' => 1,
+                        'order_book' => 1,
+                        'trade' => 1,
+                        'candle' => 1,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'new_order',
-                        'cancel_order',
-                        'withdrawal',
+                        'new_order' => 2,
+                        'cancel_order' => 1,
+                        'withdrawal' => 2,
                     ),
                     'get' => array(
-                        'balance',
-                        'order',
-                        'open_order',
-                        'order_history',
-                        'trade_history',
-                        'deposit_address',
+                        'balance' => 1,
+                        'order' => 1,
+                        'open_order' => 1,
+                        'order_history' => 1,
+                        'trade_history' => 1,
+                        'deposit_address' => 1,
                     ),
                 ),
                 'accounts' => array(
                     'post' => array(
-                        'token',
+                        'token' => 1,
                     ),
                 ),
             ),
