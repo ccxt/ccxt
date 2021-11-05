@@ -306,7 +306,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'swap',
+                'defaultType': 'spot',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -2875,8 +2875,8 @@ module.exports = class gateio extends Exchange {
             'symbol': market['symbol'],
             'timestamp': now,
             'datetime': this.iso8601 (now),
-            'initialMargin': collateral,
-            'initialMarginPercentage': Precise.stringDiv (initialMargin, collateral),
+            'initialMargin': undefined,
+            'initialMarginPercentage': Precise.stringDiv (initialMargin, notional),
             'maintenanceMargin': Precise.stringMul (maintenanceRate, notional),
             'maintenanceMarginPercentage': maintenanceRate,
             'entryPrice': this.safeValue (position, 'entry_price'),
@@ -2887,9 +2887,9 @@ module.exports = class gateio extends Exchange {
             'contractSize': Precise.stringDiv (notional, Precise.stringMul (size, markPrice)),
             //     realisedPnl: position['realised_pnl'],
             'marginRatio': marginRatio,
-            'liquidationPrice': this.safeValue (position, 'liq_price'),
+            'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': markPrice,
-            'collateral': this.safeValue (position, 'margin'),
+            'collateral': collateral,
             'marginType': undefined,
             'side': side,
             'percentage': Precise.stringDiv (unrealisedPnl, initialMargin),
@@ -2919,7 +2919,7 @@ module.exports = class gateio extends Exchange {
                 'settle': settlementCurrencies[c],
             };
             const response = await this[method] (request);
-            positions = positions.concat (response);
+            positions = this.arrayConcat (positions, response);
         }
         //
         //     [
