@@ -784,15 +784,26 @@ module.exports = class latoken2 extends Exchange {
         //         "timestamp":1635920767648
         //     }
         //
+        // cancelOrder
+        //
+        //     {
+        //         "message":"cancellation request successfully submitted",
+        //         "status":"SUCCESS",
+        //         "id":"a631426d-3543-45ba-941e-75f7825afb0f"
+        //     }
+        //
         const id = this.safeString (order, 'id');
         const timestamp = this.safeInteger (order, 'timestamp');
         const baseId = this.safeString (order, 'baseCurrency');
         const quoteId = this.safeString (order, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        if (symbol in this.markets) {
-            market = this.market (symbol);
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if (symbol in this.markets) {
+                market = this.market (symbol);
+            }
         }
         const orderSide = this.safeString (order, 'side');
         let side = undefined;
