@@ -29,6 +29,7 @@ module.exports = class okex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
@@ -3174,6 +3175,34 @@ module.exports = class okex extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const entry = this.safeValue (data, 0, {});
         return this.parseFundingRate (entry, market);
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'type': 8,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAccountBills (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeTimestamp (entry, 'ts');
+            const instId = this.safeString (entry, 'instId');
+            result.push ({
+                'info': entry,
+                'symbol': this.safeSymbol (instId),
+                'code': this.safeCurrencyCode (instId),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': this.safeNumber (entry, 'billId'),
+                'amount': this.safeNumber (entry, 'sz'),
+            });
+        }
+        return result;
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
