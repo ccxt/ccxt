@@ -298,7 +298,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'swap',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -2079,6 +2079,8 @@ module.exports = class gateio extends Exchange {
 
     stopLossRequest (symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market (symbol);
+        const uppercaseType = type.toUpperCase ();
+        const stop_limit = uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT_LIMIT';
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice === undefined) {
             throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
@@ -2087,37 +2089,42 @@ module.exports = class gateio extends Exchange {
         const request = {};
         const trigger = {
             'price': this.priceToPrecision (symbol, stopPrice),
-            'expiration': this.safeValue (params, 'expiration'),
         };
+        const expiration = this.safeValue (params, 'expiration');
+        if (expiration) {
+            // How long (in seconds) to wait for the condition to be triggered before cancelling the order.
+            trigger['expiration'] = expiration;
+        } else if (!market['derivative']) {
+            throw new InvalidOrder (this.id + ' createOrder() requires an expiration extra param for a ' + type + ' order');
+        }
+        const defaultTif = stop_limit ? 'gtc' : 'ioc';
         if (market['derivative']) {
-            trigger['rule'] = side === 'buy' ? 2 : 1;
+            trigger['rule'] = side === 'buy' ? 1 : 2;
             trigger['strategy_type'] = this.safeValue (params, 'strategy_type', 0);
             trigger['price_type'] = this.safeValue (params, 'price_type');
             const initial = this.safeValue (params, 'initial');
             request['initial'] = this.extend ({
-                'contract': market['symbol'],
+                'contract': market['id'],
                 'size': amount,
                 'price': price,
-                'tif': this.safeValue (params, 'tif', 'time_in_force'),
+                'tif': this.safeValue (params, 'tif', 'time_in_force', defaultTif),
                 'close': this.safeValue (params, 'close'),
                 'text': this.safeValue (params, 'text'),
             }, initial);
             request['settle'] = market['settleId'];
         } else {
-            trigger['rule'] = side === 'buy' ? '<=' : '>=';
-            const uppercaseType = type.toUpperCase ();
-            const stop_limit = uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT_LIMIT';
+            trigger['rule'] = side === 'buy' ? '>=' : '<=';
             const put = this.safeValue (params, 'put');
             const defaultAccount = type === 'margin' ? 'margin' : 'normal';
             request['put'] = this.extend ({
                 'type': stop_limit ? 'limit' : 'market',
                 'side': side,
                 'price': price,
-                'amount': amount,
+                'amount': amount.toString (),
                 'account': this.safeValue (params, 'account', defaultAccount),
-                'tif': this.safeValue2 (params, 'tif', 'time_in_force'),
+                'time_in_force': this.safeValue2 (params, 'tif', 'time_in_force', defaultTif),
             }, put);
-            request['market'] = market['symbol'];
+            request['market'] = market['id'];
         }
         request['trigger'] = this.extend (trigger, this.safeValue (params, 'trigger'));
         return this.extend (request, params);
