@@ -1153,12 +1153,7 @@ module.exports = class latoken2 extends Exchange {
             }
         }
         if (api === 'private') {
-            headers = {};
             this.checkRequiredCredentials ();
-            if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json (query);
-            }
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             headers = {
@@ -1166,6 +1161,10 @@ module.exports = class latoken2 extends Exchange {
                 'X-LA-SIGNATURE': signature,
                 'X-LA-DIGEST': 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             };
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+                body = this.json (query);
+            }
         }
         const url = this.urls['api'] + requestString;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
