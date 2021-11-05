@@ -726,6 +726,7 @@ module.exports = class gateio extends Exchange {
                     'id': id,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': undefined,
                     'base': base,
                     'quote': quote,
                     'symbol': symbol,
@@ -1550,7 +1551,7 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const request = {
             'contract': market['id'],
-            'settle': market['quote'].toLowerCase (),
+            'settle': market['settleId'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
