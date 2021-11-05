@@ -234,6 +234,7 @@ module.exports = class bitmart extends Exchange {
                     '50021': BadRequest, // 400, Invalid %s
                     '50022': ExchangeNotAvailable, // 400, Service unavailable
                     '50023': BadSymbol, // 400, This Symbol can't place order by api
+                    '50029': InvalidOrder, // {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
                     '53000': AccountSuspended, // 403, Your account is frozen due to security policies. Please contact customer service
                     '57001': BadRequest, // 405, Method Not Allowed
                     '58001': BadRequest, // 415, Unsupported Media Type
