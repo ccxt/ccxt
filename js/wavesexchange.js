@@ -1352,10 +1352,10 @@ module.exports = class wavesexchange extends Exchange {
             symbol = market['symbol'];
         }
         const amountCurrency = this.safeCurrencyCode (this.safeString (assetPair, 'amountAsset', 'WAVES'));
-        const price = this.priceFromPrecision (symbol, priceString);
-        const amount = this.currencyFromPrecision (amountCurrency, amountString);
-        const filled = this.currencyFromPrecision (amountCurrency, filledString);
-        const average = this.priceFromPrecision (symbol, this.safeString (order, 'avgWeighedPrice'));
+        const price = this.priceFromPrecision (symbol, priceString).toString ();
+        const amount = this.currencyFromPrecision (amountCurrency, amountString).toString ();
+        const filled = this.currencyFromPrecision (amountCurrency, filledString).toString ();
+        const average = this.priceFromPrecision (symbol, this.safeString (order, 'avgWeighedPrice')).toString ();
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let fee = undefined;
         if ('type' in order) {
