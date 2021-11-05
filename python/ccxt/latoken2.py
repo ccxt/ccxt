@@ -752,15 +752,25 @@ class latoken2(Exchange):
         #         "timestamp":1635920767648
         #     }
         #
+        # cancelOrder
+        #
+        #     {
+        #         "message":"cancellation request successfully submitted",
+        #         "status":"SUCCESS",
+        #         "id":"a631426d-3543-45ba-941e-75f7825afb0f"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'timestamp')
         baseId = self.safe_string(order, 'baseCurrency')
         quoteId = self.safe_string(order, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
-        if symbol in self.markets:
-            market = self.market(symbol)
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
+            if symbol in self.markets:
+                market = self.market(symbol)
         orderSide = self.safe_string(order, 'side')
         side = None
         if orderSide is not None:
@@ -772,6 +782,11 @@ class latoken2(Exchange):
         filled = self.safe_string(order, 'filled')
         cost = self.safe_string(order, 'cost')
         status = self.parse_order_status(self.safe_string(order, 'status'))
+        message = self.safe_string(order, 'message')
+        if message.find('cancel') >= 0:
+            status = 'canceled'
+        elif message.find('accept') >= 0:
+            status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
         return self.safe_order({
@@ -1097,11 +1112,7 @@ class latoken2(Exchange):
             if query:
                 requestString += '?' + urlencodedQuery
         if api == 'private':
-            headers = {}
             self.check_required_credentials()
-            if method == 'POST':
-                headers['Content-Type'] = 'application/json'
-                body = self.json(query)
             auth = method + request + urlencodedQuery
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             headers = {
@@ -1109,6 +1120,9 @@ class latoken2(Exchange):
                 'X-LA-SIGNATURE': signature,
                 'X-LA-DIGEST': 'HMAC-SHA512',  # HMAC-SHA384, HMAC-SHA512, optional
             }
+            if method == 'POST':
+                headers['Content-Type'] = 'application/json'
+                body = self.json(query)
         url = self.urls['api'] + requestString
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

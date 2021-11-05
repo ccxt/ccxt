@@ -786,15 +786,26 @@ class latoken2 extends Exchange {
         //         "$timestamp":1635920767648
         //     }
         //
+        // cancelOrder
+        //
+        //     {
+        //         "$message":"cancellation request successfully submitted",
+        //         "$status":"SUCCESS",
+        //         "$id":"a631426d-3543-45ba-941e-75f7825afb0f"
+        //     }
+        //
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->safe_integer($order, 'timestamp');
         $baseId = $this->safe_string($order, 'baseCurrency');
         $quoteId = $this->safe_string($order, 'quoteCurrency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $base . '/' . $quote;
-        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-            $market = $this->market($symbol);
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                $market = $this->market($symbol);
+            }
         }
         $orderSide = $this->safe_string($order, 'side');
         $side = null;
@@ -808,6 +819,12 @@ class latoken2 extends Exchange {
         $filled = $this->safe_string($order, 'filled');
         $cost = $this->safe_string($order, 'cost');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $message = $this->safe_string($order, 'message');
+        if (mb_strpos($message, 'cancel') !== false) {
+            $status = 'canceled';
+        } else if (mb_strpos($message, 'accept') !== false) {
+            $status = 'open';
+        }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'condition'));
         return $this->safe_order(array(
@@ -1155,12 +1172,7 @@ class latoken2 extends Exchange {
             }
         }
         if ($api === 'private') {
-            $headers = array();
             $this->check_required_credentials();
-            if ($method === 'POST') {
-                $headers['Content-Type'] = 'application/json';
-                $body = $this->json($query);
-            }
             $auth = $method . $request . $urlencodedQuery;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
             $headers = array(
@@ -1168,6 +1180,10 @@ class latoken2 extends Exchange {
                 'X-LA-SIGNATURE' => $signature,
                 'X-LA-DIGEST' => 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             );
+            if ($method === 'POST') {
+                $headers['Content-Type'] = 'application/json';
+                $body = $this->json($query);
+            }
         }
         $url = $this->urls['api'] . $requestString;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

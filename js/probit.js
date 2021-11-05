@@ -15,7 +15,7 @@ module.exports = class probit extends Exchange {
             'id': 'probit',
             'name': 'ProBit',
             'countries': [ 'SC', 'KR' ], // Seychelles, South Korea
-            'rateLimit': 250, // ms
+            'rateLimit': 50, // ms
             'has': {
                 'cancelOrder': true,
                 'CORS': true,
@@ -71,36 +71,36 @@ module.exports = class probit extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'market',
-                        'currency',
-                        'currency_with_platform',
-                        'time',
-                        'ticker',
-                        'order_book',
-                        'trade',
-                        'candle',
-                    ],
+                    'get': {
+                        'market': 1,
+                        'currency': 1,
+                        'currency_with_platform': 1,
+                        'time': 1,
+                        'ticker': 1,
+                        'order_book': 1,
+                        'trade': 1,
+                        'candle': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'new_order',
-                        'cancel_order',
-                        'withdrawal',
-                    ],
-                    'get': [
-                        'balance',
-                        'order',
-                        'open_order',
-                        'order_history',
-                        'trade_history',
-                        'deposit_address',
-                    ],
+                    'post': {
+                        'new_order': 2,
+                        'cancel_order': 1,
+                        'withdrawal': 2,
+                    },
+                    'get': {
+                        'balance': 1,
+                        'order': 1,
+                        'open_order': 1,
+                        'order_history': 1,
+                        'trade_history': 1,
+                        'deposit_address': 1,
+                    },
                 },
                 'accounts': {
-                    'post': [
-                        'token',
-                    ],
+                    'post': {
+                        'token': 1,
+                    },
                 },
             },
             'fees': {
