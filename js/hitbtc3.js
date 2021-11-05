@@ -909,7 +909,7 @@ module.exports = class hitbtc3 extends Exchange {
             request['symbols'] = marketIds.join (',');
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['depth'] = limit;
         }
         const response = await this.publicGetPublicOrderbook (this.extend (request, params));
         const result = {};
