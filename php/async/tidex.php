@@ -542,6 +542,8 @@ class tidex extends Exchange {
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
+        $amountString = (string) $amount;
+        $priceString = (string) $price;
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -553,8 +555,8 @@ class tidex extends Exchange {
         $response = yield $this->privatePostTrade (array_merge($request, $params));
         $id = null;
         $status = 'open';
-        $filled = 0.0;
-        $remaining = $amount;
+        $filledString = '0.0';
+        $remainingString = $amountString;
         $returnResult = $this->safe_value($response, 'return');
         if ($returnResult !== null) {
             $id = $this->safe_string($returnResult, 'order_id');
@@ -562,11 +564,11 @@ class tidex extends Exchange {
                 $id = $this->safe_string($returnResult, 'init_order_id');
                 $status = 'closed';
             }
-            $filled = $this->safe_number($returnResult, 'received', $filled);
-            $remaining = $this->safe_number($returnResult, 'remains', $amount);
+            $filledString = $this->safe_string($returnResult, 'received', $filledString);
+            $remainingString = $this->safe_string($returnResult, 'remains', $amountString);
         }
         $timestamp = $this->milliseconds();
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -575,11 +577,11 @@ class tidex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
             'cost' => null,
-            'amount' => $amount,
-            'remaining' => $remaining,
-            'filled' => $filled,
+            'amount' => $amountString,
+            'remaining' => $remainingString,
+            'filled' => $filledString,
             'fee' => null,
             // 'trades' => $this->parse_trades(order['trades'], $market),
             'info' => $response,
@@ -615,15 +617,15 @@ class tidex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $remaining = null;
         $amount = null;
-        $price = $this->safe_number($order, 'rate');
+        $price = $this->safe_string($order, 'rate');
         if (is_array($order) && array_key_exists('start_amount', $order)) {
-            $amount = $this->safe_number($order, 'start_amount');
-            $remaining = $this->safe_number($order, 'amount');
+            $amount = $this->safe_string($order, 'start_amount');
+            $remaining = $this->safe_string($order, 'amount');
         } else {
-            $remaining = $this->safe_number($order, 'amount');
+            $remaining = $this->safe_string($order, 'amount');
         }
         $fee = null;
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
