@@ -2026,8 +2026,9 @@ class gateio(Exchange):
         remaining = self.safe_string(order, 'left')
         cost = self.safe_string_2(order, 'filled_total')  # same as filled_price
         side = self.safe_string(order, 'side')
-        if market['contract']:
-            side = amount > 'buy' if 0 else 'sell'
+        contract = self.safe_value(market, 'contract')
+        if contract:
+            side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
         type = self.safe_string(order, 'type')
         # open, closed, cancelled - almost already ccxt unified!
         finishAs = self.safe_string(order, 'finish_as')  # Perpetual Swap/Delivery Futures
