@@ -882,7 +882,7 @@ class hitbtc3(Exchange):
             marketIds = self.market_ids(symbols)
             request['symbols'] = ','.join(marketIds)
         if limit is not None:
-            request['limit'] = limit
+            request['depth'] = limit
         response = await self.publicGetPublicOrderbook(self.extend(request, params))
         result = {}
         marketIds = list(response.keys())

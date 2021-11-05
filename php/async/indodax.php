@@ -404,7 +404,7 @@ class indodax extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status', 'open'));
         $symbol = null;
         $cost = null;
-        $price = $this->safe_number($order, 'price');
+        $price = $this->safe_string($order, 'price');
         $amount = null;
         $remaining = null;
         if ($market !== null) {
@@ -417,16 +417,16 @@ class indodax extends Exchange {
             if (($market['baseId'] === 'idr') && (is_array($order) && array_key_exists('remain_rp', $order))) {
                 $baseId = 'rp';
             }
-            $cost = $this->safe_number($order, 'order_' . $quoteId);
+            $cost = $this->safe_string($order, 'order_' . $quoteId);
             if (!$cost) {
-                $amount = $this->safe_number($order, 'order_' . $baseId);
-                $remaining = $this->safe_number($order, 'remain_' . $baseId);
+                $amount = $this->safe_string($order, 'order_' . $baseId);
+                $remaining = $this->safe_string($order, 'remain_' . $baseId);
             }
         }
         $timestamp = $this->safe_integer($order, 'submit_time');
         $fee = null;
         $id = $this->safe_string($order, 'order_id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
