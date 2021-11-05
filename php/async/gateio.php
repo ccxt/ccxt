@@ -2106,8 +2106,9 @@ class gateio extends Exchange {
         $remaining = $this->safe_string($order, 'left');
         $cost = $this->safe_string_2($order, 'filled_total'); // same as filled_price
         $side = $this->safe_string($order, 'side');
-        if ($market['contract']) {
-            $side = $amount > 0 ? 'buy' : 'sell';
+        $contract = $this->safe_value($market, 'contract');
+        if ($contract) {
+            $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
         }
         $type = $this->safe_string($order, 'type');
         // open, closed, cancelled - almost already ccxt unified!

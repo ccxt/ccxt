@@ -916,7 +916,7 @@ class hitbtc3 extends Exchange {
             $request['symbols'] = implode(',', $marketIds);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['depth'] = $limit;
         }
         $response = yield $this->publicGetPublicOrderbook (array_merge($request, $params));
         $result = array();

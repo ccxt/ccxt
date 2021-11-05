@@ -784,15 +784,26 @@ module.exports = class latoken2 extends Exchange {
         //         "timestamp":1635920767648
         //     }
         //
+        // cancelOrder
+        //
+        //     {
+        //         "message":"cancellation request successfully submitted",
+        //         "status":"SUCCESS",
+        //         "id":"a631426d-3543-45ba-941e-75f7825afb0f"
+        //     }
+        //
         const id = this.safeString (order, 'id');
         const timestamp = this.safeInteger (order, 'timestamp');
         const baseId = this.safeString (order, 'baseCurrency');
         const quoteId = this.safeString (order, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        if (symbol in this.markets) {
-            market = this.market (symbol);
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if (symbol in this.markets) {
+                market = this.market (symbol);
+            }
         }
         const orderSide = this.safeString (order, 'side');
         let side = undefined;
@@ -805,7 +816,13 @@ module.exports = class latoken2 extends Exchange {
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'filled');
         const cost = this.safeString (order, 'cost');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const message = this.safeString (order, 'message');
+        if (message.indexOf ('cancel') >= 0) {
+            status = 'canceled';
+        } else if (message.indexOf ('accept') >= 0) {
+            status = 'open';
+        }
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'condition'));
         return this.safeOrder ({
@@ -1153,12 +1170,7 @@ module.exports = class latoken2 extends Exchange {
             }
         }
         if (api === 'private') {
-            headers = {};
             this.checkRequiredCredentials ();
-            if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json (query);
-            }
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             headers = {
@@ -1166,6 +1178,10 @@ module.exports = class latoken2 extends Exchange {
                 'X-LA-SIGNATURE': signature,
                 'X-LA-DIGEST': 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             };
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+                body = this.json (query);
+            }
         }
         const url = this.urls['api'] + requestString;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

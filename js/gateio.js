@@ -2133,7 +2133,8 @@ module.exports = class gateio extends Exchange {
         const cost = this.safeString (order, 'filled_total'); // same as filled_price
         let rawStatus = undefined;
         let side = undefined;
-        if (market['contract']) {
+        const contract = this.safeValue (market, 'contract');
+        if (contract) {
             side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
             rawStatus = this.safeString (order, 'finish_as', 'open');
         } else {
