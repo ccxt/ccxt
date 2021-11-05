@@ -298,7 +298,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'swap',
+                'defaultType': 'spot',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -2012,7 +2012,6 @@ module.exports = class gateio extends Exchange {
         const stop_limit = uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT_LIMIT';
         const stop_market = uppercaseType === 'STOP_LOSS_MARKET' || uppercaseType === 'TAKE_PROFIT_MARKET';
         const limit = uppercaseType === 'LIMIT';
-        const derivative = market['derivative'];
         if (limit || stop_limit) {
             if (!price) {
                 throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
@@ -2031,7 +2030,7 @@ module.exports = class gateio extends Exchange {
         }
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
-            if (!derivative) {
+            if (!market['contract']) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for futures and perpetuals only');
             }
             request['reduce_only'] = reduceOnly;
@@ -2050,7 +2049,7 @@ module.exports = class gateio extends Exchange {
     orderRequest (symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market (symbol);
         const request = this.prepareRequest (market);
-        if (market['derivative']) {
+        if (market['contract']) {
             if (side === 'sell') {
                 amount = 0 - amount;
             }
@@ -2068,7 +2067,7 @@ module.exports = class gateio extends Exchange {
             //     }
             // }
         }
-        if (type === 'market' && market['derivative']) {
+        if (type === 'market' && market['contract']) {
             request['tif'] = 'ioc';
             request['price'] = 0;
         } else {
@@ -2094,11 +2093,11 @@ module.exports = class gateio extends Exchange {
         if (expiration) {
             // How long (in seconds) to wait for the condition to be triggered before cancelling the order.
             trigger['expiration'] = expiration;
-        } else if (!market['derivative']) {
+        } else if (!market['contract']) {
             throw new InvalidOrder (this.id + ' createOrder() requires an expiration extra param for a ' + type + ' order');
         }
         const defaultTif = stop_limit ? 'gtc' : 'ioc';
-        if (market['derivative']) {
+        if (market['contract']) {
             trigger['rule'] = side === 'buy' ? 1 : 2;
             trigger['strategy_type'] = this.safeValue (params, 'strategy_type', 0);
             trigger['price_type'] = this.safeValue (params, 'price_type');
