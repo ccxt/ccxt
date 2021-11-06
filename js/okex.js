@@ -3251,8 +3251,8 @@ module.exports = class okex extends Exchange {
             //     202 System transfer out
             //     203 Manually transfer out
             //
-            // 'after': 'id', // earlier than the requested bill ID.
-            // 'before': 'id', // newer than the requested bill ID.
+            // 'after': 'id', // earlier than the requested bill ID
+            // 'before': 'id', // newer than the requested bill ID
             // 'limit': '100', // default 100, max 100
         };
         if (limit !== undefined) {
