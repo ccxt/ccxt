@@ -913,7 +913,7 @@ module.exports = class probit extends Exchange {
         let price = this.safeString (order, 'limit_price');
         const filled = this.safeString (order, 'filled_quantity');
         let remaining = this.safeString (order, 'open_quantity');
-        const canceledAmount = this.safeNumber (order, 'cancelled_quantity');
+        const canceledAmount = this.safeString (order, 'cancelled_quantity');
         if (canceledAmount !== undefined) {
             remaining = Precise.stringAdd (remaining, canceledAmount);
         }
