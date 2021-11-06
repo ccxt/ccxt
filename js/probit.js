@@ -910,15 +910,15 @@ module.exports = class probit extends Exchange {
         const marketId = this.safeString (order, 'market_id');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
-        let price = this.safeNumber (order, 'limit_price');
-        const filled = this.safeNumber (order, 'filled_quantity');
-        let remaining = this.safeNumber (order, 'open_quantity');
+        let price = this.safeString (order, 'limit_price');
+        const filled = this.safeString (order, 'filled_quantity');
+        let remaining = this.safeString (order, 'open_quantity');
         const canceledAmount = this.safeNumber (order, 'cancelled_quantity');
         if (canceledAmount !== undefined) {
-            remaining = this.sum (remaining, canceledAmount);
+            remaining = Precise.stringAdd (remaining, canceledAmount);
         }
-        const amount = this.safeNumber (order, 'quantity', this.sum (filled, remaining));
-        const cost = this.safeNumber2 (order, 'filled_cost', 'cost');
+        const amount = this.safeString (order, 'quantity', this.sum (filled, remaining));
+        const cost = this.safeString2 (order, 'filled_cost', 'cost');
         if (type === 'market') {
             price = undefined;
         }
@@ -927,7 +927,7 @@ module.exports = class probit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
