@@ -915,15 +915,15 @@ class probit extends Exchange {
         $marketId = $this->safe_string($order, 'market_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'time'));
-        $price = $this->safe_number($order, 'limit_price');
-        $filled = $this->safe_number($order, 'filled_quantity');
-        $remaining = $this->safe_number($order, 'open_quantity');
-        $canceledAmount = $this->safe_number($order, 'cancelled_quantity');
+        $price = $this->safe_string($order, 'limit_price');
+        $filled = $this->safe_string($order, 'filled_quantity');
+        $remaining = $this->safe_string($order, 'open_quantity');
+        $canceledAmount = $this->safe_string($order, 'cancelled_quantity');
         if ($canceledAmount !== null) {
-            $remaining = $this->sum($remaining, $canceledAmount);
+            $remaining = Precise::string_add($remaining, $canceledAmount);
         }
-        $amount = $this->safe_number($order, 'quantity', $this->sum($filled, $remaining));
-        $cost = $this->safe_number_2($order, 'filled_cost', 'cost');
+        $amount = $this->safe_string($order, 'quantity', Precise::string_add($filled, $remaining));
+        $cost = $this->safe_string_2($order, 'filled_cost', 'cost');
         if ($type === 'market') {
             $price = null;
         }
@@ -932,7 +932,7 @@ class probit extends Exchange {
             $clientOrderId = null;
         }
         $timeInForce = $this->safe_string_upper($order, 'time_in_force');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,
