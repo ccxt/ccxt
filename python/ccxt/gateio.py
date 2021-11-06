@@ -754,6 +754,7 @@ class gateio(Exchange):
                     'id': id,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': None,
                     'base': base,
                     'quote': quote,
                     'symbol': symbol,
@@ -1178,10 +1179,10 @@ class gateio(Exchange):
         }
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         self.load_markets()
         # defaultType = 'future'
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires the argument "symbol"')
         market = self.market(symbol)
         request = self.prepare_request(market)
         request['type'] = 'fund'  # 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
@@ -1530,13 +1531,13 @@ class gateio(Exchange):
         return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def fetch_funding_rate_history(self, symbol=None, limit=None, since=None, params={}):
-        self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
         market = self.market(symbol)
         request = {
             'contract': market['id'],
-            'settle': market['quote'].lower(),
+            'settle': market['settleId'],
         }
         if limit is not None:
             request['limit'] = limit
@@ -1559,7 +1560,7 @@ class gateio(Exchange):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
-        return self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
 
     def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
@@ -2205,9 +2206,9 @@ class gateio(Exchange):
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrdersByStatus requires a symbol argument')
+        self.load_markets()
         market = self.market(symbol)
         request = self.prepare_request(market)
         request['status'] = status
@@ -2273,9 +2274,9 @@ class gateio(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
-        self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol parameter')
+        self.load_markets()
         market = self.market(symbol)
         request = {
             'order_id': id,
