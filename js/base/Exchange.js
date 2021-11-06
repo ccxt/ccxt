@@ -1843,6 +1843,16 @@ module.exports = class Exchange {
             } else {
                 cost = Precise.stringMul (average, filled);
             }
+            // contract trading
+            const contractSize = this.safeString (market, 'contractSize');
+            if (contractSize !== undefined) {
+                const inverse = this.safeValue (market, 'inverse', false);
+                if (inverse) {
+                    // todo: remove constants
+                    cost = Precise.stringDiv ('1', cost, 8);
+                }
+                cost = Precise.stringMul (cost, contractSize);
+            }
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');

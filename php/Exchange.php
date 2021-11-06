@@ -3254,6 +3254,15 @@ class Exchange {
             } else {
                 $cost = Precise::string_mul($average, $filled);
             }
+            // contract trading
+            $contractSize = $this->safe_string($market, 'contractSize');
+            if ($contractSize !== null) {
+                $inverse = $this->safe_value($market, 'inverse', false);
+                if ($inverse) {
+                    $cost = Precise::string_div('1', $cost, 8);
+                }
+                $cost = Precise::string_mul($cost, $contractSize);
+            }
         }
         // support for $market orders
         $orderType = $this->safe_value($order, 'type');
