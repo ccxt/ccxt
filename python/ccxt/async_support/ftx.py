@@ -496,7 +496,7 @@ class ftx(Exchange):
             # check if a market is a spot or future market
             symbol = self.safe_string(market, 'name') if (type == 'future') else (base + '/' + quote)
             active = self.safe_value(market, 'enabled')
-            sizeIncrement = self.safe_number_2(market, 'minProvideSize', 'sizeIncrement')
+            sizeIncrement = self.safe_number(market, 'sizeIncrement')
             priceIncrement = self.safe_number(market, 'priceIncrement')
             precision = {
                 'amount': sizeIncrement,
