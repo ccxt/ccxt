@@ -1846,7 +1846,8 @@ module.exports = class Exchange {
             // contract trading
             const contractSize = this.safeString (market, 'contractSize');
             if (contractSize !== undefined) {
-                if (market['inverse']) {
+                const inverse = this.safeValue (market, 'inverse', false);
+                if (inverse) {
                     // todo: remove constants
                     cost = Precise.stringDiv ('1', cost, 8);
                 }

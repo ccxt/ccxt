@@ -2439,7 +2439,8 @@ class Exchange(object):
             # contract trading )
             contractSize = self.safe_string(market, 'contractSize')
             if contractSize is not None:
-                if market['inverse']:
+                inverse = self.safe_string(market, 'inverse', False)
+                if inverse:
                     cost = Precise.string_div('1', cost, 8)
                 cost = Precise.string_mul(cost, contractSize)
         # support for market orders
