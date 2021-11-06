@@ -47,6 +47,7 @@ class bybit(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': False,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
