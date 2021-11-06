@@ -478,7 +478,7 @@ module.exports = class ftx extends Exchange {
             // check if a market is a spot or future market
             const symbol = (type === 'future') ? this.safeString (market, 'name') : (base + '/' + quote);
             const active = this.safeValue (market, 'enabled');
-            const sizeIncrement = this.safeNumber2 (market, 'minProvideSize', 'sizeIncrement');
+            const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
             const priceIncrement = this.safeNumber (market, 'priceIncrement');
             const precision = {
                 'amount': sizeIncrement,
