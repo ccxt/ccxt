@@ -3150,8 +3150,8 @@ class okex3(Exchange):
             market = self.market(code)  # we intentionally put a market inside here for the margin and swap ledgers
             marketInfo = self.safe_value(market, 'info', {})
             settlementCurrencyId = self.safe_string(marketInfo, 'settlement_currency')
-            settlementCurrencyСode = self.safe_currency_code(settlementCurrencyId)
-            currency = self.currency(settlementCurrencyСode)
+            settlementCurrencyCode = self.safe_currency_code(settlementCurrencyId)
+            currency = self.currency(settlementCurrencyCode)
             underlyingId = self.safe_string(marketInfo, 'underlying')
             request['underlying'] = underlyingId
         elif (type == 'margin') or (type == 'swap'):
