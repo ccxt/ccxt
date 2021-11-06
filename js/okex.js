@@ -3203,7 +3203,7 @@ module.exports = class okex extends Exchange {
                 'amount': this.safeNumber (entry, 'sz'),
             });
         }
-        return result;
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
