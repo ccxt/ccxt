@@ -2210,6 +2210,33 @@ class binance(Exchange):
         #       ]
         #     }
         #
+        # delivery
+        #
+        #     {
+        #       "orderId": "18742727411",
+        #       "symbol": "ETHUSD_PERP",
+        #       "pair": "ETHUSD",
+        #       "status": "FILLED",
+        #       "clientOrderId": "x-xcKtGhcu3e2d1503fdd543b3b02419",
+        #       "price": "0",
+        #       "avgPrice": "4522.14",
+        #       "origQty": "1",
+        #       "executedQty": "1",
+        #       "cumBase": "0.00221134",
+        #       "timeInForce": "GTC",
+        #       "type": "MARKET",
+        #       "reduceOnly": False,
+        #       "closePosition": False,
+        #       "side": "SELL",
+        #       "positionSide": "BOTH",
+        #       "stopPrice": "0",
+        #       "workingType": "CONTRACT_PRICE",
+        #       "priceProtect": False,
+        #       "origType": "MARKET",
+        #       "time": "1636061952660",
+        #       "updateTime": "1636061952660"
+        #     }
+        #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -2233,6 +2260,7 @@ class binance(Exchange):
         # - Futures market: cumQuote.
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
         cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
+        cost = self.safe_string_2(order, 'cumBase', cost)
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
