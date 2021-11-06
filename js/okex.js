@@ -29,6 +29,7 @@ module.exports = class okex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
@@ -3174,6 +3175,108 @@ module.exports = class okex extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const entry = this.safeValue (data, 0, {});
         return this.parseFundingRate (entry, market);
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'ccy': currency['id'],
+            // 'mgnMode': 'isolated', // isolated, cross
+            // 'ctType': 'linear', // linear, inverse, only applicable to FUTURES/SWAP
+            'type': '8',
+            //
+            // supported values for type
+            //
+            //     1 Transfer
+            //     2 Trade
+            //     3 Delivery
+            //     4 Auto token conversion
+            //     5 Liquidation
+            //     6 Margin transfer
+            //     7 Interest deduction
+            //     8 Funding fee
+            //     9 ADL
+            //     10 Clawback
+            //     11 System token conversion
+            //     12 Strategy transfer
+            //     13 ddh
+            //
+            // 'subType': '',
+            //
+            // supported values for subType
+            //
+            //     1 Buy
+            //     2 Sell
+            //     3 Open long
+            //     4 Open short
+            //     5 Close long
+            //     6 Close short
+            //     9 Interest deduction
+            //     11 Transfer in
+            //     12 Transfer out
+            //     160 Manual margin increase
+            //     161 Manual margin decrease
+            //     162 Auto margin increase
+            //     110 Auto buy
+            //     111 Auto sell
+            //     118 System token conversion transfer in
+            //     119 System token conversion transfer out
+            //     100 Partial liquidation close long
+            //     101 Partial liquidation close short
+            //     102 Partial liquidation buy
+            //     103 Partial liquidation sell
+            //     104 Liquidation long
+            //     105 Liquidation short
+            //     106 Liquidation buy
+            //     107 Liquidation sell
+            //     110 Liquidation transfer in
+            //     111 Liquidation transfer out
+            //     125 ADL close long
+            //     126 ADL close short
+            //     127 ADL buy
+            //     128 ADL sell
+            //     131 ddh buy
+            //     132 ddh sell
+            //     170 Exercised
+            //     171 Counterparty exercised
+            //     172 Expired OTM
+            //     112 Delivery long
+            //     113 Delivery short
+            //     117 Delivery/Exercise clawback
+            //     173 Funding fee expense
+            //     174 Funding fee income
+            //     200 System transfer in
+            //     201 Manually transfer in
+            //     202 System transfer out
+            //     203 Manually transfer out
+            //
+            // 'after': 'id', // earlier than the requested bill ID
+            // 'before': 'id', // newer than the requested bill ID
+            // 'limit': '100', // default 100, max 100
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit.toString (); // default 100, max 100
+        }
+        const response = await this.privateGetAccountBills (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeTimestamp (entry, 'ts');
+            const instId = this.safeString (entry, 'instId');
+            const market = this.safeMarket (instId);
+            result.push ({
+                'info': entry,
+                'symbol': market['symbol'],
+                'code': market['inverse'] ? market['base'] : market['quote'],
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': this.safeNumber (entry, 'billId'),
+                'amount': this.safeNumber (entry, 'sz'),
+            });
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
