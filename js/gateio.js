@@ -1173,11 +1173,11 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         // let defaultType = 'future';
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires the argument "symbol"');
-        }
         const market = this.market (symbol);
         const request = this.prepareRequest (market);
         request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
