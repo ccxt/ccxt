@@ -49,6 +49,7 @@ class okex(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressByNetwork': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': True,
                 'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
@@ -3043,6 +3044,105 @@ class okex(Exchange):
         data = self.safe_value(response, 'data', [])
         entry = self.safe_value(data, 0, {})
         return self.parse_funding_rate(entry, market)
+
+    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
+            # 'ccy': currency['id'],
+            # 'mgnMode': 'isolated',  # isolated, cross
+            # 'ctType': 'linear',  # linear, inverse, only applicable to FUTURES/SWAP
+            'type': '8',
+            #
+            # supported values for type
+            #
+            #     1 Transfer
+            #     2 Trade
+            #     3 Delivery
+            #     4 Auto token conversion
+            #     5 Liquidation
+            #     6 Margin transfer
+            #     7 Interest deduction
+            #     8 Funding fee
+            #     9 ADL
+            #     10 Clawback
+            #     11 System token conversion
+            #     12 Strategy transfer
+            #     13 ddh
+            #
+            # 'subType': '',
+            #
+            # supported values for subType
+            #
+            #     1 Buy
+            #     2 Sell
+            #     3 Open long
+            #     4 Open short
+            #     5 Close long
+            #     6 Close short
+            #     9 Interest deduction
+            #     11 Transfer in
+            #     12 Transfer out
+            #     160 Manual margin increase
+            #     161 Manual margin decrease
+            #     162 Auto margin increase
+            #     110 Auto buy
+            #     111 Auto sell
+            #     118 System token conversion transfer in
+            #     119 System token conversion transfer out
+            #     100 Partial liquidation close long
+            #     101 Partial liquidation close short
+            #     102 Partial liquidation buy
+            #     103 Partial liquidation sell
+            #     104 Liquidation long
+            #     105 Liquidation short
+            #     106 Liquidation buy
+            #     107 Liquidation sell
+            #     110 Liquidation transfer in
+            #     111 Liquidation transfer out
+            #     125 ADL close long
+            #     126 ADL close short
+            #     127 ADL buy
+            #     128 ADL sell
+            #     131 ddh buy
+            #     132 ddh sell
+            #     170 Exercised
+            #     171 Counterparty exercised
+            #     172 Expired OTM
+            #     112 Delivery long
+            #     113 Delivery short
+            #     117 Delivery/Exercise clawback
+            #     173 Funding fee expense
+            #     174 Funding fee income
+            #     200 System transfer in
+            #     201 Manually transfer in
+            #     202 System transfer out
+            #     203 Manually transfer out
+            #
+            # 'after': 'id',  # earlier than the requested bill ID
+            # 'before': 'id',  # newer than the requested bill ID
+            # 'limit': '100',  # default 100, max 100
+        }
+        if limit is not None:
+            request['limit'] = str(limit)  # default 100, max 100
+        response = await self.privateGetAccountBills(self.extend(request, params))
+        data = self.safe_value(response, 'data')
+        result = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            timestamp = self.safe_timestamp(entry, 'ts')
+            instId = self.safe_string(entry, 'instId')
+            market = self.safe_market(instId)
+            result.append({
+                'info': entry,
+                'symbol': market['symbol'],
+                'code': market['base'] if market['inverse'] else market['quote'],
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'id': self.safe_number(entry, 'billId'),
+                'amount': self.safe_number(entry, 'sz'),
+            })
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     async def set_leverage(self, leverage, symbol=None, params={}):
         if symbol is None:

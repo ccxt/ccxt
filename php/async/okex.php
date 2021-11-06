@@ -34,6 +34,7 @@ class okex extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
@@ -3179,6 +3180,108 @@ class okex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $entry = $this->safe_value($data, 0, array());
         return $this->parse_funding_rate($entry, $market);
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            // 'instType' => 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'ccy' => currency['id'],
+            // 'mgnMode' => 'isolated', // isolated, cross
+            // 'ctType' => 'linear', // linear, inverse, only applicable to FUTURES/SWAP
+            'type' => '8',
+            //
+            // supported values for type
+            //
+            //     1 Transfer
+            //     2 Trade
+            //     3 Delivery
+            //     4 Auto token conversion
+            //     5 Liquidation
+            //     6 Margin transfer
+            //     7 Interest deduction
+            //     8 Funding fee
+            //     9 ADL
+            //     10 Clawback
+            //     11 System token conversion
+            //     12 Strategy transfer
+            //     13 ddh
+            //
+            // 'subType' => '',
+            //
+            // supported values for subType
+            //
+            //     1 Buy
+            //     2 Sell
+            //     3 Open long
+            //     4 Open short
+            //     5 Close long
+            //     6 Close short
+            //     9 Interest deduction
+            //     11 Transfer in
+            //     12 Transfer out
+            //     160 Manual margin increase
+            //     161 Manual margin decrease
+            //     162 Auto margin increase
+            //     110 Auto buy
+            //     111 Auto sell
+            //     118 System token conversion transfer in
+            //     119 System token conversion transfer out
+            //     100 Partial liquidation close long
+            //     101 Partial liquidation close short
+            //     102 Partial liquidation buy
+            //     103 Partial liquidation sell
+            //     104 Liquidation long
+            //     105 Liquidation short
+            //     106 Liquidation buy
+            //     107 Liquidation sell
+            //     110 Liquidation transfer in
+            //     111 Liquidation transfer out
+            //     125 ADL close long
+            //     126 ADL close short
+            //     127 ADL buy
+            //     128 ADL sell
+            //     131 ddh buy
+            //     132 ddh sell
+            //     170 Exercised
+            //     171 Counterparty exercised
+            //     172 Expired OTM
+            //     112 Delivery long
+            //     113 Delivery short
+            //     117 Delivery/Exercise clawback
+            //     173 Funding fee expense
+            //     174 Funding fee income
+            //     200 System transfer in
+            //     201 Manually transfer in
+            //     202 System transfer out
+            //     203 Manually transfer out
+            //
+            // 'after' => 'id', // earlier than the requested bill ID
+            // 'before' => 'id', // newer than the requested bill ID
+            // 'limit' => '100', // default 100, max 100
+        );
+        if ($limit !== null) {
+            $request['limit'] = (string) $limit; // default 100, max 100
+        }
+        $response = yield $this->privateGetAccountBills (array_merge($request, $params));
+        $data = $this->safe_value($response, 'data');
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $timestamp = $this->safe_timestamp($entry, 'ts');
+            $instId = $this->safe_string($entry, 'instId');
+            $market = $this->safe_market($instId);
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $market['symbol'],
+                'code' => $market['inverse'] ? $market['base'] : $market['quote'],
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'id' => $this->safe_number($entry, 'billId'),
+                'amount' => $this->safe_number($entry, 'sz'),
+            );
+        }
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
