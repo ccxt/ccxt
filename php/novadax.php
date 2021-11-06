@@ -863,15 +863,15 @@ class novadax extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'id');
-        $amount = $this->safe_number($order, 'amount');
-        $price = $this->safe_number($order, 'price');
-        $cost = $this->safe_number_2($order, 'filledValue', 'value');
+        $amount = $this->safe_string($order, 'amount');
+        $price = $this->safe_string($order, 'price');
+        $cost = $this->safe_string_2($order, 'filledValue', 'value');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_integer($order, 'timestamp');
-        $average = $this->safe_number($order, 'averagePrice');
-        $filled = $this->safe_number($order, 'filledAmount');
+        $average = $this->safe_string($order, 'averagePrice');
+        $filled = $this->safe_string($order, 'filledAmount');
         $fee = null;
         $feeCost = $this->safe_number($order, 'filledFee');
         if ($feeCost !== null) {
@@ -883,7 +883,7 @@ class novadax extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
