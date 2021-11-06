@@ -29,6 +29,7 @@ module.exports = class bybit extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
                 'fetchFundingRate': true,
+                'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,

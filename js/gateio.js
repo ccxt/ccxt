@@ -744,6 +744,7 @@ module.exports = class gateio extends Exchange {
                     'id': id,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': undefined,
                     'base': base,
                     'quote': quote,
                     'symbol': symbol,
@@ -1190,11 +1191,11 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         // let defaultType = 'future';
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires the argument "symbol"');
-        }
         const market = this.market (symbol);
         const request = this.prepareRequest (market);
         request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
@@ -1565,14 +1566,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'contract': market['id'],
-            'settle': market['quote'].toLowerCase (),
+            'settle': market['settleId'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1597,7 +1598,7 @@ module.exports = class gateio extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (rates, symbol, since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -2296,10 +2297,10 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.prepareRequest (market);
         request['status'] = status;
@@ -2369,10 +2370,10 @@ module.exports = class gateio extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol parameter');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'order_id': id,

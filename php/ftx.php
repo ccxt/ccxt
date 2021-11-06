@@ -444,6 +444,30 @@ class ftx extends Exchange {
         //         ),
         //     }
         //
+        //     {
+        //         name => "BTC-PERP",
+        //         enabled =>  true,
+        //         postOnly =>  false,
+        //         $priceIncrement => "1.0",
+        //         $sizeIncrement => "0.0001",
+        //         minProvideSize => "0.001",
+        //         last => "60397.0",
+        //         bid => "60387.0",
+        //         ask => "60388.0",
+        //         price => "60388.0",
+        //         $type => "future",
+        //         baseCurrency =>  null,
+        //         quoteCurrency =>  null,
+        //         underlying => "BTC",
+        //         restricted =>  false,
+        //         highLeverageFeeExempt =>  true,
+        //         change1h => "-0.0036463231533270636",
+        //         change24h => "-0.01844838515677064",
+        //         changeBod => "-0.010130151132675475",
+        //         quoteVolume24h => "2892083192.6099",
+        //         volumeUsd24h => "2892083192.6099"
+        //     }
+        //
         $result = array();
         $markets = $this->safe_value($response, 'result', array());
         for ($i = 0; $i < count($markets); $i++) {
@@ -457,7 +481,7 @@ class ftx extends Exchange {
             // check if a $market is a spot or future $market
             $symbol = ($type === 'future') ? $this->safe_string($market, 'name') : ($base . '/' . $quote);
             $active = $this->safe_value($market, 'enabled');
-            $sizeIncrement = $this->safe_number($market, 'sizeIncrement');
+            $sizeIncrement = $this->safe_number_2($market, 'minProvideSize', 'sizeIncrement');
             $priceIncrement = $this->safe_number($market, 'priceIncrement');
             $precision = array(
                 'amount' => $sizeIncrement,

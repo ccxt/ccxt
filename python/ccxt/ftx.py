@@ -459,6 +459,30 @@ class ftx(Exchange):
         #         ],
         #     }
         #
+        #     {
+        #         name: "BTC-PERP",
+        #         enabled:  True,
+        #         postOnly:  False,
+        #         priceIncrement: "1.0",
+        #         sizeIncrement: "0.0001",
+        #         minProvideSize: "0.001",
+        #         last: "60397.0",
+        #         bid: "60387.0",
+        #         ask: "60388.0",
+        #         price: "60388.0",
+        #         type: "future",
+        #         baseCurrency:  null,
+        #         quoteCurrency:  null,
+        #         underlying: "BTC",
+        #         restricted:  False,
+        #         highLeverageFeeExempt:  True,
+        #         change1h: "-0.0036463231533270636",
+        #         change24h: "-0.01844838515677064",
+        #         changeBod: "-0.010130151132675475",
+        #         quoteVolume24h: "2892083192.6099",
+        #         volumeUsd24h: "2892083192.6099"
+        #     }
+        #
         result = []
         markets = self.safe_value(response, 'result', [])
         for i in range(0, len(markets)):
@@ -472,7 +496,7 @@ class ftx(Exchange):
             # check if a market is a spot or future market
             symbol = self.safe_string(market, 'name') if (type == 'future') else (base + '/' + quote)
             active = self.safe_value(market, 'enabled')
-            sizeIncrement = self.safe_number(market, 'sizeIncrement')
+            sizeIncrement = self.safe_number_2(market, 'minProvideSize', 'sizeIncrement')
             priceIncrement = self.safe_number(market, 'priceIncrement')
             precision = {
                 'amount': sizeIncrement,
