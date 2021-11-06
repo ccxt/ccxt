@@ -306,7 +306,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'swap',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -2905,6 +2905,11 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        // :param symbols: Not used by Gateio
+        // :param params: 
+        //    settle: The currency that derivative contracts are settled in
+        //    Other exchange specific params
+        //
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'futures');
         const type = this.safeString (params, 'type', defaultType);
@@ -2912,15 +2917,14 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesGetSettlePositions',
             'futures': 'privateDeliveryGetSettlePositions',
         });
-        let positions = [];
-        const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchPositions');
-        for (let c = 0; c < settlementCurrencies.length; c++) {
-            const request = {
-                'settle': settlementCurrencies[c],
-            };
-            const response = await this[method] (request);
-            positions = this.arrayConcat (positions, response);
+        const settle = this.safeString (params, 'settle');
+        if (!settle) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions requires a value for key "settle" in params')
         }
+        const request = {
+            'settle': settle,
+        };
+        const response = await this[method] (request);
         //
         //     [
         //         {
@@ -2950,7 +2954,7 @@ module.exports = class gateio extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parsePositions (positions);
+        const result = this.parsePositions (response);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
