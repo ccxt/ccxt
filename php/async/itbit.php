@@ -514,16 +514,16 @@ class itbit extends Exchange {
         $type = $this->safe_string($order, 'type');
         $symbol = $this->markets_by_id[$order['instrument']]['symbol'];
         $timestamp = $this->parse8601($order['createdTime']);
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'amountFilled');
+        $amount = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string($order, 'amountFilled');
         $fee = null;
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'volumeWeightedAveragePrice');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'volumeWeightedAveragePrice');
         $clientOrderId = $this->safe_string($order, 'clientOrderIdentifier');
         $id = $this->safe_string($order, 'id');
         $postOnlyString = $this->safe_string($order, 'postOnly');
         $postOnly = ($postOnlyString === 'True');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
