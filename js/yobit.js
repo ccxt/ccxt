@@ -616,13 +616,13 @@ module.exports = class yobit extends Exchange {
         const timestamp = this.safeTimestamp (order, 'timestamp_created');
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const remaining = this.safeNumber (order, 'amount');
-        const amount = this.safeNumber (order, 'start_amount');
-        const price = this.safeNumber (order, 'rate');
+        const remaining = this.safeString (order, 'amount');
+        const amount = this.safeString (order, 'start_amount');
+        const price = this.safeString (order, 'rate');
         const fee = undefined;
         const type = 'limit';
         const side = this.safeString (order, 'type');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
