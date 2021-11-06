@@ -1576,7 +1576,7 @@ module.exports = class gateio extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (rates, symbol, since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
