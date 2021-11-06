@@ -3220,15 +3220,15 @@ module.exports = class okex extends Exchange {
             //     162 Auto margin increase
             //     110 Auto buy
             //     111 Auto sell
-            //     118 System token conversion transfer in 
+            //     118 System token conversion transfer in
             //     119 System token conversion transfer out
             //     100 Partial liquidation close long
             //     101 Partial liquidation close short
             //     102 Partial liquidation buy
             //     103 Partial liquidation sell
             //     104 Liquidation long
-            //     105 Liquidation short 
-            //     106 Liquidation buy 
+            //     105 Liquidation short
+            //     106 Liquidation buy
             //     107 Liquidation sell
             //     110 Liquidation transfer in
             //     111 Liquidation transfer out
@@ -3256,7 +3256,7 @@ module.exports = class okex extends Exchange {
             // 'limit': '100', // default 100, max 100
         };
         if (limit !== undefined) {
-            request['limit'] = limit.toString ();  // default 100, max 100
+            request['limit'] = limit.toString (); // default 100, max 100
         }
         const response = await this.privateGetAccountBills (this.extend (request, params));
         const data = this.safeValue (response, 'data');
