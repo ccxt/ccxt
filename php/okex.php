@@ -1750,9 +1750,9 @@ class okex extends Exchange {
         }
         $marketId = $this->safe_string($order, 'instId');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $filled = $this->safe_number($order, 'accFillSz');
-        $price = $this->safe_number_2($order, 'px', 'slOrdPx');
-        $average = $this->safe_number($order, 'avgPx');
+        $filled = $this->safe_string($order, 'accFillSz');
+        $price = $this->safe_string_2($order, 'px', 'slOrdPx');
+        $average = $this->safe_string($order, 'avgPx');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
         $amount = null;
@@ -1764,10 +1764,10 @@ class okex extends Exchange {
         $instType = $this->safe_string($order, 'instType');
         if (($side === 'buy') && ($type === 'market') && ($instType === 'SPOT') && ($tgtCcy === 'quote_ccy')) {
             // "sz" refers to the $cost
-            $cost = $this->safe_number($order, 'sz');
+            $cost = $this->safe_string($order, 'sz');
         } else {
             // "sz" refers to the trade currency $amount
-            $amount = $this->safe_number($order, 'sz');
+            $amount = $this->safe_string($order, 'sz');
         }
         $fee = null;
         if ($feeCostString !== null) {
@@ -1784,7 +1784,7 @@ class okex extends Exchange {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
         $stopPrice = $this->safe_number($order, 'slTriggerPx');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
