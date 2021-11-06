@@ -1544,10 +1544,10 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'contract': market['id'],
@@ -2263,10 +2263,10 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.prepareRequest (market);
         request['status'] = status;
@@ -2336,10 +2336,10 @@ module.exports = class gateio extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol parameter');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'order_id': id,
