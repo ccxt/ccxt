@@ -1692,9 +1692,9 @@ class okex(Exchange):
             type = 'limit'
         marketId = self.safe_string(order, 'instId')
         symbol = self.safe_symbol(marketId, market, '-')
-        filled = self.safe_number(order, 'accFillSz')
-        price = self.safe_number_2(order, 'px', 'slOrdPx')
-        average = self.safe_number(order, 'avgPx')
+        filled = self.safe_string(order, 'accFillSz')
+        price = self.safe_string_2(order, 'px', 'slOrdPx')
+        average = self.safe_string(order, 'avgPx')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCostString = self.safe_string(order, 'fee')
         amount = None
@@ -1706,10 +1706,10 @@ class okex(Exchange):
         instType = self.safe_string(order, 'instType')
         if (side == 'buy') and (type == 'market') and (instType == 'SPOT') and (tgtCcy == 'quote_ccy'):
             # "sz" refers to the cost
-            cost = self.safe_number(order, 'sz')
+            cost = self.safe_string(order, 'sz')
         else:
             # "sz" refers to the trade currency amount
-            amount = self.safe_number(order, 'sz')
+            amount = self.safe_string(order, 'sz')
         fee = None
         if feeCostString is not None:
             feeCostSigned = Precise.string_neg(feeCostString)
@@ -1723,7 +1723,7 @@ class okex(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
         stopPrice = self.safe_number(order, 'slTriggerPx')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
