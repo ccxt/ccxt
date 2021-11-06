@@ -979,14 +979,14 @@ class vcc extends Exchange {
         $marketId = $baseId . '_' . $quoteId;
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $amount = $this->safe_number($order, 'quantity');
-        $filled = $this->safe_number($order, 'executed_quantity');
+        $amount = $this->safe_string($order, 'quantity');
+        $filled = $this->safe_string($order, 'executed_quantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $cost = $this->safe_number($order, 'ceiling');
+        $cost = $this->safe_string($order, 'ceiling');
         $id = $this->safe_string($order, 'id');
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'executed_price');
-        $remaining = $this->safe_number($order, 'remaining');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'executed_price');
+        $remaining = $this->safe_string($order, 'remaining');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'trade_type');
         $fee = array(
@@ -999,7 +999,7 @@ class vcc extends Exchange {
             $lastTradeTimestamp = $updated;
         }
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $id,
             'timestamp' => $created,
