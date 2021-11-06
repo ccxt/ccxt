@@ -2188,7 +2188,7 @@ module.exports = class okex3 extends Exchange {
                 cost = Precise.stringMul (average, filled);
             }
         } else {
-            if ((average === undefined) && (filled !== undefined) && (filled > 0)) {
+            if ((average === undefined) && (filled !== undefined) && Precise.stringGt (filled, '0')) {
                 average = Precise.stringDiv (cost, filled);
             }
         }
