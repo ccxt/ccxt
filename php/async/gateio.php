@@ -750,6 +750,7 @@ class gateio extends Exchange {
                     'id' => $id,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
+                    'settleId' => null,
                     'base' => $base,
                     'quote' => $quote,
                     'symbol' => $symbol,
@@ -1196,11 +1197,11 @@ class gateio extends Exchange {
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+        }
         yield $this->load_markets();
         // $defaultType = 'future';
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires the argument "$symbol"');
-        }
         $market = $this->market($symbol);
         $request = $this->prepare_request($market);
         $request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
@@ -1571,14 +1572,14 @@ class gateio extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $limit = null, $since = null, $params = array ()) {
-        yield $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'contract' => $market['id'],
-            'settle' => strtolower($market['quote']),
+            'settle' => $market['settleId'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1603,7 +1604,7 @@ class gateio extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             );
         }
-        return $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -2302,10 +2303,10 @@ class gateio extends Exchange {
     }
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus requires a $symbol argument');
         }
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $request = $this->prepare_request($market);
         $request['status'] = $status;
@@ -2375,10 +2376,10 @@ class gateio extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders requires a $symbol parameter');
         }
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
