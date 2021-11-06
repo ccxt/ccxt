@@ -3280,8 +3280,8 @@ class okex3 extends Exchange {
             $market = $this->market($code); // we intentionally put a $market inside here for the margin and swap ledgers
             $marketInfo = $this->safe_value($market, 'info', array());
             $settlementCurrencyId = $this->safe_string($marketInfo, 'settlement_currency');
-            $settlementCurrencyСode = $this->safe_currency_code($settlementCurrencyId);
-            $currency = $this->currency($settlementCurrencyСode);
+            $settlementCurrencyCode = $this->safe_currency_code($settlementCurrencyId);
+            $currency = $this->currency($settlementCurrencyCode);
             $underlyingId = $this->safe_string($marketInfo, 'underlying');
             $request['underlying'] = $underlyingId;
         } else if (($type === 'margin') || ($type === 'swap')) {
