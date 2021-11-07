@@ -4459,12 +4459,12 @@ module.exports = class binance extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    async fetchPositions (symbolOrSymbols = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         const defaultMethod = this.safeString (this.options, 'fetchPositions', 'positionRisk');
         if (defaultMethod === 'positionRisk') {
-            return await this.fetchPositionsRisk (symbolOrSymbols, params);
+            return await this.fetchPositionsRisk (symbols, params);
         } else if (defaultMethod === 'account') {
-            return await this.fetchAccountPositions (symbolOrSymbols, params);
+            return await this.fetchAccountPositions (symbols, params);
         } else {
             throw new NotSupported (this.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"');
         }
@@ -4473,7 +4473,7 @@ module.exports = class binance extends Exchange {
     async fetchAccountPositions (symbols = undefined, params = {}) {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
-                symbols = [ symbols ];
+                throw new ArgumentsRequired (this.id + ' fetchPositions requires an array argument for symbols');
             }
         }
         await this.loadMarkets ();
@@ -4494,28 +4494,17 @@ module.exports = class binance extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    async fetchPositionsRisk (symbol = undefined, params = {}) {
-        if (Array.isArray (symbol)) {
-            throw new BadSymbol (this.id + ' fetchPositionsRisk only accepts a string argument as a symbol');
+    async fetchPositionsRisk (symbols = undefined, params = {}) {
+        if (symbols !== undefined) {
+            if (!Array.isArray (symbols)) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions requires an array argument for symbols');
+            }
         }
         await this.loadMarkets ();
         await this.loadLeverageBrackets ();
         const request = {};
-        let market = undefined;
         let method = undefined;
         let defaultType = 'future';
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            if (market['linear']) {
-                request['symbol'] = market['id'];
-                defaultType = 'future';
-            } else if (market['inverse']) {
-                request['pair'] = market['info']['pair'];
-                defaultType = 'delivery';
-            } else {
-                throw NotSupported (this.id + ' fetchPositionsRisk supports linear and inverse contracts only');
-            }
-        }
         defaultType = this.safeString (this.options, 'defaultType', defaultType);
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
@@ -4528,20 +4517,11 @@ module.exports = class binance extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         const result = [];
-        if (symbol === undefined) {
-            for (let i = 0; i < response.length; i++) {
-                const parsed = this.parsePositionRisk (response[i], market);
-                result.push (parsed);
-            }
-        } else {
-            for (let i = 0; i < response.length; i++) {
-                const parsed = this.parsePositionRisk (response[i], market);
-                if (parsed['symbol'] === symbol) {
-                    result.push (parsed);
-                }
-            }
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parsePositionRisk (response[i]);
+            result.push (parsed);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
