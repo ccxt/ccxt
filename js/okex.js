@@ -1237,7 +1237,7 @@ module.exports = class okex extends Exchange {
                 defaultType = 'HistoryCandles';
             }
             const durationInMilliseconds = duration * 1000;
-            const startTime = since - 1;
+            const startTime = Math.max (since - 1, 0);
             request['before'] = startTime;
             request['after'] = this.sum (startTime, durationInMilliseconds * limit);
         }
