@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.9.15'
+__version__ = '0.9.16'
 
 # -----------------------------------------------------------------------------
 
@@ -110,6 +110,7 @@ from ccxt.async_support.indodax import indodax                            # noqa
 from ccxt.async_support.itbit import itbit                                # noqa: F401
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.latoken import latoken                            # noqa: F401
+from ccxt.async_support.latoken2 import latoken2                          # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
 from ccxt.async_support.liquid import liquid                              # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
