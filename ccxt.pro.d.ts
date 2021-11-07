@@ -12,6 +12,9 @@ declare module 'ccxt.pro' {
         Trade,
     } from 'ccxt'
 
+    export const version: string;
+    export const exchanges: string[];
+
     export class Exchange extends BaseExchange {
         watchTicker (symbol: string, params?: Params): Promise<Ticker>;
         watchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
