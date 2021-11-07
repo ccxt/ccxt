@@ -481,7 +481,7 @@ class ftx extends Exchange {
             // check if a $market is a spot or future $market
             $symbol = ($type === 'future') ? $this->safe_string($market, 'name') : ($base . '/' . $quote);
             $active = $this->safe_value($market, 'enabled');
-            $sizeIncrement = $this->safe_number_2($market, 'minProvideSize', 'sizeIncrement');
+            $sizeIncrement = $this->safe_number($market, 'sizeIncrement');
             $priceIncrement = $this->safe_number($market, 'priceIncrement');
             $precision = array(
                 'amount' => $sizeIncrement,
