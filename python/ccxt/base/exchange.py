@@ -1697,7 +1697,7 @@ class Exchange(object):
         result = []
         for i in range(0, len(ohlcvs[t])):
             result.append([
-                ohlcvs[t][i] if ms else (ohlcvs[t][i] * 1000),
+                int(ohlcvs[t][i]) if ms else (int(ohlcvs[t][i]) * 1000),
                 ohlcvs[o][i],
                 ohlcvs[h][i],
                 ohlcvs[l][i],
