@@ -1218,7 +1218,7 @@ class okex(Exchange):
             if difference > limit * duration * 1000:
                 defaultType = 'HistoryCandles'
             durationInMilliseconds = duration * 1000
-            startTime = since - 1
+            startTime = max(since - 1, 0)
             request['before'] = startTime
             request['after'] = self.sum(startTime, durationInMilliseconds * limit)
         options = self.safe_value(self.options, 'fetchOHLCV', {})

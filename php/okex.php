@@ -1241,7 +1241,7 @@ class okex extends Exchange {
                 $defaultType = 'HistoryCandles';
             }
             $durationInMilliseconds = $duration * 1000;
-            $startTime = $since - 1;
+            $startTime = max ($since - 1, 0);
             $request['before'] = $startTime;
             $request['after'] = $this->sum($startTime, $durationInMilliseconds * $limit);
         }
