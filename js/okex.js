@@ -1314,7 +1314,7 @@ module.exports = class okex extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return rates;
+        return this.sortBy (rates, 'timestamp');
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
