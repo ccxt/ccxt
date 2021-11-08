@@ -2929,11 +2929,12 @@ module.exports = class okex extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const contractsString = this.safeString (position, 'pos');
+        const contractsAbs = Precise.stringAbs (contractsString);
         let contracts = undefined;
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
         if (contractsString !== undefined) {
-            contracts = this.parseNumber (Precise.stringAbs (contractsString));
+            contracts = this.parseNumber (contractsAbs);
             if (side === 'net') {
                 if (Precise.stringGt (contractsString, '0')) {
                     side = 'long';
@@ -2958,7 +2959,7 @@ module.exports = class okex extends Exchange {
         let initialMarginPercentage = undefined;
         let maintenanceMarginPercentage = undefined;
         if (market['inverse']) {
-            const notionalValue = Precise.stringDiv (Precise.stringMul (contractsString, market['contractSize']), entryPriceString);
+            const notionalValue = Precise.stringDiv (Precise.stringMul (contractsAbs, market['contractSize']), entryPriceString);
             maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalValue);
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalValue, 4));
         } else {
