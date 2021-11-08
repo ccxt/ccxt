@@ -200,6 +200,26 @@ module.exports = class gemini extends Exchange {
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
+                'networkIds': {
+                    'bitcoin': 'BTC',
+                    'ethereum': 'ERC20',
+                    'bitcoincash': 'BCH',
+                    'litecoin': 'LTC',
+                    'zcash': 'ZEC',
+                    'filecoin': 'FIL',
+                    'dogecoin': 'DOGE',
+                    'tezos': 'XTZ',
+                },
+                'networks': {
+                    'BTC': 'bitcoin',
+                    'ERC20': 'ethereum',
+                    'BCH': 'bitcoincash',
+                    'LTC': 'litecoin',
+                    'ZEC': 'zcash',
+                    'FIL': 'filecoin',
+                    'DOGE': 'dogecoin',
+                    'XTZ': 'tezos',
+                },
             },
         });
     }
@@ -815,20 +835,34 @@ module.exports = class gemini extends Exchange {
         };
     }
 
-    async fetchDepositAddressByNetwork (code, params = {}) {
-        // some exachanges require a new address to be created for each deposit
-        // maybe not this one ?
-        // onlt has a network argument
+    async fetchDepositAddressesByNetwork (code, params = {}) {
+        // igonores all parameters except for 'network'
         await this.loadMarkets ();
-        // 'v1/addresses/{network}'
-        const network = this.safeString (params, 'network');
+        let network = this.safeString (params, 'network');
         if (!network) {
             throw new BadRequest ('fetchDepositAddressByNetwork requires a network parameter');
         }
-        const request = {
-            'network': network,
-        };
-        return this.privatePostV1AddressesNetwork (this.extend (request, params));
+        //
+        params = this.omit (params, 'network');
+        // 1st parse the supplied network to the exchange specific network ID (assuming its provided as as unified network code)
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeString (networks, network);
+        //
+        //
+        //
+        const request = {};
+        request['network'] = this.safeString (networks, network, network);
+        const response = this.privatePostV1AddressesNetwork (this.extend (request, params));
+        const addressList = [];
+        for (let i = 0; i < addressList.length; i++) {
+            const entry = addressList[i];
+            const address = this.safeString (entry, 'address');
+            addressList.push (address);
+        }
+        return {
+            'network': network, // note we must keep a unified network code also to return
+            'addresses': addresses,
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
