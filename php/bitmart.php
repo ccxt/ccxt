@@ -1601,7 +1601,7 @@ class bitmart extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status_by_type($type, $status) {

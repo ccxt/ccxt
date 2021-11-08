@@ -202,7 +202,7 @@ class coincheck(Exchange):
             'info': order,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

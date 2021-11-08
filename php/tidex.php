@@ -587,7 +587,7 @@ class tidex extends Exchange {
             'clientOrderId' => null,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -646,7 +646,7 @@ class tidex extends Exchange {
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

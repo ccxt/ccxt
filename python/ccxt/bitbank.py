@@ -451,7 +451,7 @@ class bitbank(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
-        })
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

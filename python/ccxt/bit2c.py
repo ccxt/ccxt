@@ -317,7 +317,7 @@ class bit2c(Exchange):
             'fee': None,
             'info': order,
             'average': None,
-        })
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

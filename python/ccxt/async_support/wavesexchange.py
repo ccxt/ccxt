@@ -1324,7 +1324,7 @@ class wavesexchange(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     async def get_waves_address(self):
         cachedAddreess = self.safe_string(self.options, 'wavesAddress')

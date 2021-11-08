@@ -596,7 +596,7 @@ class oceanex extends Exchange {
             'cost' => null,
             'trades' => null,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status($status) {

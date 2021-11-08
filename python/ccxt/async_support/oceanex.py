@@ -560,7 +560,7 @@ class oceanex(Exchange):
             'cost': None,
             'trades': None,
             'fee': None,
-        })
+        }, market)
 
     def parse_order_status(self, status):
         statuses = {

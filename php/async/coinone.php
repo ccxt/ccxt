@@ -518,7 +518,7 @@ class coinone extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

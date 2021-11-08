@@ -1657,7 +1657,7 @@ class mexc(Exchange):
             'fee': None,
             'trades': None,
             'info': order,
-        })
+        }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

@@ -836,7 +836,7 @@ class hollaex extends Exchange {
             'fee' => null,
             'info' => $order,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

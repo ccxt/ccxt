@@ -1368,7 +1368,7 @@ class bybit extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

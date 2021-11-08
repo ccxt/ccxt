@@ -378,7 +378,7 @@ class bitflyer extends Exchange {
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = 100, $params = array ()) {

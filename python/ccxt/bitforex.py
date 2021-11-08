@@ -385,7 +385,7 @@ class bitforex(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

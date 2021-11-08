@@ -953,7 +953,7 @@ class probit extends Exchange {
             'cost' => $cost,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function cost_to_precision($symbol, $cost) {

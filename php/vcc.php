@@ -1021,7 +1021,7 @@ class vcc extends Exchange {
             'fee' => $fee,
             'trades' => null,
             'info' => $order,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

@@ -355,7 +355,7 @@ class bitflyer(Exchange):
             'fee': fee,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
         if symbol is None:

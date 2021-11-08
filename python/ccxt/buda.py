@@ -579,7 +579,7 @@ class buda(Exchange):
             'remaining': remaining,
             'trades': None,
             'fee': fee,
-        })
+        }, market)
 
     def is_fiat(self, code):
         fiats = {

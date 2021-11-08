@@ -590,7 +590,7 @@ class btcturk(Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'fee': None,
-        })
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

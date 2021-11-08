@@ -617,7 +617,7 @@ class buda extends Exchange {
             'remaining' => $remaining,
             'trades' => null,
             'fee' => $fee,
-        ));
+        ), $market);
     }
 
     public function is_fiat($code) {

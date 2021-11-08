@@ -1377,7 +1377,7 @@ class kucoin(Exchange):
             'lastTradeTimestamp': None,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

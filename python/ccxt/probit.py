@@ -912,7 +912,7 @@ class probit(Exchange):
             'cost': cost,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)

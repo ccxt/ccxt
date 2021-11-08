@@ -909,7 +909,7 @@ class zb extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status($status) {

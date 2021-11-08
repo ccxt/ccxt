@@ -807,7 +807,7 @@ class hollaex(Exchange):
             'fee': None,
             'info': order,
             'average': None,
-        })
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

@@ -1266,7 +1266,7 @@ class ftx(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

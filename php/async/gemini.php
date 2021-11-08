@@ -674,7 +674,7 @@ class gemini extends Exchange {
             'remaining' => $remaining,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

@@ -601,7 +601,7 @@ class latoken(Exchange):
             'remaining': None,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_with_method('private_get_order_active', symbol, since, limit, params)

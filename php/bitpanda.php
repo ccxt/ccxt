@@ -1310,7 +1310,7 @@ class bitpanda extends Exchange {
             'status' => $status,
             // 'fee' => null,
             'trades' => $rawTrades,
-        ));
+        ), $market);
     }
 
     public function parse_time_in_force($timeInForce) {

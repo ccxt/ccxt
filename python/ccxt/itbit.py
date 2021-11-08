@@ -508,7 +508,7 @@ class itbit(Exchange):
             'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),
             'trades': None,
-        })
+        }, market)
 
     def nonce(self):
         return self.milliseconds()

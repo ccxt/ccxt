@@ -373,7 +373,7 @@ class zaif(Exchange):
             'fee': None,
             'info': order,
             'average': None,
-        })
+        }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

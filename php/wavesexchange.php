@@ -1398,7 +1398,7 @@ class wavesexchange extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function get_waves_address() {
