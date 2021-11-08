@@ -2936,6 +2936,7 @@ module.exports = class okex extends Exchange {
         //       "liab": "",
         //       "liabCcy": "",
         //       "liqPx": "12608.959083877446",
+        //       "markPx": "4786.459271773621",
         //       "margin": "",
         //       "mgnMode": "cross",
         //       "mgnRatio": "140.49930117599155",
@@ -2974,7 +2975,11 @@ module.exports = class okex extends Exchange {
                 }
             }
         }
-        const notionalString = this.safeString (position, 'notionalUsd');
+        const markPriceString = this.safeString (position, 'markPx');
+        let notionalString = this.safeString (position, 'notionalUsd');
+        if (market['inverse']) {
+            notionalString = Precise.stringDiv (notionalString, markPriceString);
+        }
         const notional = this.parseNumber (notionalString);
         const marginType = this.safeString (position, 'mgnMode');
         let initialMarginString = undefined;
@@ -3017,6 +3022,7 @@ module.exports = class okex extends Exchange {
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': this.parseNumber (market['contractSize']),
+            'markPrice': this.parseNumber (markPriceString),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
