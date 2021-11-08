@@ -26,7 +26,7 @@ module.exports = class gemini extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchDepositAddress': undefined,
+                'fetchDepositAddress': undefined, // TODO
                 'fetchDeposits': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -109,8 +109,9 @@ module.exports = class gemini extends Exchange {
                         'v1/balances',
                         'v1/notionalbalances/{currency}',
                         'v1/transfers',
-                        'v1/addresses/{network}',
+                        'v1/addresses/{network}', // TODO fetchDepositAddress
                         'v1/deposit/{network}/newAddress',
+                        'v1/deposit/{currency}/newAddress', // Available by-currency gemini endpoint
                         'v1/withdraw/{currency}',
                         'v1/account/transfer/{currency}',
                         'v1/payments/addbank',
@@ -126,6 +127,10 @@ module.exports = class gemini extends Exchange {
                         'v1/account/list',
                         'v1/heartbeat',
                     ],
+                    'get': [
+                        'v1/account/list', // returns information about accounts
+                    ],
+
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -808,6 +813,22 @@ module.exports = class gemini extends Exchange {
             'updated': undefined,
             'fee': fee,
         };
+    }
+
+    async fetchDepositAddressByNetwork (code, params = {}) {
+        // some exachanges require a new address to be created for each deposit
+        // maybe not this one ?
+        // onlt has a network argument
+        await this.loadMarkets ();
+        // 'v1/addresses/{network}'
+        const network = this.safeString (params, 'network');
+        if (!network) {
+            throw new BadRequest ('fetchDepositAddressByNetwork requires a network parameter');
+        }
+        const request = {
+            'network': network,
+        };
+        return this.privatePostV1AddressesNetwork (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
