@@ -7,6 +7,8 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\Precise;
 
 class hitbtc3 extends Exchange {
@@ -513,7 +515,21 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        $response = yield $this->privateGetSpotBalance ();
+        $type = $this->safe_string_lower($params, 'type', 'spot');
+        $params = $this->omit($params, array( 'type' ));
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $account = $this->safe_string($accountsByType, $type);
+        $response = null;
+        if ($account === 'wallet') {
+            $response = yield $this->privateGetWalletBalance ($params);
+        } else if ($account === 'spot') {
+            $response = yield $this->privateGetSpotBalance ($params);
+        } else if ($account === 'derivatives') {
+            $response = yield $this->privateGetFuturesBalance ($params);
+        } else {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new BadRequest($this->id . ' fetchBalance() $type parameter must be one of ' . implode(', ', $keys));
+        }
         //
         //     array(
         //       array(
@@ -1337,13 +1353,13 @@ class hitbtc3 extends Exchange {
         $toId = $this->safe_string($accountsByType, $toAccount);
         $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
         if ($fromId === null) {
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys) . ' instead of ' . $fromId);
+            throw new ArgumentsRequired($this->id . ' transfer() $fromAccount argument must be one of ' . implode(', ', $keys));
         }
         if ($toId === null) {
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys) . ' instead of ' . $toId);
+            throw new ArgumentsRequired($this->id . ' transfer() $toAccount argument must be one of ' . implode(', ', $keys));
         }
         if ($fromId === $toId) {
-            throw new ExchangeError($this->id . ' from and to cannot be the same account');
+            throw new BadRequest($this->id . ' transfer() $fromAccount and $toAccount arguments cannot be the same account');
         }
         $request = array(
             'currency' => $currency['id'],
@@ -1370,7 +1386,7 @@ class hitbtc3 extends Exchange {
     public function convert_currency_network($code, $amount, $fromNetwork, $toNetwork, $params) {
         yield $this->load_markets();
         if ($code !== 'USDT') {
-            throw new ExchangeError($this->id . ' convertCurrencyNetwork only supports USDT currently');
+            throw new ExchangeError($this->id . ' convertCurrencyNetwork() only supports USDT currently');
         }
         $networks = $this->safe_value($this->options, 'networks', array());
         $fromNetwork = strtoupper($fromNetwork);
@@ -1378,11 +1394,11 @@ class hitbtc3 extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new ExchangeError($this->id . ' $fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest($this->id . ' $fromNetwork cannot be the same as toNetwork');
         }
         if (($fromNetwork === null) || ($toNetwork === null)) {
             $keys = is_array($networks) ? array_keys($networks) : array();
-            throw new ExchangeError($this->id . ' invalid network, please select one of ' . implode(', ', $keys));
+            throw new ArgumentsRequired($this->id . ' convertCurrencyNetwork() requires a $fromNetwork parameter and a $toNetwork parameter, supported $networks are ' . implode(', ', $keys));
         }
         $request = array(
             'from_currency' => $fromNetwork,

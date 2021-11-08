@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -510,7 +511,20 @@ class hitbtc3(Exchange):
         }
 
     async def fetch_balance(self, params={}):
-        response = await self.privateGetSpotBalance()
+        type = self.safe_string_lower(params, 'type', 'spot')
+        params = self.omit(params, ['type'])
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        account = self.safe_string(accountsByType, type)
+        response = None
+        if account == 'wallet':
+            response = await self.privateGetWalletBalance(params)
+        elif account == 'spot':
+            response = await self.privateGetSpotBalance(params)
+        elif account == 'derivatives':
+            response = await self.privateGetFuturesBalance(params)
+        else:
+            keys = list(accountsByType.keys())
+            raise BadRequest(self.id + ' fetchBalance() type parameter must be one of ' + ', '.join(keys))
         #
         #     [
         #       {
@@ -1266,11 +1280,11 @@ class hitbtc3(Exchange):
         toId = self.safe_string(accountsByType, toAccount)
         keys = list(accountsByType.keys())
         if fromId is None:
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys) + ' instead of ' + fromId)
+            raise ArgumentsRequired(self.id + ' transfer() fromAccount argument must be one of ' + ', '.join(keys))
         if toId is None:
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys) + ' instead of ' + toId)
+            raise ArgumentsRequired(self.id + ' transfer() toAccount argument must be one of ' + ', '.join(keys))
         if fromId == toId:
-            raise ExchangeError(self.id + ' from and to cannot be the same account')
+            raise BadRequest(self.id + ' transfer() fromAccount and toAccount arguments cannot be the same account')
         request = {
             'currency': currency['id'],
             'amount': requestAmount,
@@ -1295,17 +1309,17 @@ class hitbtc3(Exchange):
     async def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
         await self.load_markets()
         if code != 'USDT':
-            raise ExchangeError(self.id + ' convertCurrencyNetwork only supports USDT currently')
+            raise ExchangeError(self.id + ' convertCurrencyNetwork() only supports USDT currently')
         networks = self.safe_value(self.options, 'networks', {})
         fromNetwork = fromNetwork.upper()
         toNetwork = toNetwork.upper()
         fromNetwork = self.safe_string(networks, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise ExchangeError(self.id + ' fromNetwork cannot be the same as toNetwork')
+            raise BadRequest(self.id + ' fromNetwork cannot be the same as toNetwork')
         if (fromNetwork is None) or (toNetwork is None):
             keys = list(networks.keys())
-            raise ExchangeError(self.id + ' invalid network, please select one of ' + ', '.join(keys))
+            raise ArgumentsRequired(self.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + ', '.join(keys))
         request = {
             'from_currency': fromNetwork,
             'to_currency': toNetwork,
