@@ -1,7 +1,7 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 
 module.exports = class hitbtc3 extends Exchange {
     describe () {
@@ -506,7 +506,21 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const response = await this.privateGetSpotBalance ();
+        const type = this.safeStringLower (params, 'type', 'spot');
+        params = this.omit (params, [ 'type' ]);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const account = this.safeString (accountsByType, type);
+        let response = undefined;
+        if (account === 'wallet') {
+            response = await this.privateGetWalletBalance (params);
+        } else if (account === 'spot') {
+            response = await this.privateGetSpotBalance (params);
+        } else if (account === 'derivatives') {
+            response = await this.privateGetFuturesBalance (params);
+        } else {
+            const keys = Object.keys (accountsByType);
+            throw new BadRequest (this.id + ' fetchBalance() type parameter must be one of ' + keys.join (', '));
+        }
         //
         //     [
         //       {
@@ -1330,13 +1344,13 @@ module.exports = class hitbtc3 extends Exchange {
         const toId = this.safeString (accountsByType, toAccount);
         const keys = Object.keys (accountsByType);
         if (fromId === undefined) {
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', ') + ' instead of ' + fromId);
+            throw new ArgumentsRequired (this.id + ' transfer() fromAccount argument must be one of ' + keys.join (', '));
         }
         if (toId === undefined) {
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', ') + ' instead of ' + toId);
+            throw new ArgumentsRequired (this.id + ' transfer() toAccount argument must be one of ' + keys.join (', '));
         }
         if (fromId === toId) {
-            throw new ExchangeError (this.id + ' from and to cannot be the same account');
+            throw new BadRequest (this.id + ' transfer() fromAccount and toAccount arguments cannot be the same account');
         }
         const request = {
             'currency': currency['id'],
@@ -1363,7 +1377,7 @@ module.exports = class hitbtc3 extends Exchange {
     async convertCurrencyNetwork (code, amount, fromNetwork, toNetwork, params) {
         await this.loadMarkets ();
         if (code !== 'USDT') {
-            throw new ExchangeError (this.id + ' convertCurrencyNetwork only supports USDT currently');
+            throw new ExchangeError (this.id + ' convertCurrencyNetwork() only supports USDT currently');
         }
         const networks = this.safeValue (this.options, 'networks', {});
         fromNetwork = fromNetwork.toUpperCase ();
@@ -1371,11 +1385,11 @@ module.exports = class hitbtc3 extends Exchange {
         fromNetwork = this.safeString (networks, fromNetwork); // handle ETH>ERC20 alias
         toNetwork = this.safeString (networks, toNetwork); // handle ETH>ERC20 alias
         if (fromNetwork === toNetwork) {
-            throw new ExchangeError (this.id + ' fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest (this.id + ' fromNetwork cannot be the same as toNetwork');
         }
         if ((fromNetwork === undefined) || (toNetwork === undefined)) {
             const keys = Object.keys (networks);
-            throw new ExchangeError (this.id + ' invalid network, please select one of ' + keys.join (', '));
+            throw new ArgumentsRequired (this.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + keys.join (', '));
         }
         const request = {
             'from_currency': fromNetwork,
