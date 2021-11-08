@@ -201,55 +201,58 @@ module.exports = class hitbtc3 extends Exchange {
                 '1M': '1M',
             },
             'exceptions': {
-                '429': RateLimitExceeded,
-                '500': ExchangeError,
-                '503': ExchangeNotAvailable,
-                '504': ExchangeNotAvailable,
-                '600': PermissionDenied,
-                '800': ExchangeError,
-                '1002': AuthenticationError,
-                '1003': PermissionDenied,
-                '1004': AuthenticationError,
-                '1005': AuthenticationError,
-                '2001': BadSymbol,
-                '2002': BadRequest,
-                '2003': BadRequest,
-                '2010': BadRequest,
-                '2011': BadRequest,
-                '2012': BadRequest,
-                '2020': BadRequest,
-                '2022': BadRequest,
-                '10001': BadRequest,
-                '10021': AccountSuspended,
-                '10022': BadRequest,
-                '20001': InsufficientFunds,
-                '20002': OrderNotFound,
-                '20003': ExchangeError,
-                '20004': ExchangeError,
-                '20005': ExchangeError,
-                '20006': ExchangeError,
-                '20007': ExchangeError,
-                '20008': InvalidOrder,
-                '20009': InvalidOrder,
-                '20010': OnMaintenance,
-                '20011': ExchangeError,
-                '20012': ExchangeError,
-                '20014': ExchangeError,
-                '20016': ExchangeError,
-                '20031': ExchangeError,
-                '20032': ExchangeError,
-                '20033': ExchangeError,
-                '20034': ExchangeError,
-                '20040': ExchangeError,
-                '20041': ExchangeError,
-                '20042': ExchangeError,
-                '20043': ExchangeError,
-                '20044': PermissionDenied,
-                '20045': ExchangeError,
-                '20080': ExchangeError,
-                '21001': ExchangeError,
-                '21003': AccountSuspended,
-                '21004': AccountSuspended,
+                'exact': {
+                    '429': RateLimitExceeded,
+                    '500': ExchangeError,
+                    '503': ExchangeNotAvailable,
+                    '504': ExchangeNotAvailable,
+                    '600': PermissionDenied,
+                    '800': ExchangeError,
+                    '1002': AuthenticationError,
+                    '1003': PermissionDenied,
+                    '1004': AuthenticationError,
+                    '1005': AuthenticationError,
+                    '2001': BadSymbol,
+                    '2002': BadRequest,
+                    '2003': BadRequest,
+                    '2010': BadRequest,
+                    '2011': BadRequest,
+                    '2012': BadRequest,
+                    '2020': BadRequest,
+                    '2022': BadRequest,
+                    '10001': BadRequest,
+                    '10021': AccountSuspended,
+                    '10022': BadRequest,
+                    '20001': InsufficientFunds,
+                    '20002': OrderNotFound,
+                    '20003': ExchangeError,
+                    '20004': ExchangeError,
+                    '20005': ExchangeError,
+                    '20006': ExchangeError,
+                    '20007': ExchangeError,
+                    '20008': InvalidOrder,
+                    '20009': InvalidOrder,
+                    '20010': OnMaintenance,
+                    '20011': ExchangeError,
+                    '20012': ExchangeError,
+                    '20014': ExchangeError,
+                    '20016': ExchangeError,
+                    '20031': ExchangeError,
+                    '20032': ExchangeError,
+                    '20033': ExchangeError,
+                    '20034': ExchangeError,
+                    '20040': ExchangeError,
+                    '20041': ExchangeError,
+                    '20042': ExchangeError,
+                    '20043': ExchangeError,
+                    '20044': PermissionDenied,
+                    '20045': ExchangeError,
+                    '20080': ExchangeError,
+                    '21001': ExchangeError,
+                    '21003': AccountSuspended,
+                    '21004': AccountSuspended,
+                },
+                'broad': {},
             },
             'options': {
                 'networks': {
@@ -1444,16 +1447,21 @@ module.exports = class hitbtc3 extends Exchange {
         //       }
         //     }
         //
+        //     {
+        //       "error": {
+        //         "code": "600",
+        //         "message": "Action not allowed"
+        //       }
+        //     }
+        //
         const error = this.safeValue (response, 'error');
         const errorCode = this.safeString (error, 'code');
         if (errorCode !== undefined) {
-            const description = this.safeString (error, 'description', '');
-            const ExceptionClass = this.safeValue (this.exceptions, errorCode);
-            if (ExceptionClass !== undefined) {
-                throw new ExceptionClass (this.id + ' ' + description);
-            } else {
-                throw new ExchangeError (this.id + ' ' + description);
-            }
+            const feedback = this.id + ' ' + body;
+            const message = this.safeString2 (error, 'message', 'description');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 
