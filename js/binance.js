@@ -1294,6 +1294,8 @@ module.exports = class binance extends Exchange {
             }
             const maker = fees['trading']['maker'];
             const taker = fees['trading']['taker'];
+            const settleId = this.safeString (market, 'marginAsset');
+            const settle = this.safeCurrencyCode (settleId);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1312,6 +1314,8 @@ module.exports = class binance extends Exchange {
                 'inverse': delivery,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
+                'settleId': settleId,
+                'settle': settle,
                 'active': active,
                 'precision': precision,
                 'contractSize': contractSize,
