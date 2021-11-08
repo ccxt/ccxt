@@ -1575,6 +1575,11 @@ module.exports = class okex extends Exchange {
                 throw new BadRequest (this.id + ' params["tdMode"] must be either "isolated" or "cross"');
             }
         }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            request['ordType'] = 'post_only';
+            params = this.omit (params, [ 'postOnly' ]);
+        }
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId');
