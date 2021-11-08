@@ -514,7 +514,7 @@ module.exports = class lykke extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

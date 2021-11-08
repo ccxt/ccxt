@@ -323,7 +323,7 @@ module.exports = class bit2c extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        });
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

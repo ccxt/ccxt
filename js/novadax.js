@@ -903,7 +903,7 @@ module.exports = class novadax extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

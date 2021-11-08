@@ -345,7 +345,7 @@ module.exports = class coinfalcon extends Exchange {
             'info': order,
             'lastTradeTimestamp': undefined,
             'average': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

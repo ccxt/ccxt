@@ -1065,7 +1065,7 @@ module.exports = class bittrex extends Exchange {
             },
             'info': order,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {

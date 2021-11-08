@@ -1686,7 +1686,7 @@ module.exports = class aax extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': fee,
-        });
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

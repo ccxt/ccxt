@@ -461,7 +461,7 @@ module.exports = class bitbank extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

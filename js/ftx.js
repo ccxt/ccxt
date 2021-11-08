@@ -1291,7 +1291,7 @@ module.exports = class ftx extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

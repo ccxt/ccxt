@@ -613,7 +613,7 @@ module.exports = class btcturk extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'fee': undefined,
-        });
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

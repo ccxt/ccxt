@@ -1596,7 +1596,7 @@ module.exports = class bitmart extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrderStatusByType (type, status) {

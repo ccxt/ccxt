@@ -876,7 +876,7 @@ module.exports = class btcmarkets extends Exchange {
             'status': status,
             'trades': undefined,
             'fee': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

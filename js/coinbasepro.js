@@ -774,7 +774,7 @@ module.exports = class coinbasepro extends Exchange {
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

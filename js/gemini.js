@@ -670,7 +670,7 @@ module.exports = class gemini extends Exchange {
             'remaining': remaining,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

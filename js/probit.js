@@ -948,7 +948,7 @@ module.exports = class probit extends Exchange {
             'cost': cost,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     costToPrecision (symbol, cost) {

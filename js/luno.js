@@ -333,7 +333,7 @@ module.exports = class luno extends Exchange {
             'fee': fee,
             'info': order,
             'average': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

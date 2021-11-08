@@ -436,7 +436,7 @@ module.exports = class tidebit extends Exchange {
             'fee': undefined,
             'info': order,
             'average': average,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

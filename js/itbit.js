@@ -542,7 +542,7 @@ module.exports = class itbit extends Exchange {
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
             'trades': undefined,
-        });
+        }, market);
     }
 
     nonce () {
