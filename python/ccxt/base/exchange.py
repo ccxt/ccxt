@@ -1060,7 +1060,7 @@ class Exchange(object):
         return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
 
     @staticmethod
-    def ymd2(timestamp):
+    def yymmdd(timestamp):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%y' + '%m' + '%d')
 

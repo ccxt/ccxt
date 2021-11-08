@@ -691,7 +691,7 @@ module.exports = class okex extends Exchange {
             symbol = symbol + ':' + settle;
             expiry = this.safeInteger (market, 'expTime');
             if (expiry !== undefined) {
-                const ymd = this.ymd2 (expiry);
+                const ymd = this.yymmdd (expiry);
                 symbol = symbol + '-' + ymd;
             }
         }

@@ -893,7 +893,7 @@ class Exchange {
         return gmdate('Y' . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
     }
 
-    public static function ymd2($timestamp) {
+    public static function yymmdd($timestamp) {
         return gmdate('y' . 'm' . 'd', (int) round($timestamp / 1000));
     }
 
