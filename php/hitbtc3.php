@@ -209,55 +209,58 @@ class hitbtc3 extends Exchange {
                 '1M' => '1M',
             ),
             'exceptions' => array(
-                '429' => '\\ccxt\\RateLimitExceeded',
-                '500' => '\\ccxt\\ExchangeError',
-                '503' => '\\ccxt\\ExchangeNotAvailable',
-                '504' => '\\ccxt\\ExchangeNotAvailable',
-                '600' => '\\ccxt\\PermissionDenied',
-                '800' => '\\ccxt\\ExchangeError',
-                '1002' => '\\ccxt\\AuthenticationError',
-                '1003' => '\\ccxt\\PermissionDenied',
-                '1004' => '\\ccxt\\AuthenticationError',
-                '1005' => '\\ccxt\\AuthenticationError',
-                '2001' => '\\ccxt\\BadSymbol',
-                '2002' => '\\ccxt\\BadRequest',
-                '2003' => '\\ccxt\\BadRequest',
-                '2010' => '\\ccxt\\BadRequest',
-                '2011' => '\\ccxt\\BadRequest',
-                '2012' => '\\ccxt\\BadRequest',
-                '2020' => '\\ccxt\\BadRequest',
-                '2022' => '\\ccxt\\BadRequest',
-                '10001' => '\\ccxt\\BadRequest',
-                '10021' => '\\ccxt\\AccountSuspended',
-                '10022' => '\\ccxt\\BadRequest',
-                '20001' => '\\ccxt\\InsufficientFunds',
-                '20002' => '\\ccxt\\OrderNotFound',
-                '20003' => '\\ccxt\\ExchangeError',
-                '20004' => '\\ccxt\\ExchangeError',
-                '20005' => '\\ccxt\\ExchangeError',
-                '20006' => '\\ccxt\\ExchangeError',
-                '20007' => '\\ccxt\\ExchangeError',
-                '20008' => '\\ccxt\\InvalidOrder',
-                '20009' => '\\ccxt\\InvalidOrder',
-                '20010' => '\\ccxt\\OnMaintenance',
-                '20011' => '\\ccxt\\ExchangeError',
-                '20012' => '\\ccxt\\ExchangeError',
-                '20014' => '\\ccxt\\ExchangeError',
-                '20016' => '\\ccxt\\ExchangeError',
-                '20031' => '\\ccxt\\ExchangeError',
-                '20032' => '\\ccxt\\ExchangeError',
-                '20033' => '\\ccxt\\ExchangeError',
-                '20034' => '\\ccxt\\ExchangeError',
-                '20040' => '\\ccxt\\ExchangeError',
-                '20041' => '\\ccxt\\ExchangeError',
-                '20042' => '\\ccxt\\ExchangeError',
-                '20043' => '\\ccxt\\ExchangeError',
-                '20044' => '\\ccxt\\PermissionDenied',
-                '20045' => '\\ccxt\\ExchangeError',
-                '20080' => '\\ccxt\\ExchangeError',
-                '21001' => '\\ccxt\\ExchangeError',
-                '21003' => '\\ccxt\\AccountSuspended',
-                '21004' => '\\ccxt\\AccountSuspended',
+                'exact' => array(
+                    '429' => '\\ccxt\\RateLimitExceeded',
+                    '500' => '\\ccxt\\ExchangeError',
+                    '503' => '\\ccxt\\ExchangeNotAvailable',
+                    '504' => '\\ccxt\\ExchangeNotAvailable',
+                    '600' => '\\ccxt\\PermissionDenied',
+                    '800' => '\\ccxt\\ExchangeError',
+                    '1002' => '\\ccxt\\AuthenticationError',
+                    '1003' => '\\ccxt\\PermissionDenied',
+                    '1004' => '\\ccxt\\AuthenticationError',
+                    '1005' => '\\ccxt\\AuthenticationError',
+                    '2001' => '\\ccxt\\BadSymbol',
+                    '2002' => '\\ccxt\\BadRequest',
+                    '2003' => '\\ccxt\\BadRequest',
+                    '2010' => '\\ccxt\\BadRequest',
+                    '2011' => '\\ccxt\\BadRequest',
+                    '2012' => '\\ccxt\\BadRequest',
+                    '2020' => '\\ccxt\\BadRequest',
+                    '2022' => '\\ccxt\\BadRequest',
+                    '10001' => '\\ccxt\\BadRequest',
+                    '10021' => '\\ccxt\\AccountSuspended',
+                    '10022' => '\\ccxt\\BadRequest',
+                    '20001' => '\\ccxt\\InsufficientFunds',
+                    '20002' => '\\ccxt\\OrderNotFound',
+                    '20003' => '\\ccxt\\ExchangeError',
+                    '20004' => '\\ccxt\\ExchangeError',
+                    '20005' => '\\ccxt\\ExchangeError',
+                    '20006' => '\\ccxt\\ExchangeError',
+                    '20007' => '\\ccxt\\ExchangeError',
+                    '20008' => '\\ccxt\\InvalidOrder',
+                    '20009' => '\\ccxt\\InvalidOrder',
+                    '20010' => '\\ccxt\\OnMaintenance',
+                    '20011' => '\\ccxt\\ExchangeError',
+                    '20012' => '\\ccxt\\ExchangeError',
+                    '20014' => '\\ccxt\\ExchangeError',
+                    '20016' => '\\ccxt\\ExchangeError',
+                    '20031' => '\\ccxt\\ExchangeError',
+                    '20032' => '\\ccxt\\ExchangeError',
+                    '20033' => '\\ccxt\\ExchangeError',
+                    '20034' => '\\ccxt\\ExchangeError',
+                    '20040' => '\\ccxt\\ExchangeError',
+                    '20041' => '\\ccxt\\ExchangeError',
+                    '20042' => '\\ccxt\\ExchangeError',
+                    '20043' => '\\ccxt\\ExchangeError',
+                    '20044' => '\\ccxt\\PermissionDenied',
+                    '20045' => '\\ccxt\\ExchangeError',
+                    '20080' => '\\ccxt\\ExchangeError',
+                    '21001' => '\\ccxt\\ExchangeError',
+                    '21003' => '\\ccxt\\AccountSuspended',
+                    '21004' => '\\ccxt\\AccountSuspended',
+                ),
+                'broad' => array(),
             ),
             'options' => array(
                 'networks' => array(
@@ -1447,21 +1450,26 @@ class hitbtc3 extends Exchange {
         //     {
         //       "$error" => {
         //         "$code" => 20001,
-        //         "message" => "Insufficient funds",
-        //         "$description" => "Check that the funds are sufficient, given commissions"
+        //         "$message" => "Insufficient funds",
+        //         "description" => "Check that the funds are sufficient, given commissions"
+        //       }
+        //     }
+        //
+        //     {
+        //       "$error" => {
+        //         "$code" => "600",
+        //         "$message" => "Action not allowed"
         //       }
         //     }
         //
         $error = $this->safe_value($response, 'error');
         $errorCode = $this->safe_string($error, 'code');
         if ($errorCode !== null) {
-            $description = $this->safe_string($error, 'description', '');
-            $ExceptionClass = $this->safe_value($this->exceptions, $errorCode);
-            if ($ExceptionClass !== null) {
-                throw new $ExceptionClass($this->id . ' ' . $description);
-            } else {
-                throw new ExchangeError($this->id . ' ' . $description);
-            }
+            $feedback = $this->id . ' ' . $body;
+            $message = $this->safe_string_2($error, 'message', 'description');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            throw new ExchangeError($feedback);
         }
     }
 

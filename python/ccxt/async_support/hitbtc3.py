@@ -221,55 +221,58 @@ class hitbtc3(Exchange):
                 '1M': '1M',
             },
             'exceptions': {
-                '429': RateLimitExceeded,
-                '500': ExchangeError,
-                '503': ExchangeNotAvailable,
-                '504': ExchangeNotAvailable,
-                '600': PermissionDenied,
-                '800': ExchangeError,
-                '1002': AuthenticationError,
-                '1003': PermissionDenied,
-                '1004': AuthenticationError,
-                '1005': AuthenticationError,
-                '2001': BadSymbol,
-                '2002': BadRequest,
-                '2003': BadRequest,
-                '2010': BadRequest,
-                '2011': BadRequest,
-                '2012': BadRequest,
-                '2020': BadRequest,
-                '2022': BadRequest,
-                '10001': BadRequest,
-                '10021': AccountSuspended,
-                '10022': BadRequest,
-                '20001': InsufficientFunds,
-                '20002': OrderNotFound,
-                '20003': ExchangeError,
-                '20004': ExchangeError,
-                '20005': ExchangeError,
-                '20006': ExchangeError,
-                '20007': ExchangeError,
-                '20008': InvalidOrder,
-                '20009': InvalidOrder,
-                '20010': OnMaintenance,
-                '20011': ExchangeError,
-                '20012': ExchangeError,
-                '20014': ExchangeError,
-                '20016': ExchangeError,
-                '20031': ExchangeError,
-                '20032': ExchangeError,
-                '20033': ExchangeError,
-                '20034': ExchangeError,
-                '20040': ExchangeError,
-                '20041': ExchangeError,
-                '20042': ExchangeError,
-                '20043': ExchangeError,
-                '20044': PermissionDenied,
-                '20045': ExchangeError,
-                '20080': ExchangeError,
-                '21001': ExchangeError,
-                '21003': AccountSuspended,
-                '21004': AccountSuspended,
+                'exact': {
+                    '429': RateLimitExceeded,
+                    '500': ExchangeError,
+                    '503': ExchangeNotAvailable,
+                    '504': ExchangeNotAvailable,
+                    '600': PermissionDenied,
+                    '800': ExchangeError,
+                    '1002': AuthenticationError,
+                    '1003': PermissionDenied,
+                    '1004': AuthenticationError,
+                    '1005': AuthenticationError,
+                    '2001': BadSymbol,
+                    '2002': BadRequest,
+                    '2003': BadRequest,
+                    '2010': BadRequest,
+                    '2011': BadRequest,
+                    '2012': BadRequest,
+                    '2020': BadRequest,
+                    '2022': BadRequest,
+                    '10001': BadRequest,
+                    '10021': AccountSuspended,
+                    '10022': BadRequest,
+                    '20001': InsufficientFunds,
+                    '20002': OrderNotFound,
+                    '20003': ExchangeError,
+                    '20004': ExchangeError,
+                    '20005': ExchangeError,
+                    '20006': ExchangeError,
+                    '20007': ExchangeError,
+                    '20008': InvalidOrder,
+                    '20009': InvalidOrder,
+                    '20010': OnMaintenance,
+                    '20011': ExchangeError,
+                    '20012': ExchangeError,
+                    '20014': ExchangeError,
+                    '20016': ExchangeError,
+                    '20031': ExchangeError,
+                    '20032': ExchangeError,
+                    '20033': ExchangeError,
+                    '20034': ExchangeError,
+                    '20040': ExchangeError,
+                    '20041': ExchangeError,
+                    '20042': ExchangeError,
+                    '20043': ExchangeError,
+                    '20044': PermissionDenied,
+                    '20045': ExchangeError,
+                    '20080': ExchangeError,
+                    '21001': ExchangeError,
+                    '21003': AccountSuspended,
+                    '21004': AccountSuspended,
+                },
+                'broad': {},
             },
             'options': {
                 'networks': {
@@ -1368,15 +1371,21 @@ class hitbtc3(Exchange):
         #       }
         #     }
         #
+        #     {
+        #       "error": {
+        #         "code": "600",
+        #         "message": "Action not allowed"
+        #       }
+        #     }
+        #
         error = self.safe_value(response, 'error')
         errorCode = self.safe_string(error, 'code')
         if errorCode is not None:
-            description = self.safe_string(error, 'description', '')
-            ExceptionClass = self.safe_value(self.exceptions, errorCode)
-            if ExceptionClass is not None:
-                raise ExceptionClass(self.id + ' ' + description)
-            else:
-                raise ExchangeError(self.id + ' ' + description)
+            feedback = self.id + ' ' + body
+            message = self.safe_string_2(error, 'message', 'description')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
