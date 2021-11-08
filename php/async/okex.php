@@ -1325,7 +1325,7 @@ class okex extends Exchange {
             $rate = $data[$i];
             $timestamp = $this->safe_number($rate, 'fundingTime');
             $rates[] = array(
-                'symbol' => $this->safe_string($rate, 'instId'),
+                'symbol' => $this->safe_symbol($this->safe_string($rate, 'instId')),
                 'fundingRate' => $this->safe_number($rate, 'realizedRate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -2941,6 +2941,7 @@ class okex extends Exchange {
         //       "liab" => "",
         //       "liabCcy" => "",
         //       "liqPx" => "12608.959083877446",
+        //       "markPx" => "4786.459271773621",
         //       "margin" => "",
         //       "mgnMode" => "cross",
         //       "mgnRatio" => "140.49930117599155",
@@ -2979,7 +2980,11 @@ class okex extends Exchange {
                 }
             }
         }
+        $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');
+        if ($market['inverse']) {
+            $notionalString = Precise::string_div($notionalString, $markPriceString);
+        }
         $notional = $this->parse_number($notionalString);
         $marginType = $this->safe_string($position, 'mgnMode');
         $initialMarginString = null;
@@ -3022,6 +3027,7 @@ class okex extends Exchange {
             'percentage' => $percentage,
             'contracts' => $contracts,
             'contractSize' => $this->parse_number($market['contractSize']),
+            'markPrice' => $this->parse_number($markPriceString),
             'side' => $side,
             'hedged' => $hedged,
             'timestamp' => $timestamp,
@@ -3313,11 +3319,35 @@ class okex extends Exchange {
             $request['limit'] = (string) $limit; // default 100, max 100
         }
         $response = yield $this->privateGetAccountBills (array_merge($request, $params));
+        //
+        //     {
+        //       "bal" => "0.0242946200998573",
+        //       "balChg" => "0.0000148752712240",
+        //       "billId" => "377970609204146187",
+        //       "ccy" => "ETH",
+        //       "execType" => "",
+        //       "fee" => "0",
+        //       "from" => "",
+        //       "$instId" => "ETH-USD-SWAP",
+        //       "instType" => "SWAP",
+        //       "mgnMode" => "isolated",
+        //       "notes" => "",
+        //       "ordId" => "",
+        //       "pnl" => "0.000014875271224",
+        //       "posBal" => "0",
+        //       "posBalChg" => "0",
+        //       "subType" => "174",
+        //       "sz" => "9",
+        //       "to" => "",
+        //       "ts" => "1636387215588",
+        //       "type" => "8"
+        //     }
+        //
         $data = $this->safe_value($response, 'data');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
-            $timestamp = $this->safe_timestamp($entry, 'ts');
+            $timestamp = $this->safe_integer($entry, 'ts');
             $instId = $this->safe_string($entry, 'instId');
             $market = $this->safe_market($instId);
             $result[] = array(
@@ -3326,11 +3356,12 @@ class okex extends Exchange {
                 'code' => $market['inverse'] ? $market['base'] : $market['quote'],
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
-                'id' => $this->safe_number($entry, 'billId'),
-                'amount' => $this->safe_number($entry, 'sz'),
+                'id' => $this->safe_string($entry, 'billId'),
+                'amount' => $this->safe_number($entry, 'balChange'),
             );
         }
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {

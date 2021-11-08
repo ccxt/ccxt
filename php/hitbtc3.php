@@ -611,7 +611,7 @@ class hitbtc3 extends Exchange {
         $timestamp = $this->parse8601($ticker['timestamp']);
         $symbol = $this->safe_symbol(null, $market);
         $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = $this->safe_number($ticker, 'volumeQuote');
+        $quoteVolume = $this->safe_number($ticker, 'volume_quote');
         $open = $this->safe_number($ticker, 'open');
         $last = $this->safe_number($ticker, 'last');
         $vwap = $this->vwap($baseVolume, $quoteVolume);

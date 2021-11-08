@@ -601,7 +601,7 @@ class hitbtc3(Exchange):
         timestamp = self.parse8601(ticker['timestamp'])
         symbol = self.safe_symbol(None, market)
         baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = self.safe_number(ticker, 'volumeQuote')
+        quoteVolume = self.safe_number(ticker, 'volume_quote')
         open = self.safe_number(ticker, 'open')
         last = self.safe_number(ticker, 'last')
         vwap = self.vwap(baseVolume, quoteVolume)
