@@ -1571,7 +1571,7 @@ class gateio extends Exchange {
         return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_funding_rate_history($symbol = null, $limit = null, $since = null, $params = array ()) {
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
@@ -1604,7 +1604,8 @@ class gateio extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             );
         }
-        return $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -2135,7 +2136,7 @@ class gateio extends Exchange {
         $amountRaw = $this->safe_string_2($order, 'amount', 'size');
         $amount = Precise::string_abs($amountRaw);
         $price = $this->safe_string($order, 'price');
-        $average = $this->safe_string($order, 'fill_price');
+        // $average = $this->safe_string($order, 'fill_price');
         $remaining = $this->safe_string($order, 'left');
         $cost = $this->safe_string($order, 'filled_total'); // same as filled_price
         $rawStatus = null;
@@ -2202,7 +2203,7 @@ class gateio extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'average' => $average,
+            'average' => null,
             'amount' => $amount,
             'cost' => $cost,
             'filled' => null,

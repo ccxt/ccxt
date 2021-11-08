@@ -47,6 +47,7 @@ class okex extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchLeverage' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -678,6 +679,7 @@ class okex extends Exchange {
         $baseId = $this->safe_string($market, 'baseCcy');
         $quoteId = $this->safe_string($market, 'quoteCcy');
         $settleCurrency = $this->safe_string($market, 'settleCcy');
+        $settle = $this->safe_currency_code($settleCurrency);
         $underlying = $this->safe_string($market, 'uly');
         if (($underlying !== null) && !$spot) {
             $parts = explode('-', $underlying);
@@ -688,7 +690,16 @@ class okex extends Exchange {
         $linear = $quoteId === $settleCurrency;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $spot ? ($base . '/' . $quote) : $id;
+        $symbol = $base . '/' . $quote;
+        $expiry = null;
+        if ($contract) {
+            $symbol = $symbol . ':' . $settle;
+            $expiry = $this->safe_integer($market, 'expTime');
+            if ($expiry !== null) {
+                $ymd = $this->yymmdd($expiry);
+                $symbol = $symbol . '-' . $ymd;
+            }
+        }
         $tickSize = $this->safe_string($market, 'tickSz');
         $precision = array(
             'amount' => $this->safe_number($market, 'lotSz'),
@@ -704,10 +715,6 @@ class okex extends Exchange {
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
         $contractSize = $this->safe_string($market, 'ctVal');
         $leverage = $this->safe_number($market, 'lever', 1);
-        $expiry = null;
-        if ($futures || $option) {
-            $expiry = $this->safe_number($market, 'expTime');
-        }
         return array_merge($fees, array(
             'id' => $id,
             'symbol' => $symbol,
@@ -715,6 +722,8 @@ class okex extends Exchange {
             'quote' => $quote,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
+            'settleId' => $settleCurrency,
+            'settle' => $settle,
             'info' => $market,
             'type' => $type,
             'spot' => $spot,
@@ -1271,7 +1280,10 @@ class okex extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_funding_rate_history($symbol, $limit = null, $since = null, $params = array ()) {
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1318,7 +1330,8 @@ class okex extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             );
         }
-        return $rates;
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -1807,7 +1820,7 @@ class okex extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -2733,6 +2746,36 @@ class okex extends Exchange {
         );
     }
 
+    public function fetch_leverage($symbol, $params = array ()) {
+        $this->load_markets();
+        $marginMode = $this->safe_string_lower($params, 'mgnMode');
+        $params = $this->omit($params, array( 'mgnMode' ));
+        if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
+            throw new BadRequest($this->id . ' setLeverage $params["mgnMode"] must be either "cross" or "isolated"');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+            'mgnMode' => $marginMode,
+        );
+        $response = $this->privateGetAccountLeverageInfo (array_merge($request, $params));
+        //
+        //     {
+        //       "code" => "0",
+        //       "data" => array(
+        //         {
+        //           "instId" => "BTC-USDT-SWAP",
+        //           "lever" => "5.00000000",
+        //           "mgnMode" => "isolated",
+        //           "posSide" => "net"
+        //         }
+        //       ),
+        //       "msg" => ""
+        //     }
+        //
+        return $response;
+    }
+
     public function fetch_position($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2921,11 +2964,12 @@ class okex extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $contractsString = $this->safe_string($position, 'pos');
+        $contractsAbs = Precise::string_abs($contractsString);
         $contracts = null;
         $side = $this->safe_string($position, 'posSide');
         $hedged = $side !== 'net';
         if ($contractsString !== null) {
-            $contracts = $this->parse_number(Precise::string_abs($contractsString));
+            $contracts = $this->parse_number($contractsAbs);
             if ($side === 'net') {
                 if (Precise::string_gt($contractsString, '0')) {
                     $side = 'long';
@@ -2950,7 +2994,7 @@ class okex extends Exchange {
         $initialMarginPercentage = null;
         $maintenanceMarginPercentage = null;
         if ($market['inverse']) {
-            $notionalValue = Precise::string_div(Precise::string_mul($contractsString, $market['contractSize']), $entryPriceString);
+            $notionalValue = Precise::string_div(Precise::string_mul($contractsAbs, $market['contractSize']), $entryPriceString);
             $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notionalValue);
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalValue, 4));
         } else {

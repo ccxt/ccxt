@@ -906,7 +906,7 @@ class novadax extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

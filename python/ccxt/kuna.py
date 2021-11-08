@@ -551,7 +551,7 @@ class kuna(Exchange):
             'info': order,
             'cost': None,
             'average': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

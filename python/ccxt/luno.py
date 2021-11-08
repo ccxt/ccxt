@@ -319,7 +319,7 @@ class luno(Exchange):
             'fee': fee,
             'info': order,
             'average': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

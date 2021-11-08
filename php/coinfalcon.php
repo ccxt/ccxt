@@ -346,7 +346,7 @@ class coinfalcon extends Exchange {
             'info' => $order,
             'lastTradeTimestamp' => null,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

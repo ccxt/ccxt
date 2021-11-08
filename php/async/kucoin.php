@@ -1425,7 +1425,7 @@ class kucoin extends Exchange {
             'lastTradeTimestamp' => null,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

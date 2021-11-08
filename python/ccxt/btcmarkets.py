@@ -828,7 +828,7 @@ class btcmarkets(Exchange):
             'status': status,
             'trades': None,
             'fee': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

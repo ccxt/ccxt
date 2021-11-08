@@ -592,7 +592,7 @@ module.exports = class oceanex extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
-        });
+        }, market);
     }
 
     parseOrderStatus (status) {

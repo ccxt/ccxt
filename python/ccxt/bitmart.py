@@ -1558,7 +1558,7 @@ class bitmart(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     def parse_order_status_by_type(self, type, status):
         statusesByType = {

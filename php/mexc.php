@@ -1747,7 +1747,7 @@ class mexc extends Exchange {
             'fee' => null,
             'trades' => null,
             'info' => $order,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

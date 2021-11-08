@@ -644,7 +644,7 @@ class coinmate extends Exchange {
             'trades' => null,
             'info' => $order,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

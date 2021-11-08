@@ -370,7 +370,7 @@ module.exports = class btctradeua extends Exchange {
             'cost': undefined,
             'average': undefined,
             'fee': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

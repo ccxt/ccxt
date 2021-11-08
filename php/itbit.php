@@ -545,7 +545,7 @@ class itbit extends Exchange {
             'fee' => $fee,
             // 'trades' => $this->parse_trades($order['trades'], $market),
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function nonce() {

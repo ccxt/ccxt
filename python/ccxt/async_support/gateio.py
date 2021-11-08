@@ -1531,7 +1531,7 @@ class gateio(Exchange):
         }
         return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
-    async def fetch_funding_rate_history(self, symbol=None, limit=None, since=None, params={}):
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
@@ -1561,7 +1561,8 @@ class gateio(Exchange):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
-        return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
@@ -2054,7 +2055,7 @@ class gateio(Exchange):
         amountRaw = self.safe_string_2(order, 'amount', 'size')
         amount = Precise.string_abs(amountRaw)
         price = self.safe_string(order, 'price')
-        average = self.safe_string(order, 'fill_price')
+        # average = self.safe_string(order, 'fill_price')
         remaining = self.safe_string(order, 'left')
         cost = self.safe_string(order, 'filled_total')  # same as filled_price
         rawStatus = None
@@ -2115,7 +2116,7 @@ class gateio(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'average': average,
+            'average': None,
             'amount': amount,
             'cost': cost,
             'filled': None,

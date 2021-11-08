@@ -555,7 +555,7 @@ class coinex(Exchange):
                 'cost': self.safe_number(order, 'deal_fee'),
             },
             'info': order,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

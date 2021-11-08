@@ -466,7 +466,7 @@ class lbank extends Exchange {
             'fee' => null,
             'info' => $this->safe_value($order, 'info', $order),
             'average' => $average,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

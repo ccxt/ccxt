@@ -311,7 +311,7 @@ module.exports = class independentreserve extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrderStatus (status) {

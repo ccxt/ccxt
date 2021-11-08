@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.60.70'
+__version__ = '1.60.77'
 
 # -----------------------------------------------------------------------------
 
@@ -1058,6 +1058,11 @@ class Exchange(object):
     def ymd(timestamp, infix='-'):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
+
+    @staticmethod
+    def yymmdd(timestamp):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%y' + '%m' + '%d')
 
     @staticmethod
     def ymdhms(timestamp, infix=' '):

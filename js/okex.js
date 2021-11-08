@@ -43,6 +43,7 @@ module.exports = class okex extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchLeverage': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -674,6 +675,7 @@ module.exports = class okex extends Exchange {
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy');
         const settleCurrency = this.safeString (market, 'settleCcy');
+        const settle = this.safeCurrencyCode (settleCurrency);
         const underlying = this.safeString (market, 'uly');
         if ((underlying !== undefined) && !spot) {
             const parts = underlying.split ('-');
@@ -684,7 +686,16 @@ module.exports = class okex extends Exchange {
         const linear = quoteId === settleCurrency;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = spot ? (base + '/' + quote) : id;
+        let symbol = base + '/' + quote;
+        let expiry = undefined;
+        if (contract) {
+            symbol = symbol + ':' + settle;
+            expiry = this.safeInteger (market, 'expTime');
+            if (expiry !== undefined) {
+                const ymd = this.yymmdd (expiry);
+                symbol = symbol + '-' + ymd;
+            }
+        }
         const tickSize = this.safeString (market, 'tickSz');
         const precision = {
             'amount': this.safeNumber (market, 'lotSz'),
@@ -700,10 +711,6 @@ module.exports = class okex extends Exchange {
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const contractSize = this.safeString (market, 'ctVal');
         const leverage = this.safeNumber (market, 'lever', 1);
-        let expiry = undefined;
-        if (futures || option) {
-            expiry = this.safeNumber (market, 'expTime');
-        }
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -711,6 +718,8 @@ module.exports = class okex extends Exchange {
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': settleCurrency,
+            'settle': settle,
             'info': market,
             'type': type,
             'spot': spot,
@@ -1807,7 +1816,7 @@ module.exports = class okex extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -2733,6 +2742,36 @@ module.exports = class okex extends Exchange {
         };
     }
 
+    async fetchLeverage (symbol, params = {}) {
+        await this.loadMarkets ();
+        const marginMode = this.safeStringLower (params, 'mgnMode');
+        params = this.omit (params, [ 'mgnMode' ]);
+        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+            throw new BadRequest (this.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'instId': market['id'],
+            'mgnMode': marginMode,
+        };
+        const response = await this.privateGetAccountLeverageInfo (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "instId": "BTC-USDT-SWAP",
+        //           "lever": "5.00000000",
+        //           "mgnMode": "isolated",
+        //           "posSide": "net"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        return response;
+    }
+
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2921,11 +2960,12 @@ module.exports = class okex extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const contractsString = this.safeString (position, 'pos');
+        const contractsAbs = Precise.stringAbs (contractsString);
         let contracts = undefined;
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
         if (contractsString !== undefined) {
-            contracts = this.parseNumber (Precise.stringAbs (contractsString));
+            contracts = this.parseNumber (contractsAbs);
             if (side === 'net') {
                 if (Precise.stringGt (contractsString, '0')) {
                     side = 'long';
@@ -2950,7 +2990,7 @@ module.exports = class okex extends Exchange {
         let initialMarginPercentage = undefined;
         let maintenanceMarginPercentage = undefined;
         if (market['inverse']) {
-            const notionalValue = Precise.stringDiv (Precise.stringMul (contractsString, market['contractSize']), entryPriceString);
+            const notionalValue = Precise.stringDiv (Precise.stringMul (contractsAbs, market['contractSize']), entryPriceString);
             maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalValue);
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalValue, 4));
         } else {

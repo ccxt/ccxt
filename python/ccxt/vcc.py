@@ -985,7 +985,7 @@ class vcc(Exchange):
             'fee': fee,
             'trades': None,
             'info': order,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

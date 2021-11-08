@@ -1035,7 +1035,7 @@ class bittrex(Exchange):
             },
             'info': order,
             'trades': None,
-        })
+        }, market)
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         if self.options['fetchClosedOrdersFilterBySince']:

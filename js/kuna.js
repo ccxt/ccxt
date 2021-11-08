@@ -576,7 +576,7 @@ module.exports = class kuna extends Exchange {
             'info': order,
             'cost': undefined,
             'average': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

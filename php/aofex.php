@@ -751,7 +751,7 @@ class aofex extends Exchange {
             'remaining' => null,
             'trades' => $rawTrades,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_closed_order($id, $symbol = null, $params = array ()) {

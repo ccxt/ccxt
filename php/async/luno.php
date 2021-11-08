@@ -336,7 +336,7 @@ class luno extends Exchange {
             'fee' => $fee,
             'info' => $order,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

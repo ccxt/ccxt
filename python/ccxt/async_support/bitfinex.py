@@ -883,7 +883,7 @@ class bitfinex(Exchange):
             'fee': None,
             'cost': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

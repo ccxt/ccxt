@@ -1072,7 +1072,7 @@ class bittrex extends Exchange {
             ),
             'info' => $order,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
