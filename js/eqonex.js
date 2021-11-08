@@ -1362,7 +1362,7 @@ module.exports = class eqonex extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrderStatus (status) {

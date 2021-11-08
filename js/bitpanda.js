@@ -1308,7 +1308,7 @@ module.exports = class bitpanda extends Exchange {
             'status': status,
             // 'fee': undefined,
             'trades': rawTrades,
-        });
+        }, market);
     }
 
     parseTimeInForce (timeInForce) {

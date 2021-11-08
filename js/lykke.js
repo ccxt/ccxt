@@ -492,7 +492,7 @@ module.exports = class lykke extends Exchange {
         }
         const remaining = Precise.stringAbs (this.safeString (order, 'RemainingVolume'));
         const id = this.safeString (order, 'Id');
-        return this.safeOrder2 ({
+        return this., marketsafeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -514,7 +514,7 @@ module.exports = class lykke extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

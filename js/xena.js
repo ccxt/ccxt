@@ -938,7 +938,7 @@ module.exports = class xena extends Exchange {
         } else if (type === '4') {
             type = 'stop-limit';
         }
-        return this.safeOrder2 ({
+        return this., marketsafeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -960,7 +960,7 @@ module.exports = class xena extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

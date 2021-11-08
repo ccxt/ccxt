@@ -386,7 +386,7 @@ module.exports = class zaif extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

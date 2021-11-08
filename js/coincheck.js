@@ -206,7 +206,7 @@ module.exports = class coincheck extends Exchange {
             'info': order,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

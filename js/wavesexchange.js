@@ -1393,7 +1393,7 @@ module.exports = class wavesexchange extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async getWavesAddress () {

@@ -581,7 +581,7 @@ module.exports = class tidex extends Exchange {
             'clientOrderId': undefined,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -640,7 +640,7 @@ module.exports = class tidex extends Exchange {
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

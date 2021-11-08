@@ -748,7 +748,7 @@ module.exports = class aofex extends Exchange {
             'remaining': undefined,
             'trades': rawTrades,
             'fee': undefined,
-        });
+        }, market);
     }
 
     async fetchClosedOrder (id, symbol = undefined, params = {}) {

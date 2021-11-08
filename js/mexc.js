@@ -1742,7 +1742,7 @@ module.exports = class mexc extends Exchange {
             'fee': undefined,
             'trades': undefined,
             'info': order,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

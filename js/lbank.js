@@ -465,7 +465,7 @@ module.exports = class lbank extends Exchange {
             'fee': undefined,
             'info': this.safeValue (order, 'info', order),
             'average': average,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

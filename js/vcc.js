@@ -1018,7 +1018,7 @@ module.exports = class vcc extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

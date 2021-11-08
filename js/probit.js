@@ -927,7 +927,7 @@ module.exports = class probit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
-        return this.safeOrder2 ({
+        return this., marketsafeOrder2 ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -948,7 +948,7 @@ module.exports = class probit extends Exchange {
             'cost': cost,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     costToPrecision (symbol, cost) {

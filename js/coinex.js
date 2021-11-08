@@ -569,7 +569,7 @@ module.exports = class coinex extends Exchange {
                 'cost': this.safeNumber (order, 'deal_fee'),
             },
             'info': order,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

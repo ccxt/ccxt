@@ -375,7 +375,7 @@ module.exports = class bitflyer extends Exchange {
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {

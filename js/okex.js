@@ -1785,7 +1785,7 @@ module.exports = class okex extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumber (order, 'slTriggerPx');
-        return this.safeOrder2 ({
+        return this., marketsafeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

@@ -1420,7 +1420,7 @@ module.exports = class kucoin extends Exchange {
             'lastTradeTimestamp': undefined,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
