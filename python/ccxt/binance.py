@@ -3720,7 +3720,7 @@ class binance(Exchange):
         #
         return self.parse_funding_rate(response, market)
 
-    def fetch_funding_rate_history(self, symbol=None, limit=None, since=None, params={}):
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         #
         # Gets a history of funding rates with their timestamps
         #  (param) symbol: Future currency pair(e.g. "BTC/USDT")
@@ -3777,7 +3777,8 @@ class binance(Exchange):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
-        return self.sort_by(rates, 'timestamp')
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def fetch_funding_rates(self, symbols=None, params={}):
         self.load_markets()

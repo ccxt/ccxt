@@ -1245,7 +1245,9 @@ class okex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_funding_rate_history(self, symbol, limit=None, since=None, params={}):
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1289,7 +1291,8 @@ class okex(Exchange):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
-        return rates
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
