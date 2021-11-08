@@ -1275,7 +1275,10 @@ module.exports = class okex extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1322,7 +1325,8 @@ module.exports = class okex extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return rates;
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -3128,12 +3132,17 @@ module.exports = class okex extends Exchange {
         //       "nextFundingTime": "1634284800000"
         //     }
         //
-        const previousFundingRate = this.safeNumber (fundingRate, 'fundingRate');
-        const previousFundingTimestamp = this.safeInteger (fundingRate, 'fundingTime');
+        // in the response above nextFundingRate is actually two funding rates from now
+        //
+        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'fundingTime');
+        let previousFundingTimestamp = undefined;
+        if (nextFundingRateTimestamp !== undefined) {
+            // eight hours
+            previousFundingTimestamp = nextFundingRateTimestamp - 28800000;
+        }
         const marketId = this.safeString (fundingRate, 'instId');
         const symbol = this.safeSymbol (marketId, market);
-        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
-        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
+        const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
         // https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return {
@@ -3145,7 +3154,7 @@ module.exports = class okex extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'previousFundingRate': previousFundingRate,
+            'previousFundingRate': undefined,
             'nextFundingRate': nextFundingRate,
             'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
             'nextFundingTimestamp': nextFundingRateTimestamp,
