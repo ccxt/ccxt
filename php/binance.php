@@ -3367,7 +3367,8 @@ class binance extends Exchange {
             $parsed = $this->parse_income ($entry, $market);
             $result[] = $parsed;
         }
-        return $this->filter_by_since_limit($result, $since, $limit, 'timestamp');
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

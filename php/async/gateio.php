@@ -1231,7 +1231,8 @@ class gateio extends Exchange {
                 'amount' => $this->safe_number($entry, 'change'),
             );
         }
-        return $result;
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
