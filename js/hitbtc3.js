@@ -515,6 +515,8 @@ module.exports = class hitbtc3 extends Exchange {
             response = await this.privateGetWalletBalance (params);
         } else if (account === 'spot') {
             response = await this.privateGetSpotBalance (params);
+        } else if (account === 'derivatives') {
+            response = await this.privateGetFuturesBalance (params);
         } else {
             const keys = Object.keys (accountsByType);
             throw new ArgumentsRequired (this.id + ' params["type"] must be one of ' + keys.join (', ') + ' instead of "' + type + '"');
