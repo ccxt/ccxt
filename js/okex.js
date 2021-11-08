@@ -43,6 +43,7 @@ module.exports = class okex extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchLeverage': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -2739,6 +2740,36 @@ module.exports = class okex extends Exchange {
                 'cost': feeCost,
             },
         };
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        await this.loadMarkets ();
+        const marginMode = this.safeStringLower (params, 'mgnMode');
+        params = this.omit (params, [ 'mgnMode' ]);
+        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+            throw new BadRequest (this.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'instId': market['id'],
+            'mgnMode': marginMode,
+        };
+        const response = await this.privateGetAccountLeverageInfo (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "instId": "BTC-USDT-SWAP",
+        //           "lever": "5.00000000",
+        //           "mgnMode": "isolated",
+        //           "posSide": "net"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        return response;
     }
 
     async fetchPosition (symbol, params = {}) {
