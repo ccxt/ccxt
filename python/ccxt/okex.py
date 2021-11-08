@@ -63,6 +63,7 @@ class okex(Exchange):
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
+                'fetchLeverage': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -685,6 +686,7 @@ class okex(Exchange):
         baseId = self.safe_string(market, 'baseCcy')
         quoteId = self.safe_string(market, 'quoteCcy')
         settleCurrency = self.safe_string(market, 'settleCcy')
+        settle = self.safe_currency_code(settleCurrency)
         underlying = self.safe_string(market, 'uly')
         if (underlying is not None) and not spot:
             parts = underlying.split('-')
@@ -694,7 +696,14 @@ class okex(Exchange):
         linear = quoteId == settleCurrency
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = (base + '/' + quote) if spot else id
+        symbol = base + '/' + quote
+        expiry = None
+        if contract:
+            symbol = symbol + ':' + settle
+            expiry = self.safe_integer(market, 'expTime')
+            if expiry is not None:
+                ymd = self.yymmdd(expiry)
+                symbol = symbol + '-' + ymd
         tickSize = self.safe_string(market, 'tickSz')
         precision = {
             'amount': self.safe_number(market, 'lotSz'),
@@ -709,9 +718,6 @@ class okex(Exchange):
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         contractSize = self.safe_string(market, 'ctVal')
         leverage = self.safe_number(market, 'lever', 1)
-        expiry = None
-        if futures or option:
-            expiry = self.safe_number(market, 'expTime')
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -719,6 +725,8 @@ class okex(Exchange):
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': settleCurrency,
+            'settle': settle,
             'info': market,
             'type': type,
             'spot': spot,
@@ -1749,7 +1757,7 @@ class okex(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -2626,6 +2634,34 @@ class okex(Exchange):
             },
         }
 
+    def fetch_leverage(self, symbol, params={}):
+        self.load_markets()
+        marginMode = self.safe_string_lower(params, 'mgnMode')
+        params = self.omit(params, ['mgnMode'])
+        if (marginMode != 'cross') and (marginMode != 'isolated'):
+            raise BadRequest(self.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"')
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+            'mgnMode': marginMode,
+        }
+        response = self.privateGetAccountLeverageInfo(self.extend(request, params))
+        #
+        #     {
+        #       "code": "0",
+        #       "data": [
+        #         {
+        #           "instId": "BTC-USDT-SWAP",
+        #           "lever": "5.00000000",
+        #           "mgnMode": "isolated",
+        #           "posSide": "net"
+        #         }
+        #       ],
+        #       "msg": ""
+        #     }
+        #
+        return response
+
     def fetch_position(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -2807,11 +2843,12 @@ class okex(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         contractsString = self.safe_string(position, 'pos')
+        contractsAbs = Precise.string_abs(contractsString)
         contracts = None
         side = self.safe_string(position, 'posSide')
         hedged = side != 'net'
         if contractsString is not None:
-            contracts = self.parse_number(Precise.string_abs(contractsString))
+            contracts = self.parse_number(contractsAbs)
             if side == 'net':
                 if Precise.string_gt(contractsString, '0'):
                     side = 'long'
@@ -2832,7 +2869,7 @@ class okex(Exchange):
         initialMarginPercentage = None
         maintenanceMarginPercentage = None
         if market['inverse']:
-            notionalValue = Precise.string_div(Precise.string_mul(contractsString, market['contractSize']), entryPriceString)
+            notionalValue = Precise.string_div(Precise.string_mul(contractsAbs, market['contractSize']), entryPriceString)
             maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notionalValue)
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalValue, 4))
         else:

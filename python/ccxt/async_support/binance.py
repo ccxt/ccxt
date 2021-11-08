@@ -1292,6 +1292,8 @@ class binance(Exchange):
                 fees = self.fees[type]
             maker = fees['trading']['maker']
             taker = fees['trading']['taker']
+            settleId = self.safe_string(market, 'marginAsset')
+            settle = self.safe_currency_code(settleId)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1310,6 +1312,8 @@ class binance(Exchange):
                 'inverse': delivery,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
+                'settleId': settleId,
+                'settle': settle,
                 'active': active,
                 'precision': precision,
                 'contractSize': contractSize,

@@ -1301,6 +1301,8 @@ class binance extends Exchange {
             }
             $maker = $fees['trading']['maker'];
             $taker = $fees['trading']['taker'];
+            $settleId = $this->safe_string($market, 'marginAsset');
+            $settle = $this->safe_currency_code($settleId);
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
@@ -1319,6 +1321,8 @@ class binance extends Exchange {
                 'inverse' => $delivery,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
+                'settleId' => $settleId,
+                'settle' => $settle,
                 'active' => $active,
                 'precision' => $precision,
                 'contractSize' => $contractSize,
