@@ -52,6 +52,7 @@ class gateio(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
