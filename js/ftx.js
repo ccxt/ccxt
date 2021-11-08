@@ -1028,7 +1028,7 @@ module.exports = class ftx extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         //
         // Gets a history of funding rates with their timestamps
         //  (param) symbol: Future currency pair (e.g. "BTC-PERP")
@@ -1083,7 +1083,8 @@ module.exports = class ftx extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return this.sortBy (rates, 'timestamp');
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchBalance (params = {}) {
