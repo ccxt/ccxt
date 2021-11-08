@@ -507,6 +507,7 @@ module.exports = class hitbtc3 extends Exchange {
 
     async fetchBalance (params = {}) {
         const type = this.safeStringLower (params, 'type', 'spot');
+        params = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const account = this.safeString (accountsByType, type);
         let response = undefined;
