@@ -1534,6 +1534,10 @@ class okex(Exchange):
                 raise ArgumentsRequired(self.id + ' params["tdMode"] is required to be either "isolated" or "cross"')
             elif (tdMode != 'isolated') and (tdMode != 'cross'):
                 raise BadRequest(self.id + ' params["tdMode"] must be either "isolated" or "cross"')
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            request['ordType'] = 'post_only'
+            params = self.omit(params, ['postOnly'])
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
@@ -3213,7 +3217,7 @@ class okex(Exchange):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'id': self.safe_string(entry, 'billId'),
-                'amount': self.safe_number(entry, 'balChange'),
+                'amount': self.safe_number(entry, 'balChg'),
             })
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)

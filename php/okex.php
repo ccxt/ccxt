@@ -1579,6 +1579,11 @@ class okex extends Exchange {
                 throw new BadRequest($this->id . ' $params["$tdMode"] must be either "isolated" or "cross"');
             }
         }
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly) {
+            $request['ordType'] = 'post_only';
+            $params = $this->omit($params, array( 'postOnly' ));
+        }
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         if ($clientOrderId === null) {
             $brokerId = $this->safe_string($this->options, 'brokerId');
@@ -3356,7 +3361,7 @@ class okex extends Exchange {
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
                 'id' => $this->safe_string($entry, 'billId'),
-                'amount' => $this->safe_number($entry, 'balChange'),
+                'amount' => $this->safe_number($entry, 'balChg'),
             );
         }
         $sorted = $this->sort_by($result, 'timestamp');
