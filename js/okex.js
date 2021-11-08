@@ -3120,6 +3120,8 @@ module.exports = class okex extends Exchange {
         //       "nextFundingTime": "1634284800000"
         //     }
         //
+        // in the response above nextFundingRate is actually two funding rates from now
+        //
         const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'fundingTime');
         let previousFundingTimestamp = undefined;
         if (nextFundingRateTimestamp !== undefined) {
