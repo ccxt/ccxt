@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.60.78';
+$version = '1.60.77';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.60.78';
+    const VERSION = '1.60.77';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -889,12 +889,17 @@ class Exchange {
         return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
     }
 
-    public static function ymd($timestamp, $infix = '-') {
-        return gmdate('Y' . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
+    public static function ymd($timestamp, $infix = '-', $fullYear = true) {
+        $yearFormat = $fullYear ? 'Y' : 'y';
+        return gmdate($yearFormat . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
     }
 
-    public static function yymmdd($timestamp) {
-        return gmdate('y' . 'm' . 'd', (int) round($timestamp / 1000));
+    public static function yymmdd($timestamp, $infix = '') {
+        return static::ymd($timestamp, $infix, false);
+    }
+
+    public static function yyyymmdd($timestamp, $infix = '-') {
+        return static::ymd($timestamp, $infix, true);
     }
 
     public static function ymdhms($timestamp, $infix = ' ') {
