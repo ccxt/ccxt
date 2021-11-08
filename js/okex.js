@@ -674,6 +674,7 @@ module.exports = class okex extends Exchange {
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy');
         const settleCurrency = this.safeString (market, 'settleCcy');
+        const settle = this.safeCurrencyCode (settleCurrency);
         const underlying = this.safeString (market, 'uly');
         if ((underlying !== undefined) && !spot) {
             const parts = underlying.split ('-');
@@ -711,6 +712,8 @@ module.exports = class okex extends Exchange {
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': settleCurrency,
+            'settle': settle,
             'info': market,
             'type': type,
             'spot': spot,
