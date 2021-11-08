@@ -1565,7 +1565,7 @@ module.exports = class gateio extends Exchange {
         return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
-    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -1598,7 +1598,8 @@ module.exports = class gateio extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return this.filterBySymbolSinceLimit (rates, symbol, since, limit);
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
