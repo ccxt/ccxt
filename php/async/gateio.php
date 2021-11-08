@@ -2137,7 +2137,7 @@ class gateio extends Exchange {
         $amountRaw = $this->safe_string_2($order, 'amount', 'size');
         $amount = Precise::string_abs($amountRaw);
         $price = $this->safe_string($order, 'price');
-        $average = $this->safe_string($order, 'fill_price');
+        // $average = $this->safe_string($order, 'fill_price');
         $remaining = $this->safe_string($order, 'left');
         $cost = $this->safe_string($order, 'filled_total'); // same as filled_price
         $rawStatus = null;
@@ -2204,7 +2204,7 @@ class gateio extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'average' => $average,
+            'average' => null,
             'amount' => $amount,
             'cost' => $cost,
             'filled' => null,

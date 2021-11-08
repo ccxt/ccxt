@@ -2055,7 +2055,7 @@ class gateio(Exchange):
         amountRaw = self.safe_string_2(order, 'amount', 'size')
         amount = Precise.string_abs(amountRaw)
         price = self.safe_string(order, 'price')
-        average = self.safe_string(order, 'fill_price')
+        # average = self.safe_string(order, 'fill_price')
         remaining = self.safe_string(order, 'left')
         cost = self.safe_string(order, 'filled_total')  # same as filled_price
         rawStatus = None
@@ -2116,7 +2116,7 @@ class gateio(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'average': average,
+            'average': None,
             'amount': amount,
             'cost': cost,
             'filled': None,
