@@ -236,12 +236,21 @@ async function main () {
 
                 log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
 
+                let start = exchange.milliseconds ()
+                let end = exchange.milliseconds ()
+
                 while (true) {
 
                     try {
 
                         const result = await exchange[methodName] (... args)
                         printHumanReadable (exchange, result)
+
+                        end = exchange.milliseconds ()
+
+                        console.log (end - start, 'ms')
+
+                        start = end
 
                     } catch (e) {
 
