@@ -685,7 +685,16 @@ module.exports = class okex extends Exchange {
         const linear = quoteId === settleCurrency;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = spot ? (base + '/' + quote) : id;
+        let symbol = base + '/' + quote;
+        let expiry = undefined;
+        if (contract) {
+            symbol = symbol + ':' + settle;
+            expiry = this.safeInteger (market, 'expTime');
+            if (expiry !== undefined) {
+                const ymd = this.ymd2 (expiry);
+                symbol = symbol + '-' + ymd;
+            }
+        }
         const tickSize = this.safeString (market, 'tickSz');
         const precision = {
             'amount': this.safeNumber (market, 'lotSz'),
@@ -701,10 +710,6 @@ module.exports = class okex extends Exchange {
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const contractSize = this.safeString (market, 'ctVal');
         const leverage = this.safeNumber (market, 'lever', 1);
-        let expiry = undefined;
-        if (futures || option) {
-            expiry = this.safeNumber (market, 'expTime');
-        }
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
