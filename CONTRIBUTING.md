@@ -684,7 +684,7 @@ return {
 This is how we should do it **from now on**:
 
 ```JavaScript
-const amount = this.safeString (order, 'amount'); // internal string-layer
+const amount = this.safeNumber (order, 'amount'); // internal string-layer
 const remaining = this.safeString (order, 'remaining'); // internal string-layer
 if (Precise.stringGt (remaining, '0')) { // internal string-layer
     status = 'open';
@@ -694,8 +694,8 @@ if (Precise.stringGt (remaining, '0')) { // internal string-layer
 // ...
 return {
     // ...
-    'amount': this.parseNumber (amountString), // external layer, goes to the user
-    'remaining': this.parseNumber (remainingString), // external layer, goes to the user
+    'amount': amount, // external layer, goes to the user
+    'remaining': this.parseNumber (remaining), // external layer, goes to the user
     'status': status,
     // ...
 };
