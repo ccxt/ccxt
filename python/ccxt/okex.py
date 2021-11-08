@@ -2991,12 +2991,16 @@ class okex(Exchange):
         #       "nextFundingTime": "1634284800000"
         #     }
         #
-        previousFundingRate = self.safe_number(fundingRate, 'fundingRate')
-        previousFundingTimestamp = self.safe_integer(fundingRate, 'fundingTime')
+        # in the response above nextFundingRate is actually two funding rates from now
+        #
+        nextFundingRateTimestamp = self.safe_integer(fundingRate, 'fundingTime')
+        previousFundingTimestamp = None
+        if nextFundingRateTimestamp is not None:
+            # eight hours
+            previousFundingTimestamp = nextFundingRateTimestamp - 28800000
         marketId = self.safe_string(fundingRate, 'instId')
         symbol = self.safe_symbol(marketId, market)
-        nextFundingRate = self.safe_number(fundingRate, 'nextFundingRate')
-        nextFundingRateTimestamp = self.safe_integer(fundingRate, 'nextFundingTime')
+        nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
         # https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         # > The current interest is 0.
         return {
@@ -3008,7 +3012,7 @@ class okex(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'previousFundingRate': previousFundingRate,
+            'previousFundingRate': None,
             'nextFundingRate': nextFundingRate,
             'previousFundingTimestamp': previousFundingTimestamp,  # subtract 8 hours
             'nextFundingTimestamp': nextFundingRateTimestamp,
