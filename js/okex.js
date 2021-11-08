@@ -3308,11 +3308,35 @@ module.exports = class okex extends Exchange {
             request['limit'] = limit.toString (); // default 100, max 100
         }
         const response = await this.privateGetAccountBills (this.extend (request, params));
+        //
+        //     {
+        //       "bal": "0.0242946200998573",
+        //       "balChg": "0.0000148752712240",
+        //       "billId": "377970609204146187",
+        //       "ccy": "ETH",
+        //       "execType": "",
+        //       "fee": "0",
+        //       "from": "",
+        //       "instId": "ETH-USD-SWAP",
+        //       "instType": "SWAP",
+        //       "mgnMode": "isolated",
+        //       "notes": "",
+        //       "ordId": "",
+        //       "pnl": "0.000014875271224",
+        //       "posBal": "0",
+        //       "posBalChg": "0",
+        //       "subType": "174",
+        //       "sz": "9",
+        //       "to": "",
+        //       "ts": "1636387215588",
+        //       "type": "8"
+        //     }
+        //
         const data = this.safeValue (response, 'data');
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            const timestamp = this.safeTimestamp (entry, 'ts');
+            const timestamp = this.safeInteger (entry, 'ts');
             const instId = this.safeString (entry, 'instId');
             const market = this.safeMarket (instId);
             result.push ({
@@ -3321,11 +3345,12 @@ module.exports = class okex extends Exchange {
                 'code': market['inverse'] ? market['base'] : market['quote'],
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
-                'id': this.safeNumber (entry, 'billId'),
-                'amount': this.safeNumber (entry, 'sz'),
+                'id': this.safeString (entry, 'billId'),
+                'amount': this.safeNumber (entry, 'pnl'),
             });
         }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
