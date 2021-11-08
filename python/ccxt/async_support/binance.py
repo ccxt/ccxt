@@ -4231,19 +4231,19 @@ class binance(Exchange):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    async def fetch_positions(self, symbolOrSymbols=None, params={}):
+    async def fetch_positions(self, symbols=None, params={}):
         defaultMethod = self.safe_string(self.options, 'fetchPositions', 'positionRisk')
         if defaultMethod == 'positionRisk':
-            return await self.fetch_positions_risk(symbolOrSymbols, params)
+            return await self.fetch_positions_risk(symbols, params)
         elif defaultMethod == 'account':
-            return await self.fetch_account_positions(symbolOrSymbols, params)
+            return await self.fetch_account_positions(symbols, params)
         else:
             raise NotSupported(self.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
 
     async def fetch_account_positions(self, symbols=None, params={}):
         if symbols is not None:
             if not isinstance(symbols, list):
-                symbols = [symbols]
+                raise ArgumentsRequired(self.id + ' fetchPositions requires an array argument for symbols')
         await self.load_markets()
         await self.load_leverage_brackets()
         method = None
@@ -4260,25 +4260,15 @@ class binance(Exchange):
         result = self.parse_account_positions(account)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
-    async def fetch_positions_risk(self, symbol=None, params={}):
-        if isinstance(symbol, list):
-            raise BadSymbol(self.id + ' fetchPositionsRisk only accepts a string argument as a symbol')
+    async def fetch_positions_risk(self, symbols=None, params={}):
+        if symbols is not None:
+            if not isinstance(symbols, list):
+                raise ArgumentsRequired(self.id + ' fetchPositions requires an array argument for symbols')
         await self.load_markets()
         await self.load_leverage_brackets()
         request = {}
-        market = None
         method = None
         defaultType = 'future'
-        if symbol is not None:
-            market = self.market(symbol)
-            if market['linear']:
-                request['symbol'] = market['id']
-                defaultType = 'future'
-            elif market['inverse']:
-                request['pair'] = market['info']['pair']
-                defaultType = 'delivery'
-            else:
-                raise NotSupported(self.id + ' fetchPositionsRisk supports linear and inverse contracts only')
         defaultType = self.safe_string(self.options, 'defaultType', defaultType)
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
@@ -4290,16 +4280,10 @@ class binance(Exchange):
             raise NotSupported(self.id + ' fetchIsolatedPositions() supports linear and inverse contracts only')
         response = await getattr(self, method)(self.extend(request, params))
         result = []
-        if symbol is None:
-            for i in range(0, len(response)):
-                parsed = self.parse_position_risk(response[i], market)
-                result.append(parsed)
-        else:
-            for i in range(0, len(response)):
-                parsed = self.parse_position_risk(response[i], market)
-                if parsed['symbol'] == symbol:
-                    result.append(parsed)
-        return result
+        for i in range(0, len(response)):
+            parsed = self.parse_position_risk(response[i])
+            result.append(parsed)
+        return self.filter_by_array(result, 'symbol', symbols, False)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

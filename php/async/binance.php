@@ -10,7 +10,6 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
@@ -4468,12 +4467,12 @@ class binance extends Exchange {
         return $this->options['leverageBrackets'];
     }
 
-    public function fetch_positions($symbolOrSymbols = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $defaultMethod = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
         if ($defaultMethod === 'positionRisk') {
-            return yield $this->fetch_positions_risk($symbolOrSymbols, $params);
+            return yield $this->fetch_positions_risk($symbols, $params);
         } else if ($defaultMethod === 'account') {
-            return yield $this->fetch_account_positions($symbolOrSymbols, $params);
+            return yield $this->fetch_account_positions($symbols, $params);
         } else {
             throw new NotSupported($this->id . '.options["fetchPositions"] = "' . $defaultMethod . '" is invalid, please choose between "account" and "positionRisk"');
         }
@@ -4482,7 +4481,7 @@ class binance extends Exchange {
     public function fetch_account_positions($symbols = null, $params = array ()) {
         if ($symbols !== null) {
             if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
-                $symbols = array( $symbols );
+                throw new ArgumentsRequired($this->id . ' fetchPositions requires an array argument for symbols');
             }
         }
         yield $this->load_markets();
@@ -4503,28 +4502,17 @@ class binance extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
-    public function fetch_positions_risk($symbol = null, $params = array ()) {
-        if (gettype($symbol) === 'array' && count(array_filter(array_keys($symbol), 'is_string')) == 0) {
-            throw new BadSymbol($this->id . ' fetchPositionsRisk only accepts a string argument as a symbol');
+    public function fetch_positions_risk($symbols = null, $params = array ()) {
+        if ($symbols !== null) {
+            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
+                throw new ArgumentsRequired($this->id . ' fetchPositions requires an array argument for symbols');
+            }
         }
         yield $this->load_markets();
         yield $this->load_leverage_brackets();
         $request = array();
-        $market = null;
         $method = null;
         $defaultType = 'future';
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            if ($market['linear']) {
-                $request['symbol'] = $market['id'];
-                $defaultType = 'future';
-            } else if ($market['inverse']) {
-                $request['pair'] = $market['info']['pair'];
-                $defaultType = 'delivery';
-            } else {
-                throw NotSupported ($this->id . ' fetchPositionsRisk supports linear and inverse contracts only');
-            }
-        }
         $defaultType = $this->safe_string($this->options, 'defaultType', $defaultType);
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
@@ -4537,20 +4525,11 @@ class binance extends Exchange {
         }
         $response = yield $this->$method (array_merge($request, $params));
         $result = array();
-        if ($symbol === null) {
-            for ($i = 0; $i < count($response); $i++) {
-                $parsed = $this->parse_position_risk ($response[$i], $market);
-                $result[] = $parsed;
-            }
-        } else {
-            for ($i = 0; $i < count($response); $i++) {
-                $parsed = $this->parse_position_risk ($response[$i], $market);
-                if ($parsed['symbol'] === $symbol) {
-                    $result[] = $parsed;
-                }
-            }
+        for ($i = 0; $i < count($response); $i++) {
+            $parsed = $this->parse_position_risk ($response[$i]);
+            $result[] = $parsed;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
