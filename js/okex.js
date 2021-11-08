@@ -3346,7 +3346,7 @@ module.exports = class okex extends Exchange {
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'id': this.safeString (entry, 'billId'),
-                'amount': this.safeNumber (entry, 'pnl'),
+                'amount': this.safeNumber (entry, 'balChange'),
             });
         }
         const sorted = this.sortBy (result, 'timestamp');
