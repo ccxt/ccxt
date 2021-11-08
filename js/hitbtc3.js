@@ -1348,7 +1348,7 @@ module.exports = class hitbtc3 extends Exchange {
             throw new ArgumentsRequired (this.id + ' toAccount must be one of ' + keys.join (', ') + ' instead of ' + toId);
         }
         if (fromId === toId) {
-            throw new ArgumentsRequired (this.id + ' from and to cannot be the same account');
+            throw new BadRequest (this.id + ' from and to cannot be the same account');
         }
         const request = {
             'currency': currency['id'],
@@ -1383,7 +1383,7 @@ module.exports = class hitbtc3 extends Exchange {
         fromNetwork = this.safeString (networks, fromNetwork); // handle ETH>ERC20 alias
         toNetwork = this.safeString (networks, toNetwork); // handle ETH>ERC20 alias
         if (fromNetwork === toNetwork) {
-            throw new ArgumentsRequired (this.id + ' fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest (this.id + ' fromNetwork cannot be the same as toNetwork');
         }
         if ((fromNetwork === undefined) || (toNetwork === undefined)) {
             const keys = Object.keys (networks);
