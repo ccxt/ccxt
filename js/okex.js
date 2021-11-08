@@ -1320,7 +1320,7 @@ module.exports = class okex extends Exchange {
             const rate = data[i];
             const timestamp = this.safeNumber (rate, 'fundingTime');
             rates.push ({
-                'symbol': this.safeString (rate, 'instId'),
+                'symbol': this.safeSymbol (this.safeString (rate, 'instId')),
                 'fundingRate': this.safeNumber (rate, 'realizedRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
