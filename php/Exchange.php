@@ -2927,36 +2927,7 @@ class Exchange {
             if (is_int($x)){
                 $x = strval($x);
             } elseif (is_float($x)) {
-                $xs = strval($x);
-                $epos = strpos($xs,'E');
-                if ($epos !== false) {
-                    $e = intval(substr($xs,$epos+1));
-                    $m = substr($xs,0,$epos);
-                    $pointpos = strpos($xs,'.');
-                    if ($pointpos === false) {
-                        $pointpos = $epos;
-                    } else {
-                        $m = substr_replace($m,'',$pointpos,1);
-                    }
-                    $newpointpos = $pointpos + $e;
-                    if ($newpointpos < 0) {
-                        $m = str_repeat('0', -$newpointpos) . $m;
-                        $newpointpos = 0;
-                    } elseif ($newpointpos > strlen($m)) {
-                        $m .= str_repeat('0', $newpointpos - strlen($m));
-                    }
-                    if ($newpointpos == 0) {
-                        $m = '0.' . $m;
-                        $m = rtrim($m, '0');
-                    } elseif ($newpointpos < strlen($m)) {
-                        $m = substr_replace($m, '.', $newpointpos, 0);
-                        $m = rtrim($m, '0');
-                    }
-                    //assert( floatval($m) === $x );
-                    $x = $m;
-                } else {
-                    $x = $xs;
-                }
+                $x = static::number_to_string($x);
             } elseif (!is_string($x)) {
                 throw new BaseError('x must be a string or a number');
             }
