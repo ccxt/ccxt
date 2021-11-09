@@ -109,9 +109,9 @@ module.exports = class gemini extends Exchange {
                         'v1/balances',
                         'v1/notionalbalances/{currency}',
                         'v1/transfers',
-                        'v1/addresses/{network}', // TODO fetchDepositAddress
+                        'v1/addresses/{network}',
                         'v1/deposit/{network}/newAddress',
-                        'v1/deposit/{currency}/newAddress', // Available by-currency gemini endpoint
+                        'v1/deposit/{currency}/newAddress',
                         'v1/withdraw/{currency}',
                         'v1/account/transfer/{currency}',
                         'v1/payments/addbank',
@@ -127,10 +127,6 @@ module.exports = class gemini extends Exchange {
                         'v1/account/list',
                         'v1/heartbeat',
                     ],
-                    'get': [
-                        'v1/account/list', // returns information about accounts
-                    ],
-
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -848,7 +844,6 @@ module.exports = class gemini extends Exchange {
         const networkIds = this.safeValue (this.options, 'networkIds', {});
         networkId = this.safeString (networks, network);
         networkCode = this.safeString (networkIds, networkId);
-
         if (networkId === undefined) {
             networkCode = this.safeString (networkIds, network);
             networkId = network;
