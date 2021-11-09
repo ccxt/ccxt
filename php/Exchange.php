@@ -2955,11 +2955,12 @@ class Exchange {
         }
         
         $pointIndex = strpos( $x, '.');
+        $xlen = strlen($x);
         if ($pointIndex === false) {
-            $pointIndex = strlen($x);
+            $pointIndex = $xlen;
         }
         $firstDigitPos = 0;
-        while (($firstDigitPos < strlen($x)) and (($x[$firstDigitPos] < '1') or ($x[$firstDigitPos] > '9'))) {
+        while (($firstDigitPos < $xlen) and (($x[$firstDigitPos] < '1') or ($x[$firstDigitPos] > '9'))) {
             $firstDigitPos++;
         }
         if ($countingMode === DECIMAL_PLACES) {
@@ -2980,11 +2981,11 @@ class Exchange {
         if ($roundingMode === ROUND) {
             $p = $lastDigitPos;
             $p2 = $p + 1;
-            if (($pointIndex == $p2) and ($pointIndex != count($charArray))) {
+            if (($pointIndex == $p2) and ($pointIndex != $xlen)) {
                 $p2++;
             }
             $carry = 0;
-            while ((($p >= 0) and ($p < count($charArray)) and ($charArray[$p] != '-')) or ($p2 >= 0)) {
+            while ((($p >= 0) and ($p < $xlen) and ($charArray[$p] != '-')) or ($p2 >= 0)) {
                 if ($p >= count($charArray)) {
                     break;
                 }
@@ -2994,6 +2995,7 @@ class Exchange {
                 $carry = 1;
                 if ($p == -1) {
                     array_splice($charArray, $p+1, 0, chr(ord('0') + $carry));
+                    $xlen++;
                     $p++;
                     $pointIndex++;
                     if ($countingMode === DECIMAL_PLACES) {
@@ -3019,6 +3021,7 @@ class Exchange {
                 }
                 if (($p === -1) or ($charArray[$p] === '-')) {
                     array_splice($charArray, $p+1, 0, chr(ord('0') + $carry));
+                    $xlen++;
                     $p++;
                     $pointIndex++;
                     if ($countingMode === DECIMAL_PLACES) {
@@ -3027,16 +3030,16 @@ class Exchange {
                     break;
                 }
             }
-            if (($lastDigitPos < 0) or (($lastDigitPos < count($charArray)) and ($charArray[$lastDigitPos] == '-'))) {
+            if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($charArray[$lastDigitPos] == '-'))) {
                 return '0';
             }
-            for ($p = count($charArray); $p > $lastDigitPos; $p--) {
+            for ($p = $xlen; $p > $lastDigitPos; $p--) {
                 if ($p != $pointIndex) {
                     $charArray[$p] = '0';
                 }
             }
         } elseif ($roundingMode === TRUNCATE) {
-            if (($lastDigitPos < 0) or (($lastDigitPos < count($charArray)) and ($charArray[$lastDigitPos] === '-'))) {
+            if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($charArray[$lastDigitPos] === '-'))) {
                 return '0';
             }
             for ($p = $lastDigitPos+1; $p < $pointIndex; $p++) {
@@ -3046,20 +3049,22 @@ class Exchange {
             assert(false);
         }
         $result = implode('', array_slice($charArray, 0, max($pointIndex, $lastDigitPos+1)));
+        $resultlen = strlen($result);
         $hasDot = (false !== strpos($result, '.'));
         if ($paddingMode === NO_PADDING) {
-            if ((strlen($result) === 0) and ($numPrecisionDigitsNum === 0)) {
+            if (($resultlen === 0) and ($numPrecisionDigitsNum === 0)) {
                 return '0';
             }
             if ($hasDot) {
                 $result = rtrim($result, '0');
             }
         } else if ($paddingMode === PAD_WITH_ZERO) {
-            if (strlen($result) < $lastDigitPos) {
-                if ($pointIndex === strlen($result)) {
+            if ($resultlen < $lastDigitPos) {
+                if ($pointIndex === $resultlen) {
                     $result .= '.';
+                    $resultlen++;
                 }
-                $result .= str_repeat('0', $lastDigitPos - strlen($result) + 1);
+                $result .= str_repeat('0', $lastDigitPos - $resultlen + 1);
             }
         } else {
             assert(false);
