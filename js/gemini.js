@@ -836,33 +836,37 @@ module.exports = class gemini extends Exchange {
     }
 
     async fetchDepositAddressesByNetwork (code, params = {}) {
-        // igonores all parameters except for 'network'
         await this.loadMarkets ();
-        let network = this.safeString (params, 'network');
+        const network = this.safeString (params, 'network');
         if (!network) {
             throw new BadRequest ('fetchDepositAddressByNetwork requires a network parameter');
         }
-        //
         params = this.omit (params, 'network');
-        // 1st parse the supplied network to the exchange specific network ID (assuming its provided as as unified network code)
+        let networkCode = undefined;
+        let networkId = undefined;
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString (networks, network);
-        //
-        //
-        //
+        const networkIds = this.safeValue (this.options, 'networkIds', {});
+        networkId = this.safeString (networks, network);
+        networkCode = this.safeString (networkIds, networkId);
+
+        if (networkId === undefined) {
+            networkCode = this.safeString (networkIds, network);
+            networkId = network;
+        }
         const request = {};
-        request['network'] = this.safeString (networks, network, network);
-        const response = this.privatePostV1AddressesNetwork (this.extend (request, params));
+        request['network'] = networkId;
+        const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
         const addressList = [];
-        for (let i = 0; i < addressList.length; i++) {
-            const entry = addressList[i];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
             const address = this.safeString (entry, 'address');
             addressList.push (address);
         }
         return {
-            'network': network, // note we must keep a unified network code also to return
-            'addresses': addresses,
-        }
+            'network': networkCode,
+            'addresses': addressList,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
