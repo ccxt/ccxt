@@ -716,7 +716,9 @@ class okex(Exchange):
             minCost = self.parse_number(Precise.string_mul(tickSize, minAmountString))
         active = True
         fees = self.safe_value_2(self.fees, type, 'trading', {})
-        contractSize = self.safe_string(market, 'ctVal')
+        contractSize = None
+        if contract:
+            contractSize = self.safe_string(market, 'ctVal')
         leverage = self.safe_number(market, 'lever', 1)
         return self.extend(fees, {
             'id': id,
