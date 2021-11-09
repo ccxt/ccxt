@@ -501,9 +501,9 @@ module.exports = class okex extends ccxt.okex {
         //         ]
         //     }
         //
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const options = this.safeString (this.options, 'watchOrders', {});
-        let type = this.safeString (options, 'type', defaultType);
+        const options = this.safeValue (this.options, 'watchOrders', {});
+        // By default, receive order updates from any instrument type
+        let type = this.safeString (options, 'type', 'ANY');
         type = this.safeString (params, 'type', type);
         params = this.omit (params, 'type');
         let market = undefined;
