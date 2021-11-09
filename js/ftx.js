@@ -291,6 +291,7 @@ module.exports = class ftx extends Exchange {
                     'Please slow down': RateLimitExceeded, // {"error":"Please slow down","success":false}
                     'Size too small for provide': InvalidOrder, // {"error":"Size too small for provide","success":false}
                     'Not logged in': AuthenticationError, // {"error":"Not logged in","success":false}
+                    'Not logged in: Invalid API key': AuthenticationError, // {"error":"Not logged in: Invalid API key","success":false}
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder, // {"error":"Size too small","success":false}
