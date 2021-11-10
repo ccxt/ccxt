@@ -60,6 +60,8 @@ module.exports = class binance extends Exchange {
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
+                'addMargin': true,
+                'reduceMargin': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -4845,6 +4847,14 @@ module.exports = class binance extends Exchange {
             code = market['base'];
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //       "code": 200,
+        //       "msg": "Successfully modify position margin.",
+        //       "amount": 0.001,
+        //       "type": 1
+        //     }
+        //
         const rawType = this.safeInteger (response, 'type');
         const resultType = (rawType === 1) ? 'add' : 'reduce';
         const resultAmount = this.safeNumber (response, 'amount');
