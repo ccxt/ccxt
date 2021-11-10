@@ -531,22 +531,13 @@ module.exports = class okex extends Exchange {
                 },
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
                 'accountsByType': {
-                    'spot': '1',
-                    'futures': '3',
-                    'margin': '5',
+                    'spot': '18',
                     'funding': '6',
-                    'swap': '9',
-                    'option': '12',
                     'trading': '18', // unified trading account
                     'unified': '18',
                 },
                 'typesByAccount': {
-                    '1': 'spot',
-                    '3': 'futures',
-                    '5': 'margin',
                     '6': 'funding',
-                    '9': 'swap',
-                    '12': 'option',
                     '18': 'trading', // unified trading account
                 },
                 'brokerId': 'e847386590ce4dBC',
@@ -1245,10 +1236,7 @@ module.exports = class okex extends Exchange {
             if (difference > limit * duration * 1000) {
                 defaultType = 'HistoryCandles';
             }
-            const durationInMilliseconds = duration * 1000;
-            const startTime = Math.max (since - 1, 0);
-            request['before'] = startTime;
-            request['after'] = this.sum (startTime, durationInMilliseconds * limit);
+            request['before'] = since;
         }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
@@ -1286,7 +1274,7 @@ module.exports = class okex extends Exchange {
             'instId': market['id'],
         };
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2412,7 +2400,7 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const rawNetwork = this.safeString (params, 'network');
+        const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
@@ -2513,7 +2501,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2576,7 +2564,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -3046,8 +3034,8 @@ module.exports = class okex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const fromId = this.safeStringLower (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeStringLower (accountsByType, toAccount, toAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
