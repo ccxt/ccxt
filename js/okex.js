@@ -531,7 +531,7 @@ module.exports = class okex extends Exchange {
                 },
                 // 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
                 'accountsByType': {
-                    'spot': '18',
+                    'spot': '1',
                     'futures': '3',
                     'margin': '5',
                     'funding': '6',
