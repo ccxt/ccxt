@@ -504,9 +504,9 @@ class okex extends \ccxt\async\okex {
         //         )
         //     }
         //
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        $options = $this->safe_string($this->options, 'watchOrders', array());
-        $type = $this->safe_string($options, 'type', $defaultType);
+        $options = $this->safe_value($this->options, 'watchOrders', array());
+        // By default, receive order updates from any instrument $type
+        $type = $this->safe_string($options, 'type', 'ANY');
         $type = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
         $market = null;

@@ -472,9 +472,9 @@ class okex(Exchange, ccxt.okex):
         #         ]
         #     }
         #
-        defaultType = self.safe_string(self.options, 'defaultType')
-        options = self.safe_string(self.options, 'watchOrders', {})
-        type = self.safe_string(options, 'type', defaultType)
+        options = self.safe_value(self.options, 'watchOrders', {})
+        # By default, receive order updates from any instrument type
+        type = self.safe_string(options, 'type', 'ANY')
         type = self.safe_string(params, 'type', type)
         params = self.omit(params, 'type')
         market = None
