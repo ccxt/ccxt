@@ -1293,7 +1293,7 @@ class okex extends Exchange {
             'instId' => $market['id'],
         );
         if ($since !== null) {
-            $request['after'] = $since;
+            $request['before'] = max ($since - 1, 0);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2419,7 +2419,7 @@ class okex extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        $rawNetwork = $this->safe_string($params, 'network');
+        $rawNetwork = $this->safe_string_upper($params, 'network');
         $networks = $this->safe_value($this->options, 'networks', array());
         $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
         $params = $this->omit($params, 'network');
@@ -2520,7 +2520,7 @@ class okex extends Exchange {
             $request['ccy'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['after'] = $since;
+            $request['before'] = max ($since - 1, 0);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
@@ -2583,7 +2583,7 @@ class okex extends Exchange {
             $request['ccy'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['after'] = $since;
+            $request['before'] = max ($since - 1, 0);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100

@@ -1289,7 +1289,7 @@ module.exports = class okex extends Exchange {
             'instId': market['id'],
         };
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2415,7 +2415,7 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const rawNetwork = this.safeString (params, 'network');
+        const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
@@ -2516,7 +2516,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2579,7 +2579,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
