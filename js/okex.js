@@ -3046,8 +3046,8 @@ module.exports = class okex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeStringLower (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeStringLower (accountsByType, toAccount, toAccount);
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
