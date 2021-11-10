@@ -1264,7 +1264,7 @@ class okex(Exchange):
             'instId': market['id'],
         }
         if since is not None:
-            request['after'] = since
+            request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetPublicFundingRateHistory(self.extend(request, params))
@@ -2330,7 +2330,7 @@ class okex(Exchange):
         return self.index_by(parsed, 'network')
 
     async def fetch_deposit_address(self, code, params={}):
-        rawNetwork = self.safe_string(params, 'network')
+        rawNetwork = self.safe_string_upper(params, 'network')
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(networks, rawNetwork, rawNetwork)
         params = self.omit(params, 'network')
@@ -2417,7 +2417,7 @@ class okex(Exchange):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         if since is not None:
-            request['after'] = since
+            request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         response = await self.privateGetAssetDepositHistory(self.extend(request, params))
@@ -2476,7 +2476,7 @@ class okex(Exchange):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         if since is not None:
-            request['after'] = since
+            request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         response = await self.privateGetAssetWithdrawalHistory(self.extend(request, params))
