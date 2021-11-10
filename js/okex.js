@@ -1236,7 +1236,10 @@ module.exports = class okex extends Exchange {
             if (difference > limit * duration * 1000) {
                 defaultType = 'HistoryCandles';
             }
-            request['before'] = since;
+            const durationInMilliseconds = duration * 1000;
+            const startTime = Math.max (since - 1, 0);
+            request['before'] = startTime;
+            request['after'] = this.sum (startTime, durationInMilliseconds * limit);
         }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
@@ -1274,7 +1277,7 @@ module.exports = class okex extends Exchange {
             'instId': market['id'],
         };
         if (since !== undefined) {
-            request['before'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2501,7 +2504,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['before'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2564,7 +2567,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['before'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
