@@ -957,6 +957,9 @@ module.exports = class kucoin extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        if (this.id === 'kucoinfutures') {
+            throw new NotSupported ('fetchTickers is not supported by ' + this.id);
+        }
         const response = await this.publicGetMarketAllTickers (params);
         //
         //     {
