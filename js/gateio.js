@@ -1554,7 +1554,7 @@ module.exports = class gateio extends Exchange {
             const timeframeSeconds = this.parseTimeframe (timeframe);
             const timeframeMilliseconds = timeframeSeconds * 1000;
             // align forward to the next timeframe alignment
-            since = since - (since % timeframeMilliseconds) + timeframeMilliseconds;
+            since = this.sum (since - (since % timeframeMilliseconds), timeframeMilliseconds);
             request['from'] = parseInt (since / 1000);
             if (limit !== undefined) {
                 request['to'] = this.sum (request['from'], limit * timeframeSeconds - 1);
