@@ -126,28 +126,30 @@ class latoken2 extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    // INTERNAL_ERROR - internal server error. You can contact our support to solve this problem.
-                    // SERVICE_UNAVAILABLE - requested information currently not available. You can contact our support to solve this problem or retry later.
-                    // NOT_AUTHORIZED - user's query not authorized. Check if you are logged in.
-                    // FORBIDDEN - you don't have enough access rights.
-                    // BAD_REQUEST - some bad request, for example bad fields values or something else. Read response message for more information.
-                    // NOT_FOUND - entity not found. Read message for more information.
-                    // ACCESS_DENIED - access is denied. Probably you don't have enough access rights, you contact our support.
-                    // REQUEST_REJECTED - user's request rejected for some reasons. Check error message.
-                    // HTTP_MEDIA_TYPE_NOT_SUPPORTED - http media type not supported.
-                    // MEDIA_TYPE_NOT_ACCEPTABLE - media type not acceptable
-                    // METHOD_ARGUMENT_NOT_VALID - one of method argument is invalid. Check argument types and error message for more information.
-                    // VALIDATION_ERROR - check errors field to get reasons.
-                    // ACCOUNT_EXPIRED - restore your account or create a new one.
-                    // BAD_CREDENTIALS - invalid username or password.
-                    // COOKIE_THEFT - cookie has been stolen. Let's try reset your cookies.
-                    // CREDENTIALS_EXPIRED - credentials expired.
-                    // INSUFFICIENT_AUTHENTICATION - for example, 2FA required.
-                    // UNKNOWN_LOCATION - user logged from unusual location, email confirmation required.
-                    // TOO_MANY_REQUESTS - too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
+                    'INTERNAL_ERROR' => '\\ccxt\\ExchangeError', // internal server error. You can contact our support to solve this problem. array("message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE")
+                    'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable', // requested information currently not available. You can contact our support to solve this problem or retry later.
+                    'NOT_AUTHORIZED' => '\\ccxt\\AuthenticationError', // user's query not authorized. Check if you are logged in.
+                    'FORBIDDEN' => '\\ccxt\\PermissionDenied', // you don't have enough access rights.
+                    'BAD_REQUEST' => '\\ccxt\\BadRequest', // some bad request, for example bad fields values or something else. Read response message for more information.
+                    'NOT_FOUND' => '\\ccxt\\ExchangeError', // entity not found. Read message for more information.
+                    'ACCESS_DENIED' => '\\ccxt\\PermissionDenied', // access is denied. Probably you don't have enough access rights, you contact our support.
+                    'REQUEST_REJECTED' => '\\ccxt\\ExchangeError', // user's request rejected for some reasons. Check error message.
+                    'HTTP_MEDIA_TYPE_NOT_SUPPORTED' => '\\ccxt\\BadRequest', // http media type not supported.
+                    'MEDIA_TYPE_NOT_ACCEPTABLE' => '\\ccxt\\BadRequest', // media type not acceptable
+                    'METHOD_ARGUMENT_NOT_VALID' => '\\ccxt\\BadRequest', // one of method argument is invalid. Check argument types and error message for more information.
+                    'VALIDATION_ERROR' => '\\ccxt\\BadRequest', // check errors field to get reasons.
+                    'ACCOUNT_EXPIRED' => '\\ccxt\\AccountSuspended', // restore your account or create a new one.
+                    'BAD_CREDENTIALS' => '\\ccxt\\AuthenticationError', // invalid username or password.
+                    'COOKIE_THEFT' => '\\ccxt\\AuthenticationError', // cookie has been stolen. Let's try reset your cookies.
+                    'CREDENTIALS_EXPIRED' => '\\ccxt\\AccountSuspended', // credentials expired.
+                    'INSUFFICIENT_AUTHENTICATION' => '\\ccxt\\AuthenticationError', // for example, 2FA required.
+                    'UNKNOWN_LOCATION' => '\\ccxt\\AuthenticationError', // user logged from unusual location, email confirmation required.
+                    'TOO_MANY_REQUESTS' => '\\ccxt\\RateLimitExceeded', // too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                 ),
                 'broad' => array(
-                    'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError',
+                    'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError', // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
+                    'request expired or bad' => '\\ccxt\\InvalidNonce', // array("result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE")
+                    'For input string' => '\\ccxt\\BadRequest', // array("result":false,"message":"Internal error","error":"For input string => \"NaN\"","status":"FAILURE")
                 ),
             ),
             'options' => array(
@@ -1204,11 +1206,11 @@ class latoken2 extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
-        $error = $this->safe_value($response, 'error', array());
+        $error = $this->safe_string($response, 'error');
         $errorMessage = $this->safe_string($error, 'message');
-        if ($errorMessage !== null) {
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessage, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+        if (($error !== null) || ($errorMessage !== null)) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
     }
