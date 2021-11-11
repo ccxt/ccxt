@@ -2864,35 +2864,33 @@ module.exports = class gateio extends Exchange {
         }
         const maintenanceRate = this.safeValue (position, 'maintenance_rate');
         const markPrice = this.safeValue (position, 'mark_price');
-        // const contractSize = this.safeValue (position, 'size');
-        const notional = this.safeValue (position, 'value');
-        const collateral = this.safeValue (position, 'margin');
-        const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
-        const initialMargin = '';
+        const notional = this.safeNumber (position, 'value');
+        const initialMargin = this.safeValue (position, 'margin');
+        // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         const unrealisedPnl = this.safeValue (position, 'unrealised_pnl');
         return {
             'info': position,
             'symbol': market['symbol'],
             'timestamp': now,
             'datetime': this.iso8601 (now),
-            'initialMargin': undefined,
-            'initialMarginPercentage': Precise.stringDiv (initialMargin, notional),
-            'maintenanceMargin': Precise.stringMul (maintenanceRate, notional),
+            'initialMargin': initialMargin,
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMargin, notional)),
+            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
             'maintenanceMarginPercentage': maintenanceRate,
             'entryPrice': this.safeValue (position, 'entry_price'),
             'notional': notional,
             'leverage': this.safeValue (position, 'leverage'),
             'unrealizedPnl': this.safeValue (position, 'unrealised_pnl'),
             'contracts': size,
-            'contractSize': Precise.stringDiv (notional, Precise.stringMul (size, markPrice)),
+            'contractSize': this.parseNumber (Precise.stringDiv (notional, Precise.stringMul (size, markPrice))),
             //     realisedPnl: position['realised_pnl'],
-            'marginRatio': marginRatio,
+            'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': markPrice,
-            'collateral': collateral,
+            'collateral': undefined,
             'marginType': undefined,
             'side': side,
-            'percentage': Precise.stringDiv (unrealisedPnl, initialMargin),
+            'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
         };
     }
 
@@ -2906,7 +2904,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         // :param symbols: Not used by Gateio
-        // :param params: 
+        // :param params:
         //    settle: The currency that derivative contracts are settled in
         //    Other exchange specific params
         //
@@ -2919,7 +2917,7 @@ module.exports = class gateio extends Exchange {
         });
         const settle = this.safeString (params, 'settle');
         if (!settle) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions requires a value for key "settle" in params')
+            throw new ArgumentsRequired (this.id + ' fetchPositions requires a value for key "settle" in params');
         }
         const request = {
             'settle': settle,
