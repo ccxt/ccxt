@@ -2872,29 +2872,28 @@ class okex(Exchange):
         initialMarginString = None
         entryPriceString = self.safe_string(position, 'avgPx')
         unrealizedPnlString = self.safe_string(position, 'upl')
+        leverageString = self.safe_string(position, 'lever')
+        initialMarginPercentage = None
+        collateralString = None
         if marginType == 'cross':
             initialMarginString = self.safe_string(position, 'imr')
-        else:
-            initialMarginString = self.safe_string(position, 'margin')
+            collateralString = Precise.string_add(initialMarginString, unrealizedPnlString)
+        elif marginType == 'isolated':
+            initialMarginPercentage = Precise.string_div('1', leverageString)
+            collateralString = self.safe_string(position, 'margin')
         maintenanceMarginString = self.safe_string(position, 'mmr')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
-        initialMarginPercentage = None
-        maintenanceMarginPercentage = None
-        if market['inverse']:
-            notionalValue = Precise.string_div(Precise.string_mul(contractsAbs, market['contractSize']), entryPriceString)
-            maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notionalValue)
-            initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalValue, 4))
-        else:
-            maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notionalString)
+        maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notionalString)
+        if initialMarginPercentage is None:
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
+        elif initialMarginString is None:
+            initialMarginString = Precise.string_mul(initialMarginPercentage, notionalString)
         rounder = '0.00005'  # round to closest 0.01%
         maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentage, rounder), '1', 4))
-        collateralString = Precise.string_add(initialMarginString, unrealizedPnlString)
         liquidationPrice = self.safe_number(position, 'liqPx')
         percentageString = self.safe_string(position, 'uplRatio')
         percentage = self.parse_number(Precise.string_mul(percentageString, '100'))
         timestamp = self.safe_integer(position, 'uTime')
-        leverage = self.safe_number(position, 'lever')
         marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
         return {
             'info': position,
@@ -2917,7 +2916,7 @@ class okex(Exchange):
             'collateral': self.parse_number(collateralString),
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
-            'leverage': leverage,
+            'leverage': self.parse_number(leverageString),
             'marginRatio': marginRatio,
         }
 
