@@ -1553,6 +1553,7 @@ module.exports = class gateio extends Exchange {
         } else {
             const timeframeSeconds = this.parseTimeframe (timeframe);
             const timeframeMilliseconds = timeframeSeconds * 1000;
+            // align forward to nearest timeframe
             since = since - (since % timeframeMilliseconds) + timeframeMilliseconds;
             request['from'] = parseInt (since / 1000);
             if (limit !== undefined) {
