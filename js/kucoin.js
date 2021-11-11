@@ -430,8 +430,11 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const spotResponse = await this.publicGetSymbols (params);
-        const futuresResponse = await this.futuresPublicGetContractsActive (params);
+        const method = this.getSupportedMapping (this.id, {
+            'kucoin': 'publicGetSymbols',
+            'kucoinfutures': 'futuresPublicGetContractsActive',
+        });
+        const response = await this[method] (params);
         //  SPOT
         //     {
         //         "code": "200000",
@@ -525,143 +528,140 @@ module.exports = class kucoin extends Exchange {
         //     }
         // }
         const result = [];
-        const responses = [spotResponse, futuresResponse];  // * Spot must remain as the first response in responses
-        for (let i = 0; i < responses.length; i++) {
-            const spot = i === 0;   // * Spot must remain as the first response in responses
-            const data = this.safeValue (responses[i], 'data');
-            const options = this.safeValue (this.options, 'fetchMarkets', {});
-            const fetchTickersFees = this.safeValue (options, 'fetchTickersFees', true);
-            let tickersResponse = {};
-            if (spot && fetchTickersFees) {
-                tickersResponse = await this.publicGetMarketAllTickers (params);
+        const spot = this.id === 'kucoin';
+        const data = this.safeValue (response, 'data');
+        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const fetchTickersFees = this.safeValue (options, 'fetchTickersFees', true);
+        let tickersResponse = {};
+        if (spot && fetchTickersFees) {
+            tickersResponse = await this.publicGetMarketAllTickers (params);
+        }
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "time":1602832092060,
+        //             "ticker":[
+        //                 {
+        //                     "symbol": "BTC-USDT",   // symbol
+        //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+        //                     "buy": "11328.9",   // bestAsk
+        //                     "sell": "11329",    // bestBid
+        //                     "changeRate": "-0.0055",    // 24h change rate
+        //                     "changePrice": "-63.6", // 24h change price
+        //                     "high": "11610",    // 24h highest price
+        //                     "low": "11200", // 24h lowest price
+        //                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+        //                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+        //                     "last": "11328.9",  // last price
+        //                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+        //                     "takerFeeRate": "0.001",    // Basic Taker Fee
+        //                     "makerFeeRate": "0.001",    // Basic Maker Fee
+        //                     "takerCoefficient": "1",    // Taker Fee Coefficient
+        //                     "makerCoefficient": "1" // Maker Fee Coefficient
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const tickersData = this.safeValue (tickersResponse, 'data', {});
+        const tickers = this.safeValue (tickersData, 'ticker', []);
+        const tickersByMarketId = this.indexBy (tickers, 'symbol');
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'symbol');
+            const expireDate = this.safeNumber (market, 'expireDate');
+            const futures = expireDate ? true : false;
+            const swap = !spot && !futures;
+            const base = this.safeString (market, 'baseCurrency');
+            const quote = this.safeString (market, 'quoteCurrency');
+            const settle = this.safeString (market, 'settleCurrency');
+            let symbol = '';
+            let type = '';
+            if (spot) {
+                symbol = base + '/' + quote;
+                type = 'spot';
+            } else if (swap) {
+                symbol = base + '/' + quote + ':' + settle;
+                type = 'swap';
+            } else if (futures) {
+                symbol = base + '/' + quote + '-' + expireDate + ':' + settle;
+                type = 'futures';
             }
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "time":1602832092060,
-            //             "ticker":[
-            //                 {
-            //                     "symbol": "BTC-USDT",   // symbol
-            //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
-            //                     "buy": "11328.9",   // bestAsk
-            //                     "sell": "11329",    // bestBid
-            //                     "changeRate": "-0.0055",    // 24h change rate
-            //                     "changePrice": "-63.6", // 24h change price
-            //                     "high": "11610",    // 24h highest price
-            //                     "low": "11200", // 24h lowest price
-            //                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
-            //                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
-            //                     "last": "11328.9",  // last price
-            //                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
-            //                     "takerFeeRate": "0.001",    // Basic Taker Fee
-            //                     "makerFeeRate": "0.001",    // Basic Maker Fee
-            //                     "takerCoefficient": "1",    // Taker Fee Coefficient
-            //                     "makerCoefficient": "1" // Maker Fee Coefficient
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            const tickersData = this.safeValue (tickersResponse, 'data', {});
-            const tickers = this.safeValue (tickersData, 'ticker', []);
-            const tickersByMarketId = this.indexBy (tickers, 'symbol');
-            for (let i = 0; i < data.length; i++) {
-                const market = data[i];
-                const id = this.safeString (market, 'symbol');
-                const expireDate = this.safeNumber (market, 'expireDate');
-                const futures = expireDate ? true : false;
-                const swap = !spot && !futures;
-                const base = this.safeString (market, 'baseCurrency');
-                const quote = this.safeString (market, 'quoteCurrency');
-                const settle = this.safeString (market, 'settleCurrency');
-                let symbol = '';
-                let type = '';
-                if (spot) {
-                    symbol = base + '/' + quote;
-                    type = 'spot';
-                } else if (swap) {
-                    symbol = base + '/' + quote + ':' + settle;
-                    type = 'swap';
-                } else if (futures) {
-                    symbol = base + '/' + quote + '-' + expireDate + ':' + settle;
-                    type = 'futures';
-                }
-                const margin = this.safeValue (market, 'isMarginEnabled', false);
-                const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
-                const baseMinSizeString = this.safeString (market, 'baseMinSize');
-                const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
-                const baseMinSize = this.parseNumber (baseMinSizeString);
-                const quoteMaxSize = this.parseNumber (quoteMaxSizeString);
-                const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
-                const inverse = this.safeValue (market, 'isInverse');
-                // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-                const amount = this.safeString (market, 'baseIncrement');
-                const price = this.safeString (market, 'priceIncrement');
-                const precision = {
-                    'amount': amount ? this.precisionFromString (this.safeString (market, 'baseIncrement')) : undefined,
-                    'price': price ? this.precisionFromString (this.safeString (market, 'priceIncrement')) : undefined,
-                };
-                const limits = {
-                    'amount': {
-                        'min': baseMinSize,
-                        'max': baseMaxSize,
-                    },
-                    'price': {
-                        'min': this.safeNumber (market, 'priceIncrement'),
-                        'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
-                    },
-                    'cost': {
-                        'min': quoteMinSize,
-                        'max': quoteMaxSize,
-                    },
-                    'leverage': {
-                        'max': this.safeNumber (market, 'maxLeverage', 1), // * Don't default to 1 for margin markets, leverage is located elsewhere
-                    },
-                };
-                const ticker = this.safeValue (tickersByMarketId, id, {});
-                let makerFeeRate = undefined;
-                let takerFeeRate = undefined;
-                const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
-                const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
-                if (spot) {
-                    makerFeeRate = this.safeString (ticker, 'makerFeeRate');
-                    takerFeeRate = this.safeString (ticker, 'makerFeeRate');
-                } else {
-                    makerFeeRate = this.safeString (market, 'makerFeeRate');
-                    takerFeeRate = this.safeString (market, 'makerFeeRate');
-                }
-                const maker = this.parseNumber (Precise.stringMul (makerFeeRate, makerCoefficient));
-                const taker = this.parseNumber (Precise.stringMul (takerFeeRate, takerCoefficient));
-                result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'baseId': base,
-                    'quoteId': quote,
-                    'settleId': settle,
-                    'base': base,
-                    'quote': quote,
-                    'type': type,
-                    'spot': spot,
-                    'margin': margin,
-                    'swap': swap,
-                    'futures': futures,
-                    'option': false,
-                    'active': spot ? this.safeValue (market, 'enableTrading') : true,
-                    'maker': maker,
-                    'taker': taker,
-                    'precision': precision,
-                    'contract': swap,
-                    'linear': inverse !== true,
-                    'inverse': inverse,
-                    'expiry': this.safeValue (market, 'expireDate'),
-                    'contractSize': undefined,
-                    'limits': limits,
-                    'info': market,
-                    // Fee is in %, so divide by 100
-                    'fees': this.safeValue (this.fees, 'type', {}),
-                });
+            const margin = this.safeValue (market, 'isMarginEnabled', false);
+            const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
+            const baseMinSizeString = this.safeString (market, 'baseMinSize');
+            const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
+            const baseMinSize = this.parseNumber (baseMinSizeString);
+            const quoteMaxSize = this.parseNumber (quoteMaxSizeString);
+            const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
+            const inverse = this.safeValue (market, 'isInverse');
+            // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
+            const amount = this.safeString (market, 'baseIncrement');
+            const price = this.safeString (market, 'priceIncrement');
+            const precision = {
+                'amount': amount ? this.precisionFromString (this.safeString (market, 'baseIncrement')) : undefined,
+                'price': price ? this.precisionFromString (this.safeString (market, 'priceIncrement')) : undefined,
+            };
+            const limits = {
+                'amount': {
+                    'min': baseMinSize,
+                    'max': baseMaxSize,
+                },
+                'price': {
+                    'min': this.safeNumber (market, 'priceIncrement'),
+                    'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
+                },
+                'cost': {
+                    'min': quoteMinSize,
+                    'max': quoteMaxSize,
+                },
+                'leverage': {
+                    'max': this.safeNumber (market, 'maxLeverage', 1), // * Don't default to 1 for margin markets, leverage is located elsewhere
+                },
+            };
+            const ticker = this.safeValue (tickersByMarketId, id, {});
+            let makerFeeRate = undefined;
+            let takerFeeRate = undefined;
+            const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
+            const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
+            if (spot) {
+                makerFeeRate = this.safeString (ticker, 'makerFeeRate');
+                takerFeeRate = this.safeString (ticker, 'makerFeeRate');
+            } else {
+                makerFeeRate = this.safeString (market, 'makerFeeRate');
+                takerFeeRate = this.safeString (market, 'makerFeeRate');
             }
+            const maker = this.parseNumber (Precise.stringMul (makerFeeRate, makerCoefficient));
+            const taker = this.parseNumber (Precise.stringMul (takerFeeRate, takerCoefficient));
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'baseId': base,
+                'quoteId': quote,
+                'settleId': settle,
+                'base': base,
+                'quote': quote,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
+                'swap': swap,
+                'futures': futures,
+                'option': false,
+                'active': spot ? this.safeValue (market, 'enableTrading') : true,
+                'maker': maker,
+                'taker': taker,
+                'precision': precision,
+                'contract': swap,
+                'linear': inverse !== true,
+                'inverse': inverse,
+                'expiry': this.safeValue (market, 'expireDate'),
+                'contractSize': undefined,
+                'limits': limits,
+                'info': market,
+                // Fee is in %, so divide by 100
+                'fees': this.safeValue (this.fees, 'type', {}),
+            });
         }
         return result;
     }
