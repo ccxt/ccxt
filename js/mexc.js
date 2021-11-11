@@ -223,8 +223,8 @@ module.exports = class mexc extends Exchange {
                 'DFT': 'dFuture',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
+                'PROS': 'Pros.Finance', // conflict with Prosper
                 'SIN': 'Sin City Token',
-                'PROS': 'Pros.Finance',
             },
             'exceptions': {
                 'exact': {
