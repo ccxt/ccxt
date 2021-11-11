@@ -2065,7 +2065,7 @@ module.exports = class gateio extends Exchange {
             }
             const defaultTif = stop_limit ? 'gtc' : 'ioc';
             if (contract) {
-                trigger['rule'] = side === 'buy' ? 1 : 2;
+                trigger['rule'] = (side === 'buy') ? 1 : 2;
                 trigger['strategy_type'] = this.safeValue (params, 'strategy_type', 0);
                 trigger['price_type'] = this.safeValue (params, 'price_type');
                 request['initial'] = {
@@ -2078,8 +2078,8 @@ module.exports = class gateio extends Exchange {
                 };
                 request['settle'] = market['settleId'];
             } else {
-                trigger['rule'] = side === 'buy' ? '>=' : '<=';
-                const defaultAccount = type === 'margin' ? 'margin' : 'normal';
+                trigger['rule'] = (side === 'buy') ? '>=' : '<=';
+                const defaultAccount = (type === 'margin') ? 'margin' : 'normal';
                 request['put'] = {
                     'type': stop_limit ? 'limit' : 'market',
                     'side': side,
