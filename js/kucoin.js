@@ -532,7 +532,7 @@ module.exports = class kucoin extends Exchange {
             const options = this.safeValue (this.options, 'fetchMarkets', {});
             const fetchTickersFees = this.safeValue (options, 'fetchTickersFees', true);
             let tickersResponse = {};
-            if (fetchTickersFees) {
+            if (spot && fetchTickersFees) {
                 tickersResponse = await this.publicGetMarketAllTickers (params);
             }
             //
