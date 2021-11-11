@@ -1366,17 +1366,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 3
      
    * - US
-     - .. image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg
-          :target: https://btc-alpha.com/?r=123788
-          :alt: btcalpha
-     
-     - btcalpha
-     - `BTC-Alpha <https://btc-alpha.com/?r=123788>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://btc-alpha.github.io/api-docs
-          :alt: API Version 1
-     
-   * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
           :target: https://www.coinbase.com/join/58cbe25a355148797479dbd2
           :alt: coinbase
