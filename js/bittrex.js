@@ -219,8 +219,8 @@ module.exports = class bittrex extends Exchange {
             'commonCurrencies': {
                 'BIFI': 'Bifrost Finance',
                 'MER': 'Mercury', // conflict with Mercurial Finance
-                'REPV2': 'REP',
                 'PROS': 'Pros.Finance',
+                'REPV2': 'REP',       
                 'TON': 'Tokamak Network',
             },
         });
