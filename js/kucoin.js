@@ -1015,7 +1015,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
-        //
+        // SPOT
         //     [
         //         "1545904980",             // Start time of the candle cycle
         //         "0.058",                  // opening price
@@ -1025,7 +1025,19 @@ module.exports = class kucoin extends Exchange {
         //         "0.018",                  // base volume
         //         "0.000945",               // quote volume
         //     ]
-        //
+        // FUTURES
+        //     [
+        //        1636459200000,             // Start time of the candle cycle
+        //        4779.3,                    // opening price
+        //        4792.1,                    // closing price
+        //        4768.7,                    // highest price
+        //        4770.3,                    // lowest price
+        //        78051                      // volume
+        //      ]
+        if (this.id === 'kucoinfutures') {
+            const timestamp = this.safeString (ohlcv, 0);
+            ohlcv[0] = Precise.stringDiv (timestamp, '1000');
+        }
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1062,7 +1074,6 @@ module.exports = class kucoin extends Exchange {
         }
         request['endAt'] = parseInt (Math.floor (endAt / 1000));
         const response = await this.publicGetMarketCandles (this.extend (request, params));
-        //
         //     {
         //         "code":"200000",
         //         "data":[
@@ -1071,7 +1082,6 @@ module.exports = class kucoin extends Exchange {
         //             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
         //         ]
         //     }
-        //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
