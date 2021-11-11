@@ -55,6 +55,8 @@ module.exports = class okex extends Exchange {
                 'setLeverage': true,
                 'setPositionMode': true,
                 'setMarginMode': true,
+                'addMargin': true,
+                'reduceMargin': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -709,7 +711,10 @@ module.exports = class okex extends Exchange {
         }
         const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
-        const contractSize = this.safeString (market, 'ctVal');
+        let contractSize = undefined;
+        if (contract) {
+            contractSize = this.safeString (market, 'ctVal');
+        }
         const leverage = this.safeNumber (market, 'lever', 1);
         return this.extend (fees, {
             'id': id,
@@ -1286,7 +1291,7 @@ module.exports = class okex extends Exchange {
             'instId': market['id'],
         };
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1320,7 +1325,7 @@ module.exports = class okex extends Exchange {
             const rate = data[i];
             const timestamp = this.safeNumber (rate, 'fundingTime');
             rates.push ({
-                'symbol': this.safeString (rate, 'instId'),
+                'symbol': this.safeSymbol (this.safeString (rate, 'instId')),
                 'fundingRate': this.safeNumber (rate, 'realizedRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -1574,6 +1579,11 @@ module.exports = class okex extends Exchange {
             } else if ((tdMode !== 'isolated') && (tdMode !== 'cross')) {
                 throw new BadRequest (this.id + ' params["tdMode"] must be either "isolated" or "cross"');
             }
+        }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            request['ordType'] = 'post_only';
+            params = this.omit (params, [ 'postOnly' ]);
         }
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
@@ -2407,7 +2417,7 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const rawNetwork = this.safeString (params, 'network');
+        const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
@@ -2508,7 +2518,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2571,7 +2581,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2936,6 +2946,7 @@ module.exports = class okex extends Exchange {
         //       "liab": "",
         //       "liabCcy": "",
         //       "liqPx": "12608.959083877446",
+        //       "markPx": "4786.459271773621",
         //       "margin": "",
         //       "mgnMode": "cross",
         //       "mgnRatio": "140.49930117599155",
@@ -2974,7 +2985,11 @@ module.exports = class okex extends Exchange {
                 }
             }
         }
-        const notionalString = this.safeString (position, 'notionalUsd');
+        const markPriceString = this.safeString (position, 'markPx');
+        let notionalString = this.safeString (position, 'notionalUsd');
+        if (market['inverse']) {
+            notionalString = Precise.stringDiv (notionalString, markPriceString);
+        }
         const notional = this.parseNumber (notionalString);
         const marginType = this.safeString (position, 'mgnMode');
         let initialMarginString = undefined;
@@ -3017,6 +3032,7 @@ module.exports = class okex extends Exchange {
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': this.parseNumber (market['contractSize']),
+            'markPrice': this.parseNumber (markPriceString),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
@@ -3308,11 +3324,35 @@ module.exports = class okex extends Exchange {
             request['limit'] = limit.toString (); // default 100, max 100
         }
         const response = await this.privateGetAccountBills (this.extend (request, params));
+        //
+        //     {
+        //       "bal": "0.0242946200998573",
+        //       "balChg": "0.0000148752712240",
+        //       "billId": "377970609204146187",
+        //       "ccy": "ETH",
+        //       "execType": "",
+        //       "fee": "0",
+        //       "from": "",
+        //       "instId": "ETH-USD-SWAP",
+        //       "instType": "SWAP",
+        //       "mgnMode": "isolated",
+        //       "notes": "",
+        //       "ordId": "",
+        //       "pnl": "0.000014875271224",
+        //       "posBal": "0",
+        //       "posBalChg": "0",
+        //       "subType": "174",
+        //       "sz": "9",
+        //       "to": "",
+        //       "ts": "1636387215588",
+        //       "type": "8"
+        //     }
+        //
         const data = this.safeValue (response, 'data');
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            const timestamp = this.safeTimestamp (entry, 'ts');
+            const timestamp = this.safeInteger (entry, 'ts');
             const instId = this.safeString (entry, 'instId');
             const market = this.safeMarket (instId);
             result.push ({
@@ -3321,11 +3361,12 @@ module.exports = class okex extends Exchange {
                 'code': market['inverse'] ? market['base'] : market['quote'],
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
-                'id': this.safeNumber (entry, 'billId'),
-                'amount': this.safeNumber (entry, 'sz'),
+                'id': this.safeString (entry, 'billId'),
+                'amount': this.safeNumber (entry, 'balChg'),
             });
         }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
@@ -3429,6 +3470,60 @@ module.exports = class okex extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const posSide = this.safeString (params, 'posSide', 'net');
+        params = this.omit (params, [ 'posSide' ]);
+        const request = {
+            'instId': market['id'],
+            'amt': amount,
+            'type': type,
+            'posSide': posSide,
+        };
+        const response = await this.privatePostAccountPositionMarginBalance (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "amt": "0.01",
+        //           "instId": "ETH-USD-SWAP",
+        //           "posSide": "net",
+        //           "type": "reduce"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const entry = this.safeValue (data, 0, {});
+        const errorCode = this.safeString (response, 'code');
+        const status = (errorCode === '0') ? 'ok' : 'failed';
+        const responseAmount = this.safeNumber (entry, 'amt');
+        const responseType = this.safeString (entry, 'type');
+        const marketId = this.safeString (entry, 'instId');
+        const responseMarket = this.safeMarket (marketId, market);
+        const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
+        symbol = responseMarket['symbol'];
+        return {
+            'info': response,
+            'type': responseType,
+            'amount': responseAmount,
+            'code': code,
+            'symbol': symbol,
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

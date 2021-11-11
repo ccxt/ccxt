@@ -60,6 +60,8 @@ class okex extends Exchange {
                 'setLeverage' => true,
                 'setPositionMode' => true,
                 'setMarginMode' => true,
+                'addMargin' => true,
+                'reduceMargin' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -714,7 +716,10 @@ class okex extends Exchange {
         }
         $active = true;
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
-        $contractSize = $this->safe_string($market, 'ctVal');
+        $contractSize = null;
+        if ($contract) {
+            $contractSize = $this->safe_string($market, 'ctVal');
+        }
         $leverage = $this->safe_number($market, 'lever', 1);
         return array_merge($fees, array(
             'id' => $id,
@@ -1291,7 +1296,7 @@ class okex extends Exchange {
             'instId' => $market['id'],
         );
         if ($since !== null) {
-            $request['after'] = $since;
+            $request['before'] = max ($since - 1, 0);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1325,7 +1330,7 @@ class okex extends Exchange {
             $rate = $data[$i];
             $timestamp = $this->safe_number($rate, 'fundingTime');
             $rates[] = array(
-                'symbol' => $this->safe_string($rate, 'instId'),
+                'symbol' => $this->safe_symbol($this->safe_string($rate, 'instId')),
                 'fundingRate' => $this->safe_number($rate, 'realizedRate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -1579,6 +1584,11 @@ class okex extends Exchange {
             } else if (($tdMode !== 'isolated') && ($tdMode !== 'cross')) {
                 throw new BadRequest($this->id . ' $params["$tdMode"] must be either "isolated" or "cross"');
             }
+        }
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly) {
+            $request['ordType'] = 'post_only';
+            $params = $this->omit($params, array( 'postOnly' ));
         }
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         if ($clientOrderId === null) {
@@ -2412,7 +2422,7 @@ class okex extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        $rawNetwork = $this->safe_string($params, 'network');
+        $rawNetwork = $this->safe_string_upper($params, 'network');
         $networks = $this->safe_value($this->options, 'networks', array());
         $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
         $params = $this->omit($params, 'network');
@@ -2513,7 +2523,7 @@ class okex extends Exchange {
             $request['ccy'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['after'] = $since;
+            $request['before'] = max ($since - 1, 0);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
@@ -2576,7 +2586,7 @@ class okex extends Exchange {
             $request['ccy'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['after'] = $since;
+            $request['before'] = max ($since - 1, 0);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
@@ -2941,6 +2951,7 @@ class okex extends Exchange {
         //       "liab" => "",
         //       "liabCcy" => "",
         //       "liqPx" => "12608.959083877446",
+        //       "markPx" => "4786.459271773621",
         //       "margin" => "",
         //       "mgnMode" => "cross",
         //       "mgnRatio" => "140.49930117599155",
@@ -2979,7 +2990,11 @@ class okex extends Exchange {
                 }
             }
         }
+        $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');
+        if ($market['inverse']) {
+            $notionalString = Precise::string_div($notionalString, $markPriceString);
+        }
         $notional = $this->parse_number($notionalString);
         $marginType = $this->safe_string($position, 'mgnMode');
         $initialMarginString = null;
@@ -3022,6 +3037,7 @@ class okex extends Exchange {
             'percentage' => $percentage,
             'contracts' => $contracts,
             'contractSize' => $this->parse_number($market['contractSize']),
+            'markPrice' => $this->parse_number($markPriceString),
             'side' => $side,
             'hedged' => $hedged,
             'timestamp' => $timestamp,
@@ -3313,11 +3329,35 @@ class okex extends Exchange {
             $request['limit'] = (string) $limit; // default 100, max 100
         }
         $response = yield $this->privateGetAccountBills (array_merge($request, $params));
+        //
+        //     {
+        //       "bal" => "0.0242946200998573",
+        //       "balChg" => "0.0000148752712240",
+        //       "billId" => "377970609204146187",
+        //       "ccy" => "ETH",
+        //       "execType" => "",
+        //       "fee" => "0",
+        //       "from" => "",
+        //       "$instId" => "ETH-USD-SWAP",
+        //       "instType" => "SWAP",
+        //       "mgnMode" => "isolated",
+        //       "notes" => "",
+        //       "ordId" => "",
+        //       "pnl" => "0.000014875271224",
+        //       "posBal" => "0",
+        //       "posBalChg" => "0",
+        //       "subType" => "174",
+        //       "sz" => "9",
+        //       "to" => "",
+        //       "ts" => "1636387215588",
+        //       "type" => "8"
+        //     }
+        //
         $data = $this->safe_value($response, 'data');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
-            $timestamp = $this->safe_timestamp($entry, 'ts');
+            $timestamp = $this->safe_integer($entry, 'ts');
             $instId = $this->safe_string($entry, 'instId');
             $market = $this->safe_market($instId);
             $result[] = array(
@@ -3326,11 +3366,12 @@ class okex extends Exchange {
                 'code' => $market['inverse'] ? $market['base'] : $market['quote'],
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
-                'id' => $this->safe_number($entry, 'billId'),
-                'amount' => $this->safe_number($entry, 'sz'),
+                'id' => $this->safe_string($entry, 'billId'),
+                'amount' => $this->safe_number($entry, 'balChg'),
             );
         }
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
@@ -3434,6 +3475,60 @@ class okex extends Exchange {
         //     }
         //
         return $response;
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $posSide = $this->safe_string($params, 'posSide', 'net');
+        $params = $this->omit($params, array( 'posSide' ));
+        $request = array(
+            'instId' => $market['id'],
+            'amt' => $amount,
+            'type' => $type,
+            'posSide' => $posSide,
+        );
+        $response = yield $this->privatePostAccountPositionMarginBalance (array_merge($request, $params));
+        //
+        //     {
+        //       "$code" => "0",
+        //       "$data" => array(
+        //         {
+        //           "amt" => "0.01",
+        //           "instId" => "ETH-USD-SWAP",
+        //           "$posSide" => "net",
+        //           "$type" => "reduce"
+        //         }
+        //       ),
+        //       "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $entry = $this->safe_value($data, 0, array());
+        $errorCode = $this->safe_string($response, 'code');
+        $status = ($errorCode === '0') ? 'ok' : 'failed';
+        $responseAmount = $this->safe_number($entry, 'amt');
+        $responseType = $this->safe_string($entry, 'type');
+        $marketId = $this->safe_string($entry, 'instId');
+        $responseMarket = $this->safe_market($marketId, $market);
+        $code = $responseMarket['inverse'] ? $responseMarket['base'] : $responseMarket['quote'];
+        $symbol = $responseMarket['symbol'];
+        return array(
+            'info' => $response,
+            'type' => $responseType,
+            'amount' => $responseAmount,
+            'code' => $code,
+            'symbol' => $symbol,
+            'status' => $status,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

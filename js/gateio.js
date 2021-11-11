@@ -1225,7 +1225,8 @@ module.exports = class gateio extends Exchange {
                 'amount': this.safeNumber (entry, 'change'),
             });
         }
-        return result;
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

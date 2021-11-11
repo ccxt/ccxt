@@ -1209,7 +1209,8 @@ class gateio(Exchange):
                 'id': None,
                 'amount': self.safe_number(entry, 'change'),
             })
-        return result
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

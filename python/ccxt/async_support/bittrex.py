@@ -243,6 +243,7 @@ class bittrex(Exchange):
                 'MER': 'Mercury',  # conflict with Mercurial Finance
                 'REPV2': 'REP',
                 'TON': 'Tokamak Network',
+                'BIFI': 'Bifrost Finance',
             },
         })
 

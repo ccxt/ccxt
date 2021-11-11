@@ -75,6 +75,8 @@ class okex(Exchange):
                 'setLeverage': True,
                 'setPositionMode': True,
                 'setMarginMode': True,
+                'addMargin': True,
+                'reduceMargin': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -716,7 +718,9 @@ class okex(Exchange):
             minCost = self.parse_number(Precise.string_mul(tickSize, minAmountString))
         active = True
         fees = self.safe_value_2(self.fees, type, 'trading', {})
-        contractSize = self.safe_string(market, 'ctVal')
+        contractSize = None
+        if contract:
+            contractSize = self.safe_string(market, 'ctVal')
         leverage = self.safe_number(market, 'lever', 1)
         return self.extend(fees, {
             'id': id,
@@ -1262,7 +1266,7 @@ class okex(Exchange):
             'instId': market['id'],
         }
         if since is not None:
-            request['after'] = since
+            request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetPublicFundingRateHistory(self.extend(request, params))
@@ -1294,7 +1298,7 @@ class okex(Exchange):
             rate = data[i]
             timestamp = self.safe_number(rate, 'fundingTime')
             rates.append({
-                'symbol': self.safe_string(rate, 'instId'),
+                'symbol': self.safe_symbol(self.safe_string(rate, 'instId')),
                 'fundingRate': self.safe_number(rate, 'realizedRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -1534,6 +1538,10 @@ class okex(Exchange):
                 raise ArgumentsRequired(self.id + ' params["tdMode"] is required to be either "isolated" or "cross"')
             elif (tdMode != 'isolated') and (tdMode != 'cross'):
                 raise BadRequest(self.id + ' params["tdMode"] must be either "isolated" or "cross"')
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            request['ordType'] = 'post_only'
+            params = self.omit(params, ['postOnly'])
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
@@ -2324,7 +2332,7 @@ class okex(Exchange):
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code, params={}):
-        rawNetwork = self.safe_string(params, 'network')
+        rawNetwork = self.safe_string_upper(params, 'network')
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(networks, rawNetwork, rawNetwork)
         params = self.omit(params, 'network')
@@ -2411,7 +2419,7 @@ class okex(Exchange):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         if since is not None:
-            request['after'] = since
+            request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         response = self.privateGetAssetDepositHistory(self.extend(request, params))
@@ -2470,7 +2478,7 @@ class okex(Exchange):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         if since is not None:
-            request['after'] = since
+            request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         response = self.privateGetAssetWithdrawalHistory(self.extend(request, params))
@@ -2819,6 +2827,7 @@ class okex(Exchange):
         #       "liab": "",
         #       "liabCcy": "",
         #       "liqPx": "12608.959083877446",
+        #       "markPx": "4786.459271773621",
         #       "margin": "",
         #       "mgnMode": "cross",
         #       "mgnRatio": "140.49930117599155",
@@ -2854,7 +2863,10 @@ class okex(Exchange):
                     side = 'long'
                 else:
                     side = 'short'
+        markPriceString = self.safe_string(position, 'markPx')
         notionalString = self.safe_string(position, 'notionalUsd')
+        if market['inverse']:
+            notionalString = Precise.string_div(notionalString, markPriceString)
         notional = self.parse_number(notionalString)
         marginType = self.safe_string(position, 'mgnMode')
         initialMarginString = None
@@ -2895,6 +2907,7 @@ class okex(Exchange):
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': self.parse_number(market['contractSize']),
+            'markPrice': self.parse_number(markPriceString),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
@@ -3170,11 +3183,35 @@ class okex(Exchange):
         if limit is not None:
             request['limit'] = str(limit)  # default 100, max 100
         response = self.privateGetAccountBills(self.extend(request, params))
+        #
+        #     {
+        #       "bal": "0.0242946200998573",
+        #       "balChg": "0.0000148752712240",
+        #       "billId": "377970609204146187",
+        #       "ccy": "ETH",
+        #       "execType": "",
+        #       "fee": "0",
+        #       "from": "",
+        #       "instId": "ETH-USD-SWAP",
+        #       "instType": "SWAP",
+        #       "mgnMode": "isolated",
+        #       "notes": "",
+        #       "ordId": "",
+        #       "pnl": "0.000014875271224",
+        #       "posBal": "0",
+        #       "posBalChg": "0",
+        #       "subType": "174",
+        #       "sz": "9",
+        #       "to": "",
+        #       "ts": "1636387215588",
+        #       "type": "8"
+        #     }
+        #
         data = self.safe_value(response, 'data')
         result = []
         for i in range(0, len(data)):
             entry = data[i]
-            timestamp = self.safe_timestamp(entry, 'ts')
+            timestamp = self.safe_integer(entry, 'ts')
             instId = self.safe_string(entry, 'instId')
             market = self.safe_market(instId)
             result.append({
@@ -3183,10 +3220,11 @@ class okex(Exchange):
                 'code': market['base'] if market['inverse'] else market['quote'],
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
-                'id': self.safe_number(entry, 'billId'),
-                'amount': self.safe_number(entry, 'sz'),
+                'id': self.safe_string(entry, 'billId'),
+                'amount': self.safe_number(entry, 'balChg'),
             })
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def set_leverage(self, leverage, symbol=None, params={}):
         if symbol is None:
@@ -3280,6 +3318,57 @@ class okex(Exchange):
         #     }
         #
         return response
+
+    def modify_margin_helper(self, symbol, amount, type, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        posSide = self.safe_string(params, 'posSide', 'net')
+        params = self.omit(params, ['posSide'])
+        request = {
+            'instId': market['id'],
+            'amt': amount,
+            'type': type,
+            'posSide': posSide,
+        }
+        response = self.privatePostAccountPositionMarginBalance(self.extend(request, params))
+        #
+        #     {
+        #       "code": "0",
+        #       "data": [
+        #         {
+        #           "amt": "0.01",
+        #           "instId": "ETH-USD-SWAP",
+        #           "posSide": "net",
+        #           "type": "reduce"
+        #         }
+        #       ],
+        #       "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        entry = self.safe_value(data, 0, {})
+        errorCode = self.safe_string(response, 'code')
+        status = 'ok' if (errorCode == '0') else 'failed'
+        responseAmount = self.safe_number(entry, 'amt')
+        responseType = self.safe_string(entry, 'type')
+        marketId = self.safe_string(entry, 'instId')
+        responseMarket = self.safe_market(marketId, market)
+        code = responseMarket['base'] if responseMarket['inverse'] else responseMarket['quote']
+        symbol = responseMarket['symbol']
+        return {
+            'info': response,
+            'type': responseType,
+            'amount': responseAmount,
+            'code': code,
+            'symbol': symbol,
+            'status': status,
+        }
+
+    def reduce_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    def add_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 'add', params)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
