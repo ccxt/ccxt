@@ -1557,9 +1557,13 @@ class gateio extends Exchange {
                 $request['limit'] = $limit;
             }
         } else {
+            $timeframeSeconds = $this->parse_timeframe($timeframe);
+            $timeframeMilliseconds = $timeframeSeconds * 1000;
+            // align forward to the next $timeframe alignment
+            $since = $this->sum($since - (fmod($since, $timeframeMilliseconds)), $timeframeMilliseconds);
             $request['from'] = intval($since / 1000);
             if ($limit !== null) {
-                $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe) - 1);
+                $request['to'] = $this->sum($request['from'], $limit * $timeframeSeconds - 1);
             }
         }
         $response = yield $this->$method (array_merge($request, $params));

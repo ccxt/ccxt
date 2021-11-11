@@ -1520,9 +1520,13 @@ class gateio(Exchange):
             if limit is not None:
                 request['limit'] = limit
         else:
+            timeframeSeconds = self.parse_timeframe(timeframe)
+            timeframeMilliseconds = timeframeSeconds * 1000
+            # align forward to the next timeframe alignment
+            since = self.sum(since - (since % timeframeMilliseconds), timeframeMilliseconds)
             request['from'] = int(since / 1000)
             if limit is not None:
-                request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
+                request['to'] = self.sum(request['from'], limit * timeframeSeconds - 1)
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
