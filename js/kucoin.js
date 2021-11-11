@@ -926,7 +926,11 @@ module.exports = class kucoin extends Exchange {
         const baseVolume = this.safeNumber (ticker, 'vol');
         const quoteVolume = this.safeNumber (ticker, 'volValue');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
+        let timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
+        if (market['swap']) {
+            const ts = this.safeString (ticker, 'ts');
+            timestamp = Precise.stringDiv (ts, '1000000');
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1003,7 +1007,11 @@ module.exports = class kucoin extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetMarketStats (this.extend (request, params));
+        const method = this.getSupportedMapping (this.id, {
+            'kucoin': 'publicGetMarketStats',
+            'kucoinfutures': 'futuresPublicGetTicker',
+        });
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
