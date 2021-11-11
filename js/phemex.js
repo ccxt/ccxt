@@ -391,7 +391,12 @@ module.exports = class phemex extends Exchange {
             inverse = true;
         }
         const linear = !inverse;
-        const symbol = (inverse) ? id : (base + '/' + quote); // fix for uBTCUSD inverse
+        let symbol = undefined;
+        if (linear) {
+            symbol = base + '/' + quote + ':' + quote;
+        } else {
+            symbol = base + '/' + quote + ':' + base;
+        }
         const precision = {
             'amount': this.safeNumber (market, 'lotSize'),
             'price': this.safeNumber (market, 'tickSize'),
@@ -421,6 +426,7 @@ module.exports = class phemex extends Exchange {
         };
         const status = this.safeString (market, 'status');
         const active = status === 'Listed';
+        const contractSize = this.safeString (market, 'contractSize');
         return {
             'id': id,
             'symbol': symbol,
@@ -441,6 +447,7 @@ module.exports = class phemex extends Exchange {
             'valueScale': valueScale,
             'ratioScale': ratioScale,
             'precision': precision,
+            'contractSize': contractSize,
             'limits': limits,
         };
     }
@@ -527,6 +534,7 @@ module.exports = class phemex extends Exchange {
             'priceScale': 8,
             'valueScale': 8,
             'ratioScale': 8,
+            'contractSize': undefined,
             'limits': limits,
         };
     }
