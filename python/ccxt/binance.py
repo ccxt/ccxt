@@ -78,6 +78,8 @@ class binance(Exchange):
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
+                'addMargin': True,
+                'reduceMargin': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -4553,6 +4555,14 @@ class binance(Exchange):
             method = 'dapiPrivatePostPositionMargin'
             code = market['base']
         response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #       "code": 200,
+        #       "msg": "Successfully modify position margin.",
+        #       "amount": 0.001,
+        #       "type": 1
+        #     }
+        #
         rawType = self.safe_integer(response, 'type')
         resultType = 'add' if (rawType == 1) else 'reduce'
         resultAmount = self.safe_number(response, 'amount')

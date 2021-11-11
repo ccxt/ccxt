@@ -55,6 +55,8 @@ module.exports = class okex extends Exchange {
                 'setLeverage': true,
                 'setPositionMode': true,
                 'setMarginMode': true,
+                'addMargin': true,
+                'reduceMargin': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1289,7 +1291,7 @@ module.exports = class okex extends Exchange {
             'instId': market['id'],
         };
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2415,7 +2417,7 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const rawNetwork = this.safeString (params, 'network');
+        const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
@@ -2516,7 +2518,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2579,7 +2581,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -3468,6 +3470,60 @@ module.exports = class okex extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const posSide = this.safeString (params, 'posSide', 'net');
+        params = this.omit (params, [ 'posSide' ]);
+        const request = {
+            'instId': market['id'],
+            'amt': amount,
+            'type': type,
+            'posSide': posSide,
+        };
+        const response = await this.privatePostAccountPositionMarginBalance (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "amt": "0.01",
+        //           "instId": "ETH-USD-SWAP",
+        //           "posSide": "net",
+        //           "type": "reduce"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const entry = this.safeValue (data, 0, {});
+        const errorCode = this.safeString (response, 'code');
+        const status = (errorCode === '0') ? 'ok' : 'failed';
+        const responseAmount = this.safeNumber (entry, 'amt');
+        const responseType = this.safeString (entry, 'type');
+        const marketId = this.safeString (entry, 'instId');
+        const responseMarket = this.safeMarket (marketId, market);
+        const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
+        symbol = responseMarket['symbol'];
+        return {
+            'info': response,
+            'type': responseType,
+            'amount': responseAmount,
+            'code': code,
+            'symbol': symbol,
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

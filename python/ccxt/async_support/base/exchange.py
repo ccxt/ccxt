@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.60.83'
+__version__ = '1.60.88'
 
 # -----------------------------------------------------------------------------
 
@@ -120,7 +120,7 @@ class Exchange(BaseExchange):
                                       headers=request_headers,
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
-                http_response = await response.text()
+                http_response = await response.text(errors='replace')
                 # CIMultiDictProxy
                 raw_headers = response.headers
                 headers = {}

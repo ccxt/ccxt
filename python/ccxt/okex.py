@@ -75,6 +75,8 @@ class okex(Exchange):
                 'setLeverage': True,
                 'setPositionMode': True,
                 'setMarginMode': True,
+                'addMargin': True,
+                'reduceMargin': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1264,7 +1266,7 @@ class okex(Exchange):
             'instId': market['id'],
         }
         if since is not None:
-            request['after'] = since
+            request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetPublicFundingRateHistory(self.extend(request, params))
@@ -2330,7 +2332,7 @@ class okex(Exchange):
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code, params={}):
-        rawNetwork = self.safe_string(params, 'network')
+        rawNetwork = self.safe_string_upper(params, 'network')
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(networks, rawNetwork, rawNetwork)
         params = self.omit(params, 'network')
@@ -2417,7 +2419,7 @@ class okex(Exchange):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         if since is not None:
-            request['after'] = since
+            request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         response = self.privateGetAssetDepositHistory(self.extend(request, params))
@@ -2476,7 +2478,7 @@ class okex(Exchange):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         if since is not None:
-            request['after'] = since
+            request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         response = self.privateGetAssetWithdrawalHistory(self.extend(request, params))
@@ -3316,6 +3318,57 @@ class okex(Exchange):
         #     }
         #
         return response
+
+    def modify_margin_helper(self, symbol, amount, type, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        posSide = self.safe_string(params, 'posSide', 'net')
+        params = self.omit(params, ['posSide'])
+        request = {
+            'instId': market['id'],
+            'amt': amount,
+            'type': type,
+            'posSide': posSide,
+        }
+        response = self.privatePostAccountPositionMarginBalance(self.extend(request, params))
+        #
+        #     {
+        #       "code": "0",
+        #       "data": [
+        #         {
+        #           "amt": "0.01",
+        #           "instId": "ETH-USD-SWAP",
+        #           "posSide": "net",
+        #           "type": "reduce"
+        #         }
+        #       ],
+        #       "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        entry = self.safe_value(data, 0, {})
+        errorCode = self.safe_string(response, 'code')
+        status = 'ok' if (errorCode == '0') else 'failed'
+        responseAmount = self.safe_number(entry, 'amt')
+        responseType = self.safe_string(entry, 'type')
+        marketId = self.safe_string(entry, 'instId')
+        responseMarket = self.safe_market(marketId, market)
+        code = responseMarket['base'] if responseMarket['inverse'] else responseMarket['quote']
+        symbol = responseMarket['symbol']
+        return {
+            'info': response,
+            'type': responseType,
+            'amount': responseAmount,
+            'code': code,
+            'symbol': symbol,
+            'status': status,
+        }
+
+    def reduce_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    def add_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 'add', params)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
