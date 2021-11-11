@@ -60,6 +60,8 @@ class okex extends Exchange {
                 'setLeverage' => true,
                 'setPositionMode' => true,
                 'setMarginMode' => true,
+                'addMargin' => true,
+                'reduceMargin' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -3473,6 +3475,60 @@ class okex extends Exchange {
         //     }
         //
         return $response;
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $posSide = $this->safe_string($params, 'posSide', 'net');
+        $params = $this->omit($params, array( 'posSide' ));
+        $request = array(
+            'instId' => $market['id'],
+            'amt' => $amount,
+            'type' => $type,
+            'posSide' => $posSide,
+        );
+        $response = yield $this->privatePostAccountPositionMarginBalance (array_merge($request, $params));
+        //
+        //     {
+        //       "$code" => "0",
+        //       "$data" => array(
+        //         {
+        //           "amt" => "0.01",
+        //           "instId" => "ETH-USD-SWAP",
+        //           "$posSide" => "net",
+        //           "$type" => "reduce"
+        //         }
+        //       ),
+        //       "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $entry = $this->safe_value($data, 0, array());
+        $errorCode = $this->safe_string($response, 'code');
+        $status = ($errorCode === '0') ? 'ok' : 'failed';
+        $responseAmount = $this->safe_number($entry, 'amt');
+        $responseType = $this->safe_string($entry, 'type');
+        $marketId = $this->safe_string($entry, 'instId');
+        $responseMarket = $this->safe_market($marketId, $market);
+        $code = $responseMarket['inverse'] ? $responseMarket['base'] : $responseMarket['quote'];
+        $symbol = $responseMarket['symbol'];
+        return array(
+            'info' => $response,
+            'type' => $responseType,
+            'amount' => $responseAmount,
+            'code' => $code,
+            'symbol' => $symbol,
+            'status' => $status,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

@@ -75,6 +75,8 @@ class okex(Exchange):
                 'setLeverage': True,
                 'setPositionMode': True,
                 'setMarginMode': True,
+                'addMargin': True,
+                'reduceMargin': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -3316,6 +3318,57 @@ class okex(Exchange):
         #     }
         #
         return response
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        posSide = self.safe_string(params, 'posSide', 'net')
+        params = self.omit(params, ['posSide'])
+        request = {
+            'instId': market['id'],
+            'amt': amount,
+            'type': type,
+            'posSide': posSide,
+        }
+        response = await self.privatePostAccountPositionMarginBalance(self.extend(request, params))
+        #
+        #     {
+        #       "code": "0",
+        #       "data": [
+        #         {
+        #           "amt": "0.01",
+        #           "instId": "ETH-USD-SWAP",
+        #           "posSide": "net",
+        #           "type": "reduce"
+        #         }
+        #       ],
+        #       "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        entry = self.safe_value(data, 0, {})
+        errorCode = self.safe_string(response, 'code')
+        status = 'ok' if (errorCode == '0') else 'failed'
+        responseAmount = self.safe_number(entry, 'amt')
+        responseType = self.safe_string(entry, 'type')
+        marketId = self.safe_string(entry, 'instId')
+        responseMarket = self.safe_market(marketId, market)
+        code = responseMarket['base'] if responseMarket['inverse'] else responseMarket['quote']
+        symbol = responseMarket['symbol']
+        return {
+            'info': response,
+            'type': responseType,
+            'amount': responseAmount,
+            'code': code,
+            'symbol': symbol,
+            'status': status,
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

@@ -66,6 +66,8 @@ class binance extends Exchange {
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
+                'addMargin' => true,
+                'reduceMargin' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -4851,6 +4853,14 @@ class binance extends Exchange {
             $code = $market['base'];
         }
         $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //       "$code" => 200,
+        //       "msg" => "Successfully modify position margin.",
+        //       "$amount" => 0.001,
+        //       "$type" => 1
+        //     }
+        //
         $rawType = $this->safe_integer($response, 'type');
         $resultType = ($rawType === 1) ? 'add' : 'reduce';
         $resultAmount = $this->safe_number($response, 'amount');
