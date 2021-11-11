@@ -3006,7 +3006,7 @@ module.exports = class okex extends Exchange {
             if ((instType === undefined) || (tdMode === undefined) || (uly === undefined)) {
                 throw new ArgumentsRequired (this.id + ' loadLeverageBrackets() malformatted params["brackets"]')
             }
-            const deep = this.safeValue (leverageBrackets, instType);
+            const deep = this.safeValue (this.options['leverageBrackets'], instType);
             const deeper = this.safeValue (deep, tdMode);
             const deepest = this.safeValue (deeper, uly);
             if (reload || (deepest === undefined)) {
