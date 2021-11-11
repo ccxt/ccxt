@@ -220,7 +220,7 @@ module.exports = class bittrex extends Exchange {
                 'BIFI': 'Bifrost Finance',
                 'MER': 'Mercury', // conflict with Mercurial Finance
                 'PROS': 'Pros.Finance',
-                'REPV2': 'REP',       
+                'REPV2': 'REP',
                 'TON': 'Tokamak Network',
             },
         });
