@@ -3000,31 +3000,30 @@ class okex extends Exchange {
         $initialMarginString = null;
         $entryPriceString = $this->safe_string($position, 'avgPx');
         $unrealizedPnlString = $this->safe_string($position, 'upl');
+        $leverageString = $this->safe_string($position, 'lever');
+        $initialMarginPercentage = null;
+        $collateralString = null;
         if ($marginType === 'cross') {
             $initialMarginString = $this->safe_string($position, 'imr');
-        } else {
-            $initialMarginString = $this->safe_string($position, 'margin');
+            $collateralString = Precise::string_add($initialMarginString, $unrealizedPnlString);
+        } else if ($marginType === 'isolated') {
+            $initialMarginPercentage = Precise::string_div('1', $leverageString);
+            $collateralString = $this->safe_string($position, 'margin');
         }
         $maintenanceMarginString = $this->safe_string($position, 'mmr');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
-        $initialMarginPercentage = null;
-        $maintenanceMarginPercentage = null;
-        if ($market['inverse']) {
-            $notionalValue = Precise::string_div(Precise::string_mul($contractsAbs, $market['contractSize']), $entryPriceString);
-            $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notionalValue);
-            $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalValue, 4));
-        } else {
-            $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notionalString);
+        $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notionalString);
+        if ($initialMarginPercentage === null) {
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
+        } else if ($initialMarginString === null) {
+            $initialMarginString = Precise::string_mul($initialMarginPercentage, $notionalString);
         }
         $rounder = '0.00005'; // round to closest 0.01%
         $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentage, $rounder), '1', 4));
-        $collateralString = Precise::string_add($initialMarginString, $unrealizedPnlString);
         $liquidationPrice = $this->safe_number($position, 'liqPx');
         $percentageString = $this->safe_string($position, 'uplRatio');
         $percentage = $this->parse_number(Precise::string_mul($percentageString, '100'));
         $timestamp = $this->safe_integer($position, 'uTime');
-        $leverage = $this->safe_number($position, 'lever');
         $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
         return array(
             'info' => $position,
@@ -3047,7 +3046,7 @@ class okex extends Exchange {
             'collateral' => $this->parse_number($collateralString),
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
-            'leverage' => $leverage,
+            'leverage' => $this->parse_number($leverageString),
             'marginRatio' => $marginRatio,
         );
     }
