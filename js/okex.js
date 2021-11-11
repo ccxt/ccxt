@@ -2995,31 +2995,30 @@ module.exports = class okex extends Exchange {
         let initialMarginString = undefined;
         const entryPriceString = this.safeString (position, 'avgPx');
         const unrealizedPnlString = this.safeString (position, 'upl');
+        const leverageString = this.safeString (position, 'lever');
+        let initialMarginPercentage = undefined;
+        let collateralString = undefined;
         if (marginType === 'cross') {
             initialMarginString = this.safeString (position, 'imr');
-        } else {
-            initialMarginString = this.safeString (position, 'margin');
+            collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
+        } else if (marginType === 'isolated') {
+            initialMarginPercentage = Precise.stringDiv ('1', leverageString);
+            collateralString = this.safeString (position, 'margin');
         }
         const maintenanceMarginString = this.safeString (position, 'mmr');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
-        let initialMarginPercentage = undefined;
-        let maintenanceMarginPercentage = undefined;
-        if (market['inverse']) {
-            const notionalValue = Precise.stringDiv (Precise.stringMul (contractsAbs, market['contractSize']), entryPriceString);
-            maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalValue);
-            initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalValue, 4));
-        } else {
-            maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalString);
+        let maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalString);
+        if (initialMarginPercentage === undefined) {
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
+        } else if (initialMarginString === undefined) {
+            initialMarginString = Precise.stringMul (initialMarginPercentage, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentage, rounder), '1', 4));
-        const collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
         const liquidationPrice = this.safeNumber (position, 'liqPx');
         const percentageString = this.safeString (position, 'uplRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
         const timestamp = this.safeInteger (position, 'uTime');
-        const leverage = this.safeNumber (position, 'lever');
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
         return {
             'info': position,
@@ -3042,7 +3041,7 @@ module.exports = class okex extends Exchange {
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
-            'leverage': leverage,
+            'leverage': this.parseNumber (leverageString),
             'marginRatio': marginRatio,
         };
     }
