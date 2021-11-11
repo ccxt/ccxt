@@ -2981,13 +2981,13 @@ module.exports = class okex extends Exchange {
         await this.loadMarkets ();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        let leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
+        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
         const brackets = this.safeValue (params, 'brackets');
         if (!Array.isArray (brackets)) {
             throw new ArgumentsRequired (this.id + ' loadLeverageBrackets() needs a list of brackets to fetch');
         }
         if (leverageBrackets === undefined) {
-            leverageBrackets = {
+            this.options['leverageBrackets'] = {
                 'SWAP': {
                     'cross': {},
                     'isolated': {},
@@ -3050,11 +3050,10 @@ module.exports = class okex extends Exchange {
                 //     }
                 //
                 const data = this.safeValue (response, 'data');
-                leverageBrackets[instType][tdMode][uly] = data;
+                this.options['leverageBrackets'][instType][tdMode][uly] = data;
             }
         }
-        this.options['leverageBrackets'] = leverageBrackets;
-        return leverageBrackets;
+        return this.options['leverageBrackets'];
     }
 
     parsePosition (position, market = undefined) {
