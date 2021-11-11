@@ -344,7 +344,7 @@ class phemex extends Exchange {
         //         "contractUnderlyingAssets":"USD",
         //         "settleCurrency":"BTC",
         //         "quoteCurrency":"USD",
-        //         "contractSize":"1 USD",
+        //         "$contractSize":"1 USD",
         //         "lotSize":1,
         //         "tickSize":0.5,
         //         "$priceScale":4,
@@ -393,7 +393,12 @@ class phemex extends Exchange {
             $inverse = true;
         }
         $linear = !$inverse;
-        $symbol = ($inverse) ? $id : ($base . '/' . $quote); // fix for uBTCUSD $inverse
+        $symbol = null;
+        if ($linear) {
+            $symbol = $base . '/' . $quote . ':' . $quote;
+        } else {
+            $symbol = $base . '/' . $quote . ':' . $base;
+        }
         $precision = array(
             'amount' => $this->safe_number($market, 'lotSize'),
             'price' => $this->safe_number($market, 'tickSize'),
@@ -423,6 +428,7 @@ class phemex extends Exchange {
         );
         $status = $this->safe_string($market, 'status');
         $active = $status === 'Listed';
+        $contractSize = $this->safe_string($market, 'contractSize');
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -443,6 +449,7 @@ class phemex extends Exchange {
             'valueScale' => $valueScale,
             'ratioScale' => $ratioScale,
             'precision' => $precision,
+            'contractSize' => $contractSize,
             'limits' => $limits,
         );
     }
@@ -529,6 +536,7 @@ class phemex extends Exchange {
             'priceScale' => 8,
             'valueScale' => 8,
             'ratioScale' => 8,
+            'contractSize' => null,
             'limits' => $limits,
         );
     }
