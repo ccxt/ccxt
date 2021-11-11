@@ -794,7 +794,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        //
+        // SPOT
         //     {
         //         "symbol": "BTC-USDT",   // symbol
         //         "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
@@ -849,6 +849,23 @@ module.exports = class kucoin extends Exchange {
         //         time: 1634641777363
         //     }
         //
+        // FUTURES
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "sequence":  1629930362547,
+        //             "symbol": "ETHUSDTM",
+        //             "side": "buy",
+        //             "size":  130,
+        //             "price": "4724.7",
+        //             "bestBidSize":  5,
+        //             "bestBidPrice": "4724.6",
+        //             "bestAskPrice": "4724.65",
+        //             "tradeId": "618d2a5a77a0c4431d2335f4",
+        //             "ts":  1636641371963227600,
+        //             "bestAskSize":  1789
+        //          }
+        //     }
         let percentage = this.safeNumber (ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = percentage * 100;
@@ -950,7 +967,7 @@ module.exports = class kucoin extends Exchange {
             'kucoinfutures': 'futuresPublicGetTicker',
         });
         const response = await this[method] (this.extend (request, params));
-        //
+        // SPOT
         //     {
         //         "code": "200000",
         //         "data": {
@@ -973,6 +990,23 @@ module.exports = class kucoin extends Exchange {
         //         }
         //     }
         //
+        // FUTURES
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "sequence":  1629930362547,
+        //             "symbol": "ETHUSDTM",
+        //             "side": "buy",
+        //             "size":  130,
+        //             "price": "4724.7",
+        //             "bestBidSize":  5,
+        //             "bestBidPrice": "4724.6",
+        //             "bestAskPrice": "4724.65",
+        //             "tradeId": "618d2a5a77a0c4431d2335f4",
+        //             "ts":  1636641371963227600,
+        //             "bestAskSize":  1789
+        //          }
+        //     }
         return this.parseTicker (response['data'], market);
     }
 
