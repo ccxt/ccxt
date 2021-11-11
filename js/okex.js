@@ -550,6 +550,7 @@ module.exports = class okex extends Exchange {
                     '18': 'trading', // unified trading account
                 },
                 'brokerId': 'e847386590ce4dBC',
+                'leverageBrackets': undefined,
             },
             'commonCurrencies': {
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
@@ -2913,14 +2914,147 @@ module.exports = class okex extends Exchange {
         //
         const positions = this.safeValue (response, 'data', []);
         const result = [];
+        const brackets = [];
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const instrument = this.safeString (entry, 'instType');
             if ((instrument === 'FUTURES') || instrument === ('SWAP')) {
-                result.push (this.parsePosition (positions[i]));
+                const position = this.parsePosition (positions[i]);
+                const market = this.market (position['symbol']);
+                const instType = (market['expiry'] === undefined) ? 'SWAP' : 'FUTURES';
+                // ¯\_(ツ)_/¯
+                brackets.push ({
+                    'instType': instType,
+                    'tdMode': position['marginType'],
+                    'uly': market['info']['uly'],
+                });
+                result.push (position);
             }
         }
+        const parameters = {
+            'brackets': brackets,
+        };
+        const leverageBrackets = await this.loadLeverageBrackets (false, parameters);
+        for (let i = 0; i < result.length; i++) {
+            const position = result[i];
+            const bracket = brackets[i];
+            const bracketsArray = leverageBrackets[bracket['instType']][bracket['tdMode']][bracket['uly']];
+            const positionLeverage = this.safeFloat (position, 'leverage');
+            const contracts = this.safeInteger (position, 'contracts');
+            for (let j = 0; j < bracketsArray.length; j++) {
+                const entry = bracketsArray[j];
+                //
+                //     {
+                //       "baseMaxLoan": "",
+                //       "imr": "0.008",
+                //       "instId": "",
+                //       "maxLever": "125",
+                //       "maxSz": "3000",
+                //       "minSz": "0",
+                //       "mmr": "0.004",
+                //       "optMgnFactor": "0",
+                //       "quoteMaxLoan": "",
+                //       "tier": "1",
+                //       "uly": "ETH-USD"
+                //     }
+                //
+                const maxLeverage = this.safeFloat (entry, 'maxLever');
+                const maxSize = this.safeFloat (entry, 'maxSz');
+                if ((positionLeverage >= maxLeverage) && (contracts <= maxSize)) {
+                    const imr = this.safeString (entry, 'imr');
+                    position['intialMarginPercentage'] = this.parseNumber (imr);
+                    const notional = this.safeString (position, 'notional');
+                    const unrealizedPnl = this.safeString (position, 'unrealizedPnl');
+                    position['initialMargin'] = this.parseNumber (Precise.stringMul (imr, Precise.stringSub (notional, unrealizedPnl)));
+                    break;
+                }
+            }
+            // restore strings to numbers
+            position['leverage'] = this.parseNumber (position['leverage']);
+            position['notional'] = this.parseNumber (position['notional']);
+            position['unrealizedPnl'] = this.parseNumber (position['unrealizedPnl']);
+        }
         return result;
+    }
+
+    async loadLeverageBrackets (reload = false, params = {}) {
+        await this.loadMarkets ();
+        // by default cache the leverage bracket
+        // it contains useful stuff like the maintenance margin and initial margin for positions
+        let leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
+        const brackets = this.safeValue (params, 'brackets');
+        if (!Array.isArray (brackets)) {
+            throw new ArgumentsRequired (this.id + ' loadLeverageBrackets() needs a list of brackets to fetch');
+        }
+        if (leverageBrackets === undefined) {
+            leverageBrackets = {
+                'SWAP': {
+                    'cross': {},
+                    'isolated': {},
+                },
+                'FUTURES': {
+                    'cross': {},
+                    'isolated': {},
+                },
+            };
+        }
+        for (let i = 0; i < brackets.length; i++) {
+            const entry = brackets[i];
+            const instType = this.safeString (entry, 'instType');
+            const tdMode = this.safeString (entry, 'tdMode');
+            const uly = this.safeString (entry, 'uly');
+            if ((instType === undefined) || (tdMode === undefined) || (uly === undefined)) {
+                throw new ArgumentsRequired (this.id + ' loadLeverageBrackets() malformatted params["brackets"]')
+            }
+            const deep = this.safeValue (leverageBrackets, instType);
+            const deeper = this.safeValue (deep, tdMode);
+            const deepest = this.safeValue (deeper, uly);
+            if (reload || (deepest === undefined)) {
+                const request = {
+                    'instType': instType,
+                    'tdMode': tdMode,
+                    'uly': uly,
+                };
+                const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
+                //
+                //     {
+                //       "code": "0",
+                //       "data": [
+                //         {
+                //           "baseMaxLoan": "",
+                //           "imr": "0.008",
+                //           "instId": "",
+                //           "maxLever": "125",
+                //           "maxSz": "3000",
+                //           "minSz": "0",
+                //           "mmr": "0.004",
+                //           "optMgnFactor": "0",
+                //           "quoteMaxLoan": "",
+                //           "tier": "1",
+                //           "uly": "ETH-USD"
+                //         },
+                //         {
+                //           "baseMaxLoan": "",
+                //           "imr": "0.01",
+                //           "instId": "",
+                //           "maxLever": "100",
+                //           "maxSz": "30000",
+                //           "minSz": "3001",
+                //           "mmr": "0.005",
+                //           "optMgnFactor": "0",
+                //           "quoteMaxLoan": "",
+                //           "tier": "2",
+                //           "uly": "ETH-USD"
+                //         }
+                //       ]
+                //     }
+                //
+                const data = this.safeValue (response, 'data');
+                leverageBrackets[instType][tdMode][uly] = data;
+            }
+        }
+        this.options['leverageBrackets'] = leverageBrackets;
+        return leverageBrackets;
     }
 
     parsePosition (position, market = undefined) {
@@ -2988,15 +3122,12 @@ module.exports = class okex extends Exchange {
         if (market['inverse']) {
             notionalString = Precise.stringDiv (notionalString, markPriceString);
         }
-        const notional = this.parseNumber (notionalString);
         const marginType = this.safeString (position, 'mgnMode');
         let initialMarginString = undefined;
         const entryPriceString = this.safeString (position, 'avgPx');
         const unrealizedPnlString = this.safeString (position, 'upl');
         if (marginType === 'cross') {
             initialMarginString = this.safeString (position, 'imr');
-        } else {
-            initialMarginString = this.safeString (position, 'margin');
         }
         const maintenanceMarginString = this.safeString (position, 'mmr');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
@@ -3012,21 +3143,21 @@ module.exports = class okex extends Exchange {
         }
         const rounder = '0.00005'; // round to closest 0.01%
         maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentage, rounder), '1', 4));
-        const collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
+        const collateralString = this.omitZero (this.safeString (position, 'margin'));
         const liquidationPrice = this.safeNumber (position, 'liqPx');
         const percentageString = this.safeString (position, 'uplRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
         const timestamp = this.safeInteger (position, 'uTime');
-        const leverage = this.safeNumber (position, 'lever');
+        const leverageString = this.safeString (position, 'lever');
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
         return {
             'info': position,
             'symbol': symbol,
-            'notional': notional,
+            'notional': notionalString, // leave as a string
             'marginType': marginType,
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber (entryPriceString),
-            'unrealizedPnl': this.parseNumber (unrealizedPnlString),
+            'unrealizedPnl': unrealizedPnlString, // leave as a string
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': this.parseNumber (market['contractSize']),
@@ -3040,7 +3171,7 @@ module.exports = class okex extends Exchange {
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
-            'leverage': leverage,
+            'leverage': leverageString, // leave as a string
             'marginRatio': marginRatio,
         };
     }
