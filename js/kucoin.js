@@ -524,6 +524,7 @@ module.exports = class kucoin extends Exchange {
         //         "priceChg": 21.15
         //     }
         // }
+        const result = [];
         const responses = [spotResponse, futuresResponse];  // * Spot must remain as the first response in responses
         for (let i = 0; i < responses.length; i++) {
             const spot = i === 0;   // * Spot must remain as the first response in responses
@@ -565,7 +566,6 @@ module.exports = class kucoin extends Exchange {
             const tickersData = this.safeValue (tickersResponse, 'data', {});
             const tickers = this.safeValue (tickersData, 'ticker', []);
             const tickersByMarketId = this.indexBy (tickers, 'symbol');
-            const result = [];
             for (let i = 0; i < data.length; i++) {
                 const market = data[i];
                 const id = this.safeString (market, 'symbol');
@@ -662,8 +662,8 @@ module.exports = class kucoin extends Exchange {
                     'fees': this.safeValue (this.fees, 'type', {}),
                 });
             }
-            return result;
         }
+        return result;
     }
 
     async fetchCurrencies (params = {}) {
