@@ -570,7 +570,10 @@ module.exports = class kucoin extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
-            const expireDate = this.safeNumber (market, 'expireDate');
+            let expireDate = this.safeNumber (market, 'expireDate');
+            if (expireDate) {
+                expireDate = expireDate.toString ();
+            }
             const futures = expireDate ? true : false;
             const swap = !spot && !futures;
             const base = this.safeString (market, 'baseCurrency');
