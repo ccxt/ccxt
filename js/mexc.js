@@ -224,6 +224,7 @@ module.exports = class mexc extends Exchange {
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'SIN': 'Sin City Token',
+                'PROS': 'Pros.Finance',
             },
             'exceptions': {
                 'exact': {
