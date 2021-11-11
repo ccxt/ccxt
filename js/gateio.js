@@ -622,14 +622,10 @@ module.exports = class gateio extends Exchange {
                 for (let i = 0; i < response.length; i++) {
                     const market = response[i];
                     const id = this.safeString (market, 'name');
-                    const ids = id.split ('_');
-                    const baseId = ids[0];
-                    const quoteId = ids[1];
-                    let date = undefined;
-                    const idLength = ids.length.toString ();
-                    if (Precise.stringGt (idLength, '2')) {
-                        date = ids[2];
-                    }
+                    const parts = id.split ('_');
+                    const baseId = this.safeString (parts, 0);
+                    const quoteId = this.safeString (parts, 1);
+                    const date = this.safeString (parts, 2);
                     const linear = quoteId.toLowerCase () === settle;
                     const inverse = baseId.toLowerCase () === settle;
                     const base = this.safeCurrencyCode (baseId);
