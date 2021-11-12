@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.9.24'
+__version__ = '0.9.25'
 
 # -----------------------------------------------------------------------------
 
@@ -154,6 +154,7 @@ from ccxtpro.coinbaseprime import coinbaseprime                           # noqa
 from ccxtpro.coinbasepro import coinbasepro                               # noqa: F401
 from ccxtpro.currencycom import currencycom                               # noqa: F401
 from ccxtpro.ftx import ftx                                               # noqa: F401
+from ccxtpro.ftxus import ftxus                                           # noqa: F401
 from ccxtpro.gateio import gateio                                         # noqa: F401
 from ccxtpro.hitbtc import hitbtc                                         # noqa: F401
 from ccxtpro.huobi import huobi                                           # noqa: F401

@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.9.24",
+  "version": "0.9.25",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -507,6 +507,8 @@
     "AAX",
     "bybit.com",
     "Bybit",
-    "fmfw.io"
+    "fmfw.io",
+    "ftx.us",
+    "FTXUS"
   ]
 }
