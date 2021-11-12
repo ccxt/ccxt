@@ -636,13 +636,16 @@ class gateio(Exchange):
                 for i in range(0, len(response)):
                     market = response[i]
                     id = self.safe_string(market, 'name')
-                    baseId, quoteId, date = id.split('_')
+                    parts = id.split('_')
+                    baseId = self.safe_string(parts, 0)
+                    quoteId = self.safe_string(parts, 1)
+                    date = self.safe_string(parts, 2)
                     linear = quoteId.lower() == settle
                     inverse = baseId.lower() == settle
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                     symbol = ''
-                    if date:
+                    if date is not None:
                         symbol = base + '/' + quote + '-' + date + ':' + self.safe_currency_code(settle)
                     else:
                         symbol = base + '/' + quote + ':' + self.safe_currency_code(settle)

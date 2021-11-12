@@ -628,13 +628,16 @@ class gateio extends Exchange {
                 for ($i = 0; $i < count($response); $i++) {
                     $market = $response[$i];
                     $id = $this->safe_string($market, 'name');
-                    list($baseId, $quoteId, $date) = explode('_', $id);
+                    $parts = explode('_', $id);
+                    $baseId = $this->safe_string($parts, 0);
+                    $quoteId = $this->safe_string($parts, 1);
+                    $date = $this->safe_string($parts, 2);
                     $linear = strtolower($quoteId) === $settle;
                     $inverse = strtolower($baseId) === $settle;
                     $base = $this->safe_currency_code($baseId);
                     $quote = $this->safe_currency_code($quoteId);
                     $symbol = '';
-                    if ($date) {
+                    if ($date !== null) {
                         $symbol = $base . '/' . $quote . '-' . $date . ':' . $this->safe_currency_code($settle);
                     } else {
                         $symbol = $base . '/' . $quote . ':' . $this->safe_currency_code($settle);
