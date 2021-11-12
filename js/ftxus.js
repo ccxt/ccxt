@@ -1,3 +1,7 @@
+'use strict';
+
+// ---------------------------------------------------------------------------
+
 const ftx = require ('./ftx.js');
 
 module.exports = class ftxus extends ftx {
@@ -9,7 +13,7 @@ module.exports = class ftxus extends ftx {
             'hostname': 'ftx.us',
             'urls': {
                 'www': 'https://ftx.us/',
-                'docs': 'https://docs.ftx.us/#rest-api',
+                'docs': 'https://docs.ftx.us/',
             },
         });
     }
