@@ -9,6 +9,7 @@ module.exports = class ftxus extends ftx {
             'hostname': 'ftx.us',
             'urls': {
                 'www': 'https://ftx.us/',
+                'docs': 'https://docs.ftx.us/#rest-api',
             },
         });
     }
