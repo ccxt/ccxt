@@ -239,6 +239,7 @@ class bitmart extends Exchange {
                     '50021' => '\\ccxt\\BadRequest', // 400, Invalid %s
                     '50022' => '\\ccxt\\ExchangeNotAvailable', // 400, Service unavailable
                     '50023' => '\\ccxt\\BadSymbol', // 400, This Symbol can't place order by api
+                    '50029' => '\\ccxt\\InvalidOrder', // array("message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":array())
                     '53000' => '\\ccxt\\AccountSuspended', // 403, Your account is frozen due to security policies. Please contact customer service
                     '57001' => '\\ccxt\\BadRequest', // 405, Method Not Allowed
                     '58001' => '\\ccxt\\BadRequest', // 415, Unsupported Media Type
@@ -1600,7 +1601,7 @@ class bitmart extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status_by_type($type, $status) {

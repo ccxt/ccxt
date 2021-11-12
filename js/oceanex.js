@@ -565,7 +565,12 @@ module.exports = class oceanex extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         }
-        return this.safeOrder ({
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'avg_price');
+        const amount = this.safeString (order, 'volume');
+        const remaining = this.safeString (order, 'remaining_volume');
+        const filled = this.safeString (order, 'executed_volume');
+        return this.safeOrder2 ({
             'info': order,
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -577,17 +582,17 @@ module.exports = class oceanex extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': this.safeValue (order, 'side'),
-            'price': this.safeNumber (order, 'price'),
+            'price': price,
             'stopPrice': undefined,
-            'average': this.safeNumber (order, 'avg_price'),
-            'amount': this.safeNumber (order, 'volume'),
-            'remaining': this.safeNumber (order, 'remaining_volume'),
-            'filled': this.safeNumber (order, 'executed_volume'),
+            'average': average,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
             'status': status,
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
-        });
+        }, market);
     }
 
     parseOrderStatus (status) {

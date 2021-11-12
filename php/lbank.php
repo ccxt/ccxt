@@ -436,15 +436,15 @@ class lbank extends Exchange {
         $timestamp = $this->safe_integer($order, 'create_time');
         // Limit Order Request Returns => Order Price
         // Market Order Returns => cny $amount of $market $order
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount', 0.0);
-        $filled = $this->safe_number($order, 'deal_amount', 0.0);
-        $average = $this->safe_number($order, 'avg_price');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string($order, 'deal_amount');
+        $average = $this->safe_string($order, 'avg_price');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'order_id');
         $type = $this->safe_string($order, 'order_type');
         $side = $this->safe_string($order, 'type');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -466,7 +466,7 @@ class lbank extends Exchange {
             'fee' => null,
             'info' => $this->safe_value($order, 'info', $order),
             'average' => $average,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

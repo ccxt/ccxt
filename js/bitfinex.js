@@ -919,7 +919,7 @@ module.exports = class bitfinex extends Exchange {
             'fee': undefined,
             'cost': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

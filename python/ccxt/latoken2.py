@@ -7,7 +7,13 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -46,6 +52,7 @@ class latoken2(Exchange):
                     'https://api.latoken.com',
                 ],
                 'fees': 'https://latoken.com/fees',
+                'referral': 'https://latoken.com/invite?r=mvgp2djk',
             },
             'api': {
                 'public': {
@@ -128,28 +135,30 @@ class latoken2(Exchange):
             },
             'exceptions': {
                 'exact': {
-                    # INTERNAL_ERROR - internal server error. You can contact our support to solve self problem.
-                    # SERVICE_UNAVAILABLE - requested information currently not available. You can contact our support to solve self problem or retry later.
-                    # NOT_AUTHORIZED - user's query not authorized. Check if you are logged in.
-                    # FORBIDDEN - you don't have enough access rights.
-                    # BAD_REQUEST - some bad request, for example bad fields values or something else. Read response message for more information.
-                    # NOT_FOUND - entity not found. Read message for more information.
-                    # ACCESS_DENIED - access is denied. Probably you don't have enough access rights, you contact our support.
-                    # REQUEST_REJECTED - user's request rejected for some reasons. Check error message.
-                    # HTTP_MEDIA_TYPE_NOT_SUPPORTED - http media type not supported.
-                    # MEDIA_TYPE_NOT_ACCEPTABLE - media type not acceptable
-                    # METHOD_ARGUMENT_NOT_VALID - one of method argument is invalid. Check argument types and error message for more information.
-                    # VALIDATION_ERROR - check errors field to get reasons.
-                    # ACCOUNT_EXPIRED - restore your account or create a new one.
-                    # BAD_CREDENTIALS - invalid username or password.
-                    # COOKIE_THEFT - cookie has been stolen. Let's try reset your cookies.
-                    # CREDENTIALS_EXPIRED - credentials expired.
-                    # INSUFFICIENT_AUTHENTICATION - for example, 2FA required.
-                    # UNKNOWN_LOCATION - user logged from unusual location, email confirmation required.
-                    # TOO_MANY_REQUESTS - too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
+                    'INTERNAL_ERROR': ExchangeError,  # internal server error. You can contact our support to solve self problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,  # requested information currently not available. You can contact our support to solve self problem or retry later.
+                    'NOT_AUTHORIZED': AuthenticationError,  # user's query not authorized. Check if you are logged in.
+                    'FORBIDDEN': PermissionDenied,  # you don't have enough access rights.
+                    'BAD_REQUEST': BadRequest,  # some bad request, for example bad fields values or something else. Read response message for more information.
+                    'NOT_FOUND': ExchangeError,  # entity not found. Read message for more information.
+                    'ACCESS_DENIED': PermissionDenied,  # access is denied. Probably you don't have enough access rights, you contact our support.
+                    'REQUEST_REJECTED': ExchangeError,  # user's request rejected for some reasons. Check error message.
+                    'HTTP_MEDIA_TYPE_NOT_SUPPORTED': BadRequest,  # http media type not supported.
+                    'MEDIA_TYPE_NOT_ACCEPTABLE': BadRequest,  # media type not acceptable
+                    'METHOD_ARGUMENT_NOT_VALID': BadRequest,  # one of method argument is invalid. Check argument types and error message for more information.
+                    'VALIDATION_ERROR': BadRequest,  # check errors field to get reasons.
+                    'ACCOUNT_EXPIRED': AccountSuspended,  # restore your account or create a new one.
+                    'BAD_CREDENTIALS': AuthenticationError,  # invalid username or password.
+                    'COOKIE_THEFT': AuthenticationError,  # cookie has been stolen. Let's try reset your cookies.
+                    'CREDENTIALS_EXPIRED': AccountSuspended,  # credentials expired.
+                    'INSUFFICIENT_AUTHENTICATION': AuthenticationError,  # for example, 2FA required.
+                    'UNKNOWN_LOCATION': AuthenticationError,  # user logged from unusual location, email confirmation required.
+                    'TOO_MANY_REQUESTS': RateLimitExceeded,  # too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                 },
                 'broad': {
-                    'invalid API key, signature or digest': AuthenticationError,
+                    'invalid API key, signature or digest': AuthenticationError,  # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'request expired or bad': InvalidNonce,  # {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
+                    'For input string': BadRequest,  # {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
                 },
             },
             'options': {
@@ -751,15 +760,25 @@ class latoken2(Exchange):
         #         "timestamp":1635920767648
         #     }
         #
+        # cancelOrder
+        #
+        #     {
+        #         "message":"cancellation request successfully submitted",
+        #         "status":"SUCCESS",
+        #         "id":"a631426d-3543-45ba-941e-75f7825afb0f"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'timestamp')
         baseId = self.safe_string(order, 'baseCurrency')
         quoteId = self.safe_string(order, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
-        if symbol in self.markets:
-            market = self.market(symbol)
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
+            if symbol in self.markets:
+                market = self.market(symbol)
         orderSide = self.safe_string(order, 'side')
         side = None
         if orderSide is not None:
@@ -771,6 +790,11 @@ class latoken2(Exchange):
         filled = self.safe_string(order, 'filled')
         cost = self.safe_string(order, 'cost')
         status = self.parse_order_status(self.safe_string(order, 'status'))
+        message = self.safe_string(order, 'message')
+        if message.find('cancel') >= 0:
+            status = 'canceled'
+        elif message.find('accept') >= 0:
+            status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
         return self.safe_order({
@@ -1096,11 +1120,7 @@ class latoken2(Exchange):
             if query:
                 requestString += '?' + urlencodedQuery
         if api == 'private':
-            headers = {}
             self.check_required_credentials()
-            if method == 'POST':
-                headers['Content-Type'] = 'application/json'
-                body = self.json(query)
             auth = method + request + urlencodedQuery
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             headers = {
@@ -1108,6 +1128,9 @@ class latoken2(Exchange):
                 'X-LA-SIGNATURE': signature,
                 'X-LA-DIGEST': 'HMAC-SHA512',  # HMAC-SHA384, HMAC-SHA512, optional
             }
+            if method == 'POST':
+                headers['Content-Type'] = 'application/json'
+                body = self.json(query)
         url = self.urls['api'] + requestString
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -1125,9 +1148,9 @@ class latoken2(Exchange):
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-        error = self.safe_value(response, 'error', {})
+        error = self.safe_string(response, 'error')
         errorMessage = self.safe_string(error, 'message')
-        if errorMessage is not None:
-            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+        if (error is not None) or (errorMessage is not None):
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message

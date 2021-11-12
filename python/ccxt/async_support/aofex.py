@@ -732,7 +732,7 @@ class aofex(Exchange):
             'remaining': None,
             'trades': rawTrades,
             'fee': None,
-        })
+        }, market)
 
     async def fetch_closed_order(self, id, symbol=None, params={}):
         await self.load_markets()

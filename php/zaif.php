@@ -387,7 +387,7 @@ class zaif extends Exchange {
             'fee' => null,
             'info' => $order,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

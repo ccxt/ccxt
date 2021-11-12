@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -220,55 +221,58 @@ class hitbtc3(Exchange):
                 '1M': '1M',
             },
             'exceptions': {
-                '429': RateLimitExceeded,
-                '500': ExchangeError,
-                '503': ExchangeNotAvailable,
-                '504': ExchangeNotAvailable,
-                '600': PermissionDenied,
-                '800': ExchangeError,
-                '1002': AuthenticationError,
-                '1003': PermissionDenied,
-                '1004': AuthenticationError,
-                '1005': AuthenticationError,
-                '2001': BadSymbol,
-                '2002': BadRequest,
-                '2003': BadRequest,
-                '2010': BadRequest,
-                '2011': BadRequest,
-                '2012': BadRequest,
-                '2020': BadRequest,
-                '2022': BadRequest,
-                '10001': BadRequest,
-                '10021': AccountSuspended,
-                '10022': BadRequest,
-                '20001': InsufficientFunds,
-                '20002': OrderNotFound,
-                '20003': ExchangeError,
-                '20004': ExchangeError,
-                '20005': ExchangeError,
-                '20006': ExchangeError,
-                '20007': ExchangeError,
-                '20008': InvalidOrder,
-                '20009': InvalidOrder,
-                '20010': OnMaintenance,
-                '20011': ExchangeError,
-                '20012': ExchangeError,
-                '20014': ExchangeError,
-                '20016': ExchangeError,
-                '20031': ExchangeError,
-                '20032': ExchangeError,
-                '20033': ExchangeError,
-                '20034': ExchangeError,
-                '20040': ExchangeError,
-                '20041': ExchangeError,
-                '20042': ExchangeError,
-                '20043': ExchangeError,
-                '20044': PermissionDenied,
-                '20045': ExchangeError,
-                '20080': ExchangeError,
-                '21001': ExchangeError,
-                '21003': AccountSuspended,
-                '21004': AccountSuspended,
+                'exact': {
+                    '429': RateLimitExceeded,
+                    '500': ExchangeError,
+                    '503': ExchangeNotAvailable,
+                    '504': ExchangeNotAvailable,
+                    '600': PermissionDenied,
+                    '800': ExchangeError,
+                    '1002': AuthenticationError,
+                    '1003': PermissionDenied,
+                    '1004': AuthenticationError,
+                    '1005': AuthenticationError,
+                    '2001': BadSymbol,
+                    '2002': BadRequest,
+                    '2003': BadRequest,
+                    '2010': BadRequest,
+                    '2011': BadRequest,
+                    '2012': BadRequest,
+                    '2020': BadRequest,
+                    '2022': BadRequest,
+                    '10001': BadRequest,
+                    '10021': AccountSuspended,
+                    '10022': BadRequest,
+                    '20001': InsufficientFunds,
+                    '20002': OrderNotFound,
+                    '20003': ExchangeError,
+                    '20004': ExchangeError,
+                    '20005': ExchangeError,
+                    '20006': ExchangeError,
+                    '20007': ExchangeError,
+                    '20008': InvalidOrder,
+                    '20009': InvalidOrder,
+                    '20010': OnMaintenance,
+                    '20011': ExchangeError,
+                    '20012': ExchangeError,
+                    '20014': ExchangeError,
+                    '20016': ExchangeError,
+                    '20031': ExchangeError,
+                    '20032': ExchangeError,
+                    '20033': ExchangeError,
+                    '20034': ExchangeError,
+                    '20040': ExchangeError,
+                    '20041': ExchangeError,
+                    '20042': ExchangeError,
+                    '20043': ExchangeError,
+                    '20044': PermissionDenied,
+                    '20045': ExchangeError,
+                    '20080': ExchangeError,
+                    '21001': ExchangeError,
+                    '21003': AccountSuspended,
+                    '21004': AccountSuspended,
+                },
+                'broad': {},
             },
             'options': {
                 'networks': {
@@ -510,7 +514,20 @@ class hitbtc3(Exchange):
         }
 
     async def fetch_balance(self, params={}):
-        response = await self.privateGetSpotBalance()
+        type = self.safe_string_lower(params, 'type', 'spot')
+        params = self.omit(params, ['type'])
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        account = self.safe_string(accountsByType, type)
+        response = None
+        if account == 'wallet':
+            response = await self.privateGetWalletBalance(params)
+        elif account == 'spot':
+            response = await self.privateGetSpotBalance(params)
+        elif account == 'derivatives':
+            response = await self.privateGetFuturesBalance(params)
+        else:
+            keys = list(accountsByType.keys())
+            raise BadRequest(self.id + ' fetchBalance() type parameter must be one of ' + ', '.join(keys))
         #
         #     [
         #       {
@@ -587,7 +604,7 @@ class hitbtc3(Exchange):
         timestamp = self.parse8601(ticker['timestamp'])
         symbol = self.safe_symbol(None, market)
         baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = self.safe_number(ticker, 'volumeQuote')
+        quoteVolume = self.safe_number(ticker, 'volume_quote')
         open = self.safe_number(ticker, 'open')
         last = self.safe_number(ticker, 'last')
         vwap = self.vwap(baseVolume, quoteVolume)
@@ -882,7 +899,7 @@ class hitbtc3(Exchange):
             marketIds = self.market_ids(symbols)
             request['symbols'] = ','.join(marketIds)
         if limit is not None:
-            request['limit'] = limit
+            request['depth'] = limit
         response = await self.publicGetPublicOrderbook(self.extend(request, params))
         result = {}
         marketIds = list(response.keys())
@@ -1266,11 +1283,11 @@ class hitbtc3(Exchange):
         toId = self.safe_string(accountsByType, toAccount)
         keys = list(accountsByType.keys())
         if fromId is None:
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys) + ' instead of ' + fromId)
+            raise ArgumentsRequired(self.id + ' transfer() fromAccount argument must be one of ' + ', '.join(keys))
         if toId is None:
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys) + ' instead of ' + toId)
+            raise ArgumentsRequired(self.id + ' transfer() toAccount argument must be one of ' + ', '.join(keys))
         if fromId == toId:
-            raise ExchangeError(self.id + ' from and to cannot be the same account')
+            raise BadRequest(self.id + ' transfer() fromAccount and toAccount arguments cannot be the same account')
         request = {
             'currency': currency['id'],
             'amount': requestAmount,
@@ -1295,17 +1312,17 @@ class hitbtc3(Exchange):
     async def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
         await self.load_markets()
         if code != 'USDT':
-            raise ExchangeError(self.id + ' convertCurrencyNetwork only supports USDT currently')
+            raise ExchangeError(self.id + ' convertCurrencyNetwork() only supports USDT currently')
         networks = self.safe_value(self.options, 'networks', {})
         fromNetwork = fromNetwork.upper()
         toNetwork = toNetwork.upper()
         fromNetwork = self.safe_string(networks, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise ExchangeError(self.id + ' fromNetwork cannot be the same as toNetwork')
+            raise BadRequest(self.id + ' fromNetwork cannot be the same as toNetwork')
         if (fromNetwork is None) or (toNetwork is None):
             keys = list(networks.keys())
-            raise ExchangeError(self.id + ' invalid network, please select one of ' + ', '.join(keys))
+            raise ArgumentsRequired(self.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + ', '.join(keys))
         request = {
             'from_currency': fromNetwork,
             'to_currency': toNetwork,
@@ -1354,15 +1371,21 @@ class hitbtc3(Exchange):
         #       }
         #     }
         #
+        #     {
+        #       "error": {
+        #         "code": "600",
+        #         "message": "Action not allowed"
+        #       }
+        #     }
+        #
         error = self.safe_value(response, 'error')
         errorCode = self.safe_string(error, 'code')
         if errorCode is not None:
-            description = self.safe_string(error, 'description', '')
-            ExceptionClass = self.safe_value(self.exceptions, errorCode)
-            if ExceptionClass is not None:
-                raise ExceptionClass(self.id + ' ' + description)
-            else:
-                raise ExchangeError(self.id + ' ' + description)
+            feedback = self.id + ' ' + body
+            message = self.safe_string_2(error, 'message', 'description')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

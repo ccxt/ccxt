@@ -641,7 +641,7 @@ module.exports = class coinmate extends Exchange {
             'trades': undefined,
             'info': order,
             'fee': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

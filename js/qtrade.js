@@ -108,6 +108,9 @@ module.exports = class qtrade extends Exchange {
                     'withdraw': {},
                 },
             },
+            'commonCurrencies': {
+                'BTM': 'Bitmark',
+            },
             'exceptions': {
                 'exact': {
                     'invalid_auth': AuthenticationError,

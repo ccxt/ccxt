@@ -224,7 +224,9 @@ class bittrex extends Exchange {
                 // 'createOrderMethod' => 'create_order_v1',
             ),
             'commonCurrencies' => array(
+                'BIFI' => 'Bifrost Finance',
                 'MER' => 'Mercury', // conflict with Mercurial Finance
+                'PROS' => 'Pros.Finance',
                 'REPV2' => 'REP',
                 'TON' => 'Tokamak Network',
             ),
@@ -1072,7 +1074,7 @@ class bittrex extends Exchange {
             ),
             'info' => $order,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {

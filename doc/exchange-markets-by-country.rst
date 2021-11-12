@@ -179,22 +179,22 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - Cayman Islands
      - .. image:: https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg
-          :target: https://latoken.com
+          :target: https://latoken.com/invite?r=mvgp2djk
           :alt: latoken
      
      - latoken
-     - `Latoken <https://latoken.com>`__
+     - `Latoken <https://latoken.com/invite?r=mvgp2djk>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://api.latoken.com
           :alt: API Version 1
      
    * - Cayman Islands
      - .. image:: https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg
-          :target: https://latoken.com
+          :target: https://latoken.com/invite?r=mvgp2djk
           :alt: latoken2
      
      - latoken2
-     - `Latoken <https://latoken.com>`__
+     - `Latoken <https://latoken.com/invite?r=mvgp2djk>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.latoken.com
           :alt: API Version 2
@@ -1364,17 +1364,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://bittrex.github.io/api/v3
           :alt: API Version 3
-     
-   * - US
-     - .. image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg
-          :target: https://btc-alpha.com/?r=123788
-          :alt: btcalpha
-     
-     - btcalpha
-     - `BTC-Alpha <https://btc-alpha.com/?r=123788>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://btc-alpha.github.io/api-docs
-          :alt: API Version 1
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg

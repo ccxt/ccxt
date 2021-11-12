@@ -47,6 +47,7 @@ module.exports = class latoken extends Exchange {
                 'doc': [
                     'https://api.latoken.com',
                 ],
+                'referral': 'https://latoken.com/invite?r=mvgp2djk',
             },
             'api': {
                 'public': {
@@ -587,9 +588,9 @@ module.exports = class latoken extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber (order, 'executedAmount');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
+        const filled = this.safeString (order, 'executedAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
         const timeFilled = this.safeTimestamp (order, 'timeFilled');
         let lastTradeTimestamp = undefined;
@@ -597,7 +598,7 @@ module.exports = class latoken extends Exchange {
             lastTradeTimestamp = timeFilled;
         }
         const clientOrderId = this.safeString (order, 'cliOrdId');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -619,7 +620,7 @@ module.exports = class latoken extends Exchange {
             'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

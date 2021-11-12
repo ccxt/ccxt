@@ -55,6 +55,7 @@ class latoken(Exchange):
                 'doc': [
                     'https://api.latoken.com',
                 ],
+                'referral': 'https://latoken.com/invite?r=mvgp2djk',
             },
             'api': {
                 'public': {
@@ -569,16 +570,16 @@ class latoken(Exchange):
         symbol = self.safe_symbol(marketId, market)
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'executedAmount')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        filled = self.safe_string(order, 'executedAmount')
         status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
         timeFilled = self.safe_timestamp(order, 'timeFilled')
         lastTradeTimestamp = None
         if (timeFilled is not None) and (timeFilled > 0):
             lastTradeTimestamp = timeFilled
         clientOrderId = self.safe_string(order, 'cliOrdId')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -600,7 +601,7 @@ class latoken(Exchange):
             'remaining': None,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_with_method('private_get_order_active', symbol, since, limit, params)

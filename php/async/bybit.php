@@ -32,6 +32,7 @@ class bybit extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
@@ -1368,7 +1369,7 @@ class bybit extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

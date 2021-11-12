@@ -286,7 +286,7 @@ module.exports = class kucoin extends Exchange {
                     '400500': InvalidOrder, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
                     '411100': AccountSuspended,
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
-                    '500000': ExchangeError,
+                    '500000': ExchangeNotAvailable, // {"code":"500000","msg":"Internal Server Error"}
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
@@ -1529,7 +1529,7 @@ module.exports = class kucoin extends Exchange {
             'lastTradeTimestamp': undefined,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -1230,7 +1230,7 @@ class bitmex(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

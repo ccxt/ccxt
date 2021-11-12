@@ -208,7 +208,7 @@ class coincheck extends Exchange {
             'info' => $order,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

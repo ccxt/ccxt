@@ -1357,10 +1357,10 @@ class wavesexchange extends Exchange {
             $symbol = $market['symbol'];
         }
         $amountCurrency = $this->safe_currency_code($this->safe_string($assetPair, 'amountAsset', 'WAVES'));
-        $price = $this->parse_number($this->price_from_precision($symbol, $priceString));
-        $amount = $this->parse_number($this->currency_from_precision($amountCurrency, $amountString));
-        $filled = $this->parse_number($this->currency_from_precision($amountCurrency, $filledString));
-        $average = $this->parse_number($this->price_from_precision($symbol, $this->safe_string($order, 'avgWeighedPrice')));
+        $price = $this->price_from_precision($symbol, $priceString);
+        $amount = $this->currency_from_precision($amountCurrency, $amountString);
+        $filled = $this->currency_from_precision($amountCurrency, $filledString);
+        $average = $this->price_from_precision($symbol, $this->safe_string($order, 'avgWeighedPrice'));
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $fee = null;
         if (is_array($order) && array_key_exists('type', $order)) {
@@ -1376,7 +1376,7 @@ class wavesexchange extends Exchange {
                 'fee' => $this->parse_number($this->currency_from_precision($currency, $this->safe_string($order, 'matcherFee'))),
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1398,7 +1398,7 @@ class wavesexchange extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function get_waves_address() {

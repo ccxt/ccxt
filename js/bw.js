@@ -753,7 +753,7 @@ module.exports = class bw extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

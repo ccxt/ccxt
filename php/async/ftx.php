@@ -294,7 +294,6 @@ class ftx extends Exchange {
                 'exact' => array(
                     'Please slow down' => '\\ccxt\\RateLimitExceeded', // array("error":"Please slow down","success":false)
                     'Size too small for provide' => '\\ccxt\\InvalidOrder', // array("error":"Size too small for provide","success":false)
-                    'Not logged in' => '\\ccxt\\AuthenticationError', // array("error":"Not logged in","success":false)
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)
@@ -313,6 +312,9 @@ class ftx extends Exchange {
                     'Not approved to trade this product' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not approved to trade this product")
                 ),
                 'broad' => array(
+                    // array("error":"Not logged in","success":false)
+                    // array("error":"Not logged in => Invalid API key","success":false)
+                    'Not logged in' => '\\ccxt\\AuthenticationError',
                     'Account does not have enough margin for order' => '\\ccxt\\InsufficientFunds',
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
@@ -443,6 +445,30 @@ class ftx extends Exchange {
         //                 "volumeUsd24h":382802.0252
         //             ),
         //         ),
+        //     }
+        //
+        //     {
+        //         name => "BTC-PERP",
+        //         enabled =>  true,
+        //         postOnly =>  false,
+        //         $priceIncrement => "1.0",
+        //         $sizeIncrement => "0.0001",
+        //         minProvideSize => "0.001",
+        //         last => "60397.0",
+        //         bid => "60387.0",
+        //         ask => "60388.0",
+        //         price => "60388.0",
+        //         $type => "future",
+        //         baseCurrency =>  null,
+        //         quoteCurrency =>  null,
+        //         underlying => "BTC",
+        //         restricted =>  false,
+        //         highLeverageFeeExempt =>  true,
+        //         change1h => "-0.0036463231533270636",
+        //         change24h => "-0.01844838515677064",
+        //         changeBod => "-0.010130151132675475",
+        //         quoteVolume24h => "2892083192.6099",
+        //         volumeUsd24h => "2892083192.6099"
         //     }
         //
         $result = array();
@@ -1008,7 +1034,7 @@ class ftx extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history($symbol = null, $limit = null, $since = null, $params = array ()) {
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         //
         // Gets a history of funding $rates with their timestamps
         //  (param) $symbol => Future currency pair (e.g. "BTC-PERP")
@@ -1063,7 +1089,8 @@ class ftx extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             );
         }
-        return $this->sort_by($rates, 'timestamp');
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {
@@ -1270,7 +1297,7 @@ class ftx extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1913,6 +1940,7 @@ class ftx extends Exchange {
             // what are other $statuses here?
             'confirmed' => 'ok', // deposits
             'complete' => 'ok', // withdrawals
+            'cancelled' => 'canceled', // deposits
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -2172,7 +2200,8 @@ class ftx extends Exchange {
             $parsed = $this->parse_income ($entry, $market);
             $result[] = $parsed;
         }
-        return $this->filter_by_since_limit($result, $since, $limit, 'timestamp');
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit, 'timestamp');
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {

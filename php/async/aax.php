@@ -1689,7 +1689,7 @@ class aax extends Exchange {
             'cost' => null,
             'trades' => null,
             'fee' => $fee,
-        ));
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

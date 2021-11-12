@@ -227,8 +227,10 @@ class mexc extends Exchange {
             'commonCurrencies' => array(
                 'COFI' => 'COFIX', // conflict with CoinFi
                 'DFT' => 'dFuture',
+                'DRK' => 'DRK',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
+                'PROS' => 'Pros.Finance', // conflict with Prosper
                 'SIN' => 'Sin City Token',
             ),
             'exceptions' => array(
@@ -1748,7 +1750,7 @@ class mexc extends Exchange {
             'fee' => null,
             'trades' => null,
             'info' => $order,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

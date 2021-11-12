@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.60.30'
+__version__ = '1.61.2'
 
 # -----------------------------------------------------------------------------
 
@@ -1060,6 +1060,11 @@ class Exchange(object):
         return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
 
     @staticmethod
+    def yymmdd(timestamp):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%y' + '%m' + '%d')
+
+    @staticmethod
     def ymdhms(timestamp, infix=' '):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
@@ -1697,7 +1702,7 @@ class Exchange(object):
         result = []
         for i in range(0, len(ohlcvs[t])):
             result.append([
-                ohlcvs[t][i] if ms else (ohlcvs[t][i] * 1000),
+                ohlcvs[t][i] if ms else (int(ohlcvs[t][i]) * 1000),
                 ohlcvs[o][i],
                 ohlcvs[h][i],
                 ohlcvs[l][i],
@@ -2436,6 +2441,13 @@ class Exchange(object):
                 cost = Precise.string_mul(price, filled)
             else:
                 cost = Precise.string_mul(average, filled)
+            # contract trading )
+            contractSize = self.safe_string(market, 'contractSize')
+            if contractSize is not None:
+                inverse = self.safe_string(market, 'inverse', False)
+                if inverse:
+                    cost = Precise.string_div('1', cost, 8)
+                cost = Precise.string_mul(cost, contractSize)
         # support for market orders
         orderType = self.safe_value(order, 'type')
         emptyPrice = (price is None) or Precise.string_equals(price, '0')

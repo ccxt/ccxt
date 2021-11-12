@@ -47,6 +47,7 @@ class bybit(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': False,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
@@ -1335,7 +1336,7 @@ class bybit(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:

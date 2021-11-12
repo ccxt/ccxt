@@ -235,8 +235,10 @@ class mexc(Exchange):
             'commonCurrencies': {
                 'COFI': 'COFIX',  # conflict with CoinFi
                 'DFT': 'dFuture',
+                'DRK': 'DRK',
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
+                'PROS': 'Pros.Finance',  # conflict with Prosper
                 'SIN': 'Sin City Token',
             },
             'exceptions': {
@@ -1657,7 +1659,7 @@ class mexc(Exchange):
             'fee': None,
             'trades': None,
             'info': order,
-        })
+        }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

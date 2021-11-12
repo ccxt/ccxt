@@ -1628,7 +1628,7 @@ class aax(Exchange):
             'cost': None,
             'trades': None,
             'fee': fee,
-        })
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

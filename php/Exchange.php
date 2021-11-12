@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.60.30';
+$version = '1.61.2';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.60.30';
+    const VERSION = '1.61.2';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -93,7 +93,6 @@ class Exchange {
         'bittrex',
         'bitvavo',
         'bl3p',
-        'btcalpha',
         'btcbox',
         'btcmarkets',
         'btctradeua',
@@ -891,6 +890,10 @@ class Exchange {
 
     public static function ymd($timestamp, $infix = '-') {
         return gmdate('Y' . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
+    }
+
+    public static function yymmdd($timestamp) {
+        return gmdate('y' . 'm' . 'd', (int) round($timestamp / 1000));
     }
 
     public static function ymdhms($timestamp, $infix = ' ') {
@@ -3253,6 +3256,15 @@ class Exchange {
                 $cost = Precise::string_mul($price, $filled);
             } else {
                 $cost = Precise::string_mul($average, $filled);
+            }
+            // contract trading
+            $contractSize = $this->safe_string($market, 'contractSize');
+            if ($contractSize !== null) {
+                $inverse = $this->safe_value($market, 'inverse', false);
+                if ($inverse) {
+                    $cost = Precise::string_div('1', $cost, 8);
+                }
+                $cost = Precise::string_mul($cost, $contractSize);
             }
         }
         // support for $market orders

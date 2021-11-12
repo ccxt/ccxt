@@ -111,6 +111,9 @@ class qtrade extends Exchange {
                     'withdraw' => array(),
                 ),
             ),
+            'commonCurrencies' => array(
+                'BTM' => 'Bitmark',
+            ),
             'exceptions' => array(
                 'exact' => array(
                     'invalid_auth' => '\\ccxt\\AuthenticationError',

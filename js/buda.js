@@ -612,7 +612,7 @@ module.exports = class buda extends Exchange {
             'remaining': remaining,
             'trades': undefined,
             'fee': fee,
-        });
+        }, market);
     }
 
     isFiat (code) {

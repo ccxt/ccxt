@@ -879,7 +879,7 @@ class btcmarkets extends Exchange {
             'status' => $status,
             'trades' => null,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

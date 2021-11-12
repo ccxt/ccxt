@@ -490,7 +490,7 @@ class coinone(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         # The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.

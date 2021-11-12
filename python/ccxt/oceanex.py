@@ -533,7 +533,12 @@ class oceanex(Exchange):
         timestamp = self.safe_timestamp(order, 'created_on')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        return self.safe_order({
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'avg_price')
+        amount = self.safe_string(order, 'volume')
+        remaining = self.safe_string(order, 'remaining_volume')
+        filled = self.safe_string(order, 'executed_volume')
+        return self.safe_order2({
             'info': order,
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
@@ -545,17 +550,17 @@ class oceanex(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': self.safe_value(order, 'side'),
-            'price': self.safe_number(order, 'price'),
+            'price': price,
             'stopPrice': None,
-            'average': self.safe_number(order, 'avg_price'),
-            'amount': self.safe_number(order, 'volume'),
-            'remaining': self.safe_number(order, 'remaining_volume'),
-            'filled': self.safe_number(order, 'executed_volume'),
+            'average': average,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
             'status': status,
             'cost': None,
             'trades': None,
             'fee': None,
-        })
+        }, market)
 
     def parse_order_status(self, status):
         statuses = {

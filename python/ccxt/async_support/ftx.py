@@ -311,7 +311,6 @@ class ftx(Exchange):
                 'exact': {
                     'Please slow down': RateLimitExceeded,  # {"error":"Please slow down","success":false}
                     'Size too small for provide': InvalidOrder,  # {"error":"Size too small for provide","success":false}
-                    'Not logged in': AuthenticationError,  # {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds,  # {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder,  # {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder,  # {"error":"Size too small","success":false}
@@ -330,6 +329,9 @@ class ftx(Exchange):
                     'Not approved to trade self product': PermissionDenied,  # {"success":false,"error":"Not approved to trade self product"}
                 },
                 'broad': {
+                    # {"error":"Not logged in","success":false}
+                    # {"error":"Not logged in: Invalid API key","success":false}
+                    'Not logged in': AuthenticationError,
                     'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
@@ -457,6 +459,30 @@ class ftx(Exchange):
         #                 "volumeUsd24h":382802.0252
         #             },
         #         ],
+        #     }
+        #
+        #     {
+        #         name: "BTC-PERP",
+        #         enabled:  True,
+        #         postOnly:  False,
+        #         priceIncrement: "1.0",
+        #         sizeIncrement: "0.0001",
+        #         minProvideSize: "0.001",
+        #         last: "60397.0",
+        #         bid: "60387.0",
+        #         ask: "60388.0",
+        #         price: "60388.0",
+        #         type: "future",
+        #         baseCurrency:  null,
+        #         quoteCurrency:  null,
+        #         underlying: "BTC",
+        #         restricted:  False,
+        #         highLeverageFeeExempt:  True,
+        #         change1h: "-0.0036463231533270636",
+        #         change24h: "-0.01844838515677064",
+        #         changeBod: "-0.010130151132675475",
+        #         quoteVolume24h: "2892083192.6099",
+        #         volumeUsd24h: "2892083192.6099"
         #     }
         #
         result = []
@@ -992,7 +1018,7 @@ class ftx(Exchange):
             'taker': self.safe_number(result, 'takerFee'),
         }
 
-    async def fetch_funding_rate_history(self, symbol=None, limit=None, since=None, params={}):
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         #
         # Gets a history of funding rates with their timestamps
         #  (param) symbol: Future currency pair(e.g. "BTC-PERP")
@@ -1043,7 +1069,8 @@ class ftx(Exchange):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
-        return self.sort_by(rates, 'timestamp')
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -1241,7 +1268,7 @@ class ftx(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -1840,6 +1867,7 @@ class ftx(Exchange):
             # what are other statuses here?
             'confirmed': 'ok',  # deposits
             'complete': 'ok',  # withdrawals
+            'cancelled': 'canceled',  # deposits
         }
         return self.safe_string(statuses, status, status)
 
@@ -2078,7 +2106,8 @@ class ftx(Exchange):
             entry = incomes[i]
             parsed = self.parse_income(entry, market)
             result.append(parsed)
-        return self.filter_by_since_limit(result, since, limit, 'timestamp')
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit, 'timestamp')
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

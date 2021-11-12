@@ -50,6 +50,7 @@ class latoken extends Exchange {
                 'doc' => array(
                     'https://api.latoken.com',
                 ),
+                'referral' => 'https://latoken.com/invite?r=mvgp2djk',
             ),
             'api' => array(
                 'public' => array(
@@ -590,9 +591,9 @@ class latoken extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'orderType');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'executedAmount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string($order, 'executedAmount');
         $status = $this->parse_order_status($this->safe_string($order, 'orderStatus'));
         $timeFilled = $this->safe_timestamp($order, 'timeFilled');
         $lastTradeTimestamp = null;
@@ -600,7 +601,7 @@ class latoken extends Exchange {
             $lastTradeTimestamp = $timeFilled;
         }
         $clientOrderId = $this->safe_string($order, 'cliOrdId');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -622,7 +623,7 @@ class latoken extends Exchange {
             'remaining' => null,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

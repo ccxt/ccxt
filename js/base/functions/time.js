@@ -141,15 +141,25 @@ const mdy = (timestamp, infix = '-') => {
     return m + infix + d + infix + Y
 }
 
-const ymd = (timestamp, infix = '-') => {
+const ymdHelper = (timestamp, infix, fullYear) => {
     infix = infix || ''
     const date = new Date (timestamp)
-    const Y = date.getUTCFullYear ().toString ()
+    const intYear = date.getUTCFullYear ()
+    const year = fullYear ? intYear : intYear - 2000
+    const Y = year.toString ()
     let m = date.getUTCMonth () + 1
     let d = date.getUTCDate ()
     m = m < 10 ? ('0' + m) : m.toString ()
     d = d < 10 ? ('0' + d) : d.toString ()
     return Y + infix + m + infix + d
+}
+
+const ymd = (timestamp, infix = '-') => {
+    return ymdHelper (timestamp, infix, true)
+}
+
+const yymmdd = (timestamp) => {
+    return ymdHelper (timestamp, '', false)
 }
 
 const ymdhms = (timestamp, infix = ' ') => {
@@ -182,6 +192,7 @@ module.exports =
         , parseDate
         , mdy
         , ymd
+        , yymmdd
         , ymdhms
         , setTimeout_safe
         , sleep: ms => new Promise (resolve => setTimeout_safe (resolve, ms))

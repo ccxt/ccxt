@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
 
@@ -42,6 +42,7 @@ module.exports = class latoken2 extends Exchange {
                     'https://api.latoken.com',
                 ],
                 'fees': 'https://latoken.com/fees',
+                'referral': 'https://latoken.com/invite?r=mvgp2djk',
             },
             'api': {
                 'public': {
@@ -124,28 +125,30 @@ module.exports = class latoken2 extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    // INTERNAL_ERROR - internal server error. You can contact our support to solve this problem.
-                    // SERVICE_UNAVAILABLE - requested information currently not available. You can contact our support to solve this problem or retry later.
-                    // NOT_AUTHORIZED - user's query not authorized. Check if you are logged in.
-                    // FORBIDDEN - you don't have enough access rights.
-                    // BAD_REQUEST - some bad request, for example bad fields values or something else. Read response message for more information.
-                    // NOT_FOUND - entity not found. Read message for more information.
-                    // ACCESS_DENIED - access is denied. Probably you don't have enough access rights, you contact our support.
-                    // REQUEST_REJECTED - user's request rejected for some reasons. Check error message.
-                    // HTTP_MEDIA_TYPE_NOT_SUPPORTED - http media type not supported.
-                    // MEDIA_TYPE_NOT_ACCEPTABLE - media type not acceptable
-                    // METHOD_ARGUMENT_NOT_VALID - one of method argument is invalid. Check argument types and error message for more information.
-                    // VALIDATION_ERROR - check errors field to get reasons.
-                    // ACCOUNT_EXPIRED - restore your account or create a new one.
-                    // BAD_CREDENTIALS - invalid username or password.
-                    // COOKIE_THEFT - cookie has been stolen. Let's try reset your cookies.
-                    // CREDENTIALS_EXPIRED - credentials expired.
-                    // INSUFFICIENT_AUTHENTICATION - for example, 2FA required.
-                    // UNKNOWN_LOCATION - user logged from unusual location, email confirmation required.
-                    // TOO_MANY_REQUESTS - too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
+                    'INTERNAL_ERROR': ExchangeError, // internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable, // requested information currently not available. You can contact our support to solve this problem or retry later.
+                    'NOT_AUTHORIZED': AuthenticationError, // user's query not authorized. Check if you are logged in.
+                    'FORBIDDEN': PermissionDenied, // you don't have enough access rights.
+                    'BAD_REQUEST': BadRequest, // some bad request, for example bad fields values or something else. Read response message for more information.
+                    'NOT_FOUND': ExchangeError, // entity not found. Read message for more information.
+                    'ACCESS_DENIED': PermissionDenied, // access is denied. Probably you don't have enough access rights, you contact our support.
+                    'REQUEST_REJECTED': ExchangeError, // user's request rejected for some reasons. Check error message.
+                    'HTTP_MEDIA_TYPE_NOT_SUPPORTED': BadRequest, // http media type not supported.
+                    'MEDIA_TYPE_NOT_ACCEPTABLE': BadRequest, // media type not acceptable
+                    'METHOD_ARGUMENT_NOT_VALID': BadRequest, // one of method argument is invalid. Check argument types and error message for more information.
+                    'VALIDATION_ERROR': BadRequest, // check errors field to get reasons.
+                    'ACCOUNT_EXPIRED': AccountSuspended, // restore your account or create a new one.
+                    'BAD_CREDENTIALS': AuthenticationError, // invalid username or password.
+                    'COOKIE_THEFT': AuthenticationError, // cookie has been stolen. Let's try reset your cookies.
+                    'CREDENTIALS_EXPIRED': AccountSuspended, // credentials expired.
+                    'INSUFFICIENT_AUTHENTICATION': AuthenticationError, // for example, 2FA required.
+                    'UNKNOWN_LOCATION': AuthenticationError, // user logged from unusual location, email confirmation required.
+                    'TOO_MANY_REQUESTS': RateLimitExceeded, // too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                 },
                 'broad': {
-                    'invalid API key, signature or digest': AuthenticationError,
+                    'invalid API key, signature or digest': AuthenticationError, // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'request expired or bad': InvalidNonce, // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
+                    'For input string': BadRequest, // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
                 },
             },
             'options': {
@@ -783,15 +786,26 @@ module.exports = class latoken2 extends Exchange {
         //         "timestamp":1635920767648
         //     }
         //
+        // cancelOrder
+        //
+        //     {
+        //         "message":"cancellation request successfully submitted",
+        //         "status":"SUCCESS",
+        //         "id":"a631426d-3543-45ba-941e-75f7825afb0f"
+        //     }
+        //
         const id = this.safeString (order, 'id');
         const timestamp = this.safeInteger (order, 'timestamp');
         const baseId = this.safeString (order, 'baseCurrency');
         const quoteId = this.safeString (order, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        if (symbol in this.markets) {
-            market = this.market (symbol);
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if (symbol in this.markets) {
+                market = this.market (symbol);
+            }
         }
         const orderSide = this.safeString (order, 'side');
         let side = undefined;
@@ -804,7 +818,13 @@ module.exports = class latoken2 extends Exchange {
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'filled');
         const cost = this.safeString (order, 'cost');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const message = this.safeString (order, 'message');
+        if (message.indexOf ('cancel') >= 0) {
+            status = 'canceled';
+        } else if (message.indexOf ('accept') >= 0) {
+            status = 'open';
+        }
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'condition'));
         return this.safeOrder ({
@@ -1152,12 +1172,7 @@ module.exports = class latoken2 extends Exchange {
             }
         }
         if (api === 'private') {
-            headers = {};
             this.checkRequiredCredentials ();
-            if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json (query);
-            }
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             headers = {
@@ -1165,6 +1180,10 @@ module.exports = class latoken2 extends Exchange {
                 'X-LA-SIGNATURE': signature,
                 'X-LA-DIGEST': 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             };
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+                body = this.json (query);
+            }
         }
         const url = this.urls['api'] + requestString;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -1186,11 +1205,11 @@ module.exports = class latoken2 extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        const error = this.safeValue (response, 'error', {});
+        const error = this.safeString (response, 'error');
         const errorMessage = this.safeString (error, 'message');
-        if (errorMessage !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+        if ((error !== undefined) || (errorMessage !== undefined)) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
