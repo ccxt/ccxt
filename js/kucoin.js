@@ -944,6 +944,10 @@ module.exports = class kucoin extends Exchange {
         const quoteVolume = this.safeNumber (ticker, 'volValue');
         const vwap = this.vwap (baseVolume, quoteVolume);
         let timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
+        let bid = this.safeNumber2 (ticker, 'bestBidPrice', 'bestBid');
+        bid = this.safeNumber (ticker, 'buy', bid);
+        let ask = this.safeNumber2 (ticker, 'sell', 'bestAsk');
+        ask = this.safeNumber (ticker, 'bestAskPrice', ask);
         if (market['swap']) {
             const ts = this.safeString (ticker, 'ts');
             timestamp = Precise.stringDiv (ts, '1000000');
@@ -954,9 +958,9 @@ module.exports = class kucoin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
             'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber2 (ticker, 'buy', 'bestBid'),
+            'bid': bid,
             'bidVolume': this.safeNumber (ticker, 'bestBidSize'),
-            'ask': this.safeNumber2 (ticker, 'sell', 'bestAsk'),
+            'ask': ask,
             'askVolume': this.safeNumber (ticker, 'bestAskSize'),
             'vwap': vwap,
             'open': this.safeNumber (ticker, 'open'),
