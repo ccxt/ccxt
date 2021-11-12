@@ -221,8 +221,10 @@ module.exports = class mexc extends Exchange {
             'commonCurrencies': {
                 'COFI': 'COFIX', // conflict with CoinFi
                 'DFT': 'dFuture',
+                'DRK': 'DRK',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
+                'PROS': 'Pros.Finance', // conflict with Prosper
                 'SIN': 'Sin City Token',
             },
             'exceptions': {

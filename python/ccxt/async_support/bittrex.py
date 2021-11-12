@@ -240,10 +240,11 @@ class bittrex(Exchange):
                 # 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
+                'BIFI': 'Bifrost Finance',
                 'MER': 'Mercury',  # conflict with Mercurial Finance
+                'PROS': 'Pros.Finance',
                 'REPV2': 'REP',
                 'TON': 'Tokamak Network',
-                'BIFI': 'Bifrost Finance',
             },
         })
 

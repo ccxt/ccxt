@@ -3779,7 +3779,7 @@ class binance(Exchange):
             timestamp = self.safe_integer(entry, 'fundingTime')
             rates.append({
                 'info': entry,
-                'symbol': self.safe_string(entry, 'symbol'),
+                'symbol': self.safe_symbol(self.safe_string(entry, 'symbol')),
                 'fundingRate': self.safe_number(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
