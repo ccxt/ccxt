@@ -889,12 +889,17 @@ class Exchange {
         return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
     }
 
-    public static function ymd($timestamp, $infix = '-') {
-        return gmdate('Y' . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
+    public static function ymd($timestamp, $infix = '-', $fullYear = true) {
+        $yearFormat = $fullYear ? 'Y' : 'y';
+        return gmdate($yearFormat . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
     }
 
-    public static function yymmdd($timestamp) {
-        return gmdate('y' . 'm' . 'd', (int) round($timestamp / 1000));
+    public static function yymmdd($timestamp, $infix = '') {
+        return static::ymd($timestamp, $infix, false);
+    }
+
+    public static function yyyymmdd($timestamp, $infix = '-') {
+        return static::ymd($timestamp, $infix, true);
     }
 
     public static function ymdhms($timestamp, $infix = ' ') {

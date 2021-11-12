@@ -1055,14 +1055,18 @@ class Exchange(object):
         return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
 
     @staticmethod
-    def ymd(timestamp, infix='-'):
+    def ymd(timestamp, infix='-', fullYear=True):
+        year_format = '%Y' if fullYear else '%y'
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
+        return utc_datetime.strftime(year_format + infix + '%m' + infix + '%d')
 
     @staticmethod
-    def yymmdd(timestamp):
-        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc_datetime.strftime('%y' + '%m' + '%d')
+    def yymmdd(timestamp, infix=''):
+        return Exchange.ymd(timestamp, infix, False)
+
+    @staticmethod
+    def yyyymmdd(timestamp, infix='-'):
+        return Exchange.ymd(timestamp, infix, True)
 
     @staticmethod
     def ymdhms(timestamp, infix=' '):
