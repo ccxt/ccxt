@@ -185,6 +185,7 @@ module.exports = class kucoin extends Exchange {
                         'contracts/{symbol}',
                         'ticker',
                         'level2/snapshot',
+                        'level{level}/depth{limit}',
                         'level2/depth20',
                         'level2/depth100',
                         'level2/message/query',
@@ -1154,25 +1155,37 @@ module.exports = class kucoin extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        const market = this.market (symbol);
         const level = this.safeInteger (params, 'level', 2);
-        const request = { 'symbol': marketId, 'level': level };
+        const request = {
+            'symbol': market['id'],
+            'level': level,
+        };
+        const contract = market['contract'];
+        if (contract && (limit === undefined)) {
+            limit = 20; // Needs to be depth20 or depth100 for futures
+        }
         let method = 'privateGetMarketOrderbookLevelLevel';
         if (level === 2) {
             if (limit !== undefined) {
                 if ((limit === 20) || (limit === 100)) {
                     request['limit'] = limit;
-                    method = 'publicGetMarketOrderbookLevelLevelLimit';
+                    method = this.getSupportedMapping (this.id, {
+                        'kucoin': 'publicGetMarketOrderbookLevelLevelLimit',
+                        'kucoinfutures': 'futuresPublicGetLevelLevelDepthLimit',
+                    });
                 } else {
                     throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
                 }
             }
+        } else if (contract) {
+            throw new ExchangeError (this.id + ' fetchOrderBook only has order book level 2');
         }
         const response = await this[method] (this.extend (request, params));
-        //
-        // 'market/orderbook/level2'
-        // 'market/orderbook/level2_20'
-        // 'market/orderbook/level2_100'
+        // SPOT
+        //  'market/orderbook/level2'
+        //  'market/orderbook/level2_20'
+        //  'market/orderbook/level2_100'
         //
         //     {
         //         "code":"200000",
@@ -1192,7 +1205,7 @@ module.exports = class kucoin extends Exchange {
         //         }
         //     }
         //
-        // 'market/orderbook/level3'
+        //  'market/orderbook/level3'
         //
         //     {
         //         "code":"200000",
@@ -1213,8 +1226,26 @@ module.exports = class kucoin extends Exchange {
         //         }
         //     }
         //
+        // FUTURES
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //           "symbol": "XBTUSDM",      //Symbol
+        //           "sequence": 100,          //Ticker sequence number
+        //           "asks": [
+        //                 ["5000.0", 1000],   //Price, quantity
+        //                 ["6000.0", 1983]    //Price, quantity
+        //           ],
+        //           "bids": [
+        //                 ["3200.0", 800],    //Price, quantity
+        //                 ["3100.0", 100]     //Price, quantity
+        //           ],
+        //           "ts": 1604643655040584408  // timestamp
+        //         }
+        //     }
         const data = this.safeValue (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'time');
+        const ts = Precise.stringDiv (this.safeString (data, 'ts'), '1000000');
+        const timestamp = this.safeTimestamp (data, 'time', ts);
         const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;

@@ -449,6 +449,11 @@ module.exports = class kucoinfutures extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
+    async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
+        // Only here to overwrite superclass method
+        throw new ExchangeError ('fetchL3OrderBook is not available using ' + this.id);
+    }
+
     async transferIn (code, amount, params = {}) {
         // transfer from spot wallet to usdm futures wallet
         return await this.futuresTransfer (code, amount, 1, params);
