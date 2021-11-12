@@ -623,13 +623,16 @@ module.exports = class gateio extends Exchange {
                 for (let i = 0; i < response.length; i++) {
                     const market = response[i];
                     const id = this.safeString (market, 'name');
-                    const [ baseId, quoteId, date ] = id.split ('_');
+                    const parts = id.split ('_');
+                    const baseId = this.safeString (parts, 0);
+                    const quoteId = this.safeString (parts, 1);
+                    const date = this.safeString (parts, 2);
                     const linear = quoteId.toLowerCase () === settle;
                     const inverse = baseId.toLowerCase () === settle;
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
                     let symbol = '';
-                    if (date) {
+                    if (date !== undefined) {
                         symbol = base + '/' + quote + '-' + date + ':' + this.safeCurrencyCode (settle);
                     } else {
                         symbol = base + '/' + quote + ':' + this.safeCurrencyCode (settle);
