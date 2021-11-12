@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.61.3';
+$version = '1.61.4';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.61.3';
+    const VERSION = '1.61.4';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -139,7 +139,7 @@ class Exchange {
         'kucoin',
         'kuna',
         'latoken',
-        'latoken2',
+        'latoken1',
         'lbank',
         'liquid',
         'luno',
