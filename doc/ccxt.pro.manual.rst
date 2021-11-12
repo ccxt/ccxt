@@ -344,12 +344,12 @@ The CCXT Pro library currently supports the following 34 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg
           :target: https://ftx.com/#a=ccxt
           :alt: ftxus
      
      - ftxus
-     - `FTXUS <https://ftx.com/#a=ccxt>`__
+     - `FTX US <https://ftx.com/#a=ccxt>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://github.com/ftexchange/ftx
           :alt: API Version *

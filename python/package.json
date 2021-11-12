@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.61.6",
+  "version": "1.61.7",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -577,7 +577,8 @@
     "bitrue.com",
     "Bitrue",
     "ftx.us",
-    "FTXUS"
+    "FTXUS",
+    "FTX US"
   ],
   "collective": {
     "type": "opencollective",
