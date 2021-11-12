@@ -3,7 +3,7 @@ The ccxt library is a collection of available crypto *exchanges* or exchange cla
 
 The structure of the library can be outlined as follows:
 
-.. code-block::
+.. code-block:: text
 
                                     User
        +-------------------------------------------------------------+
@@ -2530,7 +2530,7 @@ It depends on which exchange you are using, but some of them have a reversed (in
 
 For those exchanges the ccxt will do a correction, switching and normalizing sides of base and quote currencies when parsing exchange replies. This logic is financially and terminologically correct. If you want less confusion, remember the following rule: **base is always before the slash, quote is always after the slash in any symbol and with any market**.
 
-.. code-block::
+.. code-block:: text
 
    base currency ↓
                 BTC / USDT
@@ -2620,7 +2620,7 @@ The recommended way of working with exchanges is not using exchange-specific imp
 
 To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
 
-.. code-block::
+.. code-block:: text
 
    console.log (new ccxt.kraken ())   // JavaScript
    print(dir(ccxt.hitbtc()))           # Python
@@ -2668,7 +2668,7 @@ A few exchanges also expose a merchant API which allows you to create invoices a
 
 To get a list of all available methods with an exchange instance, you can simply do the following:
 
-.. code-block::
+.. code-block:: text
 
    console.log (new ccxt.kraken ())   // JavaScript
    print(dir(ccxt.hitbtc()))           # Python
@@ -2746,7 +2746,7 @@ Passing Parameters To API Methods
 
 The set of all possible API endpoints differs from exchange to exchange. Most of methods accept a single associative array (or a Python dict) of key-value parameters. The params are passed as follows:
 
-.. code-block::
+.. code-block:: text
 
    bitso.publicGetTicker ({ book: 'eth_mxn' })                 // JavaScript
    ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
@@ -2790,14 +2790,14 @@ An exchange method name is a concatenated string consisting of type (public or p
 
 The ccxt library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language. Both of these notations work in JavaScript, Python and PHP:
 
-.. code-block::
+.. code-block:: text
 
    exchange.methodName ()  // camelcase pseudocode
    exchange.method_name()  // underscore pseudocode
 
 To get a list of all available methods with an exchange instance, you can simply do the following:
 
-.. code-block::
+.. code-block:: text
 
    console.log (new ccxt.kraken ())   // JavaScript
    print(dir(ccxt.hitbtc()))           # Python
@@ -2833,7 +2833,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
  * ``fetchMyTrades ([symbol[, since[, limit[, params]]]])``
  * ...
 
-.. code-block::
+.. code-block:: text
 
    TODO: ADD LINKS ABOVE
 
@@ -3366,7 +3366,7 @@ Notes On Ticker Structure
 
  **All prices in ticker structure are in quote currency. Some fields in a returned ticker structure may be undefined/None/null.**
 
-.. code-block::
+.. code-block:: text
 
    base currency ↓
                 BTC / USDT
@@ -3494,14 +3494,7 @@ The structure of the returned value is as follows:
 
 A general solution for fetching all tickers from all exchanges (even the ones that don't have a corresponding API endpoint) is on the way, this section will be updated soon.
 
-.. code-block::
-
-   UNDER CONSTRUCTION
-
-Async Mode / Concurrency
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block::
+.. code-block:: text
 
    UNDER CONSTRUCTION
 
@@ -3516,7 +3509,7 @@ Most exchanges have endpoints for fetching OHLCV data, but some of them don't. T
 
 The ``fetchOHLCV`` method is declared in the following way:
 
-.. code-block::
+.. code-block:: JavaScript
 
    fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
 
@@ -3644,7 +3637,7 @@ Some exchanges don't offer any OHLCV method, and for those, the ccxt library wil
 
  **WARNING: the fetchOHLCV emulation is experimental!**
 
-.. code-block::
+.. code-block:: text
 
    UNDER CONSTRUCTION
 
@@ -3657,7 +3650,7 @@ Public Trades
 
 You can call the unified ``fetchTrades`` / ``fetch_trades`` method to get the list of most recent trades for a particular symbol. The ``fetchTrades`` method is declared in the following way:
 
-.. code-block::
+.. code-block:: JavaScript
 
    async fetchTrades (symbol, since = undefined, limit = undefined, params = {})
 
@@ -4378,7 +4371,7 @@ Market price orders are also known as *spot price orders*\ , *instant orders* or
 
 The exchange will close your market order for the best price available. You are not guaranteed though, that the order will be executed for the price you observe prior to placing your order. There can be a slight change of the price for the traded market while your order is being executed, also known as *price slippage*. The price can slip because of networking roundtrip latency, high loads on the exchange, price volatility and other factors. When placing a market order you don't need to specify the price of the order.
 
-.. code-block::
+.. code-block:: JavaScript
 
    // camelCaseNotation
    exchange.createMarketSellOrder (symbol, amount[, params])
@@ -4517,7 +4510,7 @@ Limit Orders
 
 Limit price orders are also known as *limit orders*. Some exchanges accept limit orders only. Limit orders require a price (rate per unit) to be submitted with the order. The exchange will close limit orders if and only if market price reaches the desired level.
 
-.. code-block::
+.. code-block:: JavaScript
 
    // camelCaseStyle
    exchange.createLimitBuyOrder (symbol, amount, price[, params])
@@ -4553,7 +4546,7 @@ Some exchanges allow you to specify optional parameters for your order. You can 
 User-defined ``clientOrderId``
 """"""""""""""""""""""""""""""""""
 
-.. code-block::
+.. code-block:: text
 
    - this part of the unified API is currenty a work in progress
    - there may be some issues and missing implementations here and there
@@ -4665,7 +4658,7 @@ As such, ``cancelOrder()`` can throw an ``OrderNotFound`` exception in these cas
 My Trades
 ---------
 
-.. code-block::
+.. code-block:: text
 
    - this part of the unified API is currenty a work in progress
    - there may be some issues and missing implementations here and there
@@ -4680,7 +4673,7 @@ To put it shortly, an order can contain *one or more* trades. Or, in other words
 
 For example, an orderbook can have the following orders (whatever trading symbol or pair it is):
 
-.. code-block::
+.. code-block:: text
 
        | price  | amount
    ----|----------------
@@ -4696,7 +4689,7 @@ All specific numbers above aren't real, this is just to illustrate the way order
 
 A seller decides to place a sell limit order on the ask side for a price of 0.700 and an amount of 150.
 
-.. code-block::
+.. code-block:: text
 
        | price  | amount
    ----|----------------  ↓
@@ -4725,7 +4718,7 @@ As the price and amount of the incoming sell (ask) order cover more than one bid
 
 The intermediate state of the orderbook is now (order ``b`` is ``closed`` and is not in the orderbook anymore):
 
-.. code-block::
+.. code-block:: text
 
        | price  | amount
    ----|----------------  ↓
@@ -4748,7 +4741,7 @@ The intermediate state of the orderbook is now (order ``b`` is ``closed`` and is
 
 After the above sequence takes place, the updated orderbook will look like this.
 
-.. code-block::
+.. code-block:: text
 
        | price  | amount
    ----|----------------
@@ -4919,7 +4912,7 @@ Liquidation price
 
 It is the price at which the ``initialMargin + unrealized = collateral = maintenanceMargin``. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
 
-.. code-block::
+.. code-block:: JavaScript
 
    // if long
    (liquidationPrice - price) * contracts = maintenanceMargin
@@ -5613,7 +5606,7 @@ All exceptions are derived from the base BaseError exception, which, in its turn
 
 Below is an outline of exception inheritance hierarchy:
 
-.. code-block::
+.. code-block:: text
 
    + BaseError
    |
