@@ -259,21 +259,22 @@ module.exports = class kucoin extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'order not exist': OrderNotFound,
-                    'order not exist.': OrderNotFound, // duplicated error temporarily
-                    'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                    'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                    'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
-                    'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
-                    'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
-                    '400': BadRequest,
-                    '401': AuthenticationError,
-                    '403': NotSupported,
-                    '404': NotSupported,
-                    '405': NotSupported,
-                    '429': RateLimitExceeded,
+                    // 'order not exist': OrderNotFound,
+                    // 'order not exist.': OrderNotFound, // duplicated error temporarily
+                    // 'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                    // 'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                    // 'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
+                    // 'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
+                    // 'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
+                    '400': BadRequest, // Bad Request -- Invalid request format
+                    '401': AuthenticationError, // Unauthorized -- Invalid API Key
+                    '403': NotSupported, // Forbidden -- The request is forbidden
+                    '404': NotSupported, // Not Found -- The specified resource could not be found
+                    '405': NotSupported, // Method Not Allowed -- You tried to access the resource with an invalid method.
+                    '415': BadRequest,  // Content-Type -- application/json
+                    '429': RateLimitExceeded, // Too Many Requests -- Access limit breached
                     '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
-                    '503': ExchangeNotAvailable,
+                    '503': ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '200004': InsufficientFunds,
                     '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
@@ -299,6 +300,10 @@ module.exports = class kucoin extends Exchange {
                     'Exceeded the access frequency': RateLimitExceeded,
                     'require more permission': PermissionDenied,
                 },
+                // 'broad': {
+                //     'Exceeded the access frequency': RateLimitExceeded,
+                //     'require more permission': PermissionDenied,
+                // },
             },
             'fees': {
                 'trading': {
@@ -354,7 +359,7 @@ module.exports = class kucoin extends Exchange {
                 'VAI': 'VAIOT',
             },
             'options': {
-                'version': 'v1',
+                'version': 'v2',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
                 'fetchBalance': 'trade',
@@ -469,12 +474,8 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const method = this.getSupportedMapping (this.id, {
-            'kucoin': 'publicGetSymbols',
-            'kucoinfutures': 'futuresPublicGetContractsActive',
-        });
-        const response = await this[method] (params);
-        //  SPOT
+        const response = await this.publicGetSymbols (params);
+        //
         //     {
         //         "code": "200000",
         //         "data": [
@@ -498,81 +499,12 @@ module.exports = class kucoin extends Exchange {
         //             },
         //         ]
         //     }
-        //  FUTURES
-        //  {
-        //     "code": "200000",
-        //     "data": {
-        //         "symbol": "ETHUSDTM",
-        //         "rootSymbol": "USDT",
-        //         "type": "FFWCSX",
-        //         "firstOpenDate": 1591086000000,
-        //         "expireDate": null,
-        //         "settleDate": null,
-        //         "baseCurrency": "ETH",
-        //         "quoteCurrency": "USDT",
-        //         "settleCurrency": "USDT",
-        //         "maxOrderQty": 1000000,
-        //         "maxPrice": 1000000.0000000000,
-        //         "lotSize": 1,
-        //         "tickSize": 0.05,
-        //         "indexPriceTickSize": 0.01,
-        //         "multiplier": 0.01,
-        //         "initialMargin": 0.01,
-        //         "maintainMargin": 0.005,
-        //         "maxRiskLimit": 1000000,
-        //         "minRiskLimit": 1000000,
-        //         "riskStep": 500000,
-        //         "makerFeeRate": 0.00020,
-        //         "takerFeeRate": 0.00060,
-        //         "takerFixFee": 0.0000000000,
-        //         "makerFixFee": 0.0000000000,
-        //         "settlementFee": null,
-        //         "isDeleverage": true,
-        //         "isQuanto": true,
-        //         "isInverse": false,
-        //         "markMethod": "FairPrice",
-        //         "fairMethod": "FundingRate",
-        //         "fundingBaseSymbol": ".ETHINT8H",
-        //         "fundingQuoteSymbol": ".USDTINT8H",
-        //         "fundingRateSymbol": ".ETHUSDTMFPI8H",
-        //         "indexSymbol": ".KETHUSDT",
-        //         "settlementSymbol": "",
-        //         "status": "Open",
-        //         "fundingFeeRate": 0.000535,
-        //         "predictedFundingFeeRate": 0.002197,
-        //         "openInterest": "8724443",
-        //         "turnoverOf24h": 341156641.03354263,
-        //         "volumeOf24h": 74833.54000000,
-        //         "markPrice": 4534.07,
-        //         "indexPrice":4531.92,
-        //         "lastTradePrice": 4545.4500000000,
-        //         "nextFundingRateTime": 25481884,
-        //         "maxLeverage": 100,
-        //         "sourceExchanges":  [
-        //             "huobi",
-        //             "Okex",
-        //             "Binance",
-        //             "Kucoin",
-        //             "Poloniex",
-        //             "Hitbtc"
-        //         ],
-        //         "premiumsSymbol1M": ".ETHUSDTMPI",
-        //         "premiumsSymbol8H": ".ETHUSDTMPI8H",
-        //         "fundingBaseSymbol1M": ".ETHINT",
-        //         "fundingQuoteSymbol1M": ".USDTINT",
-        //         "lowPrice": 4456.90,
-        //         "highPrice":  4674.25,
-        //         "priceChgPct": 0.0046,
-        //         "priceChg": 21.15
-        //     }
-        // }
-        const result = [];
-        const spot = this.id === 'kucoin';
+        //
         const data = this.safeValue (response, 'data');
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const fetchTickersFees = this.safeValue (options, 'fetchTickersFees', true);
         let tickersResponse = {};
-        if (spot && fetchTickersFees) {
+        if (fetchTickersFees) {
             tickersResponse = await this.publicGetMarketAllTickers (params);
         }
         //
@@ -606,44 +538,26 @@ module.exports = class kucoin extends Exchange {
         const tickersData = this.safeValue (tickersResponse, 'data', {});
         const tickers = this.safeValue (tickersData, 'ticker', []);
         const tickersByMarketId = this.indexBy (tickers, 'symbol');
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
-            let expireDate = this.safeNumber (market, 'expireDate');
-            if (expireDate) {
-                expireDate = expireDate.toString ();
-            }
-            const futures = expireDate ? true : false;
-            const swap = !spot && !futures;
-            const base = this.safeString (market, 'baseCurrency');
-            const quote = this.safeString (market, 'quoteCurrency');
-            const settle = this.safeString (market, 'settleCurrency');
-            let symbol = '';
-            let type = '';
-            if (spot) {
-                symbol = base + '/' + quote;
-                type = 'spot';
-            } else if (swap) {
-                symbol = base + '/' + quote + ':' + settle;
-                type = 'swap';
-            } else if (futures) {
-                symbol = base + '/' + quote + '-' + expireDate + ':' + settle;
-                type = 'futures';
-            }
-            const margin = this.safeValue (market, 'isMarginEnabled', false);
+            const [ baseId, quoteId ] = id.split ('-');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const active = this.safeValue (market, 'enableTrading');
+            const margin = this.safeValue (market, 'isMarginEnabled');
             const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
             const baseMinSizeString = this.safeString (market, 'baseMinSize');
             const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
             const baseMinSize = this.parseNumber (baseMinSizeString);
             const quoteMaxSize = this.parseNumber (quoteMaxSizeString);
             const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
-            const inverse = this.safeValue (market, 'isInverse');
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            const amount = this.safeString (market, 'baseIncrement');
-            const price = this.safeString (market, 'priceIncrement');
             const precision = {
-                'amount': amount ? this.precisionFromString (this.safeString (market, 'baseIncrement')) : undefined,
-                'price': price ? this.precisionFromString (this.safeString (market, 'priceIncrement')) : undefined,
+                'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
+                'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
             };
             const limits = {
                 'amount': {
@@ -663,46 +577,28 @@ module.exports = class kucoin extends Exchange {
                 },
             };
             const ticker = this.safeValue (tickersByMarketId, id, {});
-            let makerFeeRate = undefined;
-            let takerFeeRate = undefined;
+            const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
+            const takerFeeRate = this.safeString (ticker, 'makerFeeRate');
             const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
             const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
-            if (spot) {
-                makerFeeRate = this.safeString (ticker, 'makerFeeRate');
-                takerFeeRate = this.safeString (ticker, 'makerFeeRate');
-            } else {
-                makerFeeRate = this.safeString (market, 'makerFeeRate');
-                takerFeeRate = this.safeString (market, 'makerFeeRate');
-            }
             const maker = this.parseNumber (Precise.stringMul (makerFeeRate, makerCoefficient));
             const taker = this.parseNumber (Precise.stringMul (takerFeeRate, takerCoefficient));
             result.push ({
                 'id': id,
                 'symbol': symbol,
-                'baseId': base,
-                'quoteId': quote,
-                'settleId': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'type': type,
-                'spot': spot,
+                'type': 'spot',
+                'spot': true,
                 'margin': margin,
-                'swap': swap,
-                'futures': futures,
-                'option': false,
-                'active': spot ? this.safeValue (market, 'enableTrading') : true,
+                'active': active,
                 'maker': maker,
                 'taker': taker,
                 'precision': precision,
-                'contract': swap,
-                'linear': inverse !== true,
-                'inverse': inverse,
-                'expiry': this.safeValue (market, 'expireDate'),
-                'contractSize': undefined,
                 'limits': limits,
                 'info': market,
-                // Fee is in %, so divide by 100
-                'fees': this.safeValue (this.fees, 'type', {}),
             });
         }
         return result;
