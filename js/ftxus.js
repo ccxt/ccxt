@@ -14,6 +14,7 @@ module.exports = class ftxus extends ftx {
             'urls': {
                 'www': 'https://ftx.us/',
                 'docs': 'https://docs.ftx.us/',
+                'fees': 'https://help.ftx.us/hc/en-us/articles/360043579273-Fees',
             },
         });
     }
