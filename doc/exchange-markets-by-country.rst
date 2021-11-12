@@ -1432,6 +1432,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - US
+     - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
+          :target: https://ftx.com/#a=ccxt
+          :alt: ftxus
+     
+     - ftxus
+     - `FTXUS <https://ftx.com/#a=ccxt>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://github.com/ftexchange/ftx
+          :alt: API Version *
+     
+   * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
           :target: https://gemini.com/
           :alt: gemini

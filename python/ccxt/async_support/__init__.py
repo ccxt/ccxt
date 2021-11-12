@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.61.5'
+__version__ = '1.61.6'
 
 # -----------------------------------------------------------------------------
 
@@ -112,6 +112,7 @@ from ccxt.async_support.equos import equos                                # noqa
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.ftx import ftx                                    # noqa: F401
+from ccxt.async_support.ftxus import ftxus                                # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
@@ -224,6 +225,7 @@ exchanges = [
     'exmo',
     'flowbtc',
     'ftx',
+    'ftxus',
     'gateio',
     'gemini',
     'hitbtc',

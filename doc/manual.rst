@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 107 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -848,6 +848,24 @@ The CCXT library currently supports the following 106 cryptocurrency exchange ma
      
      - ftx
      - `FTX <https://ftx.com/#a=ccxt>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://github.com/ftexchange/ftx
+          :alt: API Version *
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
+          :target: https://ftx.com/#a=ccxt
+          :alt: ftxus
+     
+     - ftxus
+     - `FTXUS <https://ftx.com/#a=ccxt>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://github.com/ftexchange/ftx
           :alt: API Version *

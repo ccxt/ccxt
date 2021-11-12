@@ -26,7 +26,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :target: https://discord.gg/dhzSKYU
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-110-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-111-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -258,6 +258,24 @@ Certified Cryptocurrency Exchanges
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
+          :target: https://ftx.com/#a=ccxt
+          :alt: ftxus
+     
+     - ftxus
+     - `FTXUS <https://ftx.com/#a=ccxt>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://github.com/ftexchange/ftx
+          :alt: API Version *
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
           :alt: gateio
@@ -382,7 +400,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 107 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1191,6 +1209,24 @@ The CCXT library currently supports the following 106 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
+          :target: https://ftx.com/#a=ccxt
+          :alt: ftxus
+     
+     - ftxus
+     - `FTXUS <https://ftx.com/#a=ccxt>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://github.com/ftexchange/ftx
+          :alt: API Version *
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
           :alt: gateio
@@ -1870,14 +1906,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.61.5/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.61.5/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.61.6/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.61.6/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.61.5/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.61.6/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
