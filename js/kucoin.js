@@ -1299,8 +1299,8 @@ module.exports = class kucoin extends Exchange {
         //         }
         //     }
         const data = this.safeValue (response, 'data', {});
-        const ts = Precise.stringDiv (this.safeString (data, 'ts'), '1000000');
-        const timestamp = this.safeTimestamp (data, 'time', ts);
+        const ts = parseInt (Precise.stringDiv (this.safeString (data, 'ts'), '1000000'));
+        const timestamp = this.safeInteger (data, 'time', ts);
         const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;

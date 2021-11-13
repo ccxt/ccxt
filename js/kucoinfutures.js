@@ -1,7 +1,7 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
-
+const { ExchangeError } = require ('./base/errors');
 const kucoin = require ('./kucoin.js');
 
 //  ---------------------------------------------------------------------------
@@ -28,7 +28,7 @@ module.exports = class kucoinfutures extends kucoin {
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
         // Only here to overwrite superclass method
-        throw new ExchangeError("fetchL3OrderBook is not available using " + this.id)
+        throw new ExchangeError ('fetchL3OrderBook is not available using ' + this.id);
     }
 
     async transferIn (code, amount, params = {}) {
