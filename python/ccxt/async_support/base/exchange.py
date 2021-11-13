@@ -58,7 +58,7 @@ class Exchange(BaseExchange):
         self.reloading_markets = False
 
     def init_rest_rate_limiter(self):
-        self.throttle = Throttler(self.tokenBucket)
+        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
 
     def __del__(self):
         if self.session is not None:
