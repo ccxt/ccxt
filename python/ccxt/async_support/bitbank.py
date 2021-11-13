@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -313,15 +314,14 @@ class bitbank(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        if since is None:
+            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument')
         await self.load_markets()
         market = self.market(symbol)
-        date = self.milliseconds()
-        date = self.ymd(date)
-        date = date.split('-')
         request = {
             'pair': market['id'],
             'candletype': self.timeframes[timeframe],
-            'yyyymmdd': ''.join(date),
+            'yyyymmdd': self.yyyymmdd(since, ''),
         }
         response = await self.publicGetPairCandlestickCandletypeYyyymmdd(self.extend(request, params))
         #

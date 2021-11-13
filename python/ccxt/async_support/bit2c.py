@@ -327,8 +327,8 @@ class bit2c(Exchange):
             request['take'] = limit
         request['take'] = limit
         if since is not None:
-            request['toTime'] = self.ymd(self.milliseconds(), '.')
-            request['fromTime'] = self.ymd(since, '.')
+            request['toTime'] = self.yyyymmdd(self.milliseconds(), '.')
+            request['fromTime'] = self.yyyymmdd(since, '.')
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
