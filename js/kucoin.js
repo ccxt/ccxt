@@ -1212,9 +1212,9 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const level = this.safeInteger (params, 'level', 2);
-        const request = { 
-            'symbol': market['id'], 
-            'level': level 
+        const request = {
+            'symbol': market['id'],
+            'level': level,
         };
         const contract = market['contract'];
         if (contract && (limit === undefined)) {
@@ -1225,9 +1225,9 @@ module.exports = class kucoin extends Exchange {
             if (limit !== undefined) {
                 if ((limit === 20) || (limit === 100)) {
                     request['limit'] = limit;
-                    method = this.getSupportedMapping(this.id, {
+                    method = this.getSupportedMapping (this.id, {
                         'kucoin': 'publicGetMarketOrderbookLevelLevelLimit',
-                        'kucoinfutures': 'futuresPublicGetLevelLevelDepthLimit'
+                        'kucoinfutures': 'futuresPublicGetLevelLevelDepthLimit',
                     });
                 } else {
                     throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
