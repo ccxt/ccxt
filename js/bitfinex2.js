@@ -1029,7 +1029,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

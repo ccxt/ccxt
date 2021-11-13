@@ -144,7 +144,9 @@ module.exports = class currencycom extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ACN': 'Accenture',
                 'BNS': 'Bank of Nova Scotia',
+                'CAR': 'Avis Budget Group Inc',
                 'EDU': 'New Oriental Education & Technology Group Inc',
                 'ETN': 'Eaton',
                 'IQ': 'iQIYI',

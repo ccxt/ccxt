@@ -454,7 +454,7 @@ module.exports = class coinbasepro extends Exchange {
         const timestamp = this.parse8601 (this.safeValue (ticker, 'time'));
         const bid = this.safeNumber (ticker, 'bid');
         const ask = this.safeNumber (ticker, 'ask');
-        const last = this.safeNumber (ticker, 'price');
+        const last = this.safeNumber2 (ticker, 'price', 'last');
         const symbol = (market === undefined) ? undefined : market['symbol'];
         return {
             'symbol': symbol,
@@ -774,7 +774,7 @@ module.exports = class coinbasepro extends Exchange {
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1053,9 +1053,9 @@ module.exports = class coinbasepro extends Exchange {
         const id = this.safeString (item, 'id');
         let amountString = this.safeString (item, 'amount');
         let direction = undefined;
-        const afterString = this.safeNumber (item, 'balance');
+        const afterString = this.safeString (item, 'balance');
         const beforeString = Precise.stringSub (afterString, amountString);
-        if (Precise.lt (amountString, '0')) {
+        if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
             amountString = Precise.stringAbs (amountString);
         } else {

@@ -59,6 +59,9 @@ module.exports = class binance extends Exchange {
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,
+                'setPositionMode': true,
+                'addMargin': true,
+                'reduceMargin': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -1293,6 +1296,8 @@ module.exports = class binance extends Exchange {
             }
             const maker = fees['trading']['maker'];
             const taker = fees['trading']['taker'];
+            const settleId = this.safeString (market, 'marginAsset');
+            const settle = this.safeCurrencyCode (settleId);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1311,6 +1316,8 @@ module.exports = class binance extends Exchange {
                 'inverse': delivery,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
+                'settleId': settleId,
+                'settle': settle,
                 'active': active,
                 'precision': precision,
                 'contractSize': contractSize,
@@ -2264,6 +2271,33 @@ module.exports = class binance extends Exchange {
         //       ]
         //     }
         //
+        // delivery
+        //
+        //     {
+        //       "orderId": "18742727411",
+        //       "symbol": "ETHUSD_PERP",
+        //       "pair": "ETHUSD",
+        //       "status": "FILLED",
+        //       "clientOrderId": "x-xcKtGhcu3e2d1503fdd543b3b02419",
+        //       "price": "0",
+        //       "avgPrice": "4522.14",
+        //       "origQty": "1",
+        //       "executedQty": "1",
+        //       "cumBase": "0.00221134",
+        //       "timeInForce": "GTC",
+        //       "type": "MARKET",
+        //       "reduceOnly": false,
+        //       "closePosition": false,
+        //       "side": "SELL",
+        //       "positionSide": "BOTH",
+        //       "stopPrice": "0",
+        //       "workingType": "CONTRACT_PRICE",
+        //       "priceProtect": false,
+        //       "origType": "MARKET",
+        //       "time": "1636061952660",
+        //       "updateTime": "1636061952660"
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -2289,7 +2323,8 @@ module.exports = class binance extends Exchange {
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        const cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
+        let cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
+        cost = this.safeString2 (order, 'cumBase', cost);
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
@@ -3328,7 +3363,8 @@ module.exports = class binance extends Exchange {
             const parsed = this.parseIncome (entry, market);
             result.push (parsed);
         }
-        return this.filterBySinceLimit (result, since, limit, 'timestamp');
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -3875,7 +3911,7 @@ module.exports = class binance extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         //
         // Gets a history of funding rates with their timestamps
         //  (param) symbol: Future currency pair (e.g. "BTC/USDT")
@@ -3934,13 +3970,14 @@ module.exports = class binance extends Exchange {
             const timestamp = this.safeInteger (entry, 'fundingTime');
             rates.push ({
                 'info': entry,
-                'symbol': this.safeString (entry, 'symbol'),
+                'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
                 'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return this.sortBy (rates, 'timestamp');
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
@@ -4206,6 +4243,8 @@ module.exports = class binance extends Exchange {
             }
             liquidationPrice = this.parseNumber (truncatedLiquidationPrice);
         }
+        const positionSide = this.safeString (position, 'positionSide');
+        const hedged = positionSide !== 'BOTH';
         return {
             'info': position,
             'symbol': symbol,
@@ -4227,6 +4266,7 @@ module.exports = class binance extends Exchange {
             'collateral': collateral,
             'marginType': marginType,
             'side': side,
+            'hedged': hedged,
             'percentage': percentage,
         };
     }
@@ -4361,6 +4401,8 @@ module.exports = class binance extends Exchange {
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
+        const positionSide = this.safeString (position, 'positionSide');
+        const hedged = positionSide !== 'BOTH';
         return {
             'info': position,
             'symbol': symbol,
@@ -4382,6 +4424,7 @@ module.exports = class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'marginType': marginType,
             'side': side,
+            'hedged': hedged,
             'percentage': percentage,
         };
     }
@@ -4424,12 +4467,12 @@ module.exports = class binance extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    async fetchPositions (symbolOrSymbols = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         const defaultMethod = this.safeString (this.options, 'fetchPositions', 'positionRisk');
         if (defaultMethod === 'positionRisk') {
-            return await this.fetchPositionsRisk (symbolOrSymbols, params);
+            return await this.fetchPositionsRisk (symbols, params);
         } else if (defaultMethod === 'account') {
-            return await this.fetchAccountPositions (symbolOrSymbols, params);
+            return await this.fetchAccountPositions (symbols, params);
         } else {
             throw new NotSupported (this.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"');
         }
@@ -4438,7 +4481,7 @@ module.exports = class binance extends Exchange {
     async fetchAccountPositions (symbols = undefined, params = {}) {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
-                symbols = [ symbols ];
+                throw new ArgumentsRequired (this.id + ' fetchPositions requires an array argument for symbols');
             }
         }
         await this.loadMarkets ();
@@ -4459,28 +4502,17 @@ module.exports = class binance extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    async fetchPositionsRisk (symbol = undefined, params = {}) {
-        if (Array.isArray (symbol)) {
-            throw new BadSymbol (this.id + ' fetchPositionsRisk only accepts a string argument as a symbol');
+    async fetchPositionsRisk (symbols = undefined, params = {}) {
+        if (symbols !== undefined) {
+            if (!Array.isArray (symbols)) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions requires an array argument for symbols');
+            }
         }
         await this.loadMarkets ();
         await this.loadLeverageBrackets ();
         const request = {};
-        let market = undefined;
         let method = undefined;
         let defaultType = 'future';
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            if (market['linear']) {
-                request['symbol'] = market['id'];
-                defaultType = 'future';
-            } else if (market['inverse']) {
-                request['pair'] = market['info']['pair'];
-                defaultType = 'delivery';
-            } else {
-                throw NotSupported (this.id + ' fetchPositionsRisk supports linear and inverse contracts only');
-            }
-        }
         defaultType = this.safeString (this.options, 'defaultType', defaultType);
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
@@ -4492,16 +4524,12 @@ module.exports = class binance extends Exchange {
             throw NotSupported (this.id + ' fetchIsolatedPositions() supports linear and inverse contracts only');
         }
         const response = await this[method] (this.extend (request, params));
-        if (symbol === undefined) {
-            const result = [];
-            for (let i = 0; i < response.length; i++) {
-                const parsed = this.parsePositionRisk (response[i], market);
-                result.push (parsed);
-            }
-            return result;
-        } else {
-            return this.parsePositionRisk (this.safeValue (response, 0), market);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parsePositionRisk (response[i]);
+            result.push (parsed);
         }
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4595,6 +4623,35 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'marginType': marginType,
         };
+        return await this[method] (this.extend (request, params));
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        const defaultType = this.safeString (this.options, 'defaultType', 'future');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, [ 'type' ]);
+        let dualSidePosition = undefined;
+        if (hedged) {
+            dualSidePosition = 'true';
+        } else {
+            dualSidePosition = 'false';
+        }
+        const request = {
+            'dualSidePosition': dualSidePosition,
+        };
+        let method = undefined;
+        if (type === 'delivery') {
+            method = 'dapiPrivatePostPositionSideDual';
+        } else {
+            // default to future
+            method = 'fapiPrivatePostPositionSideDual';
+        }
+        //
+        //     {
+        //       "code": 200,
+        //       "msg": "success"
+        //     }
+        //
         return await this[method] (this.extend (request, params));
     }
 
@@ -4790,6 +4847,14 @@ module.exports = class binance extends Exchange {
             code = market['base'];
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //       "code": 200,
+        //       "msg": "Successfully modify position margin.",
+        //       "amount": 0.001,
+        //       "type": 1
+        //     }
+        //
         const rawType = this.safeInteger (response, 'type');
         const resultType = (rawType === 1) ? 'add' : 'reduce';
         const resultAmount = this.safeNumber (response, 'amount');

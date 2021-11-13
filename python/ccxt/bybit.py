@@ -47,6 +47,7 @@ class bybit(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': False,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
@@ -291,6 +292,7 @@ class bybit(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    '-2015': AuthenticationError,  # Invalid API-key, IP, or permissions for action.
                     '10001': BadRequest,  # parameter error
                     '10002': InvalidNonce,  # request expired, check your timestamp and recv_window
                     '10003': AuthenticationError,  # Invalid apikey
@@ -1334,7 +1336,7 @@ class bybit(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -2065,7 +2067,7 @@ class bybit(Exchange):
             currency = self.currency(code)
             request['coin'] = currency['id']
         if since is not None:
-            request['start_date'] = self.ymd(since)
+            request['start_date'] = self.yyyymmdd(since)
         if limit is not None:
             request['limit'] = limit
         response = self.v2PrivateGetWalletFundRecords(self.extend(request, params))
@@ -2117,7 +2119,7 @@ class bybit(Exchange):
             currency = self.currency(code)
             request['coin'] = currency['id']
         if since is not None:
-            request['start_date'] = self.ymd(since)
+            request['start_date'] = self.yyyymmdd(since)
         if limit is not None:
             request['limit'] = limit
         response = self.v2PrivateGetWalletWithdrawList(self.extend(request, params))
@@ -2250,7 +2252,7 @@ class bybit(Exchange):
             currency = self.currency(code)
             request['coin'] = currency['id']
         if since is not None:
-            request['start_date'] = self.ymd(since)
+            request['start_date'] = self.yyyymmdd(since)
         if limit is not None:
             request['limit'] = limit
         response = self.v2PrivateGetWalletFundRecords(self.extend(request, params))

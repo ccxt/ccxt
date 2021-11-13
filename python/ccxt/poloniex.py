@@ -318,6 +318,11 @@ class poloniex(Exchange):
             isFrozen = self.safe_string(market, 'isFrozen')
             active = (isFrozen != '1')
             numericId = self.safe_integer(market, 'id')
+            # these are known defaults
+            precision = {
+                'price': 8,
+                'amount': 8,
+            }
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -329,6 +334,7 @@ class poloniex(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'active': active,
+                'precision': precision,
                 'limits': limits,
                 'info': market,
             })

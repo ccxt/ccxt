@@ -588,19 +588,17 @@ class coinmate(Exchange):
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_lower(order, 'type')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'originalAmount')
-        remaining = self.safe_number(order, 'remainingAmount')
-        if remaining is None:
-            remaining = self.safe_number(order, 'amount')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'originalAmount')
+        remaining = self.safe_string_2(order, 'remainingAmount', 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.parse_order_type(self.safe_string(order, 'orderTradeType'))
-        average = self.safe_number(order, 'avgPrice')
+        average = self.safe_string(order, 'avgPrice')
         marketId = self.safe_string(order, 'currencyPair')
         symbol = self.safe_symbol(marketId, market, '_')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
@@ -622,7 +620,7 @@ class coinmate(Exchange):
             'trades': None,
             'info': order,
             'fee': None,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

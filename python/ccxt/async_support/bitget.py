@@ -1857,11 +1857,11 @@ class bitget(Exchange):
                 symbol = marketId.upper()
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        amount = self.safe_number_2(order, 'amount', 'size')
-        filled = self.safe_number_2(order, 'filled_amount', 'filled_qty')
-        cost = self.safe_number(order, 'filled_cash_amount')
-        price = self.safe_number(order, 'price')
-        average = self.safe_number(order, 'price_avg')
+        amount = self.safe_string_2(order, 'amount', 'size')
+        filled = self.safe_string_2(order, 'filled_amount', 'filled_qty')
+        cost = self.safe_string(order, 'filled_cash_amount')
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'price_avg')
         status = self.parse_order_status(self.safe_string_2(order, 'state', 'status'))
         feeCost = self.safe_number_2(order, 'filled_fees', 'fee')
         fee = None
@@ -1872,7 +1872,7 @@ class bitget(Exchange):
                 'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'client_oid')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1894,7 +1894,7 @@ class bitget(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -2505,15 +2505,15 @@ class bitget(Exchange):
             'symbol': market['id'],
             'method': 'matchresults',
             # 'types': 'buy-market,sell-market,buy-limit,sell-limit',
-            # 'start_date': self.ymd(since),
-            # 'end_date': self.ymd(self.milliseconds()),
+            # 'start_date': self.yyyymmdd(since),
+            # 'end_date': self.yyyymmdd(self.milliseconds()),
             # 'size': 100,
             # 'direct': 'next',
         }
         if since is not None:
-            request['start_date'] = self.ymd(since)
+            request['start_date'] = self.yyyymmdd(since)
             end = self.sum(since, 2 * 24 * 60 * 60 * 1000)
-            request['end_date'] = self.ymd(end)
+            request['end_date'] = self.yyyymmdd(end)
         if limit is not None:
             request['size'] = limit  # default 100, max 100
         response = await self.apiPostOrderMatchresults(self.extend(request, query))

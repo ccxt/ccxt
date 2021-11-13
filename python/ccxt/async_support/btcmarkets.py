@@ -797,16 +797,16 @@ class btcmarkets(Exchange):
         elif side == 'Ask':
             side = 'sell'
         type = self.safe_string_lower(order, 'type')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
-        remaining = self.safe_number(order, 'openAmount')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        remaining = self.safe_string(order, 'openAmount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -828,7 +828,7 @@ class btcmarkets(Exchange):
             'status': status,
             'trades': None,
             'fee': None,
-        })
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

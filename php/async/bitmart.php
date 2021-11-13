@@ -239,6 +239,7 @@ class bitmart extends Exchange {
                     '50021' => '\\ccxt\\BadRequest', // 400, Invalid %s
                     '50022' => '\\ccxt\\ExchangeNotAvailable', // 400, Service unavailable
                     '50023' => '\\ccxt\\BadSymbol', // 400, This Symbol can't place order by api
+                    '50029' => '\\ccxt\\InvalidOrder', // array("message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":array())
                     '53000' => '\\ccxt\\AccountSuspended', // 403, Your account is frozen due to security policies. Please contact customer service
                     '57001' => '\\ccxt\\BadRequest', // 405, Method Not Allowed
                     '58001' => '\\ccxt\\BadRequest', // 415, Unsupported Media Type
@@ -1562,16 +1563,15 @@ class bitmart extends Exchange {
         if ($market !== null) {
             $status = $this->parse_order_status_by_type($market['type'], $this->safe_string($order, 'status'));
         }
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number_2($order, 'price_avg', 'done_avg_price');
-        $amount = $this->safe_number_2($order, 'size', 'vol');
-        $filled = $this->safe_number_2($order, 'filled_size', 'done_vol');
-        $side = $this->safe_string($order, 'side');
+        $amount = $this->safe_string_2($order, 'size', 'vol');
+        $filled = $this->safe_string_2($order, 'filled_size', 'done_vol');
+        $average = $this->safe_string_2($order, 'price_avg', 'done_avg_price');
+        $price = $this->safe_string($order, 'price');
+        $side = $this->safe_string_2($order, 'way', 'side');
         // 1 = Open long
         // 2 = Close short
         // 3 = Close long
         // 4 = Open short
-        $side = $this->safe_string($order, 'way', $side);
         $category = $this->safe_integer($order, 'category');
         $type = $this->safe_string($order, 'type');
         if ($category === 1) {
@@ -1579,15 +1579,7 @@ class bitmart extends Exchange {
         } else if ($category === 2) {
             $type = 'market';
         }
-        if ($type === 'market') {
-            if ($price === 0.0) {
-                $price = null;
-            }
-            if ($average === 0.0) {
-                $average = null;
-            }
-        }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -1609,7 +1601,7 @@ class bitmart extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status_by_type($type, $status) {

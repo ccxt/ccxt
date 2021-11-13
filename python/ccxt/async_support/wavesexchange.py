@@ -284,6 +284,9 @@ class wavesexchange(Exchange):
                     'BSC': 'BEP20',
                 },
             },
+            'commonCurrencies': {
+                'EGG': 'Waves Ducks',
+            },
             'requiresEddsa': True,
             'exceptions': {
                 '3147270': InsufficientFunds,  # https://github.com/wavesplatform/matcher/wiki/List-of-all-errors
@@ -1281,10 +1284,10 @@ class wavesexchange(Exchange):
         elif market is not None:
             symbol = market['symbol']
         amountCurrency = self.safe_currency_code(self.safe_string(assetPair, 'amountAsset', 'WAVES'))
-        price = self.parse_number(self.price_from_precision(symbol, priceString))
-        amount = self.parse_number(self.currency_from_precision(amountCurrency, amountString))
-        filled = self.parse_number(self.currency_from_precision(amountCurrency, filledString))
-        average = self.parse_number(self.price_from_precision(symbol, self.safe_string(order, 'avgWeighedPrice')))
+        price = self.price_from_precision(symbol, priceString)
+        amount = self.currency_from_precision(amountCurrency, amountString)
+        filled = self.currency_from_precision(amountCurrency, filledString)
+        average = self.price_from_precision(symbol, self.safe_string(order, 'avgWeighedPrice'))
         status = self.parse_order_status(self.safe_string(order, 'status'))
         fee = None
         if 'type' in order:
@@ -1299,7 +1302,7 @@ class wavesexchange(Exchange):
                 'currency': currency,
                 'fee': self.parse_number(self.currency_from_precision(currency, self.safe_string(order, 'matcherFee'))),
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -1321,7 +1324,7 @@ class wavesexchange(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     async def get_waves_address(self):
         cachedAddreess = self.safe_string(self.options, 'wavesAddress')

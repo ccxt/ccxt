@@ -427,20 +427,21 @@ class coinone(Exchange):
         #     }
         #
         id = self.safe_string(order, 'orderId')
-        price = self.safe_number(order, 'price')
+        price = self.safe_string(order, 'price')
         timestamp = self.safe_timestamp(order, 'timestamp')
         side = self.safe_string(order, 'type')
         if side == 'ask':
             side = 'sell'
         elif side == 'bid':
             side = 'buy'
-        remaining = self.safe_number(order, 'remainQty')
-        amount = self.safe_number(order, 'qty')
+        remaining = self.safe_string(order, 'remainQty')
+        amount = self.safe_string(order, 'qty')
         status = self.safe_string(order, 'status')
         # https://github.com/ccxt/ccxt/pull/7067
         if status == 'live':
             if (remaining is not None) and (amount is not None):
-                if remaining < amount:
+                isLessThan = Precise.string_lt(remaining, amount)
+                if isLessThan:
                     status = 'canceled'
         status = self.parse_order_status(status)
         symbol = None
@@ -467,7 +468,7 @@ class coinone(Exchange):
                 'rate': self.safe_number(order, 'feeRate'),
                 'currency': feeCurrencyCode,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -489,7 +490,7 @@ class coinone(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         # The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.

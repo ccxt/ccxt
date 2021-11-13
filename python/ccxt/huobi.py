@@ -95,10 +95,10 @@ class huobi(Exchange):
                     'v2Private': 'https://{hostname}',
                 },
                 'www': 'https://www.huobi.com',
-                'referral': {
-                    'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
-                    'discount': 0.15,
-                },
+                # 'referral': {
+                #     'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
+                #     'discount': 0.15,
+                # },
                 'doc': [
                     'https://huobiapi.github.io/docs/spot/v1/cn/',
                     'https://huobiapi.github.io/docs/dm/v1/cn/',
@@ -1126,12 +1126,10 @@ class huobi(Exchange):
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(order, 'created-at')
         clientOrderId = self.safe_string(order, 'client-order-id')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
-        price = self.safe_number(order, 'price')
-        if price == 0.0:
-            price = None
-        cost = self.safe_number_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
+        amount = self.safe_string(order, 'amount')
+        filled = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
+        price = self.safe_string(order, 'price')
+        cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
         feeCost = self.safe_number_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
         fee = None
         if feeCost is not None:
@@ -1142,7 +1140,7 @@ class huobi(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1164,7 +1162,7 @@ class huobi(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

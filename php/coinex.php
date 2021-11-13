@@ -526,11 +526,12 @@ class coinex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($order, 'create_time');
-        $price = $this->safe_number($order, 'price');
-        $cost = $this->safe_number($order, 'deal_money');
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'deal_amount');
-        $average = $this->safe_number($order, 'avg_price');
+        $price = $this->safe_string($order, 'price');
+        $cost = $this->safe_string($order, 'deal_money');
+        $amount = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string($order, 'deal_amount');
+        $average = $this->safe_string($order, 'avg_price');
+        $remaining = $this->safe_string($order, 'left');
         $symbol = null;
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
@@ -542,11 +543,10 @@ class coinex extends Exchange {
                 $feeCurrency = $market['quote'];
             }
         }
-        $remaining = $this->safe_number($order, 'left');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'order_type');
         $side = $this->safe_string($order, 'type');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -571,7 +571,7 @@ class coinex extends Exchange {
                 'cost' => $this->safe_number($order, 'deal_fee'),
             ),
             'info' => $order,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

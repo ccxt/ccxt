@@ -563,21 +563,22 @@ class buda extends Exchange {
         //
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
+        $datetime = $this->iso8601($timestamp);
         $marketId = $this->safe_string($order, 'market_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $type = $this->safe_string($order, 'price_type');
         $side = $this->safe_string_lower($order, 'type');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $originalAmount = $this->safe_value($order, 'original_amount', array());
-        $amount = $this->safe_number($originalAmount, 0);
+        $amount = $this->safe_string($originalAmount, 0);
         $remainingAmount = $this->safe_value($order, 'amount', array());
-        $remaining = $this->safe_number($remainingAmount, 0);
+        $remaining = $this->safe_string($remainingAmount, 0);
         $tradedAmount = $this->safe_value($order, 'traded_amount', array());
-        $filled = $this->safe_number($tradedAmount, 0);
+        $filled = $this->safe_string($tradedAmount, 0);
         $totalExchanged = $this->safe_value($order, 'totalExchanged', array());
-        $cost = $this->safe_number($totalExchanged, 0);
+        $cost = $this->safe_string($totalExchanged, 0);
         $limitPrice = $this->safe_value($order, 'limit', array());
-        $price = $this->safe_number($limitPrice, 0);
+        $price = $this->safe_string($limitPrice, 0);
         if ($price === null) {
             if ($limitPrice !== null) {
                 $price = $limitPrice;
@@ -594,11 +595,11 @@ class buda extends Exchange {
                 'code' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
-            'datetime' => $this->iso8601($timestamp),
+            'datetime' => $datetime,
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -616,7 +617,7 @@ class buda extends Exchange {
             'remaining' => $remaining,
             'trades' => null,
             'fee' => $fee,
-        ));
+        ), $market);
     }
 
     public function is_fiat($code) {

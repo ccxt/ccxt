@@ -939,11 +939,11 @@ class digifinex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'executed_amount');
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'avg_price');
-        return $this->safe_order(array(
+        $amount = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string($order, 'executed_amount');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'avg_price');
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -965,7 +965,7 @@ class digifinex extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

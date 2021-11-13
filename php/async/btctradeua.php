@@ -346,11 +346,12 @@ class btctradeua extends Exchange {
 
     public function parse_order($order, $market = null) {
         $timestamp = $this->milliseconds();
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $symbol = $this->safe_symbol(null, $market);
+        $side = $this->safe_string($order, 'type');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'amnt_trade');
+        $remaining = $this->safe_string($order, 'amnt_trade');
+        return $this->safe_order2(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'timestamp' => $timestamp, // until they fix their $timestamp
@@ -361,18 +362,18 @@ class btctradeua extends Exchange {
             'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $this->safe_string($order, 'type'),
-            'price' => $this->safe_number($order, 'price'),
+            'side' => $side,
+            'price' => $price,
             'stopPrice' => null,
-            'amount' => $this->safe_number($order, 'amnt_trade'),
-            'filled' => 0,
-            'remaining' => $this->safe_number($order, 'amnt_trade'),
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => $remaining,
             'trades' => null,
             'info' => $order,
             'cost' => null,
             'average' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

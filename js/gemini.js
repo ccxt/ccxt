@@ -622,9 +622,9 @@ module.exports = class gemini extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.safeInteger (order, 'timestampms');
-        const amount = this.safeNumber (order, 'original_amount');
-        const remaining = this.safeNumber (order, 'remaining_amount');
-        const filled = this.safeNumber (order, 'executed_amount');
+        const amount = this.safeString (order, 'original_amount');
+        const remaining = this.safeString (order, 'remaining_amount');
+        const filled = this.safeString (order, 'executed_amount');
         let status = 'closed';
         if (order['is_live']) {
             status = 'open';
@@ -632,8 +632,8 @@ module.exports = class gemini extends Exchange {
         if (order['is_cancelled']) {
             status = 'canceled';
         }
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'avg_execution_price');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'avg_execution_price');
         let type = this.safeString (order, 'type');
         if (type === 'exchange limit') {
             type = 'limit';
@@ -648,7 +648,7 @@ module.exports = class gemini extends Exchange {
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -670,7 +670,7 @@ module.exports = class gemini extends Exchange {
             'remaining': remaining,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

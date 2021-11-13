@@ -240,7 +240,9 @@ class bittrex(Exchange):
                 # 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
+                'BIFI': 'Bifrost Finance',
                 'MER': 'Mercury',  # conflict with Mercurial Finance
+                'PROS': 'Pros.Finance',
                 'REPV2': 'REP',
                 'TON': 'Tokamak Network',
             },
@@ -671,7 +673,7 @@ class bittrex(Exchange):
         if since is not None:
             now = self.milliseconds()
             difference = abs(now - since)
-            sinceDate = self.ymd(since)
+            sinceDate = self.yyyymmdd(since)
             parts = sinceDate.split('-')
             sinceYear = self.safe_integer(parts, 0)
             sinceMonth = self.safe_integer(parts, 1)
@@ -1035,7 +1037,7 @@ class bittrex(Exchange):
             },
             'info': order,
             'trades': None,
-        })
+        }, market)
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         if self.options['fetchClosedOrdersFilterBySince']:

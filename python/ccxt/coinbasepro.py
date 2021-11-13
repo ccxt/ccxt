@@ -463,7 +463,7 @@ class coinbasepro(Exchange):
         timestamp = self.parse8601(self.safe_value(ticker, 'time'))
         bid = self.safe_number(ticker, 'bid')
         ask = self.safe_number(ticker, 'ask')
-        last = self.safe_number(ticker, 'price')
+        last = self.safe_number_2(ticker, 'price', 'last')
         symbol = None if (market is None) else market['symbol']
         return {
             'symbol': symbol,
@@ -762,7 +762,7 @@ class coinbasepro(Exchange):
             'fee': fee,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -1009,9 +1009,9 @@ class coinbasepro(Exchange):
         id = self.safe_string(item, 'id')
         amountString = self.safe_string(item, 'amount')
         direction = None
-        afterString = self.safe_number(item, 'balance')
+        afterString = self.safe_string(item, 'balance')
         beforeString = Precise.string_sub(afterString, amountString)
-        if Precise.lt(amountString, '0'):
+        if Precise.string_lt(amountString, '0'):
             direction = 'out'
             amountString = Precise.string_abs(amountString)
         else:

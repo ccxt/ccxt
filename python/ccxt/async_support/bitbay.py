@@ -369,7 +369,7 @@ class bitbay(Exchange):
             'average': None,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

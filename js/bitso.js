@@ -474,7 +474,7 @@ module.exports = class bitso extends Exchange {
             'fee': undefined,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 25, params = {}) {

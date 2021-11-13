@@ -1916,11 +1916,11 @@ module.exports = class bitget extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const amount = this.safeNumber2 (order, 'amount', 'size');
-        const filled = this.safeNumber2 (order, 'filled_amount', 'filled_qty');
-        const cost = this.safeNumber (order, 'filled_cash_amount');
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'price_avg');
+        const amount = this.safeString2 (order, 'amount', 'size');
+        const filled = this.safeString2 (order, 'filled_amount', 'filled_qty');
+        const cost = this.safeString (order, 'filled_cash_amount');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'price_avg');
         const status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         const feeCost = this.safeNumber2 (order, 'filled_fees', 'fee');
         let fee = undefined;
@@ -1932,7 +1932,7 @@ module.exports = class bitget extends Exchange {
             };
         }
         const clientOrderId = this.safeString (order, 'client_oid');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1954,7 +1954,7 @@ module.exports = class bitget extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -2612,15 +2612,15 @@ module.exports = class bitget extends Exchange {
             'symbol': market['id'],
             'method': 'matchresults',
             // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
-            // 'start_date': this.ymd (since),
-            // 'end_date': this.ymd (this.milliseconds ()),
+            // 'start_date': this.yyyymmdd (since),
+            // 'end_date': this.yyyymmdd (this.milliseconds ()),
             // 'size': 100,
             // 'direct': 'next',
         };
         if (since !== undefined) {
-            request['start_date'] = this.ymd (since);
+            request['start_date'] = this.yyyymmdd (since);
             const end = this.sum (since, 2 * 24 * 60 * 60 * 1000);
-            request['end_date'] = this.ymd (end);
+            request['end_date'] = this.yyyymmdd (end);
         }
         if (limit !== undefined) {
             request['size'] = limit; // default 100, max 100

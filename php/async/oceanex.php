@@ -550,7 +550,7 @@ class oceanex extends Exchange {
         //         "created_at" => "2019-01-18T00:38:18Z",
         //         "trades_count" => 0,
         //         "remaining_volume" => "0.2",
-        //         "price" => "1001.0",
+        //         "$price" => "1001.0",
         //         "created_on" => "1547771898",
         //         "side" => "buy",
         //         "volume" => "0.2",
@@ -569,7 +569,12 @@ class oceanex extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         }
-        return $this->safe_order(array(
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'avg_price');
+        $amount = $this->safe_string($order, 'volume');
+        $remaining = $this->safe_string($order, 'remaining_volume');
+        $filled = $this->safe_string($order, 'executed_volume');
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
@@ -581,17 +586,17 @@ class oceanex extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $this->safe_value($order, 'side'),
-            'price' => $this->safe_number($order, 'price'),
+            'price' => $price,
             'stopPrice' => null,
-            'average' => $this->safe_number($order, 'avg_price'),
-            'amount' => $this->safe_number($order, 'volume'),
-            'remaining' => $this->safe_number($order, 'remaining_volume'),
-            'filled' => $this->safe_number($order, 'executed_volume'),
+            'average' => $average,
+            'amount' => $amount,
+            'remaining' => $remaining,
+            'filled' => $filled,
             'status' => $status,
             'cost' => null,
             'trades' => null,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status($status) {

@@ -21,7 +21,7 @@ class probit extends Exchange {
             'id' => 'probit',
             'name' => 'ProBit',
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea
-            'rateLimit' => 250, // ms
+            'rateLimit' => 50, // ms
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => true,
@@ -78,34 +78,34 @@ class probit extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'market',
-                        'currency',
-                        'currency_with_platform',
-                        'time',
-                        'ticker',
-                        'order_book',
-                        'trade',
-                        'candle',
+                        'market' => 1,
+                        'currency' => 1,
+                        'currency_with_platform' => 1,
+                        'time' => 1,
+                        'ticker' => 1,
+                        'order_book' => 1,
+                        'trade' => 1,
+                        'candle' => 1,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'new_order',
-                        'cancel_order',
-                        'withdrawal',
+                        'new_order' => 2,
+                        'cancel_order' => 1,
+                        'withdrawal' => 2,
                     ),
                     'get' => array(
-                        'balance',
-                        'order',
-                        'open_order',
-                        'order_history',
-                        'trade_history',
-                        'deposit_address',
+                        'balance' => 1,
+                        'order' => 1,
+                        'open_order' => 1,
+                        'order_history' => 1,
+                        'trade_history' => 1,
+                        'deposit_address' => 1,
                     ),
                 ),
                 'accounts' => array(
                     'post' => array(
-                        'token',
+                        'token' => 1,
                     ),
                 ),
             ),
@@ -916,15 +916,15 @@ class probit extends Exchange {
         $marketId = $this->safe_string($order, 'market_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'time'));
-        $price = $this->safe_number($order, 'limit_price');
-        $filled = $this->safe_number($order, 'filled_quantity');
-        $remaining = $this->safe_number($order, 'open_quantity');
-        $canceledAmount = $this->safe_number($order, 'cancelled_quantity');
+        $price = $this->safe_string($order, 'limit_price');
+        $filled = $this->safe_string($order, 'filled_quantity');
+        $remaining = $this->safe_string($order, 'open_quantity');
+        $canceledAmount = $this->safe_string($order, 'cancelled_quantity');
         if ($canceledAmount !== null) {
-            $remaining = $this->sum($remaining, $canceledAmount);
+            $remaining = Precise::string_add($remaining, $canceledAmount);
         }
-        $amount = $this->safe_number($order, 'quantity', $this->sum($filled, $remaining));
-        $cost = $this->safe_number_2($order, 'filled_cost', 'cost');
+        $amount = $this->safe_string($order, 'quantity', Precise::string_add($filled, $remaining));
+        $cost = $this->safe_string_2($order, 'filled_cost', 'cost');
         if ($type === 'market') {
             $price = null;
         }
@@ -933,7 +933,7 @@ class probit extends Exchange {
             $clientOrderId = null;
         }
         $timeInForce = $this->safe_string_upper($order, 'time_in_force');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,
@@ -954,7 +954,7 @@ class probit extends Exchange {
             'cost' => $cost,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function cost_to_precision($symbol, $cost) {

@@ -157,6 +157,7 @@ module.exports = class kraken extends Exchange {
                     },
                 },
             },
+            'handleContentTypeApplicationZip': true,
             'api': {
                 'zendesk': {
                     'get': [

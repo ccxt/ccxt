@@ -2174,28 +2174,28 @@ class okex3 extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $amount = $this->safe_number($order, 'size');
-        $filled = $this->safe_number_2($order, 'filled_size', 'filled_qty');
+        $amount = $this->safe_string($order, 'size');
+        $filled = $this->safe_string_2($order, 'filled_size', 'filled_qty');
         $remaining = null;
         if ($amount !== null) {
             if ($filled !== null) {
-                $amount = max ($amount, $filled);
-                $remaining = max (0, $amount - $filled);
+                $amount = Precise::string_max($amount, $filled);
+                $remaining = Precise::string_max(0, Precise::string_sub($amount, $filled));
             }
         }
         if ($type === 'market') {
-            $remaining = 0;
+            $remaining = '0';
         }
-        $cost = $this->safe_number_2($order, 'filled_notional', 'funds');
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'price_avg');
+        $cost = $this->safe_string_2($order, 'filled_notional', 'funds');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'price_avg');
         if ($cost === null) {
             if ($filled !== null && $average !== null) {
-                $cost = $average * $filled;
+                $cost = Precise::string_mul($average, $filled);
             }
         } else {
-            if (($average === null) && ($filled !== null) && ($filled > 0)) {
-                $average = $cost / $filled;
+            if (($average === null) && ($filled !== null) && Precise::string_gt($filled, '0')) {
+                $average = Precise::string_div($cost, $filled);
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
@@ -2213,7 +2213,7 @@ class okex3 extends Exchange {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
         $stopPrice = $this->safe_number($order, 'trigger_price');
-        return array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -2235,7 +2235,7 @@ class okex3 extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -3280,8 +3280,8 @@ class okex3 extends Exchange {
             $market = $this->market($code); // we intentionally put a $market inside here for the margin and swap ledgers
             $marketInfo = $this->safe_value($market, 'info', array());
             $settlementCurrencyId = $this->safe_string($marketInfo, 'settlement_currency');
-            $settlementCurrencyСode = $this->safe_currency_code($settlementCurrencyId);
-            $currency = $this->currency($settlementCurrencyСode);
+            $settlementCurrencyCode = $this->safe_currency_code($settlementCurrencyId);
+            $currency = $this->currency($settlementCurrencyCode);
             $underlyingId = $this->safe_string($marketInfo, 'underlying');
             $request['underlying'] = $underlyingId;
         } else if (($type === 'margin') || ($type === 'swap')) {

@@ -79,10 +79,10 @@ module.exports = class huobi extends Exchange {
                     'v2Private': 'https://{hostname}',
                 },
                 'www': 'https://www.huobi.com',
-                'referral': {
-                    'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
-                    'discount': 0.15,
-                },
+                // 'referral': {
+                //     'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
+                //     'discount': 0.15,
+                // },
                 'doc': [
                     'https://huobiapi.github.io/docs/spot/v1/cn/',
                     'https://huobiapi.github.io/docs/dm/v1/cn/',
@@ -1177,13 +1177,10 @@ module.exports = class huobi extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
         const clientOrderId = this.safeString (order, 'client-order-id');
-        const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
-        let price = this.safeNumber (order, 'price');
-        if (price === 0.0) {
-            price = undefined;
-        }
-        const cost = this.safeNumber2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
+        const amount = this.safeString (order, 'amount');
+        const filled = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
+        const price = this.safeString (order, 'price');
+        const cost = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         const feeCost = this.safeNumber2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1196,7 +1193,7 @@ module.exports = class huobi extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1218,7 +1215,7 @@ module.exports = class huobi extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

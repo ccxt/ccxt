@@ -866,10 +866,10 @@ class zb extends Exchange {
         $timestamp = $this->safe_integer($order, 'trade_date');
         $marketId = $this->safe_string($order, 'currency');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $price = $this->safe_number($order, 'price');
-        $filled = $this->safe_number($order, 'trade_amount');
-        $amount = $this->safe_number($order, 'total_amount');
-        $cost = $this->safe_number($order, 'trade_money');
+        $price = $this->safe_string($order, 'price');
+        $filled = $this->safe_string($order, 'trade_amount');
+        $amount = $this->safe_string($order, 'total_amount');
+        $cost = $this->safe_string($order, 'trade_money');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'id');
         $feeCost = $this->safe_number($order, 'fees');
@@ -887,7 +887,7 @@ class zb extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -909,7 +909,7 @@ class zb extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status($status) {

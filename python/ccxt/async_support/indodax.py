@@ -394,7 +394,7 @@ class indodax(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
         symbol = None
         cost = None
-        price = self.safe_number(order, 'price')
+        price = self.safe_string(order, 'price')
         amount = None
         remaining = None
         if market is not None:
@@ -405,14 +405,14 @@ class indodax(Exchange):
                 quoteId = 'rp'
             if (market['baseId'] == 'idr') and ('remain_rp' in order):
                 baseId = 'rp'
-            cost = self.safe_number(order, 'order_' + quoteId)
+            cost = self.safe_string(order, 'order_' + quoteId)
             if not cost:
-                amount = self.safe_number(order, 'order_' + baseId)
-                remaining = self.safe_number(order, 'remain_' + baseId)
+                amount = self.safe_string(order, 'order_' + baseId)
+                remaining = self.safe_string(order, 'remain_' + baseId)
         timestamp = self.safe_integer(order, 'submit_time')
         fee = None
         id = self.safe_string(order, 'order_id')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,

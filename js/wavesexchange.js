@@ -272,6 +272,9 @@ module.exports = class wavesexchange extends Exchange {
                     'BSC': 'BEP20',
                 },
             },
+            'commonCurrencies': {
+                'EGG': 'Waves Ducks',
+            },
             'requiresEddsa': true,
             'exceptions': {
                 '3147270': InsufficientFunds,  // https://github.com/wavesplatform/matcher/wiki/List-of-all-errors
@@ -1349,10 +1352,10 @@ module.exports = class wavesexchange extends Exchange {
             symbol = market['symbol'];
         }
         const amountCurrency = this.safeCurrencyCode (this.safeString (assetPair, 'amountAsset', 'WAVES'));
-        const price = this.parseNumber (this.priceFromPrecision (symbol, priceString));
-        const amount = this.parseNumber (this.currencyFromPrecision (amountCurrency, amountString));
-        const filled = this.parseNumber (this.currencyFromPrecision (amountCurrency, filledString));
-        const average = this.parseNumber (this.priceFromPrecision (symbol, this.safeString (order, 'avgWeighedPrice')));
+        const price = this.priceFromPrecision (symbol, priceString);
+        const amount = this.currencyFromPrecision (amountCurrency, amountString);
+        const filled = this.currencyFromPrecision (amountCurrency, filledString);
+        const average = this.priceFromPrecision (symbol, this.safeString (order, 'avgWeighedPrice'));
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let fee = undefined;
         if ('type' in order) {
@@ -1368,7 +1371,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fee': this.parseNumber (this.currencyFromPrecision (currency, this.safeString (order, 'matcherFee'))),
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1390,7 +1393,7 @@ module.exports = class wavesexchange extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async getWavesAddress () {

@@ -625,9 +625,9 @@ class gemini extends Exchange {
 
     public function parse_order($order, $market = null) {
         $timestamp = $this->safe_integer($order, 'timestampms');
-        $amount = $this->safe_number($order, 'original_amount');
-        $remaining = $this->safe_number($order, 'remaining_amount');
-        $filled = $this->safe_number($order, 'executed_amount');
+        $amount = $this->safe_string($order, 'original_amount');
+        $remaining = $this->safe_string($order, 'remaining_amount');
+        $filled = $this->safe_string($order, 'executed_amount');
         $status = 'closed';
         if ($order['is_live']) {
             $status = 'open';
@@ -635,8 +635,8 @@ class gemini extends Exchange {
         if ($order['is_cancelled']) {
             $status = 'canceled';
         }
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'avg_execution_price');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'avg_execution_price');
         $type = $this->safe_string($order, 'type');
         if ($type === 'exchange limit') {
             $type = 'limit';
@@ -651,7 +651,7 @@ class gemini extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $side = $this->safe_string_lower($order, 'side');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -673,7 +673,7 @@ class gemini extends Exchange {
             'remaining' => $remaining,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

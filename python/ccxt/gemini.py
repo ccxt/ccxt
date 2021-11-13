@@ -617,16 +617,16 @@ class gemini(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.safe_integer(order, 'timestampms')
-        amount = self.safe_number(order, 'original_amount')
-        remaining = self.safe_number(order, 'remaining_amount')
-        filled = self.safe_number(order, 'executed_amount')
+        amount = self.safe_string(order, 'original_amount')
+        remaining = self.safe_string(order, 'remaining_amount')
+        filled = self.safe_string(order, 'executed_amount')
         status = 'closed'
         if order['is_live']:
             status = 'open'
         if order['is_cancelled']:
             status = 'canceled'
-        price = self.safe_number(order, 'price')
-        average = self.safe_number(order, 'avg_execution_price')
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'avg_execution_price')
         type = self.safe_string(order, 'type')
         if type == 'exchange limit':
             type = 'limit'
@@ -640,7 +640,7 @@ class gemini(Exchange):
         id = self.safe_string(order, 'order_id')
         side = self.safe_string_lower(order, 'side')
         clientOrderId = self.safe_string(order, 'client_order_id')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -662,7 +662,7 @@ class gemini(Exchange):
             'remaining': remaining,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

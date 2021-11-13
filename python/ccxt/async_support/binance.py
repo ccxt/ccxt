@@ -77,6 +77,9 @@ class binance(Exchange):
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
+                'setPositionMode': True,
+                'addMargin': True,
+                'reduceMargin': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -1291,6 +1294,8 @@ class binance(Exchange):
                 fees = self.fees[type]
             maker = fees['trading']['maker']
             taker = fees['trading']['taker']
+            settleId = self.safe_string(market, 'marginAsset')
+            settle = self.safe_currency_code(settleId)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1309,6 +1314,8 @@ class binance(Exchange):
                 'inverse': delivery,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
+                'settleId': settleId,
+                'settle': settle,
                 'active': active,
                 'precision': precision,
                 'contractSize': contractSize,
@@ -2209,6 +2216,33 @@ class binance(Exchange):
         #       ]
         #     }
         #
+        # delivery
+        #
+        #     {
+        #       "orderId": "18742727411",
+        #       "symbol": "ETHUSD_PERP",
+        #       "pair": "ETHUSD",
+        #       "status": "FILLED",
+        #       "clientOrderId": "x-xcKtGhcu3e2d1503fdd543b3b02419",
+        #       "price": "0",
+        #       "avgPrice": "4522.14",
+        #       "origQty": "1",
+        #       "executedQty": "1",
+        #       "cumBase": "0.00221134",
+        #       "timeInForce": "GTC",
+        #       "type": "MARKET",
+        #       "reduceOnly": False,
+        #       "closePosition": False,
+        #       "side": "SELL",
+        #       "positionSide": "BOTH",
+        #       "stopPrice": "0",
+        #       "workingType": "CONTRACT_PRICE",
+        #       "priceProtect": False,
+        #       "origType": "MARKET",
+        #       "time": "1636061952660",
+        #       "updateTime": "1636061952660"
+        #     }
+        #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -2232,6 +2266,7 @@ class binance(Exchange):
         # - Futures market: cumQuote.
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
         cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
+        cost = self.safe_string_2(order, 'cumBase', cost)
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
@@ -3182,7 +3217,8 @@ class binance(Exchange):
             entry = incomes[i]
             parsed = self.parse_income(entry, market)
             result.append(parsed)
-        return self.filter_by_since_limit(result, since, limit, 'timestamp')
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
@@ -3691,7 +3727,7 @@ class binance(Exchange):
         #
         return self.parse_funding_rate(response, market)
 
-    async def fetch_funding_rate_history(self, symbol=None, limit=None, since=None, params={}):
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         #
         # Gets a history of funding rates with their timestamps
         #  (param) symbol: Future currency pair(e.g. "BTC/USDT")
@@ -3743,12 +3779,13 @@ class binance(Exchange):
             timestamp = self.safe_integer(entry, 'fundingTime')
             rates.append({
                 'info': entry,
-                'symbol': self.safe_string(entry, 'symbol'),
+                'symbol': self.safe_symbol(self.safe_string(entry, 'symbol')),
                 'fundingRate': self.safe_number(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
-        return self.sort_by(rates, 'timestamp')
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     async def fetch_funding_rates(self, symbols=None, params={}):
         await self.load_markets()
@@ -3994,6 +4031,8 @@ class binance(Exchange):
                 # since he has more collateral than the size of the position
                 truncatedLiquidationPrice = None
             liquidationPrice = self.parse_number(truncatedLiquidationPrice)
+        positionSide = self.safe_string(position, 'positionSide')
+        hedged = positionSide != 'BOTH'
         return {
             'info': position,
             'symbol': symbol,
@@ -4015,6 +4054,7 @@ class binance(Exchange):
             'collateral': collateral,
             'marginType': marginType,
             'side': side,
+            'hedged': hedged,
             'percentage': percentage,
         }
 
@@ -4138,6 +4178,8 @@ class binance(Exchange):
         if collateralFloat != 0.0:
             marginRatio = self.parse_number(Precise.string_div(Precise.string_add(Precise.string_div(maintenanceMarginString, collateralString), '5e-5'), '1', 4))
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
+        positionSide = self.safe_string(position, 'positionSide')
+        hedged = positionSide != 'BOTH'
         return {
             'info': position,
             'symbol': symbol,
@@ -4159,6 +4201,7 @@ class binance(Exchange):
             'datetime': self.iso8601(timestamp),
             'marginType': marginType,
             'side': side,
+            'hedged': hedged,
             'percentage': percentage,
         }
 
@@ -4195,19 +4238,19 @@ class binance(Exchange):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    async def fetch_positions(self, symbolOrSymbols=None, params={}):
+    async def fetch_positions(self, symbols=None, params={}):
         defaultMethod = self.safe_string(self.options, 'fetchPositions', 'positionRisk')
         if defaultMethod == 'positionRisk':
-            return await self.fetch_positions_risk(symbolOrSymbols, params)
+            return await self.fetch_positions_risk(symbols, params)
         elif defaultMethod == 'account':
-            return await self.fetch_account_positions(symbolOrSymbols, params)
+            return await self.fetch_account_positions(symbols, params)
         else:
             raise NotSupported(self.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
 
     async def fetch_account_positions(self, symbols=None, params={}):
         if symbols is not None:
             if not isinstance(symbols, list):
-                symbols = [symbols]
+                raise ArgumentsRequired(self.id + ' fetchPositions requires an array argument for symbols')
         await self.load_markets()
         await self.load_leverage_brackets()
         method = None
@@ -4224,25 +4267,15 @@ class binance(Exchange):
         result = self.parse_account_positions(account)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
-    async def fetch_positions_risk(self, symbol=None, params={}):
-        if isinstance(symbol, list):
-            raise BadSymbol(self.id + ' fetchPositionsRisk only accepts a string argument as a symbol')
+    async def fetch_positions_risk(self, symbols=None, params={}):
+        if symbols is not None:
+            if not isinstance(symbols, list):
+                raise ArgumentsRequired(self.id + ' fetchPositions requires an array argument for symbols')
         await self.load_markets()
         await self.load_leverage_brackets()
         request = {}
-        market = None
         method = None
         defaultType = 'future'
-        if symbol is not None:
-            market = self.market(symbol)
-            if market['linear']:
-                request['symbol'] = market['id']
-                defaultType = 'future'
-            elif market['inverse']:
-                request['pair'] = market['info']['pair']
-                defaultType = 'delivery'
-            else:
-                raise NotSupported(self.id + ' fetchPositionsRisk supports linear and inverse contracts only')
         defaultType = self.safe_string(self.options, 'defaultType', defaultType)
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
@@ -4253,14 +4286,11 @@ class binance(Exchange):
         else:
             raise NotSupported(self.id + ' fetchIsolatedPositions() supports linear and inverse contracts only')
         response = await getattr(self, method)(self.extend(request, params))
-        if symbol is None:
-            result = []
-            for i in range(0, len(response)):
-                parsed = self.parse_position_risk(response[i], market)
-                result.append(parsed)
-            return result
-        else:
-            return self.parse_position_risk(self.safe_value(response, 0), market)
+        result = []
+        for i in range(0, len(response)):
+            parsed = self.parse_position_risk(response[i])
+            result.append(parsed)
+        return self.filter_by_array(result, 'symbol', symbols, False)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -4341,6 +4371,32 @@ class binance(Exchange):
             'symbol': market['id'],
             'marginType': marginType,
         }
+        return await getattr(self, method)(self.extend(request, params))
+
+    async def set_position_mode(self, hedged, symbol=None, params={}):
+        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, ['type'])
+        dualSidePosition = None
+        if hedged:
+            dualSidePosition = 'true'
+        else:
+            dualSidePosition = 'false'
+        request = {
+            'dualSidePosition': dualSidePosition,
+        }
+        method = None
+        if type == 'delivery':
+            method = 'dapiPrivatePostPositionSideDual'
+        else:
+            # default to future
+            method = 'fapiPrivatePostPositionSideDual'
+        #
+        #     {
+        #       "code": 200,
+        #       "msg": "success"
+        #     }
+        #
         return await getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -4499,6 +4555,14 @@ class binance(Exchange):
             method = 'dapiPrivatePostPositionMargin'
             code = market['base']
         response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #       "code": 200,
+        #       "msg": "Successfully modify position margin.",
+        #       "amount": 0.001,
+        #       "type": 1
+        #     }
+        #
         rawType = self.safe_integer(response, 'type')
         resultType = 'add' if (rawType == 1) else 'reduce'
         resultAmount = self.safe_number(response, 'amount')

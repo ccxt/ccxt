@@ -1368,8 +1368,8 @@ class aax(Exchange):
             # 'base': market['baseId'],
             # 'quote': market['quoteId'],
             # 'orderStatus': None,  # 1 new, 2 filled, 3 canceled
-            # 'startDate': self.ymd(since),
-            # 'endDate': self.ymd(self.milliseconds()),
+            # 'startDate': self.yyyymmdd(since),
+            # 'endDate': self.yyyymmdd(self.milliseconds()),
             # 'orderType': None,  # MARKET, LIMIT, STOP, STOP-LIMIT
             # 'side': 'None',  # BUY, SELL
             # 'clOrdID': clientOrderId,
@@ -1394,7 +1394,7 @@ class aax(Exchange):
         if limit is not None:
             request['pageSize'] = limit  # default 10
         if since is not None:
-            request['startDate'] = self.ymd(since)
+            request['startDate'] = self.yyyymmdd(since)
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -1628,7 +1628,7 @@ class aax(Exchange):
             'cost': None,
             'trades': None,
             'fee': fee,
-        })
+        }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1639,8 +1639,8 @@ class aax(Exchange):
             # 'orderID': id,
             # 'base': market['baseId'],
             # 'quote': market['quoteId'],
-            # 'startDate': self.ymd(since),
-            # 'endDate': self.ymd(self.milliseconds()),
+            # 'startDate': self.yyyymmdd(since),
+            # 'endDate': self.yyyymmdd(self.milliseconds()),
             # 'orderType': None,  # MARKET, LIMIT, STOP, STOP-LIMIT
             # 'side': 'None',  # BUY, SELL
         }
@@ -1660,7 +1660,7 @@ class aax(Exchange):
         if limit is not None:
             request['pageSize'] = limit  # default 10
         if since is not None:
-            request['startDate'] = self.ymd(since)
+            request['startDate'] = self.yyyymmdd(since)
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {

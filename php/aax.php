@@ -1412,8 +1412,8 @@ class aax extends Exchange {
             // 'base' => $market['baseId'],
             // 'quote' => $market['quoteId'],
             // 'orderStatus' => null, // 1 new, 2 filled, 3 canceled
-            // 'startDate' => $this->ymd($since),
-            // 'endDate' => $this->ymd($this->milliseconds()),
+            // 'startDate' => $this->yyyymmdd($since),
+            // 'endDate' => $this->yyyymmdd($this->milliseconds()),
             // 'orderType' => null, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side' => 'null', // BUY, SELL
             // 'clOrdID' => $clientOrderId,
@@ -1442,7 +1442,7 @@ class aax extends Exchange {
             $request['pageSize'] = $limit; // default 10
         }
         if ($since !== null) {
-            $request['startDate'] = $this->ymd($since);
+            $request['startDate'] = $this->yyyymmdd($since);
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1688,7 +1688,7 @@ class aax extends Exchange {
             'cost' => null,
             'trades' => null,
             'fee' => $fee,
-        ));
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1700,8 +1700,8 @@ class aax extends Exchange {
             // 'orderID' => id,
             // 'base' => $market['baseId'],
             // 'quote' => $market['quoteId'],
-            // 'startDate' => $this->ymd($since),
-            // 'endDate' => $this->ymd($this->milliseconds()),
+            // 'startDate' => $this->yyyymmdd($since),
+            // 'endDate' => $this->yyyymmdd($this->milliseconds()),
             // 'orderType' => null, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side' => 'null', // BUY, SELL
         );
@@ -1724,7 +1724,7 @@ class aax extends Exchange {
             $request['pageSize'] = $limit; // default 10
         }
         if ($since !== null) {
-            $request['startDate'] = $this->ymd($since);
+            $request['startDate'] = $this->yyyymmdd($since);
         }
         $response = $this->$method (array_merge($request, $params));
         //

@@ -1421,8 +1421,8 @@ module.exports = class aax extends Exchange {
             // 'base': market['baseId'],
             // 'quote': market['quoteId'],
             // 'orderStatus': undefined, // 1 new, 2 filled, 3 canceled
-            // 'startDate': this.ymd (since),
-            // 'endDate': this.ymd (this.milliseconds()),
+            // 'startDate': this.yyyymmdd (since),
+            // 'endDate': this.yyyymmdd (this.milliseconds()),
             // 'orderType': undefined, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side': 'undefined', // BUY, SELL
             // 'clOrdID': clientOrderId,
@@ -1451,7 +1451,7 @@ module.exports = class aax extends Exchange {
             request['pageSize'] = limit; // default 10
         }
         if (since !== undefined) {
-            request['startDate'] = this.ymd (since);
+            request['startDate'] = this.yyyymmdd (since);
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1697,7 +1697,7 @@ module.exports = class aax extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': fee,
-        });
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1709,8 +1709,8 @@ module.exports = class aax extends Exchange {
             // 'orderID': id,
             // 'base': market['baseId'],
             // 'quote': market['quoteId'],
-            // 'startDate': this.ymd (since),
-            // 'endDate': this.ymd (this.milliseconds()),
+            // 'startDate': this.yyyymmdd (since),
+            // 'endDate': this.yyyymmdd (this.milliseconds()),
             // 'orderType': undefined, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side': 'undefined', // BUY, SELL
         };
@@ -1733,7 +1733,7 @@ module.exports = class aax extends Exchange {
             request['pageSize'] = limit; // default 10
         }
         if (since !== undefined) {
-            request['startDate'] = this.ymd (since);
+            request['startDate'] = this.yyyymmdd (since);
         }
         const response = await this[method] (this.extend (request, params));
         //

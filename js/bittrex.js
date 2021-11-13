@@ -217,7 +217,9 @@ module.exports = class bittrex extends Exchange {
                 // 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
+                'BIFI': 'Bifrost Finance',
                 'MER': 'Mercury', // conflict with Mercurial Finance
+                'PROS': 'Pros.Finance',
                 'REPV2': 'REP',
                 'TON': 'Tokamak Network',
             },
@@ -670,7 +672,7 @@ module.exports = class bittrex extends Exchange {
         if (since !== undefined) {
             const now = this.milliseconds ();
             const difference = Math.abs (now - since);
-            const sinceDate = this.ymd (since);
+            const sinceDate = this.yyyymmdd (since);
             const parts = sinceDate.split ('-');
             const sinceYear = this.safeInteger (parts, 0);
             const sinceMonth = this.safeInteger (parts, 1);
@@ -1065,7 +1067,7 @@ module.exports = class bittrex extends Exchange {
             },
             'info': order,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {

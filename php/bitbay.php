@@ -362,7 +362,7 @@ class bitbay extends Exchange {
             'average' => null,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -23,8 +23,8 @@ const uuidv1 = () => {
 const setTimeout_original = setTimeout
 const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = now () + ms) => {
 
-/*  The built-in setTimeout function can fire its callback earlier than specified, so we
-    need to ensure that it does not happen: sleep recursively until `targetTime` is reached...   */
+    // The built-in setTimeout function can fire its callback earlier than specified, so we
+    // need to ensure that it does not happen: sleep recursively until `targetTime` is reached...
 
     let clearInnerTimeout = () => {}
     let active = true
@@ -126,9 +126,7 @@ const parseDate = (x) => {
     return parse8601 (x);
 }
 
-const rfc2616 = (timestamp = undefined) => {
-    return new Date (timestamp).toUTCString ();
-}
+const rfc2616 = (timestamp = undefined) => new Date (timestamp).toUTCString ();
 
 const mdy = (timestamp, infix = '-') => {
     infix = infix || ''
@@ -141,16 +139,21 @@ const mdy = (timestamp, infix = '-') => {
     return m + infix + d + infix + Y
 }
 
-const ymd = (timestamp, infix = '-') => {
+const ymd = (timestamp, infix, fullYear = true) => {
     infix = infix || ''
     const date = new Date (timestamp)
-    const Y = date.getUTCFullYear ().toString ()
+    const intYear = date.getUTCFullYear ()
+    const year = fullYear ? intYear : (intYear - 2000)
+    const Y = year.toString ()
     let m = date.getUTCMonth () + 1
     let d = date.getUTCDate ()
     m = m < 10 ? ('0' + m) : m.toString ()
     d = d < 10 ? ('0' + d) : d.toString ()
     return Y + infix + m + infix + d
 }
+
+const yymmdd = (timestamp, infix = '') => ymd (timestamp, infix, false)
+const yyyymmdd = (timestamp, infix = '-') => ymd (timestamp, infix, true)
 
 const ymdhms = (timestamp, infix = ' ') => {
     const date = new Date (timestamp)
@@ -168,35 +171,35 @@ const ymdhms = (timestamp, infix = ' ') => {
     return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
 }
 
-module.exports =
+module.exports = {
+    now
+    , microseconds
+    , milliseconds
+    , seconds
+    , iso8601
+    , parse8601
+    , rfc2616
+    , uuidv1
+    , parseDate
+    , mdy
+    , ymd
+    , yymmdd
+    , yyyymmdd
+    , ymdhms
+    , setTimeout_safe
+    , sleep: (ms) => new Promise ((resolve) => setTimeout_safe (resolve, ms))
+    , TimedOut
+    , timeout: async (ms, promise) => {
 
-    {
-        now
-        , microseconds
-        , milliseconds
-        , seconds
-        , iso8601
-        , parse8601
-        , rfc2616
-        , uuidv1
-        , parseDate
-        , mdy
-        , ymd
-        , ymdhms
-        , setTimeout_safe
-        , sleep: ms => new Promise (resolve => setTimeout_safe (resolve, ms))
-        , TimedOut
-        , timeout: async (ms, promise) => {
+        let clear = () => {}
+        const expires = new Promise ((resolve) => (clear = setTimeout_safe (resolve, ms)))
 
-            let clear = () => {}
-            const expires = new Promise (resolve => (clear = setTimeout_safe (resolve, ms)))
-
-            try {
-                return await Promise.race ([promise, expires.then (() => { throw new TimedOut () })])
-            } finally {
-                clear () // fixes https://github.com/ccxt/ccxt/issues/749
-            }
+        try {
+            return await Promise.race ([promise, expires.then (() => { throw new TimedOut () })])
+        } finally {
+            clear () // fixes https://github.com/ccxt/ccxt/issues/749
         }
+    }
 }
 
 /*  ------------------------------------------------------------------------ */

@@ -458,7 +458,7 @@ class coinbasepro extends Exchange {
         $timestamp = $this->parse8601($this->safe_value($ticker, 'time'));
         $bid = $this->safe_number($ticker, 'bid');
         $ask = $this->safe_number($ticker, 'ask');
-        $last = $this->safe_number($ticker, 'price');
+        $last = $this->safe_number_2($ticker, 'price', 'last');
         $symbol = ($market === null) ? null : $market['symbol'];
         return array(
             'symbol' => $symbol,
@@ -778,7 +778,7 @@ class coinbasepro extends Exchange {
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -1057,9 +1057,9 @@ class coinbasepro extends Exchange {
         $id = $this->safe_string($item, 'id');
         $amountString = $this->safe_string($item, 'amount');
         $direction = null;
-        $afterString = $this->safe_number($item, 'balance');
+        $afterString = $this->safe_string($item, 'balance');
         $beforeString = Precise::string_sub($afterString, $amountString);
-        if (Precise.lt ($amountString, '0')) {
+        if (Precise::string_lt($amountString, '0')) {
             $direction = 'out';
             $amountString = Precise::string_abs($amountString);
         } else {

@@ -17,6 +17,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -28,7 +29,7 @@ class gateio(Exchange):
             'name': 'Gate.io',
             'countries': ['KR'],
             'rateLimit': 10 / 3,  # 300 requests per second or 3.33ms
-            'version': '4',
+            'version': 'v4',
             'certified': True,
             'pro': True,
             'urls': {
@@ -51,6 +52,7 @@ class gateio(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -253,6 +255,7 @@ class gateio(Exchange):
                             '{settle}/positions/{contract}/leverage': 1.5,
                             '{settle}/positions/{contract}/risk_limit': 1.5,
                             '{settle}/orders': 1.5,
+                            '{settle}/price_orders': 1.5,
                         },
                         'delete': {
                             '{settle}/orders': 1.5,
@@ -283,6 +286,7 @@ class gateio(Exchange):
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'BYN': 'Beyond Finance',
+                'EGG': 'Goose Finance',
                 'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
                 'GTC_HT': 'Game.com HT',
                 'GTC_BSC': 'Game.com BSC',
@@ -323,6 +327,7 @@ class gateio(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': True,
@@ -631,19 +636,29 @@ class gateio(Exchange):
                 for i in range(0, len(response)):
                     market = response[i]
                     id = self.safe_string(market, 'name')
-                    baseId, quoteId, date = id.split('_')
+                    parts = id.split('_')
+                    baseId = self.safe_string(parts, 0)
+                    quoteId = self.safe_string(parts, 1)
+                    date = self.safe_string(parts, 2)
                     linear = quoteId.lower() == settle
                     inverse = baseId.lower() == settle
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                     symbol = ''
-                    if date:
+                    if date is not None:
                         symbol = base + '/' + quote + '-' + date + ':' + self.safe_currency_code(settle)
                     else:
                         symbol = base + '/' + quote + ':' + self.safe_currency_code(settle)
+                    priceDeviate = self.safe_string(market, 'order_price_deviate')
+                    markPrice = self.safe_string(market, 'mark_price')
+                    minMultiplier = Precise.string_sub('1', priceDeviate)
+                    maxMultiplier = Precise.string_add('1', priceDeviate)
+                    minPrice = Precise.string_mul(minMultiplier, markPrice)
+                    maxPrice = Precise.string_mul(maxMultiplier, markPrice)
                     takerPercent = self.safe_string(market, 'taker_fee_rate')
                     makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
                     feeIndex = 'swap' if (type == 'futures') else type
+                    pricePrecision = self.safe_number(market, 'order_price_round')
                     result.append({
                         'info': market,
                         'id': id,
@@ -666,14 +681,23 @@ class gateio(Exchange):
                         # Fee is in %, so divide by 100
                         'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
                         'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
-                        'contractSize': self.safe_string(market, 'contractSize', '1'),
+                        'contractSize': self.safe_string(market, 'quanto_multiplier'),
+                        'precision': {
+                            'amount': self.parse_number('1'),
+                            'price': pricePrecision,
+                        },
                         'limits': {
                             'leverage': {
+                                'min': self.safe_number(market, 'leverage_min'),
                                 'max': self.safe_number(market, 'leverage_max'),
                             },
                             'amount': {
                                 'min': self.safe_number(market, 'order_size_min'),
                                 'max': self.safe_number(market, 'order_size_max'),
+                            },
+                            'price': {
+                                'min': minPrice,
+                                'max': maxPrice,
                             },
                         },
                         'expiry': self.safe_integer(market, 'expire_time'),
@@ -724,16 +748,17 @@ class gateio(Exchange):
                 symbol = base + '/' + quote
                 takerPercent = self.safe_string(market, 'fee')
                 makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
-                amountPrecision = self.safe_string(market, 'amount_precision')
-                pricePrecision = self.safe_string(market, 'precision')
-                amountLimit = self.parse_precision(amountPrecision)
-                priceLimit = self.parse_precision(pricePrecision)
+                amountPrecisionString = self.safe_string(market, 'amount_precision')
+                pricePrecisionString = self.safe_string(market, 'precision')
+                amountPrecision = self.parse_number(self.parse_precision(amountPrecisionString))
+                pricePrecision = self.parse_number(self.parse_precision(pricePrecisionString))
                 tradeStatus = self.safe_string(market, 'trade_status')
                 result.append({
                     'info': market,
                     'id': id,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': None,
                     'base': base,
                     'quote': quote,
                     'symbol': symbol,
@@ -751,17 +776,17 @@ class gateio(Exchange):
                     'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
                     'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
                     'precision': {
-                        'amount': int(amountPrecision),
-                        'price': int(pricePrecision),
+                        'amount': amountPrecision,
+                        'price': pricePrecision,
                     },
                     'active': tradeStatus == 'tradable',
                     'limits': {
                         'amount': {
-                            'min': self.parse_number(amountLimit),
+                            'min': amountPrecision,
                             'max': None,
                         },
                         'price': {
-                            'min': self.parse_number(priceLimit),
+                            'min': pricePrecision,
                             'max': None,
                         },
                         'cost': {
@@ -806,7 +831,7 @@ class gateio(Exchange):
         #
         result = {}
         # TODO: remove magic constants
-        amountPrecision = 6
+        amountPrecision = self.parse_number('1e-6')
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -1158,10 +1183,10 @@ class gateio(Exchange):
         }
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         self.load_markets()
         # defaultType = 'future'
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires the argument "symbol"')
         market = self.market(symbol)
         request = self.prepare_request(market)
         request['type'] = 'fund'  # 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
@@ -1187,7 +1212,8 @@ class gateio(Exchange):
                 'id': None,
                 'amount': self.safe_number(entry, 'change'),
             })
-        return result
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -1247,28 +1273,28 @@ class gateio(Exchange):
         #     {
         #         "current": 1634350208.745,
         #         "asks": [
-        #             {"s":24909,"p":"61264.8"},
-        #             {"s":81,"p":"61266.6"},
-        #             {"s":2000,"p":"61267.6"},
-        #             {"s":490,"p":"61270.2"},
-        #             {"s":12,"p":"61270.4"},
-        #             {"s":11782,"p":"61273.2"},
-        #             {"s":14666,"p":"61273.3"},
-        #             {"s":22541,"p":"61273.4"},
-        #             {"s":33,"p":"61273.6"},
-        #             {"s":11980,"p":"61274.5"}
+        #             {"s":24909,"p": "61264.8"},
+        #             {"s":81,"p": "61266.6"},
+        #             {"s":2000,"p": "61267.6"},
+        #             {"s":490,"p": "61270.2"},
+        #             {"s":12,"p": "61270.4"},
+        #             {"s":11782,"p": "61273.2"},
+        #             {"s":14666,"p": "61273.3"},
+        #             {"s":22541,"p": "61273.4"},
+        #             {"s":33,"p": "61273.6"},
+        #             {"s":11980,"p": "61274.5"}
         #         ],
         #         "bids": [
-        #             {"s":41844,"p":"61264.7"},
-        #             {"s":13783,"p":"61263.3"},
-        #             {"s":1143,"p":"61259.8"},
-        #             {"s":81,"p":"61258.7"},
-        #             {"s":2471,"p":"61257.8"},
-        #             {"s":2471,"p":"61257.7"},
-        #             {"s":2471,"p":"61256.5"},
-        #             {"s":3,"p":"61254.2"},
-        #             {"s":114,"p":"61252.4"},
-        #             {"s":14372,"p":"61248.6"}
+        #             {"s":41844,"p": "61264.7"},
+        #             {"s":13783,"p": "61263.3"},
+        #             {"s":1143,"p": "61259.8"},
+        #             {"s":81,"p": "61258.7"},
+        #             {"s":2471,"p": "61257.8"},
+        #             {"s":2471,"p": "61257.7"},
+        #             {"s":2471,"p": "61256.5"},
+        #             {"s":3,"p": "61254.2"},
+        #             {"s":114,"p": "61252.4"},
+        #             {"s":14372,"p": "61248.6"}
         #         ],
         #         "update": 1634350208.724
         #     }
@@ -1480,27 +1506,30 @@ class gateio(Exchange):
         self.load_markets()
         market = self.market(symbol)
         price = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
         request = self.prepare_request(market)
         request['interval'] = self.timeframes[timeframe]
-        isMark = price == 'mark'
-        isIndex = price == 'index'
-        if isMark or isIndex:
-            prefix = 'mark_' if isMark else 'index_'
-            request['contract'] = prefix + market['id']
+        method = 'publicSpotGetCandlesticks'
+        if market['contract']:
+            if market['futures']:
+                method = 'publicDeliveryGetSettleCandlesticks'
+            elif market['swap']:
+                method = 'publicFuturesGetSettleCandlesticks'
+            isMark = (price == 'mark')
+            isIndex = (price == 'index')
+            if isMark or isIndex:
+                request['contract'] = price + '_' + market['id']
+                params = self.omit(params, 'price')
         if since is None:
             if limit is not None:
                 request['limit'] = limit
         else:
+            timeframeSeconds = self.parse_timeframe(timeframe)
+            timeframeMilliseconds = timeframeSeconds * 1000
+            # align forward to the next timeframe alignment
+            since = self.sum(since - (since % timeframeMilliseconds), timeframeMilliseconds)
             request['from'] = int(since / 1000)
             if limit is not None:
-                request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
-        method = self.get_supported_mapping(market['type'], {
-            'spot': 'publicSpotGetCandlesticks',
-            'margin': 'publicSpotGetCandlesticks',
-            'swap': 'publicFuturesGetSettleCandlesticks',
-            'futures': 'publicDeliveryGetSettleCandlesticks',
-        })
+                request['to'] = self.sum(request['from'], limit * timeframeSeconds - 1)
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -1510,14 +1539,14 @@ class gateio(Exchange):
         }
         return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
-    def fetch_funding_rate_history(self, symbol=None, limit=None, since=None, params={}):
-        self.load_markets()
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
         market = self.market(symbol)
         request = {
             'contract': market['id'],
-            'settle': market['quote'].lower(),
+            'settle': market['settleId'],
         }
         if limit is not None:
             request['limit'] = limit
@@ -1540,7 +1569,8 @@ class gateio(Exchange):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
-        return self.sort_by(rates, 'timestamp')
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
@@ -1565,10 +1595,10 @@ class gateio(Exchange):
         #
         #     {
         #          "t":1632873600,         # Unix timestamp in seconds
-        #          "o":"41025",            # Open price
-        #          "h":"41882.17",         # Highest price
-        #          "c":"41776.92",         # Close price
-        #          "l":"40783.94"          # Lowest price
+        #          "o": "41025",           # Open price
+        #          "h": "41882.17",         # Highest price
+        #          "c": "41776.92",         # Close price
+        #          "l": "40783.94"          # Lowest price
         #     }
         #
         if isinstance(ohlcv, list):
@@ -1929,20 +1959,70 @@ class gateio(Exchange):
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        #
+        # :param(str) symbol: base/quote currency pair
+        # :param(str) type: Order type(limit, market, ...)
+        # :param(str) side: buy or sell
+        # :param(number) amount: Amount of base currency ordered
+        # :param(number) price: Price of the base currency using quote currency
+        # :param(dict) params:
+        #          - type: market type(spot, futures, ...)
+        #          - reduceOnly
         self.load_markets()
         market = self.market(symbol)
-        request = {
-            'currency_pair': market['id'],
-            'amount': self.amount_to_precision(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
-            'side': side,
-        }
-        response = self.privateSpotPostOrders(self.extend(request, params))
+        defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', 'spot')
+        marketType = self.safe_string(params, 'type', defaultType)
+        contract = market['contract']
+        request = self.prepare_request(market)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        params = self.omit(params, 'reduceOnly')
+        if reduceOnly is not None:
+            if not contract:
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for futures and perpetuals only')
+            request['reduce_only'] = reduceOnly
+        if contract:
+            if side == 'sell':
+                amount = 0 - amount
+            request['size'] = self.parse_number(self.amount_to_precision(symbol, amount))
+        else:
+            request['side'] = side
+            request['type'] = type
+            request['amount'] = self.amount_to_precision(symbol, amount)
+            request['account'] = marketType
+            # if margin:
+            #     if entering trade:
+            #         request['auto_borrow'] = True
+            #     elif exiting trade:
+            #         request['auto_repay'] = True
+            #     }
+            # }
+        if type == 'limit':
+            if not price:
+                raise ArgumentsRequired('Argument price is required for ' + self.id + '.createOrder for limit orders')
+            request['price'] = self.price_to_precision(symbol, price)
+        elif (type == 'market') and contract:
+            request['tif'] = 'ioc'
+            request['price'] = 0
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateSpotPostOrders',
+            # 'margin': 'privateSpotPostOrders',
+            'swap': 'privateFuturesPostSettleOrders',
+            'future': 'privateDeliveryPostSettleOrders',
+        })
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'liquidated': 'closed',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
-        # createOrder
+        # createOrder, spot
         #
         #     {
         #       "id": "62364648575",
@@ -1974,37 +2054,62 @@ class gateio(Exchange):
         #
         #
         id = self.safe_string(order, 'id')
-        marketId = self.safe_string(order, 'currency_pair')
+        marketId = self.safe_string_2(order, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_timestamp(order, 'create_time')
         timestamp = self.safe_integer(order, 'create_time_ms', timestamp)
         lastTradeTimestamp = self.safe_timestamp(order, 'update_time')
         lastTradeTimestamp = self.safe_integer(order, 'update_time_ms', lastTradeTimestamp)
-        amount = self.safe_string(order, 'amount')
+        amountRaw = self.safe_string_2(order, 'amount', 'size')
+        amount = Precise.string_abs(amountRaw)
         price = self.safe_string(order, 'price')
+        # average = self.safe_string(order, 'fill_price')
         remaining = self.safe_string(order, 'left')
         cost = self.safe_string(order, 'filled_total')  # same as filled_price
-        side = self.safe_string(order, 'side')
+        rawStatus = None
+        side = None
+        contract = self.safe_value(market, 'contract')
+        if contract:
+            side = 'buy' if Precise.string_gt(amountRaw, '0') else 'sell'
+            rawStatus = self.safe_string(order, 'finish_as', 'open')
+        else:
+            # open, closed, cancelled - almost already ccxt unified!
+            rawStatus = self.safe_string(order, 'status')
+            side = self.safe_string(order, 'side')
+        status = self.parse_order_status(rawStatus)
         type = self.safe_string(order, 'type')
-        # open, closed, cancelled - almost already ccxt unified!
-        status = self.safe_string(order, 'status')
-        if status == 'cancelled':
-            status = 'canceled'
-        timeInForce = self.safe_string_upper(order, 'time_in_force')
+        timeInForce = self.safe_string_upper_2(order, 'time_in_force', 'tif')
         fees = []
-        fees.append({
-            'currency': 'GT',
-            'cost': self.safe_number(order, 'gt_fee'),
-        })
-        fees.append({
-            'currency': self.safe_currency_code(self.safe_string(order, 'fee_currency')),
-            'cost': self.safe_number(order, 'fee'),
-        })
+        gtFee = self.safe_number(order, 'gt_fee')
+        if gtFee:
+            fees.append({
+                'currency': 'GT',
+                'cost': gtFee,
+            })
+        fee = self.safe_number(order, 'fee')
+        if fee:
+            fees.append({
+                'currency': self.safe_currency_code(self.safe_string(order, 'fee_currency')),
+                'cost': fee,
+            })
         rebate = self.safe_string(order, 'rebated_fee')
-        fees.append({
-            'currency': self.safe_currency_code(self.safe_string(order, 'rebated_fee_currency')),
-            'cost': self.parse_number(Precise.string_neg(rebate)),
-        })
+        if rebate:
+            fees.append({
+                'currency': self.safe_currency_code(self.safe_string(order, 'rebated_fee_currency')),
+                'cost': self.parse_number(Precise.string_neg(rebate)),
+            })
+        mkfr = self.safe_number(order, 'mkfr')
+        tkfr = self.safe_number(order, 'tkfr')
+        if mkfr:
+            fees.append({
+                'currency': self.safe_currency_code(self.safe_string(order, 'settleId')),
+                'cost': mkfr,
+            })
+        if tkfr:
+            fees.append({
+                'currency': self.safe_currency_code(self.safe_string(market, 'settleId')),
+                'cost': tkfr,
+            })
         return self.safe_order2({
             'id': id,
             'clientOrderId': id,
@@ -2028,7 +2133,7 @@ class gateio(Exchange):
             'fees': fees,
             'trades': None,
             'info': order,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -2037,18 +2142,29 @@ class gateio(Exchange):
         market = self.market(symbol)
         request = {
             'order_id': id,
-            'currency_pair': market['id'],
         }
-        response = self.privateSpotGetOrdersOrderId(self.extend(request, params))
+        if market['spot'] or market['margin']:
+            request['currency_pair'] = market['id']
+        else:
+            request['settle'] = market['settleId']
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateSpotGetOrdersOrderId',
+            # 'margin': 'publicMarginGetTickers',
+            'swap': 'privateFuturesGetSettleOrdersOrderId',
+            'futures': 'privateDeliveryGetSettlePriceOrdersOrderId',
+        })
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        if symbol is None:
+        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        if symbol is None and (type == 'spot') or type == 'margin' or type == 'cross_margin':
             request = {
                 # 'page': 1,
                 # 'limit': limit,
-                # 'account': '',  # spot/margin(default), cross_margin
+                'account': type,  # spot/margin(default), cross_margin
             }
             if limit is not None:
                 request['limit'] = limit
@@ -2100,32 +2216,117 @@ class gateio(Exchange):
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrdersByStatus requires a symbol argument')
+        self.load_markets()
         market = self.market(symbol)
-        request = {
-            'currency_pair': market['id'],
-            'status': status,
-        }
+        request = self.prepare_request(market)
+        request['status'] = status
         if limit is not None:
             request['limit'] = limit
-        if since is not None:
+        if since is not None and (market['spot'] or market['margin']):
             request['start'] = int(since / 1000)
-        response = self.privateSpotGetOrders(self.extend(request, params))
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateSpotGetOrders',
+            'margin': 'privateSpotGetOrders',
+            'swap': 'privateFuturesGetSettleOrders',
+            'futures': 'privateDeliveryGetSettleOrders',
+        })
+        if market['type'] == 'margin' or market['type'] == 'cross_margin':
+            request['account'] = market['type']
+        response = getattr(self, method)(self.extend(request, params))
+        # SPOT
+        # {
+        #     "id":"8834234273",
+        #     "text": "3",
+        #     "create_time": "1635406193",
+        #     "update_time": "1635406193",
+        #     "create_time_ms": 1635406193361,
+        #     "update_time_ms": 1635406193361,
+        #     "status": "closed",
+        #     "currency_pair": "BTC_USDT",
+        #     "type": "limit",
+        #     "account": "spot",
+        #     "side": "sell",
+        #     "amount": "0.0002",
+        #     "price": "58904.01",
+        #     "time_in_force":"gtc",
+        #     "iceberg": "0",
+        #     "left": "0.0000",
+        #     "fill_price": "11.790516",
+        #     "filled_total": "11.790516",
+        #     "fee": "0.023581032",
+        #     "fee_currency": "USDT",
+        #     "point_fee": "0",
+        #     "gt_fee": "0",
+        #     "gt_discount": False,
+        #     "rebated_fee_currency": "BTC"
+        # }
+        # Perpetual Swap
+        # {
+        #     "status": "finished",
+        #     "size":-1,
+        #     "left":0,
+        #     "id":82750739203,
+        #     "is_liq":false,
+        #     "is_close":false,
+        #     "contract": "BTC_USDT",
+        #     "text": "web",
+        #     "fill_price": "60721.3",
+        #     "finish_as": "filled",
+        #     "iceberg":0,
+        #     "tif": "ioc",
+        #     "is_reduce_only":true,
+        #     "create_time": 1635403475.412,
+        #     "finish_time": 1635403475.4127,
+        #     "price": "0"
+        # }
         return self.parse_orders(response, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
-        self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol parameter')
+        self.load_markets()
         market = self.market(symbol)
         request = {
             'order_id': id,
-            'currency_pair': market['id'],
         }
-        response = self.privateSpotDeleteOrdersOrderId(self.extend(request, params))
-        return self.parse_order(response)
+        if market['contract']:
+            request['settle'] = market['settleId']
+        else:
+            request['currency_pair'] = market['id']
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'privateSpotDeleteOrdersOrderId',
+            'margin': 'privateSpotDeleteOrdersOrderId',
+            'swap': 'privateFuturesDeleteSettleOrdersOrderId',
+            'futures': 'privateDeliveryDeleteSettleOrdersOrderId',
+        })
+        response = getattr(self, method)(self.extend(request, params))
+        # Perpetual swap
+        # {
+        #     id: "82241928192",
+        #     contract: "BTC_USDT",
+        #     mkfr: "0",
+        #     tkfr: "0.0005",
+        #     tif: "gtc",
+        #     is_reduce_only: False,
+        #     create_time: "1635196145.06",
+        #     finish_time: "1635196233.396",
+        #     price: "61000",
+        #     size: "4",
+        #     refr: "0",
+        #     left: "4",
+        #     text: "web",
+        #     fill_price: "0",
+        #     user: "6693577",
+        #     finish_as: "cancelled",
+        #     status: "finished",
+        #     is_liq: False,
+        #     refu: "0",
+        #     is_close: False,
+        #     iceberg: "0",
+        # }
+        return self.parse_order(response, market)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()
@@ -2172,6 +2373,58 @@ class gateio(Exchange):
             'code': code,
         }
 
+    def set_leverage(self, leverage, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (leverage < 0) or (leverage > 100):
+            raise BadRequest(self.id + ' leverage should be between 1 and 100')
+        self.load_markets()
+        market = self.market(symbol)
+        method = self.get_supported_mapping(market['type'], {
+            'swap': 'privateFuturesPostSettlePositionsContractLeverage',
+            'futures': 'privateDeliveryPostSettlePositionsContractLeverage',
+        })
+        request = self.prepare_request(market)
+        request['query'] = {
+            'leverage': str(leverage),
+        }
+        if 'cross_leverage_limit' in params:
+            if leverage != 0:
+                raise BadRequest(self.id + ' cross margin leverage(valid only when leverage is 0)')
+            request['cross_leverage_limit'] = str(params['cross_leverage_limit'])
+            params = self.omit(params, 'cross_leverage_limit')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "value":"0",
+        #         "leverage":"5",
+        #         "mode":"single",
+        #         "realised_point":"0",
+        #         "contract":"BTC_USDT",
+        #         "entry_price":"0",
+        #         "mark_price":"62035.86",
+        #         "history_point":"0",
+        #         "realised_pnl":"0",
+        #         "close_order":null,
+        #         "size":0,
+        #         "cross_leverage_limit":"0",
+        #         "pending_orders":0,
+        #         "adl_ranking":6,
+        #         "maintenance_rate":"0.005",
+        #         "unrealised_pnl":"0",
+        #         "user":2436035,
+        #         "leverage_max":"100",
+        #         "history_pnl":"0",
+        #         "risk_limit":"1000000",
+        #         "margin":"0",
+        #         "last_close_pnl":"0",
+        #         "liq_price":"0"
+        #     }
+        #
+        return response
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, futures, delivery
@@ -2180,23 +2433,27 @@ class gateio(Exchange):
         endPart = (path == '' if '' else '/' + path)
         entirePath = '/' + type + endPart
         url = self.urls['api'][authentication] + entirePath
-        queryString = ''
         if authentication == 'public':
-            queryString = self.urlencode(query)
             if query:
-                url += '?' + queryString
+                url += '?' + self.urlencode(query)
         else:
+            queryString = ''
             if (method == 'GET') or (method == 'DELETE'):
-                queryString = self.urlencode(query)
                 if query:
+                    queryString = self.urlencode(query)
                     url += '?' + queryString
             else:
+                urlQueryParams = self.safe_value(query, 'query', {})
+                if urlQueryParams:
+                    queryString = self.urlencode(urlQueryParams)
+                    url += '?' + queryString
+                query = self.omit(query, 'query')
                 body = self.json(query)
             bodyPayload = '' if (body is None) else body
             bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
             timestamp = self.seconds()
             timestampString = str(timestamp)
-            signaturePath = '/api/v4' + entirePath
+            signaturePath = '/api/' + self.version + entirePath
             payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]
             # eslint-disable-next-line quotes
             payload = "\n".join(payloadArray)

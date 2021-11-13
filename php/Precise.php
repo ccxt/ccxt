@@ -5,7 +5,7 @@ namespace ccxt;
 class Precise {
     public $integer;
     public $decimals;
-    public $base;
+    public static $base;
 
     public function __construct($number, $decimals = null) {
         if ($decimals === null) {
@@ -24,7 +24,6 @@ class Precise {
             $this->integer = $number;
             $this->decimals = $decimals;
         }
-        $this->base = gmp_init(10);
     }
 
     public function mul($other) {
@@ -37,10 +36,10 @@ class Precise {
         if ($distance === 0) {
             $numerator = $this->integer;
         } elseif ($distance < 0) {
-            $exponent = gmp_pow($this->base, -$distance);
+            $exponent = gmp_pow(static::$base, -$distance);
             $numerator = gmp_div($this->integer, $exponent);
         } else {
-            $exponent = gmp_pow($this->base, $distance);
+            $exponent = gmp_pow(static::$base, $distance);
             $numerator = gmp_mul($this->integer, $exponent);
         }
         $result = gmp_div($numerator, $other->integer);
@@ -55,7 +54,7 @@ class Precise {
             list($smaller, $bigger) =
                 ($this->decimals > $other->decimals) ? array( $other, $this ) : array( $this, $other );
             $exponent = $bigger->decimals - $smaller->decimals;
-            $normalised = gmp_mul($smaller->integer, gmp_pow($this->base, $exponent));
+            $normalised = gmp_mul($smaller->integer, gmp_pow(static::$base, $exponent));
             $result = gmp_add($normalised, $bigger->integer);
             return new Precise($result, $bigger->decimals);
         }
@@ -76,9 +75,9 @@ class Precise {
 
     public function mod($other) {
         $rationizerNumerator = max(-$this->decimals + $other->decimals, 0);
-        $numerator = gmp_mul($this->integer, gmp_pow($this->base, $rationizerNumerator));
+        $numerator = gmp_mul($this->integer, gmp_pow(static::$base, $rationizerNumerator));
         $denominatorRationizer = max(-$other->decimals + $this->decimals, 0);
-        $denominator = gmp_mul($other->integer, gmp_pow($this->base, $denominatorRationizer));
+        $denominator = gmp_mul($other->integer, gmp_pow(static::$base, $denominatorRationizer));
         $result = gmp_mod($numerator, $denominator);
         return new Precise($result, $denominatorRationizer + $other->decimals);
     }
@@ -265,3 +264,5 @@ class Precise {
         return (new Precise($string1))->le(new Precise($string2));
     }
 }
+
+Precise::$base = \gmp_init(10);

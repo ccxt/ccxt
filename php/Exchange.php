@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.59.77';
+$version = '1.61.14';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.59.77';
+    const VERSION = '1.61.14';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -93,7 +93,6 @@ class Exchange {
         'bittrex',
         'bitvavo',
         'bl3p',
-        'btcalpha',
         'btcbox',
         'btcmarkets',
         'btctradeua',
@@ -124,6 +123,7 @@ class Exchange {
         'exmo',
         'flowbtc',
         'ftx',
+        'ftxus',
         'gateio',
         'gemini',
         'hitbtc',
@@ -140,6 +140,7 @@ class Exchange {
         'kucoin',
         'kuna',
         'latoken',
+        'latoken1',
         'lbank',
         'liquid',
         'luno',
@@ -888,8 +889,17 @@ class Exchange {
         return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
     }
 
-    public static function ymd($timestamp, $infix = '-') {
-        return gmdate('Y' . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
+    public static function ymd($timestamp, $infix = '-', $fullYear = true) {
+        $yearFormat = $fullYear ? 'Y' : 'y';
+        return gmdate($yearFormat . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
+    }
+
+    public static function yymmdd($timestamp, $infix = '') {
+        return static::ymd($timestamp, $infix, false);
+    }
+
+    public static function yyyymmdd($timestamp, $infix = '-') {
+        return static::ymd($timestamp, $infix, true);
     }
 
     public static function ymdhms($timestamp, $infix = ' ') {
@@ -1169,6 +1179,7 @@ class Exchange {
         $this->precisionMode = DECIMAL_PLACES;
         $this->paddingMode = NO_PADDING;
         $this->number = 'floatval';
+        $this->handleContentTypeApplicationZip = false;
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp = 0;
@@ -3252,6 +3263,15 @@ class Exchange {
             } else {
                 $cost = Precise::string_mul($average, $filled);
             }
+            // contract trading
+            $contractSize = $this->safe_string($market, 'contractSize');
+            if ($contractSize !== null) {
+                $inverse = $this->safe_value($market, 'inverse', false);
+                if ($inverse) {
+                    $cost = Precise::string_div('1', $cost, 8);
+                }
+                $cost = Precise::string_mul($cost, $contractSize);
+            }
         }
         // support for $market orders
         $orderType = $this->safe_value($order, 'type');
@@ -3310,7 +3330,7 @@ class Exchange {
     }
 
     public function omit_zero($string_number) {
-        if ($string_number === null) {
+        if ($string_number === null || $string_number === '') {
             return null;
         }
         if (floatval($string_number) === 0.0) {

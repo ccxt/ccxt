@@ -295,7 +295,7 @@ const decimalToPrecision = (x, roundingMode
 }
 
 function omitZero (stringNumber) {
-    if (stringNumber === undefined) {
+    if (stringNumber === undefined || stringNumber === '') {
         return undefined
     }
     if (parseFloat (stringNumber) === 0) {

@@ -121,6 +121,9 @@ class qtrade(Exchange):
                     'withdraw': {},
                 },
             },
+            'commonCurrencies': {
+                'BTM': 'Bitmark',
+            },
             'exceptions': {
                 'exact': {
                     'invalid_auth': AuthenticationError,

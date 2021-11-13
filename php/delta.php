@@ -920,10 +920,10 @@ class delta extends Exchange {
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'order_type');
         $type = str_replace('_order', '', $type);
-        $price = $this->safe_number($order, 'limit_price');
-        $amount = $this->safe_number($order, 'size');
-        $remaining = $this->safe_number($order, 'unfilled_size');
-        $average = $this->safe_number($order, 'average_fill_price');
+        $price = $this->safe_string($order, 'limit_price');
+        $amount = $this->safe_string($order, 'size');
+        $remaining = $this->safe_string($order, 'unfilled_size');
+        $average = $this->safe_string($order, 'average_fill_price');
         $fee = null;
         $feeCost = $this->safe_number($order, 'paid_commission');
         if ($feeCost !== null) {
@@ -938,7 +938,7 @@ class delta extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -957,7 +957,7 @@ class delta extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

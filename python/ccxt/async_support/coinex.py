@@ -512,11 +512,12 @@ class coinex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(order, 'create_time')
-        price = self.safe_number(order, 'price')
-        cost = self.safe_number(order, 'deal_money')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'deal_amount')
-        average = self.safe_number(order, 'avg_price')
+        price = self.safe_string(order, 'price')
+        cost = self.safe_string(order, 'deal_money')
+        amount = self.safe_string(order, 'amount')
+        filled = self.safe_string(order, 'deal_amount')
+        average = self.safe_string(order, 'avg_price')
+        remaining = self.safe_string(order, 'left')
         symbol = None
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
@@ -526,11 +527,10 @@ class coinex(Exchange):
             symbol = market['symbol']
             if feeCurrency is None:
                 feeCurrency = market['quote']
-        remaining = self.safe_number(order, 'left')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        return self.safe_order({
+        return self.safe_order2({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -555,7 +555,7 @@ class coinex(Exchange):
                 'cost': self.safe_number(order, 'deal_fee'),
             },
             'info': order,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

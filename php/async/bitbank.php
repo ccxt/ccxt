@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\Precise;
 
 class bitbank extends Exchange {
@@ -319,15 +320,15 @@ class bitbank extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        if ($since === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument');
+        }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $date = $this->milliseconds();
-        $date = $this->ymd($date);
-        $date = explode('-', $date);
         $request = array(
             'pair' => $market['id'],
             'candletype' => $this->timeframes[$timeframe],
-            'yyyymmdd' => implode('', $date),
+            'yyyymmdd' => $this->yyyymmdd($since, ''),
         );
         $response = yield $this->publicGetPairCandlestickCandletypeYyyymmdd (array_merge($request, $params));
         //
@@ -463,7 +464,7 @@ class bitbank extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

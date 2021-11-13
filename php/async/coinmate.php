@@ -612,20 +612,17 @@ class coinmate extends Exchange {
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->safe_integer($order, 'timestamp');
         $side = $this->safe_string_lower($order, 'type');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'originalAmount');
-        $remaining = $this->safe_number($order, 'remainingAmount');
-        if ($remaining === null) {
-            $remaining = $this->safe_number($order, 'amount');
-        }
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'originalAmount');
+        $remaining = $this->safe_string_2($order, 'remainingAmount', 'amount');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->parse_order_type($this->safe_string($order, 'orderTradeType'));
-        $average = $this->safe_number($order, 'avgPrice');
+        $average = $this->safe_string($order, 'avgPrice');
         $marketId = $this->safe_string($order, 'currencyPair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
@@ -647,7 +644,7 @@ class coinmate extends Exchange {
             'trades' => null,
             'info' => $order,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
