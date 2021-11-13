@@ -42,5 +42,5 @@ async def main(loop):
         print(exchange.id, method, 'is not supported or not implemented yet')
 
 
-asyncio_loop = asyncio.get_event_loop()
-asyncio_loop.run_until_complete(main(asyncio_loop))
+asyncio_loop = asyncio.get_running_loop()
+run(main(asyncio_loop))

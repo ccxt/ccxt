@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import get_event_loop
+from asyncio import get_running_loop, run
 from pprint import pprint
 import os
 import sys
@@ -48,7 +48,7 @@ async def main(exchange):
 
 print('CCXT Version:', ccxt.__version__)
 
-loop = get_event_loop()
+loop = get_running_loop()
 exchange = ccxt.okex({
     'asyncio_loop': loop,
     'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
@@ -59,4 +59,4 @@ exchange = ccxt.okex({
         'defaultType': 'futures',
     },
 })
-loop.run_until_complete(main(exchange))
+run(main(exchange))

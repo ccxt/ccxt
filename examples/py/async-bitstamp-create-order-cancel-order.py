@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import get_event_loop
+from asyncio import get_running_loop
 import ccxt.async_support as ccxt
 from pprint import pprint
 
@@ -53,5 +53,5 @@ async def main():
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main())
+loop = get_running_loop()
+run(main())

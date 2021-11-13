@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import gather, get_event_loop
+from asyncio import gather, get_running_loop
 import ccxtpro
 from pprint import pprint
 
@@ -46,5 +46,5 @@ async def main(loop):
     return await gather(*coroutines)
 
 if __name__ == "__main__":
-    loop = get_event_loop()
-    loop.run_until_complete(main(loop))
+    loop = get_running_loop()
+    run(main(loop))

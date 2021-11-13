@@ -4,7 +4,7 @@ import asyncio
 
 from pprint import pprint
 
-loop = asyncio.get_event_loop()
+loop = asyncio.get_running_loop()
 
 
 async def print_balance(exchange, market_type):

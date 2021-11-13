@@ -26,4 +26,4 @@ async def main():
         print(orderbook['bids'][0], orderbook['asks'][0])
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())

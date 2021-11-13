@@ -50,7 +50,7 @@ if __name__ == '__main__':
     exchanges = ["kucoin", "bittrex", "bitfinex", "poloniex", "huobipro"]
 
     tic = time.time()
-    a = asyncio.get_event_loop().run_until_complete(multi_orderbooks(exchanges))
+    a = asyncio.run(multi_orderbooks(exchanges))
     print("async call spend:", time.time() - tic)
 
     time.sleep(1)

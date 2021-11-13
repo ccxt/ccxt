@@ -404,7 +404,7 @@ async def main(loop):
     await exchange.close()
 
 loop = asyncio.new_event_loop()
-loop.run_until_complete(main(loop))
+run(main(loop))
 ```
 
 In PHP the async primitives are borrowed from [ReactPHP](https://reactphp.org). The PHP implementation of CCXT Pro relies on [Promise](https://github.com/reactphp/promise) and [EventLoop](https://github.com/reactphp/event-loop) in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:

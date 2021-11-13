@@ -28,5 +28,5 @@ bitfinex = ccxt.bitfinex({
 
 [asyncio.ensure_future(test(exchange)) for exchange in [kraken, bitfinex]]
 pending = asyncio.Task.all_tasks()
-loop = asyncio.get_event_loop()
-loop.run_until_complete(asyncio.gather(*pending))
+loop = asyncio.get_running_loop()
+run(asyncio.gather(*pending))
