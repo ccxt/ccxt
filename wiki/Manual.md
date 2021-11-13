@@ -2779,7 +2779,7 @@ import ccxt.async_support as ccxt
 if exchange.has['fetchOrder']:
     order = asyncio.run(exchange.fetch_order(id))
     print(order)
-```get_running_loop
+```
 
 ```PHP
 // PHP
