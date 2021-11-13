@@ -5025,6 +5025,7 @@ The address structures returned from ``fetchDepositAddress``\ , ``fetchDepositAd
 
    {
        'currency': currency, // currency code
+       'network': network,   // a list of deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
        'address': address,   // address in terms of requested currency
        'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
        'info': response,     // raw unparsed data as returned from the exchange
@@ -5033,6 +5034,8 @@ The address structures returned from ``fetchDepositAddress``\ , ``fetchDepositAd
 With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument ``tag`` is usually required by exchanges. Other currencies will have the ``tag`` set to ``undefined / None / null``. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
 
 Be careful when specifying the ``tag`` and the ``address``. The ``tag`` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the ``tag``. The purpose of the ``tag`` field is to address your wallet properly, so it must be correct. You should only use the ``tag`` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+
+ **The ``network`` field is relatively new, it may be ``undefined / None / null`` or missing entirely in certain cases (with some exchanges), but will be added everywhere eventually. It is still in the process of unification.**
 
 Withdraw
 --------
@@ -5067,8 +5070,8 @@ Some exchanges require a manual approval of each withdrawal by means of 2FA (2-f
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See :ref:`their docs <exchanges>` for details.
 
-Withdrawal Networks
--------------------
+Deposit And Withdrawal Networks
+-------------------------------
 
 It is also possible to pass the parameters as the fourth argument with or without a specified tag
 
