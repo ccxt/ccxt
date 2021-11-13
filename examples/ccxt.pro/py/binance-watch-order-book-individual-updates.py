@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import get_event_loop
+from asyncio import get_running_loop, run
 import ccxtpro
 from pprint import pprint
 
@@ -36,6 +36,6 @@ async def main(loop):
 
 
 if __name__ == "__main__":
-    loop = get_event_loop()
-    loop.run_until_complete(main(loop))
+    loop = get_running_loop()
+    run(main(loop))
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import gather, get_event_loop
+from asyncio import gather, get_running_loop, run
 from pprint import pprint
 import os
 import sys
@@ -38,5 +38,5 @@ async def main(loop):
 
 
 if __name__ == '__main__':
-    loop = get_event_loop()
-    pprint(loop.run_until_complete(main(loop)))
+    loop = get_running_loop()
+    pprint(run(main(loop)))

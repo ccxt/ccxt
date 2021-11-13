@@ -1310,9 +1310,9 @@ async def print_poloniex_ethbtc_ticker():
     poloniex = ccxt.poloniex()
     print(await poloniex.fetch_ticker('ETH/BTC'))
 
-asyncio.get_event_loop().run_until_complete(print_poloniex_ethbtc_ticker())
+asyncio.run(print_poloniex_ethbtc_ticker())
 ```
-
+get_running_loop
 ### PHP
 
 In the PHP 5-compatible version all API methods are synchronous, but with PHP 7.1+ the CCXT library optionally supports asynchronous concurrency mode using the 'yield' syntax (very similar to async/await in Python). The asynchronous PHP version uses the [RecoilPHP](https://github.com/recoilphp/recoil), [ReactPHP](https://reactphp.org/) and [clue/reactphp-buzz](https://github.com/clue/reactphp-buzz) libraries. In async mode you have all the same properties and methods, but any networking API method should be decorated with the `yield` keyword, your script should be in a ReactPHP/RecoilPHP wrapper, and all exchange constructors need to be passed the loop and kernel instances from the wrapper.
@@ -2777,9 +2777,9 @@ if exchange.has['fetchOrder']:
 import asyncio
 import ccxt.async_support as ccxt
 if exchange.has['fetchOrder']:
-    order = asyncio.get_event_loop().run_until_complete(exchange.fetch_order(id))
+    order = asyncio.run(exchange.fetch_order(id))
     print(order)
-```
+```get_running_loop
 
 ```PHP
 // PHP

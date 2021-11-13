@@ -2,7 +2,7 @@
 
 import os
 import sys
-from asyncio import gather, get_event_loop
+from asyncio import gather, get_running_loop, run
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
@@ -47,5 +47,5 @@ async def main(asyncio_loop):
 
 
 if __name__ == '__main__':
-    asyncio_loop = get_event_loop()
-    asyncio_loop.run_until_complete(main(asyncio_loop))
+    asyncio_loop = get_running_loop()
+    run(main(asyncio_loop))
