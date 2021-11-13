@@ -822,14 +822,16 @@ class latoken extends Exchange {
         $cost = $this->safe_string($order, 'cost');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $message = $this->safe_string($order, 'message');
-        if (mb_strpos($message, 'cancel') !== false) {
-            $status = 'canceled';
-        } else if (mb_strpos($message, 'accept') !== false) {
-            $status = 'open';
+        if ($message !== null) {
+            if (mb_strpos($message, 'cancel') !== false) {
+                $status = 'canceled';
+            } else if (mb_strpos($message, 'accept') !== false) {
+                $status = 'open';
+            }
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'condition'));
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -851,7 +853,7 @@ class latoken extends Exchange {
             'remaining' => null,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
