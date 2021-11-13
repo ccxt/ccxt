@@ -1141,7 +1141,7 @@ class crex24(Exchange):
             currency = self.currency(code)
             request['currency'] = currency['id']
         if since is not None:
-            request['from'] = self.ymd(since, 'T')
+            request['from'] = self.ymdhms(since, 'T')
         response = self.accountGetMoneyTransfers(self.extend(request, params))
         #
         #     [

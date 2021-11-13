@@ -1192,7 +1192,7 @@ class crex24 extends Exchange {
             $request['currency'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['from'] = $this->ymd($since, 'T');
+            $request['from'] = $this->ymdhms($since, 'T');
         }
         $response = yield $this->accountGetMoneyTransfers (array_merge($request, $params));
         //
