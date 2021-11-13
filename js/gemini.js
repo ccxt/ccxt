@@ -831,37 +831,41 @@ module.exports = class gemini extends Exchange {
         };
     }
 
+    parseDepositAddress (depositAddress, currency = undefined, params = {}) {
+        //
+        //      {
+        //          address: "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        //          timestamp: "1636813923098",
+        //          addressVersion: "eV1"                                         }
+        //      }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        return {
+            'currency': currency,
+            'network': undefined,
+            'address': address,
+            'tag': undefined,
+            'info': depositAddress,
+        };
+    }
+
     async fetchDepositAddressesByNetwork (code, params = {}) {
         await this.loadMarkets ();
         const network = this.safeString (params, 'network');
-        if (!network) {
-            throw new BadRequest ('fetchDepositAddressByNetwork requires a network parameter');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + 'fetchDepositAddressesByNetwork requires a network parameter');
         }
         params = this.omit (params, 'network');
-        let networkCode = undefined;
-        let networkId = undefined;
         const networks = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeString (networks, network, network);
         const networkIds = this.safeValue (this.options, 'networkIds', {});
-        networkId = this.safeString (networks, network);
-        networkCode = this.safeString (networkIds, networkId);
-        if (networkId === undefined) {
-            networkCode = this.safeString (networkIds, network);
-            networkId = network;
-        }
-        const request = {};
-        request['network'] = networkId;
-        const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const addressList = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const address = this.safeString (entry, 'address');
-            addressList.push (address);
-        }
-        return {
-            'network': networkCode,
-            'addresses': addressList,
-            'info': response,
+        const networkCode = this.safeString (networkIds, networkId, network);
+        const request = {
+            'network': networkId,
         };
+        const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
+        const results = this.parseDepositAddresses (response, [code], false, { 'network': networkCode, 'currency': code });
+        return this.groupBy (results, 'network');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
