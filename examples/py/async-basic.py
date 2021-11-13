@@ -17,4 +17,4 @@ async def test_binance():
     return markets
 
 if __name__ == '__main__':
-    print(asyncio.get_event_loop().run_until_complete(test_binance()))
+    print(asyncio.run(test_binance()))

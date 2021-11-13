@@ -22,4 +22,4 @@ async def test():
     print(await gdax.fetch_balance())
 
 
-asyncio.get_event_loop().run_until_complete(test())
+asyncio.run(test())

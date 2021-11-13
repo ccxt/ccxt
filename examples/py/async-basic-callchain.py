@@ -74,5 +74,5 @@ async def fetch_orderbook(exchange, symbol):
 if __name__ == '__main__':
     exchange_ids = ['bitfinex', 'okex', 'exmo']
     exchanges = []
-    results = asyncio.get_event_loop().run_until_complete(run_all_exchanges(exchange_ids))
+    results = asyncio.run(run_all_exchanges(exchange_ids))
     print([(exchange_id, ticker) for exchange_id, ticker in results.items()])

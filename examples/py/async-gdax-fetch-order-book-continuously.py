@@ -26,4 +26,4 @@ async def main(symbol):
         print(ticker)
 
 
-asyncio.get_event_loop().run_until_complete(main('BTC/USDT'))
+asyncio.run(main('BTC/USDT'))

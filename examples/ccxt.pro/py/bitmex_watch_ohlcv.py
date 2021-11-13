@@ -39,4 +39,4 @@ async def main():
         print(exchange.id, method, 'is not supported or not implemented yet')
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())
