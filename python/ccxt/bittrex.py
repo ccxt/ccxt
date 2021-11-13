@@ -673,7 +673,7 @@ class bittrex(Exchange):
         if since is not None:
             now = self.milliseconds()
             difference = abs(now - since)
-            sinceDate = self.ymd(since)
+            sinceDate = self.yyyymmdd(since)
             parts = sinceDate.split('-')
             sinceYear = self.safe_integer(parts, 0)
             sinceMonth = self.safe_integer(parts, 1)

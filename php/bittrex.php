@@ -679,7 +679,7 @@ class bittrex extends Exchange {
         if ($since !== null) {
             $now = $this->milliseconds();
             $difference = abs($now - $since);
-            $sinceDate = $this->ymd($since);
+            $sinceDate = $this->yyyymmdd($since);
             $parts = explode('-', $sinceDate);
             $sinceYear = $this->safe_integer($parts, 0);
             $sinceMonth = $this->safe_integer($parts, 1);

@@ -2505,15 +2505,15 @@ class bitget(Exchange):
             'symbol': market['id'],
             'method': 'matchresults',
             # 'types': 'buy-market,sell-market,buy-limit,sell-limit',
-            # 'start_date': self.ymd(since),
-            # 'end_date': self.ymd(self.milliseconds()),
+            # 'start_date': self.yyyymmdd(since),
+            # 'end_date': self.yyyymmdd(self.milliseconds()),
             # 'size': 100,
             # 'direct': 'next',
         }
         if since is not None:
-            request['start_date'] = self.ymd(since)
+            request['start_date'] = self.yyyymmdd(since)
             end = self.sum(since, 2 * 24 * 60 * 60 * 1000)
-            request['end_date'] = self.ymd(end)
+            request['end_date'] = self.yyyymmdd(end)
         if limit is not None:
             request['size'] = limit  # default 100, max 100
         response = await self.apiPostOrderMatchresults(self.extend(request, query))

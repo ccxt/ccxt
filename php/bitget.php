@@ -2615,15 +2615,15 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'method' => 'matchresults',
             // 'types' => 'buy-$market,sell-$market,buy-$limit,sell-limit',
-            // 'start_date' => $this->ymd($since),
-            // 'end_date' => $this->ymd($this->milliseconds()),
+            // 'start_date' => $this->yyyymmdd($since),
+            // 'end_date' => $this->yyyymmdd($this->milliseconds()),
             // 'size' => 100,
             // 'direct' => 'next',
         );
         if ($since !== null) {
-            $request['start_date'] = $this->ymd($since);
+            $request['start_date'] = $this->yyyymmdd($since);
             $end = $this->sum($since, 2 * 24 * 60 * 60 * 1000);
-            $request['end_date'] = $this->ymd($end);
+            $request['end_date'] = $this->yyyymmdd($end);
         }
         if ($limit !== null) {
             $request['size'] = $limit; // default 100, max 100
