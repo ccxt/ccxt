@@ -179,6 +179,7 @@ module.exports = class kucoin extends Exchange {
                         'contracts/{symbol}',
                         'ticker',
                         'level2/snapshot',
+                        'level{level}',
                         'level{level}/depth{limit}',
                         'level2/depth20',
                         'level2/depth100',
@@ -1217,11 +1218,9 @@ module.exports = class kucoin extends Exchange {
             'level': level,
         };
         const contract = market['contract'];
-        if (contract && (limit === undefined)) {
-            limit = 20; // Needs to be depth20 or depth100 for futures
-        }
         let method = 'privateGetMarketOrderbookLevelLevel';
         if (level === 2) {
+            const errorMessageTail = contract ? '20 or 100' : 'undefined, 20 or 100';
             if (limit !== undefined) {
                 if ((limit === 20) || (limit === 100)) {
                     request['limit'] = limit;
@@ -1230,11 +1229,13 @@ module.exports = class kucoin extends Exchange {
                         'kucoinfutures': 'futuresPublicGetLevelLevelDepthLimit',
                     });
                 } else {
-                    throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
+                    throw new BadRequest (this.id + ' fetchOrderBook limit argument must be ' + errorMessageTail);
                 }
+            } else if (contract) {
+                throw new BadRequest (this.id + ' fetchOrderBook limit argument must be ' + errorMessageTail);
             }
         } else if (contract) {
-            throw new ExchangeError (this.id + ' fetchOrderBook only has order book level 2');
+            throw new BadRequest (this.id + ' fetchOrderBook level must be 2');
         }
         const response = await this[method] (this.extend (request, params));
         // SPOT
