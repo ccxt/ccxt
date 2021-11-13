@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.61.2'
+__version__ = '1.61.11'
 
 # -----------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ class Exchange(BaseExchange):
     def __init__(self, config={}):
         if 'asyncio_loop' in config:
             self.asyncio_loop = config['asyncio_loop']
-        self.asyncio_loop = self.asyncio_loop or asyncio.get_running_loop()
+        self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.aiohttp_trust_env = config.get('aiohttp_trust_env', self.aiohttp_trust_env)
         self.verify = config.get('verify', self.verify)
         self.own_session = 'session' not in config

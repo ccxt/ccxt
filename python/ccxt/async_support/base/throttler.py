@@ -8,7 +8,7 @@ class Throttler:
         if loop:
             self.loop = loop
         else:
-            self.loop = asyncio.get_running_loop()
+            self.loop = asyncio.get_event_loop()
         self.config = {
             'refillRate': 1.0,
             'delay': 0.001,
