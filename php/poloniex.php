@@ -313,6 +313,11 @@ class poloniex extends Exchange {
             $isFrozen = $this->safe_string($market, 'isFrozen');
             $active = ($isFrozen !== '1');
             $numericId = $this->safe_integer($market, 'id');
+            // these are known defaults
+            $precision = array(
+                'price' => 8,
+                'amount' => 8,
+            );
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -324,6 +329,7 @@ class poloniex extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'active' => $active,
+                'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
             );
