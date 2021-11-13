@@ -2162,7 +2162,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.ymd (since);
+            request['start_date'] = this.yyyymmdd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2218,7 +2218,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.ymd (since);
+            request['start_date'] = this.yyyymmdd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2358,7 +2358,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.ymd (since);
+            request['start_date'] = this.yyyymmdd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
