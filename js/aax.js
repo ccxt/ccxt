@@ -639,6 +639,9 @@ module.exports = class aax extends Exchange {
         if (shouldParseFees) {
             const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
             const reducedLength = reducedFees.length;
+            for (let i = 0; i < reducedLength; i++) {
+                reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
+            }
             if (!parseFee && (reducedLength === 0)) {
                 reducedFees.push (trade['fee']);
             }
@@ -727,7 +730,7 @@ module.exports = class aax extends Exchange {
         }
         const orderType = this.parseOrderType (this.safeString (trade, 'orderType'));
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'commission');
+        const feeCost = this.safeString (trade, 'commission');
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
             if (market !== undefined) {
@@ -1765,49 +1768,49 @@ module.exports = class aax extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd (since);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = // await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "code":1,
-        //         "data":{
-        //             "list":[
-        //                 {
-        //                     "avgPrice":"1199.8",
-        //                     "base":"ETH",
-        //                     "clOrdID":null,
-        //                     "commission":"0.00002",
-        //                     "createTime":"2021-01-11T02:47:51.512Z",
-        //                     "cumQty":"0.02",
-        //                     "filledOrderID":"1eUD4F5rwK",
-        //                     "filledPrice":"1199.8",
-        //                     "filledQty":"0.02",
-        //                     "leavesQty":"0",
-        //                     "oCreateTime":"2021-01-11T02:47:51.377Z",
-        //                     "orderID":"1eUD4EHfdU",
-        //                     "orderQty":"0.02",
-        //                     "orderStatus":3,
-        //                     "orderType":1,
-        //                     "price":"1198.25",
-        //                     "quote":"USDT",
-        //                     "rejectCode":null,
-        //                     "rejectReason":null,
-        //                     "side":1,
-        //                     "stopPrice":"0",
-        //                     "symbol":"ETHUSDT",
-        //                     "taker":true,
-        //                     "tradeID":"E04WTIgfmULU",
-        //                     "transactTime":"2021-01-11T02:47:51.389Z",
-        //                     "updateTime":null,
-        //                     "userID":"1362494"
-        //                 }
-        //             ],
-        //             "pageNum":1,
-        //             "pageSize":10,
-        //             "total":1
-        //         },
-        //         "message":"success",
-        //         "ts":1610333278042
-        //     }
+            {
+                "code":1,
+                "data":{
+                    "list":[
+                        {
+                            "avgPrice":"1199.8",
+                            "base":"ETH",
+                            "clOrdID":null,
+                            "commission":"0.00002",
+                            "createTime":"2021-01-11T02:47:51.512Z",
+                            "cumQty":"0.02",
+                            "filledOrderID":"1eUD4F5rwK",
+                            "filledPrice":"1199.8",
+                            "filledQty":"0.02",
+                            "leavesQty":"0",
+                            "oCreateTime":"2021-01-11T02:47:51.377Z",
+                            "orderID":"1eUD4EHfdU",
+                            "orderQty":"0.02",
+                            "orderStatus":3,
+                            "orderType":1,
+                            "price":"1198.25",
+                            "quote":"USDT",
+                            "rejectCode":null,
+                            "rejectReason":null,
+                            "side":1,
+                            "stopPrice":"0",
+                            "symbol":"ETHUSDT",
+                            "taker":true,
+                            "tradeID":"E04WTIgfmULU",
+                            "transactTime":"2021-01-11T02:47:51.389Z",
+                            "updateTime":null,
+                            "userID":"1362494"
+                        }
+                    ],
+                    "pageNum":1,
+                    "pageSize":10,
+                    "total":1
+                },
+                "message":"success",
+                "ts":1610333278042
+            }
         //
         const data = this.safeValue (response, 'data', {});
         const trades = this.safeValue (data, 'list', []);
