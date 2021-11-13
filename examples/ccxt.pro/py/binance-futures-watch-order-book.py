@@ -1,5 +1,5 @@
 import ccxtpro
-from asyncio import run
+from asyncio import get_event_loop
 
 
 async def main():
@@ -19,5 +19,6 @@ async def main():
     await exchange.close()
 
 
-run(main())
+loop = get_event_loop()
+loop.run_until_complete(main())
 

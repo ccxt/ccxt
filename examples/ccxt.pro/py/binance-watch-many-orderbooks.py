@@ -46,5 +46,5 @@ async def main():
     await exchange_spot.close()
 
 
-loop = asyncio.get_running_loop()
-run(main())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())

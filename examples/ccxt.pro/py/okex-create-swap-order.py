@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import get_running_loop
+from asyncio import get_event_loop
 import ccxtpro
 
 
@@ -49,4 +49,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    run(main())
+    get_event_loop().run_until_complete(main())

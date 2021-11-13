@@ -32,4 +32,4 @@ async def main():
     await exchange.close()
 
 
-asyncio.run(main())
+asyncio.get_event_loop().run_until_complete(main())

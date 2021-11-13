@@ -33,4 +33,4 @@ async def main():
 
 
 loop = asyncio.new_event_loop()
-run(main())
+loop.run_until_complete(main())

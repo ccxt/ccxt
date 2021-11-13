@@ -40,4 +40,4 @@ if __name__ == '__main__':
     exchanges = ["bittrex", "bitfinex", "poloniex"]
     symbol = 'ETH/BTC'
 
-    asyncio.run(multi_orderbooks(exchanges, symbol))
+    asyncio.get_event_loop().run_until_complete(multi_orderbooks(exchanges, symbol))

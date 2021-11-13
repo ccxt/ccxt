@@ -62,8 +62,8 @@ exchange_id = 'poloniex'
 symbols = ['ETH/BTC', 'BTC/USDT']
 timeframe = '5m'
 fetching_time = 15 * 60 * 1000  # stop after 15 minutes (approximately 4 iterations)
-loop = asyncio.get_running_loop()
+loop = asyncio.get_event_loop()
 coroutine = fetch_all_ohlcvs_continuously(loop, exchange_id, timeframe, symbols, fetching_time)
-results = run(coroutine)
+results = loop.run_until_complete(coroutine)
 pprint(results)
 # results  # if you run this code in Jupyter then uncomment thisline to see the output result

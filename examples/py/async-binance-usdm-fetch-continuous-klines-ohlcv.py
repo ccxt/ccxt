@@ -3,7 +3,7 @@
 
 import os
 import sys
-from asyncio import get_running_loop, run
+from asyncio import get_event_loop
 
 # -----------------------------------------------------------------------------
 
@@ -52,4 +52,5 @@ async def main():
         print(type(e).__name__, str(e))
     await exchange.close()
 
-run(main())
+loop = get_event_loop()
+loop.run_until_complete(main())

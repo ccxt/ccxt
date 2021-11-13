@@ -74,5 +74,5 @@ async def main(loop):
     await asyncio.wait(tasks)
 
 
-loop = asyncio.get_running_loop()
-run(main(loop))
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main(loop))

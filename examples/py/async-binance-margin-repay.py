@@ -35,5 +35,5 @@ async def main(asyncio_loop):
     await exchange.close()
 
 if __name__ == '__main__':
-    asyncio_loop = asyncio.get_running_loop()
-    run(main(asyncio_loop))
+    asyncio_loop = asyncio.get_event_loop()
+    asyncio_loop.run_until_complete(main(asyncio_loop))

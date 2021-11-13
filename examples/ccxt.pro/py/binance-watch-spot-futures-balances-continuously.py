@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import get_running_loop, gather, run
+from asyncio import get_event_loop, gather
 import os
 import sys
 
@@ -45,4 +45,5 @@ async def main():
     await gather(*closing_tasks)
 
 
-run(main())
+loop = get_event_loop()
+loop.run_until_complete(main())

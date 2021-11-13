@@ -22,4 +22,4 @@ async def test(id, symbol):
 if __name__ == '__main__':
     id = 'binance'
     symbol = 'ETH/BTC'
-    pprint(asyncio.run(test(id, symbol)))
+    pprint(asyncio.get_event_loop().run_until_complete(test(id, symbol)))

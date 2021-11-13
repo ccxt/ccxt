@@ -46,4 +46,4 @@ async def test():
     return ticker
 
 if __name__ == '__main__':
-    pprint(asyncio.run(test()))
+    pprint(asyncio.get_event_loop().run_until_complete(test()))

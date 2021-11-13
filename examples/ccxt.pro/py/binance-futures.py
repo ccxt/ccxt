@@ -1,5 +1,5 @@
 import ccxtpro
-from asyncio import get_running_loop, run
+from asyncio import get_event_loop
 
 print('CCXT Pro Version:', ccxtpro.__version__)
 
@@ -21,5 +21,5 @@ async def main(loop):
             break
     await exchange.close()
 
-loop = get_running_loop()
-run(main(loop))
+loop = get_event_loop()
+loop.run_until_complete(main(loop))

@@ -44,4 +44,4 @@ async def test():
     return response
 
 if __name__ == '__main__':
-    print(asyncio.run(test()))
+    print(asyncio.get_event_loop().run_until_complete(test()))

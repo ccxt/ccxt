@@ -21,16 +21,16 @@ async def test(loop):
 
 
 def function_in_a_thread():
-    # get_running_loop doesn't work inside a thread
+    # get_event_loop doesn't work inside a thread
     loop = asyncio.new_event_loop()
-    run(test(loop))
+    loop.run_until_complete(test(loop))
 
 
 def another_threaded_function():
-    global_run(test(global_loop))
+    global_loop.run_until_complete(test(global_loop))
 
 
-global_loop = asyncio.get_running_loop()
+global_loop = asyncio.get_event_loop()
 thread = threading.Thread(target=function_in_a_thread)
 thread2 = threading.Thread(target=another_threaded_function)
 thread.start()

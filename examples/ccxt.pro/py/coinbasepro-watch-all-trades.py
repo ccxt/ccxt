@@ -27,4 +27,4 @@ async def main(loop):
         raise Exception(exchange.id + ' ' + method + ' is not supported or not implemented yet')
 
 loop = asyncio.new_event_loop()
-run(main(loop))
+loop.run_until_complete(main(loop))

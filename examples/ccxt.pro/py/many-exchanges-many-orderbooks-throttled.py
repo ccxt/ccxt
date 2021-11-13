@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ccxtpro
-from asyncio import get_running_loop, gather, sleep, run
+from asyncio import get_event_loop, gather, sleep
 
 
 orderbooks = {}
@@ -57,5 +57,5 @@ async def main(asyncio_loop):
 
 
 if __name__ == '__main__':
-    asyncio_loop = get_running_loop()
-    run(main(asyncio_loop))
+    asyncio_loop = get_event_loop()
+    asyncio_loop.run_until_complete(main(asyncio_loop))

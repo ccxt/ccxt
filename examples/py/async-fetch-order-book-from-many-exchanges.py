@@ -38,7 +38,7 @@ async def run(exchange_ids, symbol):
 
 
 main = run(exchange_ids, symbol)
-results = asyncio.run(main)
+results = asyncio.get_event_loop().run_until_complete(main)
 for result in results:
     bids = result['bids']
     asks = result['asks']

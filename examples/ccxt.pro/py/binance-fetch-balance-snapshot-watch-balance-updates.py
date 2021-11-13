@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ccxtpro
-from asyncio import run
+from asyncio import get_event_loop
 
 
 print('CCXT Pro Version:', ccxtpro.__version__)
@@ -50,4 +50,5 @@ async def main():
     await exchange.close()
 
 
-run(main())
+loop = get_event_loop()
+loop.run_until_complete(main())

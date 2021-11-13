@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ccxtpro
-from asyncio import gather, get_running_loop, run
+from asyncio import gather, get_event_loop
 
 
 async def symbol_loop(exchange, symbol):
@@ -39,5 +39,5 @@ async def main(asyncio_loop):
 
 
 if __name__ == '__main__':
-    asyncio_loop = get_running_loop()
-    run(main(asyncio_loop))
+    asyncio_loop = get_event_loop()
+    asyncio_loop.run_until_complete(main(asyncio_loop))

@@ -42,4 +42,4 @@ async def fetch_tickers(id):
     await exchange.close()
 
 
-asyncio.run(fetch_tickers('theocean'))
+asyncio.get_event_loop().run_until_complete(fetch_tickers('theocean'))

@@ -27,4 +27,4 @@ async def main():
     await asyncio.gather(*[loop(exchange_id, symbol) for exchange_id, symbol in symbols.items()])
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.get_event_loop().run_until_complete(main())

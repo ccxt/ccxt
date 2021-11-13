@@ -20,4 +20,4 @@ async def test():
     await bittrex.close()
 
 
-asyncio.run(test())
+asyncio.get_event_loop().run_until_complete(test())

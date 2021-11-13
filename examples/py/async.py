@@ -30,5 +30,5 @@ if __name__ == '__main__':
         'hitbtc',
     ]]
     pending = asyncio.Task.all_tasks()
-    loop = asyncio.get_running_loop()
-    run(asyncio.gather(*pending))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.gather(*pending))
