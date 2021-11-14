@@ -1906,14 +1906,18 @@ class binance extends Exchange {
         } else {
             $request['symbol'] = $market['id'];
         }
-        $duration = $this->parse_timeframe($timeframe);
+        // $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
             $request['startTime'] = $since;
-            if ($since > 0) {
-                $endTime = $this->sum($since, $limit * $duration * 1000 - 1);
-                $now = $this->milliseconds();
-                $request['endTime'] = min ($now, $endTime);
-            }
+            //
+            // It didn't work before without the $endTime
+            // https://github.com/ccxt/ccxt/issues/8454
+            //
+            // if ($since > 0) {
+            //     $endTime = $this->sum($since, $limit * $duration * 1000 - 1);
+            //     $now = $this->milliseconds();
+            //     $request['endTime'] = min ($now, $endTime);
+            // }
         }
         $method = 'publicGetKlines';
         if ($price === 'mark') {

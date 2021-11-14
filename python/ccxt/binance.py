@@ -1868,13 +1868,18 @@ class binance(Exchange):
             request['pair'] = market['id']   # Index price takes self argument instead of symbol
         else:
             request['symbol'] = market['id']
-        duration = self.parse_timeframe(timeframe)
+        # duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
-            if since > 0:
-                endTime = self.sum(since, limit * duration * 1000 - 1)
-                now = self.milliseconds()
-                request['endTime'] = min(now, endTime)
+            #
+            # It didn't work before without the endTime
+            # https://github.com/ccxt/ccxt/issues/8454
+            #
+            # if since > 0:
+            #     endTime = self.sum(since, limit * duration * 1000 - 1)
+            #     now = self.milliseconds()
+            #     request['endTime'] = min(now, endTime)
+            # }
         method = 'publicGetKlines'
         if price == 'mark':
             if market['inverse']:
