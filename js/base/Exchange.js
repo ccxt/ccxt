@@ -1246,10 +1246,10 @@ module.exports = class Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseDepositAddresses (addresses, codes = undefined, indexed = true) {
+    parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {
-            const address = this.parseDepositAddress (addresses[i]);
+            const address = this.extend (this.parseDepositAddress (addresses[i]), params);
             result.push (address);
         }
         if (codes) {
