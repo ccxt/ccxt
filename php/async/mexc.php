@@ -1253,7 +1253,7 @@ class mexc extends Exchange {
 
     public function fetch_deposit_address($code, $params = array ()) {
         $rawNetwork = $this->safe_string($params, 'network');
-        $params = $this->omit('network');
+        $params = $this->omit($params, 'network');
         $response = yield $this->fetch_deposit_addresses_by_network($code, $params);
         $networks = $this->safe_value($this->options, 'networks', array());
         $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
