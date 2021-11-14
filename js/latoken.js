@@ -820,14 +820,16 @@ module.exports = class latoken extends Exchange {
         const cost = this.safeString (order, 'cost');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         const message = this.safeString (order, 'message');
-        if (message.indexOf ('cancel') >= 0) {
-            status = 'canceled';
-        } else if (message.indexOf ('accept') >= 0) {
-            status = 'open';
+        if (message !== undefined) {
+            if (message.indexOf ('cancel') >= 0) {
+                status = 'canceled';
+            } else if (message.indexOf ('accept') >= 0) {
+                status = 'open';
+            }
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'condition'));
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -849,7 +851,7 @@ module.exports = class latoken extends Exchange {
             'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

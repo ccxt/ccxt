@@ -791,13 +791,14 @@ class latoken(Exchange):
         cost = self.safe_string(order, 'cost')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         message = self.safe_string(order, 'message')
-        if message.find('cancel') >= 0:
-            status = 'canceled'
-        elif message.find('accept') >= 0:
-            status = 'open'
+        if message is not None:
+            if message.find('cancel') >= 0:
+                status = 'canceled'
+            elif message.find('accept') >= 0:
+                status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -819,7 +820,7 @@ class latoken(Exchange):
             'remaining': None,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

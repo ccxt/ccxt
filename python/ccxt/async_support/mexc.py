@@ -1205,7 +1205,7 @@ class mexc(Exchange):
 
     async def fetch_deposit_address(self, code, params={}):
         rawNetwork = self.safe_string(params, 'network')
-        params = self.omit('network')
+        params = self.omit(params, 'network')
         response = await self.fetch_deposit_addresses_by_network(code, params)
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(networks, rawNetwork, rawNetwork)

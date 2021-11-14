@@ -1247,7 +1247,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         const rawNetwork = this.safeString (params, 'network');
-        params = this.omit ('network');
+        params = this.omit (params, 'network');
         const response = await this.fetchDepositAddressesByNetwork (code, params);
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
