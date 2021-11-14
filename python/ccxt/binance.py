@@ -712,7 +712,7 @@ class binance(Exchange):
                 'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
-                    'pay': 'PAY',
+                    'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
@@ -720,6 +720,7 @@ class binance(Exchange):
                 },
                 'typesByAccount': {
                     'MAIN': 'spot',
+                    'FUNDING': 'funding',
                     'MARGIN': 'margin',
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
@@ -1398,7 +1399,7 @@ class binance(Exchange):
             method = 'sapiGetMarginAccount'
         elif type == 'savings':
             method = 'sapiGetLendingUnionAccount'
-        elif type == 'pay':
+        elif type == 'funding':
             method = 'sapiPostAssetGetFundingAsset'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
@@ -1609,7 +1610,7 @@ class binance(Exchange):
                 account['total'] = usedAndTotal
                 account['used'] = usedAndTotal
                 result[code] = account
-        elif type == 'pay':
+        elif type == 'funding':
             for i in range(0, len(response)):
                 entry = response[i]
                 account = self.account()
