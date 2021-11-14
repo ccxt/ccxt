@@ -2037,10 +2037,10 @@ class Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_deposit_addresses($addresses, $codes = null, $indexed = true) {
+    public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array() {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
+            $address = $this->extend($this->parse_deposit_address($addresses[$i]), $params);
             $result[] = $address;
         }
         if ($codes) {
