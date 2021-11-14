@@ -871,7 +871,7 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = 'v2PublicGetFundingPrevFundingRate';
+        const method = market.linear ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
         const response = await this[method] (this.extend (request, params));
         //
         // {
