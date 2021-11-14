@@ -268,6 +268,19 @@ module.exports = class bybit extends Exchange {
                         ],
                     },
                 },
+                'asset': {
+                    'private': {
+                        'get': [
+                            'transfer/list',
+                            'sub-member/transfer/list',
+                            'sub-member/member-ids',
+                        ],
+                        'post': [
+                            'transfer',
+                            'sub-member/transfer',
+                        ],
+                    },
+                },
             },
             'httpExceptions': {
                 '403': RateLimitExceeded, // Forbidden -- You request too many times
