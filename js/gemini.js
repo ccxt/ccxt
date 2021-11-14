@@ -831,7 +831,7 @@ module.exports = class gemini extends Exchange {
         };
     }
 
-    parseDepositAddress (depositAddress, currency = undefined, params = {}) {
+    parseDepositAddress (depositAddress, currency = undefined) {
         //
         //      {
         //          address: "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
