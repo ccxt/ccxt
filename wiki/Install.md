@@ -296,7 +296,7 @@ async def test_gdax():
     return ticker
 
 if __name__ == '__main__':
-    pprint(asyncio.get_event_loop().run_until_complete(test_gdax()))
+    pprint(asyncio.run(test_gdax()))
 ```
 
 A more detailed documentation on using proxies with the sync python version of the ccxt library can be found here:

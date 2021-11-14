@@ -330,6 +330,7 @@ class Exchange(object):
         'BCHABC': 'BCH',
         'BCHSV': 'BSV',
     }
+    synchronous = True
 
     def __init__(self, config={}):
 
@@ -392,7 +393,7 @@ class Exchange(object):
             'defaultCost': 1.0,
         }, getattr(self, 'tokenBucket', {}))
 
-        self.session = self.session if self.session or self.asyncio_loop else Session()
+        self.session = self.session if self.session or not self.synchronous else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
     def __del__(self):
