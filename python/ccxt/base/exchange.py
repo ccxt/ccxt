@@ -1835,7 +1835,7 @@ class Exchange(object):
             result.append(self.extend(self.parse_ticker(values[i]), params))
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_deposit_addresses(self, addresses, codes=None, indexed=True, params = {}):
+    def parse_deposit_addresses(self, addresses, codes=None, indexed=True, params={}):
         result = []
         for i in range(0, len(addresses)):
             address = self.extend(self.parse_deposit_address(addresses[i]), params)
