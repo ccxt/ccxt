@@ -927,19 +927,17 @@ module.exports = class bitbay extends Exchange {
         }
         const priceString = this.safeString2 (trade, 'rate', 'r');
         const amountString = this.safeString2 (trade, 'amount', 'a');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        const feeCost = this.safeNumber (trade, 'commissionValue');
+        const costString = Precise.stringMul (priceString, amountString);
+        const feeCostString = this.safeString (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCcy = (side === 'buy') ? market['base'] : market['quote'];
+        if (feeCostString !== undefined) {
+            const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
-                'currency': feeCcy,
-                'cost': feeCost,
+                'currency': feeCurrency,
+                'cost': feeCostString,
             };
         }
         const order = this.safeString (trade, 'offerId');
@@ -948,7 +946,7 @@ module.exports = class bitbay extends Exchange {
         if (order !== undefined) {
             type = order ? 'limit' : 'market';
         }
-        return {
+        return this.safeTrade ({
             'id': this.safeString (trade, 'id'),
             'order': order,
             'timestamp': timestamp,
@@ -956,13 +954,13 @@ module.exports = class bitbay extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
