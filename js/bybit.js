@@ -2501,11 +2501,7 @@ module.exports = class bybit extends Exchange {
         const type = this.safeString (api, 0);
         let section = this.safeString (api, 1);
         if (type === 'spot') {
-            if (section === 'public') {
-                section = 'v1';
-            } else {
-                section += '/v1';
-            }
+            section = 'v1';
         }
         let url = this.implodeHostname (this.urls['api'][type]);
         let request = '/' + type + '/' + section + '/' + path;
