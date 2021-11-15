@@ -2116,7 +2116,7 @@ class okex3(Exchange):
         if amount is not None:
             if filled is not None:
                 amount = Precise.string_max(amount, filled)
-                remaining = Precise.string_max(0, Precise.string_sub(amount, filled))
+                remaining = Precise.string_max('0', Precise.string_sub(amount, filled))
         if type == 'market':
             remaining = '0'
         cost = self.safe_string_2(order, 'filled_notional', 'funds')
