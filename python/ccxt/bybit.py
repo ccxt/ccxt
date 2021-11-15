@@ -868,7 +868,7 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
         }
-        method = 'v2PublicGetFundingPrevFundingRate'
+        method = 'publicLinearGetFundingPrevFundingRate' if market['linear'] else 'v2PublicGetFundingPrevFundingRate'
         response = getattr(self, method)(self.extend(request, params))
         #
         # {

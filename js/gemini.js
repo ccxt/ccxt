@@ -26,7 +26,7 @@ module.exports = class gemini extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchDepositAddress': undefined,
+                'fetchDepositAddress': undefined, // TODO
                 'fetchDeposits': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -111,6 +111,7 @@ module.exports = class gemini extends Exchange {
                         'v1/transfers',
                         'v1/addresses/{network}',
                         'v1/deposit/{network}/newAddress',
+                        'v1/deposit/{currency}/newAddress',
                         'v1/withdraw/{currency}',
                         'v1/account/transfer/{currency}',
                         'v1/payments/addbank',
@@ -195,6 +196,26 @@ module.exports = class gemini extends Exchange {
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
+                'networkIds': {
+                    'bitcoin': 'BTC',
+                    'ethereum': 'ERC20',
+                    'bitcoincash': 'BCH',
+                    'litecoin': 'LTC',
+                    'zcash': 'ZEC',
+                    'filecoin': 'FIL',
+                    'dogecoin': 'DOGE',
+                    'tezos': 'XTZ',
+                },
+                'networks': {
+                    'BTC': 'bitcoin',
+                    'ERC20': 'ethereum',
+                    'BCH': 'bitcoincash',
+                    'LTC': 'litecoin',
+                    'ZEC': 'zcash',
+                    'FIL': 'filecoin',
+                    'DOGE': 'dogecoin',
+                    'XTZ': 'tezos',
+                },
             },
         });
     }
@@ -808,6 +829,43 @@ module.exports = class gemini extends Exchange {
             'updated': undefined,
             'fee': fee,
         };
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //      {
+        //          address: "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        //          timestamp: "1636813923098",
+        //          addressVersion: "eV1"                                         }
+        //      }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        return {
+            'currency': currency,
+            'network': undefined,
+            'address': address,
+            'tag': undefined,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddressesByNetwork (code, params = {}) {
+        await this.loadMarkets ();
+        const network = this.safeString (params, 'network');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + 'fetchDepositAddressesByNetwork() requires a network parameter');
+        }
+        params = this.omit (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeString (networks, network, network);
+        const networkIds = this.safeValue (this.options, 'networkIds', {});
+        const networkCode = this.safeString (networkIds, networkId, network);
+        const request = {
+            'network': networkId,
+        };
+        const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
+        const results = this.parseDepositAddresses (response, [code], false, { 'network': networkCode, 'currency': code });
+        return this.groupBy (results, 'network');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

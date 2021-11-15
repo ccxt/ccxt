@@ -694,7 +694,7 @@ module.exports = class binance extends Exchange {
                 'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
-                    'pay': 'PAY',
+                    'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
@@ -702,6 +702,7 @@ module.exports = class binance extends Exchange {
                 },
                 'typesByAccount': {
                     'MAIN': 'spot',
+                    'FUNDING': 'funding',
                     'MARGIN': 'margin',
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
@@ -1406,7 +1407,7 @@ module.exports = class binance extends Exchange {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
-        } else if (type === 'pay') {
+        } else if (type === 'funding') {
             method = 'sapiPostAssetGetFundingAsset';
         }
         const query = this.omit (params, 'type');
@@ -1620,7 +1621,7 @@ module.exports = class binance extends Exchange {
                 account['used'] = usedAndTotal;
                 result[code] = account;
             }
-        } else if (type === 'pay') {
+        } else if (type === 'funding') {
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 const account = this.account ();

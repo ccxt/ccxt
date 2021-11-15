@@ -873,7 +873,7 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $method = 'v2PublicGetFundingPrevFundingRate';
+        $method = $market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
         $response = $this->$method (array_merge($request, $params));
         //
         // {

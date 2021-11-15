@@ -2725,7 +2725,7 @@ The ccxt library supports asynchronous concurrency mode in Python 3.5+ with asyn
        poloniex = ccxt.poloniex()
        print(await poloniex.fetch_ticker('ETH/BTC'))
 
-   asyncio.get_event_loop().run_until_complete(print_poloniex_ethbtc_ticker())
+   asyncio.run(print_poloniex_ethbtc_ticker())
 
 PHP
 ^^^
@@ -4258,7 +4258,7 @@ Below are examples of using the fetchOrder method to get order info from an auth
    import asyncio
    import ccxt.async_support as ccxt
    if exchange.has['fetchOrder']:
-       order = asyncio.get_event_loop().run_until_complete(exchange.fetch_order(id))
+       order = asyncio.run(exchange.fetch_order(id))
        print(order)
 
 .. code-block:: PHP

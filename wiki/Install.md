@@ -40,13 +40,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.61.19/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.61.19/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.61.23/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.61.23/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.61.19/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.61.23/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -296,7 +296,7 @@ async def test_gdax():
     return ticker
 
 if __name__ == '__main__':
-    pprint(asyncio.get_event_loop().run_until_complete(test_gdax()))
+    pprint(asyncio.run(test_gdax()))
 ```
 
 A more detailed documentation on using proxies with the sync python version of the ccxt library can be found here:
