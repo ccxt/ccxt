@@ -1597,6 +1597,60 @@ module.exports = class Exchange {
         return Object.values (reduced);
     }
 
+    safeTrade (trade, market = undefined) {
+        const amount = this.safeString (trade, 'amount');
+        const price = this.safeString (trade, 'price');
+        let cost = this.safeString (trade, 'cost');
+        if (cost === undefined) {
+            cost = Precise.stringMul (price, amount);
+        }
+        const parseFee = this.safeValue (trade, 'fee') === undefined;
+        const parseFees = this.safeValue (trade, 'fees') === undefined;
+        const shouldParseFees = parseFee || parseFees;
+        const fees = this.safeValue (trade, 'fees', []);
+        if (shouldParseFees) {
+            const tradeFees = this.safeValue (trade, 'fees');
+            if (tradeFees !== undefined) {
+                for (let j = 0; j < tradeFees.length; j++) {
+                    const tradeFee = tradeFees[j];
+                    fees.push (this.extend ({}, tradeFee));
+                }
+            } else {
+                const tradeFee = this.safeValue (trade, 'fee');
+                if (tradeFee !== undefined) {
+                    fees.push (this.extend ({}, tradeFee));
+                }
+            }
+        }
+        const fee = this.safeValue (trade, 'fee');
+        if (shouldParseFees) {
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
+            const reducedLength = reducedFees.length;
+            for (let i = 0; i < reducedLength; i++) {
+                reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
+            }
+            if (!parseFee && (reducedLength === 0)) {
+                fee['cost'] = this.parseNumber (this.safeString (fee, 'cost'));
+                reducedFees.push (fee);
+            }
+            if (parseFees) {
+                trade['fees'] = reducedFees;
+            }
+            if (parseFee && (reducedLength === 1)) {
+                trade['fee'] = reducedFees[0];
+            }
+            const tradeFee = this.safeValue (trade, 'fee');
+            if (tradeFee !== undefined) {
+                tradeFee['cost'] = this.parseNumber (this.safeString (tradeFee, 'cost'));
+                trade['fee'] = tradeFee;
+            }
+        }
+        trade['amount'] = this.parseNumber (amount);
+        trade['price'] = this.parseNumber (price);
+        trade['cost'] = this.parseNumber (cost);
+        return trade;
+    }
+
     safeOrder (order) {
         // Cost
         // Remaining

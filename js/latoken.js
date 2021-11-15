@@ -602,13 +602,7 @@ module.exports = class latoken extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let costString = this.safeString (trade, 'cost');
-        if (costString === undefined) {
-            costString = Precise.stringMul (priceString, amountString);
-        }
-        const cost = this.parseNumber (costString);
+        const costString = this.safeString (trade, 'cost');
         const makerBuyer = this.safeValue (trade, 'makerBuyer');
         let side = this.safeString (trade, 'direction');
         if (side === undefined) {
@@ -632,7 +626,7 @@ module.exports = class latoken extends Exchange {
         }
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCost = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -640,7 +634,7 @@ module.exports = class latoken extends Exchange {
                 'currency': quote,
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -650,11 +644,11 @@ module.exports = class latoken extends Exchange {
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

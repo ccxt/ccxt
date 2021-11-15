@@ -2255,6 +2255,48 @@ class Exchange(object):
                     }
         return list(reduced.values())
 
+    def safe_trade(self, trade, market=None):
+        amount = self.safe_string(trade, 'amount')
+        price = self.safe_string(trade, 'price')
+        cost = self.safe_string(trade, 'cost')
+        if cost is None:
+            cost = Precise.string_mul(price, amount)
+        parseFee = self.safe_value(trade, 'fee') is None
+        parseFees = self.safe_value(trade, 'fees') is None
+        shouldParseFees = parseFee or parseFees
+        fees = self.safe_value(trade, 'fees', [])
+        if shouldParseFees:
+            tradeFees = self.safe_value(trade, 'fees')
+            if tradeFees is not None:
+                for j in range(0, len(tradeFees)):
+                    tradeFee = tradeFees[j]
+                    fees.append(self.extend({}, tradeFee))
+            else:
+                tradeFee = self.safe_value(trade, 'fee')
+                if tradeFee is not None:
+                    fees.append(self.extend({}, tradeFee))
+        fee = self.safe_value(trade, 'fee')
+        if shouldParseFees:
+            reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
+            reducedLength = len(reducedFees)
+            for i in range(0, reducedLength):
+                reducedFees[i]['cost'] = self.parse_number(reducedFees[i]['cost'])
+            if not parseFee and (reducedLength == 0):
+                fee['cost'] = self.parse_number(self.safe_string(fee, 'cost'))
+                reducedFees.append(fee)
+            if parseFees:
+                trade['fees'] = reducedFees
+            if parseFee and (reducedLength == 1):
+                trade['fee'] = reducedFees[0]
+            tradeFee = self.safe_value(trade, 'fee')
+            if tradeFee is not None:
+                tradeFee['cost'] = self.parse_number(self.safe_string(tradeFee, 'cost'))
+                trade['fee'] = tradeFee
+        trade['amount'] = self.parse_number(amount)
+        trade['price'] = self.parse_number(price)
+        trade['cost'] = self.parse_number(cost)
+        return trade
+
     def safe_order(self, order):
         # Cost
         # Remaining
