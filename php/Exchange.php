@@ -2986,10 +2986,10 @@ class Exchange {
             }
             $carry = 0;
             while ((($p >= 0) and ($p < $xlen) and ($charArray[$p] != '-')) or ($p2 >= 0)) {
-                if ($p >= count($charArray)) {
+                if ($p >= $xlen) {
                     break;
                 }
-                if (($p2 >= count($charArray)) or (ord($charArray[$p2]) - ord('0') + 10 * $carry < 5 )) {
+                if (($p2 >= $xlen) or (ord($charArray[$p2]) - ord('0') + 10 * $carry < 5 )) {
                     break;
                 }
                 $carry = 1;
