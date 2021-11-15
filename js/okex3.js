@@ -2174,7 +2174,7 @@ module.exports = class okex3 extends Exchange {
         if (amount !== undefined) {
             if (filled !== undefined) {
                 amount = Precise.stringMax (amount, filled);
-                remaining = Precise.stringMax (0, Precise.stringSub (amount, filled));
+                remaining = Precise.stringMax ('0', Precise.stringSub (amount, filled));
             }
         }
         if (type === 'market') {
