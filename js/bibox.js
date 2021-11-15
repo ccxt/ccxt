@@ -352,18 +352,16 @@ module.exports = class bibox extends Exchange {
         const feeRate = undefined; // todo: deduce from market if market is defined
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const costString = this.parseNumber (Precise.stringMul (priceString, amountString));
         if (feeCostString !== undefined) {
             fee = {
-                'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
+                'cost': Precise.stringNeg (feeCostString),
                 'currency': feeCurrency,
                 'rate': feeRate,
             };
         }
         const id = this.safeString (trade, 'id');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': undefined, // Bibox does not have it (documented) yet
@@ -373,11 +371,11 @@ module.exports = class bibox extends Exchange {
             'type': 'limit',
             'takerOrMaker': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
