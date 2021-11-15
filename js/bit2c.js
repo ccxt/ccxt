@@ -352,7 +352,7 @@ module.exports = class bit2c extends Exchange {
         let priceString = undefined;
         let amountString = undefined;
         let orderId = undefined;
-        let feeCost = undefined;
+        let feeCostString = undefined;
         let side = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
@@ -376,7 +376,7 @@ module.exports = class bit2c extends Exchange {
             } else if (side === 1) {
                 side = 'sell';
             }
-            feeCost = this.safeNumber (trade, 'feeAmount');
+            feeCostString = this.safeString (trade, 'feeAmount');
         } else {
             timestamp = this.safeTimestamp (trade, 'date');
             id = this.safeString (trade, 'tid');
@@ -395,10 +395,8 @@ module.exports = class bit2c extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        return {
+        const costString = Precise.stringMul (priceString, amountString);
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -408,15 +406,15 @@ module.exports = class bit2c extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': 'NIS',
                 'rate': undefined,
             },
-        };
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
