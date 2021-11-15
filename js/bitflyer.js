@@ -256,15 +256,13 @@ module.exports = class bitflyer extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'exec_date'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const costString = Precise.stringMul (priceString, amountString);
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -274,11 +272,11 @@ module.exports = class bitflyer extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
