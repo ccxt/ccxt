@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
 
 class latoken extends Exchange {
 
@@ -576,9 +575,9 @@ class latoken extends Exchange {
         //         "isMakerBuyer":false,
         //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
         //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "$price":"4435.56",
+        //         "price":"4435.56",
         //         "quantity":"0.32534",
-        //         "$cost":"1443.0650904",
+        //         "cost":"1443.0650904",
         //         "$timestamp":1635854642725,
         //         "$makerBuyer":false
         //     }
@@ -591,9 +590,9 @@ class latoken extends Exchange {
         //         "direction":"TRADE_DIRECTION_BUY",
         //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
         //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "$price":"4564.32",
+        //         "price":"4564.32",
         //         "quantity":"0.01000",
-        //         "$cost":"45.6432",
+        //         "cost":"45.6432",
         //         "$fee":"0.223651680000000000",
         //         "order":"c9cac6a0-484c-4892-88e7-ad51b39f2ce1",
         //         "$timestamp":1635921580399,
@@ -604,13 +603,7 @@ class latoken extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
         $costString = $this->safe_string($trade, 'cost');
-        if ($costString === null) {
-            $costString = Precise::string_mul($priceString, $amountString);
-        }
-        $cost = $this->parse_number($costString);
         $makerBuyer = $this->safe_value($trade, 'makerBuyer');
         $side = $this->safe_string($trade, 'direction');
         if ($side === null) {
@@ -634,7 +627,7 @@ class latoken extends Exchange {
         }
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order');
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCost = $this->safe_string($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -642,7 +635,7 @@ class latoken extends Exchange {
                 'currency' => $quote,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -652,11 +645,11 @@ class latoken extends Exchange {
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

@@ -15,7 +15,6 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class latoken(Exchange):
@@ -591,12 +590,7 @@ class latoken(Exchange):
         timestamp = self.safe_integer(trade, 'timestamp')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
         costString = self.safe_string(trade, 'cost')
-        if costString is None:
-            costString = Precise.string_mul(priceString, amountString)
-        cost = self.parse_number(costString)
         makerBuyer = self.safe_value(trade, 'makerBuyer')
         side = self.safe_string(trade, 'direction')
         if side is None:
@@ -617,14 +611,14 @@ class latoken(Exchange):
             market = self.market(symbol)
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order')
-        feeCost = self.safe_number(trade, 'fee')
+        feeCost = self.safe_string(trade, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
                 'currency': quote,
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -634,11 +628,11 @@ class latoken(Exchange):
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
