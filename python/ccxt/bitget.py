@@ -1324,9 +1324,6 @@ class bitget(Exchange):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'filled_amount', 'order_qty')
         amountString = self.safe_string_2(trade, 'size', 'amount', amountString)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         takerOrMaker = self.safe_string_2(trade, 'exec_type', 'liquidity')
         if takerOrMaker == 'M':
             takerOrMaker = 'maker'
@@ -1348,21 +1345,20 @@ class bitget(Exchange):
             feeCostString = self.safe_string(trade, 'filled_fees')
         else:
             feeCostString = Precise.string_neg(feeCostString)
-        feeCost = self.parse_number(feeCostString)
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrency = base if (side == 'buy') else quote
             fee = {
                 # fee is either a positive number(invitation rebate)
                 # or a negative number(transaction fee deduction)
                 # therefore we need to invert the fee
                 # more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             }
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string_2(trade, 'trade_id', 'id')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1372,11 +1368,11 @@ class bitget(Exchange):
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, limit=None, since=None, params={}):
         self.load_markets()
