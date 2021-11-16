@@ -21,7 +21,6 @@ from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
-from ccxt.base.precise import Precise
 
 
 class bitfinex(Exchange):
@@ -708,7 +707,7 @@ class bitfinex(Exchange):
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         id = self.safe_string(trade, 'tid')
         timestamp = self.safe_timestamp(trade, 'timestamp')
         type = None
@@ -716,19 +715,16 @@ class bitfinex(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         if 'fee_amount' in trade:
-            feeCost = -self.safe_number(trade, 'fee_amount')
+            feeCostString = -self.safe_string(trade, 'fee_amount')
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -738,11 +734,11 @@ class bitfinex(Exchange):
             'order': orderId,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=50, params={}):
         self.load_markets()
