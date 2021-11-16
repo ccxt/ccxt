@@ -678,7 +678,6 @@ module.exports = class bitbns extends Exchange {
         const priceString = this.safeString2 (trade, 'rate', 'price');
         const factor = this.safeString (trade, 'factor');
         const amountScaledString = Precise.stringDiv (amountString, factor);
-        const costString = Precise.stringMul (priceString, amountScaledString);
         const symbol = market['symbol'];
         const side = this.safeStringLower (trade, 'type');
         let fee = undefined;
@@ -702,7 +701,7 @@ module.exports = class bitbns extends Exchange {
             'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountScaledString,
-            'cost': costString,
+            'cost': undefined,
             'fee': fee,
         }, market);
     }
