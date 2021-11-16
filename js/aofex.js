@@ -552,9 +552,6 @@ module.exports = class aofex extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'amount', 'number');
         let costString = this.safeString (trade, 'total_price');
-        if (costString === undefined) {
-            costString = Precise.stringMul (priceString, amountString);
-        }
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
