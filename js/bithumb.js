@@ -494,6 +494,7 @@ module.exports = class bithumb extends Exchange {
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'units_traded', 'units');
+        const costString = this.safeString (trade, 'total');
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
@@ -516,7 +517,7 @@ module.exports = class bithumb extends Exchange {
             'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
-            'cost': undefined,
+            'cost': costString,
             'fee': fee,
         }, market);
     }
