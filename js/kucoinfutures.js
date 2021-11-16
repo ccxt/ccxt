@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const kucoin = require ('./kucoin.js');
 
@@ -416,6 +416,34 @@ module.exports = class kucoinfutures extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPublicGetTicker (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "sequence":  1629930362547,
+        //             "symbol": "ETHUSDTM",
+        //             "side": "buy",
+        //             "size":  130,
+        //             "price": "4724.7",
+        //             "bestBidSize":  5,
+        //             "bestBidPrice": "4724.6",
+        //             "bestAskPrice": "4724.65",
+        //             "tradeId": "618d2a5a77a0c4431d2335f4",
+        //             "ts":  1636641371963227600,
+        //             "bestAskSize":  1789
+        //          }
+        //     }
+        //
+        return this.parseTicker (response['data'], market);
+    }
+
     async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -458,6 +486,237 @@ module.exports = class kucoinfutures extends Exchange {
     async transferIn (code, amount, params = {}) {
         // transfer from spot wallet to usdm futures wallet
         return await this.futuresTransfer (code, amount, 1, params);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if ((limit === 20) || (limit === 100)) {
+            request['limit'] = limit;
+        } else {
+            throw new BadRequest (this.id + ' fetchOrderBook limit argument must be 20 or 100');
+        }
+        const response = await this.futuresPublicGetLevel2DepthLimit (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //           "symbol": "XBTUSDM",      //Symbol
+        //           "sequence": 100,          //Ticker sequence number
+        //           "asks": [
+        //                 ["5000.0", 1000],   //Price, quantity
+        //                 ["6000.0", 1983]    //Price, quantity
+        //           ],
+        //           "bids": [
+        //                 ["3200.0", 800],    //Price, quantity
+        //                 ["3100.0", 100]     //Price, quantity
+        //           ],
+        //           "ts": 1604643655040584408  // timestamp
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = parseInt (Precise.stringDiv (this.safeString (data, 'ts'), '1000000'));
+        const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
+        orderbook['nonce'] = this.safeInteger (data, 'sequence');
+        return orderbook;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "sequence":  1629930362547,
+        //             "symbol": "ETHUSDTM",
+        //             "side": "buy",
+        //             "size":  130,
+        //             "price": "4724.7",
+        //             "bestBidSize":  5,
+        //             "bestBidPrice": "4724.6",
+        //             "bestAskPrice": "4724.65",
+        //             "tradeId": "618d2a5a77a0c4431d2335f4",
+        //             "ts":  1636641371963227600,
+        //             "bestAskSize":  1789
+        //          }
+        //     }
+        //
+        // let percentage = this.safeNumber (ticker, 'changeRate');
+        // if (percentage !== undefined) {
+        //     percentage = percentage * 100;
+        // }
+        const last = this.safeNumber (ticker, 'price');
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market, '-');
+        // const baseVolume = this.safeNumber (ticker, 'vol');
+        // const quoteVolume = this.safeNumber (ticker, 'volValue');
+        // const vwap = this.vwap (baseVolume, quoteVolume);
+        const timestamp = Precise.stringDiv (this.safeString (ticker, 'ts'), '1000000');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeNumber (ticker, 'bestBidPrice'),
+            'bidVolume': this.safeNumber (ticker, 'bestBidSize'),
+            'ask': this.safeNumber (ticker, 'bestAskPrice'),
+            'askVolume': this.safeNumber (ticker, 'bestAskSize'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Private
+        // @param symbol (string): The pair for which the contract was traded
+        // @param since (number): The unix start time of the first funding payment requested
+        // @param limit (number): The number of results to return
+        // @param params (dict): Additional parameters to send to the API
+        // @param return: Data for the history of the accounts funding payments for futures contracts
+        //
+        if (this.isFuturesMethod ('fetchFundingHistory', params)) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+            }
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            const request = {
+                'symbol': market['id'],
+            };
+            if (since !== undefined) {
+                request['startAt'] = since;
+            }
+            if (limit !== undefined) {
+                request['maxCount'] = limit;
+            }
+            const method = 'futuresPrivateGetFundingHistory';
+            const response = await this[method] (this.extend (request, params));
+            // {
+            //  "data": {
+            //     "dataList": [
+            //       {
+            //         "id": 36275152660006,                // id
+            //         "symbol": "XBTUSDM",                 // Symbol
+            //         "timePoint": 1557918000000,          // Time point (milisecond)
+            //         "fundingRate": 0.000013,             // Funding rate
+            //         "markPrice": 8058.27,                // Mark price
+            //         "positionQty": 10,                   // Position size
+            //         "positionCost": -0.001241,           // Position value at settlement period
+            //         "funding": -0.00000464,              // Settled funding fees. A positive number means that the user received the funding fee, and vice versa.
+            //         "settleCurrency": "XBT"              // Settlement currency
+            //       },
+            //  }
+            // }
+            const data = this.safeValue (response, 'data');
+            const dataList = this.safeValue (data, 'dataList');
+            const fees = [];
+            for (let i = 0; i < dataList.length; i++) {
+                const timestamp = this.safeInteger (dataList[i], 'timePoint');
+                fees.push ({
+                    'info': dataList[i],
+                    'symbol': this.safeSymbol (dataList[i], 'symbol'),
+                    'code': this.safeCurrencyCode (dataList[i], 'settleCurrency'),
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                    'id': this.safeNumber (dataList[i], 'id'),
+                    'amount': this.safeNumber (dataList[i], 'funding'),
+                    'fundingRate': this.safeNumber (dataList[i], 'fundingRate'),
+                    'markPrice': this.safeNumber (dataList[i], 'markPrice'),
+                    'positionQty': this.safeNumber (dataList[i], 'positionQty'),
+                    'positionCost': this.safeNumber (dataList[i], 'positionCost'),
+                });
+            }
+            return fees;
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
+        }
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        //
+        // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
+        //                                †                 ↑
+        //
+        const versions = this.safeValue (this.options, 'versions', {});
+        const apiVersions = this.safeValue (versions, api, {});
+        const methodVersions = this.safeValue (apiVersions, method, {});
+        const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
+        const version = this.safeString (params, 'version', defaultVersion);
+        params = this.omit (params, 'version');
+        let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        let endpart = '';
+        headers = (headers !== undefined) ? headers : {};
+        if (Object.keys (query).length) {
+            if ((method === 'GET') || (method === 'DELETE')) {
+                endpoint += '?' + this.urlencode (query);
+            } else {
+                body = this.json (query);
+                endpart = body;
+                headers['Content-Type'] = 'application/json';
+            }
+        }
+        const url = this.urls['api'][api] + endpoint;
+        if ((api === 'private') || (api === 'futuresPrivate')) {
+            this.checkRequiredCredentials ();
+            const timestamp = this.nonce ().toString ();
+            headers = this.extend ({
+                'KC-API-KEY-VERSION': '2',
+                'KC-API-KEY': this.apiKey,
+                'KC-API-TIMESTAMP': timestamp,
+            }, headers);
+            const apiKeyVersion = this.safeString (headers, 'KC-API-KEY-VERSION');
+            if (apiKeyVersion === '2') {
+                const passphrase = this.hmac (this.encode (this.password), this.encode (this.secret), 'sha256', 'base64');
+                headers['KC-API-PASSPHRASE'] = passphrase;
+            } else {
+                headers['KC-API-PASSPHRASE'] = this.password;
+            }
+            const payload = timestamp + method + endpoint + endpart;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            headers['KC-API-SIGN'] = signature;
+            const partner = this.safeValue (this.options, 'partner', {});
+            const partnerId = this.safeString (partner, 'id');
+            const partnerSecret = this.safeString (partner, 'secret');
+            if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
+                const partnerPayload = timestamp + partnerId + this.apiKey;
+                const partnerSignature = this.hmac (this.encode (partnerPayload), this.encode (partnerSecret), 'sha256', 'base64');
+                headers['KC-API-PARTNER-SIGN'] = partnerSignature;
+                headers['KC-API-PARTNER'] = partnerId;
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
+            return;
+        }
+        //
+        // bad
+        //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
+        // good
+        //     { code: '200000', data: { ... }}
+        //
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg', '');
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + message);
     }
 
     // async transferIn (code, amount, params = {}) {

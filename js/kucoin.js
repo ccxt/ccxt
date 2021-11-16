@@ -185,8 +185,6 @@ module.exports = class kucoin extends Exchange {
                         'contracts/{symbol}',
                         'ticker',
                         'level2/snapshot',
-                        'level{level}',
-                        'level{level}/depth{limit}',
                         'level2/depth20',
                         'level2/depth100',
                         'level2/message/query',
@@ -261,22 +259,21 @@ module.exports = class kucoin extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    // 'order not exist': OrderNotFound,
-                    // 'order not exist.': OrderNotFound, // duplicated error temporarily
-                    // 'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                    // 'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                    // 'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
-                    // 'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
-                    // 'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
-                    '400': BadRequest, // Bad Request -- Invalid request format
-                    '401': AuthenticationError, // Unauthorized -- Invalid API Key
-                    '403': NotSupported, // Forbidden -- The request is forbidden
-                    '404': NotSupported, // Not Found -- The specified resource could not be found
-                    '405': NotSupported, // Method Not Allowed -- You tried to access the resource with an invalid method.
-                    '415': BadRequest,  // Content-Type -- application/json
-                    '429': RateLimitExceeded, // Too Many Requests -- Access limit breached
+                    'order not exist': OrderNotFound,
+                    'order not exist.': OrderNotFound, // duplicated error temporarily
+                    'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                    'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                    'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
+                    'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
+                    'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
+                    '400': BadRequest,
+                    '401': AuthenticationError,
+                    '403': NotSupported,
+                    '404': NotSupported,
+                    '405': NotSupported,
+                    '429': RateLimitExceeded,
                     '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
-                    '503': ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
+                    '503': ExchangeNotAvailable,
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '200004': InsufficientFunds,
                     '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
@@ -302,10 +299,6 @@ module.exports = class kucoin extends Exchange {
                     'Exceeded the access frequency': RateLimitExceeded,
                     'require more permission': PermissionDenied,
                 },
-                // 'broad': {
-                //     'Exceeded the access frequency': RateLimitExceeded,
-                //     'require more permission': PermissionDenied,
-                // },
             },
             'fees': {
                 'trading': {
@@ -361,7 +354,7 @@ module.exports = class kucoin extends Exchange {
                 'VAI': 'VAIOT',
             },
             'options': {
-                'version': 'v2',
+                'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
                 'fetchBalance': 'trade',
@@ -796,7 +789,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        // SPOT
+        //
         //     {
         //         "symbol": "BTC-USDT",   // symbol
         //         "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
@@ -851,23 +844,6 @@ module.exports = class kucoin extends Exchange {
         //         time: 1634641777363
         //     }
         //
-        // FUTURES
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "sequence":  1629930362547,
-        //             "symbol": "ETHUSDTM",
-        //             "side": "buy",
-        //             "size":  130,
-        //             "price": "4724.7",
-        //             "bestBidSize":  5,
-        //             "bestBidPrice": "4724.6",
-        //             "bestAskPrice": "4724.65",
-        //             "tradeId": "618d2a5a77a0c4431d2335f4",
-        //             "ts":  1636641371963227600,
-        //             "bestAskSize":  1789
-        //          }
-        //     }
         let percentage = this.safeNumber (ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = percentage * 100;
@@ -880,24 +856,16 @@ module.exports = class kucoin extends Exchange {
         const baseVolume = this.safeNumber (ticker, 'vol');
         const quoteVolume = this.safeNumber (ticker, 'volValue');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        let timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
-        let bid = this.safeNumber2 (ticker, 'bestBidPrice', 'bestBid');
-        bid = this.safeNumber (ticker, 'buy', bid);
-        let ask = this.safeNumber2 (ticker, 'sell', 'bestAsk');
-        ask = this.safeNumber (ticker, 'bestAskPrice', ask);
-        if (market['swap']) {
-            const ts = this.safeString (ticker, 'ts');
-            timestamp = Precise.stringDiv (ts, '1000000');
-        }
+        const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
             'low': this.safeNumber (ticker, 'low'),
-            'bid': bid,
+            'bid': this.safeNumber2 (ticker, 'buy', 'bestBid'),
             'bidVolume': this.safeNumber (ticker, 'bestBidSize'),
-            'ask': ask,
+            'ask': this.safeNumber2 (ticker, 'sell', 'bestAsk'),
             'askVolume': this.safeNumber (ticker, 'bestAskSize'),
             'vwap': vwap,
             'open': this.safeNumber (ticker, 'open'),
@@ -915,9 +883,6 @@ module.exports = class kucoin extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        if (this.id === 'kucoinfutures') {
-            throw new NotSupported ('fetchTickers is not supported by ' + this.id);
-        }
         const response = await this.publicGetMarketAllTickers (params);
         //
         //     {
@@ -968,12 +933,8 @@ module.exports = class kucoin extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = this.getSupportedMapping (this.id, {
-            'kucoin': 'publicGetMarketStats',
-            'kucoinfutures': 'futuresPublicGetTicker',
-        });
-        const response = await this[method] (this.extend (request, params));
-        // SPOT
+        const response = await this.publicGetMarketStats (this.extend (request, params));
+        //
         //     {
         //         "code": "200000",
         //         "data": {
@@ -996,28 +957,11 @@ module.exports = class kucoin extends Exchange {
         //         }
         //     }
         //
-        // FUTURES
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "sequence":  1629930362547,
-        //             "symbol": "ETHUSDTM",
-        //             "side": "buy",
-        //             "size":  130,
-        //             "price": "4724.7",
-        //             "bestBidSize":  5,
-        //             "bestBidPrice": "4724.6",
-        //             "bestAskPrice": "4724.65",
-        //             "tradeId": "618d2a5a77a0c4431d2335f4",
-        //             "ts":  1636641371963227600,
-        //             "bestAskSize":  1789
-        //          }
-        //     }
         return this.parseTicker (response['data'], market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
-        // SPOT
+        //
         //     [
         //         "1545904980",             // Start time of the candle cycle
         //         "0.058",                  // opening price
@@ -1027,19 +971,7 @@ module.exports = class kucoin extends Exchange {
         //         "0.018",                  // base volume
         //         "0.000945",               // quote volume
         //     ]
-        // FUTURES
-        //     [
-        //        1636459200000,             // Start time of the candle cycle
-        //        4779.3,                    // opening price
-        //        4792.1,                    // closing price
-        //        4768.7,                    // highest price
-        //        4770.3,                    // lowest price
-        //        78051                      // volume
-        //      ]
-        if (this.id === 'kucoinfutures') {
-            const timestamp = this.safeString (ohlcv, 0);
-            ohlcv[0] = Precise.stringDiv (timestamp, '1000');
-        }
+        //
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1076,6 +1008,7 @@ module.exports = class kucoin extends Exchange {
         }
         request['endAt'] = parseInt (Math.floor (endAt / 1000));
         const response = await this.publicGetMarketCandles (this.extend (request, params));
+        //
         //     {
         //         "code":"200000",
         //         "data":[
@@ -1084,6 +1017,7 @@ module.exports = class kucoin extends Exchange {
         //             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
         //         ]
         //     }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
@@ -1156,37 +1090,25 @@ module.exports = class kucoin extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const marketId = this.marketId (symbol);
         const level = this.safeInteger (params, 'level', 2);
-        const request = {
-            'symbol': market['id'],
-            'level': level,
-        };
-        const contract = market['contract'];
+        const request = { 'symbol': marketId, 'level': level };
         let method = 'privateGetMarketOrderbookLevelLevel';
         if (level === 2) {
-            const errorMessageTail = contract ? '20 or 100' : 'undefined, 20 or 100';
             if (limit !== undefined) {
                 if ((limit === 20) || (limit === 100)) {
                     request['limit'] = limit;
-                    method = this.getSupportedMapping (this.id, {
-                        'kucoin': 'publicGetMarketOrderbookLevelLevelLimit',
-                        'kucoinfutures': 'futuresPublicGetLevelLevelDepthLimit',
-                    });
+                    method = 'publicGetMarketOrderbookLevelLevelLimit';
                 } else {
-                    throw new BadRequest (this.id + ' fetchOrderBook limit argument must be ' + errorMessageTail);
+                    throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
                 }
-            } else if (contract) {
-                throw new BadRequest (this.id + ' fetchOrderBook limit argument must be ' + errorMessageTail);
             }
-        } else if (contract) {
-            throw new BadRequest (this.id + ' fetchOrderBook level must be 2');
         }
         const response = await this[method] (this.extend (request, params));
-        // SPOT
-        //  'market/orderbook/level2'
-        //  'market/orderbook/level2_20'
-        //  'market/orderbook/level2_100'
+        //
+        // 'market/orderbook/level2'
+        // 'market/orderbook/level2_20'
+        // 'market/orderbook/level2_100'
         //
         //     {
         //         "code":"200000",
@@ -1206,7 +1128,7 @@ module.exports = class kucoin extends Exchange {
         //         }
         //     }
         //
-        //  'market/orderbook/level3'
+        // 'market/orderbook/level3'
         //
         //     {
         //         "code":"200000",
@@ -1227,26 +1149,8 @@ module.exports = class kucoin extends Exchange {
         //         }
         //     }
         //
-        // FUTURES
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //           "symbol": "XBTUSDM",      //Symbol
-        //           "sequence": 100,          //Ticker sequence number
-        //           "asks": [
-        //                 ["5000.0", 1000],   //Price, quantity
-        //                 ["6000.0", 1983]    //Price, quantity
-        //           ],
-        //           "bids": [
-        //                 ["3200.0", 800],    //Price, quantity
-        //                 ["3100.0", 100]     //Price, quantity
-        //           ],
-        //           "ts": 1604643655040584408  // timestamp
-        //         }
-        //     }
         const data = this.safeValue (response, 'data', {});
-        const ts = parseInt (Precise.stringDiv (this.safeString (data, 'ts'), '1000000'));
-        const timestamp = this.safeInteger (data, 'time', ts);
+        const timestamp = this.safeInteger (data, 'time');
         const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
