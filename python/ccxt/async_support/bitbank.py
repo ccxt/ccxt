@@ -251,22 +251,19 @@ class bitbank(Exchange):
             feeCurrency = market['quote']
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string_2(trade, 'transaction_id', 'trade_id')
         takerOrMaker = self.safe_string(trade, 'maker_taker')
         fee = None
-        feeCost = self.safe_number(trade, 'fee_amount_quote')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee_amount_quote')
+        if feeCostString is not None:
             fee = {
                 'currency': feeCurrency,
-                'cost': feeCost,
+                'cost': feeCostString,
             }
         orderId = self.safe_string(trade, 'order_id')
         type = self.safe_string(trade, 'type')
         side = self.safe_string(trade, 'side')
-        return {
+        return self.safe_trade({
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -275,12 +272,12 @@ class bitbank(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
