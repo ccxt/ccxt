@@ -732,7 +732,6 @@ module.exports = class bitfinex extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const costString = Precise.stringMul (priceString, amountString);
         let fee = undefined;
         if ('fee_amount' in trade) {
             const feeCostString = -this.safeString (trade, 'fee_amount');
@@ -755,7 +754,7 @@ module.exports = class bitfinex extends Exchange {
             'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
-            'cost': costString,
+            'cost': undefined,
             'fee': fee,
         }, market);
     }
