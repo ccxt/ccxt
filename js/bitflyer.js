@@ -256,7 +256,6 @@ module.exports = class bitflyer extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'exec_date'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const costString = Precise.stringMul (priceString, amountString);
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
@@ -274,7 +273,7 @@ module.exports = class bitflyer extends Exchange {
             'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
-            'cost': costString,
+            'cost': undefined,
             'fee': undefined,
         }, market);
     }
