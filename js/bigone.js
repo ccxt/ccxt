@@ -445,7 +445,6 @@ module.exports = class bigone extends Exchange {
         const timestamp = this.parse8601 (this.safeString2 (trade, 'created_at', 'inserted_at'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const costString = Precise.stringMul (priceString, amountString);
         const marketId = this.safeString (trade, 'asset_pair_name');
         const symbol = this.safeSymbol (marketId, market, '-');
         let side = this.safeString (trade, 'side');
@@ -489,7 +488,7 @@ module.exports = class bigone extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
-            'cost': costString,
+            'cost': undefined,
             'info': trade,
         };
         let makerCurrencyCode = undefined;
