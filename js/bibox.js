@@ -352,7 +352,6 @@ module.exports = class bibox extends Exchange {
         const feeRate = undefined; // todo: deduce from market if market is defined
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const costString = Precise.stringMul (priceString, amountString);
         if (feeCostString !== undefined) {
             fee = {
                 'cost': Precise.stringNeg (feeCostString),
@@ -373,7 +372,7 @@ module.exports = class bibox extends Exchange {
             'side': side,
             'price': priceString,
             'amount': amountString,
-            'cost': costString,
+            'cost': undefined,
             'fee': fee,
         }, market);
     }
