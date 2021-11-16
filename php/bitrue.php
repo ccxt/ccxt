@@ -862,14 +862,14 @@ class bitrue extends Exchange {
         //         "l" => 27781,         // Last tradeId
         //         "T" => 1498793709153, // Timestamp
         //         "m" => true,          // Was the buyer the maker?
-        //         "M" => true           // Was the $trade the best $price match?
+        //         "M" => true           // Was the $trade the best price match?
         //     }
         //
         // recent public trades and old public trades
         //
         //     {
         //         "$id" => 28457,
-        //         "$price" => "4.00000100",
+        //         "price" => "4.00000100",
         //         "qty" => "12.00000000",
         //         "time" => 1499865549590,
         //         "isBuyerMaker" => true,
@@ -883,7 +883,7 @@ class bitrue extends Exchange {
         //         "$id":20725156,
         //         "$orderId":2880918576,
         //         "origClientOrderId":null,
-        //         "$price":"0.9996000000000000",
+        //         "price":"0.9996000000000000",
         //         "qty":"100.0000000000000000",
         //         "commission":null,
         //         "commissionAssert":null,
@@ -896,12 +896,8 @@ class bitrue extends Exchange {
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
         $priceString = $this->safe_string_2($trade, 'p', 'price');
         $amountString = $this->safe_string_2($trade, 'q', 'qty');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $costString = Precise::string_mul($priceString, $amountString);
-        $cost = $this->parse_number($costString);
         $id = $this->safe_string_2($trade, 't', 'a');
         $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
@@ -920,7 +916,7 @@ class bitrue extends Exchange {
         $fee = null;
         if (is_array($trade) && array_key_exists('commission', $trade)) {
             $fee = array(
-                'cost' => $this->safe_number($trade, 'commission'),
+                'cost' => $this->safe_string($trade, 'commission'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAsset')),
             );
         }
@@ -931,7 +927,7 @@ class bitrue extends Exchange {
         if (is_array($trade) && array_key_exists('maker', $trade)) {
             $takerOrMaker = $trade['maker'] ? 'maker' : 'taker';
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -941,11 +937,11 @@ class bitrue extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
