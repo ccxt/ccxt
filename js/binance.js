@@ -2071,7 +2071,6 @@ module.exports = class binance extends Exchange {
         const amountString = this.safeString2 (trade, 'q', 'qty');
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const costString = Precise.stringMul (priceString, amountString);
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
@@ -2113,7 +2112,7 @@ module.exports = class binance extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
-            'cost': costString,
+            'cost': undefined,
             'fee': fee,
         }, market);
     }
