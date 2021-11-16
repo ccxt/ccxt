@@ -250,7 +250,6 @@ module.exports = class bitbank extends Exchange {
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const costString = Precise.stringMul (priceString, amountString);
         const id = this.safeString2 (trade, 'transaction_id', 'trade_id');
         const takerOrMaker = this.safeString (trade, 'maker_taker');
         let fee = undefined;
@@ -275,7 +274,7 @@ module.exports = class bitbank extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
-            'cost': costString,
+            'cost': undefined,
             'fee': fee,
             'info': trade,
         }, market);
