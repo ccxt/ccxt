@@ -863,7 +863,7 @@ class ascendex extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "p":"9128.5", // $price
+        //         "p":"9128.5", // price
         //         "q":"0.0030", // quantity
         //         "ts":1590229002385, // $timestamp
         //         "bm":false, // if true, the buyer is the $market maker, we only use this field to "define the $side" of a public $trade
@@ -873,9 +873,6 @@ class ascendex extends Exchange {
         $timestamp = $this->safe_integer($trade, 'ts');
         $priceString = $this->safe_string_2($trade, 'price', 'p');
         $amountString = $this->safe_string($trade, 'q');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $buyerIsMaker = $this->safe_value($trade, 'bm', false);
         $makerOrTaker = $buyerIsMaker ? 'maker' : 'taker';
         $side = $buyerIsMaker ? 'buy' : 'sell';
@@ -883,7 +880,7 @@ class ascendex extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -893,11 +890,11 @@ class ascendex extends Exchange {
             'type' => null,
             'takerOrMaker' => $makerOrTaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
