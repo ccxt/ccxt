@@ -551,7 +551,7 @@ module.exports = class aofex extends Exchange {
         const side = this.safeString (trade, 'direction');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'amount', 'number');
-        let costString = this.safeString (trade, 'total_price');
+        const costString = this.safeString (trade, 'total_price');
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
