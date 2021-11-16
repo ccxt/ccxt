@@ -869,7 +869,6 @@ module.exports = class ascendex extends Exchange {
         const timestamp = this.safeInteger (trade, 'ts');
         const priceString = this.safeString2 (trade, 'price', 'p');
         const amountString = this.safeString (trade, 'q');
-        const costString = Precise.stringMul (priceString, amountString);
         const buyerIsMaker = this.safeValue (trade, 'bm', false);
         const makerOrTaker = buyerIsMaker ? 'maker' : 'taker';
         const side = buyerIsMaker ? 'buy' : 'sell';
@@ -889,7 +888,7 @@ module.exports = class ascendex extends Exchange {
             'side': side,
             'price': priceString,
             'amount': amountString,
-            'cost': costString,
+            'cost': undefined,
             'fee': undefined,
         }, market);
     }
