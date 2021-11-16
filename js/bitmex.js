@@ -1135,12 +1135,12 @@ module.exports = class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString2 (trade, 'avgPx', 'price');
         const amountString = this.safeString2 (trade, 'size', 'lastQty');
+        const baseNumberCostString = this.safeString (trade, 'execCost');
+        const costString = Precise.stringDiv (Precise.stringAbs (baseNumberCostString), '1e8');
         const id = this.safeString (trade, 'trdMatchID');
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
-        let costString = this.safeString (trade, 'execCost');
-        costString = Precise.stringDiv (Precise.stringAbs (costString), '1e8');
         let fee = undefined;
         const feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e8');
         if (feeCostString !== undefined) {
@@ -1148,9 +1148,9 @@ module.exports = class bitmex extends Exchange {
             const feeCurrencyCode = this.safeCurrencyCode (currencyId);
             const feeRateString = this.safeString (trade, 'commission');
             fee = {
-                'cost': this.parseNumber (feeCostString),
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': this.parseNumber (feeRateString),
+                'rate': feeRateString,
             };
         }
         // Trade or Funding
@@ -1162,7 +1162,7 @@ module.exports = class bitmex extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const type = this.safeStringLower (trade, 'ordType');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1172,11 +1172,11 @@ module.exports = class bitmex extends Exchange {
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': this.parseNumber (priceString),
-            'cost': this.parseNumber (costString),
-            'amount': this.parseNumber (amountString),
+            'price': priceString,
+            'cost': costString,
+            'amount': amountString,
             'fee': fee,
-        };
+        }, market);
     }
 
     parseOrderStatus (status) {
