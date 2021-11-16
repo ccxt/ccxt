@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -395,7 +394,6 @@ module.exports = class bit2c extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const costString = Precise.stringMul (priceString, amountString);
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -408,7 +406,7 @@ module.exports = class bit2c extends Exchange {
             'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
-            'cost': costString,
+            'cost': undefined,
             'fee': {
                 'cost': feeCostString,
                 'currency': 'NIS',
