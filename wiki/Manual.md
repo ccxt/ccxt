@@ -3473,22 +3473,6 @@ A futures market symbol consists of the underlying currency, the quoting currenc
 'ETH/USDT:USDT' // ETH/USDT perpetual swap contract funded in USDT
 ```
 
-#### Perpetual Swaps (Perpetual Futures)
-
-```JavaScript
-// base asset or currency
-// ↓
-// ↓  quote asset or currency
-// ↓  ↓
-// ↓  ↓    settlement asset or currency
-// ↓  ↓    ↓
-// ↓  ↓    ↓
-'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract funded in BTC
-'BTC/USDT:USDT' // BTC/USDT perpetual swap contract funded in USDT
-'ETH/USDT:ETH'  // ETH/USDT perpetual swap contract funded in ETH
-'ETH/USDT:USDT' // ETH/USDT perpetual swap contract funded in USDT
-```
-
 #### Options
 
 ```JavaScript
