@@ -2,14 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const kucoin = require ('./kucoin.js');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kucoinfutures extends Exchange {
+module.exports = class kucoinfutures extends kucoin {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',
@@ -84,8 +83,7 @@ module.exports = class kucoinfutures extends Exchange {
                         'contracts/{symbol}',
                         'ticker',
                         'level2/snapshot',
-                        'level2/depth20',
-                        'level2/depth100',
+                        'level2/depth{limit}',
                         'level2/message/query',
                         'level3/message/query', // deprecated，level3/snapshot is suggested
                         'level3/snapshot', // v2
@@ -217,8 +215,8 @@ module.exports = class kucoinfutures extends Exchange {
                 '1w': 10080,
             },
             'options': {
-                'version': 'v2',
-                'symbolSeparator': '-',
+                // 'version': 'v2',
+                // 'symbolSeparator': '-',
                 'defaultType': 'swap',
                 'marginTypes': {},
                 // endpoint versions
@@ -475,7 +473,30 @@ module.exports = class kucoinfutures extends Exchange {
         //         ]
         //     }
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        since = this.safeString (since);
+        return this.parseOHLCVs (data, market, timeframe, Precise.stringDiv (since, '1000'), limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         "1545904980000",          // Start time of the candle cycle
+        //         "0.058",                  // opening price
+        //         "0.049",                  // closing price
+        //         "0.058",                  // highest price
+        //         "0.049",                  // lowest price
+        //         "0.018",                  // base volume
+        //         "0.000945",               // quote volume
+        //     ]
+        //
+        return [
+            Precise.stringDiv (this.safeString (ohlcv, 0), '1000'),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
@@ -490,6 +511,10 @@ module.exports = class kucoinfutures extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const level = this.safeNumber (params, 'level');
+        if (level !== 2 && level !== undefined) {
+            throw new BadRequest (this.id + ' fetchOrderBook can only return level 2');
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -644,6 +669,94 @@ module.exports = class kucoinfutures extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
         }
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        const response = await this.futuresPrivateGetPositions (params);
+        //
+        //     {
+        //         code: '200000',
+        //         data: [
+        //             {
+        //                 id: '605a9772a229ab0006408258',
+        //                 symbol: 'XBTUSDTM',
+        //                 autoDeposit: false,
+        //                 maintMarginReq: 0.005,
+        //                 riskLimit: 200,
+        //                 realLeverage: 0,
+        //                 crossMode: false,
+        //                 delevPercentage: 0,
+        //                 currentTimestamp: 1616549746099,
+        //                 currentQty: 0,
+        //                 currentCost: 0,
+        //                 currentComm: 0,
+        //                 unrealisedCost: 0,
+        //                 realisedGrossCost: 0,
+        //                 realisedCost: 0,
+        //                 isOpen: false,
+        //                 markPrice: 54371.92,
+        //                 markValue: 0,
+        //                 posCost: 0,
+        //                 posCross: 0,
+        //                 posInit: 0,
+        //                 posComm: 0,
+        //                 posLoss: 0,
+        //                 posMargin: 0,
+        //                 posMaint: 0,
+        //                 maintMargin: 0,
+        //                 realisedGrossPnl: 0,
+        //                 realisedPnl: 0,
+        //                 unrealisedPnl: 0,
+        //                 unrealisedPnlPcnt: 0,
+        //                 unrealisedRoePcnt: 0,
+        //                 avgEntryPrice: 0,
+        //                 liquidationPrice: 0,
+        //                 bankruptPrice: 0,
+        //                 settleCurrency: 'USDT',
+        //                 isInverse: false
+        //             },
+        //             {
+        //                 id: '605a9772026ac900066550df',
+        //                 symbol: 'XBTUSDM',
+        //                 autoDeposit: false,
+        //                 maintMarginReq: 0.005,
+        //                 riskLimit: 200,
+        //                 realLeverage: 0,
+        //                 crossMode: false,
+        //                 delevPercentage: 0,
+        //                 currentTimestamp: 1616549746110,
+        //                 currentQty: 0,
+        //                 currentCost: 0,
+        //                 currentComm: 0,
+        //                 unrealisedCost: 0,
+        //                 realisedGrossCost: 0,
+        //                 realisedCost: 0,
+        //                 isOpen: false,
+        //                 markPrice: 54354.76,
+        //                 markValue: 0,
+        //                 posCost: 0,
+        //                 posCross: 0,
+        //                 posInit: 0,
+        //                 posComm: 0,
+        //                 posLoss: 0,
+        //                 posMargin: 0,
+        //                 posMaint: 0,
+        //                 maintMargin: 0,
+        //                 realisedGrossPnl: 0,
+        //                 realisedPnl: 0,
+        //                 unrealisedPnl: 0,
+        //                 unrealisedPnlPcnt: 0,
+        //                 unrealisedRoePcnt: 0,
+        //                 avgEntryPrice: 0,
+        //                 liquidationPrice: 0,
+        //                 bankruptPrice: 0,
+        //                 settleCurrency: 'XBT',
+        //                 isInverse: true
+        //             }
+        //         ]
+        //     }
+        //
+        return this.safeValue (response, 'data', response);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
