@@ -1379,7 +1379,7 @@ class Exchange(object):
         self.symbols = sorted(self.markets.keys())
         self.ids = sorted(self.markets_by_id.keys())
         if currencies:
-            self.currencies = self.deep_extend(currencies, self.currencies)
+            self.currencies = self.deep_extend(self.currencies, currencies)
         else:
             base_currencies = [{
                 'id': market['baseId'] if (('baseId' in market) and (market['baseId'] is not None)) else market['base'],
@@ -1406,7 +1406,7 @@ class Exchange(object):
             self.base_currencies = self.index_by(base_currencies, 'code')
             self.quote_currencies = self.index_by(quote_currencies, 'code')
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
-            self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
+            self.currencies = self.deep_extend(self.currencies, self.index_by(currencies, 'code'))
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
         self.codes = sorted(self.currencies.keys())
         return self.markets

@@ -689,7 +689,7 @@ module.exports = class Exchange {
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
         if (currencies) {
-            this.currencies = deepExtend (currencies, this.currencies)
+            this.currencies = deepExtend (this.currencies, currencies)
         } else {
             let baseCurrencies =
                 values.filter ((market) => 'base' in market)
@@ -717,7 +717,7 @@ module.exports = class Exchange {
                 groupedCurrencies[code].reduce ((previous, current) => // eslint-disable-line implicit-arrow-linebreak
                     ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0])) // eslint-disable-line implicit-arrow-linebreak
             const sortedCurrencies = sortBy (flatten (currencies), 'code')
-            this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
+            this.currencies = deepExtend (this.currencies, indexBy (sortedCurrencies, 'code'))
         }
         this.currencies_by_id = indexBy (this.currencies, 'id')
         this.codes = Object.keys (this.currencies).sort ()
