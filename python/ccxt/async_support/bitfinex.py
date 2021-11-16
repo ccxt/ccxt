@@ -21,6 +21,7 @@ from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.precise import Precise
 
 
 class bitfinex(Exchange):
@@ -717,7 +718,7 @@ class bitfinex(Exchange):
         amountString = self.safe_string(trade, 'amount')
         fee = None
         if 'fee_amount' in trade:
-            feeCostString = -self.safe_string(trade, 'fee_amount')
+            feeCostString = Precise.string_neg(self.safe_string(trade, 'fee_amount'))
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {

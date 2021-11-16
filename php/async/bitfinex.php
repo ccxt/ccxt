@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\NotSupported;
+use \ccxt\Precise;
 
 class bitfinex extends Exchange {
 
@@ -736,7 +737,7 @@ class bitfinex extends Exchange {
         $amountString = $this->safe_string($trade, 'amount');
         $fee = null;
         if (is_array($trade) && array_key_exists('fee_amount', $trade)) {
-            $feeCostString = -$this->safe_string($trade, 'fee_amount');
+            $feeCostString = Precise::string_neg($this->safe_string($trade, 'fee_amount'));
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(

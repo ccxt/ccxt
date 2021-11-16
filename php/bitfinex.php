@@ -736,7 +736,7 @@ class bitfinex extends Exchange {
         $amountString = $this->safe_string($trade, 'amount');
         $fee = null;
         if (is_array($trade) && array_key_exists('fee_amount', $trade)) {
-            $feeCostString = -$this->safe_string($trade, 'fee_amount');
+            $feeCostString = Precise::string_neg($this->safe_string($trade, 'fee_amount'));
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
