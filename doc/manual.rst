@@ -4960,8 +4960,8 @@ Contract Naming Conventions
 
 We currently load spot markets with the unified ``BASE/QUOTE`` symbol schema into the ``.markets`` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the ``.markets`` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
 
-Futures
-~~~~~~~
+Futures Contracts
+~~~~~~~~~~~~~~~~~
 
 A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in ``YYMMDD`` format:
 
@@ -4969,27 +4969,75 @@ A futures market symbol consists of the underlying currency, the quoting currenc
 
    //
    // base asset or currency
-   //
-   //    quote asset or currency
-   //
-   //         settlement asset or currency
-   //
-   //              identifier
-   //
-   'BTC/USDT-211225:BTC'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
-   'BTC/USDT-211225:USDT' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
-   'ETH/USDT-210625:ETH'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
-   'ETH/USDT-210625:USDT' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
+   // ↓
+   // ↓  quote asset or currency
+   // ↓  ↓
+   // ↓  ↓    settlement asset or currency
+   // ↓  ↓    ↓
+   // ↓  ↓    ↓     identifier (settlement date)
+   // ↓  ↓    ↓     ↓
+   // ↓  ↓    ↓     ↓
+   'BTC/USDT:BTC-211225'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
+   'BTC/USDT:USDT-211225' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
+   'ETH/USDT:ETH-210625'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
+   'ETH/USDT:USDT-210625' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
 
-Perpetual Swaps
-~~~~~~~~~~~~~~~
+Perpetual Swaps (Perpetual Futures)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: JavaScript
 
+   // base asset or currency
+   // ↓
+   // ↓  quote asset or currency
+   // ↓  ↓
+   // ↓  ↓    settlement asset or currency
+   // ↓  ↓    ↓
+   // ↓  ↓    ↓
    'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract funded in BTC
    'BTC/USDT:USDT' // BTC/USDT perpetual swap contract funded in USDT
    'ETH/USDT:ETH'  // ETH/USDT perpetual swap contract funded in ETH
    'ETH/USDT:USDT' // ETH/USDT perpetual swap contract funded in USDT
+
+Perpetual Swaps (Perpetual Futures)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: JavaScript
+
+   // base asset or currency
+   // ↓
+   // ↓  quote asset or currency
+   // ↓  ↓
+   // ↓  ↓    settlement asset or currency
+   // ↓  ↓    ↓
+   // ↓  ↓    ↓
+   'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract funded in BTC
+   'BTC/USDT:USDT' // BTC/USDT perpetual swap contract funded in USDT
+   'ETH/USDT:ETH'  // ETH/USDT perpetual swap contract funded in ETH
+   'ETH/USDT:USDT' // ETH/USDT perpetual swap contract funded in USDT
+
+Options
+~~~~~~~
+
+.. code-block:: JavaScript
+
+   //
+   // base asset or currency
+   // ↓
+   // ↓  quote asset or currency
+   // ↓  ↓
+   // ↓  ↓    settlement asset or currency
+   // ↓  ↓    ↓
+   // ↓  ↓    ↓       identifier (settlement date)
+   // ↓  ↓    ↓       ↓
+   // ↓  ↓    ↓       ↓   strike price
+   // ↓  ↓    ↓       ↓   ↓
+   // ↓  ↓    ↓       ↓   ↓   type, put (P) or call (C)
+   // ↓  ↓    ↓       ↓   ↓   ↓
+   'BTC/USDT:BTC-211225-60000-P'  // BTC/USDT options contract strike price 60000 USDT settled in BTC (inverse) on 2021-12-25
+   'BTC/USDT:USDT-211225-40000-C' // BTC/USDT options contract strike price 40000 USDT settled in USDT (linear, vanilla) on 2021-12-25
+   'ETH/USDT:ETH-210625-5000-P'   // ETH/USDT options contract strike price 5000 USDT settled in ETH (inverse) on 2021-06-25
+   'ETH/USDT:USDT-210625-5000-C'  // ETH/USDT options contract strike price 5000 USDT settled in USDT (linear, vanilla) on 2021-06-25
 
 Deposit
 -------
