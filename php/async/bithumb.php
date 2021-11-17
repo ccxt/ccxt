@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
-use \ccxt\Precise;
 
 class bithumb extends Exchange {
 
@@ -453,7 +452,7 @@ class bithumb extends Exchange {
         //         "transaction_date":"2020-04-23 22:21:46",
         //         "$type":"ask",
         //         "units_traded":"0.0125",
-        //         "$price":"8667000",
+        //         "price":"8667000",
         //         "total":"108337"
         //     }
         //
@@ -461,7 +460,7 @@ class bithumb extends Exchange {
         //
         //     {
         //         "transaction_date" => "1572497603902030",
-        //         "$price" => "8601000",
+        //         "price" => "8601000",
         //         "units" => "0.005",
         //         "fee_currency" => "KRW",
         //         "$fee" => "107.51",
@@ -498,23 +497,18 @@ class bithumb extends Exchange {
         }
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'units_traded', 'units');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'total');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $costString = $this->safe_string($trade, 'total');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -524,11 +518,11 @@ class bithumb extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
