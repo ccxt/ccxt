@@ -23,6 +23,12 @@ const asFloat   = x => ((isNumber (x) || isString (x)) ? parseFloat (x)     : Na
     , asInteger = x => ((isNumber (x) || isString (x)) ? parseInt   (x, 10) : NaN)
 
 /*  .............................................   */
+// Only works for numbers up to 2,147,483,647
+const numDigits = (x) => ((Math.log10 ((x ^ (x >> 31)) - (x >> 31)) | 0) + 1);
+
+const toMillisec = (n, cnt = numDigits (n)) => (cnt === 10 ? n * 1000 : n);
+
+/*  .............................................   */
 
 module.exports = {
 
@@ -33,6 +39,7 @@ module.exports = {
     , isString
     , isStringCoercible
     , isDictionary
+    , numDigits
 
     , hasProps
     , prop
@@ -43,7 +50,7 @@ module.exports = {
     , safeFloat:          (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? n                         : $default)
     , safeInteger:        (o, k,          $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? n                         : $default)
     , safeIntegerProduct: (o, k, $factor, $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
-    , safeTimestamp:      (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? parseInt (n * 1000)       : $default)
+    , safeTimestamp:      (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? parseInt (toMillisec (n)) : $default)
     , safeValue:          (o, k,          $default, x =            prop (o, k))  => (hasProps (x)          ? x                         : $default)
     , safeString:         (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x)                : $default)
     , safeStringLower:    (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x).toLowerCase () : $default)
