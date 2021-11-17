@@ -163,10 +163,12 @@ class binance extends Exchange {
                         'margin/isolated/account' => 1,
                         'margin/isolated/pair' => 1,
                         'margin/isolated/allPairs' => 1,
+                        'margin/isolated/accountLimit' => 1,
                         'margin/interestRateHistory' => 1,
                         'margin/orderList' => 2,
                         'margin/allOrderList' => 10,
                         'margin/openOrderList' => 3,
+                        'loan/income' => 1,
                         'fiat/orders' => 1,
                         'fiat/payments' => 1,
                         'futures/transfer' => 5,
@@ -187,10 +189,11 @@ class binance extends Exchange {
                         'capital/withdraw/history' => 1,
                         'account/status' => 1,
                         'account/apiTradingStatus' => 1,
+                        'account/apiRestrictions/ipRestriction' => 1,
                         'bnbBurn' => 1,
                         'sub-account/assets' => 1,
                         'sub-account/futures/account' => 1,
-                        'sub-account/futures/accountSummary' => 20,
+                        'sub-account/futures/accountSummary' => 1,
                         'sub-account/futures/positionRisk' => 1,
                         'sub-account/futures/internalTransfer' => 1,
                         'sub-account/list' => 1,
@@ -226,6 +229,9 @@ class binance extends Exchange {
                         'bswap/liquidityOps' => 2,
                         'bswap/quote' => 2,
                         'bswap/swap' => 1,
+                        'bswap/poolConfigure' => 1,
+                        'bswap/addLiquidityPreview' => 1,
+                        'bswap/removeLiquidityPreview' => 1,
                         // leveraged token endpoints
                         'blvt/tokenInfo' => 1,
                         'blvt/subscribe/record' => 1,
@@ -269,6 +275,8 @@ class binance extends Exchange {
                         'asset/get-funding-asset' => 1,
                         'account/disableFastWithdrawSwitch' => 1,
                         'account/enableFastWithdrawSwitch' => 1,
+                        'account/apiRestrictions/ipRestriction' => 1,
+                        'account/apiRestrictions/ipRestriction/ipList' => 1,
                         'capital/withdraw/apply' => 1,
                         'margin/transfer' => 1,
                         'margin/loan' => 1,
@@ -277,6 +285,7 @@ class binance extends Exchange {
                         'margin/order/oco' => 1,
                         'margin/isolated/create' => 1,
                         'margin/isolated/transfer' => 1,
+                        'margin/isolated/account' => 1,
                         'bnbBurn' => 1,
                         'sub-account/margin/transfer' => 1,
                         'sub-account/margin/enable' => 1,
@@ -336,9 +345,11 @@ class binance extends Exchange {
                         'userDataStream/isolated' => 1,
                     ),
                     'delete' => array(
+                        'account/apiRestrictions/ipRestriction/ipList' => 1,
                         'margin/openOrders' => 1,
                         'margin/order' => 1,
                         'margin/orderList' => 1,
+                        'margin/isolated/account' => 1,
                         'userDataStream' => 1,
                         'userDataStream/isolated' => 1,
                         // brokerage API
@@ -567,6 +578,7 @@ class binance extends Exchange {
                         'allOrders' => 10,
                         'account' => 10,
                         'myTrades' => 10,
+                        'rateLimit/order' => 20,
                     ),
                     'post' => array(
                         'order/oco' => 1,
@@ -689,7 +701,7 @@ class binance extends Exchange {
                 'accountsByType' => array(
                     'main' => 'MAIN',
                     'spot' => 'MAIN',
-                    'pay' => 'PAY',
+                    'funding' => 'FUNDING',
                     'margin' => 'MARGIN',
                     'future' => 'UMFUTURE',
                     'delivery' => 'CMFUTURE',
@@ -697,6 +709,7 @@ class binance extends Exchange {
                 ),
                 'typesByAccount' => array(
                     'MAIN' => 'spot',
+                    'FUNDING' => 'funding',
                     'MARGIN' => 'margin',
                     'UMFUTURE' => 'future',
                     'CMFUTURE' => 'delivery',
@@ -1401,7 +1414,7 @@ class binance extends Exchange {
             $method = 'sapiGetMarginAccount';
         } else if ($type === 'savings') {
             $method = 'sapiGetLendingUnionAccount';
-        } else if ($type === 'pay') {
+        } else if ($type === 'funding') {
             $method = 'sapiPostAssetGetFundingAsset';
         }
         $query = $this->omit($params, 'type');
@@ -1615,7 +1628,7 @@ class binance extends Exchange {
                 $account['used'] = $usedAndTotal;
                 $result[$code] = $account;
             }
-        } else if ($type === 'pay') {
+        } else if ($type === 'funding') {
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
                 $account = $this->account();
@@ -1907,14 +1920,18 @@ class binance extends Exchange {
         } else {
             $request['symbol'] = $market['id'];
         }
-        $duration = $this->parse_timeframe($timeframe);
+        // $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
             $request['startTime'] = $since;
-            if ($since > 0) {
-                $endTime = $this->sum($since, $limit * $duration * 1000 - 1);
-                $now = $this->milliseconds();
-                $request['endTime'] = min ($now, $endTime);
-            }
+            //
+            // It didn't work before without the $endTime
+            // https://github.com/ccxt/ccxt/issues/8454
+            //
+            // if ($since > 0) {
+            //     $endTime = $this->sum($since, $limit * $duration * 1000 - 1);
+            //     $now = $this->milliseconds();
+            //     $request['endTime'] = min ($now, $endTime);
+            // }
         }
         $method = 'publicGetKlines';
         if ($price === 'mark') {
@@ -3977,7 +3994,7 @@ class binance extends Exchange {
             $timestamp = $this->safe_integer($entry, 'fundingTime');
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $this->safe_string($entry, 'symbol'),
+                'symbol' => $this->safe_symbol($this->safe_string($entry, 'symbol')),
                 'fundingRate' => $this->safe_number($entry, 'fundingRate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),

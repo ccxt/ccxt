@@ -3,7 +3,7 @@ The ccxt library is a collection of available crypto *exchanges* or exchange cla
 
 The structure of the library can be outlined as follows:
 
-.. code-block::
+.. code-block:: text
 
                                     User
        +-------------------------------------------------------------+
@@ -494,18 +494,6 @@ The CCXT library currently supports the following 107 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg
-          :target: https://btc-alpha.com/?r=123788
-          :alt: btcalpha
-     
-     - btcalpha
-     - `BTC-Alpha <https://btc-alpha.com/?r=123788>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://btc-alpha.github.io/api-docs
-          :alt: API Version 1
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg
           :target: https://www.btcbox.co.jp/
           :alt: btcbox
@@ -872,6 +860,21 @@ The CCXT library currently supports the following 107 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg
+          :target: https://ftx.com/#a=ccxt
+          :alt: ftxus
+     
+     - ftxus
+     - `FTX US <https://ftx.com/#a=ccxt>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://github.com/ftexchange/ftx
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
           :alt: gateio
@@ -1064,21 +1067,21 @@ The CCXT library currently supports the following 107 cryptocurrency exchange ma
      
      - latoken
      - `Latoken <https://latoken.com/invite?r=mvgp2djk>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.latoken.com
-          :alt: API Version 1
+          :alt: API Version 2
      
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg
           :target: https://latoken.com/invite?r=mvgp2djk
-          :alt: latoken2
+          :alt: latoken1
      
-     - latoken2
+     - latoken1
      - `Latoken <https://latoken.com/invite?r=mvgp2djk>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
+     - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://api.latoken.com
-          :alt: API Version 2
+          :alt: API Version 1
      
      - 
      - 
@@ -2542,7 +2545,7 @@ It depends on which exchange you are using, but some of them have a reversed (in
 
 For those exchanges the ccxt will do a correction, switching and normalizing sides of base and quote currencies when parsing exchange replies. This logic is financially and terminologically correct. If you want less confusion, remember the following rule: **base is always before the slash, quote is always after the slash in any symbol and with any market**.
 
-.. code-block::
+.. code-block:: text
 
    base currency ↓
                 BTC / USDT
@@ -2632,7 +2635,7 @@ The recommended way of working with exchanges is not using exchange-specific imp
 
 To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
 
-.. code-block::
+.. code-block:: text
 
    console.log (new ccxt.kraken ())   // JavaScript
    print(dir(ccxt.hitbtc()))           # Python
@@ -2680,7 +2683,7 @@ A few exchanges also expose a merchant API which allows you to create invoices a
 
 To get a list of all available methods with an exchange instance, you can simply do the following:
 
-.. code-block::
+.. code-block:: text
 
    console.log (new ccxt.kraken ())   // JavaScript
    print(dir(ccxt.hitbtc()))           # Python
@@ -2722,7 +2725,7 @@ The ccxt library supports asynchronous concurrency mode in Python 3.5+ with asyn
        poloniex = ccxt.poloniex()
        print(await poloniex.fetch_ticker('ETH/BTC'))
 
-   asyncio.get_event_loop().run_until_complete(print_poloniex_ethbtc_ticker())
+   asyncio.run(print_poloniex_ethbtc_ticker())
 
 PHP
 ^^^
@@ -2758,7 +2761,7 @@ Passing Parameters To API Methods
 
 The set of all possible API endpoints differs from exchange to exchange. Most of methods accept a single associative array (or a Python dict) of key-value parameters. The params are passed as follows:
 
-.. code-block::
+.. code-block:: text
 
    bitso.publicGetTicker ({ book: 'eth_mxn' })                 // JavaScript
    ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
@@ -2802,14 +2805,14 @@ An exchange method name is a concatenated string consisting of type (public or p
 
 The ccxt library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language. Both of these notations work in JavaScript, Python and PHP:
 
-.. code-block::
+.. code-block:: text
 
    exchange.methodName ()  // camelcase pseudocode
    exchange.method_name()  // underscore pseudocode
 
 To get a list of all available methods with an exchange instance, you can simply do the following:
 
-.. code-block::
+.. code-block:: text
 
    console.log (new ccxt.kraken ())   // JavaScript
    print(dir(ccxt.hitbtc()))           # Python
@@ -2845,7 +2848,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
  * ``fetchMyTrades ([symbol[, since[, limit[, params]]]])``
  * ...
 
-.. code-block::
+.. code-block:: text
 
    TODO: ADD LINKS ABOVE
 
@@ -3378,7 +3381,7 @@ Notes On Ticker Structure
 
  **All prices in ticker structure are in quote currency. Some fields in a returned ticker structure may be undefined/None/null.**
 
-.. code-block::
+.. code-block:: text
 
    base currency ↓
                 BTC / USDT
@@ -3506,14 +3509,7 @@ The structure of the returned value is as follows:
 
 A general solution for fetching all tickers from all exchanges (even the ones that don't have a corresponding API endpoint) is on the way, this section will be updated soon.
 
-.. code-block::
-
-   UNDER CONSTRUCTION
-
-Async Mode / Concurrency
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block::
+.. code-block:: text
 
    UNDER CONSTRUCTION
 
@@ -3528,7 +3524,7 @@ Most exchanges have endpoints for fetching OHLCV data, but some of them don't. T
 
 The ``fetchOHLCV`` method is declared in the following way:
 
-.. code-block::
+.. code-block:: JavaScript
 
    fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
 
@@ -3656,7 +3652,7 @@ Some exchanges don't offer any OHLCV method, and for those, the ccxt library wil
 
  **WARNING: the fetchOHLCV emulation is experimental!**
 
-.. code-block::
+.. code-block:: text
 
    UNDER CONSTRUCTION
 
@@ -3669,7 +3665,7 @@ Public Trades
 
 You can call the unified ``fetchTrades`` / ``fetch_trades`` method to get the list of most recent trades for a particular symbol. The ``fetchTrades`` method is declared in the following way:
 
-.. code-block::
+.. code-block:: JavaScript
 
    async fetchTrades (symbol, since = undefined, limit = undefined, params = {})
 
@@ -4262,7 +4258,7 @@ Below are examples of using the fetchOrder method to get order info from an auth
    import asyncio
    import ccxt.async_support as ccxt
    if exchange.has['fetchOrder']:
-       order = asyncio.get_event_loop().run_until_complete(exchange.fetch_order(id))
+       order = asyncio.run(exchange.fetch_order(id))
        print(order)
 
 .. code-block:: PHP
@@ -4390,7 +4386,7 @@ Market price orders are also known as *spot price orders*\ , *instant orders* or
 
 The exchange will close your market order for the best price available. You are not guaranteed though, that the order will be executed for the price you observe prior to placing your order. There can be a slight change of the price for the traded market while your order is being executed, also known as *price slippage*. The price can slip because of networking roundtrip latency, high loads on the exchange, price volatility and other factors. When placing a market order you don't need to specify the price of the order.
 
-.. code-block::
+.. code-block:: JavaScript
 
    // camelCaseNotation
    exchange.createMarketSellOrder (symbol, amount[, params])
@@ -4529,7 +4525,7 @@ Limit Orders
 
 Limit price orders are also known as *limit orders*. Some exchanges accept limit orders only. Limit orders require a price (rate per unit) to be submitted with the order. The exchange will close limit orders if and only if market price reaches the desired level.
 
-.. code-block::
+.. code-block:: JavaScript
 
    // camelCaseStyle
    exchange.createLimitBuyOrder (symbol, amount, price[, params])
@@ -4565,7 +4561,7 @@ Some exchanges allow you to specify optional parameters for your order. You can 
 User-defined ``clientOrderId``
 """"""""""""""""""""""""""""""""""
 
-.. code-block::
+.. code-block:: text
 
    - this part of the unified API is currenty a work in progress
    - there may be some issues and missing implementations here and there
@@ -4677,7 +4673,7 @@ As such, ``cancelOrder()`` can throw an ``OrderNotFound`` exception in these cas
 My Trades
 ---------
 
-.. code-block::
+.. code-block:: text
 
    - this part of the unified API is currenty a work in progress
    - there may be some issues and missing implementations here and there
@@ -4692,7 +4688,7 @@ To put it shortly, an order can contain *one or more* trades. Or, in other words
 
 For example, an orderbook can have the following orders (whatever trading symbol or pair it is):
 
-.. code-block::
+.. code-block:: text
 
        | price  | amount
    ----|----------------
@@ -4708,7 +4704,7 @@ All specific numbers above aren't real, this is just to illustrate the way order
 
 A seller decides to place a sell limit order on the ask side for a price of 0.700 and an amount of 150.
 
-.. code-block::
+.. code-block:: text
 
        | price  | amount
    ----|----------------  ↓
@@ -4737,7 +4733,7 @@ As the price and amount of the incoming sell (ask) order cover more than one bid
 
 The intermediate state of the orderbook is now (order ``b`` is ``closed`` and is not in the orderbook anymore):
 
-.. code-block::
+.. code-block:: text
 
        | price  | amount
    ----|----------------  ↓
@@ -4760,7 +4756,7 @@ The intermediate state of the orderbook is now (order ``b`` is ``closed`` and is
 
 After the above sequence takes place, the updated orderbook will look like this.
 
-.. code-block::
+.. code-block:: text
 
        | price  | amount
    ----|----------------
@@ -4931,7 +4927,7 @@ Liquidation price
 
 It is the price at which the ``initialMargin + unrealized = collateral = maintenanceMargin``. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
 
-.. code-block::
+.. code-block:: JavaScript
 
    // if long
    (liquidationPrice - price) * contracts = maintenanceMargin
@@ -4964,8 +4960,8 @@ Contract Naming Conventions
 
 We currently load spot markets with the unified ``BASE/QUOTE`` symbol schema into the ``.markets`` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the ``.markets`` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
 
-Futures
-~~~~~~~
+Futures Contracts
+~~~~~~~~~~~~~~~~~
 
 A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in ``YYMMDD`` format:
 
@@ -4973,27 +4969,58 @@ A futures market symbol consists of the underlying currency, the quoting currenc
 
    //
    // base asset or currency
-   //
-   //    quote asset or currency
-   //
-   //         settlement asset or currency
-   //
-   //              identifier
-   //
-   'BTC/USDT-211225:BTC'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
-   'BTC/USDT-211225:USDT' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
-   'ETH/USDT-210625:ETH'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
-   'ETH/USDT-210625:USDT' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
+   // ↓
+   // ↓  quote asset or currency
+   // ↓  ↓
+   // ↓  ↓    settlement asset or currency
+   // ↓  ↓    ↓
+   // ↓  ↓    ↓     identifier (settlement date)
+   // ↓  ↓    ↓     ↓
+   // ↓  ↓    ↓     ↓
+   'BTC/USDT:BTC-211225'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
+   'BTC/USDT:USDT-211225' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
+   'ETH/USDT:ETH-210625'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
+   'ETH/USDT:USDT-210625' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
 
-Perpetual Swaps
-~~~~~~~~~~~~~~~
+Perpetual Swaps (Perpetual Futures)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: JavaScript
 
+   // base asset or currency
+   // ↓
+   // ↓  quote asset or currency
+   // ↓  ↓
+   // ↓  ↓    settlement asset or currency
+   // ↓  ↓    ↓
+   // ↓  ↓    ↓
    'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract funded in BTC
    'BTC/USDT:USDT' // BTC/USDT perpetual swap contract funded in USDT
    'ETH/USDT:ETH'  // ETH/USDT perpetual swap contract funded in ETH
    'ETH/USDT:USDT' // ETH/USDT perpetual swap contract funded in USDT
+
+Options
+~~~~~~~
+
+.. code-block:: JavaScript
+
+   //
+   // base asset or currency
+   // ↓
+   // ↓  quote asset or currency
+   // ↓  ↓
+   // ↓  ↓    settlement asset or currency
+   // ↓  ↓    ↓
+   // ↓  ↓    ↓       identifier (settlement date)
+   // ↓  ↓    ↓       ↓
+   // ↓  ↓    ↓       ↓   strike price
+   // ↓  ↓    ↓       ↓   ↓
+   // ↓  ↓    ↓       ↓   ↓   type, put (P) or call (C)
+   // ↓  ↓    ↓       ↓   ↓   ↓
+   'BTC/USDT:BTC-211225-60000-P'  // BTC/USDT options contract strike price 60000 USDT settled in BTC (inverse) on 2021-12-25
+   'BTC/USDT:USDT-211225-40000-C' // BTC/USDT options contract strike price 40000 USDT settled in USDT (linear, vanilla) on 2021-12-25
+   'ETH/USDT:ETH-210625-5000-P'   // ETH/USDT options contract strike price 5000 USDT settled in ETH (inverse) on 2021-06-25
+   'ETH/USDT:USDT-210625-5000-C'  // ETH/USDT options contract strike price 5000 USDT settled in USDT (linear, vanilla) on 2021-06-25
 
 Deposit
 -------
@@ -5029,6 +5056,7 @@ The address structures returned from ``fetchDepositAddress``\ , ``fetchDepositAd
 
    {
        'currency': currency, // currency code
+       'network': network,   // a list of deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
        'address': address,   // address in terms of requested currency
        'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
        'info': response,     // raw unparsed data as returned from the exchange
@@ -5037,6 +5065,8 @@ The address structures returned from ``fetchDepositAddress``\ , ``fetchDepositAd
 With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument ``tag`` is usually required by exchanges. Other currencies will have the ``tag`` set to ``undefined / None / null``. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
 
 Be careful when specifying the ``tag`` and the ``address``. The ``tag`` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the ``tag``. The purpose of the ``tag`` field is to address your wallet properly, so it must be correct. You should only use the ``tag`` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+
+ **The ``network`` field is relatively new, it may be ``undefined / None / null`` or missing entirely in certain cases (with some exchanges), but will be added everywhere eventually. It is still in the process of unification.**
 
 Withdraw
 --------
@@ -5071,8 +5101,8 @@ Some exchanges require a manual approval of each withdrawal by means of 2FA (2-f
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See :ref:`their docs <exchanges>` for details.
 
-Withdrawal Networks
--------------------
+Deposit And Withdrawal Networks
+-------------------------------
 
 It is also possible to pass the parameters as the fourth argument with or without a specified tag
 
@@ -5625,7 +5655,7 @@ All exceptions are derived from the base BaseError exception, which, in its turn
 
 Below is an outline of exception inheritance hierarchy:
 
-.. code-block::
+.. code-block:: text
 
    + BaseError
    |

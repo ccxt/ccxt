@@ -649,7 +649,7 @@ class bitbns extends Exchange {
         //         "type" => "BTC Sell order executed",
         //         "typeI" => 6,
         //         "crypto" => 5000,
-        //         "$amount" => 35.4,
+        //         "amount" => 35.4,
         //         "rate" => 709800,
         //         "date" => "2020-05-22T15:05:34.000Z",
         //         "unit" => "INR",
@@ -666,7 +666,7 @@ class bitbns extends Exchange {
         //
         //     {
         //         "tradeId":"1909151",
-        //         "$price":"61904.6300",
+        //         "price":"61904.6300",
         //         "quote_volume":1618.05,
         //         "base_volume":0.02607254,
         //         "$timestamp":1634548602000,
@@ -679,23 +679,20 @@ class bitbns extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp', $timestamp);
         $amountString = $this->safe_string_2($trade, 'amount', 'base_volume');
         $priceString = $this->safe_string_2($trade, 'rate', 'price');
-        $price = $this->parse_number($priceString);
         $factor = $this->safe_string($trade, 'factor');
-        $amountScaled = Precise::string_div($amountString, $factor);
-        $amount = $this->parse_number($amountScaled);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountScaled));
+        $amountScaledString = Precise::string_div($amountString, $factor);
         $symbol = $market['symbol'];
         $side = $this->safe_string_lower($trade, 'type');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyCode = $market['quote'];
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -705,11 +702,11 @@ class bitbns extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountScaledString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.60.88'
+__version__ = '1.61.40'
 
 # -----------------------------------------------------------------------------
 
@@ -82,7 +82,6 @@ from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa
 from ccxt.async_support.bittrex import bittrex                            # noqa: F401
 from ccxt.async_support.bitvavo import bitvavo                            # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                  # noqa: F401
-from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
 from ccxt.async_support.btcbox import btcbox                              # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                      # noqa: F401
 from ccxt.async_support.btctradeua import btctradeua                      # noqa: F401
@@ -113,6 +112,7 @@ from ccxt.async_support.equos import equos                                # noqa
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.ftx import ftx                                    # noqa: F401
+from ccxt.async_support.ftxus import ftxus                                # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
@@ -129,7 +129,7 @@ from ccxt.async_support.kraken import kraken                              # noqa
 from ccxt.async_support.kucoin import kucoin                              # noqa: F401
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.latoken import latoken                            # noqa: F401
-from ccxt.async_support.latoken2 import latoken2                          # noqa: F401
+from ccxt.async_support.latoken1 import latoken1                          # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
 from ccxt.async_support.liquid import liquid                              # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
@@ -195,7 +195,6 @@ exchanges = [
     'bittrex',
     'bitvavo',
     'bl3p',
-    'btcalpha',
     'btcbox',
     'btcmarkets',
     'btctradeua',
@@ -226,6 +225,7 @@ exchanges = [
     'exmo',
     'flowbtc',
     'ftx',
+    'ftxus',
     'gateio',
     'gemini',
     'hitbtc',
@@ -242,7 +242,7 @@ exchanges = [
     'kucoin',
     'kuna',
     'latoken',
-    'latoken2',
+    'latoken1',
     'lbank',
     'liquid',
     'luno',

@@ -47,7 +47,7 @@ class gemini(Exchange):
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchClosedOrders': None,
-                'fetchDepositAddress': None,
+                'fetchDepositAddress': None,  # TODO
                 'fetchDeposits': None,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -132,6 +132,7 @@ class gemini(Exchange):
                         'v1/transfers',
                         'v1/addresses/{network}',
                         'v1/deposit/{network}/newAddress',
+                        'v1/deposit/{currency}/newAddress',
                         'v1/withdraw/{currency}',
                         'v1/account/transfer/{currency}',
                         'v1/payments/addbank',
@@ -216,6 +217,26 @@ class gemini(Exchange):
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
                 'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
+                'networkIds': {
+                    'bitcoin': 'BTC',
+                    'ethereum': 'ERC20',
+                    'bitcoincash': 'BCH',
+                    'litecoin': 'LTC',
+                    'zcash': 'ZEC',
+                    'filecoin': 'FIL',
+                    'dogecoin': 'DOGE',
+                    'tezos': 'XTZ',
+                },
+                'networks': {
+                    'BTC': 'bitcoin',
+                    'ERC20': 'ethereum',
+                    'BCH': 'bitcoincash',
+                    'LTC': 'litecoin',
+                    'ZEC': 'zcash',
+                    'FIL': 'filecoin',
+                    'DOGE': 'dogecoin',
+                    'XTZ': 'tezos',
+                },
             },
         })
 
@@ -782,6 +803,40 @@ class gemini(Exchange):
             'updated': None,
             'fee': fee,
         }
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #      {
+        #          address: "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        #          timestamp: "1636813923098",
+        #          addressVersion: "eV1"                                         }
+        #      }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        return {
+            'currency': currency,
+            'network': None,
+            'address': address,
+            'tag': None,
+            'info': depositAddress,
+        }
+
+    def fetch_deposit_addresses_by_network(self, code, params={}):
+        self.load_markets()
+        network = self.safe_string(params, 'network')
+        if network is None:
+            raise ArgumentsRequired(self.id + 'fetchDepositAddressesByNetwork() requires a network parameter')
+        params = self.omit(params, 'network')
+        networks = self.safe_value(self.options, 'networks', {})
+        networkId = self.safe_string(networks, network, network)
+        networkIds = self.safe_value(self.options, 'networkIds', {})
+        networkCode = self.safe_string(networkIds, networkId, network)
+        request = {
+            'network': networkId,
+        }
+        response = self.privatePostV1AddressesNetwork(self.extend(request, params))
+        results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
+        return self.group_by(results, 'network')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.implode_params(path, params)

@@ -984,28 +984,26 @@ class bitmart(Exchange):
         execType = self.safe_string(trade, 'exec_type')
         if execType is not None:
             takerOrMaker = 'maker' if (execType == 'M') else 'taker'
-        price = self.safe_number_2(trade, 'price', 'deal_price')
-        price = self.safe_number(trade, 'price_avg', price)
-        amount = self.safe_number_2(trade, 'amount', 'deal_vol')
-        amount = self.safe_number(trade, 'size', amount)
-        cost = self.safe_number_2(trade, 'count', 'notional')
-        if (cost is None) and (price is not None) and (amount is not None):
-            cost = amount * price
+        priceString = self.safe_string_2(trade, 'price', 'deal_price')
+        priceString = self.safe_string(trade, 'price_avg', priceString)
+        amountString = self.safe_string_2(trade, 'amount', 'deal_vol')
+        amountString = self.safe_string(trade, 'size', amountString)
+        costString = self.safe_string_2(trade, 'count', 'notional')
         orderId = self.safe_integer(trade, 'order_id')
         marketId = self.safe_string_2(trade, 'contract_id', 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        feeCost = self.safe_number(trade, 'fees')
+        feeCostString = self.safe_string(trade, 'fees')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_coin_name')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             if (feeCurrencyCode is None) and (market is not None):
                 feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -1014,12 +1012,12 @@ class bitmart(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

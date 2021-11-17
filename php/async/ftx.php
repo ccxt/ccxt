@@ -1940,6 +1940,7 @@ class ftx extends Exchange {
             // what are other $statuses here?
             'confirmed' => 'ok', // deposits
             'complete' => 'ok', // withdrawals
+            'cancelled' => 'canceled', // deposits
         );
         return $this->safe_string($statuses, $status, $status);
     }

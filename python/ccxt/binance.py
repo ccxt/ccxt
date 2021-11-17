@@ -174,10 +174,12 @@ class binance(Exchange):
                         'margin/isolated/account': 1,
                         'margin/isolated/pair': 1,
                         'margin/isolated/allPairs': 1,
+                        'margin/isolated/accountLimit': 1,
                         'margin/interestRateHistory': 1,
                         'margin/orderList': 2,
                         'margin/allOrderList': 10,
                         'margin/openOrderList': 3,
+                        'loan/income': 1,
                         'fiat/orders': 1,
                         'fiat/payments': 1,
                         'futures/transfer': 5,
@@ -198,10 +200,11 @@ class binance(Exchange):
                         'capital/withdraw/history': 1,
                         'account/status': 1,
                         'account/apiTradingStatus': 1,
+                        'account/apiRestrictions/ipRestriction': 1,
                         'bnbBurn': 1,
                         'sub-account/assets': 1,
                         'sub-account/futures/account': 1,
-                        'sub-account/futures/accountSummary': 20,
+                        'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 1,
                         'sub-account/futures/internalTransfer': 1,
                         'sub-account/list': 1,
@@ -237,6 +240,9 @@ class binance(Exchange):
                         'bswap/liquidityOps': 2,
                         'bswap/quote': 2,
                         'bswap/swap': 1,
+                        'bswap/poolConfigure': 1,
+                        'bswap/addLiquidityPreview': 1,
+                        'bswap/removeLiquidityPreview': 1,
                         # leveraged token endpoints
                         'blvt/tokenInfo': 1,
                         'blvt/subscribe/record': 1,
@@ -280,6 +286,8 @@ class binance(Exchange):
                         'asset/get-funding-asset': 1,
                         'account/disableFastWithdrawSwitch': 1,
                         'account/enableFastWithdrawSwitch': 1,
+                        'account/apiRestrictions/ipRestriction': 1,
+                        'account/apiRestrictions/ipRestriction/ipList': 1,
                         'capital/withdraw/apply': 1,
                         'margin/transfer': 1,
                         'margin/loan': 1,
@@ -288,6 +296,7 @@ class binance(Exchange):
                         'margin/order/oco': 1,
                         'margin/isolated/create': 1,
                         'margin/isolated/transfer': 1,
+                        'margin/isolated/account': 1,
                         'bnbBurn': 1,
                         'sub-account/margin/transfer': 1,
                         'sub-account/margin/enable': 1,
@@ -347,9 +356,11 @@ class binance(Exchange):
                         'userDataStream/isolated': 1,
                     },
                     'delete': {
+                        'account/apiRestrictions/ipRestriction/ipList': 1,
                         'margin/openOrders': 1,
                         'margin/order': 1,
                         'margin/orderList': 1,
+                        'margin/isolated/account': 1,
                         'userDataStream': 1,
                         'userDataStream/isolated': 1,
                         # brokerage API
@@ -578,6 +589,7 @@ class binance(Exchange):
                         'allOrders': 10,
                         'account': 10,
                         'myTrades': 10,
+                        'rateLimit/order': 20,
                     },
                     'post': {
                         'order/oco': 1,
@@ -700,7 +712,7 @@ class binance(Exchange):
                 'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
-                    'pay': 'PAY',
+                    'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
@@ -708,6 +720,7 @@ class binance(Exchange):
                 },
                 'typesByAccount': {
                     'MAIN': 'spot',
+                    'FUNDING': 'funding',
                     'MARGIN': 'margin',
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
@@ -1386,7 +1399,7 @@ class binance(Exchange):
             method = 'sapiGetMarginAccount'
         elif type == 'savings':
             method = 'sapiGetLendingUnionAccount'
-        elif type == 'pay':
+        elif type == 'funding':
             method = 'sapiPostAssetGetFundingAsset'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
@@ -1597,7 +1610,7 @@ class binance(Exchange):
                 account['total'] = usedAndTotal
                 account['used'] = usedAndTotal
                 result[code] = account
-        elif type == 'pay':
+        elif type == 'funding':
             for i in range(0, len(response)):
                 entry = response[i]
                 account = self.account()
@@ -1868,13 +1881,18 @@ class binance(Exchange):
             request['pair'] = market['id']   # Index price takes self argument instead of symbol
         else:
             request['symbol'] = market['id']
-        duration = self.parse_timeframe(timeframe)
+        # duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
-            if since > 0:
-                endTime = self.sum(since, limit * duration * 1000 - 1)
-                now = self.milliseconds()
-                request['endTime'] = min(now, endTime)
+            #
+            # It didn't work before without the endTime
+            # https://github.com/ccxt/ccxt/issues/8454
+            #
+            # if since > 0:
+            #     endTime = self.sum(since, limit * duration * 1000 - 1)
+            #     now = self.milliseconds()
+            #     request['endTime'] = min(now, endTime)
+            # }
         method = 'publicGetKlines'
         if price == 'mark':
             if market['inverse']:
@@ -3779,7 +3797,7 @@ class binance(Exchange):
             timestamp = self.safe_integer(entry, 'fundingTime')
             rates.append({
                 'info': entry,
-                'symbol': self.safe_string(entry, 'symbol'),
+                'symbol': self.safe_symbol(self.safe_string(entry, 'symbol')),
                 'fundingRate': self.safe_number(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),

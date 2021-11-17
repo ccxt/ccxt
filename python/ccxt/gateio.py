@@ -636,13 +636,16 @@ class gateio(Exchange):
                 for i in range(0, len(response)):
                     market = response[i]
                     id = self.safe_string(market, 'name')
-                    baseId, quoteId, date = id.split('_')
+                    parts = id.split('_')
+                    baseId = self.safe_string(parts, 0)
+                    quoteId = self.safe_string(parts, 1)
+                    date = self.safe_string(parts, 2)
                     linear = quoteId.lower() == settle
                     inverse = baseId.lower() == settle
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                     symbol = ''
-                    if date:
+                    if date is not None:
                         symbol = base + '/' + quote + '-' + date + ':' + self.safe_currency_code(settle)
                     else:
                         symbol = base + '/' + quote + ':' + self.safe_currency_code(settle)
@@ -1520,9 +1523,13 @@ class gateio(Exchange):
             if limit is not None:
                 request['limit'] = limit
         else:
+            timeframeSeconds = self.parse_timeframe(timeframe)
+            timeframeMilliseconds = timeframeSeconds * 1000
+            # align forward to the next timeframe alignment
+            since = self.sum(since - (since % timeframeMilliseconds), timeframeMilliseconds)
             request['from'] = int(since / 1000)
             if limit is not None:
-                request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe) - 1)
+                request['to'] = self.sum(request['from'], limit * timeframeSeconds - 1)
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

@@ -5,10 +5,7 @@ from time import time
 
 class Throttler:
     def __init__(self, config, loop=None):
-        if loop:
-            self.loop = loop
-        else:
-            self.loop = asyncio.get_event_loop()
+        self.loop = loop
         self.config = {
             'refillRate': 1.0,
             'delay': 0.001,

@@ -676,23 +676,20 @@ module.exports = class bitbns extends Exchange {
         timestamp = this.safeInteger (trade, 'timestamp', timestamp);
         const amountString = this.safeString2 (trade, 'amount', 'base_volume');
         const priceString = this.safeString2 (trade, 'rate', 'price');
-        const price = this.parseNumber (priceString);
         const factor = this.safeString (trade, 'factor');
-        const amountScaled = Precise.stringDiv (amountString, factor);
-        const amount = this.parseNumber (amountScaled);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountScaled));
+        const amountScaledString = Precise.stringDiv (amountString, factor);
         const symbol = market['symbol'];
         const side = this.safeStringLower (trade, 'type');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             const feeCurrencyCode = market['quote'];
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -702,11 +699,11 @@ module.exports = class bitbns extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountScaledString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

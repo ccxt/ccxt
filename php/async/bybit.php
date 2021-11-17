@@ -874,7 +874,7 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $method = 'v2PublicGetFundingPrevFundingRate';
+        $method = $market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
         $response = yield $this->$method (array_merge($request, $params));
         //
         // {
@@ -2165,7 +2165,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->ymd($since);
+            $request['start_date'] = $this->yyyymmdd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2221,7 +2221,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->ymd($since);
+            $request['start_date'] = $this->yyyymmdd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2361,7 +2361,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->ymd($since);
+            $request['start_date'] = $this->yyyymmdd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

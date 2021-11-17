@@ -1867,6 +1867,7 @@ class ftx(Exchange):
             # what are other statuses here?
             'confirmed': 'ok',  # deposits
             'complete': 'ok',  # withdrawals
+            'cancelled': 'canceled',  # deposits
         }
         return self.safe_string(statuses, status, status)
 
