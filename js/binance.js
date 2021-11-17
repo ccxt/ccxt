@@ -4954,4 +4954,47 @@ module.exports = class binance extends Exchange {
             'info': response,
         };
     }
+
+    async getMarginInterestRate (currency, since = undefined, limit = undefined, tier = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit > 100) {
+            throw new BadRequest (this.id + ' getMarginInterestRate limit parameter cannot exceed 100');
+        } else if (!limit) {
+            limit = 20;
+        }
+        const request = {
+            'asset': this.safeCurrencyCode (currency),
+            'limit': limit,
+        };
+        if (tier) {
+            request['vipLevel'] = tier;
+        }
+        if (since) {
+            const sinceDate = new Date (since);
+            const threeMonthsAgo = new Date ();
+            threeMonthsAgo.setMonth (threeMonthsAgo.getMonth () - 3);
+            threeMonthsAgo.setDate (threeMonthsAgo.getDate ());
+            threeMonthsAgo.setHours (0, 0, 0);
+            if (sinceDate <= threeMonthsAgo) {
+                throw new BadRequest (this.id + ' getMarginInterestRate since parameter cannot pre-date today - 3 months');
+            }
+            request['startTime'] = since;
+            const endTime = this.sum (since, limit * 86400000);
+            request['endTime'] = Math.min (endTime, this.milliseconds ());
+        }
+        const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const rate = response[i];
+            const timestamp = this.safeNumber (rate, 'timestamp');
+            result.push ({
+                'currency': this.safeCurrencyCode (this.safeString (rate, 'asset')),
+                'rate': this.safeNumber (rate, 'dailyInterestRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'tier': this.safeNumber (rate, 'vipLevel'),
+            });
+        }
+        return result;
+    }
 };
