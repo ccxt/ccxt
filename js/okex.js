@@ -29,6 +29,7 @@ module.exports = class okex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
@@ -42,6 +43,7 @@ module.exports = class okex extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchLeverage': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -53,6 +55,8 @@ module.exports = class okex extends Exchange {
                 'setLeverage': true,
                 'setPositionMode': true,
                 'setMarginMode': true,
+                'addMargin': true,
+                'reduceMargin': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -673,6 +677,7 @@ module.exports = class okex extends Exchange {
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy');
         const settleCurrency = this.safeString (market, 'settleCcy');
+        const settle = this.safeCurrencyCode (settleCurrency);
         const underlying = this.safeString (market, 'uly');
         if ((underlying !== undefined) && !spot) {
             const parts = underlying.split ('-');
@@ -683,7 +688,16 @@ module.exports = class okex extends Exchange {
         const linear = quoteId === settleCurrency;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = spot ? (base + '/' + quote) : id;
+        let symbol = base + '/' + quote;
+        let expiry = undefined;
+        if (contract) {
+            symbol = symbol + ':' + settle;
+            expiry = this.safeInteger (market, 'expTime');
+            if (expiry !== undefined) {
+                const ymd = this.yymmdd (expiry);
+                symbol = symbol + '-' + ymd;
+            }
+        }
         const tickSize = this.safeString (market, 'tickSz');
         const precision = {
             'amount': this.safeNumber (market, 'lotSz'),
@@ -697,12 +711,11 @@ module.exports = class okex extends Exchange {
         }
         const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
-        const contractSize = this.safeString (market, 'ctVal');
-        const leverage = this.safeNumber (market, 'lever', 1);
-        let expiry = undefined;
-        if (futures || option) {
-            expiry = this.safeNumber (market, 'expTime');
+        let contractSize = undefined;
+        if (contract) {
+            contractSize = this.safeString (market, 'ctVal');
         }
+        const leverage = this.safeNumber (market, 'lever', 1);
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -710,6 +723,8 @@ module.exports = class okex extends Exchange {
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': settleCurrency,
+            'settle': settle,
             'info': market,
             'type': type,
             'spot': spot,
@@ -1236,7 +1251,7 @@ module.exports = class okex extends Exchange {
                 defaultType = 'HistoryCandles';
             }
             const durationInMilliseconds = duration * 1000;
-            const startTime = since - 1;
+            const startTime = Math.max (since - 1, 0);
             request['before'] = startTime;
             request['after'] = this.sum (startTime, durationInMilliseconds * limit);
         }
@@ -1266,14 +1281,17 @@ module.exports = class okex extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchFundingRateHistory (symbol, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
         };
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1307,13 +1325,14 @@ module.exports = class okex extends Exchange {
             const rate = data[i];
             const timestamp = this.safeNumber (rate, 'fundingTime');
             rates.push ({
-                'symbol': this.safeString (rate, 'instId'),
+                'symbol': this.safeSymbol (this.safeString (rate, 'instId')),
                 'fundingRate': this.safeNumber (rate, 'realizedRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return rates;
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1561,6 +1580,11 @@ module.exports = class okex extends Exchange {
                 throw new BadRequest (this.id + ' params["tdMode"] must be either "isolated" or "cross"');
             }
         }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            request['ordType'] = 'post_only';
+            params = this.omit (params, [ 'postOnly' ]);
+        }
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId');
@@ -1746,9 +1770,9 @@ module.exports = class okex extends Exchange {
         }
         const marketId = this.safeString (order, 'instId');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const filled = this.safeNumber (order, 'accFillSz');
-        const price = this.safeNumber2 (order, 'px', 'slOrdPx');
-        const average = this.safeNumber (order, 'avgPx');
+        const filled = this.safeString (order, 'accFillSz');
+        const price = this.safeString2 (order, 'px', 'slOrdPx');
+        const average = this.safeString (order, 'avgPx');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCostString = this.safeString (order, 'fee');
         let amount = undefined;
@@ -1760,10 +1784,10 @@ module.exports = class okex extends Exchange {
         const instType = this.safeString (order, 'instType');
         if ((side === 'buy') && (type === 'market') && (instType === 'SPOT') && (tgtCcy === 'quote_ccy')) {
             // "sz" refers to the cost
-            cost = this.safeNumber (order, 'sz');
+            cost = this.safeString (order, 'sz');
         } else {
             // "sz" refers to the trade currency amount
-            amount = this.safeNumber (order, 'sz');
+            amount = this.safeString (order, 'sz');
         }
         let fee = undefined;
         if (feeCostString !== undefined) {
@@ -1780,7 +1804,7 @@ module.exports = class okex extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumber (order, 'slTriggerPx');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1802,7 +1826,7 @@ module.exports = class okex extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -2393,7 +2417,7 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const rawNetwork = this.safeString (params, 'network');
+        const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
@@ -2494,7 +2518,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2557,7 +2581,7 @@ module.exports = class okex extends Exchange {
             request['ccy'] = currency['id'];
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = Math.max (since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2728,6 +2752,36 @@ module.exports = class okex extends Exchange {
         };
     }
 
+    async fetchLeverage (symbol, params = {}) {
+        await this.loadMarkets ();
+        const marginMode = this.safeStringLower (params, 'mgnMode');
+        params = this.omit (params, [ 'mgnMode' ]);
+        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+            throw new BadRequest (this.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'instId': market['id'],
+            'mgnMode': marginMode,
+        };
+        const response = await this.privateGetAccountLeverageInfo (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "instId": "BTC-USDT-SWAP",
+        //           "lever": "5.00000000",
+        //           "mgnMode": "isolated",
+        //           "posSide": "net"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        return response;
+    }
+
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2892,6 +2946,7 @@ module.exports = class okex extends Exchange {
         //       "liab": "",
         //       "liabCcy": "",
         //       "liqPx": "12608.959083877446",
+        //       "markPx": "4786.459271773621",
         //       "margin": "",
         //       "mgnMode": "cross",
         //       "mgnRatio": "140.49930117599155",
@@ -2916,11 +2971,12 @@ module.exports = class okex extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const contractsString = this.safeString (position, 'pos');
+        const contractsAbs = Precise.stringAbs (contractsString);
         let contracts = undefined;
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
         if (contractsString !== undefined) {
-            contracts = this.parseNumber (Precise.stringAbs (contractsString));
+            contracts = this.parseNumber (contractsAbs);
             if (side === 'net') {
                 if (Precise.stringGt (contractsString, '0')) {
                     side = 'long';
@@ -2929,37 +2985,40 @@ module.exports = class okex extends Exchange {
                 }
             }
         }
-        const notionalString = this.safeString (position, 'notionalUsd');
+        const markPriceString = this.safeString (position, 'markPx');
+        let notionalString = this.safeString (position, 'notionalUsd');
+        if (market['inverse']) {
+            notionalString = Precise.stringDiv (notionalString, markPriceString);
+        }
         const notional = this.parseNumber (notionalString);
         const marginType = this.safeString (position, 'mgnMode');
         let initialMarginString = undefined;
         const entryPriceString = this.safeString (position, 'avgPx');
         const unrealizedPnlString = this.safeString (position, 'upl');
+        const leverageString = this.safeString (position, 'lever');
+        let initialMarginPercentage = undefined;
+        let collateralString = undefined;
         if (marginType === 'cross') {
             initialMarginString = this.safeString (position, 'imr');
-        } else {
-            initialMarginString = this.safeString (position, 'margin');
+            collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
+        } else if (marginType === 'isolated') {
+            initialMarginPercentage = Precise.stringDiv ('1', leverageString);
+            collateralString = this.safeString (position, 'margin');
         }
         const maintenanceMarginString = this.safeString (position, 'mmr');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
-        let initialMarginPercentage = undefined;
-        let maintenanceMarginPercentage = undefined;
-        if (market['inverse']) {
-            const notionalValue = Precise.stringDiv (Precise.stringMul (contractsString, market['contractSize']), entryPriceString);
-            maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalValue);
-            initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalValue, 4));
-        } else {
-            maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalString);
+        let maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalString);
+        if (initialMarginPercentage === undefined) {
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
+        } else if (initialMarginString === undefined) {
+            initialMarginString = Precise.stringMul (initialMarginPercentage, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentage, rounder), '1', 4));
-        const collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
         const liquidationPrice = this.safeNumber (position, 'liqPx');
         const percentageString = this.safeString (position, 'uplRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
         const timestamp = this.safeInteger (position, 'uTime');
-        const leverage = this.safeNumber (position, 'lever');
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
         return {
             'info': position,
@@ -2972,6 +3031,7 @@ module.exports = class okex extends Exchange {
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': this.parseNumber (market['contractSize']),
+            'markPrice': this.parseNumber (markPriceString),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
@@ -2981,7 +3041,7 @@ module.exports = class okex extends Exchange {
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
-            'leverage': leverage,
+            'leverage': this.parseNumber (leverageString),
             'marginRatio': marginRatio,
         };
     }
@@ -3119,12 +3179,17 @@ module.exports = class okex extends Exchange {
         //       "nextFundingTime": "1634284800000"
         //     }
         //
-        const previousFundingRate = this.safeNumber (fundingRate, 'fundingRate');
-        const previousFundingTimestamp = this.safeInteger (fundingRate, 'fundingTime');
+        // in the response above nextFundingRate is actually two funding rates from now
+        //
+        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'fundingTime');
+        let previousFundingTimestamp = undefined;
+        if (nextFundingRateTimestamp !== undefined) {
+            // eight hours
+            previousFundingTimestamp = nextFundingRateTimestamp - 28800000;
+        }
         const marketId = this.safeString (fundingRate, 'instId');
         const symbol = this.safeSymbol (marketId, market);
-        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
-        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
+        const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
         // https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return {
@@ -3136,7 +3201,7 @@ module.exports = class okex extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'previousFundingRate': previousFundingRate,
+            'previousFundingRate': undefined,
             'nextFundingRate': nextFundingRate,
             'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
             'nextFundingTimestamp': nextFundingRateTimestamp,
@@ -3174,6 +3239,133 @@ module.exports = class okex extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const entry = this.safeValue (data, 0, {});
         return this.parseFundingRate (entry, market);
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'ccy': currency['id'],
+            // 'mgnMode': 'isolated', // isolated, cross
+            // 'ctType': 'linear', // linear, inverse, only applicable to FUTURES/SWAP
+            'type': '8',
+            //
+            // supported values for type
+            //
+            //     1 Transfer
+            //     2 Trade
+            //     3 Delivery
+            //     4 Auto token conversion
+            //     5 Liquidation
+            //     6 Margin transfer
+            //     7 Interest deduction
+            //     8 Funding fee
+            //     9 ADL
+            //     10 Clawback
+            //     11 System token conversion
+            //     12 Strategy transfer
+            //     13 ddh
+            //
+            // 'subType': '',
+            //
+            // supported values for subType
+            //
+            //     1 Buy
+            //     2 Sell
+            //     3 Open long
+            //     4 Open short
+            //     5 Close long
+            //     6 Close short
+            //     9 Interest deduction
+            //     11 Transfer in
+            //     12 Transfer out
+            //     160 Manual margin increase
+            //     161 Manual margin decrease
+            //     162 Auto margin increase
+            //     110 Auto buy
+            //     111 Auto sell
+            //     118 System token conversion transfer in
+            //     119 System token conversion transfer out
+            //     100 Partial liquidation close long
+            //     101 Partial liquidation close short
+            //     102 Partial liquidation buy
+            //     103 Partial liquidation sell
+            //     104 Liquidation long
+            //     105 Liquidation short
+            //     106 Liquidation buy
+            //     107 Liquidation sell
+            //     110 Liquidation transfer in
+            //     111 Liquidation transfer out
+            //     125 ADL close long
+            //     126 ADL close short
+            //     127 ADL buy
+            //     128 ADL sell
+            //     131 ddh buy
+            //     132 ddh sell
+            //     170 Exercised
+            //     171 Counterparty exercised
+            //     172 Expired OTM
+            //     112 Delivery long
+            //     113 Delivery short
+            //     117 Delivery/Exercise clawback
+            //     173 Funding fee expense
+            //     174 Funding fee income
+            //     200 System transfer in
+            //     201 Manually transfer in
+            //     202 System transfer out
+            //     203 Manually transfer out
+            //
+            // 'after': 'id', // earlier than the requested bill ID
+            // 'before': 'id', // newer than the requested bill ID
+            // 'limit': '100', // default 100, max 100
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit.toString (); // default 100, max 100
+        }
+        const response = await this.privateGetAccountBills (this.extend (request, params));
+        //
+        //     {
+        //       "bal": "0.0242946200998573",
+        //       "balChg": "0.0000148752712240",
+        //       "billId": "377970609204146187",
+        //       "ccy": "ETH",
+        //       "execType": "",
+        //       "fee": "0",
+        //       "from": "",
+        //       "instId": "ETH-USD-SWAP",
+        //       "instType": "SWAP",
+        //       "mgnMode": "isolated",
+        //       "notes": "",
+        //       "ordId": "",
+        //       "pnl": "0.000014875271224",
+        //       "posBal": "0",
+        //       "posBalChg": "0",
+        //       "subType": "174",
+        //       "sz": "9",
+        //       "to": "",
+        //       "ts": "1636387215588",
+        //       "type": "8"
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeInteger (entry, 'ts');
+            const instId = this.safeString (entry, 'instId');
+            const market = this.safeMarket (instId);
+            result.push ({
+                'info': entry,
+                'symbol': market['symbol'],
+                'code': market['inverse'] ? market['base'] : market['quote'],
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': this.safeString (entry, 'billId'),
+                'amount': this.safeNumber (entry, 'balChg'),
+            });
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
@@ -3277,6 +3469,60 @@ module.exports = class okex extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const posSide = this.safeString (params, 'posSide', 'net');
+        params = this.omit (params, [ 'posSide' ]);
+        const request = {
+            'instId': market['id'],
+            'amt': amount,
+            'type': type,
+            'posSide': posSide,
+        };
+        const response = await this.privatePostAccountPositionMarginBalance (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "amt": "0.01",
+        //           "instId": "ETH-USD-SWAP",
+        //           "posSide": "net",
+        //           "type": "reduce"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const entry = this.safeValue (data, 0, {});
+        const errorCode = this.safeString (response, 'code');
+        const status = (errorCode === '0') ? 'ok' : 'failed';
+        const responseAmount = this.safeNumber (entry, 'amt');
+        const responseType = this.safeString (entry, 'type');
+        const marketId = this.safeString (entry, 'instId');
+        const responseMarket = this.safeMarket (marketId, market);
+        const code = responseMarket['inverse'] ? responseMarket['base'] : responseMarket['quote'];
+        symbol = responseMarket['symbol'];
+        return {
+            'info': response,
+            'type': responseType,
+            'amount': responseAmount,
+            'code': code,
+            'symbol': symbol,
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

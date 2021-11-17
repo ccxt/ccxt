@@ -574,7 +574,7 @@ class bytetrade(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.check_required_dependencies()

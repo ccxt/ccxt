@@ -571,7 +571,7 @@ class coinex extends Exchange {
                 'cost' => $this->safe_number($order, 'deal_fee'),
             ),
             'info' => $order,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

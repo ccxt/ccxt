@@ -1266,7 +1266,7 @@ class bitpanda(Exchange):
             'status': status,
             # 'fee': None,
             'trades': rawTrades,
-        })
+        }, market)
 
     def parse_time_in_force(self, timeInForce):
         timeInForces = {

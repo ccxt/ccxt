@@ -1184,7 +1184,7 @@ module.exports = class crex24 extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            request['from'] = this.ymd (since, 'T');
+            request['from'] = this.ymdhms (since, 'T');
         }
         const response = await this.accountGetMoneyTransfers (this.extend (request, params));
         //

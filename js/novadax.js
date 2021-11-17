@@ -861,15 +861,15 @@ module.exports = class novadax extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'id');
-        const amount = this.safeNumber (order, 'amount');
-        const price = this.safeNumber (order, 'price');
-        const cost = this.safeNumber2 (order, 'filledValue', 'value');
+        const amount = this.safeString (order, 'amount');
+        const price = this.safeString (order, 'price');
+        const cost = this.safeString2 (order, 'filledValue', 'value');
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeInteger (order, 'timestamp');
-        const average = this.safeNumber (order, 'averagePrice');
-        const filled = this.safeNumber (order, 'filledAmount');
+        const average = this.safeString (order, 'averagePrice');
+        const filled = this.safeString (order, 'filledAmount');
         let fee = undefined;
         const feeCost = this.safeNumber (order, 'filledFee');
         if (feeCost !== undefined) {
@@ -881,7 +881,7 @@ module.exports = class novadax extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
@@ -903,7 +903,7 @@ module.exports = class novadax extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

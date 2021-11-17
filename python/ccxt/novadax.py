@@ -833,15 +833,15 @@ class novadax(Exchange):
         #     }
         #
         id = self.safe_string(order, 'id')
-        amount = self.safe_number(order, 'amount')
-        price = self.safe_number(order, 'price')
-        cost = self.safe_number_2(order, 'filledValue', 'value')
+        amount = self.safe_string(order, 'amount')
+        price = self.safe_string(order, 'price')
+        cost = self.safe_string_2(order, 'filledValue', 'value')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_integer(order, 'timestamp')
-        average = self.safe_number(order, 'averagePrice')
-        filled = self.safe_number(order, 'filledAmount')
+        average = self.safe_string(order, 'averagePrice')
+        filled = self.safe_string(order, 'filledAmount')
         fee = None
         feeCost = self.safe_number(order, 'filledFee')
         if feeCost is not None:
@@ -852,7 +852,7 @@ class novadax(Exchange):
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'info': order,
@@ -874,7 +874,7 @@ class novadax(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

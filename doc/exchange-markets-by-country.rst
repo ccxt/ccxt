@@ -184,20 +184,20 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - latoken
      - `Latoken <https://latoken.com/invite?r=mvgp2djk>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.latoken.com
-          :alt: API Version 1
+          :alt: API Version 2
      
    * - Cayman Islands
      - .. image:: https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg
           :target: https://latoken.com/invite?r=mvgp2djk
-          :alt: latoken2
+          :alt: latoken1
      
-     - latoken2
+     - latoken1
      - `Latoken <https://latoken.com/invite?r=mvgp2djk>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
+     - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://api.latoken.com
-          :alt: API Version 2
+          :alt: API Version 1
      
    * - Chile
      - .. image:: https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg
@@ -1366,17 +1366,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 3
      
    * - US
-     - .. image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg
-          :target: https://btc-alpha.com/?r=123788
-          :alt: btcalpha
-     
-     - btcalpha
-     - `BTC-Alpha <https://btc-alpha.com/?r=123788>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://btc-alpha.github.io/api-docs
-          :alt: API Version 1
-     
-   * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
           :target: https://www.coinbase.com/join/58cbe25a355148797479dbd2
           :alt: coinbase
@@ -1440,6 +1429,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `EQUOS <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://developer.eqonex.com
+          :alt: API Version *
+     
+   * - US
+     - .. image:: https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg
+          :target: https://ftx.com/#a=ccxt
+          :alt: ftxus
+     
+     - ftxus
+     - `FTX US <https://ftx.com/#a=ccxt>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://github.com/ftexchange/ftx
           :alt: API Version *
      
    * - US

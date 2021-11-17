@@ -29,7 +29,7 @@ class gemini extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchClosedOrders' => null,
-                'fetchDepositAddress' => null,
+                'fetchDepositAddress' => null, // TODO
                 'fetchDeposits' => null,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -114,6 +114,7 @@ class gemini extends Exchange {
                         'v1/transfers',
                         'v1/addresses/{network}',
                         'v1/deposit/{network}/newAddress',
+                        'v1/deposit/{currency}/newAddress',
                         'v1/withdraw/{currency}',
                         'v1/account/transfer/{currency}',
                         'v1/payments/addbank',
@@ -198,6 +199,26 @@ class gemini extends Exchange {
             'options' => array(
                 'fetchMarketsMethod' => 'fetch_markets_from_web',
                 'fetchTickerMethod' => 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
+                'networkIds' => array(
+                    'bitcoin' => 'BTC',
+                    'ethereum' => 'ERC20',
+                    'bitcoincash' => 'BCH',
+                    'litecoin' => 'LTC',
+                    'zcash' => 'ZEC',
+                    'filecoin' => 'FIL',
+                    'dogecoin' => 'DOGE',
+                    'tezos' => 'XTZ',
+                ),
+                'networks' => array(
+                    'BTC' => 'bitcoin',
+                    'ERC20' => 'ethereum',
+                    'BCH' => 'bitcoincash',
+                    'LTC' => 'litecoin',
+                    'ZEC' => 'zcash',
+                    'FIL' => 'filecoin',
+                    'DOGE' => 'dogecoin',
+                    'XTZ' => 'tezos',
+                ),
             ),
         ));
     }
@@ -673,7 +694,7 @@ class gemini extends Exchange {
             'remaining' => $remaining,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -811,6 +832,43 @@ class gemini extends Exchange {
             'updated' => null,
             'fee' => $fee,
         );
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //      {
+        //          $address => "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        //          timestamp => "1636813923098",
+        //          addressVersion => "eV1"                                         }
+        //      }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        return array(
+            'currency' => $currency,
+            'network' => null,
+            'address' => $address,
+            'tag' => null,
+            'info' => $depositAddress,
+        );
+    }
+
+    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+        $this->load_markets();
+        $network = $this->safe_string($params, 'network');
+        if ($network === null) {
+            throw new ArgumentsRequired($this->id . 'fetchDepositAddressesByNetwork() requires a $network parameter');
+        }
+        $params = $this->omit($params, 'network');
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $networkId = $this->safe_string($networks, $network, $network);
+        $networkIds = $this->safe_value($this->options, 'networkIds', array());
+        $networkCode = $this->safe_string($networkIds, $networkId, $network);
+        $request = array(
+            'network' => $networkId,
+        );
+        $response = $this->privatePostV1AddressesNetwork (array_merge($request, $params));
+        $results = $this->parse_deposit_addresses($response, [$code], false, array( 'network' => $networkCode, 'currency' => $code ));
+        return $this->group_by($results, 'network');
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

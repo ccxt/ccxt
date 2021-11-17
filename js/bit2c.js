@@ -323,7 +323,7 @@ module.exports = class bit2c extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        });
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -335,8 +335,8 @@ module.exports = class bit2c extends Exchange {
         }
         request['take'] = limit;
         if (since !== undefined) {
-            request['toTime'] = this.ymd (this.milliseconds (), '.');
-            request['fromTime'] = this.ymd (since, '.');
+            request['toTime'] = this.yyyymmdd (this.milliseconds (), '.');
+            request['fromTime'] = this.yyyymmdd (since, '.');
         }
         if (symbol !== undefined) {
             market = this.market (symbol);

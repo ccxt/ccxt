@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\InvalidOrder;
-use \ccxt\Precise;
 
 class qtrade extends Exchange {
 
@@ -102,14 +101,18 @@ class qtrade extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'quote',
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.0025,
+                    'taker' => 0.005,
                     'maker' => 0.0,
                 ),
                 'funding' => array(
                     'withdraw' => array(),
                 ),
+            ),
+            'commonCurrencies' => array(
+                'BTM' => 'Bitmark',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -634,17 +637,12 @@ class qtrade extends Exchange {
         }
         $side = $this->safe_string($trade, 'side');
         $marketId = $this->safe_string($trade, 'market_string');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
-        $cost = $this->safe_number_2($trade, 'base_volume', 'base_amount');
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string_2($trade, 'market_amount', 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $market = $this->safe_market($marketId, $market);
+        $cost = $this->safe_string_2($trade, 'base_volume', 'base_amount');
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string_2($trade, 'market_amount', 'amount');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'base_fee');
+        $feeCost = $this->safe_string($trade, 'base_fee');
         if ($feeCost !== null) {
             $feeCurrencyCode = ($market === null) ? null : $market['quote'];
             $fee = array(
@@ -655,12 +653,12 @@ class qtrade extends Exchange {
         $taker = $this->safe_value($trade, 'taker', true);
         $takerOrMaker = $taker ? 'taker' : 'maker';
         $orderId = $this->safe_string($trade, 'order_id');
-        $result = array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
             'side' => $side,
@@ -669,8 +667,7 @@ class qtrade extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
-        return $result;
+        ), $market);
     }
 
     public function fetch_balance($params = array ()) {

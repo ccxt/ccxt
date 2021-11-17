@@ -565,7 +565,7 @@ class tidex(Exchange):
             'clientOrderId': None,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -620,7 +620,7 @@ class tidex(Exchange):
             'fee': fee,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

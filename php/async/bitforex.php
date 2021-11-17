@@ -7,7 +7,6 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
-use \ccxt\Precise;
 
 class bitforex extends Exchange {
 
@@ -179,12 +178,9 @@ class bitforex extends Exchange {
         $orderId = null;
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $sideId = $this->safe_integer($trade, 'direction');
         $side = $this->parse_side($sideId);
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -192,13 +188,13 @@ class bitforex extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'order' => $orderId,
             'fee' => null,
             'takerOrMaker' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -390,7 +386,7 @@ class bitforex extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

@@ -463,7 +463,7 @@ class bitso(Exchange):
             'fee': None,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=25, params={}):
         self.load_markets()

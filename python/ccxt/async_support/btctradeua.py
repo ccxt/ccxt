@@ -338,7 +338,7 @@ class btctradeua(Exchange):
             'cost': None,
             'average': None,
             'fee': None,
-        })
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

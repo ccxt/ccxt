@@ -1246,8 +1246,8 @@ class bitget extends Exchange {
         //
         //     {
         //         "$id":"1",
-        //         "$price":"9533.81",
-        //         "$amount":"0.7326",
+        //         "price":"9533.81",
+        //         "amount":"0.7326",
         //         "direction":"sell",
         //         "ts":"1595604964000"
         //     }
@@ -1256,7 +1256,7 @@ class bitget extends Exchange {
         //
         //     {
         //         "trade_id":"670581881367954915",
-        //         "$price":"9553.00",
+        //         "price":"9553.00",
         //         "size":"20",
         //         "$side":"sell",
         //         "$timestamp":"1595605100004",
@@ -1272,7 +1272,7 @@ class bitget extends Exchange {
         //         "$symbol" => "eth_usdt",
         //         "$type" => "buy-limit",
         //         "source" => "api",
-        //         "$price" => "100.1000000000",
+        //         "price" => "100.1000000000",
         //         "filled_amount" => "0.9845000000",
         //         "filled_fees" => "0.0019690000",
         //         "created_at" => 1494901400487
@@ -1289,7 +1289,7 @@ class bitget extends Exchange {
         //         "filled_fees":"0.0000834000000000",
         //         "match_id":"673491702661292033",
         //         "order_id":"673491720340279296",
-        //         "$price":"359.240000000000",
+        //         "price":"359.240000000000",
         //         "source":"接口",
         //         "$symbol":"eth_usdt",
         //         "$type":"buy-$market"
@@ -1301,7 +1301,7 @@ class bitget extends Exchange {
         //         "trade_id":"6667390",
         //         "$symbol":"cmt_btcusdt",
         //         "order_id":"525946425993854915",
-        //         "$price":"9839.00",
+        //         "price":"9839.00",
         //         "order_qty":"3466",
         //         "$fee":"-0.0000528407360000",
         //         "$timestamp":"1561121514442",
@@ -1340,9 +1340,6 @@ class bitget extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'filled_amount', 'order_qty');
         $amountString = $this->safe_string_2($trade, 'size', 'amount', $amountString);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
@@ -1367,22 +1364,21 @@ class bitget extends Exchange {
         } else {
             $feeCostString = Precise::string_neg($feeCostString);
         }
-        $feeCost = $this->parse_number($feeCostString);
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrency = ($side === 'buy') ? $base : $quote;
             $fee = array(
                 // $fee is either a positive number (invitation rebate)
                 // or a negative number (transaction $fee deduction)
                 // therefore we need to invert the $fee
                 // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrency,
             );
         }
         $orderId = $this->safe_string($trade, 'order_id');
         $id = $this->safe_string_2($trade, 'trade_id', 'id');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1392,11 +1388,11 @@ class bitget extends Exchange {
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $limit = null, $since = null, $params = array ()) {
@@ -1957,7 +1953,7 @@ class bitget extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -2615,15 +2611,15 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'method' => 'matchresults',
             // 'types' => 'buy-$market,sell-$market,buy-$limit,sell-limit',
-            // 'start_date' => $this->ymd($since),
-            // 'end_date' => $this->ymd($this->milliseconds()),
+            // 'start_date' => $this->yyyymmdd($since),
+            // 'end_date' => $this->yyyymmdd($this->milliseconds()),
             // 'size' => 100,
             // 'direct' => 'next',
         );
         if ($since !== null) {
-            $request['start_date'] = $this->ymd($since);
+            $request['start_date'] = $this->yyyymmdd($since);
             $end = $this->sum($since, 2 * 24 * 60 * 60 * 1000);
-            $request['end_date'] = $this->ymd($end);
+            $request['end_date'] = $this->yyyymmdd($end);
         }
         if ($limit !== null) {
             $request['size'] = $limit; // default 100, max 100

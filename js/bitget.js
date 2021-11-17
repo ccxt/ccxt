@@ -1337,9 +1337,6 @@ module.exports = class bitget extends Exchange {
         const priceString = this.safeString (trade, 'price');
         let amountString = this.safeString2 (trade, 'filled_amount', 'order_qty');
         amountString = this.safeString2 (trade, 'size', 'amount', amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
@@ -1364,22 +1361,21 @@ module.exports = class bitget extends Exchange {
         } else {
             feeCostString = Precise.stringNeg (feeCostString);
         }
-        const feeCost = this.parseNumber (feeCostString);
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrency = (side === 'buy') ? base : quote;
             fee = {
                 // fee is either a positive number (invitation rebate)
                 // or a negative number (transaction fee deduction)
                 // therefore we need to invert the fee
                 // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             };
         }
         const orderId = this.safeString (trade, 'order_id');
         const id = this.safeString2 (trade, 'trade_id', 'id');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1389,11 +1385,11 @@ module.exports = class bitget extends Exchange {
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, limit = undefined, since = undefined, params = {}) {
@@ -1954,7 +1950,7 @@ module.exports = class bitget extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -2612,15 +2608,15 @@ module.exports = class bitget extends Exchange {
             'symbol': market['id'],
             'method': 'matchresults',
             // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
-            // 'start_date': this.ymd (since),
-            // 'end_date': this.ymd (this.milliseconds ()),
+            // 'start_date': this.yyyymmdd (since),
+            // 'end_date': this.yyyymmdd (this.milliseconds ()),
             // 'size': 100,
             // 'direct': 'next',
         };
         if (since !== undefined) {
-            request['start_date'] = this.ymd (since);
+            request['start_date'] = this.yyyymmdd (since);
             const end = this.sum (since, 2 * 24 * 60 * 60 * 1000);
-            request['end_date'] = this.ymd (end);
+            request['end_date'] = this.yyyymmdd (end);
         }
         if (limit !== undefined) {
             request['size'] = limit; // default 100, max 100

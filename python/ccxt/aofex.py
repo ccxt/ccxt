@@ -546,14 +546,10 @@ class aofex(Exchange):
         side = self.safe_string(trade, 'direction')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'amount', 'number')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.safe_number(trade, 'total_price')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        feeCost = self.safe_number(trade, 'fee')
+        costString = self.safe_string(trade, 'total_price')
+        feeCostString = self.safe_string(trade, 'fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyCode = None
             if market is not None:
                 if side == 'buy':
@@ -561,10 +557,10 @@ class aofex(Exchange):
                 elif side == 'sell':
                     feeCurrencyCode = market['quote']
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -574,11 +570,11 @@ class aofex(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -732,7 +728,7 @@ class aofex(Exchange):
             'remaining': None,
             'trades': rawTrades,
             'fee': None,
-        })
+        }, market)
 
     def fetch_closed_order(self, id, symbol=None, params={}):
         self.load_markets()

@@ -32,6 +32,7 @@ class bybit extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
@@ -873,7 +874,7 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $method = 'v2PublicGetFundingPrevFundingRate';
+        $method = $market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
         $response = yield $this->$method (array_merge($request, $params));
         //
         // {
@@ -1368,7 +1369,7 @@ class bybit extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -2164,7 +2165,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->ymd($since);
+            $request['start_date'] = $this->yyyymmdd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2220,7 +2221,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->ymd($since);
+            $request['start_date'] = $this->yyyymmdd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2360,7 +2361,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->ymd($since);
+            $request['start_date'] = $this->yyyymmdd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

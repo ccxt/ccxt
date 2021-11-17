@@ -724,7 +724,7 @@ module.exports = class bitfinex extends Exchange {
         }, market);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'tid');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const type = undefined;
@@ -732,20 +732,17 @@ module.exports = class bitfinex extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
         if ('fee_amount' in trade) {
-            const feeCost = -this.safeNumber (trade, 'fee_amount');
+            const feeCostString = Precise.stringNeg (this.safeString (trade, 'fee_amount'));
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -755,11 +752,11 @@ module.exports = class bitfinex extends Exchange {
             'order': orderId,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
@@ -919,7 +916,7 @@ module.exports = class bitfinex extends Exchange {
             'fee': undefined,
             'cost': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

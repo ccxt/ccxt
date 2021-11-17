@@ -528,8 +528,8 @@ class aofex extends Exchange {
         //
         //     {
         //         $id => 1584948803298490,
-        //         $amount => "2.737",
-        //         $price => "0.021209",
+        //         amount => "2.737",
+        //         price => "0.021209",
         //         direction => "sell",
         //         ts => 1584948803
         //     }
@@ -539,7 +539,7 @@ class aofex extends Exchange {
         //     {
         //         "$id":null,
         //         "$ctime":"2020-03-23 20:07:17",
-        //         "$price":"123.9",
+        //         "price":"123.9",
         //         "number":"0.010688626311541565",
         //         "total_price":"1.324320799999999903",
         //         "$fee":"0.000021377252623083"
@@ -555,15 +555,10 @@ class aofex extends Exchange {
         $side = $this->safe_string($trade, 'direction');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'amount', 'number');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'total_price');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
-        $feeCost = $this->safe_number($trade, 'fee');
+        $costString = $this->safe_string($trade, 'total_price');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyCode = null;
             if ($market !== null) {
                 if ($side === 'buy') {
@@ -573,11 +568,11 @@ class aofex extends Exchange {
                 }
             }
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -587,11 +582,11 @@ class aofex extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -752,7 +747,7 @@ class aofex extends Exchange {
             'remaining' => null,
             'trades' => $rawTrades,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_closed_order($id, $symbol = null, $params = array ()) {

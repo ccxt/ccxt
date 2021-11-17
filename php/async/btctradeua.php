@@ -373,7 +373,7 @@ class btctradeua extends Exchange {
             'cost' => null,
             'average' => null,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

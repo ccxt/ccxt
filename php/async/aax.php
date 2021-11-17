@@ -619,9 +619,11 @@ class aax extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "p":"9395.50000000",
-        //         "q":"50.000000",
-        //         "t":1592563996718
+        //         "i":"T1qzQeZG9g",
+        //         "p":"-61348.81000000",
+        //         "q":"0.045400",
+        //         "s":"sell",
+        //         "t":1635731102731
         //     }
         //
         // private fetchMyTrades
@@ -642,7 +644,7 @@ class aax extends Exchange {
         //         "orderQty":"0.02",
         //         "orderStatus":3,
         //         "$orderType":1,
-        //         "$price":"1198.25",
+        //         "price":"1198.25",
         //         "quote":"USDT",
         //         "rejectCode":null,
         //         "rejectReason":null,
@@ -661,12 +663,10 @@ class aax extends Exchange {
             $timestamp = $this->parse8601($this->safe_string($trade, 'createTime'));
         }
         $id = $this->safe_string_2($trade, 'tid', 'tradeID');
-        $symbol = null;
+        $id = $this->safe_string($trade, 'i', $id);
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $market['symbol'];
         $priceString = $this->safe_string_2($trade, 'p', 'filledPrice');
         $amountString = $this->safe_string_2($trade, 'q', 'filledQty');
         $orderId = $this->safe_string($trade, 'orderID');
@@ -685,12 +685,9 @@ class aax extends Exchange {
             $side = ($priceString[0] === '-') ? 'sell' : 'buy';
         }
         $priceString = Precise::string_abs($priceString);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderType = $this->parse_order_type($this->safe_string($trade, 'orderType'));
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'commission');
+        $feeCost = $this->safe_string($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrency = null;
             if ($market !== null) {
@@ -705,7 +702,7 @@ class aax extends Exchange {
                 'cost' => $feeCost,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -715,11 +712,11 @@ class aax extends Exchange {
             'side' => $side,
             'order' => $orderId,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -734,11 +731,12 @@ class aax extends Exchange {
         $response = yield $this->publicGetMarketTrades ($request);
         //
         //     {
-        //         "e":"BTCUSDFP@$trades",
-        //         "$trades" => array(
-        //             array("p":"9395.50000000","q":"50.000000","t":1592563996718),
-        //             array("p":"9395.50000000","q":"50.000000","t":1592563993577),
-        //         ),
+        //         "e":"BTCUSDT@$trades",
+        //         "$trades":array(
+        //             array("i":"T1qzQeZG9g","p":"-61348.81000000","q":"0.045400","s":"sell","t":1635731102731),
+        //             array("i":"T1qzQeU6UK","p":"61343.10000000","q":"0.179300","s":"buy","t":1635731102133),
+        //             array("i":"T1qzQe5BQm","p":"-61346.02000000","q":"0.021100","s":"sell","t":1635731099231),
+        //         )
         //     }
         //
         $trades = $this->safe_value($response, 'trades', array());
@@ -1413,8 +1411,8 @@ class aax extends Exchange {
             // 'base' => $market['baseId'],
             // 'quote' => $market['quoteId'],
             // 'orderStatus' => null, // 1 new, 2 filled, 3 canceled
-            // 'startDate' => $this->ymd($since),
-            // 'endDate' => $this->ymd($this->milliseconds()),
+            // 'startDate' => $this->yyyymmdd($since),
+            // 'endDate' => $this->yyyymmdd($this->milliseconds()),
             // 'orderType' => null, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side' => 'null', // BUY, SELL
             // 'clOrdID' => $clientOrderId,
@@ -1443,7 +1441,7 @@ class aax extends Exchange {
             $request['pageSize'] = $limit; // default 10
         }
         if ($since !== null) {
-            $request['startDate'] = $this->ymd($since);
+            $request['startDate'] = $this->yyyymmdd($since);
         }
         $response = yield $this->$method (array_merge($request, $params));
         //
@@ -1689,7 +1687,7 @@ class aax extends Exchange {
             'cost' => null,
             'trades' => null,
             'fee' => $fee,
-        ));
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1701,8 +1699,8 @@ class aax extends Exchange {
             // 'orderID' => id,
             // 'base' => $market['baseId'],
             // 'quote' => $market['quoteId'],
-            // 'startDate' => $this->ymd($since),
-            // 'endDate' => $this->ymd($this->milliseconds()),
+            // 'startDate' => $this->yyyymmdd($since),
+            // 'endDate' => $this->yyyymmdd($this->milliseconds()),
             // 'orderType' => null, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side' => 'null', // BUY, SELL
         );
@@ -1725,7 +1723,7 @@ class aax extends Exchange {
             $request['pageSize'] = $limit; // default 10
         }
         if ($since !== null) {
-            $request['startDate'] = $this->ymd($since);
+            $request['startDate'] = $this->yyyymmdd($since);
         }
         $response = yield $this->$method (array_merge($request, $params));
         //

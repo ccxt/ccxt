@@ -727,7 +727,7 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         $id = $this->safe_string($trade, 'tid');
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $type = null;
@@ -735,20 +735,17 @@ class bitfinex extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
         if (is_array($trade) && array_key_exists('fee_amount', $trade)) {
-            $feeCost = -$this->safe_number($trade, 'fee_amount');
+            $feeCostString = Precise::string_neg($this->safe_string($trade, 'fee_amount'));
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -758,11 +755,11 @@ class bitfinex extends Exchange {
             'order' => $orderId,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 50, $params = array ()) {
@@ -922,7 +919,7 @@ class bitfinex extends Exchange {
             'fee' => null,
             'cost' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

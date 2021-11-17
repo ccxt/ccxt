@@ -29,6 +29,7 @@ module.exports = class bybit extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
                 'fetchFundingRate': true,
+                'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
@@ -870,7 +871,7 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = 'v2PublicGetFundingPrevFundingRate';
+        const method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
         const response = await this[method] (this.extend (request, params));
         //
         // {
@@ -1365,7 +1366,7 @@ module.exports = class bybit extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -2161,7 +2162,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.ymd (since);
+            request['start_date'] = this.yyyymmdd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2217,7 +2218,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.ymd (since);
+            request['start_date'] = this.yyyymmdd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2357,7 +2358,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.ymd (since);
+            request['start_date'] = this.yyyymmdd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;

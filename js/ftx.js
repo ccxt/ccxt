@@ -290,7 +290,6 @@ module.exports = class ftx extends Exchange {
                 'exact': {
                     'Please slow down': RateLimitExceeded, // {"error":"Please slow down","success":false}
                     'Size too small for provide': InvalidOrder, // {"error":"Size too small for provide","success":false}
-                    'Not logged in': AuthenticationError, // {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder, // {"error":"Size too small","success":false}
@@ -309,6 +308,9 @@ module.exports = class ftx extends Exchange {
                     'Not approved to trade this product': PermissionDenied, // {"success":false,"error":"Not approved to trade this product"}
                 },
                 'broad': {
+                    // {"error":"Not logged in","success":false}
+                    // {"error":"Not logged in: Invalid API key","success":false}
+                    'Not logged in': AuthenticationError,
                     'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
@@ -439,6 +441,30 @@ module.exports = class ftx extends Exchange {
         //                 "volumeUsd24h":382802.0252
         //             },
         //         ],
+        //     }
+        //
+        //     {
+        //         name: "BTC-PERP",
+        //         enabled:  true,
+        //         postOnly:  false,
+        //         priceIncrement: "1.0",
+        //         sizeIncrement: "0.0001",
+        //         minProvideSize: "0.001",
+        //         last: "60397.0",
+        //         bid: "60387.0",
+        //         ask: "60388.0",
+        //         price: "60388.0",
+        //         type: "future",
+        //         baseCurrency:  null,
+        //         quoteCurrency:  null,
+        //         underlying: "BTC",
+        //         restricted:  false,
+        //         highLeverageFeeExempt:  true,
+        //         change1h: "-0.0036463231533270636",
+        //         change24h: "-0.01844838515677064",
+        //         changeBod: "-0.010130151132675475",
+        //         quoteVolume24h: "2892083192.6099",
+        //         volumeUsd24h: "2892083192.6099"
         //     }
         //
         const result = [];
@@ -1004,7 +1030,7 @@ module.exports = class ftx extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         //
         // Gets a history of funding rates with their timestamps
         //  (param) symbol: Future currency pair (e.g. "BTC-PERP")
@@ -1059,7 +1085,8 @@ module.exports = class ftx extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return this.sortBy (rates, 'timestamp');
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -1266,7 +1293,7 @@ module.exports = class ftx extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1909,6 +1936,7 @@ module.exports = class ftx extends Exchange {
             // what are other statuses here?
             'confirmed': 'ok', // deposits
             'complete': 'ok', // withdrawals
+            'cancelled': 'canceled', // deposits
         };
         return this.safeString (statuses, status, status);
     }
@@ -2168,7 +2196,8 @@ module.exports = class ftx extends Exchange {
             const parsed = this.parseIncome (entry, market);
             result.push (parsed);
         }
-        return this.filterBySinceLimit (result, since, limit, 'timestamp');
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit, 'timestamp');
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {

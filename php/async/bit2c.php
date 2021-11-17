@@ -326,7 +326,7 @@ class bit2c extends Exchange {
             'fee' => null,
             'info' => $order,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -338,8 +338,8 @@ class bit2c extends Exchange {
         }
         $request['take'] = $limit;
         if ($since !== null) {
-            $request['toTime'] = $this->ymd($this->milliseconds(), '.');
-            $request['fromTime'] = $this->ymd($since, '.');
+            $request['toTime'] = $this->yyyymmdd($this->milliseconds(), '.');
+            $request['fromTime'] = $this->yyyymmdd($since, '.');
         }
         if ($symbol !== null) {
             $market = $this->market($symbol);

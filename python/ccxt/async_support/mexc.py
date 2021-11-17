@@ -235,8 +235,10 @@ class mexc(Exchange):
             'commonCurrencies': {
                 'COFI': 'COFIX',  # conflict with CoinFi
                 'DFT': 'dFuture',
+                'DRK': 'DRK',
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
+                'PROS': 'Pros.Finance',  # conflict with Prosper
                 'SIN': 'Sin City Token',
             },
             'exceptions': {
@@ -1203,7 +1205,7 @@ class mexc(Exchange):
 
     async def fetch_deposit_address(self, code, params={}):
         rawNetwork = self.safe_string(params, 'network')
-        params = self.omit('network')
+        params = self.omit(params, 'network')
         response = await self.fetch_deposit_addresses_by_network(code, params)
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(networks, rawNetwork, rawNetwork)
@@ -1657,7 +1659,7 @@ class mexc(Exchange):
             'fee': None,
             'trades': None,
             'info': order,
-        })
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

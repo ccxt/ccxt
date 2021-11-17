@@ -227,8 +227,10 @@ class mexc extends Exchange {
             'commonCurrencies' => array(
                 'COFI' => 'COFIX', // conflict with CoinFi
                 'DFT' => 'dFuture',
+                'DRK' => 'DRK',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
+                'PROS' => 'Pros.Finance', // conflict with Prosper
                 'SIN' => 'Sin City Token',
             ),
             'exceptions' => array(
@@ -1251,7 +1253,7 @@ class mexc extends Exchange {
 
     public function fetch_deposit_address($code, $params = array ()) {
         $rawNetwork = $this->safe_string($params, 'network');
-        $params = $this->omit('network');
+        $params = $this->omit($params, 'network');
         $response = yield $this->fetch_deposit_addresses_by_network($code, $params);
         $networks = $this->safe_value($this->options, 'networks', array());
         $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
@@ -1748,7 +1750,7 @@ class mexc extends Exchange {
             'fee' => null,
             'trades' => null,
             'info' => $order,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

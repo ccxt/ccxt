@@ -239,6 +239,7 @@ class bitmart extends Exchange {
                     '50021' => '\\ccxt\\BadRequest', // 400, Invalid %s
                     '50022' => '\\ccxt\\ExchangeNotAvailable', // 400, Service unavailable
                     '50023' => '\\ccxt\\BadSymbol', // 400, This Symbol can't place order by api
+                    '50029' => '\\ccxt\\InvalidOrder', // array("message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":array())
                     '53000' => '\\ccxt\\AccountSuspended', // 403, Your account is frozen due to security policies. Please contact customer service
                     '57001' => '\\ccxt\\BadRequest', // 405, Method Not Allowed
                     '58001' => '\\ccxt\\BadRequest', // 415, Unsupported Media Type
@@ -936,9 +937,9 @@ class bitmart extends Exchange {
         // public fetchTrades spot
         //
         //     {
-        //         "$amount":"0.005703",
+        //         "amount":"0.005703",
         //         "order_time":1599652045394,
-        //         "$price":"0.034029",
+        //         "price":"0.034029",
         //         "count":"0.1676",
         //         "$type":"sell"
         //     }
@@ -997,31 +998,28 @@ class bitmart extends Exchange {
         if ($execType !== null) {
             $takerOrMaker = ($execType === 'M') ? 'maker' : 'taker';
         }
-        $price = $this->safe_number_2($trade, 'price', 'deal_price');
-        $price = $this->safe_number($trade, 'price_avg', $price);
-        $amount = $this->safe_number_2($trade, 'amount', 'deal_vol');
-        $amount = $this->safe_number($trade, 'size', $amount);
-        $cost = $this->safe_number_2($trade, 'count', 'notional');
-        if (($cost === null) && ($price !== null) && ($amount !== null)) {
-            $cost = $amount * $price;
-        }
+        $priceString = $this->safe_string_2($trade, 'price', 'deal_price');
+        $priceString = $this->safe_string($trade, 'price_avg', $priceString);
+        $amountString = $this->safe_string_2($trade, 'amount', 'deal_vol');
+        $amountString = $this->safe_string($trade, 'size', $amountString);
+        $costString = $this->safe_string_2($trade, 'count', 'notional');
         $orderId = $this->safe_integer($trade, 'order_id');
         $marketId = $this->safe_string_2($trade, 'contract_id', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $feeCost = $this->safe_number($trade, 'fees');
+        $feeCostString = $this->safe_string($trade, 'fees');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_coin_name');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             if (($feeCurrencyCode === null) && ($market !== null)) {
                 $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
             }
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -1030,12 +1028,12 @@ class bitmart extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1600,7 +1598,7 @@ class bitmart extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status_by_type($type, $status) {

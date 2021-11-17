@@ -311,6 +311,11 @@ module.exports = class poloniex extends Exchange {
             const isFrozen = this.safeString (market, 'isFrozen');
             const active = (isFrozen !== '1');
             const numericId = this.safeInteger (market, 'id');
+            // these are known defaults
+            const precision = {
+                'price': 8,
+                'amount': 8,
+            };
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -322,6 +327,7 @@ module.exports = class poloniex extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'active': active,
+                'precision': precision,
                 'limits': limits,
                 'info': market,
             });

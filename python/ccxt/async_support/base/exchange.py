@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.60.43'
+__version__ = '1.61.40'
 
 # -----------------------------------------------------------------------------
 
@@ -42,11 +42,11 @@ __all__ = [
 
 
 class Exchange(BaseExchange):
+    synchronous = False
 
     def __init__(self, config={}):
         if 'asyncio_loop' in config:
             self.asyncio_loop = config['asyncio_loop']
-        self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.aiohttp_trust_env = config.get('aiohttp_trust_env', self.aiohttp_trust_env)
         self.verify = config.get('verify', self.verify)
         self.own_session = 'session' not in config
@@ -73,6 +73,12 @@ class Exchange(BaseExchange):
             await self.close()
 
     def open(self):
+        if self.asyncio_loop is None:
+            if sys.version_info >= (3, 7):
+                self.asyncio_loop = asyncio.get_running_loop()
+            else:
+                self.asyncio_loop = asyncio.get_event_loop()
+            self.throttle.loop = self.asyncio_loop
         if self.own_session and self.session is None:
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
@@ -120,7 +126,7 @@ class Exchange(BaseExchange):
                                       headers=request_headers,
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
-                http_response = await response.text()
+                http_response = await response.text(errors='replace')
                 # CIMultiDictProxy
                 raw_headers = response.headers
                 headers = {}

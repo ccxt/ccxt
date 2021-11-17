@@ -408,8 +408,8 @@ class bigone extends Exchange {
         //
         //     {
         //         "$id" => 38199941,
-        //         "$price" => "3378.67",
-        //         "$amount" => "0.019812",
+        //         "price" => "3378.67",
+        //         "amount" => "0.019812",
         //         "taker_side" => "ASK",
         //         "created_at" => "2019-01-29T06:05:56Z"
         //     }
@@ -419,8 +419,8 @@ class bigone extends Exchange {
         //     array(
         //         "$id" => 10854280,
         //         "asset_pair_name" => "XIN-USDT",
-        //         "$price" => "70",
-        //         "$amount" => "1",
+        //         "price" => "70",
+        //         "amount" => "1",
         //         "taker_side" => "ASK",
         //         "maker_order_id" => 58284908,
         //         "taker_order_id" => 58284909,
@@ -433,8 +433,8 @@ class bigone extends Exchange {
         //     {
         //         "$id" => 10854263,
         //         "asset_pair_name" => "XIN-USDT",
-        //         "$price" => "75.7",
-        //         "$amount" => "12.743149",
+        //         "price" => "75.7",
+        //         "amount" => "12.743149",
         //         "taker_side" => "BID",
         //         "maker_order_id" => null,
         //         "taker_order_id" => 58284888,
@@ -447,9 +447,6 @@ class bigone extends Exchange {
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'created_at', 'inserted_at'));
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'asset_pair_name');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $side = $this->safe_string($trade, 'side');
@@ -491,9 +488,9 @@ class bigone extends Exchange {
             'type' => 'limit',
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $this->parse_number($cost),
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'info' => $trade,
         );
         $makerCurrencyCode = null;
@@ -525,8 +522,8 @@ class bigone extends Exchange {
                 $takerCurrencyCode = $market['quote'];
             }
         }
-        $makerFeeCost = $this->safe_number($trade, 'maker_fee');
-        $takerFeeCost = $this->safe_number($trade, 'taker_fee');
+        $makerFeeCost = $this->safe_string($trade, 'maker_fee');
+        $takerFeeCost = $this->safe_string($trade, 'taker_fee');
         if ($makerFeeCost !== null) {
             if ($takerFeeCost !== null) {
                 $result['fees'] = array(
@@ -541,7 +538,7 @@ class bigone extends Exchange {
         } else {
             $result['fee'] = null;
         }
-        return $result;
+        return $this->safe_trade($result, $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -729,7 +726,7 @@ class bigone extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

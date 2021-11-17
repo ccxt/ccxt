@@ -614,7 +614,7 @@ class btcturk extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
