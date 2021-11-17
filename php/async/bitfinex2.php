@@ -1045,9 +1045,21 @@ class bitfinex2 extends bitfinex {
         $orderType = $this->safe_string_upper($orderTypes, $type, $type);
         $amount = ($side === 'sell') ? -$amount : $amount;
         $request = array(
-            'symbol' => $market['id'],
+            // 'gid' => 0123456789, // int32,  optional group id for the $order
+            // 'cid' => 0123456789, // int32 client $order id
             'type' => $orderType,
+            'symbol' => $market['id'],
+            // 'price' => $this->number_to_string($price),
             'amount' => $this->number_to_string($amount),
+            // 'flags' => 0, // int32, https://docs.bitfinex.com/v2/docs/flag-values
+            // 'lev' => 10, // the value should be between 1 and 100 inclusive, optional, 10 by default
+            // 'price_trailing' => $this->number_to_string($priceTrailing),
+            // 'price_aux_limit' => $this->number_to_string($stopPrice),
+            // 'price_oco_stop' => $this->number_to_string(ocoStopPrice),
+            // 'tif' => '2020-01-01 10:45:23', // datetime for automatic $order cancellation
+            // 'meta' => array(
+            //     'aff_code' => 'AFF_CODE_HERE'
+            // ),
         );
         if (($orderType === 'LIMIT') || ($orderType === 'EXCHANGE LIMIT')) {
             $request['price'] = $this->number_to_string($price);

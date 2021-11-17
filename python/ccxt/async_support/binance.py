@@ -4176,6 +4176,7 @@ class binance(Exchange):
                 collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', market['precision']['base'])
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
+        collateralString = '0' if (collateralString is None) else collateralString
         collateralFloat = float(collateralString)
         collateral = self.parse_number(collateralString)
         markPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'markPrice')))

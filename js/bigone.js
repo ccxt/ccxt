@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -445,9 +444,6 @@ module.exports = class bigone extends Exchange {
         const timestamp = this.parse8601 (this.safeString2 (trade, 'created_at', 'inserted_at'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'asset_pair_name');
         const symbol = this.safeSymbol (marketId, market, '-');
         let side = this.safeString (trade, 'side');
@@ -489,9 +485,9 @@ module.exports = class bigone extends Exchange {
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': this.parseNumber (cost),
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'info': trade,
         };
         let makerCurrencyCode = undefined;
@@ -523,8 +519,8 @@ module.exports = class bigone extends Exchange {
                 takerCurrencyCode = market['quote'];
             }
         }
-        const makerFeeCost = this.safeNumber (trade, 'maker_fee');
-        const takerFeeCost = this.safeNumber (trade, 'taker_fee');
+        const makerFeeCost = this.safeString (trade, 'maker_fee');
+        const takerFeeCost = this.safeString (trade, 'taker_fee');
         if (makerFeeCost !== undefined) {
             if (takerFeeCost !== undefined) {
                 result['fees'] = [
@@ -539,7 +535,7 @@ module.exports = class bigone extends Exchange {
         } else {
             result['fee'] = undefined;
         }
-        return result;
+        return this.safeTrade (result, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

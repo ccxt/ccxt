@@ -17,7 +17,6 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.precise import Precise
 
 
 class bit2c(Exchange):
@@ -338,16 +337,16 @@ class bit2c(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = None
         id = None
-        priceString = None
-        amountString = None
+        price = None
+        amount = None
         orderId = None
-        feeCost = None
+        fee = None
         side = None
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
             timestamp = self.safe_timestamp(trade, 'ticks')
-            priceString = self.safe_string(trade, 'price')
-            amountString = self.safe_string(trade, 'firstAmount')
+            price = self.safe_string(trade, 'price')
+            amount = self.safe_string(trade, 'firstAmount')
             reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
             if market is None:
                 marketId = self.safe_string(trade, 'pair')
@@ -362,12 +361,17 @@ class bit2c(Exchange):
                 side = 'buy'
             elif side == 1:
                 side = 'sell'
-            feeCost = self.safe_number(trade, 'feeAmount')
+            feeCost = self.safe_string(trade, 'feeAmount')
+            if feeCost is not None:
+                fee = {
+                    'cost': feeCost,
+                    'currency': 'NIS',
+                }
         else:
             timestamp = self.safe_timestamp(trade, 'date')
             id = self.safe_string(trade, 'tid')
-            priceString = self.safe_string(trade, 'price')
-            amountString = self.safe_string(trade, 'amount')
+            price = self.safe_string(trade, 'price')
+            amount = self.safe_string(trade, 'amount')
             side = self.safe_value(trade, 'isBid')
             if side is not None:
                 if side:
@@ -377,10 +381,7 @@ class bit2c(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -392,13 +393,9 @@ class bit2c(Exchange):
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': cost,
-            'fee': {
-                'cost': feeCost,
-                'currency': 'NIS',
-                'rate': None,
-            },
-        }
+            'cost': None,
+            'fee': fee,
+        }, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

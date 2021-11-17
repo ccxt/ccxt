@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.61.24';
+$version = '1.61.43';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.61.24';
+    const VERSION = '1.61.43';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1720,7 +1720,7 @@ class Exchange {
         $this->ids = array_keys($this->markets_by_id);
         sort($this->ids);
         if ($currencies) {
-            $this->currencies = array_replace_recursive($currencies, $this->currencies);
+            $this->currencies = array_replace_recursive($this->currencies, $currencies);
         } else {
             $base_currencies = array_map(function ($market) {
                 return array(
@@ -1753,7 +1753,7 @@ class Exchange {
             $this->base_currencies = static::index_by($base_currencies, 'code');
             $this->quote_currencies = static::index_by($quote_currencies, 'code');
             $currencies = array_merge($this->base_currencies, $this->quote_currencies);
-            $this->currencies = array_replace_recursive($currencies, $this->currencies);
+            $this->currencies = array_replace_recursive($this->currencies, $currencies);
         }
         $this->currencies_by_id = static::index_by(array_values($this->currencies), 'id');
         $this->codes = array_keys($this->currencies);

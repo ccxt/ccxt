@@ -2180,7 +2180,7 @@ class okex3 extends Exchange {
         if ($amount !== null) {
             if ($filled !== null) {
                 $amount = Precise::string_max($amount, $filled);
-                $remaining = Precise::string_max(0, Precise::string_sub($amount, $filled));
+                $remaining = Precise::string_max('0', Precise::string_sub($amount, $filled));
             }
         }
         if ($type === 'market') {
