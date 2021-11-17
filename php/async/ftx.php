@@ -130,6 +130,8 @@ class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
+                        // pnl
+                        'pnl/historical_changes',
                     ),
                     'post' => array(
                         'ftxpay/apps/{user_specific_id}/orders',
