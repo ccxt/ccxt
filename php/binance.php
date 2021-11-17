@@ -4401,6 +4401,7 @@ class binance extends Exchange {
         } else {
             $collateralString = $this->safe_string($position, 'isolatedMargin');
         }
+        $collateralString = ($collateralString === null) ? '0' : $collateralString;
         $collateralFloat = floatval($collateralString);
         $collateral = $this->parse_number($collateralString);
         $markPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'markPrice')));
