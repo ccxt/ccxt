@@ -4895,7 +4895,7 @@ module.exports = class binance extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    async getMarginInterestRate (currency, since = undefined, limit = undefined, params = {}) {
+    async getMarginInterestRate (currency, since = undefined, limit = undefined, tier = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit > 100) {
             throw new BadRequest (this.id + ' getMarginInterestRate limit parameter cannot exceed 100');
@@ -4906,6 +4906,9 @@ module.exports = class binance extends Exchange {
             'asset': this.safeCurrencyCode (currency),
             'limit': limit,
         };
+        if (tier) {
+            request['vipLevel'] = tier;
+        }
         if (since) {
             const sinceDate = new Date (since);
             const threeMonthsAgo = new Date ();
