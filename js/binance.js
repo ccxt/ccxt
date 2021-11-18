@@ -4955,7 +4955,7 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async getMarginInterestRate (currency, since = undefined, limit = undefined, tier = undefined, params = {}) {
+    async fetchMarginInterestRate (currency, since = undefined, limit = undefined, tier = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit > 100) {
             throw new BadRequest (this.id + ' getMarginInterestRate limit parameter cannot exceed 100');
@@ -4979,8 +4979,11 @@ module.exports = class binance extends Exchange {
                 throw new BadRequest (this.id + ' getMarginInterestRate since parameter cannot pre-date today - 3 months');
             }
             request['startTime'] = since;
-            const endTime = this.sum (since, limit * 86400000);
-            request['endTime'] = Math.min (endTime, this.milliseconds ());
+            const timeSinceStart = Precise.stringMul (limit.toString (), '86400000');
+            const endTime = Precise.stringAdd (since.toString (), timeSinceStart);
+            const now = new Date ();
+            now.setHours (0, 0, 0); // Binance gives an error if passed this
+            request['endTime'] = parseInt (Precise.stringMin (endTime, now.getTime ().toString ()));
         }
         const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
         const result = [];
