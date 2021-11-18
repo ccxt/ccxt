@@ -528,7 +528,7 @@ class okex extends Exchange {
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
                 'createMarketBuyOrderRequiresPrice' => false,
-                'fetchMarkets' => array( 'spot', 'futures', 'swap' ), // spot, futures, swap, option
+                'fetchMarkets' => array( 'spot', 'futures', 'swap', 'option' ), // spot, futures, swap, option
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 // 'fetchBalance' => array(
                 //     'type' => 'spot', // 'funding', 'trading', 'spot'
@@ -672,13 +672,37 @@ class okex extends Exchange {
         //         "uly":""
         //     }
         //
+        //     {
+        //         alias => "",
+        //         baseCcy => "",
+        //         category => "1",
+        //         ctMult => "0.1",
+        //         ctType => "",
+        //         ctVal => "1",
+        //         ctValCcy => "BTC",
+        //         expTime => "1648195200000",
+        //         instId => "BTC-USD-220325-194000-P",
+        //         instType => "OPTION",
+        //         lever => "",
+        //         listTime => "1631262612280",
+        //         lotSz => "1",
+        //         minSz => "1",
+        //         optType => "P",
+        //         quoteCcy => "",
+        //         settleCcy => "BTC",
+        //         state => "live",
+        //         stk => "194000",
+        //         tickSz => "0.0005",
+        //         uly => "BTC-USD"
+        //     }
+        //
         $id = $this->safe_string($market, 'instId');
         $type = $this->safe_string_lower($market, 'instType');
         $spot = ($type === 'spot');
         $futures = ($type === 'futures');
         $swap = ($type === 'swap');
         $option = ($type === 'option');
-        $contract = $swap || $futures;
+        $contract = $swap || $futures || $option;
         $baseId = $this->safe_string($market, 'baseCcy');
         $quoteId = $this->safe_string($market, 'quoteCcy');
         $settleCurrency = $this->safe_string($market, 'settleCcy');
@@ -701,6 +725,11 @@ class okex extends Exchange {
             if ($expiry !== null) {
                 $ymd = $this->yymmdd($expiry);
                 $symbol = $symbol . '-' . $ymd;
+            }
+            if ($option) {
+                $strikePrice = $this->safe_string($market, 'stk');
+                $optionType = $this->safe_string($market, 'optType');
+                $symbol = $symbol . '-' . $strikePrice . '-' . $optionType;
             }
         }
         $tickSize = $this->safe_string($market, 'tickSz');
