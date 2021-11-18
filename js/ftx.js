@@ -2283,4 +2283,51 @@ module.exports = class ftx extends Exchange {
         const result = this.safeValue (response, 'result', {});
         return this.parseFundingRate (result, market);
     }
+
+    async fetchBorrowRates (tier = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetSpotMarginBorrowRates ();
+        const timestamp = this.milliseconds ();
+        const result = this.safeValue (response, 'result');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const rate = result[i];
+            rates.push ({
+                'currency': this.safeCurrencyCode (this.safeString (rate, 'coin')),
+                'previousRate': this.safeNumber (rate, 'previous'),
+                'nextRate': this.safeNumber (rate, 'estimate'),
+                'tier': undefined,
+                'increment': 'hourly',
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': rate,
+            });
+        }
+        return rates;
+    }
+
+    async fetchBorrowRate (currency, tier = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetSpotMarginBorrowRates ();
+        const timestamp = this.milliseconds ();
+        currency = this.safeCurrencyCode (currency);
+        const result = this.safeValue (response, 'result');
+        for (let i = 0; i < result.length; i++) {
+            const rate = result[i];
+            const coin = rate['coin'];
+            if (coin === currency) {
+                return {
+                    'currency': currency,
+                    'previousRate': this.safeNumber (rate, 'previous'),
+                    'nextRate': this.safeNumber (rate, 'estimate'),
+                    'tier': undefined,
+                    'increment': 'hourly',
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                    'info': rate,
+                };
+            }
+        }
+        throw new BadRequest ('Could not find rate for ' + currency);
+    }
 };
