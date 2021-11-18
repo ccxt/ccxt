@@ -292,7 +292,7 @@ class liquid extends Exchange {
         //
         //     array(
         //         array(
-        //             "$id":"637",
+        //             "id":"637",
         //             "product_type":"CurrencyPair",
         //             "code":"CASH",
         //             "name":null,
@@ -301,7 +301,7 @@ class liquid extends Exchange {
         //             "indicator":null,
         //             "currency":"BTC",
         //             "currency_pair_code":"TFTBTC",
-        //             "$symbol":null,
+        //             "symbol":null,
         //             "btc_minimum_withdraw":null,
         //             "fiat_minimum_withdraw":null,
         //             "pusher_channel":"product_cash_tftbtc_637",
@@ -317,7 +317,7 @@ class liquid extends Exchange {
         //             "quoted_currency":"BTC",
         //             "base_currency":"TFT",
         //             "tick_size":"0.00000001",
-        //             "$disabled":false,
+        //             "disabled":false,
         //             "margin_enabled":false,
         //             "cfd_enabled":false,
         //             "perpetual_enabled":false,
@@ -333,7 +333,7 @@ class liquid extends Exchange {
         //
         //     array(
         //         array(
-        //             "$id":"604",
+        //             "id":"604",
         //             "product_type":"Perpetual",
         //             "code":"CASH",
         //             "name":null,
@@ -342,7 +342,7 @@ class liquid extends Exchange {
         //             "indicator":null,
         //             "currency":"USD",
         //             "currency_pair_code":"P-BTCUSD",
-        //             "$symbol":"$",
+        //             "symbol":"$",
         //             "btc_minimum_withdraw":null,
         //             "fiat_minimum_withdraw":null,
         //             "pusher_channel":"product_cash_p-btcusd_604",
@@ -358,7 +358,7 @@ class liquid extends Exchange {
         //             "quoted_currency":"USD",
         //             "base_currency":"P-BTC",
         //             "tick_size":"0.5",
-        //             "$disabled":false,
+        //             "disabled":false,
         //             "margin_enabled":false,
         //             "cfd_enabled":false,
         //             "perpetual_enabled":true,
@@ -717,9 +717,9 @@ class liquid extends Exchange {
         //         "quantity" => "0.01",
         //         "disc_quantity" => "0.0",
         //         "iceberg_total_quantity" => "0.0",
-        //         "$side" => "sell",
+        //         "side" => "sell",
         //         "filled_quantity" => "0.0",
-        //         "$price" => "500.0",
+        //         "price" => "500.0",
         //         "created_at" => 1462123639,
         //         "updated_at" => 1462123639,
         //         "status" => "live",
@@ -786,12 +786,12 @@ class liquid extends Exchange {
         //         "quantity" => "0.01",
         //         "disc_quantity" => "0.0",
         //         "iceberg_total_quantity" => "0.0",
-        //         "$side" => "sell",
+        //         "side" => "sell",
         //         "filled_quantity" => "0.0",
-        //         "$price" => "500.0",
+        //         "price" => "500.0",
         //         "created_at" => 1462123639,
         //         "updated_at" => 1462123639,
-        //         "$status" => "live",
+        //         "status" => "live",
         //         "leverage_level" => 1,
         //         "source_exchange" => "QUOINE",
         //         "product_id" => 1,
@@ -810,12 +810,12 @@ class liquid extends Exchange {
         //         "quantity" => "0.01",
         //         "disc_quantity" => "0.0",
         //         "iceberg_total_quantity" => "0.0",
-        //         "$side" => "sell",
+        //         "side" => "sell",
         //         "filled_quantity" => "0.01",
-        //         "$price" => "500.0",
+        //         "price" => "500.0",
         //         "created_at" => 1462123639,
         //         "updated_at" => 1462123639,
-        //         "$status" => "$filled",
+        //         "status" => "filled",
         //         "leverage_level" => 2,
         //         "source_exchange" => "QUOINE",
         //         "product_id" => 1,
@@ -827,7 +827,7 @@ class liquid extends Exchange {
         //             {
         //                 "id" => 4566133,
         //                 "quantity" => "0.01",
-        //                 "$price" => "500.0",
+        //                 "price" => "500.0",
         //                 "taker_side" => "buy",
         //                 "my_side" => "sell",
         //                 "created_at" => 1465396785
@@ -947,7 +947,7 @@ class liquid extends Exchange {
         //         "models" => array(
         //             {
         //                 "id" => 2157474,
-        //                 "order_type" => "$limit",
+        //                 "order_type" => "limit",
         //                 "quantity" => "0.01",
         //                 "disc_quantity" => "0.0",
         //                 "iceberg_total_quantity" => "0.0",
@@ -1020,10 +1020,10 @@ class liquid extends Exchange {
         //
         //     {
         //         "id" => 1353,
-        //         "$address" => "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
-        //         "$amount" => 1.0,
+        //         "address" => "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+        //         "amount" => 1.0,
         //         "state" => "pending",
-        //         "$currency" => "BTC",
+        //         "currency" => "BTC",
         //         "withdrawal_fee" => 0.0,
         //         "created_at" => 1568016450,
         //         "updated_at" => 1568016450,
@@ -1222,14 +1222,14 @@ class liquid extends Exchange {
         $errors = $this->safe_value($response, 'errors');
         if ($message !== null) {
             //
-            //  array( "$message" => "Order not found" )
+            //  array( "message" => "Order not found" )
             //
             $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
         } else if ($errors !== null) {
             //
-            //  array( "$errors" => array( "user" => ["not_enough_free_balance"] ))
-            //  array( "$errors" => array( "quantity" => ["less_than_order_size"] ))
-            //  array( "$errors" => array( "order" => ["Can not update partially filled order"] ))
+            //  array( "errors" => array( "user" => ["not_enough_free_balance"] ))
+            //  array( "errors" => array( "quantity" => ["less_than_order_size"] ))
+            //  array( "errors" => array( "order" => ["Can not update partially filled order"] ))
             //
             $types = is_array($errors) ? array_keys($errors) : array();
             for ($i = 0; $i < count($types); $i++) {

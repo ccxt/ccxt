@@ -637,7 +637,7 @@ class bitfinex2 extends bitfinex {
         $response = $this->privatePostAuthWTransfer (array_merge($request, $params));
         //  [1616451183763,"acc_tf",null,null,[1616451183763,"exchange","margin",null,"UST","UST",null,1],null,"SUCCESS","1.0 Tether USDt transfered from Exchange to Margin"]
         $timestamp = $this->safe_integer($response, 0);
-        //  ["$error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
+        //  ["error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
         $error = $this->safe_string($response, 0);
         if ($error === 'error') {
             $message = $this->safe_string($response, 2, '');

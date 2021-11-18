@@ -541,7 +541,7 @@ class gateio extends Exchange {
                 //      array(
                 //          {
                 //              "name" => "BTC_USDT",
-                //              "$type" => "direct",
+                //              "type" => "direct",
                 //              "quanto_multiplier" => "0.0001",
                 //              "ref_discount_rate" => "0",
                 //              "order_price_deviate" => "0.5",
@@ -587,7 +587,7 @@ class gateio extends Exchange {
                 //            "name" => "BTC_USDT_20200814",
                 //            "underlying" => "BTC_USDT",
                 //            "cycle" => "WEEKLY",
-                //            "$type" => "direct",
+                //            "type" => "direct",
                 //            "quanto_multiplier" => "0.0001",
                 //            "mark_type" => "index",
                 //            "last_price" => "9017",
@@ -705,9 +705,9 @@ class gateio extends Exchange {
             //  Spot
             //      array(
             //           {
-            //             "$id" => "DEGO_USDT",
-            //             "$base" => "DEGO",
-            //             "$quote" => "USDT",
+            //             "id" => "DEGO_USDT",
+            //             "base" => "DEGO",
+            //             "quote" => "USDT",
             //             "fee" => "0.2",
             //             "min_quote_amount" => "1",
             //             "amount_precision" => "4",
@@ -721,9 +721,9 @@ class gateio extends Exchange {
             //  Margin
             //      array(
             //         {
-            //           "$id" => "ETH_USDT",
-            //           "$base" => "ETH",
-            //           "$quote" => "USDT",
+            //           "id" => "ETH_USDT",
+            //           "base" => "ETH",
+            //           "quote" => "USDT",
             //           "leverage" => 3,
             //           "min_base_amount" => "0.01",
             //           "min_quote_amount" => "100",
@@ -824,11 +824,11 @@ class gateio extends Exchange {
         //
         //     {
         //       "currency" => "BCN",
-        //       "$delisted" => false,
-        //       "$withdraw_disabled" => true,
+        //       "delisted" => false,
+        //       "withdraw_disabled" => true,
         //       "withdraw_delayed" => false,
-        //       "$deposit_disabled" => true,
-        //       "$trade_disabled" => false
+        //       "deposit_disabled" => true,
+        //       "trade_disabled" => false
         //     }
         //
         $result = array();
@@ -1056,7 +1056,7 @@ class gateio extends Exchange {
             //
             //     {
             //       "chain" => "ETH",
-            //       "$address" => "0x359a697945E79C7e17b634675BD73B33324E9408",
+            //       "address" => "0x359a697945E79C7e17b634675BD73B33324E9408",
             //       "payment_id" => "",
             //       "payment_name" => "",
             //       "obtain_failed" => "0"
@@ -1090,12 +1090,12 @@ class gateio extends Exchange {
         $response = yield $this->privateWalletGetDepositAddress (array_merge($request, $params));
         //
         //     {
-        //       "$currency" => "XRP",
-        //       "$address" => "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d 391331007",
+        //       "currency" => "XRP",
+        //       "address" => "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d 391331007",
         //       "multichain_addresses" => array(
         //         {
         //           "chain" => "XRP",
-        //           "$address" => "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
+        //           "address" => "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
         //           "payment_id" => "391331007",
         //           "payment_name" => "Tag",
         //           "obtain_failed" => 0
@@ -1353,7 +1353,7 @@ class gateio extends Exchange {
         //
         //     {
         //         "currency_pair" => "KFC_USDT",
-        //         "$last" => "7.255",
+        //         "last" => "7.255",
         //         "lowest_ask" => "7.298",
         //         "highest_bid" => "7.218",
         //         "change_percentage" => "-1.18",
@@ -1367,7 +1367,7 @@ class gateio extends Exchange {
         //
         //     {
         //         "contract" => "BTC_USDT",
-        //         "$last" => "6432",
+        //         "last" => "6432",
         //         "low_24h" => "6278",
         //         "high_24h" => "6790",
         //         "change_percentage" => "4.43",
@@ -1801,28 +1801,28 @@ class gateio extends Exchange {
         // public
         //
         //     {
-        //         "$id" => "1334253759",
+        //         "id" => "1334253759",
         //         "create_time" => "1626342738",
         //         "create_time_ms" => "1626342738331.497000",
         //         "currency_pair" => "BTC_USDT",
-        //         "$side" => "sell",
-        //         "$amount" => "0.0022",
-        //         "$price" => "32452.16"
+        //         "side" => "sell",
+        //         "amount" => "0.0022",
+        //         "price" => "32452.16"
         //     }
         //
         // private
         //
         //     {
-        //         "$id" => "218087755",
+        //         "id" => "218087755",
         //         "create_time" => "1578958740",
         //         "create_time_ms" => "1578958740122.710000",
         //         "currency_pair" => "BTC_USDT",
-        //         "$side" => "sell",
+        //         "side" => "sell",
         //         "role" => "taker",
-        //         "$amount" => "0.0004",
-        //         "$price" => "8112.77",
+        //         "amount" => "0.0004",
+        //         "price" => "8112.77",
         //         "order_id" => "8445563839",
-        //         "$fee" => "0.006490216",
+        //         "fee" => "0.006490216",
         //         "fee_currency" => "USDT",
         //         "point_fee" => "0",
         //         "gt_fee" => "0"
@@ -1944,10 +1944,10 @@ class gateio extends Exchange {
         $response = yield $this->privateWithdrawalsPost (array_merge($request, $params));
         //
         //     {
-        //       "$id" => "w13389675",
-        //       "$currency" => "USDT",
-        //       "$amount" => "50",
-        //       "$address" => "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //       "id" => "w13389675",
+        //       "currency" => "USDT",
+        //       "amount" => "50",
+        //       "address" => "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
         //       "memo" => null
         //     }
         //
@@ -1987,13 +1987,13 @@ class gateio extends Exchange {
         // deposits
         //
         //     {
-        //       "$id" => "d33361395",
-        //       "$currency" => "USDT_TRX",
-        //       "$address" => "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
-        //       "$amount" => "100",
-        //       "$txid" => "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
-        //       "$timestamp" => "1626345819",
-        //       "$status" => "DONE",
+        //       "id" => "d33361395",
+        //       "currency" => "USDT_TRX",
+        //       "address" => "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
+        //       "amount" => "100",
+        //       "txid" => "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
+        //       "timestamp" => "1626345819",
+        //       "status" => "DONE",
         //       "memo" => ""
         //     }
         //
@@ -2134,25 +2134,25 @@ class gateio extends Exchange {
         // createOrder, spot
         //
         //     {
-        //       "$id" => "62364648575",
+        //       "id" => "62364648575",
         //       "text" => "apiv4",
         //       "create_time" => "1626354834",
         //       "update_time" => "1626354834",
         //       "create_time_ms" => "1626354833544",
         //       "update_time_ms" => "1626354833544",
-        //       "$status" => "open",
+        //       "status" => "open",
         //       "currency_pair" => "BTC_USDT",
-        //       "$type" => "limit",
+        //       "type" => "limit",
         //       "account" => "spot",
-        //       "$side" => "buy",
-        //       "$amount" => "0.0001",
-        //       "$price" => "30000",
+        //       "side" => "buy",
+        //       "amount" => "0.0001",
+        //       "price" => "30000",
         //       "time_in_force" => "gtc",
         //       "iceberg" => "0",
         //       "left" => "0.0001",
         //       "fill_price" => "0",
         //       "filled_total" => "0",
-        //       "$fee" => "0",
+        //       "fee" => "0",
         //       "fee_currency" => "BTC",
         //       "point_fee" => "0",
         //       "gt_fee" => "0",
@@ -2294,7 +2294,7 @@ class gateio extends Exchange {
             //         {
             //             "currency_pair" => "ETH_BTC",
             //             "total" => 1,
-            //             "$orders" => array(
+            //             "orders" => array(
             //                 array(
             //                     "id" => "12332324",
             //                     "text" => "t-123456",
@@ -2302,7 +2302,7 @@ class gateio extends Exchange {
             //                     "update_time" => "1548000100",
             //                     "currency_pair" => "ETH_BTC",
             //                     "status" => "open",
-            //                     "$type" => "$limit",
+            //                     "type" => "limit",
             //                     "account" => "spot",
             //                     "side" => "buy",
             //                     "amount" => "1",
@@ -2371,9 +2371,9 @@ class gateio extends Exchange {
         //     "update_time" => "1635406193",
         //     "create_time_ms" => 1635406193361,
         //     "update_time_ms" => 1635406193361,
-        //     "$status" => "closed",
+        //     "status" => "closed",
         //     "currency_pair" => "BTC_USDT",
-        //     "type" => "$limit",
+        //     "type" => "limit",
         //     "account" => "spot",
         //     "side" => "sell",
         //     "amount" => "0.0002",
@@ -2392,7 +2392,7 @@ class gateio extends Exchange {
         // }
         // Perpetual Swap
         // {
-        //     "$status" => "finished",
+        //     "status" => "finished",
         //     "size":-1,
         //     "left":0,
         //     "id":82750739203,
@@ -2489,10 +2489,10 @@ class gateio extends Exchange {
         // according to the docs
         //
         //     {
-        //       "$currency" => "BTC",
+        //       "currency" => "BTC",
         //       "from" => "spot",
         //       "to" => "margin",
-        //       "$amount" => "1",
+        //       "amount" => "1",
         //       "currency_pair" => "BTC_USDT"
         //     }
         //
@@ -2539,7 +2539,7 @@ class gateio extends Exchange {
         //
         //     {
         //         "value":"0",
-        //         "$leverage":"5",
+        //         "leverage":"5",
         //         "mode":"single",
         //         "realised_point":"0",
         //         "contract":"BTC_USDT",

@@ -135,8 +135,8 @@ class indodax extends Exchange {
         //
         //     array(
         //         {
-        //             "$id" => "btcidr",
-        //             "$symbol" => "BTCIDR",
+        //             "id" => "btcidr",
+        //             "symbol" => "BTCIDR",
         //             "base_currency" => "idr",
         //             "traded_currency" => "btc",
         //             "traded_currency_unit" => "BTC",
@@ -281,12 +281,12 @@ class indodax extends Exchange {
         $response = $this->publicGetPairTicker (array_merge($request, $params));
         //
         //     {
-        //         "$ticker" => {
+        //         "ticker" => {
         //             "high":"0.01951",
         //             "low":"0.01877",
         //             "vol_eth":"39.38839319",
         //             "vol_btc":"0.75320886",
-        //             "$last":"0.01896",
+        //             "last":"0.01896",
         //             "buy":"0.01896",
         //             "sell":"0.019",
         //             "server_time":1565248908
@@ -377,7 +377,7 @@ class indodax extends Exchange {
         //     {
         //         "order_id" => "12345",
         //         "submit_time" => "1392228122",
-        //         "$price" => "8000000",
+        //         "price" => "8000000",
         //         "type" => "sell",
         //         "order_ltc" => "100000000",
         //         "remain_ltc" => "100000000"
@@ -389,10 +389,10 @@ class indodax extends Exchange {
         //     {
         //       "order_id" => "49326856",
         //       "type" => "sell",
-        //       "$price" => "1000000000",
+        //       "price" => "1000000000",
         //       "submit_time" => "1618314671",
         //       "finish_time" => "1618314671",
-        //       "$status" => "filled",
+        //       "status" => "filled",
         //       "order_xrp" => "30.45000000",
         //       "remain_xrp" => "0.00000000"
         //     }
@@ -547,7 +547,7 @@ class indodax extends Exchange {
         }
         $side = $this->safe_value($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an extra "$side" param');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an extra "side" param');
         }
         $this->load_markets();
         $market = $this->market($symbol);

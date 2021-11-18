@@ -147,7 +147,7 @@ class latoken1 extends Exchange {
         //     array(
         //         {
         //             "pairId" => 502,
-        //             "$symbol" => "LAETH",
+        //             "symbol" => "LAETH",
         //             "baseCurrency" => "LA",
         //             "quotedCurrency" => "ETH",
         //             "makerFee" => 0.01,
@@ -218,7 +218,7 @@ class latoken1 extends Exchange {
         //             "name" => "Latoken",
         //             "precission" => 8,
         //             "type" => "ERC20",
-        //             "$fee" => 0.1
+        //             "fee" => 0.1
         //         }
         //     )
         //
@@ -261,13 +261,13 @@ class latoken1 extends Exchange {
         //
         //     array(
         //         {
-        //             "$currencyId" => 102,
+        //             "currencyId" => 102,
         //             "symbol" => "LA",
         //             "name" => "Latoken",
         //             "amount" => 1054.66,
         //             "available" => 900.66,
-        //             "$frozen" => 154,
-        //             "$pending" => 0
+        //             "frozen" => 154,
+        //             "pending" => 0
         //         }
         //     )
         //
@@ -305,7 +305,7 @@ class latoken1 extends Exchange {
         //
         //     {
         //         "pairId" => 502,
-        //         "$symbol" => "LAETH",
+        //         "symbol" => "LAETH",
         //         "spread" => 0.07,
         //         "asks" => array(
         //             array( "price" => 136.3, "quantity" => 7.024 )
@@ -322,12 +322,12 @@ class latoken1 extends Exchange {
         //
         //     {
         //         "pairId":"63b41092-f3f6-4ea4-9e7c-4525ed250dad",
-        //         "$symbol":"ETHBTC",
+        //         "symbol":"ETHBTC",
         //         "volume":11317.037494474000000000,
-        //         "$open":0.020033000000000000,
+        //         "open":0.020033000000000000,
         //         "low":0.019791000000000000,
         //         "high":0.020375000000000000,
-        //         "$close":0.019923000000000000,
+        //         "close":0.019923000000000000,
         //         "priceChange":-0.1500
         //     }
         //
@@ -375,7 +375,7 @@ class latoken1 extends Exchange {
         //
         //     {
         //         "pairId" => 502,
-        //         "$symbol" => "LAETH",
+        //         "symbol" => "LAETH",
         //         "volume" => 1023314.3202,
         //         "open" => 134.82,
         //         "low" => 133.95,
@@ -394,7 +394,7 @@ class latoken1 extends Exchange {
         //     array(
         //         {
         //             "pairId" => 502,
-        //             "$symbol" => "LAETH",
+        //             "symbol" => "LAETH",
         //             "volume" => 1023314.3202,
         //             "open" => 134.82,
         //             "low" => 133.95,
@@ -494,9 +494,9 @@ class latoken1 extends Exchange {
         //
         //     {
         //         "pairId":370,
-        //         "$symbol":"ETHBTC",
+        //         "symbol":"ETHBTC",
         //         "tradeCount":51,
-        //         "$trades" => array(
+        //         "trades" => array(
         //             {
         //                 side => 'buy',
         //                 price => 0.33634,
@@ -523,9 +523,9 @@ class latoken1 extends Exchange {
         //
         //     {
         //         "pairId" => 502,
-        //         "$symbol" => "LAETH",
+        //         "symbol" => "LAETH",
         //         "tradeCount" => 1,
-        //         "$trades" => array(
+        //         "trades" => array(
         //             {
         //                 id => '1564223032.892829.3.tg15',
         //                 orderId => '1564223032.671436.707548@1379:1',
@@ -560,11 +560,11 @@ class latoken1 extends Exchange {
         //         "orderId":"1563460093.134037.704945@0370:2",
         //         "cliOrdId":"",
         //         "pairId":370,
-        //         "$symbol":"ETHBTC",
-        //         "$side":"sell",
+        //         "symbol":"ETHBTC",
+        //         "side":"sell",
         //         "orderType":"limit",
-        //         "$price":1.0,
-        //         "$amount":1.0
+        //         "price":1.0,
+        //         "amount":1.0
         //     }
         //
         // cancelOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
@@ -573,16 +573,16 @@ class latoken1 extends Exchange {
         //         "orderId" => "1555492358.126073.126767@0502:2",
         //         "cliOrdId" => "myNewOrder",
         //         "pairId" => 502,
-        //         "$symbol" => "LAETH",
-        //         "$side" => "buy",
+        //         "symbol" => "LAETH",
+        //         "side" => "buy",
         //         "orderType" => "limit",
-        //         "$price" => 136.2,
-        //         "$amount" => 0.57,
+        //         "price" => 136.2,
+        //         "amount" => 0.57,
         //         "orderStatus" => "partiallyFilled",
         //         "executedAmount" => 0.27,
         //         "reaminingAmount" => 0.3,
         //         "timeCreated" => 155551580736,
-        //         "$timeFilled" => 0
+        //         "timeFilled" => 0
         //     }
         //
         $id = $this->safe_string($order, 'orderId');
@@ -664,9 +664,9 @@ class latoken1 extends Exchange {
         //             "orderId" => "1555492358.126073.126767@0502:2",
         //             "cliOrdId" => "myNewOrder",
         //             "pairId" => 502,
-        //             "$symbol" => "LAETH",
+        //             "symbol" => "LAETH",
         //             "side" => "buy",
-        //             "orderType" => "$limit",
+        //             "orderType" => "limit",
         //             "price" => 136.2,
         //             "amount" => 0.57,
         //             "orderStatus" => "partiallyFilled",
@@ -691,7 +691,7 @@ class latoken1 extends Exchange {
         //         "orderId" => "1555492358.126073.126767@0502:2",
         //         "cliOrdId" => "myNewOrder",
         //         "pairId" => 502,
-        //         "$symbol" => "LAETH",
+        //         "symbol" => "LAETH",
         //         "side" => "buy",
         //         "orderType" => "limit",
         //         "price" => 136.2,
@@ -725,11 +725,11 @@ class latoken1 extends Exchange {
         //         "orderId":"1563460093.134037.704945@0370:2",
         //         "cliOrdId":"",
         //         "pairId":370,
-        //         "$symbol":"ETHBTC",
-        //         "$side":"sell",
+        //         "symbol":"ETHBTC",
+        //         "side":"sell",
         //         "orderType":"limit",
-        //         "$price":1.0,
-        //         "$amount":1.0
+        //         "price":1.0,
+        //         "amount":1.0
         //     }
         //
         return $this->parse_order($response);
@@ -746,7 +746,7 @@ class latoken1 extends Exchange {
         //         "orderId" => "1555492358.126073.126767@0502:2",
         //         "cliOrdId" => "myNewOrder",
         //         "pairId" => 502,
-        //         "$symbol" => "LAETH",
+        //         "symbol" => "LAETH",
         //         "side" => "buy",
         //         "orderType" => "limit",
         //         "price" => 136.2,
@@ -774,7 +774,7 @@ class latoken1 extends Exchange {
         //
         //     {
         //         "pairId" => 502,
-        //         "$symbol" => "LAETH",
+        //         "symbol" => "LAETH",
         //         "cancelledOrders" => array(
         //             "1555492358.126073.126767@0502:2"
         //         )
@@ -827,15 +827,15 @@ class latoken1 extends Exchange {
             return;
         }
         //
-        //     array( "$message" => "Request limit reached!", "details" => "Request limit reached. Maximum allowed => 1 per 1s. Please try again in 1 second(s)." )
-        //     array( "$error" => array( "$message" => "Pair 370 is not found","errorType":"RequestError","statusCode":400 ))
-        //     array( "$error" => array( "$message" => "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 ))
-        //     array( "$error" => array( "$message" => "Request is out of time", "errorType" => "RequestError", "statusCode":400 ))
-        //     array( "$error" => array( "$message" => "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 ))
-        //     array( "$error" => array( "$message" => "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 ))
-        //     array( "$error" => array( "$message" => "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 ))
-        //     array( "$error" => array( "$message" => "Symbol must be specified","errorType":"RequestError","statusCode":400 ))
-        //     array( "$error" => array( "$message" => "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 ))
+        //     array( "message" => "Request limit reached!", "details" => "Request limit reached. Maximum allowed => 1 per 1s. Please try again in 1 second(s)." )
+        //     array( "error" => array( "message" => "Pair 370 is not found","errorType":"RequestError","statusCode":400 ))
+        //     array( "error" => array( "message" => "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 ))
+        //     array( "error" => array( "message" => "Request is out of time", "errorType" => "RequestError", "statusCode":400 ))
+        //     array( "error" => array( "message" => "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 ))
+        //     array( "error" => array( "message" => "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 ))
+        //     array( "error" => array( "message" => "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 ))
+        //     array( "error" => array( "message" => "Symbol must be specified","errorType":"RequestError","statusCode":400 ))
+        //     array( "error" => array( "message" => "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 ))
         //
         $message = $this->safe_string($response, 'message');
         $feedback = $this->id . ' ' . $body;

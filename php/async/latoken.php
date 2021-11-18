@@ -192,8 +192,8 @@ class latoken extends Exchange {
         //
         //     array(
         //         array(
-        //             "$id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
-        //             "$status":"CURRENCY_STATUS_ACTIVE",
+        //             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
+        //             "status":"CURRENCY_STATUS_ACTIVE",
         //             "type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
         //             "name":"MyCryptoBank",
         //             "tag":"MCB",
@@ -206,8 +206,8 @@ class latoken extends Exchange {
         //             "minTransferAmount":0
         //         ),
         //         array(
-        //             "$id":"db02758e-2507-46a5-a805-7bc60355b3eb",
-        //             "$status":"CURRENCY_STATUS_ACTIVE",
+        //             "id":"db02758e-2507-46a5-a805-7bc60355b3eb",
+        //             "status":"CURRENCY_STATUS_ACTIVE",
         //             "type":"CURRENCY_TYPE_FUTURES_CONTRACT",
         //             "name":"BTC USDT Futures Contract",
         //             "tag":"BTCUSDT",
@@ -225,10 +225,10 @@ class latoken extends Exchange {
         //
         //     array(
         //         {
-        //             "$id":"dba4289b-6b46-4d94-bf55-49eec9a163ad",
-        //             "$status":"PAIR_STATUS_ACTIVE", // CURRENCY_STATUS_INACTIVE
-        //             "$baseCurrency":"fb9b53d6-bbf6-472f-b6ba-73cc0d606c9b",
-        //             "$quoteCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        //             "id":"dba4289b-6b46-4d94-bf55-49eec9a163ad",
+        //             "status":"PAIR_STATUS_ACTIVE", // CURRENCY_STATUS_INACTIVE
+        //             "baseCurrency":"fb9b53d6-bbf6-472f-b6ba-73cc0d606c9b",
+        //             "quoteCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
         //             "priceTick":"0.000000100000000000",
         //             "priceDecimals":7,
         //             "quantityTick":"0.010000000",
@@ -322,28 +322,28 @@ class latoken extends Exchange {
         //
         //     array(
         //         array(
-        //             "$id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
-        //             "$status":"CURRENCY_STATUS_ACTIVE",
-        //             "$type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
-        //             "$name":"MyCryptoBank",
-        //             "$tag":"MCB",
+        //             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
+        //             "status":"CURRENCY_STATUS_ACTIVE",
+        //             "type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
+        //             "name":"MyCryptoBank",
+        //             "tag":"MCB",
         //             "description":"",
         //             "logo":"",
-        //             "$decimals":18,
+        //             "decimals":18,
         //             "created":1572912000000,
         //             "tier":1,
         //             "assetClass":"ASSET_CLASS_UNKNOWN",
         //             "minTransferAmount":0
         //         ),
         //         array(
-        //             "$id":"db02758e-2507-46a5-a805-7bc60355b3eb",
-        //             "$status":"CURRENCY_STATUS_ACTIVE",
-        //             "$type":"CURRENCY_TYPE_FUTURES_CONTRACT",
-        //             "$name":"BTC USDT Futures Contract",
-        //             "$tag":"BTCUSDT",
+        //             "id":"db02758e-2507-46a5-a805-7bc60355b3eb",
+        //             "status":"CURRENCY_STATUS_ACTIVE",
+        //             "type":"CURRENCY_TYPE_FUTURES_CONTRACT",
+        //             "name":"BTC USDT Futures Contract",
+        //             "tag":"BTCUSDT",
         //             "description":"",
         //             "logo":"",
-        //             "$decimals":8,
+        //             "decimals":8,
         //             "created":1589459984395,
         //             "tier":1,
         //             "assetClass":"ASSET_CLASS_UNKNOWN",
@@ -484,7 +484,7 @@ class latoken extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
-        //         "$symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
         //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //         "volume24h":"76411867.852585600000000000",
@@ -533,7 +533,7 @@ class latoken extends Exchange {
         $response = yield $this->publicGetTickerBaseQuote (array_merge($request, $params));
         //
         //     {
-        //         "$symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
         //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //         "volume24h":"76411867.852585600000000000",
@@ -571,21 +571,21 @@ class latoken extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "$id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf",
+        //         "id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf",
         //         "isMakerBuyer":false,
         //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
         //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //         "price":"4435.56",
         //         "quantity":"0.32534",
         //         "cost":"1443.0650904",
-        //         "$timestamp":1635854642725,
-        //         "$makerBuyer":false
+        //         "timestamp":1635854642725,
+        //         "makerBuyer":false
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "$id":"02e02533-b4bf-4ba9-9271-24e2108dfbf7",
+        //         "id":"02e02533-b4bf-4ba9-9271-24e2108dfbf7",
         //         "isMakerBuyer":false,
         //         "direction":"TRADE_DIRECTION_BUY",
         //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
@@ -593,10 +593,10 @@ class latoken extends Exchange {
         //         "price":"4564.32",
         //         "quantity":"0.01000",
         //         "cost":"45.6432",
-        //         "$fee":"0.223651680000000000",
+        //         "fee":"0.223651680000000000",
         //         "order":"c9cac6a0-484c-4892-88e7-ad51b39f2ce1",
-        //         "$timestamp":1635921580399,
-        //         "$makerBuyer":false
+        //         "timestamp":1635921580399,
+        //         "makerBuyer":false
         //     }
         //
         $type = null;
@@ -753,40 +753,40 @@ class latoken extends Exchange {
         //         "orderId":"1563460093.134037.704945@0370:2",
         //         "cliOrdId":"",
         //         "pairId":370,
-        //         "$symbol":"ETHBTC",
-        //         "$side":"sell",
+        //         "symbol":"ETHBTC",
+        //         "side":"sell",
         //         "orderType":"limit",
-        //         "$price":1.0,
-        //         "$amount":1.0
+        //         "price":1.0,
+        //         "amount":1.0
         //     }
         //
         // fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
-        //         "$id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
-        //         "$status":"ORDER_STATUS_PLACED",
-        //         "$side":"ORDER_SIDE_BUY",
+        //         "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
+        //         "status":"ORDER_STATUS_PLACED",
+        //         "side":"ORDER_SIDE_BUY",
         //         "condition":"ORDER_CONDITION_GOOD_TILL_CANCELLED",
-        //         "$type":"ORDER_TYPE_LIMIT",
+        //         "type":"ORDER_TYPE_LIMIT",
         //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
         //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "$clientOrderId":"web-macos_chrome_1a6a6659-6f7c-4fac-be0b-d1d7ac06d",
-        //         "$price":"4000.00",
+        //         "clientOrderId":"web-macos_chrome_1a6a6659-6f7c-4fac-be0b-d1d7ac06d",
+        //         "price":"4000.00",
         //         "quantity":"0.01",
-        //         "$cost":"40.000000000000000000",
-        //         "$filled":"0",
+        //         "cost":"40.000000000000000000",
+        //         "filled":"0",
         //         "trader":"7244bb3a-b6b2-446a-ac78-fa4bce5b59a9",
         //         "creator":"ORDER_CREATOR_USER",
         //         "creatorId":"",
-        //         "$timestamp":1635920767648
+        //         "timestamp":1635920767648
         //     }
         //
         // cancelOrder
         //
         //     {
-        //         "$message":"cancellation request successfully submitted",
-        //         "$status":"SUCCESS",
-        //         "$id":"a631426d-3543-45ba-941e-75f7825afb0f"
+        //         "message":"cancellation request successfully submitted",
+        //         "status":"SUCCESS",
+        //         "id":"a631426d-3543-45ba-941e-75f7825afb0f"
         //     }
         //
         $id = $this->safe_string($order, 'id');
@@ -938,7 +938,7 @@ class latoken extends Exchange {
         $response = yield $this->privateGetAuthOrderGetOrderId (array_merge($request, $params));
         //
         //     {
-        //         "$id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
+        //         "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
         //         "status":"ORDER_STATUS_PLACED",
         //         "side":"ORDER_SIDE_BUY",
         //         "condition":"ORDER_CONDITION_GOOD_TILL_CANCELLED",
@@ -984,11 +984,11 @@ class latoken extends Exchange {
         //         "orderId":"1563460093.134037.704945@0370:2",
         //         "cliOrdId":"",
         //         "pairId":370,
-        //         "$symbol":"ETHBTC",
-        //         "$side":"sell",
+        //         "symbol":"ETHBTC",
+        //         "side":"sell",
         //         "orderType":"limit",
-        //         "$price":1.0,
-        //         "$amount":1.0
+        //         "price":1.0,
+        //         "amount":1.0
         //     }
         //
         return $this->parse_order($response, $market);
@@ -1002,7 +1002,7 @@ class latoken extends Exchange {
         $response = yield $this->privatePostAuthOrderCancel (array_merge($request, $params));
         //
         //     {
-        //         "$id" => "12345678-1234-1244-1244-123456789012",
+        //         "id" => "12345678-1234-1244-1244-123456789012",
         //         "message" => "cancellation $request successfully submitted",
         //         "status" => "SUCCESS",
         //         "error" => "",
@@ -1046,7 +1046,7 @@ class latoken extends Exchange {
         //
         //     {
         //         "hasNext":false,
-        //         "$content":array(
+        //         "content":array(
         //             {
         //                 "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
         //                 "status":"TRANSACTION_STATUS_CONFIRMED",
@@ -1058,7 +1058,7 @@ class latoken extends Exchange {
         //                 "timestamp":1635893208404,
         //                 "transactionHash":"0x28bad3b74a042df13d64ddfbca855566a51bf7f190b8cd565c236a18d5cd493f#42",
         //                 "blockHeight":13540262,
-        //                 "$currency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //                 "currency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //                 "memo":null,
         //                 "paymentProvider":"a8d6d1cb-f84a-4e9d-aa82-c6a08b356ee1",
         //                 "requiresCode":false
@@ -1080,17 +1080,17 @@ class latoken extends Exchange {
     public function parse_transaction($transaction, $currency = null) {
         //
         //     {
-        //         "$id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
-        //         "$status":"TRANSACTION_STATUS_CONFIRMED",
-        //         "$type":"TRANSACTION_TYPE_DEPOSIT",
+        //         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
+        //         "status":"TRANSACTION_STATUS_CONFIRMED",
+        //         "type":"TRANSACTION_TYPE_DEPOSIT",
         //         "senderAddress":"",
         //         "recipientAddress":"0x3c46fa2e3f9023bc4897828ed173f8ecb3a554bc",
-        //         "$amount":"200.000000000000000000",
+        //         "amount":"200.000000000000000000",
         //         "transactionFee":"0.000000000000000000",
-        //         "$timestamp":1635893208404,
+        //         "timestamp":1635893208404,
         //         "transactionHash":"0x28bad3b74a042df13d64ddfbca855566a51bf7f190b8cd565c236a18d5cd493f#42",
         //         "blockHeight":13540262,
-        //         "$currency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //         "currency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //         "memo":null,
         //         "paymentProvider":"a8d6d1cb-f84a-4e9d-aa82-c6a08b356ee1",
         //         "requiresCode":false
@@ -1191,10 +1191,10 @@ class latoken extends Exchange {
             return;
         }
         //
-        // array("result":false,"$message":"invalid API key, signature or digest","$error":"BAD_REQUEST","status":"FAILURE")
-        // array("result":false,"$message":"request expired or bad <timeAlive>/<timestamp> format","$error":"BAD_REQUEST","status":"FAILURE")
-        // array("$message":"Internal Server Error","$error":"INTERNAL_ERROR","status":"FAILURE")
-        // array("result":false,"$message":"Internal $error","$error":"For input string => \"NaN\"","status":"FAILURE")
+        // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
+        // array("result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE")
+        // array("message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE")
+        // array("result":false,"message":"Internal $error","error":"For input string => \"NaN\"","status":"FAILURE")
         //
         $message = $this->safe_string($response, 'message');
         $feedback = $this->id . ' ' . $body;

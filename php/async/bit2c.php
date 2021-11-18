@@ -453,8 +453,8 @@ class bit2c extends Exchange {
             return; // fallback to default $error handler
         }
         //
-        //     array( "$error" : "please approve new terms of use on site." )
-        //     array( "$error" => "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490).")
+        //     array( "error" : "please approve new terms of use on site." )
+        //     array( "error" => "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490).")
         //
         $error = $this->safe_string($response, 'error');
         if ($error !== null) {

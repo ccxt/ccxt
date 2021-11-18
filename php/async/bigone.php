@@ -152,17 +152,17 @@ class bigone extends Exchange {
         //         "code":0,
         //         "data":array(
         //             array(
-        //                 "$id":"01e48809-b42f-4a38-96b1-c4c547365db1",
+        //                 "id":"01e48809-b42f-4a38-96b1-c4c547365db1",
         //                 "name":"PCX-BTC",
         //                 "quote_scale":7,
         //                 "quote_asset":array(
-        //                     "$id":"0df9c3c3-255a-46d7-ab82-dedae169fba9",
-        //                     "$symbol":"BTC",
+        //                     "id":"0df9c3c3-255a-46d7-ab82-dedae169fba9",
+        //                     "symbol":"BTC",
         //                     "name":"Bitcoin",
         //                 ),
         //                 "base_asset":array(
-        //                     "$id":"405484f7-4b03-4378-a9c1-2bd718ecab51",
-        //                     "$symbol":"PCX",
+        //                     "id":"405484f7-4b03-4378-a9c1-2bd718ecab51",
+        //                     "symbol":"PCX",
         //                     "name":"ChainX",
         //                 ),
         //                 "base_scale":3,
@@ -246,12 +246,12 @@ class bigone extends Exchange {
         //
         //     {
         //         "asset_pair_name":"ETH-BTC",
-        //         "$bid":array("price":"0.021593","order_count":1,"quantity":"0.20936"),
-        //         "$ask":array("price":"0.021613","order_count":1,"quantity":"2.87064"),
+        //         "bid":array("price":"0.021593","order_count":1,"quantity":"0.20936"),
+        //         "ask":array("price":"0.021613","order_count":1,"quantity":"2.87064"),
         //         "open":"0.021795",
         //         "high":"0.021795",
         //         "low":"0.021471",
-        //         "$close":"0.021613",
+        //         "close":"0.021613",
         //         "volume":"117078.90431",
         //         "daily_change":"-0.000182"
         //     }
@@ -364,8 +364,8 @@ class bigone extends Exchange {
         $response = yield $this->publicGetPing ($params);
         //
         //     {
-        //         "$data" => {
-        //             "$timestamp" => 1527665262168391000
+        //         "data" => {
+        //             "timestamp" => 1527665262168391000
         //         }
         //     }
         //
@@ -407,7 +407,7 @@ class bigone extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "$id" => 38199941,
+        //         "id" => 38199941,
         //         "price" => "3378.67",
         //         "amount" => "0.019812",
         //         "taker_side" => "ASK",
@@ -417,7 +417,7 @@ class bigone extends Exchange {
         // fetchMyTrades (private)
         //
         //     array(
-        //         "$id" => 10854280,
+        //         "id" => 10854280,
         //         "asset_pair_name" => "XIN-USDT",
         //         "price" => "70",
         //         "amount" => "1",
@@ -426,12 +426,12 @@ class bigone extends Exchange {
         //         "taker_order_id" => 58284909,
         //         "maker_fee" => "0.0008",
         //         "taker_fee" => "0.07",
-        //         "$side" => "SELF_TRADING",
+        //         "side" => "SELF_TRADING",
         //         "inserted_at" => "2019-04-16T12:00:01Z"
         //     ),
         //
         //     {
-        //         "$id" => 10854263,
+        //         "id" => 10854263,
         //         "asset_pair_name" => "XIN-USDT",
         //         "price" => "75.7",
         //         "amount" => "12.743149",
@@ -440,7 +440,7 @@ class bigone extends Exchange {
         //         "taker_order_id" => 58284888,
         //         "maker_fee" => null,
         //         "taker_fee" => "0.0025486298",
-        //         "$side" => "BID",
+        //         "side" => "BID",
         //         "inserted_at" => "2019-04-15T06:20:57Z"
         //     }
         //
@@ -647,11 +647,11 @@ class bigone extends Exchange {
         $response = yield $this->$method ($params);
         //
         //     {
-        //         "$code":0,
+        //         "code":0,
         //         "data":array(
-        //             array("asset_symbol":"NKC","$balance":"0","locked_balance":"0"),
-        //             array("asset_symbol":"UBTC","$balance":"0","locked_balance":"0"),
-        //             array("asset_symbol":"READ","$balance":"0","locked_balance":"0"),
+        //             array("asset_symbol":"NKC","balance":"0","locked_balance":"0"),
+        //             array("asset_symbol":"UBTC","balance":"0","locked_balance":"0"),
+        //             array("asset_symbol":"READ","balance":"0","locked_balance":"0"),
         //         ),
         //     }
         //
@@ -676,13 +676,13 @@ class bigone extends Exchange {
     public function parse_order($order, $market = null) {
         //
         //    {
-        //        "$id" => 10,
+        //        "id" => 10,
         //        "asset_pair_name" => "EOS-BTC",
-        //        "$price" => "10.00",
-        //        "$amount" => "10.00",
+        //        "price" => "10.00",
+        //        "amount" => "10.00",
         //        "filled_amount" => "9.0",
         //        "avg_deal_price" => "12.0",
-        //        "$side" => "ASK",
+        //        "side" => "ASK",
         //        "state" => "FILLED",
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z",
@@ -766,11 +766,11 @@ class bigone extends Exchange {
         //    {
         //        "id" => 10,
         //        "asset_pair_name" => "EOS-BTC",
-        //        "$price" => "10.00",
-        //        "$amount" => "10.00",
+        //        "price" => "10.00",
+        //        "amount" => "10.00",
         //        "filled_amount" => "9.0",
         //        "avg_deal_price" => "12.0",
-        //        "$side" => "ASK",
+        //        "side" => "ASK",
         //        "state" => "FILLED",
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
@@ -785,7 +785,7 @@ class bigone extends Exchange {
         $request = array( 'id' => $id );
         $response = yield $this->privatePostOrdersIdCancel (array_merge($request, $params));
         //    {
-        //        "$id" => 10,
+        //        "id" => 10,
         //        "asset_pair_name" => "EOS-BTC",
         //        "price" => "10.00",
         //        "amount" => "10.00",
@@ -995,9 +995,9 @@ class bigone extends Exchange {
         // the $data key contains an array in the actual $response
         //
         //     {
-        //         "$code":0,
+        //         "code":0,
         //         "message":"",
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "id":5521878,
         //                 "chain":"Bitcoin",
@@ -1042,42 +1042,42 @@ class bigone extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "$amount" => "25.0",
+        //         "amount" => "25.0",
         //         "asset_symbol" => "BTS"
         //         "confirms" => 100,
-        //         "$id" => 5,
+        //         "id" => 5,
         //         "inserted_at" => "2018-02-16T11:39:58.000Z",
         //         "is_internal" => false,
         //         "kind" => "default",
         //         "memo" => "",
         //         "state" => "WITHHOLD",
-        //         "$txid" => "72e03037d144dae3d32b68b5045462b1049a0755",
+        //         "txid" => "72e03037d144dae3d32b68b5045462b1049a0755",
         //         "updated_at" => "2018-11-09T10:20:09.000Z",
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "$amount" => "5",
+        //         "amount" => "5",
         //         "asset_symbol" => "ETH",
         //         "completed_at" => "2018-03-15T16:13:45.610463Z",
         //         "customer_id" => "10",
-        //         "$id" => 10,
+        //         "id" => 10,
         //         "inserted_at" => "2018-03-15T16:13:45.610463Z",
         //         "is_internal" => true,
         //         "note" => "2018-03-15T16:13:45.610463Z",
         //         "state" => "CONFIRMED",
         //         "target_address" => "0x4643bb6b393ac20a6175c713175734a72517c63d6f7"
-        //         "$txid" => "0x4643bb6b393ac20a6175c713175734a72517c63d6f73a3ca90a15356f2e967da0",
+        //         "txid" => "0x4643bb6b393ac20a6175c713175734a72517c63d6f73a3ca90a15356f2e967da0",
         //     }
         //
         // withdraw
         //
         //     {
-        //         "$id":1077391,
+        //         "id":1077391,
         //         "customer_id":1082679,
-        //         "$amount":"21.9000000000000000",
-        //         "$txid":"",
+        //         "amount":"21.9000000000000000",
+        //         "txid":"",
         //         "is_internal":false,
         //         "kind":"on_chain",
         //         "state":"PENDING",
@@ -1140,7 +1140,7 @@ class bigone extends Exchange {
         $response = yield $this->privateGetDeposits (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 0,
+        //         "code" => 0,
         //         "page_token" => "NQ==",
         //         "data" => array(
         //             {
@@ -1182,7 +1182,7 @@ class bigone extends Exchange {
         $response = yield $this->privateGetWithdrawals (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 0,
+        //         "code" => 0,
         //         "data" => array(
         //             {
         //                 "id" => 10,
@@ -1221,12 +1221,12 @@ class bigone extends Exchange {
         $response = yield $this->privatePostWithdrawals (array_merge($request, $params));
         //
         //     {
-        //         "$code":0,
+        //         "code":0,
         //         "message":"",
-        //         "$data":{
+        //         "data":{
         //             "id":1077391,
         //             "customer_id":1082679,
-        //             "$amount":"21.9000000000000000",
+        //             "amount":"21.9000000000000000",
         //             "txid":"",
         //             "is_internal":false,
         //             "kind":"on_chain",
@@ -1249,8 +1249,8 @@ class bigone extends Exchange {
             return; // fallback to default error handler
         }
         //
-        //      array("$code":10013,"$message":"Resource not found")
-        //      array("$code":40004,"$message":"invalid jwt")
+        //      array("code":10013,"message":"Resource not found")
+        //      array("code":40004,"message":"invalid jwt")
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');

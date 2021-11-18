@@ -463,11 +463,11 @@ class bybit extends Exchange {
         //         "ret_msg":"OK",
         //         "ext_code":"",
         //         "ext_info":"",
-        //         "$result":array(
+        //         "result":array(
         //             array(
         //                 "name":"BTCUSD",
         //                 "alias":"BTCUSD",
-        //                 "$status":"Trading",
+        //                 "status":"Trading",
         //                 "base_currency":"BTC",
         //                 "quote_currency":"USD",
         //                 "price_scale":2,
@@ -480,7 +480,7 @@ class bybit extends Exchange {
         //             array(
         //                 "name":"BTCUSDT",
         //                 "alias":"BTCUSDT",
-        //                 "$status":"Trading",
+        //                 "status":"Trading",
         //                 "base_currency":"BTC",
         //                 "quote_currency":"USDT",
         //                 "price_scale":2,
@@ -847,10 +847,10 @@ class bybit extends Exchange {
         //         "ret_msg":"OK",
         //         "ext_code":"",
         //         "ext_info":"",
-        //         "$result":array(
+        //         "result":array(
         //             {
         //                 "id":143536,
-        //                 "$symbol":"BTCUSDT",
+        //                 "symbol":"BTCUSDT",
         //                 "period":"15",
         //                 "start_at":1587883500,
         //                 "volume":1.035,
@@ -880,8 +880,8 @@ class bybit extends Exchange {
         //     "ret_code" => 0,
         //     "ret_msg" => "ok",
         //     "ext_code" => "",
-        //     "$result" => array(
-        //         "$symbol" => "BTCUSD",
+        //     "result" => array(
+        //         "symbol" => "BTCUSD",
         //         "funding_rate" => "0.00010000",
         //         "funding_rate_timestamp" => 1577433600
         //     ),
@@ -981,8 +981,8 @@ class bybit extends Exchange {
         //         "order_price" => "8178",
         //         "order_qty" => 1,
         //         "order_type" => "Market", //Order Type Enum
-        //         "$side" => "Buy", //Side Enum
-        //         "$symbol" => "BTCUSD", //Symbol Enum
+        //         "side" => "Buy", //Side Enum
+        //         "symbol" => "BTCUSD", //Symbol Enum
         //         "user_id" => 1,
         //         "trade_time_ms" => 1577480599000
         //     }
@@ -1218,10 +1218,10 @@ class bybit extends Exchange {
         //     {
         //         "user_id" => 1,
         //         "order_id" => "335fd977-e5a5-4781-b6d0-c772d5bfb95b",
-        //         "$symbol" => "BTCUSD",
-        //         "$side" => "Buy",
+        //         "symbol" => "BTCUSD",
+        //         "side" => "Buy",
         //         "order_type" => "Limit",
-        //         "$price" => 8800,
+        //         "price" => 8800,
         //         "qty" => 1,
         //         "time_in_force" => "GoodTillCancel",
         //         "order_status" => "Created",
@@ -1241,10 +1241,10 @@ class bybit extends Exchange {
         //
         //     {
         //         "user_id" : 599946,
-        //         "$symbol" : "BTCUSD",
-        //         "$side" : "Buy",
+        //         "symbol" : "BTCUSD",
+        //         "side" : "Buy",
         //         "order_type" : "Limit",
-        //         "$price" : "7948",
+        //         "price" : "7948",
         //         "qty" : 10,
         //         "time_in_force" : "GoodTillCancel",
         //         "order_status" : "Filled",
@@ -1271,10 +1271,10 @@ class bybit extends Exchange {
         //
         //     {
         //         "user_id":##,
-        //         "$symbol":"BTCUSD",
-        //         "$side":"Buy",
+        //         "symbol":"BTCUSD",
+        //         "side":"Buy",
         //         "order_type":"Market",
-        //         "$price":0,
+        //         "price":0,
         //         "qty":10,
         //         "time_in_force":"GoodTillCancel",
         //         "stop_order_type":"Stop",
@@ -1419,9 +1419,9 @@ class bybit extends Exchange {
         //         "ret_msg" => "OK",
         //         "ext_code" => "",
         //         "ext_info" => "",
-        //         "$result" => array(
+        //         "result" => array(
         //             "user_id" => 1,
-        //             "$symbol" => "BTCUSD",
+        //             "symbol" => "BTCUSD",
         //             "side" => "Sell",
         //             "order_type" => "Limit",
         //             "price" => "8083",
@@ -1451,9 +1451,9 @@ class bybit extends Exchange {
         //         "ret_msg" => "OK",
         //         "ext_code" => "",
         //         "ext_info" => "",
-        //         "$result" => array(
+        //         "result" => array(
         //             "user_id" => 1,
-        //             "$symbol" => "BTCUSD",
+        //             "symbol" => "BTCUSD",
         //             "side" => "Buy",
         //             "order_type" => "Limit",
         //             "price" => "8000",
@@ -1572,14 +1572,14 @@ class bybit extends Exchange {
         //         "ret_msg" => "OK",
         //         "ext_code" => "",
         //         "ext_info" => "",
-        //         "$result" => array(
+        //         "result" => array(
         //             "user_id" => 1,
         //             "order_id" => "335fd977-e5a5-4781-b6d0-c772d5bfb95b",
-        //             "$symbol" => "BTCUSD",
-        //             "$side" => "Buy",
+        //             "symbol" => "BTCUSD",
+        //             "side" => "Buy",
         //             "order_type" => "Limit",
-        //             "$price" => 8800,
-        //             "$qty" => 1,
+        //             "price" => 8800,
+        //             "qty" => 1,
         //             "time_in_force" => "GoodTillCancel",
         //             "order_status" => "Created",
         //             "last_exec_time" => 0,
@@ -1605,13 +1605,13 @@ class bybit extends Exchange {
         //         "ret_code" => 0,
         //         "ret_msg" => "ok",
         //         "ext_code" => "",
-        //         "$result" => array(
+        //         "result" => array(
         //             "user_id" => 1,
-        //             "$symbol" => "BTCUSD",
-        //             "$side" => "Buy",
+        //             "symbol" => "BTCUSD",
+        //             "side" => "Buy",
         //             "order_type" => "Limit",
-        //             "$price" => 8000,
-        //             "$qty" => 1,
+        //             "price" => 8000,
+        //             "qty" => 1,
         //             "time_in_force" => "GoodTillCancel",
         //             "stop_order_type" => "Stop",
         //             "trigger_by" => "LastPrice",
@@ -1707,7 +1707,7 @@ class bybit extends Exchange {
         //         "ret_code" => 0,
         //         "ret_msg" => "ok",
         //         "ext_code" => "",
-        //         "$result" => array( "order_id" => "efa44157-c355-4a98-b6d6-1d846a936b93" ),
+        //         "result" => array( "order_id" => "efa44157-c355-4a98-b6d6-1d846a936b93" ),
         //         "time_now" => "1539778407.210858",
         //         "rate_limit_status" => 99, // remaining number of accesses in one minute
         //         "rate_limit_reset_ms" => 1580885703683,
@@ -1720,7 +1720,7 @@ class bybit extends Exchange {
         //         "ret_code" => 0,
         //         "ret_msg" => "ok",
         //         "ext_code" => "",
-        //         "$result" => array( "stop_order_id" => "378a1bbc-a93a-4e75-87f4-502ea754ba36" ),
+        //         "result" => array( "stop_order_id" => "378a1bbc-a93a-4e75-87f4-502ea754ba36" ),
         //         "ext_info" => null,
         //         "time_now" => "1577475760.604942",
         //         "rate_limit_status" => 96,
@@ -1872,13 +1872,13 @@ class bybit extends Exchange {
         //         "ret_code" => 0,
         //         "ret_msg" => "ok",
         //         "ext_code" => "",
-        //         "$result" => {
+        //         "result" => {
         //             "current_page" => 1,
         //             "last_page" => 6,
-        //             "$data" => array(
+        //             "data" => array(
         //                 array(
         //                     "user_id" => 1,
-        //                     "$symbol" => "BTCUSD",
+        //                     "symbol" => "BTCUSD",
         //                     "side" => "Sell",
         //                     "order_type" => "Market",
         //                     "price" => 7074,
@@ -1922,14 +1922,14 @@ class bybit extends Exchange {
         //         "ret_code" => 0,
         //         "ret_msg" => "ok",
         //         "ext_code" => "",
-        //         "$result" => array(
+        //         "result" => array(
         //             "current_page" => 1,
         //             "last_page" => 1,
-        //             "$data" => array(
+        //             "data" => array(
         //                 array(
         //                     "user_id" => 1,
         //                     "stop_order_status" => "Untriggered",
-        //                     "$symbol" => "BTCUSD",
+        //                     "symbol" => "BTCUSD",
         //                     "side" => "Buy",
         //                     "order_type" => "Limit",
         //                     "price" => 8000,
@@ -2068,7 +2068,7 @@ class bybit extends Exchange {
         //         "ret_msg" => "OK",
         //         "ext_code" => "",
         //         "ext_info" => "",
-        //         "$result" => {
+        //         "result" => {
         //             "order_id" => "Abandoned!!", // Abandoned!!
         //             "trade_list" => array(
         //                 array(
@@ -2091,7 +2091,7 @@ class bybit extends Exchange {
         //                     "order_qty" => 1,
         //                     "order_type" => "Market", //Order Type Enum
         //                     "side" => "Buy", //Side Enum
-        //                     "$symbol" => "BTCUSD", //Symbol Enum
+        //                     "symbol" => "BTCUSD", //Symbol Enum
         //                     "user_id" => 1
         //                 }
         //             )
@@ -2109,14 +2109,14 @@ class bybit extends Exchange {
         //         "ret_msg":"OK",
         //         "ext_code":"",
         //         "ext_info":"",
-        //         "$result":{
+        //         "result":{
         //             "current_page":1,
         //             "data":array(
         //                 array(
         //                     "order_id":"b59418ec-14d4-4ef9-b9f4-721d5d576974",
         //                     "order_link_id":"",
         //                     "side":"Sell",
-        //                     "$symbol":"BTCUSDT",
+        //                     "symbol":"BTCUSDT",
         //                     "exec_id":"0327284d-faec-5191-bd89-acc5b4fafda9",
         //                     "price":0.5,
         //                     "order_price":0.5,
@@ -2175,8 +2175,8 @@ class bybit extends Exchange {
         //         "ret_code" => 0,
         //         "ret_msg" => "ok",
         //         "ext_code" => "",
-        //         "$result" => {
-        //             "$data" => array(
+        //         "result" => {
+        //             "data" => array(
         //                 array(
         //                     "id" => 234467,
         //                     "user_id" => 1,
@@ -2231,8 +2231,8 @@ class bybit extends Exchange {
         //         "ret_code" => 0,
         //         "ret_msg" => "ok",
         //         "ext_code" => "",
-        //         "$result" => array(
-        //             "$data" => array(
+        //         "result" => array(
+        //             "data" => array(
         //                 array(
         //                     "id" => 137,
         //                     "user_id" => 1,
@@ -2282,10 +2282,10 @@ class bybit extends Exchange {
         //         "id" => 137,
         //         "user_id" => 1,
         //         "coin" => "XRP", // Coin Enum
-        //         "$status" => "Pending", // Withdraw Status Enum
+        //         "status" => "Pending", // Withdraw Status Enum
         //         "amount" => "20.00000000",
-        //         "$fee" => "0.25000000",
-        //         "$address" => "rH7H595XYEVTEHU2FySYsWnmfACBnZS9zM",
+        //         "fee" => "0.25000000",
+        //         "address" => "rH7H595XYEVTEHU2FySYsWnmfACBnZS9zM",
         //         "tx_id" => "",
         //         "submited_at" => "2019-06-11T02:20:24.000Z",
         //         "updated_at" => "2019-06-11T02:20:24.000Z"
@@ -2298,10 +2298,10 @@ class bybit extends Exchange {
         //         "user_id" => 1,
         //         "coin" => "BTC",
         //         "wallet_id" => 27913,
-        //         "$type" => "Realized P&L",
+        //         "type" => "Realized P&L",
         //         "amount" => "-0.00000006",
         //         "tx_id" => "",
-        //         "$address" => "BTCUSD",
+        //         "address" => "BTCUSD",
         //         "wallet_balance" => "0.03000330",
         //         "exec_time" => "2019-12-09T00:00:25.000Z",
         //         "cross_seq" => 0
@@ -2371,8 +2371,8 @@ class bybit extends Exchange {
         //         "ret_code" => 0,
         //         "ret_msg" => "ok",
         //         "ext_code" => "",
-        //         "$result" => {
-        //             "$data" => array(
+        //         "result" => {
+        //             "data" => array(
         //                 array(
         //                     "id" => 234467,
         //                     "user_id" => 1,
@@ -2403,12 +2403,12 @@ class bybit extends Exchange {
     public function parse_ledger_entry($item, $currency = null) {
         //
         //     {
-        //         "$id" => 234467,
+        //         "id" => 234467,
         //         "user_id" => 1,
         //         "coin" => "BTC",
         //         "wallet_id" => 27913,
-        //         "$type" => "Realized P&L",
-        //         "$amount" => "-0.00000006",
+        //         "type" => "Realized P&L",
+        //         "amount" => "-0.00000006",
         //         "tx_id" => "",
         //         "address" => "BTCUSD",
         //         "wallet_balance" => "0.03000330",
@@ -2651,7 +2651,7 @@ class bybit extends Exchange {
             $sell_leverage = $params['sell_leverage'];
         } else if (!$leverage) {
             if ($linear) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires either the parameter $leverage or $params["$buy_leverage"] and $params["$sell_leverage"] for $linear contracts');
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires either the parameter $leverage or $params["buy_leverage"] and $params["sell_leverage"] for $linear contracts');
             } else {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires parameter $leverage for $inverse and $futures contracts');
             }

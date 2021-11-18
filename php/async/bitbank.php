@@ -113,8 +113,8 @@ class bitbank extends Exchange {
         //
         //     {
         //       "success" => 1,
-        //       "$data" => {
-        //         "$pairs" => array(
+        //       "data" => {
+        //         "pairs" => array(
         //           {
         //             "name" => "btc_jpy",
         //             "base_asset" => "btc",
@@ -331,11 +331,11 @@ class bitbank extends Exchange {
         //
         //     {
         //         "success":1,
-        //         "$data":{
-        //             "$candlestick":[
+        //         "data":{
+        //             "candlestick":[
         //                 {
         //                     "type":"5min",
-        //                     "$ohlcv":[
+        //                     "ohlcv":[
         //                         ["0.02501786","0.02501786","0.02501786","0.02501786","0.0000",1591488000000],
         //                         ["0.02501747","0.02501953","0.02501747","0.02501953","0.3017",1591488300000],
         //                         ["0.02501762","0.02501762","0.02500392","0.02500392","0.1500",1591488600000],
@@ -359,8 +359,8 @@ class bitbank extends Exchange {
         //
         //     {
         //       "success" => "1",
-        //       "$data" => {
-        //         "$assets" => array(
+        //       "data" => {
+        //         "assets" => array(
         //           {
         //             "asset" => "jpy",
         //             "amount_precision" => "4",
