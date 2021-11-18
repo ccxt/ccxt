@@ -79,6 +79,7 @@ module.exports = class gateio extends Exchange {
                             'currency_pairs/{currency_pair}': 1,
                             'cross/currencies': 1,
                             'cross/currencies/{currency}': 1,
+                            'funding_book': 1,
                         },
                     },
                     'futures': {
@@ -2819,6 +2820,27 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async fetchBorrowRate (currency, tier = undefined, params = {}) {
+        await this.loadMarkets ();
+        currency = this.safeCurrencyCode (currency);
+        const request = {
+            'currency': currency,
+        };
+        const response = await this.publicMarginGetFundingBook (this.extend (request, params));
+        const rate = response[0];
+        const timestamp = this.safeNumber (rate, 'timestamp');
+        return {
+            'currency': currency,
+            'previousRate': this.safeNumber (rate, 'rate'),
+            'nextRate': undefined,
+            'tier': undefined,
+            'increment': 'daily',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': rate,
+        };
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
