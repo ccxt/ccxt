@@ -543,7 +543,7 @@ class okex(Exchange):
                 },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder'
                 'createMarketBuyOrderRequiresPrice': False,
-                'fetchMarkets': ['spot', 'futures', 'swap'],  # spot, futures, swap, option
+                'fetchMarkets': ['spot', 'futures', 'swap', 'option'],  # spot, futures, swap, option
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 # 'fetchBalance': {
                 #     'type': 'spot',  # 'funding', 'trading', 'spot'
@@ -678,13 +678,37 @@ class okex(Exchange):
         #         "uly":""
         #     }
         #
+        #     {
+        #         alias: "",
+        #         baseCcy: "",
+        #         category: "1",
+        #         ctMult: "0.1",
+        #         ctType: "",
+        #         ctVal: "1",
+        #         ctValCcy: "BTC",
+        #         expTime: "1648195200000",
+        #         instId: "BTC-USD-220325-194000-P",
+        #         instType: "OPTION",
+        #         lever: "",
+        #         listTime: "1631262612280",
+        #         lotSz: "1",
+        #         minSz: "1",
+        #         optType: "P",
+        #         quoteCcy: "",
+        #         settleCcy: "BTC",
+        #         state: "live",
+        #         stk: "194000",
+        #         tickSz: "0.0005",
+        #         uly: "BTC-USD"
+        #     }
+        #
         id = self.safe_string(market, 'instId')
         type = self.safe_string_lower(market, 'instType')
         spot = (type == 'spot')
         futures = (type == 'futures')
         swap = (type == 'swap')
         option = (type == 'option')
-        contract = swap or futures
+        contract = swap or futures or option
         baseId = self.safe_string(market, 'baseCcy')
         quoteId = self.safe_string(market, 'quoteCcy')
         settleCurrency = self.safe_string(market, 'settleCcy')
@@ -706,6 +730,10 @@ class okex(Exchange):
             if expiry is not None:
                 ymd = self.yymmdd(expiry)
                 symbol = symbol + '-' + ymd
+            if option:
+                strikePrice = self.safe_string(market, 'stk')
+                optionType = self.safe_string(market, 'optType')
+                symbol = symbol + '-' + strikePrice + '-' + optionType
         tickSize = self.safe_string(market, 'tickSz')
         precision = {
             'amount': self.safe_number(market, 'lotSz'),
