@@ -676,7 +676,12 @@ module.exports = class bitbns extends Exchange {
         timestamp = this.safeInteger (trade, 'timestamp', timestamp);
         const priceString = this.safeString2 (trade, 'rate', 'price');
         let amountString = this.safeString (trade, 'amount');
-        const side = this.safeStringLower (trade, 'type');
+        let side = this.safeStringLower (trade, 'type');
+        if (side.indexOf ('buy')) {
+            side = 'buy';
+        } else if (side.indexOf ('sell')) {
+            side = 'sell';
+        };
         const factor = this.safeString (trade, 'factor');
         let costString = undefined;
         if (factor !== undefined) {
