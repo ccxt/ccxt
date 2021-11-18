@@ -2415,7 +2415,7 @@ module.exports = class binance extends Exchange {
                 method += 'Test';
             }
             params = this.omit (params, 'test');
-            // all margin markets are also spot markets
+            // only supported for spot/margin api (all margin markets are spot markets)
             if (postOnly) {
                 type = 'LIMIT_MAKER';
             }
