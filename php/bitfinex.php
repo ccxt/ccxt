@@ -727,6 +727,50 @@ class bitfinex extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public) v1
+        //
+        //     {
+        //          "timestamp":1637258380,
+        //          "tid":894452833,
+        //          "price":"0.99941",
+        //          "amount":"261.38",
+        //          "exchange":"bitfinex",
+        //          "type":"sell"
+        //     }
+        //
+        //     {    "timestamp":1637258238,
+        //          "tid":894452800,
+        //          "price":"0.99958",
+        //          "amount":"261.90514",
+        //          "exchange":"bitfinex",
+        //          "type":"buy"
+        //     }
+        //
+        // fetchMyTrades (private) v1
+        //
+        //     {
+        //          "price":"0.99941",
+        //          "amount":"261.38",
+        //          "timestamp":"1637258380.0",
+        //          "type":"Sell",
+        //          "fee_currency":"UST",
+        //          "fee_amount":"-0.52245157",
+        //          "tid":894452833,
+        //          "order_id":78819731373
+        //     }
+        //
+        //     {
+        //         "price":"0.99958",
+        //         "amount":"261.90514",
+        //         "timestamp":"1637258238.0",
+        //         "type":"Buy",
+        //         "fee_currency":"UDC",
+        //         "fee_amount":"-0.52381028",
+        //         "tid":894452800,
+        //         "order_id":78819504838
+        //     }
+        //
         $id = $this->safe_string($trade, 'tid');
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $type = null;
