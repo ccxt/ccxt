@@ -7,7 +7,6 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
-use \ccxt\Precise;
 
 class bitbay extends Exchange {
 
@@ -892,13 +891,13 @@ class bitbay extends Exchange {
         //
         //     {
         //         "rate" => "0.02195928",
-        //         "$amount" => "0.00167952"
+        //         "amount" => "0.00167952"
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         $amount => "0.29285199",
+        //         amount => "0.29285199",
         //         commissionValue => "0.00125927",
         //         id => "11c8203a-a267-11e9-b698-0242ac110007",
         //         initializedBy => "Buy",
@@ -929,19 +928,16 @@ class bitbay extends Exchange {
         }
         $priceString = $this->safe_string_2($trade, 'rate', 'r');
         $amountString = $this->safe_string_2($trade, 'amount', 'a');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        $feeCost = $this->safe_number($trade, 'commissionValue');
+        $feeCostString = $this->safe_string($trade, 'commissionValue');
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
         $fee = null;
-        if ($feeCost !== null) {
-            $feeCcy = ($side === 'buy') ? $market['base'] : $market['quote'];
+        if ($feeCostString !== null) {
+            $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
             $fee = array(
-                'currency' => $feeCcy,
-                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+                'cost' => $feeCostString,
             );
         }
         $order = $this->safe_string($trade, 'offerId');
@@ -950,7 +946,7 @@ class bitbay extends Exchange {
         if ($order !== null) {
             $type = $order ? 'limit' : 'market';
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $this->safe_string($trade, 'id'),
             'order' => $order,
             'timestamp' => $timestamp,
@@ -958,13 +954,13 @@ class bitbay extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

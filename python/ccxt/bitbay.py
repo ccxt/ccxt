@@ -17,7 +17,6 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.precise import Precise
 
 
 class bitbay(Exchange):
@@ -912,26 +911,23 @@ class bitbay(Exchange):
             takerOrMaker = 'taker' if wasTaker else 'maker'
         priceString = self.safe_string_2(trade, 'rate', 'r')
         amountString = self.safe_string_2(trade, 'amount', 'a')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        feeCost = self.safe_number(trade, 'commissionValue')
+        feeCostString = self.safe_string(trade, 'commissionValue')
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         fee = None
-        if feeCost is not None:
-            feeCcy = market['base'] if (side == 'buy') else market['quote']
+        if feeCostString is not None:
+            feeCurrency = market['base'] if (side == 'buy') else market['quote']
             fee = {
-                'currency': feeCcy,
-                'cost': feeCost,
+                'currency': feeCurrency,
+                'cost': feeCostString,
             }
         order = self.safe_string(trade, 'offerId')
         # todo: check self logic
         type = None
         if order is not None:
             type = 'limit' if order else 'market'
-        return {
+        return self.safe_trade({
             'id': self.safe_string(trade, 'id'),
             'order': order,
             'timestamp': timestamp,
@@ -939,13 +935,13 @@ class bitbay(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
