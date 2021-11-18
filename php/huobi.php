@@ -139,7 +139,7 @@ class huobi extends \ccxt\async\huobi {
     public function handle_trades($client, $message) {
         //
         //     {
-        //         $ch => "$market->btcusdt.trade.detail",
+        //         $ch => "market.btcusdt.trade.detail",
         //         ts => 1583495834011,
         //         $tick => {
         //             id => 105004645372,
@@ -436,7 +436,7 @@ class huobi extends \ccxt\async\huobi {
     public function handle_subscription_status($client, $message) {
         //
         //     {
-        //         "$id" => 1583414227,
+        //         "id" => 1583414227,
         //         "status" => "ok",
         //         "subbed" => "market.btcusdt.mbp.150",
         //         "ts" => 1583414229143

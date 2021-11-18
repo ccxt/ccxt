@@ -468,7 +468,7 @@ class ndax extends \ccxt\async\ndax {
         //         "m" => 0, // $message type, 0 request, 1 reply, 2 subscribe, 3 $event, unsubscribe, 5 error
         //         "i" => 0, // sequence number identifies an individual request or request-and-response pair, to your application
         //         "n":"function name", // function name is the name of the function being called or that the server is responding to, the server echoes your call
-        //         "o":"$payload", // JSON-formatted string containing the data being sent with the $message
+        //         "o":"payload", // JSON-formatted string containing the data being sent with the $message
         //     }
         //
         //     {

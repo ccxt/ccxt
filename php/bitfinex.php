@@ -351,7 +351,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //
         // every second (approx) if no other updates are sent
         //
-        //     array( "$event" => "heartbeat" )
+        //     array( "event" => "heartbeat" )
         //
         $event = $this->safe_string($message, 'event');
         $client->resolve ($message, $event);

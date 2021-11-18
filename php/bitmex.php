@@ -818,14 +818,14 @@ class bitmex extends \ccxt\async\bitmex {
         //     {
         //         "table":"execution",
         //         "action":"insert",
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "execID":"0193e879-cb6f-2891-d099-2c4eb40fee21",
         //                 "orderID":"00000000-0000-0000-0000-000000000000",
         //                 "clOrdID":"",
         //                 "clOrdLinkID":"",
         //                 "account":2,
-        //                 "$symbol":"XBTUSD",
+        //                 "symbol":"XBTUSD",
         //                 "side":"Sell",
         //                 "lastQty":1,
         //                 "lastPx":1134.37,
@@ -1182,18 +1182,18 @@ class bitmex extends \ccxt\async\bitmex {
         //
         // generic $error format
         //
-        //     array( "$error" => errorMessage )
+        //     array( "error" => errorMessage )
         //
         // examples
         //
         //     {
         //         "status" => 429,
-        //         "$error" => "Rate limit exceeded, retry in 1 seconds.",
+        //         "error" => "Rate limit exceeded, retry in 1 seconds.",
         //         "meta" => array( "retryAfter" => 1 ),
-        //         "$request" => array( "op" => "subscribe", "$args" => "orderBook" ),
+        //         "request" => array( "op" => "subscribe", "args" => "orderBook" ),
         //     }
         //
-        //     array( "$error" => "Rate limit exceeded, retry in 29 seconds." )
+        //     array( "error" => "Rate limit exceeded, retry in 29 seconds." )
         //
         $error = $this->safe_value($message, 'error');
         if ($error !== null) {

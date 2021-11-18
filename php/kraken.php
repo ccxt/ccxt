@@ -74,7 +74,7 @@ class kraken extends \ccxt\async\kraken {
         //             "t" => array( 11493, 16267 ), // number of trades today, 24 hours ago
         //             "v" => array( "2634.11501494", "3591.17907851" ), // volume today, volume 24 hours ago
         //         ),
-        //         "$ticker",
+        //         "ticker",
         //         "XBT/USD"
         //     )
         //
@@ -323,7 +323,7 @@ class kraken extends \ccxt\async\kraken {
         //
         // every second (approx) if no other updates are sent
         //
-        //     array( "$event" => "heartbeat" )
+        //     array( "event" => "heartbeat" )
         //
         $event = $this->safe_string($message, 'event');
         $client->resolve ($message, $event);
@@ -356,13 +356,13 @@ class kraken extends \ccxt\async\kraken {
         //     array(
         //         1234,
         //         array( // optional
-        //             "$a" => array(
+        //             "a" => array(
         //                 array( "5541.30000", "2.50700000", "1534614248.456738" ),
         //                 array( "5542.50000", "0.40100000", "1534614248.456738" )
         //             )
         //         ),
         //         array( // optional
-        //             "$b" => array(
+        //             "b" => array(
         //                 array( "5541.30000", "0.00000000", "1534614335.345903" )
         //             )
         //         ),
@@ -671,8 +671,8 @@ class kraken extends \ccxt\async\kraken {
         //                     "descr" => array(
         //                         "close" => "",
         //                         "leverage" => "0:1",
-        //                         "$order" => "sell 10.00345345 XBT/EUR @ $limit 34.50000 with 0:1 leverage",
-        //                         "ordertype" => "$limit",
+        //                         "order" => "sell 10.00345345 XBT/EUR @ $limit 34.50000 with 0:1 leverage",
+        //                         "ordertype" => "limit",
         //                         "pair" => "XBT/EUR",
         //                         "price" => "34.50000",
         //                         "price2" => "0.00000",
@@ -700,8 +700,8 @@ class kraken extends \ccxt\async\kraken {
         //                     "descr" => array(
         //                         "close" => "",
         //                         "leverage" => "0:1",
-        //                         "$order" => "sell 0.00000010 XBT/EUR @ $limit 5334.60000 with 0:1 leverage",
-        //                         "ordertype" => "$limit",
+        //                         "order" => "sell 0.00000010 XBT/EUR @ $limit 5334.60000 with 0:1 leverage",
+        //                         "ordertype" => "limit",
         //                         "pair" => "XBT/EUR",
         //                         "price" => "5334.60000",
         //                         "price2" => "0.00000",

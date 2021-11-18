@@ -147,17 +147,17 @@ class kucoin extends \ccxt\async\kucoin {
         // were no changes since the previous update
         //
         //     {
-        //         "$data" => {
+        //         "data" => {
         //             "sequence" => "1545896669291",
-        //             "$data" => array(
+        //             "data" => array(
         //                 "trading" => true,
-        //                 "$symbol" => "KCS-BTC",
+        //                 "symbol" => "KCS-BTC",
         //                 "buy" => 0.00011,
         //                 "sell" => 0.00012,
         //                 "sort" => 100,
         //                 "volValue" => 3.13851792584, // total
         //                 "baseCurrency" => "KCS",
-        //                 "$market" => "BTC",
+        //                 "market" => "BTC",
         //                 "quoteCurrency" => "BTC",
         //                 "symbolCode" => "KCS-BTC",
         //                 "datetime" => 1548388122031,
@@ -172,8 +172,8 @@ class kucoin extends \ccxt\async\kucoin {
         //             }
         //         ),
         //         "subject" => "trade.snapshot",
-        //         "$topic" => "/market/snapshot:KCS-BTC",
-        //         "type" => "$message"
+        //         "topic" => "/market/snapshot:KCS-BTC",
+        //         "type" => "message"
         //     }
         //
         // market/ticker
@@ -423,16 +423,16 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_order_book_message($client, $message, $orderbook) {
         //
         //     {
-        //         "type":"$message",
+        //         "type":"message",
         //         "topic":"/market/level2:BTC-USDT",
         //         "subject":"trade.l2update",
-        //         "$data":{
-        //             "$sequenceStart":1545896669105,
-        //             "$sequenceEnd":1545896669106,
+        //         "data":{
+        //             "sequenceStart":1545896669105,
+        //             "sequenceEnd":1545896669106,
         //             "symbol":"BTC-USDT",
-        //             "$changes" => {
-        //                 "$asks" => [["6","1","1545896669105"]], // price, size, sequence
-        //                 "$bids" => [["4","1","1545896669106"]]
+        //             "changes" => {
+        //                 "asks" => [["6","1","1545896669105"]], // price, size, sequence
+        //                 "bids" => [["4","1","1545896669106"]]
         //             }
         //         }
         //     }
@@ -473,13 +473,13 @@ class kucoin extends \ccxt\async\kucoin {
         // the feed does not include a snapshot, just the deltas
         //
         //     {
-        //         "type":"$message",
+        //         "type":"message",
         //         "topic":"/market/level2:BTC-USDT",
         //         "subject":"trade.l2update",
-        //         "$data":{
+        //         "data":{
         //             "sequenceStart":1545896669105,
         //             "sequenceEnd":1545896669106,
-        //             "$symbol":"BTC-USDT",
+        //             "symbol":"BTC-USDT",
         //             "changes" => {
         //                 "asks" => [["6","1","1545896669105"]], // price, size, sequence
         //                 "bids" => [["4","1","1545896669106"]]
@@ -691,24 +691,24 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function parse_ws_trade($trade) {
         // {
-        //     "$type":"message",
+        //     "type":"message",
         //     "topic":"/spotMarket/tradeOrders",
         //     "subject":"orderChange",
         //     "channelType":"private",
         //     "data":{
-        //         "$symbol":"KCS-USDT",
+        //         "symbol":"KCS-USDT",
         //         "orderType":"limit",
-        //         "$side":"sell",
+        //         "side":"sell",
         //         "orderId":"5efab07953bdea00089965fa",
         //         "liquidity":"taker",
-        //         "$type":"match",
+        //         "type":"match",
         //         "orderTime":1593487482038606180,
         //         "size":"0.1",
         //         "filledSize":"0.1",
-        //         "$price":"0.938",
+        //         "price":"0.938",
         //         "matchPrice":"0.96738",
         //         "matchSize":"0.1",
-        //         "$tradeId":"5efab07a4ee4c7000a82d6d9",
+        //         "tradeId":"5efab07a4ee4c7000a82d6d9",
         //         "clientOid":"1593487481000313",
         //         "remainSize":"0",
         //         "status":"match",
@@ -758,10 +758,10 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_subject($client, $message) {
         //
         //     {
-        //         "$type":"$message",
+        //         "type":"message",
         //         "topic":"/market/level2:BTC-USDT",
-        //         "$subject":"trade.l2update",
-        //         "$data":{
+        //         "subject":"trade.l2update",
+        //         "data":{
         //             "sequenceStart":1545896669105,
         //             "sequenceEnd":1545896669106,
         //             "symbol":"BTC-USDT",

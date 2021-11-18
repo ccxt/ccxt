@@ -94,8 +94,8 @@ class gateio extends \ccxt\async\gateio {
     public function handle_order_book($client, $message) {
         //
         //     {
-        //         "$method":"depth.update",
-        //         "$params":[
+        //         "method":"depth.update",
+        //         "params":[
         //             true, // snapshot or not
         //             array(
         //                 "asks":[

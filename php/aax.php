@@ -622,7 +622,7 @@ class aax extends \ccxt\async\aax {
         //             "available" => "0.12127194",
         //             "unavailable" => "0.01458122"
         //         ),
-        //         "$event" => "USER_BALANCE"
+        //         "event" => "USER_BALANCE"
         //     }
         //
         $event = $this->safe_value($message, 'event');
@@ -665,7 +665,7 @@ class aax extends \ccxt\async\aax {
         //
         // server may publish empty events if there is nothing to send right after a new connection is established
         //
-        //     array("$e":"empty")
+        //     array("e":"empty")
         //
         // private handshake response
         //

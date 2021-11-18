@@ -277,7 +277,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         //             type => 0,
         //             price => 8302.92
         //         ),
-        //         event => "$trade",
+        //         event => "trade",
         //         $channel => "live_trades_btcusd"
         //     }
         //

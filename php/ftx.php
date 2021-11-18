@@ -217,7 +217,7 @@ class ftx extends \ccxt\async\ftx {
     public function handle_order_book_snapshot($client, $message) {
         //
         //     {
-        //         channel => "$orderbook",
+        //         channel => "orderbook",
         //         $market => "BTC/USD",
         //         type => "partial",
         //         $data => {
@@ -272,7 +272,7 @@ class ftx extends \ccxt\async\ftx {
     public function handle_order_book_update($client, $message) {
         //
         //     {
-        //         channel => "$orderbook",
+        //         channel => "orderbook",
         //         $market => "BTC/USD",
         //         type => "update",
         //         $data => {
@@ -307,7 +307,7 @@ class ftx extends \ccxt\async\ftx {
     public function handle_trade($client, $message) {
         //
         //     {
-        //         channel =>   "$trades",
+        //         channel =>   "trades",
         //         $market =>   "BTC-PERP",
         //         type =>   "update",
         //         $data => array(
@@ -494,13 +494,13 @@ class ftx extends \ccxt\async\ftx {
         //     {
         //         "channel" => "fills",
         //         "type" => "update"
-        //         "$data" => array(
+        //         "data" => array(
         //             "fee" => 78.05799225,
         //             "feeRate" => 0.0014,
         //             "future" => "BTC-PERP",
         //             "id" => 7828307,
         //             "liquidity" => "taker",
-        //             "$market" => "BTC-PERP",
+        //             "market" => "BTC-PERP",
         //             "orderId" => 38065410,
         //             "price" => 3723.75,
         //             "side" => "buy",

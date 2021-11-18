@@ -299,10 +299,10 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         //     }
         //
         //     {
-        //         "$type" => "received",
+        //         "type" => "received",
         //         "time" => "2014-11-09T08:19:27.028459Z",
         //         "product_id" => "BTC-USD",
-        //         "$sequence" => 12,
+        //         "sequence" => 12,
         //         "order_id" => "dddec984-77a8-460a-b958-66f114b0de9b",
         //         "funds" => "3000.234",
         //         "side" => "buy",
@@ -598,7 +598,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         // first $message (snapshot)
         //
         //     {
-        //         "$type" => "snapshot",
+        //         "type" => "snapshot",
         //         "product_id" => "BTC-USD",
         //         "bids" => [
         //             ["10101.10", "0.45054140"]
@@ -611,10 +611,10 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         // subsequent updates
         //
         //     {
-        //         "$type" => "l2update",
+        //         "type" => "l2update",
         //         "product_id" => "BTC-USD",
         //         "time" => "2019-08-14T20:42:27.265Z",
-        //         "$changes" => array(
+        //         "changes" => array(
         //             array( "buy", "10101.80000000", "0.162567" )
         //         )
         //     }

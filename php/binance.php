@@ -234,11 +234,11 @@ class binance extends \ccxt\async\binance {
         // the feed does not include a snapshot, just the deltas
         //
         //     {
-        //         "$e" => "depthUpdate", // Event type
+        //         "e" => "depthUpdate", // Event type
         //         "E" => 1577554482280, // Event time
         //         "s" => "BNBBTC", // Symbol
-        //         "$U" => 157, // First update ID in event
-        //         "$u" => 160, // Final update ID in event
+        //         "U" => 157, // First update ID in event
+        //         "u" => 160, // Final update ID in event
         //         "b" => array( // bids
         //             array( "0.0024", "10" ), // price, size
         //         ),
@@ -337,7 +337,7 @@ class binance extends \ccxt\async\binance {
         //
         //     {
         //         "result" => null,
-        //         "$id" => 1574649734450
+        //         "id" => 1574649734450
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -896,7 +896,7 @@ class binance extends \ccxt\async\binance {
         //         "e" => "outboundAccountPosition", // Event type
         //         "E" => 1564034571105,             // Event Time
         //         "u" => 1564034571073,             // Time of last $account update
-        //         "$B" => array(                          // Balances Array
+        //         "B" => array(                          // Balances Array
         //             {
         //                 "a" => "ETH",                 // Asset
         //                 "f" => "10000.000000",        // Free
@@ -911,10 +911,10 @@ class binance extends \ccxt\async\binance {
         //         "e" => "ACCOUNT_UPDATE",            // Event Type
         //         "E" => 1564745798939,               // Event Time
         //         "T" => 1564745798938 ,              // Transaction
-        //         "$i" => "SfsR",                      // Account Alias
+        //         "i" => "SfsR",                      // Account Alias
         //         "a" => {                            // Update Data
         //             "m":"ORDER",                  // Event reason type
-        //             "$B":array(                         // Balances
+        //             "B":array(                         // Balances
         //                 array(
         //                     "a":"BTC",                // Asset
         //                     "wb":"122624.12345678",   // Wallet Balance
@@ -1027,7 +1027,7 @@ class binance extends \ccxt\async\binance {
         //         "L" => "0.00000000",             // Last executed $price
         //         "n" => "0",                      // Commission $amount
         //         "N" => null,                     // Commission asset
-        //         "$T" => 1499405658657,            // Transaction time
+        //         "T" => 1499405658657,            // Transaction time
         //         "t" => -1,                       // Trade ID
         //         "I" => 8641984,                  // Ignore
         //         "w" => true,                     // Is the $order on the book?
@@ -1062,7 +1062,7 @@ class binance extends \ccxt\async\binance {
         //         "L":"0",                       // Last Filled Price
         //         "N":"USDT",                    // Commission Asset, will not push if no commission
         //         "n":"0",                       // Commission, will not push if no commission
-        //         "$T":1568879465651,             // Order Trade Time
+        //         "T":1568879465651,             // Order Trade Time
         //         "t":0,                         // Trade Id
         //         "b":"0",                       // Bids Notional
         //         "a":"9.91",                    // Ask Notional
@@ -1162,7 +1162,7 @@ class binance extends \ccxt\async\binance {
         // spot
         //
         //     {
-        //         "$e" => "executionReport",        // Event type
+        //         "e" => "executionReport",        // Event type
         //         "E" => 1499405658658,            // Event time
         //         "s" => "ETHBTC",                 // Symbol
         //         "c" => "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
@@ -1199,7 +1199,7 @@ class binance extends \ccxt\async\binance {
         // future
         //
         //     {
-        //         "$e":"ORDER_TRADE_UPDATE",           // Event Type
+        //         "e":"ORDER_TRADE_UPDATE",           // Event Type
         //         "E":1568879465651,                  // Event Time
         //         "T":1568879465650,                  // Trasaction Time
         //         "o" => {

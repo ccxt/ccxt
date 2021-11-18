@@ -496,7 +496,7 @@ class okex extends \ccxt\async\okex {
         //         "op" => "subscribe",
         //         "args" => array(
         //             {
-        //                 "channel" => "$orders",
+        //                 "channel" => "orders",
         //                 "instType" => "FUTURES",
         //                 "uly" => "BTC-USD",
         //                 "instId" => "BTC-USD-200329"
@@ -528,8 +528,8 @@ class okex extends \ccxt\async\okex {
     public function handle_orders($client, $message, $subscription = null) {
         //
         //     {
-        //         "$arg":array(
-        //             "$channel":"$orders",
+        //         "arg":array(
+        //             "channel":"orders",
         //             "instType":"SPOT"
         //         ),
         //         "data":array(
@@ -557,7 +557,7 @@ class okex extends \ccxt\async\okex {
         //                 "msg":"",
         //                 "notionalUsd":"451.4516256",
         //                 "ordId":"370257534141235201",
-        //                 "ordType":"$limit",
+        //                 "ordType":"limit",
         //                 "pnl":"0",
         //                 "posSide":"",
         //                 "px":"60000",
@@ -696,7 +696,7 @@ class okex extends \ccxt\async\okex {
         //     }
         //
         //     array( $event => 'error', msg => 'Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])', code => '60012' )
-        //     array( $event => 'error', msg => "$channel:ticker,instId:BTC-USDT doesn't exist", code => '60018' )
+        //     array( $event => 'error', msg => "channel:ticker,instId:BTC-USDT doesn't exist", code => '60018' )
         //     array( $event => 'error', msg => 'Invalid OK_ACCESS_KEY', code => '60005' )
         //     {
         //         $event => 'error',

@@ -280,7 +280,7 @@ class okex3 extends \ccxt\async\okex3 {
         //
         //     {
         //         $table => "spot/depth",
-        //         $action => "$update",
+        //         $action => "update",
         //         $data => [
         //             {
         //                 instrument_id =>   "BTC-USDT",
@@ -484,7 +484,7 @@ class okex3 extends \ccxt\async\okex3 {
 
     public function handle_subscription_status($client, $message) {
         //
-        //     array("event":"subscribe","$channel":"spot/depth:BTC-USDT")
+        //     array("event":"subscribe","channel":"spot/depth:BTC-USDT")
         //
         // $channel = $this->safe_string($message, 'channel');
         // $client->subscriptions[$channel] = $message;
@@ -513,7 +513,7 @@ class okex3 extends \ccxt\async\okex3 {
     public function handle_error_message($client, $message) {
         //
         //     array( event => 'error', $message => 'Invalid sign', $errorCode => 30013 )
-        //     array("event":"error","$message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","$errorCode":30039)
+        //     array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
         //
         $errorCode = $this->safe_string($message, 'errorCode');
         try {
@@ -543,8 +543,8 @@ class okex3 extends \ccxt\async\okex3 {
             return;
         }
         //
-        //     array("$event":"error","$message":"Unrecognized request => array(\"$event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
-        //     array("$event":"subscribe","channel":"spot/depth:BTC-USDT")
+        //     array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
+        //     array("event":"subscribe","channel":"spot/depth:BTC-USDT")
         //     {
         //         $table => "spot/depth",
         //         action => "partial",

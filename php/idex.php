@@ -281,11 +281,11 @@ class idex extends \ccxt\async\idex {
 
     public function handle_subscribe_message($client, $message) {
         // {
-        //   "type" => "$subscriptions",
-        //   "$subscriptions" => array(
+        //   "type" => "subscriptions",
+        //   "subscriptions" => array(
         //     {
-        //       "$name" => "l2orderbook",
-        //       "$markets" => array(
+        //       "name" => "l2orderbook",
+        //       "markets" => array(
         //         "DIL-ETH"
         //       )
         //     }
@@ -413,8 +413,8 @@ class idex extends \ccxt\async\idex {
 
     public function handle_order_book_message($client, $message, $orderbook) {
         // {
-        //   "$type" => "l2orderbook",
-        //   "$data" => {
+        //   "type" => "l2orderbook",
+        //   "data" => {
         //     "m" => "DIL-ETH",
         //     "t" => 1600197205037,
         //     "u" => 94116643,
@@ -493,17 +493,17 @@ class idex extends \ccxt\async\idex {
 
     public function handle_order($client, $message) {
         // {
-        //   "$type" => "$orders",
+        //   "type" => "orders",
         //   "data" => {
         //     "m" => "DIL-ETH",
-        //     "$i" => "8f75dd30-f12d-11ea-b63c-df3381b4b5b4",
+        //     "i" => "8f75dd30-f12d-11ea-b63c-df3381b4b5b4",
         //     "w" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
         //     "t" => 1599498857138,
         //     "T" => 1599498857092,
         //     "x" => "fill",
-        //     "X" => "$filled",
+        //     "X" => "filled",
         //     "u" => 67695627,
-        //     "o" => "$limit",
+        //     "o" => "limit",
         //     "S" => "buy",
         //     "q" => "0.15000000",
         //     "z" => "0.15000000",
@@ -514,7 +514,7 @@ class idex extends \ccxt\async\idex {
         //     "V" => "2",
         //     "F" => array(
         //       {
-        //         "$i" => "5cdc6d14-bc35-3279-ab5e-40d654ca1523",
+        //         "i" => "5cdc6d14-bc35-3279-ab5e-40d654ca1523",
         //         "p" => "0.09908577",
         //         "q" => "0.15000000",
         //         "Q" => "0.01486286",

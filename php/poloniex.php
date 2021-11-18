@@ -341,7 +341,7 @@ class poloniex extends \ccxt\async\poloniex {
         //         8767, // $nonce
         //         array(
         //             array(
-        //                 "$i", // initial $snapshot
+        //                 "i", // initial $snapshot
         //                 {
         //                     "currencyPair" => "BTC_BTS",
         //                     "orderBook" => array(
