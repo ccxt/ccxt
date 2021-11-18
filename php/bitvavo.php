@@ -265,14 +265,14 @@ class bitvavo extends Exchange {
         //
         //     array(
         //         {
-        //             "$market":"ADA-BTC",
-        //             "$status":"trading", // "trading" "halted" "auction"
-        //             "$base":"ADA",
-        //             "$quote":"BTC",
+        //             "market":"ADA-BTC",
+        //             "status":"trading", // "trading" "halted" "auction"
+        //             "base":"ADA",
+        //             "quote":"BTC",
         //             "pricePrecision":5,
         //             "minOrderInBaseAsset":"100",
         //             "minOrderInQuoteAsset":"0.001",
-        //             "orderTypes" => array( "$market", "limit" )
+        //             "orderTypes" => array( "market", "limit" )
         //         }
         //     )
         //
@@ -350,14 +350,14 @@ class bitvavo extends Exchange {
         //     array(
         //         array(
         //             "symbol":"ADA",
-        //             "$name":"Cardano",
+        //             "name":"Cardano",
         //             "decimals":6,
         //             "depositFee":"0",
         //             "depositConfirmations":15,
-        //             "$depositStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
+        //             "depositStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
         //             "withdrawalFee":"0.2",
         //             "withdrawalMinAmount":"0.2",
-        //             "$withdrawalStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
+        //             "withdrawalStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
         //             "networks" => array( "Mainnet" ), // "ETH", "NEO", "ONT", "SEPA", "VET"
         //             "message":"",
         //         ),
@@ -407,7 +407,7 @@ class bitvavo extends Exchange {
         $response = $this->publicGetTicker24h (array_merge($request, $params));
         //
         //     {
-        //         "$market":"ETH-BTC",
+        //         "market":"ETH-BTC",
         //         "open":"0.022578",
         //         "high":"0.023019",
         //         "low":"0.022573",
@@ -429,18 +429,18 @@ class bitvavo extends Exchange {
         // fetchTicker
         //
         //     {
-        //         "$market":"ETH-BTC",
-        //         "$open":"0.022578",
+        //         "market":"ETH-BTC",
+        //         "open":"0.022578",
         //         "high":"0.023019",
         //         "low":"0.022573",
-        //         "$last":"0.023019",
+        //         "last":"0.023019",
         //         "volume":"25.16366324",
         //         "volumeQuote":"0.57333305",
         //         "bid":"0.023039",
         //         "bidSize":"0.53500578",
         //         "ask":"0.023041",
         //         "askSize":"0.47859202",
-        //         "$timestamp":1590381666900
+        //         "timestamp":1590381666900
         //     }
         //
         $marketId = $this->safe_string($ticker, 'market');
@@ -536,22 +536,22 @@ class bitvavo extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "$id":"94154c98-6e8b-4e33-92a8-74e33fc05650",
-        //         "$timestamp":1590382761859,
-        //         "$amount":"0.06026079",
-        //         "$price":"8095.3",
-        //         "$side":"buy"
+        //         "id":"94154c98-6e8b-4e33-92a8-74e33fc05650",
+        //         "timestamp":1590382761859,
+        //         "amount":"0.06026079",
+        //         "price":"8095.3",
+        //         "side":"buy"
         //     }
         //
         // createOrder, fetchOpenOrders, fetchOrders, editOrder (private)
         //
         //     {
-        //         "$id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
-        //         "$timestamp":1590505649245,
-        //         "$amount":"0.249825",
-        //         "$price":"183.49",
-        //         "$taker":true,
-        //         "$fee":"0.12038925",
+        //         "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //         "timestamp":1590505649245,
+        //         "amount":"0.249825",
+        //         "price":"183.49",
+        //         "taker":true,
+        //         "fee":"0.12038925",
         //         "feeCurrency":"EUR",
         //         "settled":true
         //     }
@@ -559,15 +559,15 @@ class bitvavo extends Exchange {
         // fetchMyTrades (private)
         //
         //     {
-        //         "$id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
-        //         "$orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        //         "$timestamp":1590505649245,
-        //         "$market":"ETH-EUR",
-        //         "$side":"sell",
-        //         "$amount":"0.249825",
-        //         "$price":"183.49",
-        //         "$taker":true,
-        //         "$fee":"0.12038925",
+        //         "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        //         "timestamp":1590505649245,
+        //         "market":"ETH-EUR",
+        //         "side":"sell",
+        //         "amount":"0.249825",
+        //         "price":"183.49",
+        //         "taker":true,
+        //         "fee":"0.12038925",
         //         "feeCurrency":"EUR",
         //         "settled":true
         //     }
@@ -753,7 +753,7 @@ class bitvavo extends Exchange {
         $response = $this->privateGetDeposit (array_merge($request, $params));
         //
         //     {
-        //         "$address" => "0x449889e3234514c45d57f7c5a571feba0c7ad567",
+        //         "address" => "0x449889e3234514c45d57f7c5a571feba0c7ad567",
         //         "paymentId" => "10002653"
         //     }
         //
@@ -829,13 +829,13 @@ class bitvavo extends Exchange {
         //
         //     {
         //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        //         "$market":"ETH-EUR",
+        //         "market":"ETH-EUR",
         //         "created":1590505649241,
         //         "updated":1590505649241,
         //         "status":"filled",
-        //         "$side":"sell",
-        //         "orderType":"$market",
-        //         "$amount":"0.249825",
+        //         "side":"sell",
+        //         "orderType":"market",
+        //         "amount":"0.249825",
         //         "amountRemaining":"0",
         //         "onHold":"0",
         //         "onHoldCurrency":"ETH",
@@ -847,8 +847,8 @@ class bitvavo extends Exchange {
         //             {
         //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //                 "timestamp":1590505649245,
-        //                 "$amount":"0.249825",
-        //                 "$price":"183.49",
+        //                 "amount":"0.249825",
+        //                 "price":"183.49",
         //                 "taker":true,
         //                 "fee":"0.12038925",
         //                 "feeCurrency":"EUR",
@@ -941,12 +941,12 @@ class bitvavo extends Exchange {
         //
         //     {
         //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        //         "$market":"ETH-EUR",
+        //         "market":"ETH-EUR",
         //         "created":1590505649241,
         //         "updated":1590505649241,
         //         "status":"filled",
         //         "side":"sell",
-        //         "orderType":"$market",
+        //         "orderType":"market",
         //         "amount":"0.249825",
         //         "amountRemaining":"0",
         //         "onHold":"0",
@@ -957,7 +957,7 @@ class bitvavo extends Exchange {
         //         "feeCurrency":"EUR",
         //         "fills":array(
         //             {
-        //                 "$id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //                 "timestamp":1590505649245,
         //                 "amount":"0.249825",
         //                 "price":"183.49",
@@ -1000,12 +1000,12 @@ class bitvavo extends Exchange {
         //     array(
         //         {
         //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        //             "$market":"ETH-EUR",
+        //             "market":"ETH-EUR",
         //             "created":1590505649241,
         //             "updated":1590505649241,
         //             "status":"filled",
         //             "side":"sell",
-        //             "orderType":"$market",
+        //             "orderType":"market",
         //             "amount":"0.249825",
         //             "amountRemaining":"0",
         //             "onHold":"0",
@@ -1050,12 +1050,12 @@ class bitvavo extends Exchange {
         //     array(
         //         {
         //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        //             "$market":"ETH-EUR",
+        //             "market":"ETH-EUR",
         //             "created":1590505649241,
         //             "updated":1590505649241,
         //             "status":"filled",
         //             "side":"sell",
-        //             "orderType":"$market",
+        //             "orderType":"market",
         //             "amount":"0.249825",
         //             "amountRemaining":"0",
         //             "onHold":"0",
@@ -1116,15 +1116,15 @@ class bitvavo extends Exchange {
         //
         //     {
         //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        //         "$market":"ETH-EUR",
+        //         "market":"ETH-EUR",
         //         "created":1590505649241,
         //         "updated":1590505649241,
-        //         "$status":"$filled",
-        //         "$side":"sell",
-        //         "orderType":"$market",
-        //         "$amount":"0.249825",
+        //         "status":"filled",
+        //         "side":"sell",
+        //         "orderType":"market",
+        //         "amount":"0.249825",
         //         "amountRemaining":"0",
-        //         "$price" => "183.49", // limit orders only
+        //         "price" => "183.49", // limit orders only
         //         "onHold":"0",
         //         "onHoldCurrency":"ETH",
         //         "filledAmount":"0.249825",
@@ -1133,12 +1133,12 @@ class bitvavo extends Exchange {
         //         "feeCurrency":"EUR",
         //         "fills":array(
         //             {
-        //                 "$id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
-        //                 "$timestamp":1590505649245,
-        //                 "$amount":"0.249825",
-        //                 "$price":"183.49",
+        //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //                 "timestamp":1590505649245,
+        //                 "amount":"0.249825",
+        //                 "price":"183.49",
         //                 "taker":true,
-        //                 "$fee":"0.12038925",
+        //                 "fee":"0.12038925",
         //                 "feeCurrency":"EUR",
         //                 "settled":true
         //             }
@@ -1146,8 +1146,8 @@ class bitvavo extends Exchange {
         //         "selfTradePrevention":"decrementAndCancel",
         //         "visible":false,
         //         "disableMarketProtection":false
-        //         "$timeInForce" => "GTC",
-        //         "$postOnly" => true,
+        //         "timeInForce" => "GTC",
+        //         "postOnly" => true,
         //     }
         //
         $id = $this->safe_string($order, 'orderId');
@@ -1230,7 +1230,7 @@ class bitvavo extends Exchange {
         //             "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
         //             "timestamp":1590505649245,
-        //             "$market":"ETH-EUR",
+        //             "market":"ETH-EUR",
         //             "side":"sell",
         //             "amount":"0.249825",
         //             "price":"183.49",
@@ -1264,7 +1264,7 @@ class bitvavo extends Exchange {
         //     {
         //         "success" => true,
         //         "symbol" => "BTC",
-        //         "$amount" => "1.5"
+        //         "amount" => "1.5"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -1364,30 +1364,30 @@ class bitvavo extends Exchange {
         //     {
         //         "success" => true,
         //         "symbol" => "BTC",
-        //         "$amount" => "1.5"
+        //         "amount" => "1.5"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "$timestamp" => 1542967486256,
+        //         "timestamp" => 1542967486256,
         //         "symbol" => "BTC",
-        //         "$amount" => "0.99994",
-        //         "$address" => "BitcoinAddress",
+        //         "amount" => "0.99994",
+        //         "address" => "BitcoinAddress",
         //         "paymentId" => "10002653",
         //         "txId" => "927b3ea50c5bb52c6854152d305dfa1e27fc01d10464cf10825d96d69d235eb3",
-        //         "$fee" => "0.00006",
-        //         "$status" => "awaiting_processing"
+        //         "fee" => "0.00006",
+        //         "status" => "awaiting_processing"
         //     }
         //
         // fetchDeposits
         //
         //     {
-        //         "$timestamp":1590492401000,
+        //         "timestamp":1590492401000,
         //         "symbol":"ETH",
-        //         "$amount":"0.249825",
-        //         "$fee":"0",
-        //         "$status":"completed",
+        //         "amount":"0.249825",
+        //         "fee":"0",
+        //         "status":"completed",
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
@@ -1476,9 +1476,9 @@ class bitvavo extends Exchange {
             return; // fallback to default $error handler
         }
         //
-        //     array("$errorCode":308,"$error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string).")
-        //     array("$errorCode":203,"$error":"symbol parameter is required.")
-        //     array("$errorCode":205,"$error":"symbol parameter is invalid.")
+        //     array("errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string).")
+        //     array("errorCode":203,"error":"symbol parameter is required.")
+        //     array("errorCode":205,"error":"symbol parameter is invalid.")
         //
         $errorCode = $this->safe_string($response, 'errorCode');
         $error = $this->safe_string($response, 'error');

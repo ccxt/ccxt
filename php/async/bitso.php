@@ -128,20 +128,20 @@ class bitso extends Exchange {
         //                 "minimum_value":"5",
         //                 "maximum_value":"10000000",
         //                 "tick_size":"0.01",
-        //                 "$fees":array(
-        //                     "flat_rate":array("$maker":"0.500","$taker":"0.650"),
+        //                 "fees":array(
+        //                     "flat_rate":array("maker":"0.500","taker":"0.650"),
         //                     "structure":array(
-        //                         array("$volume":"1500000","$maker":"0.00500","$taker":"0.00650"),
-        //                         array("$volume":"2000000","$maker":"0.00490","$taker":"0.00637"),
-        //                         array("$volume":"5000000","$maker":"0.00480","$taker":"0.00624"),
-        //                         array("$volume":"7000000","$maker":"0.00440","$taker":"0.00572"),
-        //                         array("$volume":"10000000","$maker":"0.00420","$taker":"0.00546"),
-        //                         array("$volume":"15000000","$maker":"0.00400","$taker":"0.00520"),
-        //                         array("$volume":"35000000","$maker":"0.00370","$taker":"0.00481"),
-        //                         array("$volume":"50000000","$maker":"0.00300","$taker":"0.00390"),
-        //                         array("$volume":"150000000","$maker":"0.00200","$taker":"0.00260"),
-        //                         array("$volume":"250000000","$maker":"0.00100","$taker":"0.00130"),
-        //                         array("$volume":"9999999999","$maker":"0.00000","$taker":"0.00130"),
+        //                         array("volume":"1500000","maker":"0.00500","taker":"0.00650"),
+        //                         array("volume":"2000000","maker":"0.00490","taker":"0.00637"),
+        //                         array("volume":"5000000","maker":"0.00480","taker":"0.00624"),
+        //                         array("volume":"7000000","maker":"0.00440","taker":"0.00572"),
+        //                         array("volume":"10000000","maker":"0.00420","taker":"0.00546"),
+        //                         array("volume":"15000000","maker":"0.00400","taker":"0.00520"),
+        //                         array("volume":"35000000","maker":"0.00370","taker":"0.00481"),
+        //                         array("volume":"50000000","maker":"0.00300","taker":"0.00390"),
+        //                         array("volume":"150000000","maker":"0.00200","taker":"0.00260"),
+        //                         array("volume":"250000000","maker":"0.00100","taker":"0.00130"),
+        //                         array("volume":"9999999999","maker":"0.00000","taker":"0.00130"),
         //                     )
         //                 }
         //             ),
@@ -234,8 +234,8 @@ class bitso extends Exchange {
         //
         //     {
         //       "success" => true,
-        //       "$payload" => array(
-        //         "$balances" => array(
+        //       "payload" => array(
+        //         "balances" => array(
         //           array(
         //             "currency" => "bat",
         //             "available" => "0.00000000",
@@ -620,7 +620,7 @@ class bitso extends Exchange {
         }
         if (is_array($response) && array_key_exists('success', $response)) {
             //
-            //     array("$success":false,"$error":array("$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"))
+            //     array("success":false,"error":array("code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"))
             //
             $success = $this->safe_value($response, 'success', false);
             if (gettype($success) === 'string') {

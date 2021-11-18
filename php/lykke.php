@@ -155,12 +155,12 @@ class lykke extends Exchange {
         //  public fetchTrades
         //
         //   {
-        //     "$id" => "d5983ab8-e9ec-48c9-bdd0-1b18f8e80a71",
+        //     "id" => "d5983ab8-e9ec-48c9-bdd0-1b18f8e80a71",
         //     "assetPairId" => "BTCUSD",
         //     "dateTime" => "2019-05-15T06:52:02.147Z",
         //     "volume" => 0.00019681,
         //     "index" => 0,
-        //     "$price" => 8023.333,
+        //     "price" => 8023.333,
         //     "action" => "Buy"
         //   }
         //

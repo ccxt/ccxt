@@ -502,7 +502,7 @@ class poloniex extends Exchange {
     public function fetch_currencies($params = array ()) {
         $response = yield $this->publicGetReturnCurrencies ($params);
         //     {
-        //       "$id" => "293",
+        //       "id" => "293",
         //       "name" => "0x",
         //       "humanType" => "Sweep to Main Account",
         //       "currencyType" => "address",
@@ -1473,13 +1473,13 @@ class poloniex extends Exchange {
         // deposits
         //
         //     {
-        //         "$txid" => "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
-        //         "$type" => "deposit",
-        //         "$amount" => "49798.01987021",
-        //         "$status" => "COMPLETE",
-        //         "$address" => "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
-        //         "$currency" => "DOGE",
-        //         "$timestamp" => 1524321838,
+        //         "txid" => "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
+        //         "type" => "deposit",
+        //         "amount" => "49798.01987021",
+        //         "status" => "COMPLETE",
+        //         "address" => "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
+        //         "currency" => "DOGE",
+        //         "timestamp" => 1524321838,
         //         "confirmations" => 3371,
         //         "depositNumber" => 134587098
         //     }
@@ -1488,15 +1488,15 @@ class poloniex extends Exchange {
         //
         //     {
         //         "fee" => "0.00050000",
-        //         "$type" => "withdrawal",
-        //         "$amount" => "0.40234387",
-        //         "$status" => "COMPLETE => fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
-        //         "$address" => "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
-        //         "$currency" => "BTC",
+        //         "type" => "withdrawal",
+        //         "amount" => "0.40234387",
+        //         "status" => "COMPLETE => fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
+        //         "address" => "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
+        //         "currency" => "BTC",
         //         "canCancel" => 0,
         //         "ipAddress" => "x.x.x.x",
         //         "paymentID" => null,
-        //         "$timestamp" => 1523834337,
+        //         "timestamp" => 1523834337,
         //         "canResendEmail" => 0,
         //         "withdrawalNumber" => 11162900
         //     }

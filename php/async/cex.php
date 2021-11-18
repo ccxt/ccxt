@@ -177,37 +177,37 @@ class cex extends Exchange {
         //     {
         //         "e":"currency_profile",
         //         "ok":"ok",
-        //         "$data":{
+        //         "data":{
         //             "symbols":array(
         //                 array(
-        //                     "$code":"GHS",
+        //                     "code":"GHS",
         //                     "contract":true,
         //                     "commodity":true,
         //                     "fiat":false,
         //                     "description":"CEX.IO doesn't provide cloud mining services anymore.",
-        //                     "$precision":8,
+        //                     "precision":8,
         //                     "scale":0,
         //                     "minimumCurrencyAmount":"0.00000001",
         //                     "minimalWithdrawalAmount":-1
         //                 ),
         //                 array(
-        //                     "$code":"BTC",
+        //                     "code":"BTC",
         //                     "contract":false,
         //                     "commodity":false,
         //                     "fiat":false,
         //                     "description":"",
-        //                     "$precision":8,
+        //                     "precision":8,
         //                     "scale":0,
         //                     "minimumCurrencyAmount":"0.00000001",
         //                     "minimalWithdrawalAmount":0.002
         //                 ),
         //                 {
-        //                     "$code":"ETH",
+        //                     "code":"ETH",
         //                     "contract":false,
         //                     "commodity":false,
         //                     "fiat":false,
         //                     "description":"",
-        //                     "$precision":8,
+        //                     "precision":8,
         //                     "scale":2,
         //                     "minimumCurrencyAmount":"0.00000100",
         //                     "minimalWithdrawalAmount":0.01
@@ -278,7 +278,7 @@ class cex extends Exchange {
         //         "e":"currency_limits",
         //         "ok":"ok",
         //         "data" => {
-        //             "$pairs":array(
+        //             "pairs":array(
         //                 array(
         //                     "symbol1":"BTC",
         //                     "symbol2":"USD",
@@ -578,11 +578,11 @@ class cex extends Exchange {
         //     {
         //         "id" => "12978363524",
         //         "time" => 1586610022259,
-        //         "$type" => "buy",
-        //         "$price" => "0.033934",
-        //         "$amount" => "0.10722802",
+        //         "type" => "buy",
+        //         "price" => "0.033934",
+        //         "amount" => "0.10722802",
         //         "pending" => "0.10722802",
-        //         "$complete" => false
+        //         "complete" => false
         //     }
         //
         $placedAmount = $this->safe_number($response, 'amount');
@@ -728,7 +728,7 @@ class cex extends Exchange {
                     //   {
                     //     "a" => "0.47000000",
                     //     "c" => "user:up106404164:a:EUR",
-                    //     "d" => "$order:6065499239:a:EUR",
+                    //     "d" => "order:6065499239:a:EUR",
                     //     "cs" => "1432.93",
                     //     "ds" => "476.72",
                     //     "id" => "6065499249",
@@ -739,9 +739,9 @@ class cex extends Exchange {
                     //     "time" => "2018-04-22T13:07:22.152Z",
                     //     "type" => "buy",
                     //     "user" => "up106404164",
-                    //     "$order" => "6065499239",
-                    //     "$amount" => "-715.97000000",
-                    //     "$symbol" => "EUR",
+                    //     "order" => "6065499239",
+                    //     "amount" => "-715.97000000",
+                    //     "symbol" => "EUR",
                     //     "balance" => "1432.93000000" }
                     continue;
                 }
@@ -759,7 +759,7 @@ class cex extends Exchange {
                 //   {
                 //     "a" => "0.01589885",
                 //     "c" => "user:up106404164:a:BTC",
-                //     "d" => "$order:6065499239:a:BTC",
+                //     "d" => "order:6065499239:a:BTC",
                 //     "cs" => "0.36300000",
                 //     "ds" => 0,
                 //     "id" => "6067991213",
@@ -770,10 +770,10 @@ class cex extends Exchange {
                 //     "time" => "2018-04-22T23:09:11.773Z",
                 //     "type" => "buy",
                 //     "user" => "up106404164",
-                //     "$order" => "6065499239",
-                //     "$price" => 7146.5,
-                //     "$amount" => "0.01589885",
-                //     "$symbol" => "BTC",
+                //     "order" => "6065499239",
+                //     "price" => 7146.5,
+                //     "amount" => "0.01589885",
+                //     "symbol" => "BTC",
                 //     "balance" => "0.36300000",
                 //     "symbol2" => "EUR",
                 //     "fee_amount" => "0.19" }
@@ -782,7 +782,7 @@ class cex extends Exchange {
                 //   {
                 //     "a" => "0.00000000",
                 //     "c" => "user:up106404164:a:EUR",
-                //     "d" => "$order:5840654423:a:EUR",
+                //     "d" => "order:5840654423:a:EUR",
                 //     "cs" => 559744,
                 //     "ds" => 0,
                 //     "id" => "5840654429",
@@ -793,10 +793,10 @@ class cex extends Exchange {
                 //     "time" => "2018-03-15T03:20:14.010Z",
                 //     "type" => "sell",
                 //     "user" => "up106404164",
-                //     "$order" => "5840654423",
-                //     "$price" => 730,
-                //     "$amount" => "0.00000000",
-                //     "$symbol" => "EUR",
+                //     "order" => "5840654423",
+                //     "price" => 730,
+                //     "amount" => "0.00000000",
+                //     "symbol" => "EUR",
                 //     "balance" => "5597.44000000",
                 //     "symbol2" => "BCH",
                 //     "fee_amount" => "0.01" }
@@ -805,7 +805,7 @@ class cex extends Exchange {
                 //   {
                 //     "a" => "16.70000000",
                 //     "c" => "user:up106404164:a:GBP",
-                //     "d" => "$order:9927386681:a:GBP",
+                //     "d" => "order:9927386681:a:GBP",
                 //     "cs" => "86.90",
                 //     "ds" => 0,
                 //     "id" => "9927401610",
@@ -816,11 +816,11 @@ class cex extends Exchange {
                 //     "time" => "2019-08-21T15:25:37.777Z",
                 //     "type" => "sell",
                 //     "user" => "up106404164",
-                //     "$order" => "9927386681",
-                //     "$price" => 8365,
-                //     "$amount" => "16.70000000",
+                //     "order" => "9927386681",
+                //     "price" => 8365,
+                //     "amount" => "16.70000000",
                 //     "office" => "UK",
-                //     "$symbol" => "GBP",
+                //     "symbol" => "GBP",
                 //     "balance" => "86.90000000",
                 //     "symbol2" => "BTC",
                 //     "fee_amount" => "0.03"
@@ -919,7 +919,7 @@ class cex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         //
         //     {
-        //         "$id" => "5442731603",
+        //         "id" => "5442731603",
         //         "type" => "sell",
         //         "time" => 1516132358071,
         //         "lastTxTime" => 1516132378452,
@@ -949,7 +949,7 @@ class cex extends Exchange {
         //         "next" => false,
         //         "vtx" => array(
         //             array(
-        //                 "$id" => "5442734452",
+        //                 "id" => "5442734452",
         //                 "type" => "sell",
         //                 "time" => "2018-01-16T19:52:58.452Z",
         //                 "user" => "up106404164",
@@ -958,7 +958,7 @@ class cex extends Exchange {
         //                 "a" => "104.53000000",
         //                 "amount" => "104.53000000",
         //                 "balance" => "932.71000000",
-        //                 "$symbol" => "EUR",
+        //                 "symbol" => "EUR",
         //                 "order" => "5442731603",
         //                 "buy" => "5442734443",
         //                 "sell" => "5442731603",
@@ -972,7 +972,7 @@ class cex extends Exchange {
         //                 "fee_amount" => "0.16"
         //             ),
         //             array(
-        //                 "$id" => "5442731609",
+        //                 "id" => "5442731609",
         //                 "type" => "sell",
         //                 "time" => "2018-01-16T19:52:38.071Z",
         //                 "user" => "up106404164",
@@ -981,7 +981,7 @@ class cex extends Exchange {
         //                 "a" => "91.73000000",
         //                 "amount" => "91.73000000",
         //                 "balance" => "563.49000000",
-        //                 "$symbol" => "EUR",
+        //                 "symbol" => "EUR",
         //                 "order" => "5442731603",
         //                 "buy" => "5442618127",
         //                 "sell" => "5442731603",
@@ -995,7 +995,7 @@ class cex extends Exchange {
         //                 "fee_amount" => "0.22"
         //             ),
         //             {
-        //                 "$id" => "5442731604",
+        //                 "id" => "5442731604",
         //                 "type" => "sell",
         //                 "time" => "2018-01-16T19:52:38.071Z",
         //                 "user" => "up106404164",
@@ -1004,7 +1004,7 @@ class cex extends Exchange {
         //                 "a" => "0.50000000",
         //                 "amount" => "-0.50000000",
         //                 "balance" => "15.80995000",
-        //                 "$symbol" => "ETH",
+        //                 "symbol" => "ETH",
         //                 "order" => "5442731603",
         //                 "buy" => null,
         //                 "sell" => null,
@@ -1125,43 +1125,43 @@ class cex extends Exchange {
             // $market $order (buy):
             //    { "id" => "6281946200",
             //     "pos" => null,
-            //     "$time" => "2018-05-23T11:55:43.467Z",
-            //     "$type" => "buy",
-            //     "$amount" => "0.00000000",
+            //     "time" => "2018-05-23T11:55:43.467Z",
+            //     "type" => "buy",
+            //     "amount" => "0.00000000",
             //     "lastTx" => "6281946210",
-            //     "$status" => "d",
+            //     "status" => "d",
             //     "amount2" => "20.00",
             //     "orderId" => "6281946200",
             //     "remains" => "0.00000000",
             //     "symbol1" => "ETH",
             //     "symbol2" => "EUR",
-            //     "$tfa:EUR" => "0.05",
-            //     "$tta:EUR" => "19.94",
+            //     "tfa:EUR" => "0.05",
+            //     "tta:EUR" => "19.94",
             //     "a:ETH:cds" => "0.03764100",
             //     "a:EUR:cds" => "20.00",
             //     "f:EUR:cds" => "0.05",
-            //     "$lastTxTime" => "2018-05-23T11:55:43.467Z",
+            //     "lastTxTime" => "2018-05-23T11:55:43.467Z",
             //     "tradingFeeTaker" => "0.25",
             //     "tradingFeeUserVolumeAmount" => "55998097" }
             // --
             // $market $order (sell):
             //   { "id" => "6282200948",
             //     "pos" => null,
-            //     "$time" => "2018-05-23T12:42:58.315Z",
-            //     "$type" => "sell",
-            //     "$amount" => "-0.05000000",
+            //     "time" => "2018-05-23T12:42:58.315Z",
+            //     "type" => "sell",
+            //     "amount" => "-0.05000000",
             //     "lastTx" => "6282200958",
-            //     "$status" => "d",
+            //     "status" => "d",
             //     "orderId" => "6282200948",
             //     "remains" => "0.00000000",
             //     "symbol1" => "ETH",
             //     "symbol2" => "EUR",
-            //     "$tfa:EUR" => "0.07",
-            //     "$tta:EUR" => "26.49",
+            //     "tfa:EUR" => "0.07",
+            //     "tta:EUR" => "26.49",
             //     "a:ETH:cds" => "0.05000000",
             //     "a:EUR:cds" => "26.49",
             //     "f:EUR:cds" => "0.07",
-            //     "$lastTxTime" => "2018-05-23T12:42:58.315Z",
+            //     "lastTxTime" => "2018-05-23T12:42:58.315Z",
             //     "tradingFeeTaker" => "0.25",
             //     "tradingFeeUserVolumeAmount" => "56294576" }
             $order = $response[$i];

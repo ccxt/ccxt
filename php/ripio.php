@@ -119,14 +119,14 @@ class ripio extends Exchange {
         //     {
         //         "next":null,
         //         "previous":null,
-        //         "$results":array(
+        //         "results":array(
         //             array(
-        //                 "$base":"BTC",
+        //                 "base":"BTC",
         //                 "base_name":"Bitcoin",
-        //                 "$quote":"USDC",
+        //                 "quote":"USDC",
         //                 "quote_name":"USD Coin",
-        //                 "$symbol":"BTC_USDC",
-        //                 "$fees":array(
+        //                 "symbol":"BTC_USDC",
+        //                 "fees":array(
         //                     array("traded_volume":0.0,"maker_fee":0.0,"taker_fee":0.0,"cancellation_fee":0.0)
         //                 ),
         //                 "country":"ZZ",
@@ -199,27 +199,27 @@ class ripio extends Exchange {
         //     {
         //         "next":null,
         //         "previous":null,
-        //         "$results":array(
+        //         "results":array(
         //             array(
-        //                 "$name":"Argentine Peso",
+        //                 "name":"Argentine Peso",
         //                 "symbol":"$",
-        //                 "$currency":"ARS",
+        //                 "currency":"ARS",
         //                 "country":"AR",
         //                 "decimal_places":"2",
         //                 "enabled":true
         //             ),
         //             array(
-        //                 "$name":"Bitcoin Cash",
+        //                 "name":"Bitcoin Cash",
         //                 "symbol":"BCH",
-        //                 "$currency":"BCH",
+        //                 "currency":"BCH",
         //                 "country":"AR",
         //                 "decimal_places":"8",
         //                 "enabled":true
         //             ),
         //             {
-        //                 "$name":"Bitcoin",
+        //                 "name":"Bitcoin",
         //                 "symbol":"BTC",
-        //                 "$currency":"BTC",
+        //                 "currency":"BTC",
         //                 "country":"AR",
         //                 "decimal_places":"8",
         //                 "enabled":true
@@ -401,9 +401,9 @@ class ripio extends Exchange {
         //
         //     {
         //         "created_at":1601322501,
-        //         "$amount":"0.00276",
-        //         "$price":"10850.020000",
-        //         "$side":"SELL",
+        //         "amount":"0.00276",
+        //         "price":"10850.020000",
+        //         "side":"SELL",
         //         "pair":"BTC_USDC",
         //         "taker_fee":"0",
         //         "taker_side":"SELL",
@@ -420,7 +420,7 @@ class ripio extends Exchange {
         //         "match_price":10593.99,
         //         "maker_fee":0.0,
         //         "taker_fee":0.0,
-        //         "$timestamp":1601730306942
+        //         "timestamp":1601730306942
         //     }
         //
         $id = $this->safe_string($trade, 'id');
@@ -502,7 +502,7 @@ class ripio extends Exchange {
         //             "symbol":"USDC",
         //             "available":"0",
         //             "locked":"0",
-        //             "$code":"exchange",
+        //             "code":"exchange",
         //             "balance_type":"crypto"
         //         ),
         //     )
@@ -539,8 +539,8 @@ class ripio extends Exchange {
         //     {
         //         "order_id" => "160f523c-f6ef-4cd1-a7c9-1a8ede1468d8",
         //         "pair" => "BTC_ARS",
-        //         "$side" => "BUY",
-        //         "$amount" => "0.00400",
+        //         "side" => "BUY",
+        //         "amount" => "0.00400",
         //         "notional" => null,
         //         "fill_or_kill" => false,
         //         "all_or_none" => false,
@@ -558,8 +558,8 @@ class ripio extends Exchange {
         //     {
         //         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
         //         "pair":"BTC_USDC",
-        //         "$side":"BUY",
-        //         "$amount":"0.00200",
+        //         "side":"BUY",
+        //         "amount":"0.00200",
         //         "notional":"50",
         //         "fill_or_kill":false,
         //         "all_or_none":false,
@@ -672,8 +672,8 @@ class ripio extends Exchange {
         //     {
         //         "next" => "https://api.exchange.ripio.com/api/v1/order/BTC_ARS/?$limit=20&offset=20&page=1&page_size=25&status=OPEN%2CPART",
         //         "previous" => null,
-        //         "$results" => {
-        //             "$data" => array(
+        //         "results" => {
+        //             "data" => array(
         //                 array(
         //                     "order_id" => "ca74280b-6966-4b73-a720-68709078922b",
         //                     "pair" => "BTC_ARS",
@@ -731,15 +731,15 @@ class ripio extends Exchange {
         //     {
         //         "order_id" => "286e560e-b8a2-464b-8b84-15a7e2a67eab",
         //         "pair" => "BTC_ARS",
-        //         "$side" => "SELL",
-        //         "$amount" => "0.00100",
+        //         "side" => "SELL",
+        //         "amount" => "0.00100",
         //         "notional" => null,
         //         "fill_or_kill" => false,
         //         "all_or_none" => false,
         //         "order_type" => "LIMIT",
-        //         "$status" => "CANC",
+        //         "status" => "CANC",
         //         "created_at" => 1575472707,
-        //         "$filled" => "0.00000",
+        //         "filled" => "0.00000",
         //         "limit_price" => "681000.00",
         //         "stop_price" => null,
         //         "distance" => null
@@ -748,25 +748,25 @@ class ripio extends Exchange {
         //     {
         //         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
         //         "pair":"BTC_USDC",
-        //         "$side":"BUY",
-        //         "$amount":"0.00200",
+        //         "side":"BUY",
+        //         "amount":"0.00200",
         //         "notional":"50",
         //         "fill_or_kill":false,
         //         "all_or_none":false,
         //         "order_type":"MARKET",
-        //         "$status":"OPEN",
+        //         "status":"OPEN",
         //         "created_at":1601730306,
-        //         "$filled":"0.00000",
+        //         "filled":"0.00000",
         //         "fill_price":10593.99,
         //         "fee":0.0,
-        //         "$fills":array(
+        //         "fills":array(
         //             {
         //                 "pair":"BTC_USDC",
         //                 "exchanged":0.002,
         //                 "match_price":10593.99,
         //                 "maker_fee":0.0,
         //                 "taker_fee":0.0,
-        //                 "$timestamp":1601730306942
+        //                 "timestamp":1601730306942
         //             }
         //         ),
         //         "filled_at":"2020-10-03T13:05:06.942186Z",
@@ -865,8 +865,8 @@ class ripio extends Exchange {
         //     {
         //         "next" => "https://api.exchange.ripio.com/api/v1/trade/<pair>/?$limit=20&offset=20",
         //         "previous" => null,
-        //         "$results" => {
-        //             "$data" => array(
+        //         "results" => {
+        //             "data" => array(
         //                 array(
         //                     "created_at" => 1578414028,
         //                     "amount" => "0.00100",
@@ -918,11 +918,11 @@ class ripio extends Exchange {
             return;
         }
         //
-        //      array("$detail":"Authentication credentials were not provided.")
-        //      array("status_code":400,"$errors":array("pair":["Invalid pair FOOBAR"]),"$message":"An $error has occurred, please check the form.")
-        //      array("status_code":400,"$errors":array("order_type":["Invalid order type. Valid options => ['MARKET', 'LIMIT']"]),"$message":"An $error has occurred, please check the form.")
-        //      array("status_code":400,"$errors":array("non_field_errors":"Something unexpected ocurred!"),"$message":"Seems like an unexpected $error occurred. Please try again later or write us to support@ripio.com if the problem persists.")
-        //      array("status_code":400,"$errors":array("pair":["Invalid/Disabled pair BTC_ARS"]),"$message":"An $error has occurred, please check the form.")
+        //      array("detail":"Authentication credentials were not provided.")
+        //      array("status_code":400,"errors":array("pair":["Invalid pair FOOBAR"]),"message":"An $error has occurred, please check the form.")
+        //      array("status_code":400,"errors":array("order_type":["Invalid order type. Valid options => ['MARKET', 'LIMIT']"]),"message":"An $error has occurred, please check the form.")
+        //      array("status_code":400,"errors":array("non_field_errors":"Something unexpected ocurred!"),"message":"Seems like an unexpected $error occurred. Please try again later or write us to support@ripio.com if the problem persists.")
+        //      array("status_code":400,"errors":array("pair":["Invalid/Disabled pair BTC_ARS"]),"message":"An $error has occurred, please check the form.")
         //
         $detail = $this->safe_string($response, 'detail');
         if ($detail !== null) {

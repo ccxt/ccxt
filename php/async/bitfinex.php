@@ -441,7 +441,7 @@ class bitfinex extends Exchange {
         //             "maximum_order_size":"2000.0",
         //             "minimum_order_size":"0.0002",
         //             "expiration":"NA",
-        //             "$margin":true
+        //             "margin":true
         //         ),
         //     )
         //
@@ -615,7 +615,7 @@ class bitfinex extends Exchange {
         if ($message === null) {
             throw new ExchangeError($this->id . ' transfer failed');
         }
-        // [array("$status":"error","$message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
+        // [array("status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
         if ($status === 'error') {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
             throw new ExchangeError($this->id . ' ' . $message);
@@ -1075,7 +1075,7 @@ class bitfinex extends Exchange {
         //         {
         //             "id":581183,
         //             "txid" => 123456,
-        //             "$currency":"BTC",
+        //             "currency":"BTC",
         //             "method":"BITCOIN",
         //             "type":"WITHDRAWAL",
         //             "amount":".01",
@@ -1099,13 +1099,13 @@ class bitfinex extends Exchange {
         //         "id" => 12042490,
         //         "fee" => "-0.02",
         //         "txid" => "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
-        //         "$type" => "DEPOSIT",
+        //         "type" => "DEPOSIT",
         //         "amount" => "2099.849999",
         //         "method" => "RIPPLE",
-        //         "$status" => "COMPLETED",
+        //         "status" => "COMPLETED",
         //         "address" => "2505189261",
-        //         "$currency" => "XRP",
-        //         "$timestamp" => "1551730524.0",
+        //         "currency" => "XRP",
+        //         "timestamp" => "1551730524.0",
         //         "description" => "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
         //         "timestamp_created" => "1551730523.0"
         //     }
@@ -1116,13 +1116,13 @@ class bitfinex extends Exchange {
         //         "id" => 12725095,
         //         "fee" => "-60.0",
         //         "txid" => null,
-        //         "$type" => "WITHDRAWAL",
+        //         "type" => "WITHDRAWAL",
         //         "amount" => "9943.0",
         //         "method" => "WIRE",
-        //         "$status" => "SENDING",
+        //         "status" => "SENDING",
         //         "address" => null,
-        //         "$currency" => "EUR",
-        //         "$timestamp" => "1561802484.0",
+        //         "currency" => "EUR",
+        //         "timestamp" => "1561802484.0",
         //         "description" => "Name => bob, AccountAddress => some address, Account => someaccountno, Bank => bank address, SWIFT => foo, Country => UK, Details of Payment => withdrawal name, Intermediary Bank Name => , Intermediary Bank Address => , Intermediary Bank City => , Intermediary Bank Country => , Intermediary Bank Account => , Intermediary Bank SWIFT => , Fee => -60.0",
         //         "timestamp_created" => "1561716066.0"
         //     }

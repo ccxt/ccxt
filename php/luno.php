@@ -116,7 +116,7 @@ class luno extends Exchange {
         $response = $this->exchangeGetMarkets ($params);
         //
         //     {
-        //         "$markets":array(
+        //         "markets":array(
         //             array(
         //                 "market_id":"BCHXBT",
         //                 "trading_status":"ACTIVE",
@@ -434,7 +434,7 @@ class luno extends Exchange {
 
     public function parse_trade($trade, $market) {
         // For public $trade data (is_buy === True) indicates 'buy' $side but for private $trade data
-        // is_buy indicates maker or taker. The value of "$type" (ASK/BID) indicate sell/buy $side->
+        // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy $side->
         // Private $trade data includes ID field which public $trade data does not.
         $orderId = $this->safe_string($trade, 'order_id');
         $takerOrMaker = null;

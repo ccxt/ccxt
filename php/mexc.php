@@ -293,7 +293,7 @@ class mexc extends Exchange {
     public function fetch_status($params = array ()) {
         $response = $this->spotPublicGetCommonPing ($params);
         //
-        // array( "$code":200 )
+        // array( "code":200 )
         //
         $code = $this->safe_integer($response, 'code');
         if ($code !== null) {
@@ -310,14 +310,14 @@ class mexc extends Exchange {
         $response = $this->spotPublicGetMarketCoinList ($params);
         //
         //     {
-        //         "$code":200,
-        //         "$data":array(
+        //         "code":200,
+        //         "data":array(
         //             {
-        //                 "$currency":"AGLD",
+        //                 "currency":"AGLD",
         //                 "coins":array(
         //                     array(
-        //                         "$chain":"ERC20",
-        //                         "$precision":18,
+        //                         "chain":"ERC20",
+        //                         "precision":18,
         //                         "fee":8.09,
         //                         "is_withdraw_enabled":true,
         //                         "is_deposit_enabled":true,
@@ -440,16 +440,16 @@ class mexc extends Exchange {
         //     {
         //         "success":true,
         //         "code":0,
-        //         "$data":[
+        //         "data":[
         //             array(
-        //                 "$symbol":"BTC_USDT",
+        //                 "symbol":"BTC_USDT",
         //                 "displayName":"BTC_USDT永续",
         //                 "displayNameEn":"BTC_USDT SWAP",
         //                 "positionOpenType":3,
         //                 "baseCoin":"BTC",
         //                 "quoteCoin":"USDT",
         //                 "settleCoin":"USDT",
-        //                 "$contractSize":0.0001,
+        //                 "contractSize":0.0001,
         //                 "minLeverage":1,
         //                 "maxLeverage":125,
         //                 "priceScale":2,
@@ -472,7 +472,7 @@ class mexc extends Exchange {
         //                 "riskLevelLimit":5,
         //                 "priceCoefficientVariation":0.1,
         //                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
-        //                 "$state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //                 "state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
         //                 "isNew":false,
         //                 "isHot":true,
         //                 "isHidden":false
@@ -546,10 +546,10 @@ class mexc extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "$data":array(
+        //         "data":array(
         //             array(
-        //                 "$symbol":"DFD_USDT",
-        //                 "$state":"ENABLED",
+        //                 "symbol":"DFD_USDT",
+        //                 "state":"ENABLED",
         //                 "countDownMark":1,
         //                 "vcoinName":"DFD",
         //                 "vcoinStatus":1,
@@ -637,7 +637,7 @@ class mexc extends Exchange {
         //     {
         //         "success":true,
         //         "code":0,
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "symbol":"NKN_USDT",
         //                 "lastPrice":0.36199,
@@ -682,9 +682,9 @@ class mexc extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "$data":array(
+        //         "data":array(
         //             {
-        //                 "$symbol":"BTC_USDT",
+        //                 "symbol":"BTC_USDT",
         //                 "volume":"880.821523",
         //                 "high":"49496.95", // highest price over the past 24 hours
         //                 "low":"46918.4", // lowest
@@ -703,8 +703,8 @@ class mexc extends Exchange {
         //     {
         //         "success":true,
         //         "code":0,
-        //         "$data":{
-        //             "$symbol":"ETH_USDT",
+        //         "data":{
+        //             "symbol":"ETH_USDT",
         //             "lastPrice":3581.3,
         //             "bid1":3581.25,
         //             "ask1":3581.5,
@@ -739,14 +739,14 @@ class mexc extends Exchange {
         // spot
         //
         //     {
-        //         "$symbol":"BTC_USDT",
+        //         "symbol":"BTC_USDT",
         //         "volume":"880.821523",
         //         "high":"49496.95",
         //         "low":"46918.4",
         //         "bid":"49297.64",
         //         "ask":"49297.75",
-        //         "$open":"48764.9",
-        //         "$last":"49297.73",
+        //         "open":"48764.9",
+        //         "last":"49297.73",
         //         "time":1633378200000,
         //         "change_rate":"0.0109265"
         //     }
@@ -754,7 +754,7 @@ class mexc extends Exchange {
         // contract
         //
         //     {
-        //         "$symbol":"ETH_USDT",
+        //         "symbol":"ETH_USDT",
         //         "lastPrice":3581.3,
         //         "bid1":3581.25,
         //         "ask1":3581.5,
@@ -763,14 +763,14 @@ class mexc extends Exchange {
         //         "holdVol":5832946,
         //         "lower24Price":3413.4,
         //         "high24Price":3588.7,
-        //         "$riseFallRate":0.0275,
+        //         "riseFallRate":0.0275,
         //         "riseFallValue":95.95,
         //         "indexPrice":3580.7852,
         //         "fairPrice":3581.08,
         //         "fundingRate":0.000063,
         //         "maxBidPrice":3938.85,
         //         "minAskPrice":3222.7,
-        //         "$timestamp":1634162885016
+        //         "timestamp":1634162885016
         //     }
         //
         $timestamp = $this->safe_integer_2($ticker, 'time', 'timestamp');
@@ -834,7 +834,7 @@ class mexc extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "$data":{
+        //         "data":{
         //             "asks":array(
         //                 array("price":"49060.56","quantity":"0.099842"),
         //                 array("price":"49060.58","quantity":"0.016003"),
@@ -854,7 +854,7 @@ class mexc extends Exchange {
         //     {
         //         "success":true,
         //         "code":0,
-        //         "$data":{
+        //         "data":{
         //             "asks":[
         //                 [3445.7,48379,1],
         //                 [3445.75,34994,1],
@@ -866,7 +866,7 @@ class mexc extends Exchange {
         //                 [3445.45,50272,1],
         //             ],
         //             "version":2827730444,
-        //             "$timestamp":1634117846232
+        //             "timestamp":1634117846232
         //         }
         //     }
         //
@@ -900,7 +900,7 @@ class mexc extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "$data":array(
+        //         "data":array(
         //             array("trade_time":1633381766725,"trade_price":"0.068981","trade_quantity":"0.005","trade_type":"BID"),
         //             array("trade_time":1633381732705,"trade_price":"0.068979","trade_quantity":"0.006","trade_type":"BID"),
         //             array("trade_time":1633381694604,"trade_price":"0.068975","trade_quantity":"0.011","trade_type":"ASK"),
@@ -912,7 +912,7 @@ class mexc extends Exchange {
         //     {
         //         "success":true,
         //         "code":0,
-        //         "$data":array(
+        //         "data":array(
         //             array("p":3598.85,"v":52,"T":1,"O":2,"M":2,"t":1634169038038),
         //             array("p":3599.2,"v":15,"T":2,"O":3,"M":1,"t":1634169035603),
         //             array("p":3600.15,"v":229,"T":2,"O":1,"M":2,"t":1634169026354),
@@ -950,12 +950,12 @@ class mexc extends Exchange {
         // private fetchMyTrades, fetchOrderTrades
         //
         //     {
-        //         "$id":"b160b8f072d9403e96289139d5544809",
-        //         "$symbol":"USDC_USDT",
+        //         "id":"b160b8f072d9403e96289139d5544809",
+        //         "symbol":"USDC_USDT",
         //         "quantity":"150",
-        //         "$price":"0.9997",
-        //         "$amount":"149.955",
-        //         "$fee":"0.29991",
+        //         "price":"0.9997",
+        //         "amount":"149.955",
+        //         "fee":"0.29991",
         //         "trade_type":"ASK",
         //         "order_id":"d798765285374222990bbd14decb86cd",
         //         "is_taker":true,
@@ -1053,7 +1053,7 @@ class mexc extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "$data":[
+        //         "data":[
         //             [1633377000,"49227.47","49186.21","49227.47","49169.48","0.5984809999999999","29434.259665989997"],
         //             [1633377060,"49186.21","49187.03","49206.64","49169.18","0.3658478","17990.651234393"],
         //             [1633377120,"49187.03","49227.2","49227.2","49174.4","0.0687651","3382.353190352"],
@@ -1065,7 +1065,7 @@ class mexc extends Exchange {
         //     {
         //         "success":true,
         //         "code":0,
-        //         "$data":{
+        //         "data":{
         //             "time":[1634052300,1634052360,1634052420],
         //             "open":[3492.2,3491.3,3495.65],
         //             "close":[3491.3,3495.65,3495.2],
@@ -1140,8 +1140,8 @@ class mexc extends Exchange {
         //
         //     {
         //         "success":true,
-        //         "$code":0,
-        //         "$data":array(
+        //         "code":0,
+        //         "data":array(
         //             array("currency":"BSV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
         //             array("currency":"BCH","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
         //             array("currency":"CRV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
@@ -1197,11 +1197,11 @@ class mexc extends Exchange {
 
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
-        //     array("chain":"ERC-20","$address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"),
-        //     array("chain":"MATIC","$address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"),
-        //     array("chain":"TRC20","$address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"),
-        //     array("chain":"SOL","$address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"),
-        //     array("chain":"ALGO","$address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU")
+        //     array("chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"),
+        //     array("chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"),
+        //     array("chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"),
+        //     array("chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"),
+        //     array("chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU")
         //
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -1227,10 +1227,10 @@ class mexc extends Exchange {
         $response = $this->spotPrivateGetAssetDepositAddressList (array_merge($request, $params));
         //
         //     {
-        //         "$code":200,
-        //         "$data":{
-        //             "$currency":"USDC",
-        //             "$chains":array(
+        //         "code":200,
+        //         "data":{
+        //             "currency":"USDC",
+        //             "chains":array(
         //                 array("chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"),
         //                 array("chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"),
         //                 array("chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"),
@@ -1307,15 +1307,15 @@ class mexc extends Exchange {
         $response = $this->spotPrivateGetAssetDepositList (array_merge($request, $params));
         //
         //     {
-        //         "$code":200,
-        //         "$data":{
+        //         "code":200,
+        //         "data":{
         //             "page_size":20,
         //             "total_page":1,
         //             "total_size":1,
         //             "page_num":1,
         //             "result_list":array(
         //                 {
-        //                     "$currency":"USDC",
+        //                     "currency":"USDC",
         //                     "amount":150.0,
         //                     "fee":0.0,
         //                     "confirmations":19,
@@ -1360,8 +1360,8 @@ class mexc extends Exchange {
         $response = $this->spotPrivateGetAssetWithdrawList (array_merge($request, $params));
         //
         //     {
-        //         "$code":200,
-        //         "$data":{
+        //         "code":200,
+        //         "data":{
         //             "page_size":20,
         //             "total_page":1,
         //             "total_size":1,
@@ -1369,7 +1369,7 @@ class mexc extends Exchange {
         //             "result_list":array(
         //                 {
         //                     "id":"4b450616042a48c99dd45cacb4b092a7",
-        //                     "$currency":"USDT-TRX",
+        //                     "currency":"USDT-TRX",
         //                     "address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
         //                     "amount":30.0,
         //                     "fee":1.0,
@@ -1391,11 +1391,11 @@ class mexc extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "$currency":"USDC",
-        //         "$amount":150.0,
-        //         "$fee":0.0,
+        //         "currency":"USDC",
+        //         "amount":150.0,
+        //         "fee":0.0,
         //         "confirmations":19,
-        //         "$address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6",
+        //         "address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6",
         //         "state":"SUCCESS",
         //         "tx_id":"0xc65a9b09e1b71def81bf8bb3ec724c0c1b2b4c82200c8c142e4ea4c1469fd789:0",
         //         "require_confirmations":12,
@@ -1406,11 +1406,11 @@ class mexc extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         "$id":"4b450616042a48c99dd45cacb4b092a7",
-        //         "$currency":"USDT-TRX",
-        //         "$address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
-        //         "$amount":30.0,
-        //         "$fee":1.0,
+        //         "id":"4b450616042a48c99dd45cacb4b092a7",
+        //         "currency":"USDT-TRX",
+        //         "address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
+        //         "amount":30.0,
+        //         "fee":1.0,
         //         "remark":"this is my first withdrawal remark",
         //         "state":"WAIT",
         //         "create_time":"2021-10-11T20:45:08.000+00:00"
@@ -1485,7 +1485,7 @@ class mexc extends Exchange {
         //     {
         //         "success" => true,
         //         "code" => 0,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "positionId" => 1394650,
         //                 "symbol" => "ETH_USDT",
@@ -1630,7 +1630,7 @@ class mexc extends Exchange {
         }
         $response = $this->spotPrivateDeleteOrderCancel (array_merge($request, $params));
         //
-        //    array("code":200,"$data":array("965245851c444078a11a7d771323613b":"success"))
+        //    array("code":200,"data":array("965245851c444078a11a7d771323613b":"success"))
         //
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data);
@@ -1662,11 +1662,11 @@ class mexc extends Exchange {
         // fetchOpenOrders
         //
         //     {
-        //         "$id":"965245851c444078a11a7d771323613b",
-        //         "$symbol":"ETH_USDT",
-        //         "$price":"3430",
+        //         "id":"965245851c444078a11a7d771323613b",
+        //         "symbol":"ETH_USDT",
+        //         "price":"3430",
         //         "quantity":"0.01",
-        //         "$state":"NEW",
+        //         "state":"NEW",
         //         "type":"BID",
         //         "remain_quantity":"0.01",
         //         "remain_amount":"34.3",
@@ -1678,11 +1678,11 @@ class mexc extends Exchange {
         // fetchClosedOrders, fetchCanceledOrders, fetchOrder
         //
         //     {
-        //         "$id":"d798765285374222990bbd14decb86cd",
-        //         "$symbol":"USDC_USDT",
-        //         "$price":"0.9988",
+        //         "id":"d798765285374222990bbd14decb86cd",
+        //         "symbol":"USDC_USDT",
+        //         "price":"0.9988",
         //         "quantity":"150",
-        //         "$state":"FILLED", // CANCELED
+        //         "state":"FILLED", // CANCELED
         //         "type":"ASK", // BID
         //         "deal_quantity":"150",
         //         "deal_amount":"149.955",
@@ -1768,10 +1768,10 @@ class mexc extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "id":"965245851c444078a11a7d771323613b",
-        //                 "$symbol":"ETH_USDT",
+        //                 "symbol":"ETH_USDT",
         //                 "price":"3430",
         //                 "quantity":"0.01",
         //                 "state":"NEW",
@@ -1784,7 +1784,7 @@ class mexc extends Exchange {
         //             ),
         //             {
         //                 "id":"2ff3163e8617443cb9c6fc19d42b1ca4",
-        //                 "$symbol":"ETH_USDT",
+        //                 "symbol":"ETH_USDT",
         //                 "price":"3420",
         //                 "quantity":"0.01",
         //                 "state":"NEW",
@@ -1811,10 +1811,10 @@ class mexc extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "$data":array(
+        //         "data":array(
         //             {
-        //                 "$id":"2ff3163e8617443cb9c6fc19d42b1ca4",
-        //                 "$symbol":"ETH_USDT",
+        //                 "id":"2ff3163e8617443cb9c6fc19d42b1ca4",
+        //                 "symbol":"ETH_USDT",
         //                 "price":"3420",
         //                 "quantity":"0.01",
         //                 "state":"CANCELED",
@@ -1918,10 +1918,10 @@ class mexc extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "id":"b160b8f072d9403e96289139d5544809",
-        //                 "$symbol":"USDC_USDT",
+        //                 "symbol":"USDC_USDT",
         //                 "quantity":"150",
         //                 "price":"0.9997",
         //                 "amount":"149.955",
@@ -1952,10 +1952,10 @@ class mexc extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "$data":array(
+        //         "data":array(
         //             {
-        //                 "$id":"b160b8f072d9403e96289139d5544809",
-        //                 "$symbol":"USDC_USDT",
+        //                 "id":"b160b8f072d9403e96289139d5544809",
+        //                 "symbol":"USDC_USDT",
         //                 "quantity":"150",
         //                 "price":"0.9997",
         //                 "amount":"149.955",
@@ -2077,12 +2077,12 @@ class mexc extends Exchange {
         if ($response === null) {
             return;
         }
-        //     array("$code":10232,"msg":"The currency not exist")
-        //     array("$code":10216,"msg":"No available deposit address")
+        //     array("code":10232,"msg":"The currency not exist")
+        //     array("code":10216,"msg":"No available deposit address")
         //
         //     {
-        //         "$success":true,
-        //         "$code":0,
+        //         "success":true,
+        //         "code":0,
         //         "data":1634095541710
         //     }
         //

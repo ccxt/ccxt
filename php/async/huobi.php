@@ -476,16 +476,16 @@ class huobi extends Exchange {
         //
         //     {
         //         "amount" => 26228.672978342216,
-        //         "$open" => 9078.95,
-        //         "$close" => 9146.86,
+        //         "open" => 9078.95,
+        //         "close" => 9146.86,
         //         "high" => 9155.41,
         //         "id" => 209988544334,
         //         "count" => 265846,
         //         "low" => 8988.0,
         //         "version" => 209988544334,
-        //         "$ask" => array( 9146.87, 0.156134 ),
+        //         "ask" => array( 9146.87, 0.156134 ),
         //         "vol" => 2.3822168242201668E8,
-        //         "$bid" => array( 9146.86, 0.080758 ),
+        //         "bid" => array( 9146.86, 0.080758 ),
         //     }
         //
         // fetchTickers
@@ -568,9 +568,9 @@ class huobi extends Exchange {
         //
         //     {
         //         "status" => "ok",
-        //         "ch" => "$market->btcusdt.depth.step0",
+        //         "ch" => "market.btcusdt.depth.step0",
         //         "ts" => 1583474832790,
-        //         "$tick" => {
+        //         "tick" => {
         //             "bids" => array(
         //                 array( 9100.290000000000000000, 0.200000000000000000 ),
         //                 array( 9099.820000000000000000, 0.200000000000000000 ),
@@ -609,7 +609,7 @@ class huobi extends Exchange {
         //
         //     {
         //         "status" => "ok",
-        //         "ch" => "$market->btcusdt.detail.merged",
+        //         "ch" => "market.btcusdt.detail.merged",
         //         "ts" => 1583494336669,
         //         "tick" => {
         //             "amount" => 26228.672978342216,
@@ -656,11 +656,11 @@ class huobi extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "$amount" => 0.010411000000000000,
-        //         "$trade-$id" => 102090736910,
+        //         "amount" => 0.010411000000000000,
+        //         "trade-$id" => 102090736910,
         //         "ts" => 1583497692182,
-        //         "$id" => 10500517034273194594947,
-        //         "$price" => 9096.050000000000000000,
+        //         "id" => 10500517034273194594947,
+        //         "price" => 9096.050000000000000000,
         //         "direction" => "sell"
         //     }
         //
@@ -777,16 +777,16 @@ class huobi extends Exchange {
         //
         //     {
         //         "status" => "ok",
-        //         "ch" => "$market->btcusdt.trade.detail",
+        //         "ch" => "market.btcusdt.trade.detail",
         //         "ts" => 1583497692365,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "id" => 105005170342,
         //                 "ts" => 1583497692182,
-        //                 "$data" => array(
+        //                 "data" => array(
         //                     array(
         //                         "amount" => 0.010411000000000000,
-        //                         "$trade-id" => 102090736910,
+        //                         "trade-id" => 102090736910,
         //                         "ts" => 1583497692182,
         //                         "id" => 10500517034273194594947,
         //                         "price" => 9096.050000000000000000,
@@ -848,9 +848,9 @@ class huobi extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "ch":"$market->ethbtc.kline.1min",
+        //         "ch":"market.ethbtc.kline.1min",
         //         "ts":1591515374371,
-        //         "$data":array(
+        //         "data":array(
         //             array("amount":0.0,"open":0.025095,"close":0.025095,"high":0.025095,"id":1591515360,"count":0,"low":0.025095,"vol":0.0),
         //             array("amount":1.2082,"open":0.025096,"close":0.025095,"high":0.025096,"id":1591515300,"count":6,"low":0.025095,"vol":0.0303205097),
         //             array("amount":0.0648,"open":0.025096,"close":0.025096,"high":0.025096,"id":1591515240,"count":2,"low":0.025096,"vol":0.0016262208),
@@ -870,17 +870,17 @@ class huobi extends Exchange {
     public function fetch_currencies($params = array ()) {
         $response = yield $this->v2PublicGetReferenceCurrencies ();
         //     {
-        //       "$code" => 200,
-        //       "$data" => array(
+        //       "code" => 200,
+        //       "data" => array(
         //         {
         //           "currency" => "sxp",
         //           "assetType" => "1",
-        //           "$chains" => array(
+        //           "chains" => array(
         //             {
-        //               "$chain" => "sxp",
+        //               "chain" => "sxp",
         //               "displayName" => "ERC20",
         //               "baseChain" => "ETH",
-        //               "$baseChainProtocol" => "ERC20",
+        //               "baseChainProtocol" => "ERC20",
         //               "isDynamic" => true,
         //               "numOfConfirmations" => "12",
         //               "numOfFastConfirmations" => "12",
@@ -899,7 +899,7 @@ class huobi extends Exchange {
         //               "addrDepositTag" => false
         //             }
         //           ),
-        //           "$instStatus" => "normal"
+        //           "instStatus" => "normal"
         //         }
         //       )
         //     }
@@ -1103,12 +1103,12 @@ class huobi extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "$data":array(
+        //         "data":array(
         //             {
-        //                 "$symbol":"ethusdt",
+        //                 "symbol":"ethusdt",
         //                 "source":"api",
         //                 "amount":"0.010000000000000000",
-        //                 "$account-id":1528640,
+        //                 "account-id":1528640,
         //                 "created-at":1561597491963,
         //                 "price":"400.000000000000000000",
         //                 "filled-amount":"0.0",
@@ -1150,7 +1150,7 @@ class huobi extends Exchange {
         //              'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
         //             'finished-at' =>  1545837948214,
         //                    source => "spot-api",
-        //                     state => "$filled",
+        //                     state => "filled",
         //             'canceled-at' =>  0                      }
         //
         //     {                  $id =>  20395337822,
@@ -1165,7 +1165,7 @@ class huobi extends Exchange {
         //              'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
         //             'finished-at' =>  1545831584181,
         //                    source => "spot-api",
-        //                     state => "$filled",
+        //                     state => "filled",
         //             'canceled-at' =>  0                      }
         //
         $id = $this->safe_string($order, 'id');
@@ -1719,7 +1719,7 @@ class huobi extends Exchange {
         }
         if (is_array($response) && array_key_exists('status', $response)) {
             //
-            //     array("$status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {
