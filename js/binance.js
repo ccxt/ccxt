@@ -2392,7 +2392,8 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const orderType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((orderType !== 'future') && (orderType !== 'delivery')) {
@@ -2415,7 +2416,12 @@ module.exports = class binance extends Exchange {
             }
             params = this.omit (params, 'test');
         }
-        const uppercaseType = type.toUpperCase ();
+        let uppercaseType = undefined;
+        if ((market['spot'] || market['margin']) && postOnly) {
+            uppercaseType = 'LIMIT_MAKER';
+        } else {
+            uppercaseType = type.toUpperCase ();
+        }
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
