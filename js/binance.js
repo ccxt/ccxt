@@ -4897,4 +4897,27 @@ module.exports = class binance extends Exchange {
     async addMargin (symbol, amount, params = {}) {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
+
+    async fetchBorrowRate (currency, tier = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'asset': this.safeCurrencyCode (currency),
+        };
+        if (tier) {
+            request['vipLevel'] = tier;
+        }
+        const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
+        const rate = response[0];
+        const timestamp = this.safeNumber (rate, 'timestamp');
+        return {
+            'currency': this.safeCurrencyCode (this.safeString (rate, 'asset')),
+            'previousRate': this.safeNumber (rate, 'dailyInterestRate'),
+            'nextRate': undefined,
+            'tier': this.safeNumber (rate, 'vipLevel'),
+            'increment': 'daily',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': response,
+        };
+    }
 };
