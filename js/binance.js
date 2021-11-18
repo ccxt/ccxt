@@ -25,6 +25,8 @@ module.exports = class binance extends Exchange {
                 'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRates': false,
                 'fetchBidsAsks': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
