@@ -2286,7 +2286,7 @@ module.exports = class ftx extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    async fetchBorrowRates (tier = undefined, params = {}) {
+    async fetchBorrowRates (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetSpotMarginBorrowRates ();
         const timestamp = this.milliseconds ();
@@ -2296,9 +2296,7 @@ module.exports = class ftx extends Exchange {
             const rate = result[i];
             rates.push ({
                 'currency': this.safeCurrencyCode (this.safeString (rate, 'coin')),
-                'previousRate': this.safeNumber (rate, 'previous'),
-                'nextRate': this.safeNumber (rate, 'estimate'),
-                'tier': undefined,
+                'rate': this.safeNumber (rate, 'previous'),
                 'increment': 'hourly',
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -2308,7 +2306,7 @@ module.exports = class ftx extends Exchange {
         return rates;
     }
 
-    async fetchBorrowRate (currency, tier = undefined, params = {}) {
+    async fetchBorrowRate (currency, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetSpotMarginBorrowRates ();
         const timestamp = this.milliseconds ();
@@ -2320,9 +2318,7 @@ module.exports = class ftx extends Exchange {
             if (coin === currency) {
                 return {
                     'currency': currency,
-                    'previousRate': this.safeNumber (rate, 'previous'),
-                    'nextRate': this.safeNumber (rate, 'estimate'),
-                    'tier': undefined,
+                    'rate': this.safeNumber (rate, 'previous'),
                     'increment': 'hourly',
                     'timestamp': timestamp,
                     'datetime': this.iso8601 (timestamp),

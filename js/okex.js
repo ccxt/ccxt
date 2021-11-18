@@ -3546,7 +3546,7 @@ module.exports = class okex extends Exchange {
         };
     }
 
-    async fetchBorrowRates (tier = undefined, params = {}) {
+    async fetchBorrowRates (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccountInterestRate (params);
         const timestamp = this.milliseconds ();
@@ -3556,9 +3556,7 @@ module.exports = class okex extends Exchange {
             const rate = data[i];
             rates.push ({
                 'currency': this.safeString (rate, 'ccy'),
-                'previousRate': this.safeNumber (rate, 'interestRate'),
-                'nextRate': undefined,
-                'tier': undefined,
+                'rate': this.safeNumber (rate, 'interestRate'),
                 'increment': 'daily',
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -3568,7 +3566,7 @@ module.exports = class okex extends Exchange {
         return rates;
     }
 
-    async fetchBorrowRate (currency, tier = undefined, params = {}) {
+    async fetchBorrowRate (currency, params = {}) {
         await this.loadMarkets ();
         currency = this.safeCurrencyCode (currency);
         const request = {
@@ -3580,9 +3578,7 @@ module.exports = class okex extends Exchange {
         const rate = data[0];
         return {
             'currency': currency,
-            'previousRate': this.safeNumber (rate, 'interestRate'),
-            'nextRate': undefined,
-            'tier': undefined,
+            'rate': this.safeNumber (rate, 'interestRate'),
             'increment': 'daily',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

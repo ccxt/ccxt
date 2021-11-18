@@ -2824,7 +2824,7 @@ module.exports = class gateio extends Exchange {
         return response;
     }
 
-    async fetchBorrowRate (currency, tier = undefined, params = {}) {
+    async fetchBorrowRate (currency, params = {}) {
         await this.loadMarkets ();
         currency = this.safeCurrencyCode (currency);
         const request = {
@@ -2835,9 +2835,7 @@ module.exports = class gateio extends Exchange {
         const timestamp = this.safeNumber (rate, 'timestamp');
         return {
             'currency': currency,
-            'previousRate': this.safeNumber (rate, 'rate'),
-            'nextRate': undefined,
-            'tier': undefined,
+            'rate': this.safeNumber (rate, 'rate'),
             'increment': 'daily',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
