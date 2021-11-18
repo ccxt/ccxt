@@ -2415,13 +2415,12 @@ module.exports = class binance extends Exchange {
                 method += 'Test';
             }
             params = this.omit (params, 'test');
+            // all margin markets are also spot markets
+            if (postOnly) {
+                type = 'LIMIT_MAKER';
+            }
         }
-        let uppercaseType = undefined;
-        if ((market['spot'] || market['margin']) && postOnly) {
-            uppercaseType = 'LIMIT_MAKER';
-        } else {
-            uppercaseType = type.toUpperCase ();
-        }
+        const uppercaseType = type.toUpperCase ();
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
