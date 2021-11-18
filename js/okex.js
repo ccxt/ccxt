@@ -24,6 +24,8 @@ module.exports = class okex extends Exchange {
                 'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -3541,6 +3543,50 @@ module.exports = class okex extends Exchange {
             'code': code,
             'symbol': symbol,
             'status': status,
+        };
+    }
+
+    async fetchBorrowRates (tier = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountInterestRate (params);
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'data');
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const rate = data[i];
+            rates.push ({
+                'currency': this.safeString (rate, 'ccy'),
+                'previousRate': this.safeNumber (rate, 'interestRate'),
+                'nextRate': undefined,
+                'tier': undefined,
+                'increment': 'daily',
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': rate,
+            });
+        }
+        return rates;
+    }
+
+    async fetchBorrowRate (currency, tier = undefined, params = {}) {
+        await this.loadMarkets ();
+        currency = this.safeCurrencyCode (currency);
+        const request = {
+            'ccy': currency,
+        };
+        const response = await this.privateGetAccountInterestRate (this.extend (request, params));
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'data');
+        const rate = data[0];
+        return {
+            'currency': currency,
+            'previousRate': this.safeNumber (rate, 'interestRate'),
+            'nextRate': undefined,
+            'tier': undefined,
+            'increment': 'daily',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': rate,
         };
     }
 
