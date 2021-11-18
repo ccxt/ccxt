@@ -678,10 +678,12 @@ module.exports = class bitbns extends Exchange {
         let amountString = this.safeString (trade, 'amount');
         const side = this.safeStringLower (trade, 'type');
         const factor = this.safeString (trade, 'factor');
+        let costString = undefined;
         if (factor !== undefined) {
             amountString = Precise.stringDiv (amountString, factor);
         } else {
             amountString = this.safeString (trade, 'base_volume');
+            costString = this.safeString (trade, 'quote_volume');
         }
         const symbol = market['symbol'];
         let fee = undefined;
@@ -705,7 +707,7 @@ module.exports = class bitbns extends Exchange {
             'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
-            'cost': undefined,
+            'cost': costString,
             'fee': fee,
         }, market);
     }
