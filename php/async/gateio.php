@@ -1391,8 +1391,8 @@ class gateio extends Exchange {
         $bid = $this->safe_number($ticker, 'highest_bid');
         $high = $this->safe_number($ticker, 'high_24h');
         $low = $this->safe_number($ticker, 'low_24h');
-        $baseVolume = $this->safe_number($ticker, 'base_volume', 'volume_24h_base');
-        $quoteVolume = $this->safe_number($ticker, 'quote_volume', 'volume_24h_quote');
+        $baseVolume = $this->safe_number_2($ticker, 'base_volume', 'volume_24h_base');
+        $quoteVolume = $this->safe_number_2($ticker, 'quote_volume', 'volume_24h_quote');
         $percentage = $this->safe_number($ticker, 'change_percentage');
         return $this->safe_ticker(array(
             'symbol' => $symbol,

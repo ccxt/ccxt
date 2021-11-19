@@ -1364,8 +1364,8 @@ class gateio(Exchange):
         bid = self.safe_number(ticker, 'highest_bid')
         high = self.safe_number(ticker, 'high_24h')
         low = self.safe_number(ticker, 'low_24h')
-        baseVolume = self.safe_number(ticker, 'base_volume', 'volume_24h_base')
-        quoteVolume = self.safe_number(ticker, 'quote_volume', 'volume_24h_quote')
+        baseVolume = self.safe_number_2(ticker, 'base_volume', 'volume_24h_base')
+        quoteVolume = self.safe_number_2(ticker, 'quote_volume', 'volume_24h_quote')
         percentage = self.safe_number(ticker, 'change_percentage')
         return self.safe_ticker({
             'symbol': symbol,
