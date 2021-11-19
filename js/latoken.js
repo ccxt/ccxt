@@ -18,8 +18,8 @@ module.exports = class latoken extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'cancelAllOrders': true,
-                'cancelOrder': undefined,
-                'createOrder': undefined,
+                'cancelOrder': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
