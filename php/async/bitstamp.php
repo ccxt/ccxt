@@ -1555,7 +1555,7 @@ class bitstamp extends Exchange {
         $response = yield $this->$method (array_merge($request, $params));
         return array(
             'info' => $response,
-            'id' => $response['id'],
+            'id' => $this->safe_string($response, 'id'),
         );
     }
 
