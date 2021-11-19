@@ -158,6 +158,7 @@ module.exports = class poloniex extends Exchange {
                 'REPV2': 'REP',
                 'STR': 'XLM',
                 'SOC': 'SOCC',
+                'TRADE': 'Unitrade',
                 'XAP': 'API Coin',
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
