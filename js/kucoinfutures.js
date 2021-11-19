@@ -759,6 +759,245 @@ module.exports = class kucoinfutures extends kucoin {
         return this.safeValue (response, 'data', response);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // required param, cannot be used twice
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
+        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        const leverage = this.safeNumber (params, 'leverage');
+        if (!leverage) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires params.leverage');
+        }
+        const stop = this.safeString (params, 'stop');
+        let stopPrice = undefined;
+        if (stop) {
+            const stopPriceType = this.safeString (params, 'stopPriceType');
+            stopPrice = this.safeNumber (params, 'stopPrice');
+            if (!stopPriceType || !stopPrice) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPriceType and params.stopPrice when params.stop is defined');
+            }
+        }
+        const request = {
+            'clientOid': clientOrderId,
+            'side': side,
+            'symbol': market['id'],
+            'type': type, // limit or market
+            // 'remark': '', // optional remark for the order, length cannot exceed 100 utf8 characters
+            // 'tradeType': 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
+            // limit orders ---------------------------------------------------
+            // 'timeInForce': 'GTC', // GTC, GTT, IOC, or FOK (default is GTC), limit orders only
+            // 'cancelAfter': long, // cancel after n seconds, requires timeInForce to be GTT
+            // 'postOnly': false, // Post only flag, invalid when timeInForce is IOC or FOK
+            // 'hidden': false, // Order will not be displayed in the order book
+            // 'iceberg': false, // Only a portion of the order is displayed in the order book
+            // 'visibleSize': this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order
+            // market orders --------------------------------------------------
+            // 'size': this.amountToPrecision (symbol, amount), // Amount in base currency
+            // 'funds': this.costToPrecision (symbol, cost), // Amount of quote currency to use
+            // stop orders ----------------------------------------------------
+            // 'stop': 'loss', // loss or entry, the default is loss, requires stopPrice
+            // 'stopPrice': this.priceToPrecision (symbol, amount), // need to be defined if stop is specified
+            // 'stopPriceType' // Either TP, IP or MP, Need to be defined if stop is specified.
+            // margin orders --------------------------------------------------
+            // 'marginMode': 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+            // 'autoBorrow': false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
+            // futures orders -------------------------------------------------
+            // reduceOnly // (boolean) A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+            // closeOrder // (boolean) A mark to close the position. Set to false by default. It will close all the positions when closeOrder is true.
+            // forceHold // (boolean) A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+        };
+        let amountString = undefined;
+        if (type === 'market') {
+            amountString = this.amountToPrecision (symbol, amount);
+            request['size'] = this.amountToPrecision (symbol, amount);
+        } else {
+            amountString = this.amountToPrecision (symbol, amount);
+            request['size'] = parseInt (amountString);
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.futuresPrivatePostOrders (this.extend (request, params));
+        // {
+        //     code: "200000",
+        //     data: {
+        //         orderId: "619717484f1d010001510cde",
+        //     },
+        // }
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.milliseconds ();
+        return {
+            'id': this.safeString (data, 'orderId'),
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': this.parseNumber (amountString),
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
+            'timeInForce': this.safeString (params, 'timeInForce'),
+            'postOnly': this.safeString (params, 'postOnly'),
+            'stopPrice': stopPrice,
+            'info': data,
+        };
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.futuresPrivateDeleteOrdersOrderId (this.extend (request, params));
+        // {
+        //     code: "200000",
+        //     data: {
+        //         cancelledOrderIds: [
+        //              "619714b8b6353000014c505a",
+        //         ],
+        //     },
+        // }
+        return this.safeValue (response, 'data');
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            request['symbol'] = this.marketId (symbol);
+        }
+        const response = await this.futuresPrivateDeleteOrders (this.extend (request, params));
+        // ? futuresPrivateDeleteStopOrders
+        // {
+        //     code: "200000",
+        //     data: {
+        //         cancelledOrderIds: [
+        //              "619714b8b6353000014c505a",
+        //         ],
+        //     },
+        // }
+        return this.safeValue (response, 'data');
+    }
+
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'status': status,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        const responseData = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (responseData, 'items', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        let method = 'privateGetOrdersOrderId';
+        if (clientOrderId !== undefined) {
+            request['clientOid'] = clientOrderId;
+            method = 'privateGetOrdersClientOrderClientOid';
+        } else {
+            // a special case for undefined ids
+            // otherwise a wrong endpoint for all orders will be triggered
+            // https://github.com/ccxt/ccxt/issues/7234
+            if (id === undefined) {
+                throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
+            }
+            request['orderId'] = id;
+        }
+        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        const response = await this[method] (this.extend (request, params));
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const responseData = this.safeValue (response, 'data');
+        return this.parseOrder (responseData, market);
+    }
+
+    parseOrder (order, market = undefined) {
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const orderId = this.safeString (order, 'id');
+        const type = this.safeString (order, 'type');
+        const timestamp = this.safeInteger (order, 'createdAt');
+        const datetime = this.iso8601 (timestamp);
+        const price = this.safeString (order, 'price');
+        // price is zero for market order
+        // omitZero is called in safeOrder2
+        const side = this.safeString (order, 'side');
+        const feeCurrencyId = this.safeString (order, 'feeCurrency');
+        const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+        const feeCost = this.safeNumber (order, 'fee');
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'dealSize');
+        const cost = this.safeString (order, 'dealFunds');
+        // bool
+        const isActive = this.safeValue (order, 'isActive', false);
+        const cancelExist = this.safeValue (order, 'cancelExist', false);
+        let status = isActive ? 'open' : 'closed';
+        status = cancelExist ? 'canceled' : status;
+        const fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+        };
+        const clientOrderId = this.safeString (order, 'clientOid');
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeNumber (order, 'stopPrice');
+        const postOnly = this.safeValue (order, 'postOnly');
+        return this.safeOrder2 ({
+            'id': orderId,
+            'clientOrderId': clientOrderId,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'stopPrice': stopPrice,
+            'cost': cost,
+            'filled': filled,
+            'remaining': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fee': fee,
+            'status': status,
+            'info': order,
+            'lastTradeTimestamp': undefined,
+            'average': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
