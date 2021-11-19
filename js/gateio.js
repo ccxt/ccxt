@@ -2042,11 +2042,11 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        const stop_limit = uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT_LIMIT';
-        const stop_market = uppercaseType === 'STOP_LOSS_MARKET' || uppercaseType === 'TAKE_PROFIT_MARKET';
+        const stopLimit = uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT_LIMIT';
+        const stopMarket = uppercaseType === 'STOP_LOSS_MARKET' || uppercaseType === 'TAKE_PROFIT_MARKET';
         const limit = uppercaseType === 'LIMIT';
         const contract = market['contract'];
-        if (limit || stop_limit) {
+        if (limit || stopLimit) {
             if (!price) {
                 throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
             }
@@ -2058,7 +2058,7 @@ module.exports = class gateio extends Exchange {
         let request = {};
         let methodTail = '';
         amount = this.parseNumber (this.amountToPrecision (symbol, amount));
-        if (stop_limit || stop_market) {
+        if (stopLimit || stopMarket) {
             const stopPrice = this.safeNumber (params, 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
@@ -2074,7 +2074,7 @@ module.exports = class gateio extends Exchange {
             } else if (!market['contract']) {
                 throw new InvalidOrder (this.id + ' createOrder() requires an expiration extra param for a ' + type + ' order');
             }
-            const defaultTif = stop_limit ? 'gtc' : 'ioc';
+            const defaultTif = stopLimit ? 'gtc' : 'ioc';
             if (contract) {
                 trigger['rule'] = (side === 'buy') ? 1 : 2;
                 trigger['strategy_type'] = this.safeValue (params, 'strategy_type', 0);
@@ -2082,7 +2082,7 @@ module.exports = class gateio extends Exchange {
                 request['initial'] = {
                     'contract': market['id'],
                     'size': amount,
-                    'price': stop_limit ? price : undefined,
+                    'price': stopLimit ? price : undefined,
                     'tif': this.safeValue (params, 'tif', 'time_in_force', defaultTif),
                     'close': this.safeValue (params, 'close'),
                     'text': this.safeValue (params, 'text'),
@@ -2092,7 +2092,7 @@ module.exports = class gateio extends Exchange {
                 trigger['rule'] = (side === 'buy') ? '>=' : '<=';
                 const defaultAccount = (type === 'margin') ? 'margin' : 'normal';
                 request['put'] = {
-                    'type': stop_limit ? 'limit' : 'market',
+                    'type': stopLimit ? 'limit' : 'market',
                     'side': side,
                     'price': price,
                     'amount': amount.toString (),
@@ -2134,7 +2134,7 @@ module.exports = class gateio extends Exchange {
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if (!contract) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for futures and perpetuals only');
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for futures and perpetual swaps only');
             }
             request['reduce_only'] = reduceOnly;
         }
