@@ -28,8 +28,8 @@ class latoken(Exchange):
             'rateLimit': 1000,
             'has': {
                 'cancelAllOrders': True,
-                'cancelOrder': None,
-                'createOrder': None,
+                'cancelOrder': True,
+                'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchMarkets': True,

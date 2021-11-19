@@ -20,8 +20,8 @@ class latoken extends Exchange {
             'rateLimit' => 1000,
             'has' => array(
                 'cancelAllOrders' => true,
-                'cancelOrder' => null,
-                'createOrder' => null,
+                'cancelOrder' => true,
+                'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchMarkets' => true,
