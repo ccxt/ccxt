@@ -2332,7 +2332,8 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', 'spot')
         orderType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
-        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId'])
+        postOnly = self.safe_value(params, 'postOnly', False)
+        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
             if (orderType != 'future') and (orderType != 'delivery'):
@@ -2350,6 +2351,9 @@ class binance(Exchange):
             if test:
                 method += 'Test'
             params = self.omit(params, 'test')
+            # only supported for spot/margin api(all margin markets are spot markets)
+            if postOnly:
+                type = 'LIMIT_MAKER'
         uppercaseType = type.upper()
         validOrderTypes = self.safe_value(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):

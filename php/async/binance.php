@@ -2399,7 +2399,8 @@ class binance extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
         $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
-        $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId' ));
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         if ($reduceOnly !== null) {
             if (($orderType !== 'future') && ($orderType !== 'delivery')) {
@@ -2421,6 +2422,10 @@ class binance extends Exchange {
                 $method .= 'Test';
             }
             $params = $this->omit($params, 'test');
+            // only supported for spot/margin api (all margin markets are spot markets)
+            if ($postOnly) {
+                $type = 'LIMIT_MAKER';
+            }
         }
         $uppercaseType = strtoupper($type);
         $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
