@@ -1385,8 +1385,8 @@ module.exports = class gateio extends Exchange {
         const bid = this.safeNumber (ticker, 'highest_bid');
         const high = this.safeNumber (ticker, 'high_24h');
         const low = this.safeNumber (ticker, 'low_24h');
-        const baseVolume = this.safeNumber (ticker, 'base_volume', 'volume_24h_base');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume', 'volume_24h_quote');
+        const baseVolume = this.safeNumber2 (ticker, 'base_volume', 'volume_24h_base');
+        const quoteVolume = this.safeNumber2 (ticker, 'quote_volume', 'volume_24h_quote');
         const percentage = this.safeNumber (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
