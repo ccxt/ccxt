@@ -167,6 +167,25 @@ module.exports = class bitforex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public) v1
+        //
+        //      {
+        //          "price":57594.53,
+        //          "amount":0.3172,
+        //          "time":1637329685322,
+        //          "direction":1,
+        //          "tid":"1131019666"
+        //      }
+        //
+        //      {
+        //          "price":57591.33,
+        //          "amount":0.002,
+        //          "time":1637329685322,
+        //          "direction":1,
+        //          "tid":"1131019639"
+        //      }
+        //
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -205,6 +224,30 @@ module.exports = class bitforex extends Exchange {
         }
         const market = this.market (symbol);
         const response = await this.publicGetApiV1MarketTrades (this.extend (request, params));
+        //
+        // {
+        //  "data":
+        //      [
+        //          {
+        //              "price":57594.53,
+        //              "amount":0.3172,
+        //              "time":1637329685322,
+        //              "direction":1,
+        //              "tid":"1131019666"
+        //          }
+        //
+        //          {
+        //              "price":57591.33,
+        //              "amount":0.002,
+        //              "time":1637329685322,
+        //              "direction":1,
+        //              "tid":"1131019639"
+        //          }
+        //      ],
+        //  "success": true,
+        //  "time": 1637329688475
+        // }
+        //
         return this.parseTrades (response['data'], market, since, limit);
     }
 
