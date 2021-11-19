@@ -1550,7 +1550,7 @@ module.exports = class bitstamp extends Exchange {
         const response = await this[method] (this.extend (request, params));
         return {
             'info': response,
-            'id': response['id'],
+            'id': this.safeString (response, 'id'),
         };
     }
 
