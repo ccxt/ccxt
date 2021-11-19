@@ -169,6 +169,25 @@ class bitforex extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public) v1
+        //
+        //      {
+        //          "price":57594.53,
+        //          "amount":0.3172,
+        //          "time":1637329685322,
+        //          "direction":1,
+        //          "tid":"1131019666"
+        //      }
+        //
+        //      {
+        //          "price":57591.33,
+        //          "amount":0.002,
+        //          "time":1637329685322,
+        //          "direction":1,
+        //          "tid":"1131019639"
+        //      }
+        //
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -207,6 +226,22 @@ class bitforex extends Exchange {
         }
         $market = $this->market($symbol);
         $response = yield $this->publicGetApiV1MarketTrades (array_merge($request, $params));
+        //
+        // {
+        //  "data":
+        //      array(
+        //          {
+        //              "price":57594.53,
+        //              "amount":0.3172,
+        //              "time":1637329685322,
+        //              "direction":1,
+        //              "tid":"1131019666"
+        //          }
+        //      ),
+        //  "success" => true,
+        //  "time" => 1637329688475
+        // }
+        //
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
