@@ -2392,7 +2392,8 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const orderType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((orderType !== 'future') && (orderType !== 'delivery')) {
@@ -2414,6 +2415,10 @@ module.exports = class binance extends Exchange {
                 method += 'Test';
             }
             params = this.omit (params, 'test');
+            // only supported for spot/margin api (all margin markets are spot markets)
+            if (postOnly) {
+                type = 'LIMIT_MAKER';
+            }
         }
         const uppercaseType = type.toUpperCase ();
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
