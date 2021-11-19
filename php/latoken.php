@@ -122,6 +122,7 @@ class latoken extends Exchange {
             'commonCurrencies' => array(
                 'MT' => 'Monarch',
                 'TPAY' => 'Tetra Pay',
+                'TRADE' => 'Smart Trade Coin',
                 'TSL' => 'Treasure SL',
             ),
             'exceptions' => array(
