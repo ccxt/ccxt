@@ -658,13 +658,10 @@ module.exports = class latoken extends Exchange {
             'currency': market['baseId'],
             'quote': market['quoteId'],
             // 'from': since.toString (), // milliseconds
-            // 'limit': limit, // default 100
+            // 'limit': limit, // default 100, max 1000
         };
-        if (since !== undefined) {
-            request['from'] = since.toString ();
-        }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 50, max 100
+            request['limit'] = limit; // default 100, max 1000
         }
         const response = await this.publicGetTradeHistoryCurrencyQuote (this.extend (request, params));
         //
