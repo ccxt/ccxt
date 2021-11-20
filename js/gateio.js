@@ -2050,6 +2050,9 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, [ 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ]);
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
+        if (isLimitOrder && price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for ' + type + ' orders');
+        }
         if (contract) {
             const amountToPrecision = this.amountToPrecision (symbol, amount);
             const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
