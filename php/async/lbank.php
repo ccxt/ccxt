@@ -365,19 +365,19 @@ class lbank extends Exchange {
         $response = yield $this->privatePostUserInfo ($params);
         //
         //     {
-        //         "$result":"true",
-        //         "$info":{
-        //             "$freeze":array(
+        //         "result":"true",
+        //         "info":{
+        //             "freeze":array(
         //                 "iog":"0.00000000",
         //                 "ssc":"0.00000000",
         //                 "eon":"0.00000000",
         //             ),
-        //             "$asset":array(
+        //             "asset":array(
         //                 "iog":"0.00000000",
         //                 "ssc":"0.00000000",
         //                 "eon":"0.00000000",
         //             ),
-        //             "$free":array(
+        //             "free":array(
         //                 "iog":"0.00000000",
         //                 "ssc":"0.00000000",
         //                 "eon":"0.00000000",
@@ -421,15 +421,15 @@ class lbank extends Exchange {
     public function parse_order($order, $market = null) {
         //
         //     {
-        //         "$symbol"："eth_btc",
-        //         "$amount"：10.000000,
+        //         "symbol"："eth_btc",
+        //         "amount"：10.000000,
         //         "create_time"：1484289832081,
-        //         "$price"：5000.000000,
+        //         "price"：5000.000000,
         //         "avg_price"：5277.301200,
-        //         "$type"："sell",
+        //         "type"："sell",
         //         "order_id"："ab704110-af0d-48fd-a083-c218f19a4a55",
         //         "deal_amount"：10.000000,
-        //         "$status"：2
+        //         "status"：2
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');

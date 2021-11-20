@@ -143,9 +143,9 @@ class zaif extends Exchange {
         //             "is_token" => false,
         //             "aux_unit_min" => 5.0,
         //             "aux_japanese" => "\u65e5\u672c\u5186",
-        //             "$id" => 1,
+        //             "id" => 1,
         //             "item_unit_step" => 0.0001,
-        //             "$name" => "BTC/JPY",
+        //             "name" => "BTC/JPY",
         //             "seq" => 0,
         //             "title" => "BTC/JPY"
         //         }
@@ -352,9 +352,9 @@ class zaif extends Exchange {
         //     {
         //         "currency_pair" => "btc_jpy",
         //         "action" => "ask",
-        //         "$amount" => 0.03,
-        //         "$price" => 56000,
-        //         "$timestamp" => 1402021125,
+        //         "amount" => 0.03,
+        //         "price" => 56000,
+        //         "timestamp" => 1402021125,
         //         "comment" : "demo"
         //     }
         //
@@ -492,7 +492,7 @@ class zaif extends Exchange {
             return;
         }
         //
-        //     array("$error" => "unsupported currency_pair")
+        //     array("error" => "unsupported currency_pair")
         //
         $feedback = $this->id . ' ' . $body;
         $error = $this->safe_string($response, 'error');

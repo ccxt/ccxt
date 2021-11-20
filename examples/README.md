@@ -55,6 +55,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Projects based on ccxt](https://github.com/ccxt/ccxt/network/dependents) – A list of hundreds of ccxt-based projects by developers from all over the world!
 
+[The Evolution Of CCXT](https://www.youtube.com/watch?v=KnyduYTFm1c) – A Gource visualization on the development of the CCXT code repository.
+
 [Enigma Catalyst](https://blog.enigma.co/enigma-announces-catalyst-0-4-our-biggest-release-yet-fa31a5ffa4b1) – The major effort towards decentralized exchanges integrates ccxt!
 
 [Playing with CCXT in Google Colab](https://medium.com/@ccxt/playing-with-ccxt-in-google-colab-23522ac8a6cb) – An article on how useful Colab can be for quick prototyping and testing your trading ideas with CCXT.

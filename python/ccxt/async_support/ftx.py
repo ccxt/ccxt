@@ -147,6 +147,8 @@ class ftx(Exchange):
                         'nft/collections',
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
+                        # pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',

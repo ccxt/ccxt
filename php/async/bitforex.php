@@ -169,6 +169,25 @@ class bitforex extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public) v1
+        //
+        //      {
+        //          "price":57594.53,
+        //          "amount":0.3172,
+        //          "time":1637329685322,
+        //          "direction":1,
+        //          "tid":"1131019666"
+        //      }
+        //
+        //      {
+        //          "price":57591.33,
+        //          "amount":0.002,
+        //          "time":1637329685322,
+        //          "direction":1,
+        //          "tid":"1131019639"
+        //      }
+        //
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -207,6 +226,22 @@ class bitforex extends Exchange {
         }
         $market = $this->market($symbol);
         $response = yield $this->publicGetApiV1MarketTrades (array_merge($request, $params));
+        //
+        // {
+        //  "data":
+        //      array(
+        //          {
+        //              "price":57594.53,
+        //              "amount":0.3172,
+        //              "time":1637329685322,
+        //              "direction":1,
+        //              "tid":"1131019666"
+        //          }
+        //      ),
+        //  "success" => true,
+        //  "time" => 1637329688475
+        // }
+        //
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
@@ -296,7 +331,7 @@ class bitforex extends Exchange {
         $response = yield $this->publicGetApiV1MarketKline (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             array("close":0.02505143,"currencyVol":0,"high":0.02506422,"low":0.02505143,"open":0.02506095,"time":1591508940000,"vol":51.1869),
         //             array("close":0.02503914,"currencyVol":0,"high":0.02506687,"low":0.02503914,"open":0.02505358,"time":1591509000000,"vol":9.1082),
         //             array("close":0.02505172,"currencyVol":0,"high":0.02507466,"low":0.02503895,"open":0.02506371,"time":1591509060000,"vol":63.7431),

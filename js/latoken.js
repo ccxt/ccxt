@@ -18,8 +18,8 @@ module.exports = class latoken extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'cancelAllOrders': true,
-                'cancelOrder': undefined,
-                'createOrder': undefined,
+                'cancelOrder': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
@@ -120,6 +120,7 @@ module.exports = class latoken extends Exchange {
             'commonCurrencies': {
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
+                'TRADE': 'Smart Trade Coin',
                 'TSL': 'Treasure SL',
             },
             'exceptions': {

@@ -1003,9 +1003,21 @@ class bitfinex2(bitfinex):
         orderType = self.safe_string_upper(orderTypes, type, type)
         amount = -amount if (side == 'sell') else amount
         request = {
-            'symbol': market['id'],
+            # 'gid': 0123456789,  # int32,  optional group id for the order
+            # 'cid': 0123456789,  # int32 client order id
             'type': orderType,
+            'symbol': market['id'],
+            # 'price': self.number_to_string(price),
             'amount': self.number_to_string(amount),
+            # 'flags': 0,  # int32, https://docs.bitfinex.com/v2/docs/flag-values
+            # 'lev': 10,  # the value should be between 1 and 100 inclusive, optional, 10 by default
+            # 'price_trailing': self.number_to_string(priceTrailing),
+            # 'price_aux_limit': self.number_to_string(stopPrice),
+            # 'price_oco_stop': self.number_to_string(ocoStopPrice),
+            # 'tif': '2020-01-01 10:45:23',  # datetime for automatic order cancellation
+            # 'meta': {
+            #     'aff_code': 'AFF_CODE_HERE'
+            # },
         }
         if (orderType == 'LIMIT') or (orderType == 'EXCHANGE LIMIT'):
             request['price'] = self.number_to_string(price)

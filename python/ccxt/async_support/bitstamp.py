@@ -1454,7 +1454,7 @@ class bitstamp(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
-            'id': response['id'],
+            'id': self.safe_string(response, 'id'),
         }
 
     def nonce(self):

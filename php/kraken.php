@@ -368,14 +368,14 @@ class kraken extends Exchange {
         //
         //     {
         //         "error":array(),
-        //         "$result":{
+        //         "result":{
         //             "ADAETH":array(
-        //                 "$altname":"ADAETH",
+        //                 "altname":"ADAETH",
         //                 "wsname":"ADA\/ETH",
         //                 "aclass_base":"currency",
-        //                 "$base":"ADA",
+        //                 "base":"ADA",
         //                 "aclass_quote":"currency",
-        //                 "$quote":"XETH",
+        //                 "quote":"XETH",
         //                 "lot":"unit",
         //                 "pair_decimals":7,
         //                 "lot_decimals":8,
@@ -532,9 +532,9 @@ class kraken extends Exchange {
         //
         //     {
         //         "error" => array(),
-        //         "$result" => array(
-        //             "ADA" => array( "aclass" => "$currency", "altname" => "ADA", "decimals" => 8, "display_decimals" => 6 ),
-        //             "BCH" => array( "aclass" => "$currency", "altname" => "BCH", "decimals" => 10, "display_decimals" => 5 ),
+        //         "result" => array(
+        //             "ADA" => array( "aclass" => "currency", "altname" => "ADA", "decimals" => 8, "display_decimals" => 6 ),
+        //             "BCH" => array( "aclass" => "currency", "altname" => "BCH", "decimals" => 10, "display_decimals" => 5 ),
         //             ...
         //         ),
         //     }
@@ -623,7 +623,7 @@ class kraken extends Exchange {
         //
         //     {
         //         "error":array(),
-        //         "$result":{
+        //         "result":{
         //             "XETHXXBT":{
         //                 "asks":[
         //                     ["0.023480","4.000",1586321307],
@@ -768,7 +768,7 @@ class kraken extends Exchange {
         //
         //     {
         //         "error":array(),
-        //         "$result":{
+        //         "result":{
         //             "XETHXXBT":[
         //                 [1591475580,"0.02499","0.02499","0.02499","0.02499","0.00000","0.00000000",0],
         //                 [1591475640,"0.02500","0.02500","0.02500","0.02500","0.02500","9.12201000",5],
@@ -801,7 +801,7 @@ class kraken extends Exchange {
         //             refid => "TSJTGT-DT7WN-GPPQMJ",
         //             $time =>  1520102320.555,
         //             $type => "trade",
-        //             aclass => "$currency",
+        //             aclass => "currency",
         //             asset => "XETH",
         //             $amount => "0.1087194600",
         //             $fee => "0.0000000000",
@@ -872,7 +872,7 @@ class kraken extends Exchange {
         //   $result => { $ledger => { 'LPUAIB-TS774-UKHP7X' => array(   refid => "A2B4HBV-L4MDIE-JU4N3N",
         //                                                   time =>  1520103488.314,
         //                                                   type => "withdrawal",
-        //                                                 aclass => "$currency",
+        //                                                 aclass => "currency",
         //                                                  asset => "XETH",
         //                                                 amount => "-0.2805800000",
         //                                                    fee => "0.0050000000",
@@ -1052,7 +1052,7 @@ class kraken extends Exchange {
         //
         //     {
         //         "error" => array(),
-        //         "$result" => {
+        //         "result" => {
         //             "XETHXXBT" => [
         //                 ["0.032310","4.28169434",1541390792.763,"s","l",""]
         //             ],
@@ -1079,7 +1079,7 @@ class kraken extends Exchange {
         //
         //     {
         //         "error":array(),
-        //         "$result":{
+        //         "result":{
         //             "ZUSD":"58.8649",
         //             "KFEE":"4399.43",
         //             "XXBT":"0.0000034506",
@@ -1348,7 +1348,7 @@ class kraken extends Exchange {
         //
         //     {
         //         "error":array(),
-        //         "$result":{
+        //         "result":{
         //             "OTLAS3-RRHUF-NDWH5A":{
         //                 "refid":null,
         //                 "userref":null,
@@ -1365,7 +1365,7 @@ class kraken extends Exchange {
         //                     "price":"0",
         //                     "price2":"0",
         //                     "leverage":"none",
-        //                     "$order":"sell 0.21804000 XBTUSDT @ market",
+        //                     "order":"sell 0.21804000 XBTUSDT @ market",
         //                     "close":""
         //                 ),
         //                 "vol":"0.21804000",
@@ -1492,14 +1492,14 @@ class kraken extends Exchange {
         //     {
         //         "error" => array(),
         //         "result" => array(
-        //             "$trades" => array(
+        //             "trades" => array(
         //                 "GJ3NYQ-XJRTF-THZABF" => array(
         //                     "ordertxid" => "TKH2SE-ZIF5E-CFI7LT",
         //                     "postxid" => "OEN3VX-M7IF5-JNBJAM",
         //                     "pair" => "XICNXETH",
         //                     "time" => 1527213229.4491,
         //                     "type" => "sell",
-        //                     "ordertype" => "$limit",
+        //                     "ordertype" => "limit",
         //                     "price" => "0.001612",
         //                     "cost" => "0.025792",
         //                     "fee" => "0.000026",
@@ -1587,7 +1587,7 @@ class kraken extends Exchange {
         //
         //     {
         //         "error":array(),
-        //         "$result":{
+        //         "result":{
         //             "closed":array(
         //                 "OETZYO-UL524-QJMXCT":array(
         //                     "refid":null,
@@ -1601,7 +1601,7 @@ class kraken extends Exchange {
         //                     "descr":array(
         //                         "pair":"ETHUSDT",
         //                         "type":"buy",
-        //                         "ordertype":"$limit",
+        //                         "ordertype":"limit",
         //                         "price":"330.00",
         //                         "price2":"0",
         //                         "leverage":"none",
@@ -1650,7 +1650,7 @@ class kraken extends Exchange {
         // fetchDeposits
         //
         //     { method => "Ether (Hex)",
-        //       aclass => "$currency",
+        //       aclass => "currency",
         //        asset => "XETH",
         //        refid => "Q2CANKL-LBFVEE-U4Y2WQ",
         //         $txid => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
@@ -1663,7 +1663,7 @@ class kraken extends Exchange {
         // fetchWithdrawals
         //
         //     { method => "Ether",
-        //       aclass => "$currency",
+        //       aclass => "currency",
         //        asset => "XETH",
         //        refid => "A2BF34S-O7LBNQ-UE4Y4O",
         //         $txid => "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
@@ -1733,7 +1733,7 @@ class kraken extends Exchange {
         //
         //     {  error => array(),
         //       result => array( { method => "Ether (Hex)",
-        //                   aclass => "$currency",
+        //                   aclass => "currency",
         //                    asset => "XETH",
         //                    refid => "Q2CANKL-LBFVEE-U4Y2WQ",
         //                     txid => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
@@ -1752,7 +1752,7 @@ class kraken extends Exchange {
         //
         //    {
         //        "error" => array(),
-        //        "$result" => {
+        //        "result" => {
         //            "unixtime" => 1591502873,
         //            "rfc1123" => "Sun,  7 Jun 20 04:07:53 +0000"
         //        }
@@ -1776,7 +1776,7 @@ class kraken extends Exchange {
         //
         //     {  error => array(),
         //       result => array( { method => "Ether",
-        //                   aclass => "$currency",
+        //                   aclass => "currency",
         //                    asset => "XETH",
         //                    refid => "A2BF34S-O7LBNQ-UE4Y4O",
         //                     txid => "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
@@ -1867,7 +1867,7 @@ class kraken extends Exchange {
         //
         //     {
         //         "error":array(),
-        //         "$result":array(
+        //         "result":array(
         //             array("address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3","expiretm":"0")
         //         )
         //     }
@@ -1883,7 +1883,7 @@ class kraken extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
-        //         "$address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
+        //         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
         //         "expiretm":"0"
         //     }
         //

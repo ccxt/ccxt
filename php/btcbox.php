@@ -228,7 +228,7 @@ class btcbox extends Exchange {
         );
         $response = $this->privatePostTradeCancel (array_merge($request, $params));
         //
-        //     array("result":true, "$id":"11")
+        //     array("result":true, "id":"11")
         //
         return $this->parse_order($response, $market);
     }
@@ -248,14 +248,14 @@ class btcbox extends Exchange {
     public function parse_order($order, $market = null) {
         //
         //     {
-        //         "$id":11,
+        //         "id":11,
         //         "datetime":"2014-10-21 10:47:20",
         //         "type":"sell",
-        //         "$price":42000,
+        //         "price":42000,
         //         "amount_original":1.2,
         //         "amount_outstanding":1.2,
-        //         "$status":"closed",
-        //         "$trades":array()
+        //         "status":"closed",
+        //         "trades":array()
         //     }
         //
         $id = $this->safe_string($order, 'id');
@@ -384,7 +384,7 @@ class btcbox extends Exchange {
         if ($response === null) {
             return; // resort to defaultErrorHandler
         }
-        // typical error $response => array("$result":false,"$code":"401")
+        // typical error $response => array("result":false,"code":"401")
         if ($httpCode >= 400) {
             return; // resort to defaultErrorHandler
         }

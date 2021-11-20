@@ -365,7 +365,7 @@ To get the exchange-specific market-id by a unified CCXT symbol, use the followi
 async fetchTicker (symbol, params = {}) {
    const market = this.market (symbol); // the entire market structure
    const request = {
-      'pair': market['id'], // good, they may me equal, but often differ, it's ok
+      'pair': market['id'], // good, they may be equal, but often differ, it's ok
    };
    const response = await this.publicGetEndpoint (this.extend (request, params));
    // parse in a unified way...
@@ -376,7 +376,7 @@ async fetchTicker (symbol, params = {}) {
 async fetchTicker (symbol, params = {}) {
    const marketId = this.marketId (symbol); // just the id
    const request = {
-      'symbol': marketId, // good, they may me equal, but often differ, it's ok
+      'symbol': marketId, // good, they may be equal, but often differ, it's ok
    };
    const response = await this.publicGetEndpoint (this.extend (request, params));
    // parse in a unified way...

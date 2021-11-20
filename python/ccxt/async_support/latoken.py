@@ -28,8 +28,8 @@ class latoken(Exchange):
             'rateLimit': 1000,
             'has': {
                 'cancelAllOrders': True,
-                'cancelOrder': None,
-                'createOrder': None,
+                'cancelOrder': True,
+                'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchMarkets': True,
@@ -130,6 +130,7 @@ class latoken(Exchange):
             'commonCurrencies': {
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
+                'TRADE': 'Smart Trade Coin',
                 'TSL': 'Treasure SL',
             },
             'exceptions': {

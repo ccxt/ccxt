@@ -179,6 +179,25 @@ class bitforex(Exchange):
         return result
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public) v1
+        #
+        #      {
+        #          "price":57594.53,
+        #          "amount":0.3172,
+        #          "time":1637329685322,
+        #          "direction":1,
+        #          "tid":"1131019666"
+        #      }
+        #
+        #      {
+        #          "price":57591.33,
+        #          "amount":0.002,
+        #          "time":1637329685322,
+        #          "direction":1,
+        #          "tid":"1131019639"
+        #      }
+        #
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -214,6 +233,22 @@ class bitforex(Exchange):
             request['size'] = limit
         market = self.market(symbol)
         response = self.publicGetApiV1MarketTrades(self.extend(request, params))
+        #
+        # {
+        #  "data":
+        #      [
+        #          {
+        #              "price":57594.53,
+        #              "amount":0.3172,
+        #              "time":1637329685322,
+        #              "direction":1,
+        #              "tid":"1131019666"
+        #          }
+        #      ],
+        #  "success": True,
+        #  "time": 1637329688475
+        # }
+        #
         return self.parse_trades(response['data'], market, since, limit)
 
     def fetch_balance(self, params={}):
