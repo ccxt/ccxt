@@ -838,6 +838,8 @@ module.exports = class bitfinex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        params = this.omit (params, [ 'postOnly' ]);
         const request = {
             'symbol': this.marketId (symbol),
             'side': side,
@@ -851,6 +853,9 @@ module.exports = class bitfinex extends Exchange {
             request['price'] = this.nonce ().toString ();
         } else {
             request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (postOnly) {
+            request['is_postonly'] = true;
         }
         const response = await this.privatePostOrderNew (this.extend (request, params));
         return this.parseOrder (response);
