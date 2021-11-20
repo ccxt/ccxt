@@ -65,13 +65,22 @@ module.exports = class huobi extends Exchange {
                 '1y': '1year',
             },
             'urls': {
-                'test': {
-                    'market': 'https://api.testnet.huobi.pro',
-                    'public': 'https://api.testnet.huobi.pro',
-                    'private': 'https://api.testnet.huobi.pro',
-                },
+                // 'test': {
+                //     'market': 'https://api.testnet.huobi.pro',
+                //     'public': 'https://api.testnet.huobi.pro',
+                //     'private': 'https://api.testnet.huobi.pro',
+                // },
                 'logo': 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
+                'hostnames': {
+                    'contract': 'api.hbdm.com',
+                    'spot': 'api.huobi.pro',
+                    // recommended for AWS
+                    // 'contract': 'api.hbdm.vn',
+                    // 'spot': 'api-aws.huobi.pro',
+                },
                 'api': {
+                    'contract': 'https://{hostname}',
+                    'spot': 'https://{hostname}',
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
@@ -2090,57 +2099,100 @@ module.exports = class huobi extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (Array.isArray (api)) {
-            console.log (api);
-            process.exit ();
-        }
         let url = '/';
-        if (api === 'market') {
-            url += api;
-        } else if ((api === 'public') || (api === 'private')) {
-            url += this.version;
-        } else if ((api === 'v2Public') || (api === 'v2Private')) {
-            url += 'v2';
-        }
-        url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'private' || api === 'v2Private') {
-            this.checkRequiredCredentials ();
-            const timestamp = this.ymdhms (this.milliseconds (), 'T');
-            let request = {
-                'SignatureMethod': 'HmacSHA256',
-                'SignatureVersion': '2',
-                'AccessKeyId': this.apiKey,
-                'Timestamp': timestamp,
-            };
-            if (method !== 'POST') {
-                request = this.extend (request, query);
+        if (typeof api === 'string') {
+            // signing implementation for the old endpoints
+            if (api === 'market') {
+                url += api;
+            } else if ((api === 'public') || (api === 'private')) {
+                url += this.version;
+            } else if ((api === 'v2Public') || (api === 'v2Private')) {
+                url += 'v2';
             }
-            request = this.keysort (request);
-            let auth = this.urlencode (request);
-            // unfortunately, PHP demands double quotes for the escaped newline symbol
-            const payload = [ method, this.hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
-            auth += '&' + this.urlencode ({ 'Signature': signature });
-            url += '?' + auth;
-            if (method === 'POST') {
-                body = this.json (query);
-                headers = {
-                    'Content-Type': 'application/json',
+            url += '/' + this.implodeParams (path, params);
+            if (api === 'private' || api === 'v2Private') {
+                this.checkRequiredCredentials ();
+                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                let request = {
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'AccessKeyId': this.apiKey,
+                    'Timestamp': timestamp,
                 };
+                if (method !== 'POST') {
+                    request = this.extend (request, query);
+                }
+                request = this.keysort (request);
+                let auth = this.urlencode (request);
+                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                const payload = [ method, this.hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+                auth += '&' + this.urlencode ({ 'Signature': signature });
+                url += '?' + auth;
+                if (method === 'POST') {
+                    body = this.json (query);
+                    headers = {
+                        'Content-Type': 'application/json',
+                    };
+                } else {
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                }
             } else {
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                };
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
             }
+            url = this.implodeParams (this.urls['api'][api], {
+                'hostname': this.hostname,
+            }) + url;
         } else {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+            // signing implementation for the new endpoints
+            // const [ type, access ] = api;
+            const type = this.safeString (api, 0);
+            const access = this.safeString (api, 1);
+            url += this.implodeParams (path, params);
+            const hostname = this.safeString (this.urls['hostnames'], type);
+            if (access === 'public') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else if (access === 'private') {
+                this.checkRequiredCredentials ();
+                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                let request = {
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'AccessKeyId': this.apiKey,
+                    'Timestamp': timestamp,
+                };
+                if (method !== 'POST') {
+                    request = this.extend (request, query);
+                }
+                request = this.keysort (request);
+                let auth = this.urlencode (request);
+                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+                auth += '&' + this.urlencode ({ 'Signature': signature });
+                url += '?' + auth;
+                if (method === 'POST') {
+                    body = this.json (query);
+                    headers = {
+                        'Content-Type': 'application/json',
+                    };
+                } else {
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                }
             }
+            url = this.implodeParams (this.urls['api'][type], {
+                'hostname': hostname,
+            }) + url;
         }
-        url = this.implodeParams (this.urls['api'][api], {
-            'hostname': this.hostname,
-        }) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
