@@ -295,6 +295,9 @@ class gateio extends Exchange {
                 'secret' => true,
             ),
             'options' => array(
+                'createOrder' => array(
+                    'expiration' => 86400, // for conditional orders
+                ),
                 'networks' => array(
                     'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
@@ -418,94 +421,97 @@ class gateio extends Exchange {
             ),
             // https://www.gate.io/docs/apiv4/en/index.html#label-list
             'exceptions' => array(
-                'INVALID_PARAM_VALUE' => '\\ccxt\\BadRequest',
-                'INVALID_PROTOCOL' => '\\ccxt\\BadRequest',
-                'INVALID_ARGUMENT' => '\\ccxt\\BadRequest',
-                'INVALID_REQUEST_BODY' => '\\ccxt\\BadRequest',
-                'MISSING_REQUIRED_PARAM' => '\\ccxt\\ArgumentsRequired',
-                'BAD_REQUEST' => '\\ccxt\\BadRequest',
-                'INVALID_CONTENT_TYPE' => '\\ccxt\\BadRequest',
-                'NOT_ACCEPTABLE' => '\\ccxt\\BadRequest',
-                'METHOD_NOT_ALLOWED' => '\\ccxt\\BadRequest',
-                'NOT_FOUND' => '\\ccxt\\ExchangeError',
-                'INVALID_CREDENTIALS' => '\\ccxt\\AuthenticationError',
-                'INVALID_KEY' => '\\ccxt\\AuthenticationError',
-                'IP_FORBIDDEN' => '\\ccxt\\AuthenticationError',
-                'READ_ONLY' => '\\ccxt\\PermissionDenied',
-                'INVALID_SIGNATURE' => '\\ccxt\\AuthenticationError',
-                'MISSING_REQUIRED_HEADER' => '\\ccxt\\AuthenticationError',
-                'REQUEST_EXPIRED' => '\\ccxt\\AuthenticationError',
-                'ACCOUNT_LOCKED' => '\\ccxt\\AccountSuspended',
-                'FORBIDDEN' => '\\ccxt\\PermissionDenied',
-                'SUB_ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
-                'SUB_ACCOUNT_LOCKED' => '\\ccxt\\AccountSuspended',
-                'MARGIN_BALANCE_EXCEPTION' => '\\ccxt\\ExchangeError',
-                'MARGIN_TRANSFER_FAILED' => '\\ccxt\\ExchangeError',
-                'TOO_MUCH_FUTURES_AVAILABLE' => '\\ccxt\\ExchangeError',
-                'FUTURES_BALANCE_NOT_ENOUGH' => '\\ccxt\\InsufficientFunds',
-                'ACCOUNT_EXCEPTION' => '\\ccxt\\ExchangeError',
-                'SUB_ACCOUNT_TRANSFER_FAILED' => '\\ccxt\\ExchangeError',
-                'ADDRESS_NOT_USED' => '\\ccxt\\ExchangeError',
-                'TOO_FAST' => '\\ccxt\\RateLimitExceeded',
-                'WITHDRAWAL_OVER_LIMIT' => '\\ccxt\\ExchangeError',
-                'API_WITHDRAW_DISABLED' => '\\ccxt\\ExchangeNotAvailable',
-                'INVALID_WITHDRAW_ID' => '\\ccxt\\ExchangeError',
-                'INVALID_WITHDRAW_CANCEL_STATUS' => '\\ccxt\\ExchangeError',
-                'INVALID_PRECISION' => '\\ccxt\\InvalidOrder',
-                'INVALID_CURRENCY' => '\\ccxt\\BadSymbol',
-                'INVALID_CURRENCY_PAIR' => '\\ccxt\\BadSymbol',
-                'POC_FILL_IMMEDIATELY' => '\\ccxt\\ExchangeError',
-                'ORDER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
-                'ORDER_CLOSED' => '\\ccxt\\InvalidOrder',
-                'ORDER_CANCELLED' => '\\ccxt\\InvalidOrder',
-                'QUANTITY_NOT_ENOUGH' => '\\ccxt\\InvalidOrder',
-                'BALANCE_NOT_ENOUGH' => '\\ccxt\\InsufficientFunds',
-                'MARGIN_NOT_SUPPORTED' => '\\ccxt\\InvalidOrder',
-                'MARGIN_BALANCE_NOT_ENOUGH' => '\\ccxt\\InsufficientFunds',
-                'AMOUNT_TOO_LITTLE' => '\\ccxt\\InvalidOrder',
-                'AMOUNT_TOO_MUCH' => '\\ccxt\\InvalidOrder',
-                'REPEATED_CREATION' => '\\ccxt\\InvalidOrder',
-                'LOAN_NOT_FOUND' => '\\ccxt\\OrderNotFound',
-                'LOAN_RECORD_NOT_FOUND' => '\\ccxt\\OrderNotFound',
-                'NO_MATCHED_LOAN' => '\\ccxt\\ExchangeError',
-                'NOT_MERGEABLE' => '\\ccxt\\ExchangeError',
-                'NO_CHANGE' => '\\ccxt\\ExchangeError',
-                'REPAY_TOO_MUCH' => '\\ccxt\\ExchangeError',
-                'TOO_MANY_CURRENCY_PAIRS' => '\\ccxt\\InvalidOrder',
-                'TOO_MANY_ORDERS' => '\\ccxt\\InvalidOrder',
-                'MIXED_ACCOUNT_TYPE' => '\\ccxt\\InvalidOrder',
-                'AUTO_BORROW_TOO_MUCH' => '\\ccxt\\ExchangeError',
-                'TRADE_RESTRICTED' => '\\ccxt\\InsufficientFunds',
-                'USER_NOT_FOUND' => '\\ccxt\\ExchangeError',
-                'CONTRACT_NO_COUNTER' => '\\ccxt\\ExchangeError',
-                'CONTRACT_NOT_FOUND' => '\\ccxt\\BadSymbol',
-                'RISK_LIMIT_EXCEEDED' => '\\ccxt\\ExchangeError',
-                'INSUFFICIENT_AVAILABLE' => '\\ccxt\\InsufficientFunds',
-                'LIQUIDATE_IMMEDIATELY' => '\\ccxt\\InvalidOrder',
-                'LEVERAGE_TOO_HIGH' => '\\ccxt\\InvalidOrder',
-                'LEVERAGE_TOO_LOW' => '\\ccxt\\InvalidOrder',
-                'ORDER_NOT_OWNED' => '\\ccxt\\ExchangeError',
-                'ORDER_FINISHED' => '\\ccxt\\ExchangeError',
-                'POSITION_CROSS_MARGIN' => '\\ccxt\\ExchangeError',
-                'POSITION_IN_LIQUIDATION' => '\\ccxt\\ExchangeError',
-                'POSITION_IN_CLOSE' => '\\ccxt\\ExchangeError',
-                'POSITION_EMPTY' => '\\ccxt\\InvalidOrder',
-                'REMOVE_TOO_MUCH' => '\\ccxt\\ExchangeError',
-                'RISK_LIMIT_NOT_MULTIPLE' => '\\ccxt\\ExchangeError',
-                'RISK_LIMIT_TOO_HIGH' => '\\ccxt\\ExchangeError',
-                'RISK_LIMIT_TOO_lOW' => '\\ccxt\\ExchangeError',
-                'PRICE_TOO_DEVIATED' => '\\ccxt\\InvalidOrder',
-                'SIZE_TOO_LARGE' => '\\ccxt\\InvalidOrder',
-                'SIZE_TOO_SMALL' => '\\ccxt\\InvalidOrder',
-                'PRICE_OVER_LIQUIDATION' => '\\ccxt\\InvalidOrder',
-                'PRICE_OVER_BANKRUPT' => '\\ccxt\\InvalidOrder',
-                'ORDER_POC_IMMEDIATE' => '\\ccxt\\InvalidOrder',
-                'INCREASE_POSITION' => '\\ccxt\\InvalidOrder',
-                'CONTRACT_IN_DELISTING' => '\\ccxt\\ExchangeError',
-                'INTERNAL' => '\\ccxt\\ExchangeError',
-                'SERVER_ERROR' => '\\ccxt\\ExchangeError',
-                'TOO_BUSY' => '\\ccxt\\ExchangeNotAvailable',
+                'exact' => array(
+                    'INVALID_PARAM_VALUE' => '\\ccxt\\BadRequest',
+                    'INVALID_PROTOCOL' => '\\ccxt\\BadRequest',
+                    'INVALID_ARGUMENT' => '\\ccxt\\BadRequest',
+                    'INVALID_REQUEST_BODY' => '\\ccxt\\BadRequest',
+                    'MISSING_REQUIRED_PARAM' => '\\ccxt\\ArgumentsRequired',
+                    'BAD_REQUEST' => '\\ccxt\\BadRequest',
+                    'INVALID_CONTENT_TYPE' => '\\ccxt\\BadRequest',
+                    'NOT_ACCEPTABLE' => '\\ccxt\\BadRequest',
+                    'METHOD_NOT_ALLOWED' => '\\ccxt\\BadRequest',
+                    'NOT_FOUND' => '\\ccxt\\ExchangeError',
+                    'INVALID_CREDENTIALS' => '\\ccxt\\AuthenticationError',
+                    'INVALID_KEY' => '\\ccxt\\AuthenticationError',
+                    'IP_FORBIDDEN' => '\\ccxt\\AuthenticationError',
+                    'READ_ONLY' => '\\ccxt\\PermissionDenied',
+                    'INVALID_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                    'MISSING_REQUIRED_HEADER' => '\\ccxt\\AuthenticationError',
+                    'REQUEST_EXPIRED' => '\\ccxt\\AuthenticationError',
+                    'ACCOUNT_LOCKED' => '\\ccxt\\AccountSuspended',
+                    'FORBIDDEN' => '\\ccxt\\PermissionDenied',
+                    'SUB_ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
+                    'SUB_ACCOUNT_LOCKED' => '\\ccxt\\AccountSuspended',
+                    'MARGIN_BALANCE_EXCEPTION' => '\\ccxt\\ExchangeError',
+                    'MARGIN_TRANSFER_FAILED' => '\\ccxt\\ExchangeError',
+                    'TOO_MUCH_FUTURES_AVAILABLE' => '\\ccxt\\ExchangeError',
+                    'FUTURES_BALANCE_NOT_ENOUGH' => '\\ccxt\\InsufficientFunds',
+                    'ACCOUNT_EXCEPTION' => '\\ccxt\\ExchangeError',
+                    'SUB_ACCOUNT_TRANSFER_FAILED' => '\\ccxt\\ExchangeError',
+                    'ADDRESS_NOT_USED' => '\\ccxt\\ExchangeError',
+                    'TOO_FAST' => '\\ccxt\\RateLimitExceeded',
+                    'WITHDRAWAL_OVER_LIMIT' => '\\ccxt\\ExchangeError',
+                    'API_WITHDRAW_DISABLED' => '\\ccxt\\ExchangeNotAvailable',
+                    'INVALID_WITHDRAW_ID' => '\\ccxt\\ExchangeError',
+                    'INVALID_WITHDRAW_CANCEL_STATUS' => '\\ccxt\\ExchangeError',
+                    'INVALID_PRECISION' => '\\ccxt\\InvalidOrder',
+                    'INVALID_CURRENCY' => '\\ccxt\\BadSymbol',
+                    'INVALID_CURRENCY_PAIR' => '\\ccxt\\BadSymbol',
+                    'POC_FILL_IMMEDIATELY' => '\\ccxt\\ExchangeError',
+                    'ORDER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
+                    'ORDER_CLOSED' => '\\ccxt\\InvalidOrder',
+                    'ORDER_CANCELLED' => '\\ccxt\\InvalidOrder',
+                    'QUANTITY_NOT_ENOUGH' => '\\ccxt\\InvalidOrder',
+                    'BALANCE_NOT_ENOUGH' => '\\ccxt\\InsufficientFunds',
+                    'MARGIN_NOT_SUPPORTED' => '\\ccxt\\InvalidOrder',
+                    'MARGIN_BALANCE_NOT_ENOUGH' => '\\ccxt\\InsufficientFunds',
+                    'AMOUNT_TOO_LITTLE' => '\\ccxt\\InvalidOrder',
+                    'AMOUNT_TOO_MUCH' => '\\ccxt\\InvalidOrder',
+                    'REPEATED_CREATION' => '\\ccxt\\InvalidOrder',
+                    'LOAN_NOT_FOUND' => '\\ccxt\\OrderNotFound',
+                    'LOAN_RECORD_NOT_FOUND' => '\\ccxt\\OrderNotFound',
+                    'NO_MATCHED_LOAN' => '\\ccxt\\ExchangeError',
+                    'NOT_MERGEABLE' => '\\ccxt\\ExchangeError',
+                    'NO_CHANGE' => '\\ccxt\\ExchangeError',
+                    'REPAY_TOO_MUCH' => '\\ccxt\\ExchangeError',
+                    'TOO_MANY_CURRENCY_PAIRS' => '\\ccxt\\InvalidOrder',
+                    'TOO_MANY_ORDERS' => '\\ccxt\\InvalidOrder',
+                    'MIXED_ACCOUNT_TYPE' => '\\ccxt\\InvalidOrder',
+                    'AUTO_BORROW_TOO_MUCH' => '\\ccxt\\ExchangeError',
+                    'TRADE_RESTRICTED' => '\\ccxt\\InsufficientFunds',
+                    'USER_NOT_FOUND' => '\\ccxt\\ExchangeError',
+                    'CONTRACT_NO_COUNTER' => '\\ccxt\\ExchangeError',
+                    'CONTRACT_NOT_FOUND' => '\\ccxt\\BadSymbol',
+                    'RISK_LIMIT_EXCEEDED' => '\\ccxt\\ExchangeError',
+                    'INSUFFICIENT_AVAILABLE' => '\\ccxt\\InsufficientFunds',
+                    'LIQUIDATE_IMMEDIATELY' => '\\ccxt\\InvalidOrder',
+                    'LEVERAGE_TOO_HIGH' => '\\ccxt\\InvalidOrder',
+                    'LEVERAGE_TOO_LOW' => '\\ccxt\\InvalidOrder',
+                    'ORDER_NOT_OWNED' => '\\ccxt\\ExchangeError',
+                    'ORDER_FINISHED' => '\\ccxt\\ExchangeError',
+                    'POSITION_CROSS_MARGIN' => '\\ccxt\\ExchangeError',
+                    'POSITION_IN_LIQUIDATION' => '\\ccxt\\ExchangeError',
+                    'POSITION_IN_CLOSE' => '\\ccxt\\ExchangeError',
+                    'POSITION_EMPTY' => '\\ccxt\\InvalidOrder',
+                    'REMOVE_TOO_MUCH' => '\\ccxt\\ExchangeError',
+                    'RISK_LIMIT_NOT_MULTIPLE' => '\\ccxt\\ExchangeError',
+                    'RISK_LIMIT_TOO_HIGH' => '\\ccxt\\ExchangeError',
+                    'RISK_LIMIT_TOO_lOW' => '\\ccxt\\ExchangeError',
+                    'PRICE_TOO_DEVIATED' => '\\ccxt\\InvalidOrder',
+                    'SIZE_TOO_LARGE' => '\\ccxt\\InvalidOrder',
+                    'SIZE_TOO_SMALL' => '\\ccxt\\InvalidOrder',
+                    'PRICE_OVER_LIQUIDATION' => '\\ccxt\\InvalidOrder',
+                    'PRICE_OVER_BANKRUPT' => '\\ccxt\\InvalidOrder',
+                    'ORDER_POC_IMMEDIATE' => '\\ccxt\\InvalidOrder',
+                    'INCREASE_POSITION' => '\\ccxt\\InvalidOrder',
+                    'CONTRACT_IN_DELISTING' => '\\ccxt\\ExchangeError',
+                    'INTERNAL' => '\\ccxt\\ExchangeError',
+                    'SERVER_ERROR' => '\\ccxt\\ExchangeError',
+                    'TOO_BUSY' => '\\ccxt\\ExchangeNotAvailable',
+                ),
             ),
+            'broad' => array(),
         ));
     }
 
@@ -1464,65 +1470,71 @@ class gateio extends Exchange {
         } else {
             $response = yield $this->$method (array_merge($request, $params));
         }
-        //  SPOT
+        // spot
+        //
         //     array(
-        //       array(
-        //         "currency" => "DBC",
-        //         "available" => "0",
-        //         "locked" => "0"
-        //       ),
-        //       ...
+        //         array(
+        //             "currency" => "DBC",
+        //             "available" => "0",
+        //             "locked" => "0"
+        //         ),
+        //         ...
         //     )
         //
-        //  Perpetual Swap
-        //  {
-        //     order_margin => "0",
-        //     point => "0",
-        //     bonus => "0",
-        //     history => array(
-        //       dnw => "2.1321",
-        //       pnl => "11.5351",
-        //       refr => "0",
-        //       point_fee => "0",
-        //       fund => "-0.32340576684",
-        //       bonus_dnw => "0",
-        //       point_refr => "0",
-        //       bonus_offset => "0",
-        //       fee => "-0.20132775",
-        //       point_dnw => "0",
-        //     ),
-        //     unrealised_pnl => "13.315100000006",
-        //     total => "12.51345151332",
-        //     available => "0",
-        //     in_dual_mode => false,
-        //     currency => "USDT",
-        //     position_margin => "12.51345151332",
-        //     user => "6333333",
-        //   }
+        // Perpetual Swap
+        //
+        //     {
+        //         order_margin => "0",
+        //         point => "0",
+        //         bonus => "0",
+        //         history => array(
+        //             dnw => "2.1321",
+        //             pnl => "11.5351",
+        //             refr => "0",
+        //             point_fee => "0",
+        //             fund => "-0.32340576684",
+        //             bonus_dnw => "0",
+        //             point_refr => "0",
+        //             bonus_offset => "0",
+        //             fee => "-0.20132775",
+        //             point_dnw => "0",
+        //         ),
+        //         unrealised_pnl => "13.315100000006",
+        //         total => "12.51345151332",
+        //         available => "0",
+        //         in_dual_mode => false,
+        //         currency => "USDT",
+        //         position_margin => "12.51345151332",
+        //         user => "6333333",
+        //     }
         //
         //   Delivery Future
-        //   {
-        //     order_margin => "0",
-        //     point => "0",
-        //     history => array(
-        //       dnw => "1",
-        //       pnl => "0",
-        //       refr => "0",
-        //       point_fee => "0",
-        //       point_dnw => "0",
-        //       settle => "0",
-        //       settle_fee => "0",
-        //       point_refr => "0",
-        //       fee => "0",
-        //     ),
-        //     unrealised_pnl => "0",
-        //     total => "1",
-        //     available => "1",
-        //     currency => "USDT",
-        //     position_margin => "0",
-        //     user => "6333333",
-        //   }
-        $result = array();
+        //
+        //     {
+        //         order_margin => "0",
+        //         point => "0",
+        //         history => array(
+        //             dnw => "1",
+        //             pnl => "0",
+        //             refr => "0",
+        //             point_fee => "0",
+        //             point_dnw => "0",
+        //             settle => "0",
+        //             settle_fee => "0",
+        //             point_refr => "0",
+        //             fee => "0",
+        //         ),
+        //         unrealised_pnl => "0",
+        //         total => "1",
+        //         available => "1",
+        //         currency => "USDT",
+        //         position_margin => "0",
+        //         user => "6333333",
+        //     }
+        //
+        $result = array(
+            'info' => $response,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $account = $this->account();
@@ -2033,53 +2045,80 @@ class gateio extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        //
-        // :param (str) $symbol => base/quote currency pair
-        // :param (str) $type => Order $type (limit, $market, ...)
-        // :param (str) $side => buy or sell
-        // :param (number) $amount => Amount of base currency ordered
-        // :param (number) $price => Price of the base currency using quote currency
-        // :param (dict) $params:
-        //          - $type => $market $type (spot, futures, ...)
-        //          - $reduceOnly
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', 'spot');
-        $marketType = $this->safe_string($params, 'type', $defaultType);
         $contract = $market['contract'];
-        $request = array_merge($this->prepare_request($market), array(
-            // user-defined, must follow the rules if not empty
-            //     prefixed with t-
-            //     no longer than 28 bytes without t- prefix
-            //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
-            // 'text' => $clientOrderId, // 't-abcdef1234567890',
-            // 'currency_pair' => $market['id'],
-            // 'type' => $type,
-            // 'account' => 'spot', // 'spot', 'margin', 'cross_margin'
-            // 'side' => $side,
-            // 'amount' => $this->amount_to_precision($symbol, $amount),
-            // 'price' => $this->price_to_precision($symbol, $price),
-            // 'time_in_force' => 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
-            // 'iceberg' => 0, // $amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
-            // 'auto_borrow' => false, // used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
-            // 'auto_repay' => false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
-        ));
-        $reduceOnly = $this->safe_value($params, 'reduceOnly');
-        $params = $this->omit($params, 'reduceOnly');
-        if ($reduceOnly !== null) {
-            if (!$contract) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $marketType . ' orders, $reduceOnly orders are supported for futures and perpetuals only');
-            }
-            $request['reduce_only'] = $reduceOnly;
-        }
+        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $methodTail = 'Orders';
+        $reduceOnly = $this->safe_value_2($params, 'reduce_only', 'reduceOnly');
+        $defaultTimeInForce = $this->safe_value_2($params, 'tif', 'time_in_force', 'gtc');
+        $timeInForce = $this->safe_value($params, 'timeInForce', $defaultTimeInForce);
+        $params = $this->omit($params, array( 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ));
+        $isLimitOrder = ($type === 'limit');
+        $isMarketOrder = ($type === 'market');
         if ($contract) {
-            if ($side === 'sell') {
-                $amount = 0 - $amount;
+            $amountToPrecision = $this->amount_to_precision($symbol, $amount);
+            $signedAmount = ($side === 'sell') ? Precise::string_neg($amountToPrecision) : $amountToPrecision;
+            $amount = intval($signedAmount);
+            if ($isMarketOrder) {
+                $timeInForce = 'ioc';
+                $price = 0;
             }
-            $request['size'] = $this->parse_number($this->amount_to_precision($symbol, $amount));
-        } else {
+        } else if (!$isLimitOrder) {
+            // Gateio doesn't have $market orders for spot
+            throw new InvalidOrder($this->id . ' createOrder() does not support ' . $type . ' orders for ' . $market['type'] . ' markets');
+        }
+        $request = null;
+        if ($stopPrice === null) {
+            if ($contract) {
+                // $contract order
+                $request = array(
+                    'contract' => $market['id'], // filled in prepareRequest above
+                    'size' => $amount, // int64, positive = bid, negative = ask
+                    // 'iceberg' => 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
+                    'price' => $this->price_to_precision($symbol, $price), // 0 for $market order with tif set as ioc
+                    // 'close' => false, // true to close the position, with size set to 0
+                    // 'reduce_only' => false, // St as true to be reduce-only order
+                    // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
+                    // 'text' => $clientOrderId, // 't-abcdef1234567890',
+                    // 'auto_size' => '', // close_long, close_short, note size also needs to be set to 0
+                    'settle' => $market['settleId'], // filled in prepareRequest above
+                );
+                if ($reduceOnly !== null) {
+                    $request['reduce_only'] = $reduceOnly;
+                }
+                if ($timeInForce !== null) {
+                    $request['tif'] = $timeInForce;
+                }
+            } else {
+                $options = $this->safe_value($this->options, 'createOrder', array());
+                $defaultAccount = $this->safe_string($options, 'account', 'spot');
+                $account = $this->safe_string($params, 'account', $defaultAccount);
+                $params = $this->omit($params, 'account');
+                // spot order
+                $request = array(
+                    // 'text' => $clientOrderId, // 't-abcdef1234567890',
+                    'currency_pair' => $market['id'], // filled in prepareRequest above
+                    'type' => $type,
+                    'account' => $account, // 'spot', 'margin', 'cross_margin'
+                    'side' => $side,
+                    'amount' => $this->amount_to_precision($symbol, $amount),
+                    'price' => $this->price_to_precision($symbol, $price),
+                    // 'time_in_force' => 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
+                    // 'iceberg' => 0, // $amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
+                    // 'auto_borrow' => false, // used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
+                    // 'auto_repay' => false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
+                );
+                if ($timeInForce !== null) {
+                    $request['time_in_force'] = $timeInForce;
+                }
+            }
             $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
             if ($clientOrderId !== null) {
+                // user-defined, must follow the rules if not empty
+                //     prefixed with t-
+                //     no longer than 28 bytes without t- prefix
+                //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
                 if (strlen($clientOrderId) > 28) {
                     throw new BadRequest($this->id . ' createOrder() $clientOrderId or text param must be up to 28 characters');
                 }
@@ -2089,34 +2128,138 @@ class gateio extends Exchange {
                 }
                 $request['text'] = $clientOrderId;
             }
-            $request['side'] = $side;
-            $request['type'] = $type;
-            $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            $request['account'] = $marketType;
-            // if (margin) {
-            //     if (entering trade) {
-            //         $request['auto_borrow'] = true;
-            //     } else if (exiting trade) {
-            //         $request['auto_repay'] = true;
-            //     }
-            // }
-        }
-        if ($type === 'limit') {
-            if (!$price) {
-                throw new ArgumentsRequired('Argument $price is required for ' . $this->id . '.createOrder for limit orders');
+        } else {
+            if ($contract) {
+                // $contract conditional order
+                $rule = ($side === 'sell') ? 1 : 2;
+                $request = array(
+                    'initial' => array(
+                        'contract' => $market['id'],
+                        'size' => $amount, // positive = buy, negative = sell, set to 0 to close the position
+                        'price' => $this->price_to_precision($symbol, $price), // set to 0 to use $market $price
+                        // 'close' => false, // set to true if trying to close the position
+                        // 'tif' => 'gtc', // gtc, ioc, if using $market $price, only ioc is supported
+                        // 'text' => $clientOrderId, // web, api, app
+                        // 'reduce_only' => false,
+                    ),
+                    'trigger' => array(
+                        // 'strategy_type' => 0, // 0 = by $price, 1 = by $price gap, only 0 is supported currently
+                        // 'price_type' => 0, // 0 latest deal $price, 1 mark $price, 2 index $price
+                        'price' => $this->price_to_precision($symbol, $stopPrice), // $price or gap
+                        'rule' => $rule, // 1 means price_type >= $price, 2 means price_type <= $price
+                        // 'expiration' => $expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    ),
+                    'settle' => $market['settleId'],
+                );
+                $expiration = $this->safe_integer($params, 'expiration');
+                if ($expiration !== null) {
+                    $request['trigger']['expiration'] = $expiration;
+                    $params = $this->omit($params, 'expiration');
+                }
+                if ($reduceOnly !== null) {
+                    $request['initial']['reduce_only'] = $reduceOnly;
+                }
+                if ($timeInForce !== null) {
+                    $request['initial']['tif'] = $timeInForce;
+                }
+            } else {
+                // spot conditional order
+                $options = $this->safe_value($this->options, 'createOrder', array());
+                $defaultAccount = $this->safe_string($options, 'account', 'normal');
+                $account = $this->safe_string($params, 'account', $defaultAccount);
+                $params = $this->omit($params, 'account');
+                $defaultExpiration = $this->safe_integer($options, 'expiration');
+                $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
+                $rule = ($side === 'sell') ? '>=' : '<=';
+                $request = array(
+                    'trigger' => array(
+                        'price' => $this->price_to_precision($symbol, $stopPrice),
+                        'rule' => $rule, // >= triggered when $market $price larger than or equal to $price field, <= triggered when $market $price less than or equal to $price field
+                        'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
+                    ),
+                    'put' => array(
+                        'type' => $type,
+                        'side' => $side,
+                        'price' => $this->price_to_precision($symbol, $price),
+                        'amount' => $this->amount_to_precision($symbol, $amount),
+                        'account' => $account, // normal, margin
+                        'time_in_force' => $timeInForce, // gtc, ioc for taker only
+                    ),
+                    'market' => $market['id'],
+                );
             }
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        } else if (($type === 'market') && $contract) {
-            $request['tif'] = 'ioc';
-            $request['price'] = 0;
+            $methodTail = 'PriceOrders';
         }
         $method = $this->get_supported_mapping($market['type'], array(
-            'spot' => 'privateSpotPostOrders',
-            // 'margin' => 'privateSpotPostOrders',
-            'swap' => 'privateFuturesPostSettleOrders',
-            'future' => 'privateDeliveryPostSettleOrders',
+            'spot' => 'privateSpotPost' . $methodTail,
+            'margin' => 'privateSpotPost' . $methodTail,
+            'swap' => 'privateFuturesPostSettle' . $methodTail,
+            'future' => 'privateDeliveryPostSettle' . $methodTail,
         ));
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->$method ($this->deep_extend($request, $params));
+        //
+        // spot
+        //
+        //     {
+        //         "id":"95282841887",
+        //         "text":"apiv4",
+        //         "create_time":"1637383156",
+        //         "update_time":"1637383156",
+        //         "create_time_ms":1637383156017,
+        //         "update_time_ms":1637383156017,
+        //         "status":"open",
+        //         "currency_pair":"ETH_USDT",
+        //         "type":"limit",
+        //         "account":"spot",
+        //         "side":"buy",
+        //         "amount":"0.01",
+        //         "price":"3500",
+        //         "time_in_force":"gtc",
+        //         "iceberg":"0",
+        //         "left":"0.01",
+        //         "fill_price":"0",
+        //         "filled_total":"0",
+        //         "fee":"0",
+        //         "fee_currency":"ETH",
+        //         "point_fee":"0",
+        //         "gt_fee":"0",
+        //         "gt_discount":false,
+        //         "rebated_fee":"0",
+        //         "rebated_fee_currency":"USDT"
+        //     }
+        //
+        // spot conditional
+        //
+        //     array("id":5891843)
+        //
+        // futures and perpetual swaps
+        //
+        //     {
+        //         "id":95938572327,
+        //         "contract":"ETH_USDT",
+        //         "mkfr":"0",
+        //         "tkfr":"0.0005",
+        //         "tif":"gtc",
+        //         "is_reduce_only":false,
+        //         "create_time":1637384600.08,
+        //         "price":"3000",
+        //         "size":1,
+        //         "refr":"0",
+        //         "left":1,
+        //         "text":"api",
+        //         "fill_price":"0",
+        //         "user":2436035,
+        //         "status":"open",
+        //         "is_liq":false,
+        //         "refu":0,
+        //         "is_close":false,
+        //         "iceberg":0
+        //     }
+        //
+        // futures and perpetual swaps conditionals
+        //
+        //     array("id":7615567)
+        //
         return $this->parse_order($response, $market);
     }
 
@@ -2179,7 +2322,11 @@ class gateio extends Exchange {
         $side = null;
         $contract = $this->safe_value($market, 'contract');
         if ($contract) {
-            $side = Precise::string_gt($amountRaw, '0') ? 'buy' : 'sell';
+            if ($amount) {
+                $side = Precise::string_gt($amountRaw, '0') ? 'buy' : 'sell';
+            } else {
+                $side = null;
+            }
             $rawStatus = $this->safe_string($order, 'finish_as', 'open');
         } else {
             // open, closed, cancelled - almost already ccxt unified!
@@ -2433,30 +2580,87 @@ class gateio extends Exchange {
             'futures' => 'privateDeliveryDeleteSettleOrdersOrderId',
         ));
         $response = yield $this->$method (array_merge($request, $params));
-        // Perpetual swap
-        // {
-        //     $id => "82241928192",
-        //     contract => "BTC_USDT",
-        //     mkfr => "0",
-        //     tkfr => "0.0005",
-        //     tif => "gtc",
-        //     is_reduce_only => false,
-        //     create_time => "1635196145.06",
-        //     finish_time => "1635196233.396",
-        //     price => "61000",
-        //     size => "4",
-        //     refr => "0",
-        //     left => "4",
-        //     text => "web",
-        //     fill_price => "0",
-        //     user => "6693577",
-        //     finish_as => "cancelled",
-        //     status => "finished",
-        //     is_liq => false,
-        //     refu => "0",
-        //     is_close => false,
-        //     iceberg => "0",
-        // }
+        //
+        // spot
+        //
+        //     {
+        //         "id":"95282841887",
+        //         "text":"apiv4",
+        //         "create_time":"1637383156",
+        //         "update_time":"1637383235",
+        //         "create_time_ms":1637383156017,
+        //         "update_time_ms":1637383235085,
+        //         "status":"cancelled",
+        //         "currency_pair":"ETH_USDT",
+        //         "type":"limit",
+        //         "account":"spot",
+        //         "side":"buy",
+        //         "amount":"0.01",
+        //         "price":"3500",
+        //         "time_in_force":"gtc",
+        //         "iceberg":"0",
+        //         "left":"0.01",
+        //         "fill_price":"0",
+        //         "filled_total":"0",
+        //         "fee":"0",
+        //         "fee_currency":"ETH",
+        //         "point_fee":"0",
+        //         "gt_fee":"0",
+        //         "gt_discount":false,
+        //         "rebated_fee":"0",
+        //         "rebated_fee_currency":"USDT"
+        //     }
+        //
+        // spot conditional
+        //
+        //     {
+        //         "market":"ETH_USDT",
+        //         "user":2436035,
+        //         "trigger":array(
+        //             "price":"3500",
+        //             "rule":"\u003c=",
+        //             "expiration":86400
+        //         ),
+        //         "put":array(
+        //             "type":"limit",
+        //             "side":"buy",
+        //             "price":"3500",
+        //             "amount":"0.01000000000000000000",
+        //             "account":"normal",
+        //             "time_in_force":"gtc"
+        //         ),
+        //         "id":5891843,
+        //         "ctime":1637382379,
+        //         "ftime":1637382673,
+        //         "status":"canceled"
+        //     }
+        //
+        // perpetual swaps
+        //
+        //     {
+        //         $id => "82241928192",
+        //         contract => "BTC_USDT",
+        //         mkfr => "0",
+        //         tkfr => "0.0005",
+        //         tif => "gtc",
+        //         is_reduce_only => false,
+        //         create_time => "1635196145.06",
+        //         finish_time => "1635196233.396",
+        //         price => "61000",
+        //         size => "4",
+        //         refr => "0",
+        //         left => "4",
+        //         text => "web",
+        //         fill_price => "0",
+        //         user => "6693577",
+        //         finish_as => "cancelled",
+        //         status => "finished",
+        //         is_liq => false,
+        //         refu => "0",
+        //         is_close => false,
+        //         iceberg => "0",
+        //     }
+        //
         return $this->parse_order($response, $market);
     }
 
@@ -2614,11 +2818,21 @@ class gateio extends Exchange {
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
+        //
+        //     array("label":"ORDER_NOT_FOUND","message":"Order not found")
+        //     array("label":"INVALID_PARAM_VALUE","message":"invalid argument => status")
+        //     array("label":"INVALID_PARAM_VALUE","message":"invalid argument => Trigger.rule")
+        //     array("label":"INVALID_PARAM_VALUE","message":"invalid argument => trigger.expiration invalid range")
+        //     array("label":"INVALID_ARGUMENT","detail":"invalid size")
+        //
         $label = $this->safe_string($response, 'label');
         if ($label !== null) {
-            $message = $this->safe_string_2($response, 'message', 'detail', '');
-            $Error = $this->safe_value($this->exceptions, $label, '\\ccxt\\ExchangeError');
-            throw new \Exception($this->id . ' ' . $message);
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $label, $feedback);
+            throw new ExchangeError($feedback);
         }
     }
 }
