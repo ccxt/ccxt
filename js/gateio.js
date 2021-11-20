@@ -303,7 +303,7 @@ module.exports = class gateio extends Exchange {
                     'futures': 'futures',
                     'delivery': 'delivery',
                 },
-                'defaultType': 'spot',
+                'defaultType': 'swap',
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -2050,6 +2050,9 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, [ 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ]);
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
+        if (isLimitOrder && price === undefined) {
+            throw new ArgumentsRequired ('createOrder parameter price is required for ' + type + ' orders');
+        }
         if (contract) {
             const amountToPrecision = this.amountToPrecision (symbol, amount);
             const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
