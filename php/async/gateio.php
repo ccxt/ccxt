@@ -2056,6 +2056,9 @@ class gateio extends Exchange {
         $params = $this->omit($params, array( 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ));
         $isLimitOrder = ($type === 'limit');
         $isMarketOrder = ($type === 'market');
+        if ($isLimitOrder && $price === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders');
+        }
         if ($contract) {
             $amountToPrecision = $this->amount_to_precision($symbol, $amount);
             $signedAmount = ($side === 'sell') ? Precise::string_neg($amountToPrecision) : $amountToPrecision;

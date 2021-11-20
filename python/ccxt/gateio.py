@@ -1982,6 +1982,8 @@ class gateio(Exchange):
         params = self.omit(params, ['stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce'])
         isLimitOrder = (type == 'limit')
         isMarketOrder = (type == 'market')
+        if isLimitOrder and price is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for ' + type + ' orders')
         if contract:
             amountToPrecision = self.amount_to_precision(symbol, amount)
             signedAmount = Precise.string_neg(amountToPrecision) if (side == 'sell') else amountToPrecision
