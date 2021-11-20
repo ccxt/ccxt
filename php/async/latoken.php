@@ -660,13 +660,10 @@ class latoken extends Exchange {
             'currency' => $market['baseId'],
             'quote' => $market['quoteId'],
             // 'from' => (string) $since, // milliseconds
-            // 'limit' => $limit, // default 100
+            // 'limit' => $limit, // default 100, max 1000
         );
-        if ($since !== null) {
-            $request['from'] = (string) $since;
-        }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 50, max 100
+            $request['limit'] = $limit; // default 100, max 1000
         }
         $response = yield $this->publicGetTradeHistoryCurrencyQuote (array_merge($request, $params));
         //

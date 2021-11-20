@@ -642,12 +642,10 @@ class latoken(Exchange):
             'currency': market['baseId'],
             'quote': market['quoteId'],
             # 'from': str(since),  # milliseconds
-            # 'limit': limit,  # default 100
+            # 'limit': limit,  # default 100, max 1000
         }
-        if since is not None:
-            request['from'] = str(since)
         if limit is not None:
-            request['limit'] = limit  # default 50, max 100
+            request['limit'] = limit  # default 100, max 1000
         response = await self.publicGetTradeHistoryCurrencyQuote(self.extend(request, params))
         #
         #     [
