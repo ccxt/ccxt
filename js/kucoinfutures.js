@@ -989,6 +989,42 @@ module.exports = class kucoinfutures extends kucoin {
         }, market);
     }
 
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'symbol': this.marketId (symbol),
+        };
+        const response = await this.futuresPublicGetFundingRateSymbolCurrent (this.extend (request, params));
+        // {
+        //     code: "200000",
+        //     data: {
+        //         symbol: ".ETHUSDTMFPI8H",
+        //         granularity: 28800000,
+        //         timePoint: 1637380800000,
+        //         value: 0.0001,
+        //         predictedValue: 0.0001,
+        //     },
+        // }
+        const data = this.safeValue (response, 'data');
+        const timestamp = this.safeNumber (data, 'timePoint');
+        return {
+            'info': data,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': this.safeNumber (data, 'value'),
+            'nextFundingRate': this.safeNumber (data, 'predictedValue'),
+            'previousFundingTimestamp': timestamp,
+            'nextFundingTimestamp': undefined,
+            'previousFundingDatetime': this.iso8601 (timestamp),
+            'nextFundingDatetime': undefined,
+        };
+    }
+
     async transferIn (code, amount, params = {}) {
         // transfer from spot wallet to usdm futures wallet
         return await this.futuresTransfer (code, amount, 1, params);
