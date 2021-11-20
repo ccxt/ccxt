@@ -862,18 +862,20 @@ module.exports = class coinbasepro extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
         if (clientOrderId !== undefined) {
             request['client_oid'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
         }
         const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop_price');
         if (stopPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-            params = this.omit (params, [ 'stopPrice', 'stop_price' ]);
         }
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
-            params = this.omit (params, [ 'timeInForce', 'time_in_force' ]);
         }
+        const postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
+        if (postOnly) {
+            request['post_only'] = true;
+        }
+        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only' ]);
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['size'] = this.amountToPrecision (symbol, amount);
