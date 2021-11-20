@@ -451,6 +451,29 @@ module.exports = class kucoinfutures extends kucoin {
         return this.safeNumber (response, 'data');
     }
 
+    async fetchStatus (params = {}) {
+        const response = await this.futuresPublicGetStatus (params);
+        //
+        // {
+        //     code: "200000",
+        //     data: {
+        //         msg: "",
+        //         status: "open",
+        //     },
+        // }
+        //
+        const data = this.safeValue (response, 'data', {});
+        let status = this.safeValue (data, 'status');
+        if (status !== undefined) {
+            status = (status === 'open') ? 'ok' : 'maintenance';
+            this.status = this.extend (this.status, {
+                'status': status,
+                'updated': this.milliseconds (),
+            });
+        }
+        return this.status;
+    }
+
     async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
