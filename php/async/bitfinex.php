@@ -841,6 +841,8 @@ class bitfinex extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $params = $this->omit($params, array( 'postOnly' ));
         $request = array(
             'symbol' => $this->market_id($symbol),
             'side' => $side,
@@ -854,6 +856,9 @@ class bitfinex extends Exchange {
             $request['price'] = (string) $this->nonce();
         } else {
             $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($postOnly) {
+            $request['is_postonly'] = true;
         }
         $response = yield $this->privatePostOrderNew (array_merge($request, $params));
         return $this->parse_order($response);

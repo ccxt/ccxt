@@ -814,6 +814,8 @@ class bitfinex(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        postOnly = self.safe_value(params, 'postOnly', False)
+        params = self.omit(params, ['postOnly'])
         request = {
             'symbol': self.market_id(symbol),
             'side': side,
@@ -827,6 +829,8 @@ class bitfinex(Exchange):
             request['price'] = str(self.nonce())
         else:
             request['price'] = self.price_to_precision(symbol, price)
+        if postOnly:
+            request['is_postonly'] = True
         response = self.privatePostOrderNew(self.extend(request, params))
         return self.parse_order(response)
 
