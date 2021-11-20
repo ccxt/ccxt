@@ -1856,17 +1856,22 @@ module.exports = class gateio extends Exchange {
         const gtFee = this.safeString (trade, 'gt_fee');
         let feeCurrency = undefined;
         let feeCost = undefined;
-        if (gtFee === '0') {
-            feeCurrency = this.safeString (trade, 'fee_currency');
-            feeCost = this.safeNumber (trade, 'fee');
-        } else {
-            feeCurrency = 'GT';
-            feeCost = gtFee;
+        let fee = undefined;
+        if (gtFee !== undefined) {
+            if (gtFee === '0') {
+                feeCurrency = this.safeString (trade, 'fee_currency');
+                feeCost = this.safeString (trade, 'fee');
+            } else {
+                feeCurrency = 'GT';
+                feeCost = gtFee;
+            }
         }
-        const fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        };
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         const takerOrMaker = this.safeString (trade, 'role');
         return this.safeTrade ({
             'info': trade,
