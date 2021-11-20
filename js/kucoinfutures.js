@@ -48,7 +48,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTickers': false,
-                'fetchTime': undefined,
+                'fetchTime': true,
                 'fetchTrades': undefined,
                 'fetchWithdrawals': undefined,
                 'transfer': undefined,
@@ -440,6 +440,15 @@ module.exports = class kucoinfutures extends kucoin {
         //     }
         //
         return this.parseTicker (response['data'], market);
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.futuresPublicGetTimestamp (params);
+        // {
+        //     code: "200000",
+        //     data: 1637385119302,
+        // }
+        return this.safeNumber (response, 'data');
     }
 
     async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
