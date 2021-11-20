@@ -2044,7 +2044,7 @@ module.exports = class gateio extends Exchange {
         const defaultTimeInForce = this.safeValue2 (params, 'tif', 'time_in_force');
         let timeInForce = this.safeValue (params, 'timeInForce', defaultTimeInForce);
         const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly && (stopPrice === undefined)) {
             timeInForce = 'poc';
         } else if (timeInForce === undefined) {
             timeInForce = 'gtc';
@@ -2151,9 +2151,7 @@ module.exports = class gateio extends Exchange {
                 if (reduceOnly !== undefined) {
                     request['initial']['reduce_only'] = reduceOnly;
                 }
-                if (timeInForce !== undefined) {
-                    request['initial']['tif'] = timeInForce;
-                }
+                request['initial']['tif'] = timeInForce;
             } else {
                 // spot conditional order
                 const options = this.safeValue (this.options, 'createOrder', {});
