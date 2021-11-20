@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const kucoin = require ('./kucoin.js');
 
@@ -763,21 +763,19 @@ module.exports = class kucoinfutures extends kucoin {
         await this.loadMarkets ();
         const market = this.market (symbol);
         // required param, cannot be used twice
+        const uppercaseType = type.toUpperCase ();
+        const stop_loss_limit = uppercaseType === 'STOP_LOSS' || uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT' || uppercaseType === 'TAKE_PROFIT_LIMIT' || uppercaseType === 'STOP';
+        const stop_loss_market = uppercaseType === 'STOP_MARK' || uppercaseType === 'TAKE_PROFIT_MARKET';
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const leverage = this.safeNumber (params, 'leverage');
         if (!leverage) {
             throw new ArgumentsRequired (this.id + ' createOrder requires params.leverage');
         }
-        const stop = this.safeString (params, 'stop');
-        let stopPrice = undefined;
-        if (stop) {
-            const stopPriceType = this.safeString (params, 'stopPriceType');
-            stopPrice = this.safeNumber (params, 'stopPrice');
-            if (!stopPriceType || !stopPrice) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPriceType and params.stopPrice when params.stop is defined');
-            }
+        if (amount < 1) {
+            throw new InvalidOrder ('Minimum contract order size using ' + this.id + ' is 1');
         }
+        let stopPrice = undefined;
         const request = {
             'clientOid': clientOrderId,
             'side': side,
@@ -807,11 +805,17 @@ module.exports = class kucoinfutures extends kucoin {
             // closeOrder // (boolean) A mark to close the position. Set to false by default. It will close all the positions when closeOrder is true.
             // forceHold // (boolean) A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
         };
-        let amountString = undefined;
-        if (type === 'market') {
-            amountString = this.amountToPrecision (symbol, amount);
-            request['size'] = this.amountToPrecision (symbol, amount);
-        } else {
+        if (stop_loss_limit || stop_loss_market) {
+            params['stop'] = this.safeString (params, 'stop');
+            const stopPriceType = this.safeString (params, 'stopPriceType');
+            stopPrice = this.safeNumber (params, 'stopPrice');
+            if (!stopPriceType || !stopPrice) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPriceType and params.stopPrice for stop_loss and take_profit orders');
+            }
+        }
+        let amountString = this.amountToPrecision (symbol, amount);
+        request['size'] = this.amountToPrecision (symbol, amount);
+        if (uppercaseType === 'LIMIT' || stop_loss_limit) {
             amountString = this.amountToPrecision (symbol, amount);
             request['size'] = parseInt (amountString);
             request['price'] = this.priceToPrecision (symbol, price);
@@ -894,51 +898,38 @@ module.exports = class kucoinfutures extends kucoin {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.marketId ('symbol');
         }
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        // ? Give a waring if limit supplied allerting that limit isn't used 
+        const response = await this.futuresPrivateGetOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'data', {});
         const orders = this.safeValue (responseData, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
-    }
-
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id = undefined, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        let method = 'privateGetOrdersOrderId';
-        if (clientOrderId !== undefined) {
+        let method = 'futuresPrivateGetOrdersOrderId';
+        if (id === undefined) {
+            const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+            if (clientOrderId === undefined) {
+                throw new InvalidOrder (this.id + ' fetchOrder() requires parameter id or params.clientOid');
+            }
             request['clientOid'] = clientOrderId;
-            method = 'privateGetOrdersClientOrderClientOid';
+            method = 'futuresPrivateGetOrdersByClientOrderClientOid';
+            params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         } else {
-            // a special case for undefined ids
-            // otherwise a wrong endpoint for all orders will be triggered
-            // https://github.com/ccxt/ccxt/issues/7234
             if (id === undefined) {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
             }
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, params));
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
+        const market = symbol !== undefined ? this.market (symbol) : undefined;
         const responseData = this.safeValue (response, 'data');
         return this.parseOrder (responseData, market);
     }
@@ -996,79 +987,6 @@ module.exports = class kucoinfutures extends kucoin {
             'average': undefined,
             'trades': undefined,
         }, market);
-    }
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        //
-        // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
-        //                                †                 ↑
-        //
-        const versions = this.safeValue (this.options, 'versions', {});
-        const apiVersions = this.safeValue (versions, api, {});
-        const methodVersions = this.safeValue (apiVersions, method, {});
-        const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
-        const version = this.safeString (params, 'version', defaultVersion);
-        params = this.omit (params, 'version');
-        let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        let endpart = '';
-        headers = (headers !== undefined) ? headers : {};
-        if (Object.keys (query).length) {
-            if ((method === 'GET') || (method === 'DELETE')) {
-                endpoint += '?' + this.urlencode (query);
-            } else {
-                body = this.json (query);
-                endpart = body;
-                headers['Content-Type'] = 'application/json';
-            }
-        }
-        const url = this.urls['api'][api] + endpoint;
-        if ((api === 'private') || (api === 'futuresPrivate')) {
-            this.checkRequiredCredentials ();
-            const timestamp = this.nonce ().toString ();
-            headers = this.extend ({
-                'KC-API-KEY-VERSION': '2',
-                'KC-API-KEY': this.apiKey,
-                'KC-API-TIMESTAMP': timestamp,
-            }, headers);
-            const apiKeyVersion = this.safeString (headers, 'KC-API-KEY-VERSION');
-            if (apiKeyVersion === '2') {
-                const passphrase = this.hmac (this.encode (this.password), this.encode (this.secret), 'sha256', 'base64');
-                headers['KC-API-PASSPHRASE'] = passphrase;
-            } else {
-                headers['KC-API-PASSPHRASE'] = this.password;
-            }
-            const payload = timestamp + method + endpoint + endpart;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
-            headers['KC-API-SIGN'] = signature;
-            const partner = this.safeValue (this.options, 'partner', {});
-            const partnerId = this.safeString (partner, 'id');
-            const partnerSecret = this.safeString (partner, 'secret');
-            if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
-                const partnerPayload = timestamp + partnerId + this.apiKey;
-                const partnerSignature = this.hmac (this.encode (partnerPayload), this.encode (partnerSecret), 'sha256', 'base64');
-                headers['KC-API-PARTNER-SIGN'] = partnerSignature;
-                headers['KC-API-PARTNER'] = partnerId;
-            }
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
-            this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
-            return;
-        }
-        //
-        // bad
-        //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
-        // good
-        //     { code: '200000', data: { ... }}
-        //
-        const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'msg', '');
-        this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + message);
     }
 
     async transferIn (code, amount, params = {}) {
