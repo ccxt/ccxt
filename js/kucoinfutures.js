@@ -770,11 +770,9 @@ module.exports = class kucoinfutures extends kucoin {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const uppercaseType = type.toUpperCase ();
         const market = this.market (symbol);
         // required param, cannot be used twice
-        const uppercaseType = type.toUpperCase ();
-        const stop_loss_limit = uppercaseType === 'STOP_LOSS' || uppercaseType === 'STOP_LOSS_LIMIT' || uppercaseType === 'TAKE_PROFIT' || uppercaseType === 'TAKE_PROFIT_LIMIT' || uppercaseType === 'STOP';
-        const stop_loss_market = uppercaseType === 'STOP_MARK' || uppercaseType === 'TAKE_PROFIT_MARKET';
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const leverage = this.safeNumber (params, 'leverage');
@@ -784,7 +782,14 @@ module.exports = class kucoinfutures extends kucoin {
         if (amount < 1) {
             throw new InvalidOrder ('Minimum contract order size using ' + this.id + ' is 1');
         }
-        let stopPrice = undefined;
+        const stop = this.safeString (params, 'stop');
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stop) {
+            const stopPriceType = this.safeString (params, 'stopPriceType');
+            if (!stopPriceType || !stopPrice || !stop) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPriceType, params.stopPrice, and params.stop for stoploss orders');
+            }
+        }
         const request = {
             'clientOid': clientOrderId,
             'side': side,
@@ -814,17 +819,9 @@ module.exports = class kucoinfutures extends kucoin {
             // closeOrder // (boolean) A mark to close the position. Set to false by default. It will close all the positions when closeOrder is true.
             // forceHold // (boolean) A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
         };
-        if (stop_loss_limit || stop_loss_market) {
-            params['stop'] = this.safeString (params, 'stop');
-            const stopPriceType = this.safeString (params, 'stopPriceType');
-            stopPrice = this.safeNumber (params, 'stopPrice');
-            if (!stopPriceType || !stopPrice) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPriceType and params.stopPrice for stop_loss and take_profit orders');
-            }
-        }
         let amountString = this.amountToPrecision (symbol, amount);
         request['size'] = this.amountToPrecision (symbol, amount);
-        if (uppercaseType === 'LIMIT' || stop_loss_limit) {
+        if (uppercaseType === 'LIMIT') {
             amountString = this.amountToPrecision (symbol, amount);
             request['size'] = parseInt (amountString);
             request['price'] = this.priceToPrecision (symbol, price);
