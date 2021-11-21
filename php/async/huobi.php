@@ -1184,9 +1184,9 @@ class huobi extends Exchange {
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $request = array(
-            'id' => $id,
+            'order-id' => $id,
         );
-        $response = yield $this->privateGetOrderOrdersIdMatchresults (array_merge($request, $params));
+        $response = yield $this->spotPrivateGetV1OrderOrdersOrderIdMatchresults (array_merge($request, $params));
         return $this->parse_trades($response['data'], null, $since, $limit);
     }
 
@@ -1205,7 +1205,7 @@ class huobi extends Exchange {
             $request['start-time'] = $since; // a date within 120 days from today
             // $request['end-time'] = $this->sum($since, 172800000); // 48 hours window
         }
-        $response = yield $this->privateGetOrderMatchresults (array_merge($request, $params));
+        $response = yield $this->spotPrivateGetV1OrderMatchresults (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
@@ -1308,7 +1308,7 @@ class huobi extends Exchange {
 
     public function fetch_accounts($params = array ()) {
         yield $this->load_markets();
-        $response = yield $this->privateGetAccountAccounts ($params);
+        $response = yield $this->spotPrivateGetV1AccountAccounts ($params);
         return $response['data'];
     }
 
@@ -1767,7 +1767,7 @@ class huobi extends Exchange {
         } else {
             $request['client-order-ids'] = $clientOrderIds;
         }
-        $response = yield $this->privatePostOrderOrdersBatchcancel (array_merge($request, $params));
+        $response = yield $this->spotPrivatePostV1OrderOrdersBatchcancel (array_merge($request, $params));
         //
         //     {
         //         "status" => "ok",

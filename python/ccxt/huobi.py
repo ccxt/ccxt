@@ -1174,9 +1174,9 @@ class huobi(Exchange):
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
-            'id': id,
+            'order-id': id,
         }
-        response = self.privateGetOrderOrdersIdMatchresults(self.extend(request, params))
+        response = self.spotPrivateGetV1OrderOrdersOrderIdMatchresults(self.extend(request, params))
         return self.parse_trades(response['data'], None, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -1191,7 +1191,7 @@ class huobi(Exchange):
         if since is not None:
             request['start-time'] = since  # a date within 120 days from today
             # request['end-time'] = self.sum(since, 172800000)  # 48 hours window
-        response = self.privateGetOrderMatchresults(self.extend(request, params))
+        response = self.spotPrivateGetV1OrderMatchresults(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=1000, params={}):
@@ -1286,7 +1286,7 @@ class huobi(Exchange):
 
     def fetch_accounts(self, params={}):
         self.load_markets()
-        response = self.privateGetAccountAccounts(params)
+        response = self.spotPrivateGetV1AccountAccounts(params)
         return response['data']
 
     def fetch_currencies(self, params={}):
@@ -1705,7 +1705,7 @@ class huobi(Exchange):
             request['order-ids'] = ids
         else:
             request['client-order-ids'] = clientOrderIds
-        response = self.privatePostOrderOrdersBatchcancel(self.extend(request, params))
+        response = self.spotPrivatePostV1OrderOrdersBatchcancel(self.extend(request, params))
         #
         #     {
         #         "status": "ok",
