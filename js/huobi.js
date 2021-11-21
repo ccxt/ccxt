@@ -1215,7 +1215,7 @@ module.exports = class huobi extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.marketGetHistoryTrade (this.extend (request, params));
+        const response = await this.spotPublicGetMarketHistoryTrade (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
