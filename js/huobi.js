@@ -1483,9 +1483,9 @@ module.exports = class huobi extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'id': id,
+            'order-id': id,
         };
-        const response = await this.privateGetOrderOrdersId (this.extend (request, params));
+        const response = await this.spotPrivateGetV1OrderOrdersOrderId (this.extend (request, params));
         const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
