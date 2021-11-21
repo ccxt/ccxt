@@ -1178,9 +1178,9 @@ module.exports = class huobi extends Exchange {
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'id': id,
+            'order-id': id,
         };
-        const response = await this.privateGetOrderOrdersIdMatchresults (this.extend (request, params));
+        const response = await this.spotPrivateGetV1OrderOrdersOrderIdMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], undefined, since, limit);
     }
 
@@ -1199,7 +1199,7 @@ module.exports = class huobi extends Exchange {
             request['start-time'] = since; // a date within 120 days from today
             // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
-        const response = await this.privateGetOrderMatchresults (this.extend (request, params));
+        const response = await this.spotPrivateGetV1OrderMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
