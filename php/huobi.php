@@ -748,7 +748,6 @@ class huobi extends Exchange {
                 'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice' => true,
-                'fetchMarketsMethod' => 'publicGetCommonSymbols',
                 'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostOrderOrdersPlace',
                 'language' => 'en-US',
@@ -852,12 +851,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $method = $this->options['fetchMarketsMethod'];
-        $response = $this->$method ($params);
+        $response = $this->spotPublicGetV1CommonSymbols ($params);
         $markets = $this->safe_value($response, 'data');
         $numMarkets = is_array($markets) ? count($markets) : 0;
         if ($numMarkets < 1) {
-            throw new NetworkError($this->id . ' publicGetCommonSymbols returned empty $response => ' . $this->json($markets));
+            throw new NetworkError($this->id . ' spotPublicGetV1CommonSymbols returned an empty $response => ' . $this->json($markets));
         }
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -1010,7 +1008,7 @@ class huobi extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->marketGetDetailMerged (array_merge($request, $params));
+        $response = $this->spotPublicGetMarketDetailMerged (array_merge($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -1063,7 +1061,7 @@ class huobi extends Exchange {
             'symbol' => $market['id'],
             'type' => 'step0',
         );
-        $response = $this->marketGetDepth (array_merge($request, $params));
+        $response = $this->spotPublicGetMarketDepth (array_merge($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -1220,7 +1218,7 @@ class huobi extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->marketGetHistoryTrade (array_merge($request, $params));
+        $response = $this->spotPublicGetMarketHistoryTrade (array_merge($request, $params));
         //
         //     {
         //         "status" => "ok",
@@ -1291,7 +1289,7 @@ class huobi extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->marketGetHistoryKline (array_merge($request, $params));
+        $response = $this->spotPublicGetMarketHistoryKline (array_merge($request, $params));
         //
         //     {
         //         "status":"ok",
@@ -1315,7 +1313,7 @@ class huobi extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        $response = $this->v2PublicGetReferenceCurrencies ();
+        $response = $this->spotPublicGetV2ReferenceCurrencies ();
         //     {
         //       "code" => 200,
         //       "data" => array(
