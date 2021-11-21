@@ -32,7 +32,7 @@ class cdax(Exchange):
             'countries': ['RU'],
             'rateLimit': 100,
             'userAgent': self.userAgents['chrome39'],
-            'certified': True,
+            'certified': False,
             'version': 'v1',
             'accounts': None,
             'accountsById': None,

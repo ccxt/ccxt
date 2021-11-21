@@ -695,6 +695,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - Japan
+     - .. image:: https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg
+          :target: https://www.huobi.co.jp/register/?invite_code=znnq3
+          :alt: huobijp
+     
+     - huobijp
+     - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://api-doc.huobi.co.jp
+          :alt: API Version 1
+     
+   * - Japan
      - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
           :target: https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976
           :alt: liquid

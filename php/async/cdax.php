@@ -22,7 +22,7 @@ class cdax extends Exchange {
             'countries' => array( 'RU' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome39'],
-            'certified' => true,
+            'certified' => false,
             'version' => 'v1',
             'accounts' => null,
             'accountsById' => null,
