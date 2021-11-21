@@ -847,18 +847,25 @@ module.exports = class huobi extends Exchange {
     async fetchMarkets (params = {}) {
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
         if ((type !== 'spot') && (type !== 'future') && (type !== 'swap')) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', or 'swap'"); // eslint-disable-line quotes
         }
         let method = 'spotPublicGetV1CommonSymbols';
-        if (type === 'future') {
+        const defaultSubType = this.safeString2 (this.options, 'fetchMarkets', 'subType', 'inverse');
+        const query = this.omit (params, [ 'type', 'subType' ]);
+        const subType = this.safeString (params, 'subType', defaultSubType);
+        const linear = (subType === 'linear');
+        const inverse = (subType === 'inverse');
+        const spot = (type === 'spot');
+        const contract = (type !== 'spot');
+        const future = (type === 'future');
+        const swap = (type === 'swap');
+        if (future) {
             method = 'contractPublicGetApiV1ContractContractInfo';
-        } else if (type === 'swap') {
-            const subType = this.safeString2 (this.options, 'fetchMarkets', 'subType', 'inverse');
-            if (subType === 'inverse') {
+        } else if (swap) {
+            if (inverse) {
                 method = 'contractPublicGetSwapApiV1SwapContractInfo';
-            } else if (subType === 'linear') {
+            } else if (linear) {
                 method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
             }
         }
@@ -950,33 +957,95 @@ module.exports = class huobi extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const baseId = this.safeString (market, 'base-currency');
-            const quoteId = this.safeString (market, 'quote-currency');
-            const id = baseId + quoteId;
+            let baseId = undefined;
+            let quoteId = undefined;
+            let settleId = undefined;
+            let id = undefined;
+            if (contract) {
+                id = this.safeString (market, 'contract_code');
+                if (swap) {
+                    const parts = id.split ('-');
+                    baseId = this.safeString (market, 'symbol');
+                    quoteId = this.safeString (parts, 1);
+                    settleId = inverse ? baseId : quoteId;
+                } else if (future) {
+                    baseId = this.safeString (market, 'symbol');
+                    quoteId = 'USD';
+                    settleId = baseId;
+                }
+            } else {
+                baseId = this.safeString (market, 'base-currency');
+                quoteId = this.safeString (market, 'quote-currency');
+                id = baseId + quoteId;
+            }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            const settle = this.safeCurrencyCode (settleId);
+            let symbol = base + '/' + quote;
+            let expiry = undefined;
+            if (contract) {
+                if (inverse) {
+                    symbol += ':' + base;
+                } else if (linear) {
+                    symbol += ':' + quote;
+                }
+                if (future) {
+                    expiry = this.safeInteger (market, 'delivery_time');
+                    symbol += '-' + this.yymmdd (expiry);
+                }
+            }
+            const contractSize = this.safeNumber (market, 'contract_size');
             const precision = {
                 'amount': this.safeInteger (market, 'amount-precision'),
                 'price': this.safeInteger (market, 'price-precision'),
                 'cost': this.safeInteger (market, 'value-precision'),
             };
-            const maker = (base === 'OMG') ? 0 : 0.2 / 100;
-            const taker = (base === 'OMG') ? 0 : 0.2 / 100;
+            let maker = undefined;
+            let taker = undefined;
+            if (spot) {
+                maker = (base === 'OMG') ? 0 : 0.2 / 100;
+                taker = (base === 'OMG') ? 0 : 0.2 / 100;
+            }
             const minAmount = this.safeNumber (market, 'min-order-amt', Math.pow (10, -precision['amount']));
             const maxAmount = this.safeNumber (market, 'max-order-amt');
             const minCost = this.safeNumber (market, 'min-order-value', 0);
-            const state = this.safeString (market, 'state');
-            const active = (state === 'online');
+            let active = undefined;
+            if (spot) {
+                const state = this.safeString (market, 'state');
+                active = (state === 'online');
+            } else if (contract) {
+                const contractStatus = this.safeInteger (market, 'contract_status');
+                active = (contractStatus === 1);
+            }
+            // 0 Delisting
+            // 1 Listing
+            // 2 Pending Listing
+            // 3 Suspension
+            // 4 Suspending of Listing
+            // 5 In Settlement
+            // 6 Delivering
+            // 7 Settlement Completed
+            // 8 Delivered
+            // 9 Suspending of Trade
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'type': 'spot',
-                'spot': true,
+                'settleId': settleId,
+                'type': type,
+                'contract': contract,
+                'spot': spot,
+                'future': future,
+                'swap': swap,
+                'linear': linear,
+                'inverse': inverse,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'contractSize': contractSize,
                 'active': active,
                 'precision': precision,
                 'taker': taker,
