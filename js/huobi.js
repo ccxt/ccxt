@@ -1137,6 +1137,7 @@ module.exports = class huobi extends Exchange {
         //     }
         //
         // fetchTickers
+        //
         //     {
         //         symbol: "bhdht",
         //         open:  2.3938,
@@ -1152,7 +1153,8 @@ module.exports = class huobi extends Exchange {
         //         askSize:  0.4156
         //     }
         //
-        const symbol = this.safeSymbol (undefined, market);
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 'ts');
         let bid = undefined;
         let bidVolume = undefined;
@@ -1275,9 +1277,51 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.spotPublicGetMarketTickers (params);
-        const tickers = this.safeValue (response, 'data');
+        const options = this.safeValue (this.options, 'fetchTickers', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        let subType = this.safeString (options, 'subType', defaultSubType);
+        subType = this.safeString (params, 'subType', subType);
+        let method = 'spotPublicGetMarketTickers';
+        const query = this.omit (params, [ 'type', 'subType' ]);
+        if (type === 'future') {
+            method = 'contractPublicGetMarketDetailBatchMerged';
+        } else if (type === 'swap') {
+            if (subType === 'inverse') {
+                method = '';
+            } else if (subType === 'linear') {
+                method = '';
+
+            }
+        }
+        const response = await this[method] (query);
+        //
+        // future
+        //
+        //     {
+        //         "status":"ok",
+        //         "ticks":[
+        //             {
+        //                 "id":1637504679,
+        //                 "ts":1637504679372,
+        //                 "ask":[0.10644,100],
+        //                 "bid":[0.10624,26],
+        //                 "symbol":"TRX_CW",
+        //                 "open":"0.10233",
+        //                 "close":"0.10644",
+        //                 "low":"0.1017",
+        //                 "high":"0.10725",
+        //                 "amount":"2340267.415144052378486261756692535687481566",
+        //                 "count":882,
+        //                 "vol":"24706"
+        //             }
+        //         ],
+        //         "ts":1637504679376
+        //     }
+        //
+        const tickers = this.safeValue2 (response, 'data', 'ticks', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
