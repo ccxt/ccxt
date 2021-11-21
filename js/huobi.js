@@ -1310,7 +1310,7 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.v2PublicGetReferenceCurrencies ();
+        const response = await this.spotPublicGetV2ReferenceCurrencies ();
         //     {
         //       "code": 200,
         //       "data": [
