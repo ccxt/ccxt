@@ -743,7 +743,6 @@ module.exports = class huobi extends Exchange {
                 'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
@@ -847,12 +846,11 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const method = this.options['fetchMarketsMethod'];
-        const response = await this[method] (params);
+        const response = await this.spotPublicGetV1CommonSymbols (params);
         const markets = this.safeValue (response, 'data');
         const numMarkets = markets.length;
         if (numMarkets < 1) {
-            throw new NetworkError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
+            throw new NetworkError (this.id + ' spotPublicGetV1CommonSymbols returned an empty response: ' + this.json (markets));
         }
         const result = [];
         for (let i = 0; i < markets.length; i++) {
