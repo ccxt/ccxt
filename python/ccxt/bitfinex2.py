@@ -940,6 +940,7 @@ class bitfinex2(bitfinex):
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
             'INSUFFICIENT': 'canceled',
+            'POSTONLY': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         }
@@ -1001,6 +1002,8 @@ class bitfinex2(bitfinex):
         market = self.market(symbol)
         orderTypes = self.safe_value(self.options, 'orderTypes', {})
         orderType = self.safe_string_upper(orderTypes, type, type)
+        postOnly = self.safe_value(params, 'postOnly', False)
+        params = self.omit(params, ['postOnly'])
         amount = -amount if (side == 'sell') else amount
         request = {
             # 'gid': 0123456789,  # int32,  optional group id for the order
@@ -1019,6 +1022,8 @@ class bitfinex2(bitfinex):
             #     'aff_code': 'AFF_CODE_HERE'
             # },
         }
+        if postOnly:
+            request['flags'] = 4096
         if (orderType == 'LIMIT') or (orderType == 'EXCHANGE LIMIT'):
             request['price'] = self.number_to_string(price)
         elif (orderType == 'STOP') or (orderType == 'EXCHANGE STOP'):

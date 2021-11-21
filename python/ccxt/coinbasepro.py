@@ -840,15 +840,16 @@ class coinbasepro(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
         if clientOrderId is not None:
             request['client_oid'] = clientOrderId
-            params = self.omit(params, ['clientOrderId', 'client_oid'])
         stopPrice = self.safe_number_2(params, 'stopPrice', 'stop_price')
         if stopPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-            params = self.omit(params, ['stopPrice', 'stop_price'])
         timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
         if timeInForce is not None:
             request['time_in_force'] = timeInForce
-            params = self.omit(params, ['timeInForce', 'time_in_force'])
+        postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
+        if postOnly:
+            request['post_only'] = True
+        params = self.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only'])
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
             request['size'] = self.amount_to_precision(symbol, amount)

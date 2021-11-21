@@ -866,18 +866,20 @@ class coinbasepro extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
         if ($clientOrderId !== null) {
             $request['client_oid'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
         }
         $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
         if ($stopPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-            $params = $this->omit($params, array( 'stopPrice', 'stop_price' ));
         }
         $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
         if ($timeInForce !== null) {
             $request['time_in_force'] = $timeInForce;
-            $params = $this->omit($params, array( 'timeInForce', 'time_in_force' ));
         }
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        if ($postOnly) {
+            $request['post_only'] = true;
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only' ));
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['size'] = $this->amount_to_precision($symbol, $amount);

@@ -335,6 +335,7 @@ class kraken(Exchange):
                     'UNI': 'UNI',
                     'USDC': 'USDC',
                     'USDT': 'Tether USD(ERC20)',
+                    'USDT-TRC20': 'Tether USD(TRC20)',
                     'WAVES': 'Waves',
                     'WBTC': 'Wrapped Bitcoin(WBTC)',
                     'XLM': 'Stellar XLM',
@@ -1719,18 +1720,20 @@ class kraken(Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
+        network = self.safe_string_upper(params, 'network')
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(networks, network, network)  # support ETH > ERC20 aliases
+        params = self.omit(params, 'network')
+        if (code == 'USDT') and (network == 'TRC20'):
+            code = code + '-' + network
         defaultDepositMethods = self.safe_value(self.options, 'depositMethods', {})
         defaultDepositMethod = self.safe_string(defaultDepositMethods, code)
         depositMethod = self.safe_string(params, 'method', defaultDepositMethod)
-        network = self.safe_string(params, 'network')
         # if the user has specified an exchange-specific method in params
         # we pass it as is, otherwise we take the 'network' unified param
         if depositMethod is None:
             depositMethods = self.fetch_deposit_methods(code)
             if network is not None:
-                networks = self.safe_value(self.options, 'networks', {})
-                network = self.safe_string(networks, network, network)  # support ETH > ERC20 aliases
-                params = self.omit(params, 'network')
                 # find best matching deposit method, or fallback to the first one
                 for i in range(0, len(depositMethods)):
                     entry = self.safe_string(depositMethods[i], 'method')

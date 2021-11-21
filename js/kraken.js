@@ -310,6 +310,7 @@ module.exports = class kraken extends Exchange {
                     'UNI': 'UNI',
                     'USDC': 'USDC',
                     'USDT': 'Tether USD (ERC20)',
+                    'USDT-TRC20': 'Tether USD (TRC20)',
                     'WAVES': 'Waves',
                     'WBTC': 'Wrapped Bitcoin (WBTC)',
                     'XLM': 'Stellar XLM',
@@ -1823,18 +1824,21 @@ module.exports = class kraken extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let network = this.safeStringUpper (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
+        params = this.omit (params, 'network');
+        if ((code === 'USDT') && (network === 'TRC20')) {
+            code = code + '-' + network;
+        }
         const defaultDepositMethods = this.safeValue (this.options, 'depositMethods', {});
         const defaultDepositMethod = this.safeString (defaultDepositMethods, code);
         let depositMethod = this.safeString (params, 'method', defaultDepositMethod);
-        let network = this.safeString (params, 'network');
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param
         if (depositMethod === undefined) {
             const depositMethods = await this.fetchDepositMethods (code);
             if (network !== undefined) {
-                const networks = this.safeValue (this.options, 'networks', {});
-                network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
-                params = this.omit (params, 'network');
                 // find best matching deposit method, or fallback to the first one
                 for (let i = 0; i < depositMethods.length; i++) {
                     const entry = this.safeString (depositMethods[i], 'method');
