@@ -741,7 +741,7 @@ module.exports = class huobi extends Exchange {
                     'OMNI': '',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': true,
                 'language': 'en-US',
@@ -1458,7 +1458,7 @@ module.exports = class huobi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
+        const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders');
         const response = await this[method] (this.extend (request, params));
         //
         //     { status:   "ok",
