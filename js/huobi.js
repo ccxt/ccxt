@@ -1728,7 +1728,10 @@ module.exports = class huobi extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+        const request = {
+            'order-id': id,
+        };
+        const response = await this.spotPrivatePostV1OrderOrdersOrderIdSubmitcancel (this.extend (request, params));
         //
         //     {
         //         'status': 'ok',
