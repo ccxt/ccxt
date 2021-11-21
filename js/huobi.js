@@ -999,48 +999,6 @@ module.exports = class huobi extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'type': 'step0',
-        };
-        const response = await this.marketGetDepth (this.extend (request, params));
-        //
-        //     {
-        //         "status": "ok",
-        //         "ch": "market.btcusdt.depth.step0",
-        //         "ts": 1583474832790,
-        //         "tick": {
-        //             "bids": [
-        //                 [ 9100.290000000000000000, 0.200000000000000000 ],
-        //                 [ 9099.820000000000000000, 0.200000000000000000 ],
-        //                 [ 9099.610000000000000000, 0.205000000000000000 ],
-        //             ],
-        //             "asks": [
-        //                 [ 9100.640000000000000000, 0.005904000000000000 ],
-        //                 [ 9101.010000000000000000, 0.287311000000000000 ],
-        //                 [ 9101.030000000000000000, 0.012121000000000000 ],
-        //             ],
-        //             "ts":1583474832008,
-        //             "version":104999698780
-        //         }
-        //     }
-        //
-        if ('tick' in response) {
-            if (!response['tick']) {
-                throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
-            }
-            const tick = this.safeValue (response, 'tick');
-            const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
-            const result = this.parseOrderBook (tick, symbol, timestamp);
-            result['nonce'] = this.safeInteger (tick, 'version');
-            return result;
-        }
-        throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
-    }
-
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1091,6 +1049,48 @@ module.exports = class huobi extends Exchange {
             result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'type': 'step0',
+        };
+        const response = await this.marketGetDepth (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.depth.step0",
+        //         "ts": 1583474832790,
+        //         "tick": {
+        //             "bids": [
+        //                 [ 9100.290000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.820000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.610000000000000000, 0.205000000000000000 ],
+        //             ],
+        //             "asks": [
+        //                 [ 9100.640000000000000000, 0.005904000000000000 ],
+        //                 [ 9101.010000000000000000, 0.287311000000000000 ],
+        //                 [ 9101.030000000000000000, 0.012121000000000000 ],
+        //             ],
+        //             "ts":1583474832008,
+        //             "version":104999698780
+        //         }
+        //     }
+        //
+        if ('tick' in response) {
+            if (!response['tick']) {
+                throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
+            }
+            const tick = this.safeValue (response, 'tick');
+            const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
+            const result = this.parseOrderBook (tick, symbol, timestamp);
+            result['nonce'] = this.safeInteger (tick, 'version');
+            return result;
+        }
+        throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
 
     parseTrade (trade, market = undefined) {
