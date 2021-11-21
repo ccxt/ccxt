@@ -282,6 +282,7 @@ class huobi(Exchange):
                             'v1/common/currencys': 1,
                             'v2/reference/currencies': 1,
                             'v1/common/timestamp': 1,
+                            'v1/common/exchange': 1,  # order limits
                             # Market Data
                             'market/history/kline': 1,
                             'market/detail/merged': 1,
@@ -812,7 +813,7 @@ class huobi(Exchange):
         request = {
             'symbol': id,
         }
-        response = await self.publicGetCommonExchange(self.extend(request, params))
+        response = await self.spotPublicGetV1CommonExchange(self.extend(request, params))
         #
         #     {status:   "ok",
         #         data: {                                 symbol: "aidocbtc",
@@ -1005,6 +1006,55 @@ class huobi(Exchange):
             'info': ticker,
         }, market)
 
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.marketGetDetailMerged(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok",
+        #         "ch": "market.btcusdt.detail.merged",
+        #         "ts": 1583494336669,
+        #         "tick": {
+        #             "amount": 26228.672978342216,
+        #             "open": 9078.95,
+        #             "close": 9146.86,
+        #             "high": 9155.41,
+        #             "id": 209988544334,
+        #             "count": 265846,
+        #             "low": 8988.0,
+        #             "version": 209988544334,
+        #             "ask": [9146.87, 0.156134],
+        #             "vol": 2.3822168242201668E8,
+        #             "bid": [9146.86, 0.080758],
+        #         }
+        #     }
+        #
+        ticker = self.parse_ticker(response['tick'], market)
+        timestamp = self.safe_integer(response, 'ts')
+        ticker['timestamp'] = timestamp
+        ticker['datetime'] = self.iso8601(timestamp)
+        return ticker
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.spotPublicGetMarketTickers(params)
+        tickers = self.safe_value(response, 'data')
+        timestamp = self.safe_integer(response, 'ts')
+        result = {}
+        for i in range(0, len(tickers)):
+            marketId = self.safe_string(tickers[i], 'symbol')
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            ticker = self.parse_ticker(tickers[i], market)
+            ticker['timestamp'] = timestamp
+            ticker['datetime'] = self.iso8601(timestamp)
+            result[symbol] = ticker
+        return self.filter_by_array(result, 'symbol', symbols)
+
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -1043,55 +1093,6 @@ class huobi(Exchange):
             result['nonce'] = self.safe_integer(tick, 'version')
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
-
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        response = await self.marketGetDetailMerged(self.extend(request, params))
-        #
-        #     {
-        #         "status": "ok",
-        #         "ch": "market.btcusdt.detail.merged",
-        #         "ts": 1583494336669,
-        #         "tick": {
-        #             "amount": 26228.672978342216,
-        #             "open": 9078.95,
-        #             "close": 9146.86,
-        #             "high": 9155.41,
-        #             "id": 209988544334,
-        #             "count": 265846,
-        #             "low": 8988.0,
-        #             "version": 209988544334,
-        #             "ask": [9146.87, 0.156134],
-        #             "vol": 2.3822168242201668E8,
-        #             "bid": [9146.86, 0.080758],
-        #         }
-        #     }
-        #
-        ticker = self.parse_ticker(response['tick'], market)
-        timestamp = self.safe_integer(response, 'ts')
-        ticker['timestamp'] = timestamp
-        ticker['datetime'] = self.iso8601(timestamp)
-        return ticker
-
-    async def fetch_tickers(self, symbols=None, params={}):
-        await self.load_markets()
-        response = await self.marketGetTickers(params)
-        tickers = self.safe_value(response, 'data')
-        timestamp = self.safe_integer(response, 'ts')
-        result = {}
-        for i in range(0, len(tickers)):
-            marketId = self.safe_string(tickers[i], 'symbol')
-            market = self.safe_market(marketId)
-            symbol = market['symbol']
-            ticker = self.parse_ticker(tickers[i], market)
-            ticker['timestamp'] = timestamp
-            ticker['datetime'] = self.iso8601(timestamp)
-            result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
         #
