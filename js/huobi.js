@@ -731,7 +731,8 @@ module.exports = class huobi extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'defaultType': 'spot', // spot, future, inverse-swap linear-swap
+                'defaultType': 'spot', // spot, future, swap
+                'defaultSubType': 'inverse', // inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'erc20',
@@ -851,24 +852,34 @@ module.exports = class huobi extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const fetchMarketsType = this.safeString (options, 'type', defaultType);
         const type = this.safeString (params, 'type', fetchMarketsType);
-        if ((type !== 'spot') && (type !== 'future') && (type !== 'inverse-swap') && (type !== 'linear-swap')) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'inverse-swap' or 'linear-swap'"); // eslint-disable-line quotes
+        if ((type !== 'spot') && (type !== 'future') && (type !== 'swap')) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'"); // eslint-disable-line quotes
+        }
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        const fetchMarketsSubType = this.safeString (options, 'subType', defaultSubType);
+        const subType = this.safeString (params, 'subType', fetchMarketsSubType);
+        if ((subType !== 'inverse') && (subType !== 'linear')) {
+            throw new ExchangeError (this.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
         }
         let method = 'spotPublicGetV1CommonSymbols';
-        const query = this.omit (params, 'type');
+        const query = this.omit (params, [ 'type', 'subType' ]);
         const spot = (type === 'spot');
         const contract = (type !== 'spot');
         const future = (type === 'future');
-        const swap = (type === 'linear-swap') || (type === 'inverse-swap');
-        const linear = (type === 'linear-swap');
-        const inverse = (type === 'inverse-swap') || future;
-        if (future) {
-            method = 'contractPublicGetApiV1ContractContractInfo';
-        } else if (swap) {
-            if (inverse) {
-                method = 'contractPublicGetSwapApiV1SwapContractInfo';
-            } else if (linear) {
-                method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+        const swap = (type === 'swap');
+        let linear = undefined;
+        let inverse = undefined;
+        if (contract) {
+            linear = (subType === 'linear');
+            inverse = (subType === 'inverse') || future;
+            if (future) {
+                method = 'contractPublicGetApiV1ContractContractInfo';
+            } else if (swap) {
+                if (inverse) {
+                    method = 'contractPublicGetSwapApiV1SwapContractInfo';
+                } else if (linear) {
+                    method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+                }
             }
         }
         const response = await this[method] (query);
@@ -1180,10 +1191,23 @@ module.exports = class huobi extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.spotPublicGetMarketDetailMerged (this.extend (request, params));
+        const request = {};
+        let fieldName = 'symbol';
+        let method = 'spotPublicGetMarketDetailMerged';
+        if (market['future']) {
+            method = 'contractPublicGetMarketDetailMerged';
+        } else if (market['swap']) {
+            if (market['inverse']) {
+                method = 'contractPublicGetSwapExMarketDetailMerged';
+            } else if (market['linear']) {
+                method = 'contractPublicGetLinearSwapExMarketDetailMerged';
+            }
+            fieldName = 'contract_code';
+        }
+        request[fieldName] = market['id'];
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "status": "ok",
@@ -1204,7 +1228,50 @@ module.exports = class huobi extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.parseTicker (response['tick'], market);
+        // future
+        //
+        //     {
+        //         "ch":"market.BTC211126.detail.merged",
+        //         "status":"ok",
+        //         "tick":{
+        //             "amount":"669.3385682049668320322569544150680718474",
+        //             "ask":[59117.44,48],
+        //             "bid":[59082,48],
+        //             "close":"59087.97",
+        //             "count":5947,
+        //             "high":"59892.62",
+        //             "id":1637502670,
+        //             "low":"57402.87",
+        //             "open":"57638",
+        //             "ts":1637502670059,
+        //             "vol":"394598"
+        //         },
+        //         "ts":1637502670059
+        //     }
+        //
+        // swaps
+        //
+        //     {
+        //         "ch":"market.BTC-USD.detail.merged",
+        //         "status":"ok",
+        //         "tick":{
+        //             "amount":"16857.96195264216972177875259405303584212",
+        //             "ask":[58768.9,3101],
+        //             "bid":[58768.8,4885],
+        //             "close":"58765.1",
+        //             "count":76595,
+        //             "high":"59845",
+        //             "id":1637503316,
+        //             "low":"57441.3",
+        //             "open":"57692.1",
+        //             "ts":1637503316951,
+        //             "vol":"9924770"
+        //         },
+        //         "ts":1637503316951
+        //     }
+        //
+        const tick = this.safeValue (response, 'tick', {});
+        const ticker = this.parseTicker (tick, market);
         const timestamp = this.safeInteger (response, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
