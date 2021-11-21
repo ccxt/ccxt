@@ -770,7 +770,7 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetCommonTimestamp (params);
+        const response = await this.spotPublicGetV1CommonTimestamp (params);
         return this.safeInteger (response, 'data');
     }
 
