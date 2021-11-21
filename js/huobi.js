@@ -1537,7 +1537,7 @@ module.exports = class huobi extends Exchange {
             request['size'] = limit;
         }
         const omitted = this.omit (params, 'account-id');
-        const response = await this.privateGetOrderOpenOrders (this.extend (request, omitted));
+        const response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, omitted));
         //
         //     {
         //         "status":"ok",
