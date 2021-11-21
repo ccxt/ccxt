@@ -17,7 +17,7 @@ module.exports = class cdax extends Exchange {
             'countries': [ 'RU' ],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome39'],
-            'certified': true,
+            'certified': false,
             'version': 'v1',
             'accounts': undefined,
             'accountsById': undefined,
