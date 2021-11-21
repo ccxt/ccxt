@@ -731,8 +731,7 @@ module.exports = class huobi extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'defaultType': 'spot', // spot, future, swap
-                'defaultSubType': 'inverse', // inverse, linear
+                'defaultType': 'spot', // spot, future, inverse-swap linear-swap
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'erc20',
@@ -852,23 +851,17 @@ module.exports = class huobi extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const fetchMarketsType = this.safeString (options, 'type', defaultType);
         const type = this.safeString (params, 'type', fetchMarketsType);
-        if ((type !== 'spot') && (type !== 'future') && (type !== 'swap')) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', or 'swap'"); // eslint-disable-line quotes
+        if ((type !== 'spot') && (type !== 'future') && (type !== 'inverse-swap') && (type !== 'linear-swap')) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'inverse-swap' or 'linear-swap'"); // eslint-disable-line quotes
         }
         let method = 'spotPublicGetV1CommonSymbols';
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        const fetchMarketsSubType = this.safeString (options, 'subType', defaultSubType);
-        const subType = this.safeString (params, 'subType', fetchMarketsSubType);
-        if ((subType !== 'inverse') && (subType !== 'linear')) {
-            throw new ExchangeError (this.id + " does not support '" + subType + "' subType, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
-        }
-        const query = this.omit (params, [ 'type', 'subType' ]);
-        const linear = (subType === 'linear');
-        const inverse = (subType === 'inverse');
+        const query = this.omit (params, 'type');
         const spot = (type === 'spot');
         const contract = (type !== 'spot');
         const future = (type === 'future');
-        const swap = (type === 'swap');
+        const swap = (type === 'linear-swap') || (type === 'inverse-swap');
+        const linear = (type === 'linear-swap');
+        const inverse = (type === 'inverse-swap') || future;
         if (future) {
             method = 'contractPublicGetApiV1ContractContractInfo';
         } else if (swap) {
