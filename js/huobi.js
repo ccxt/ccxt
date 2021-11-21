@@ -1035,7 +1035,7 @@ module.exports = class huobi extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.marketGetTickers (params);
+        const response = await this.spotPublicGetMarketTickers (params);
         const tickers = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
