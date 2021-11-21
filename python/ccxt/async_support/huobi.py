@@ -766,7 +766,6 @@ class huobi(Exchange):
                 'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': True,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
@@ -862,12 +861,11 @@ class huobi(Exchange):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
     async def fetch_markets(self, params={}):
-        method = self.options['fetchMarketsMethod']
-        response = await getattr(self, method)(params)
+        response = await self.spotPublicGetV1CommonSymbols(params)
         markets = self.safe_value(response, 'data')
         numMarkets = len(markets)
         if numMarkets < 1:
-            raise NetworkError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(markets))
+            raise NetworkError(self.id + ' spotPublicGetV1CommonSymbols returned an empty response: ' + self.json(markets))
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -1012,7 +1010,7 @@ class huobi(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.marketGetDetailMerged(self.extend(request, params))
+        response = await self.spotPublicGetMarketDetailMerged(self.extend(request, params))
         #
         #     {
         #         "status": "ok",
@@ -1062,7 +1060,7 @@ class huobi(Exchange):
             'symbol': market['id'],
             'type': 'step0',
         }
-        response = await self.marketGetDepth(self.extend(request, params))
+        response = await self.spotPublicGetMarketDepth(self.extend(request, params))
         #
         #     {
         #         "status": "ok",
@@ -1205,7 +1203,7 @@ class huobi(Exchange):
         }
         if limit is not None:
             request['size'] = limit
-        response = await self.marketGetHistoryTrade(self.extend(request, params))
+        response = await self.spotPublicGetMarketHistoryTrade(self.extend(request, params))
         #
         #     {
         #         "status": "ok",
@@ -1271,7 +1269,7 @@ class huobi(Exchange):
         }
         if limit is not None:
             request['size'] = limit
-        response = await self.marketGetHistoryKline(self.extend(request, params))
+        response = await self.spotPublicGetMarketHistoryKline(self.extend(request, params))
         #
         #     {
         #         "status":"ok",
@@ -1293,7 +1291,7 @@ class huobi(Exchange):
         return response['data']
 
     async def fetch_currencies(self, params={}):
-        response = await self.v2PublicGetReferenceCurrencies()
+        response = await self.spotPublicGetV2ReferenceCurrencies()
         #     {
         #       "code": 200,
         #       "data": [
