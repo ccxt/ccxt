@@ -1058,7 +1058,7 @@ module.exports = class huobi extends Exchange {
             'symbol': market['id'],
             'type': 'step0',
         };
-        const response = await this.marketGetDepth (this.extend (request, params));
+        const response = await this.spotPublicGetMarketDepth (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
