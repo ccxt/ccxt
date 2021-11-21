@@ -1153,7 +1153,7 @@ module.exports = class huobi extends Exchange {
         //         askSize:  0.4156
         //     }
         //
-        const marketId = this.safeString (ticker, 'symbol');
+        const marketId = this.safeString2 (ticker, 'symbol', 'contract_code');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 'ts');
         let bid = undefined;
@@ -1290,10 +1290,9 @@ module.exports = class huobi extends Exchange {
             method = 'contractPublicGetMarketDetailBatchMerged';
         } else if (type === 'swap') {
             if (subType === 'inverse') {
-                method = '';
+                method = 'contractPublicGetSwapExMarketDetailBatchMerged';
             } else if (subType === 'linear') {
-                method = '';
-
+                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
             }
         }
         const response = await this[method] (query);
@@ -1325,10 +1324,8 @@ module.exports = class huobi extends Exchange {
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            const marketId = this.safeString (tickers[i], 'symbol');
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            const ticker = this.parseTicker (tickers[i], market);
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
             result[symbol] = ticker;
