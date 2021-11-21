@@ -1804,7 +1804,7 @@ module.exports = class huobi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privatePostOrderOrdersBatchCancelOpenOrders (this.extend (request, params));
+        const response = await this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders (this.extend (request, params));
         //
         //     {
         //         code: 200,
