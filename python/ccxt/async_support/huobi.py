@@ -28,6 +28,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -752,7 +753,9 @@ class huobi(Exchange):
                     'require-symbol': BadSymbol,  # {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null}
                 },
             },
+            'precisionMode': TICK_SIZE,
             'options': {
+                'defaultType': 'spot',  # spot, future, inverse-swap linear-swap
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'erc20',
@@ -860,41 +863,209 @@ class huobi(Exchange):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
     async def fetch_markets(self, params={}):
-        response = await self.spotPublicGetV1CommonSymbols(params)
+        options = self.safe_value(self.options, 'fetchMarkets', {})
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        fetchMarketsType = self.safe_string(options, 'type', defaultType)
+        type = self.safe_string(params, 'type', fetchMarketsType)
+        if (type != 'spot') and (type != 'future') and (type != 'inverse-swap') and (type != 'linear-swap'):
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'inverse-swap' or 'linear-swap'")  # eslint-disable-line quotes
+        method = 'spotPublicGetV1CommonSymbols'
+        query = self.omit(params, 'type')
+        spot = (type == 'spot')
+        contract = (type != 'spot')
+        future = (type == 'future')
+        swap = (type == 'linear-swap') or (type == 'inverse-swap')
+        linear = (type == 'linear-swap')
+        inverse = (type == 'inverse-swap') or future
+        if future:
+            method = 'contractPublicGetApiV1ContractContractInfo'
+        elif swap:
+            if inverse:
+                method = 'contractPublicGetSwapApiV1SwapContractInfo'
+            elif linear:
+                method = 'contractPublicGetLinearSwapApiV1SwapContractInfo'
+        response = await getattr(self, method)(query)
+        #
+        # spot
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":[
+        #             {
+        #                 "base-currency":"xrp3s",
+        #                 "quote-currency":"usdt",
+        #                 "price-precision":4,
+        #                 "amount-precision":4,
+        #                 "symbol-partition":"innovation",
+        #                 "symbol":"xrp3susdt",
+        #                 "state":"online",
+        #                 "value-precision":8,
+        #                 "min-order-amt":0.01,
+        #                 "max-order-amt":1616.4353,
+        #                 "min-order-value":5,
+        #                 "limit-order-min-order-amt":0.01,
+        #                 "limit-order-max-order-amt":1616.4353,
+        #                 "limit-order-max-buy-amt":1616.4353,
+        #                 "limit-order-max-sell-amt":1616.4353,
+        #                 "sell-market-min-order-amt":0.01,
+        #                 "sell-market-max-order-amt":1616.4353,
+        #                 "buy-market-max-order-value":2500,
+        #                 "max-order-value":2500,
+        #                 "underlying":"xrpusdt",
+        #                 "mgmt-fee-rate":0.035000000000000000,
+        #                 "charge-time":"23:55:00",
+        #                 "rebal-time":"00:00:00",
+        #                 "rebal-threshold":-5,
+        #                 "init-nav":10.000000000000000000,
+        #                 "api-trading":"enabled",
+        #                 "tags":"etp,nav,holdinglimit"
+        #             },
+        #         ]
+        #     }
+        #
+        # future
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":[
+        #             {
+        #                 "symbol":"BTC",
+        #                 "contract_code":"BTC211126",
+        #                 "contract_type":"self_week",
+        #                 "contract_size":100.000000000000000000,
+        #                 "price_tick":0.010000000000000000,
+        #                 "delivery_date":"20211126",
+        #                 "delivery_time":"1637913600000",
+        #                 "create_date":"20211112",
+        #                 "contract_status":1,
+        #                 "settlement_time":"1637481600000"
+        #             },
+        #         ],
+        #         "ts":1637474595140
+        #     }
+        #
+        # swaps
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":[
+        #             {
+        #                 "symbol":"BTC",
+        #                 "contract_code":"BTC-USDT",
+        #                 "contract_size":0.001000000000000000,
+        #                 "price_tick":0.100000000000000000,
+        #                 "delivery_time":"",
+        #                 "create_date":"20201021",
+        #                 "contract_status":1,
+        #                 "settlement_date":"1637481600000",
+        #                 "support_margin_mode":"all",  # isolated
+        #             },
+        #         ],
+        #         "ts":1637474774467
+        #     }
+        #
         markets = self.safe_value(response, 'data')
         numMarkets = len(markets)
         if numMarkets < 1:
-            raise NetworkError(self.id + ' spotPublicGetV1CommonSymbols returned an empty response: ' + self.json(markets))
+            raise NetworkError(self.id + ' fetchMarkets() returned an empty response: ' + self.json(markets))
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            baseId = self.safe_string(market, 'base-currency')
-            quoteId = self.safe_string(market, 'quote-currency')
-            id = baseId + quoteId
+            baseId = None
+            quoteId = None
+            settleId = None
+            id = None
+            if contract:
+                id = self.safe_string(market, 'contract_code')
+                if swap:
+                    parts = id.split('-')
+                    baseId = self.safe_string(market, 'symbol')
+                    quoteId = self.safe_string(parts, 1)
+                    settleId = baseId if inverse else quoteId
+                elif future:
+                    baseId = self.safe_string(market, 'symbol')
+                    quoteId = 'USD'
+                    settleId = baseId
+            else:
+                baseId = self.safe_string(market, 'base-currency')
+                quoteId = self.safe_string(market, 'quote-currency')
+                id = baseId + quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote
+            expiry = None
+            if contract:
+                if inverse:
+                    symbol += ':' + base
+                elif linear:
+                    symbol += ':' + quote
+                if future:
+                    expiry = self.safe_integer(market, 'delivery_time')
+                    symbol += '-' + self.yymmdd(expiry)
+            contractSize = self.safe_number(market, 'contract_size')
+            pricePrecision = None
+            amountPrecision = None
+            costPrecision = None
+            if spot:
+                pricePrecision = self.safe_string(market, 'price-precision')
+                pricePrecision = self.parse_number('1e-' + pricePrecision)
+                amountPrecision = self.safe_string(market, 'amount-precision')
+                amountPrecision = self.parse_number('1e-' + amountPrecision)
+                costPrecision = self.safe_string(market, 'value-precision')
+                costPrecision = self.parse_number('1e-' + costPrecision)
+            else:
+                pricePrecision = self.safe_number(market, 'price_tick')
+                amountPrecision = 1
             precision = {
-                'amount': self.safe_integer(market, 'amount-precision'),
-                'price': self.safe_integer(market, 'price-precision'),
-                'cost': self.safe_integer(market, 'value-precision'),
+                'amount': amountPrecision,
+                'price': pricePrecision,
+                'cost': costPrecision,
             }
-            maker = 0 if (base == 'OMG') else 0.2 / 100
-            taker = 0 if (base == 'OMG') else 0.2 / 100
+            maker = None
+            taker = None
+            if spot:
+                maker = 0 if (base == 'OMG') else 0.2 / 100
+                taker = 0 if (base == 'OMG') else 0.2 / 100
             minAmount = self.safe_number(market, 'min-order-amt', math.pow(10, -precision['amount']))
             maxAmount = self.safe_number(market, 'max-order-amt')
             minCost = self.safe_number(market, 'min-order-value', 0)
-            state = self.safe_string(market, 'state')
-            active = (state == 'online')
+            active = None
+            if spot:
+                state = self.safe_string(market, 'state')
+                active = (state == 'online')
+            elif contract:
+                contractStatus = self.safe_integer(market, 'contract_status')
+                active = (contractStatus == 1)
+            # 0 Delisting
+            # 1 Listing
+            # 2 Pending Listing
+            # 3 Suspension
+            # 4 Suspending of Listing
+            # 5 In Settlement
+            # 6 Delivering
+            # 7 Settlement Completed
+            # 8 Delivered
+            # 9 Suspending of Trade
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'type': 'spot',
-                'spot': True,
+                'settleId': settleId,
+                'type': type,
+                'contract': contract,
+                'spot': spot,
+                'future': future,
+                'swap': swap,
+                'linear': linear,
+                'inverse': inverse,
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
+                'contractSize': contractSize,
                 'active': active,
                 'precision': precision,
                 'taker': taker,
@@ -1337,7 +1508,7 @@ class huobi(Exchange):
             instStatus = self.safe_string(entry, 'instStatus')
             currencyActive = instStatus == 'normal'
             fee = None
-            precision = None
+            minPrecision = None
             minWithdraw = None
             maxWithdraw = None
             for j in range(0, len(chains)):
@@ -1356,7 +1527,10 @@ class huobi(Exchange):
                 withdraw = self.safe_string(chain, 'withdrawStatus')
                 deposit = self.safe_string(chain, 'depositStatus')
                 active = (withdraw == 'allowed') and (deposit == 'allowed')
-                precision = self.safe_integer(chain, 'withdrawPrecision')
+                precision = self.safe_string(chain, 'withdrawPrecision')
+                if precision is not None:
+                    precision = self.parse_number('1e-' + precision)
+                    minPrecision = precision if (minPrecision is None) else max(precision, minPrecision)
                 fee = self.safe_number(chain, 'transactFeeWithdraw')
                 networks[network] = {
                     'info': chain,
@@ -1391,7 +1565,7 @@ class huobi(Exchange):
                         'max': maxWithdraw if (networkLength <= 1) else None,
                     },
                 },
-                'precision': precision if (networkLength <= 1) else None,
+                'precision': minPrecision,
                 'networks': networks,
             }
         return result

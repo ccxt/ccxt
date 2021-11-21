@@ -735,7 +735,9 @@ class huobi extends Exchange {
                     'require-symbol' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null)
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'options' => array(
+                'defaultType' => 'spot', // spot, future, inverse-swap linear-swap
                 'defaultNetwork' => 'ERC20',
                 'networks' => array(
                     'ETH' => 'erc20',
@@ -851,42 +853,221 @@ class huobi extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = yield $this->spotPublicGetV1CommonSymbols ($params);
+        $options = $this->safe_value($this->options, 'fetchMarkets', array());
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        $fetchMarketsType = $this->safe_string($options, 'type', $defaultType);
+        $type = $this->safe_string($params, 'type', $fetchMarketsType);
+        if (($type !== 'spot') && ($type !== 'future') && ($type !== 'inverse-swap') && ($type !== 'linear-swap')) {
+            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to 'spot', 'future', 'inverse-swap' or 'linear-swap'"); // eslint-disable-line quotes
+        }
+        $method = 'spotPublicGetV1CommonSymbols';
+        $query = $this->omit($params, 'type');
+        $spot = ($type === 'spot');
+        $contract = ($type !== 'spot');
+        $future = ($type === 'future');
+        $swap = ($type === 'linear-swap') || ($type === 'inverse-swap');
+        $linear = ($type === 'linear-swap');
+        $inverse = ($type === 'inverse-swap') || $future;
+        if ($future) {
+            $method = 'contractPublicGetApiV1ContractContractInfo';
+        } else if ($swap) {
+            if ($inverse) {
+                $method = 'contractPublicGetSwapApiV1SwapContractInfo';
+            } else if ($linear) {
+                $method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+            }
+        }
+        $response = yield $this->$method ($query);
+        //
+        // $spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             array(
+        //                 "base-currency":"xrp3s",
+        //                 "quote-currency":"usdt",
+        //                 "price-$precision":4,
+        //                 "amount-$precision":4,
+        //                 "symbol-partition":"innovation",
+        //                 "symbol":"xrp3susdt",
+        //                 "state":"online",
+        //                 "value-$precision":8,
+        //                 "min-order-amt":0.01,
+        //                 "max-order-amt":1616.4353,
+        //                 "min-order-value":5,
+        //                 "limit-order-min-order-amt":0.01,
+        //                 "limit-order-max-order-amt":1616.4353,
+        //                 "limit-order-max-buy-amt":1616.4353,
+        //                 "limit-order-max-sell-amt":1616.4353,
+        //                 "sell-$market-min-order-amt":0.01,
+        //                 "sell-$market-max-order-amt":1616.4353,
+        //                 "buy-$market-max-order-value":2500,
+        //                 "max-order-value":2500,
+        //                 "underlying":"xrpusdt",
+        //                 "mgmt-fee-rate":0.035000000000000000,
+        //                 "charge-time":"23:55:00",
+        //                 "rebal-time":"00:00:00",
+        //                 "rebal-threshold":-5,
+        //                 "init-nav":10.000000000000000000,
+        //                 "api-trading":"enabled",
+        //                 "tags":"etp,nav,holdinglimit"
+        //             ),
+        //         )
+        //     }
+        //
+        // $future
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             array(
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC211126",
+        //                 "contract_type":"this_week",
+        //                 "contract_size":100.000000000000000000,
+        //                 "price_tick":0.010000000000000000,
+        //                 "delivery_date":"20211126",
+        //                 "delivery_time":"1637913600000",
+        //                 "create_date":"20211112",
+        //                 "contract_status":1,
+        //                 "settlement_time":"1637481600000"
+        //             ),
+        //         ),
+        //         "ts":1637474595140
+        //     }
+        //
+        // swaps
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             array(
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC-USDT",
+        //                 "contract_size":0.001000000000000000,
+        //                 "price_tick":0.100000000000000000,
+        //                 "delivery_time":"",
+        //                 "create_date":"20201021",
+        //                 "contract_status":1,
+        //                 "settlement_date":"1637481600000",
+        //                 "support_margin_mode":"all", // isolated
+        //             ),
+        //         ),
+        //         "ts":1637474774467
+        //     }
+        //
         $markets = $this->safe_value($response, 'data');
         $numMarkets = is_array($markets) ? count($markets) : 0;
         if ($numMarkets < 1) {
-            throw new NetworkError($this->id . ' spotPublicGetV1CommonSymbols returned an empty $response => ' . $this->json($markets));
+            throw new NetworkError($this->id . ' fetchMarkets() returned an empty $response => ' . $this->json($markets));
         }
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $baseId = $this->safe_string($market, 'base-currency');
-            $quoteId = $this->safe_string($market, 'quote-currency');
-            $id = $baseId . $quoteId;
+            $baseId = null;
+            $quoteId = null;
+            $settleId = null;
+            $id = null;
+            if ($contract) {
+                $id = $this->safe_string($market, 'contract_code');
+                if ($swap) {
+                    $parts = explode('-', $id);
+                    $baseId = $this->safe_string($market, 'symbol');
+                    $quoteId = $this->safe_string($parts, 1);
+                    $settleId = $inverse ? $baseId : $quoteId;
+                } else if ($future) {
+                    $baseId = $this->safe_string($market, 'symbol');
+                    $quoteId = 'USD';
+                    $settleId = $baseId;
+                }
+            } else {
+                $baseId = $this->safe_string($market, 'base-currency');
+                $quoteId = $this->safe_string($market, 'quote-currency');
+                $id = $baseId . $quoteId;
+            }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote;
+            $expiry = null;
+            if ($contract) {
+                if ($inverse) {
+                    $symbol .= ':' . $base;
+                } else if ($linear) {
+                    $symbol .= ':' . $quote;
+                }
+                if ($future) {
+                    $expiry = $this->safe_integer($market, 'delivery_time');
+                    $symbol .= '-' . $this->yymmdd($expiry);
+                }
+            }
+            $contractSize = $this->safe_number($market, 'contract_size');
+            $pricePrecision = null;
+            $amountPrecision = null;
+            $costPrecision = null;
+            if ($spot) {
+                $pricePrecision = $this->safe_string($market, 'price-precision');
+                $pricePrecision = $this->parse_number('1e-' . $pricePrecision);
+                $amountPrecision = $this->safe_string($market, 'amount-precision');
+                $amountPrecision = $this->parse_number('1e-' . $amountPrecision);
+                $costPrecision = $this->safe_string($market, 'value-precision');
+                $costPrecision = $this->parse_number('1e-' . $costPrecision);
+            } else {
+                $pricePrecision = $this->safe_number($market, 'price_tick');
+                $amountPrecision = 1;
+            }
             $precision = array(
-                'amount' => $this->safe_integer($market, 'amount-precision'),
-                'price' => $this->safe_integer($market, 'price-precision'),
-                'cost' => $this->safe_integer($market, 'value-precision'),
+                'amount' => $amountPrecision,
+                'price' => $pricePrecision,
+                'cost' => $costPrecision,
             );
-            $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
-            $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
+            $maker = null;
+            $taker = null;
+            if ($spot) {
+                $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
+                $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
+            }
             $minAmount = $this->safe_number($market, 'min-order-amt', pow(10, -$precision['amount']));
             $maxAmount = $this->safe_number($market, 'max-order-amt');
             $minCost = $this->safe_number($market, 'min-order-value', 0);
-            $state = $this->safe_string($market, 'state');
-            $active = ($state === 'online');
+            $active = null;
+            if ($spot) {
+                $state = $this->safe_string($market, 'state');
+                $active = ($state === 'online');
+            } else if ($contract) {
+                $contractStatus = $this->safe_integer($market, 'contract_status');
+                $active = ($contractStatus === 1);
+            }
+            // 0 Delisting
+            // 1 Listing
+            // 2 Pending Listing
+            // 3 Suspension
+            // 4 Suspending of Listing
+            // 5 In Settlement
+            // 6 Delivering
+            // 7 Settlement Completed
+            // 8 Delivered
+            // 9 Suspending of Trade
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'type' => 'spot',
-                'spot' => true,
+                'settleId' => $settleId,
+                'type' => $type,
+                'contract' => $contract,
+                'spot' => $spot,
+                'future' => $future,
+                'swap' => $swap,
+                'linear' => $linear,
+                'inverse' => $inverse,
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
+                'contractSize' => $contractSize,
                 'active' => $active,
                 'precision' => $precision,
                 'taker' => $taker,
@@ -1360,7 +1541,7 @@ class huobi extends Exchange {
             $instStatus = $this->safe_string($entry, 'instStatus');
             $currencyActive = $instStatus === 'normal';
             $fee = null;
-            $precision = null;
+            $minPrecision = null;
             $minWithdraw = null;
             $maxWithdraw = null;
             for ($j = 0; $j < count($chains); $j++) {
@@ -1381,7 +1562,11 @@ class huobi extends Exchange {
                 $withdraw = $this->safe_string($chain, 'withdrawStatus');
                 $deposit = $this->safe_string($chain, 'depositStatus');
                 $active = ($withdraw === 'allowed') && ($deposit === 'allowed');
-                $precision = $this->safe_integer($chain, 'withdrawPrecision');
+                $precision = $this->safe_string($chain, 'withdrawPrecision');
+                if ($precision !== null) {
+                    $precision = $this->parse_number('1e-' . $precision);
+                    $minPrecision = ($minPrecision === null) ? $precision : max ($precision, $minPrecision);
+                }
                 $fee = $this->safe_number($chain, 'transactFeeWithdraw');
                 $networks[$network] = array(
                     'info' => $chain,
@@ -1417,7 +1602,7 @@ class huobi extends Exchange {
                         'max' => ($networkLength <= 1) ? $maxWithdraw : null,
                     ),
                 ),
-                'precision' => ($networkLength <= 1) ? $precision : null,
+                'precision' => $minPrecision,
                 'networks' => $networks,
             );
         }
