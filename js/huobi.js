@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -729,7 +729,10 @@ module.exports = class huobi extends Exchange {
                     'require-symbol': BadSymbol, // {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null}
                 },
             },
+            'precisionMode': TICK_SIZE,
             'options': {
+                'defaultType': 'spot', // spot, future, swap
+                'defaultSubType': 'inverse', // inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'erc20',
@@ -845,15 +848,21 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const fetchMarketsType = this.safeString (options, 'type', defaultType);
+        const type = this.safeString (params, 'type', fetchMarketsType);
         if ((type !== 'spot') && (type !== 'future') && (type !== 'swap')) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', or 'swap'"); // eslint-disable-line quotes
         }
         let method = 'spotPublicGetV1CommonSymbols';
-        const defaultSubType = this.safeString2 (this.options, 'fetchMarkets', 'subType', 'inverse');
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        const fetchMarketsSubType = this.safeString (options, 'subType', defaultSubType);
+        const subType = this.safeString (params, 'subType', fetchMarketsSubType);
+        if ((subType !== 'inverse') && (subType !== 'linear')) {
+            throw new ExchangeError (this.id + " does not support '" + subType + "' subType, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
+        }
         const query = this.omit (params, [ 'type', 'subType' ]);
-        const subType = this.safeString (params, 'subType', defaultSubType);
         const linear = (subType === 'linear');
         const inverse = (subType === 'inverse');
         const spot = (type === 'spot');
@@ -952,7 +961,7 @@ module.exports = class huobi extends Exchange {
         const markets = this.safeValue (response, 'data');
         const numMarkets = markets.length;
         if (numMarkets < 1) {
-            throw new NetworkError (this.id + ' spotPublicGetV1CommonSymbols returned an empty response: ' + this.json (markets));
+            throw new NetworkError (this.id + ' fetchMarkets() returned an empty response: ' + this.json (markets));
         }
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -995,10 +1004,24 @@ module.exports = class huobi extends Exchange {
                 }
             }
             const contractSize = this.safeNumber (market, 'contract_size');
+            let pricePrecision = undefined;
+            let amountPrecision = undefined;
+            let costPrecision = undefined;
+            if (spot) {
+                pricePrecision = this.safeString (market, 'price-precision');
+                pricePrecision = this.parseNumber ('1e-' + pricePrecision);
+                amountPrecision = this.safeString (market, 'amount-precision');
+                amountPrecision = this.parseNumber ('1e-' + amountPrecision);
+                costPrecision = this.safeString (market, 'value-precision');
+                costPrecision = this.parseNumber ('1e-' + costPrecision);
+            } else {
+                pricePrecision = this.safeNumber (market, 'price_tick');
+                amountPrecision = 1;
+            }
             const precision = {
-                'amount': this.safeInteger (market, 'amount-precision'),
-                'price': this.safeInteger (market, 'price-precision'),
-                'cost': this.safeInteger (market, 'value-precision'),
+                'amount': amountPrecision,
+                'price': pricePrecision,
+                'cost': costPrecision,
             };
             let maker = undefined;
             let taker = undefined;
@@ -1519,7 +1542,7 @@ module.exports = class huobi extends Exchange {
             const instStatus = this.safeString (entry, 'instStatus');
             const currencyActive = instStatus === 'normal';
             let fee = undefined;
-            let precision = undefined;
+            let minPrecision = undefined;
             let minWithdraw = undefined;
             let maxWithdraw = undefined;
             for (let j = 0; j < chains.length; j++) {
@@ -1540,7 +1563,11 @@ module.exports = class huobi extends Exchange {
                 const withdraw = this.safeString (chain, 'withdrawStatus');
                 const deposit = this.safeString (chain, 'depositStatus');
                 const active = (withdraw === 'allowed') && (deposit === 'allowed');
-                precision = this.safeInteger (chain, 'withdrawPrecision');
+                let precision = this.safeString (chain, 'withdrawPrecision');
+                if (precision !== undefined) {
+                    precision = this.parseNumber ('1e-' + precision);
+                    minPrecision = (minPrecision === undefined) ? precision : Math.max (precision, minPrecision);
+                }
                 fee = this.safeNumber (chain, 'transactFeeWithdraw');
                 networks[network] = {
                     'info': chain,
@@ -1576,7 +1603,7 @@ module.exports = class huobi extends Exchange {
                         'max': (networkLength <= 1) ? maxWithdraw : undefined,
                     },
                 },
-                'precision': (networkLength <= 1) ? precision : undefined,
+                'precision': minPrecision,
                 'networks': networks,
             };
         }
