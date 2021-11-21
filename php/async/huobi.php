@@ -1874,7 +1874,7 @@ class huobi extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = yield $this->v2PrivateGetAccountDepositAddress (array_merge($request, $params));
+        $response = yield $this->spotPrivateGetV2AccountDepositAddress (array_merge($request, $params));
         //
         //     {
         //         $code => 200,
@@ -1945,7 +1945,7 @@ class huobi extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // max 100
         }
-        $response = yield $this->privateGetQueryDepositWithdraw (array_merge($request, $params));
+        $response = yield $this->spotPrivateGetV1QueryDepositWithdraw (array_merge($request, $params));
         // return $response
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
@@ -1969,7 +1969,7 @@ class huobi extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // max 100
         }
-        $response = yield $this->privateGetQueryDepositWithdraw (array_merge($request, $params));
+        $response = yield $this->spotPrivateGetV1QueryDepositWithdraw (array_merge($request, $params));
         // return $response
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }

@@ -1805,7 +1805,7 @@ class huobi(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = self.v2PrivateGetAccountDepositAddress(self.extend(request, params))
+        response = self.spotPrivateGetV2AccountDepositAddress(self.extend(request, params))
         #
         #     {
         #         code: 200,
@@ -1864,7 +1864,7 @@ class huobi(Exchange):
             request['currency'] = currency['id']
         if limit is not None:
             request['size'] = limit  # max 100
-        response = self.privateGetQueryDepositWithdraw(self.extend(request, params))
+        response = self.spotPrivateGetV1QueryDepositWithdraw(self.extend(request, params))
         # return response
         return self.parse_transactions(response['data'], currency, since, limit)
 
@@ -1883,7 +1883,7 @@ class huobi(Exchange):
             request['currency'] = currency['id']
         if limit is not None:
             request['size'] = limit  # max 100
-        response = self.privateGetQueryDepositWithdraw(self.extend(request, params))
+        response = self.spotPrivateGetV1QueryDepositWithdraw(self.extend(request, params))
         # return response
         return self.parse_transactions(response['data'], currency, since, limit)
 
