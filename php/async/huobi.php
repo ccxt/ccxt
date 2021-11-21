@@ -749,7 +749,6 @@ class huobi extends Exchange {
                 'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice' => true,
-                'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostOrderOrdersPlace',
                 'language' => 'en-US',
                 'broker' => array(
@@ -1428,11 +1427,10 @@ class huobi extends Exchange {
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         yield $this->load_accounts();
-        $method = $this->options['fetchBalanceMethod'];
         $request = array(
-            'id' => $this->accounts[0]['id'],
+            'account-id' => $this->accounts[0]['id'],
         );
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->spotPrivateGetV1AccountAccountsAccountIdBalance (array_merge($request, $params));
         $balances = $this->safe_value($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
