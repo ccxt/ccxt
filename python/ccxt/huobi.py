@@ -795,8 +795,24 @@ class huobi(Exchange):
         })
 
     def fetch_time(self, params={}):
-        response = self.spotPublicGetV1CommonTimestamp(params)
-        return self.safe_integer(response, 'data')
+        options = self.safe_value(self.options, 'fetchTime', {})
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        type = self.safe_string(options, 'type', defaultType)
+        type = self.safe_string(params, 'type', type)
+        method = 'spotPublicGetV1CommonTimestamp'
+        if (type == 'future') or (type == 'swap'):
+            method = 'contractPublicGetApiV1Timestamp'
+        response = getattr(self, method)(params)
+        #
+        # spot
+        #
+        #     {"status":"ok","data":1637504261099}
+        #
+        # future, swap
+        #
+        #     {"status":"ok","ts":1637504164707}
+        #
+        return self.safe_integer_2(response, 'data', 'ts')
 
     def fetch_trading_limits(self, symbols=None, params={}):
         # self method should not be called directly, use loadTradingLimits() instead
@@ -866,13 +882,13 @@ class huobi(Exchange):
     def fetch_markets(self, params={}):
         options = self.safe_value(self.options, 'fetchMarkets', {})
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        fetchMarketsType = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', fetchMarketsType)
+        type = self.safe_string(options, 'type', defaultType)
+        type = self.safe_string(params, 'type', type)
         if (type != 'spot') and (type != 'future') and (type != 'swap'):
             raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'")  # eslint-disable-line quotes
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        fetchMarketsSubType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', fetchMarketsSubType)
+        subType = self.safe_string(options, 'subType', defaultSubType)
+        subType = self.safe_string(params, 'subType', subType)
         if (subType != 'inverse') and (subType != 'linear'):
             raise ExchangeError(self.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'")  # eslint-disable-line quotes
         method = 'spotPublicGetV1CommonSymbols'
@@ -1120,6 +1136,7 @@ class huobi(Exchange):
         #     }
         #
         # fetchTickers
+        #
         #     {
         #         symbol: "bhdht",
         #         open:  2.3938,
@@ -1135,7 +1152,8 @@ class huobi(Exchange):
         #         askSize:  0.4156
         #     }
         #
-        symbol = self.safe_symbol(None, market)
+        marketId = self.safe_string_2(ticker, 'symbol', 'contract_code')
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(ticker, 'ts')
         bid = None
         bidVolume = None
@@ -1221,7 +1239,7 @@ class huobi(Exchange):
         #         }
         #     }
         #
-        # future
+        # future, swap
         #
         #     {
         #         "ch":"market.BTC211126.detail.merged",
@@ -1242,27 +1260,6 @@ class huobi(Exchange):
         #         "ts":1637502670059
         #     }
         #
-        # swaps
-        #
-        #     {
-        #         "ch":"market.BTC-USD.detail.merged",
-        #         "status":"ok",
-        #         "tick":{
-        #             "amount":"16857.96195264216972177875259405303584212",
-        #             "ask":[58768.9,3101],
-        #             "bid":[58768.8,4885],
-        #             "close":"58765.1",
-        #             "count":76595,
-        #             "high":"59845",
-        #             "id":1637503316,
-        #             "low":"57441.3",
-        #             "open":"57692.1",
-        #             "ts":1637503316951,
-        #             "vol":"9924770"
-        #         },
-        #         "ts":1637503316951
-        #     }
-        #
         tick = self.safe_value(response, 'tick', {})
         ticker = self.parse_ticker(tick, market)
         timestamp = self.safe_integer(response, 'ts')
@@ -1271,16 +1268,53 @@ class huobi(Exchange):
         return ticker
 
     def fetch_tickers(self, symbols=None, params={}):
-        self.load_markets()
-        response = self.spotPublicGetMarketTickers(params)
-        tickers = self.safe_value(response, 'data')
+        options = self.safe_value(self.options, 'fetchTickers', {})
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        type = self.safe_string(options, 'type', defaultType)
+        type = self.safe_string(params, 'type', type)
+        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
+        subType = self.safe_string(options, 'subType', defaultSubType)
+        subType = self.safe_string(params, 'subType', subType)
+        method = 'spotPublicGetMarketTickers'
+        query = self.omit(params, ['type', 'subType'])
+        if type == 'future':
+            method = 'contractPublicGetMarketDetailBatchMerged'
+        elif type == 'swap':
+            if subType == 'inverse':
+                method = 'contractPublicGetSwapExMarketDetailBatchMerged'
+            elif subType == 'linear':
+                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged'
+        response = getattr(self, method)(query)
+        #
+        # future
+        #
+        #     {
+        #         "status":"ok",
+        #         "ticks":[
+        #             {
+        #                 "id":1637504679,
+        #                 "ts":1637504679372,
+        #                 "ask":[0.10644,100],
+        #                 "bid":[0.10624,26],
+        #                 "symbol":"TRX_CW",
+        #                 "open":"0.10233",
+        #                 "close":"0.10644",
+        #                 "low":"0.1017",
+        #                 "high":"0.10725",
+        #                 "amount":"2340267.415144052378486261756692535687481566",
+        #                 "count":882,
+        #                 "vol":"24706"
+        #             }
+        #         ],
+        #         "ts":1637504679376
+        #     }
+        #
+        tickers = self.safe_value_2(response, 'data', 'ticks', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {}
         for i in range(0, len(tickers)):
-            marketId = self.safe_string(tickers[i], 'symbol')
-            market = self.safe_market(marketId)
-            symbol = market['symbol']
-            ticker = self.parse_ticker(tickers[i], market)
+            ticker = self.parse_ticker(tickers[i])
+            symbol = ticker['symbol']
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
             result[symbol] = ticker

@@ -777,8 +777,25 @@ class huobi extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        $response = $this->spotPublicGetV1CommonTimestamp ($params);
-        return $this->safe_integer($response, 'data');
+        $options = $this->safe_value($this->options, 'fetchTime', array());
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        $type = $this->safe_string($options, 'type', $defaultType);
+        $type = $this->safe_string($params, 'type', $type);
+        $method = 'spotPublicGetV1CommonTimestamp';
+        if (($type === 'future') || ($type === 'swap')) {
+            $method = 'contractPublicGetApiV1Timestamp';
+        }
+        $response = $this->$method ($params);
+        //
+        // spot
+        //
+        //     array("status":"ok","data":1637504261099)
+        //
+        // future, swap
+        //
+        //     array("status":"ok","ts":1637504164707)
+        //
+        return $this->safe_integer_2($response, 'data', 'ts');
     }
 
     public function fetch_trading_limits($symbols = null, $params = array ()) {
@@ -855,14 +872,14 @@ class huobi extends Exchange {
     public function fetch_markets($params = array ()) {
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $fetchMarketsType = $this->safe_string($options, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type', $fetchMarketsType);
+        $type = $this->safe_string($options, 'type', $defaultType);
+        $type = $this->safe_string($params, 'type', $type);
         if (($type !== 'spot') && ($type !== 'future') && ($type !== 'swap')) {
             throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'"); // eslint-disable-line quotes
         }
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-        $fetchMarketsSubType = $this->safe_string($options, 'subType', $defaultSubType);
-        $subType = $this->safe_string($params, 'subType', $fetchMarketsSubType);
+        $subType = $this->safe_string($options, 'subType', $defaultSubType);
+        $subType = $this->safe_string($params, 'subType', $subType);
         if (($subType !== 'inverse') && ($subType !== 'linear')) {
             throw new ExchangeError($this->id . " does not support '" . $subType . "' $type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
         }
@@ -1125,6 +1142,7 @@ class huobi extends Exchange {
         //     }
         //
         // fetchTickers
+        //
         //     {
         //         $symbol => "bhdht",
         //         $open =>  2.3938,
@@ -1140,7 +1158,8 @@ class huobi extends Exchange {
         //         askSize =>  0.4156
         //     }
         //
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_code');
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 'ts');
         $bid = null;
         $bidVolume = null;
@@ -1233,7 +1252,7 @@ class huobi extends Exchange {
         //         }
         //     }
         //
-        // future
+        // future, swap
         //
         //     {
         //         "ch":"market.BTC211126.detail.merged",
@@ -1254,27 +1273,6 @@ class huobi extends Exchange {
         //         "ts":1637502670059
         //     }
         //
-        // swaps
-        //
-        //     {
-        //         "ch":"market.BTC-USD.detail.merged",
-        //         "status":"ok",
-        //         "tick":array(
-        //             "amount":"16857.96195264216972177875259405303584212",
-        //             "ask":[58768.9,3101],
-        //             "bid":[58768.8,4885],
-        //             "close":"58765.1",
-        //             "count":76595,
-        //             "high":"59845",
-        //             "id":1637503316,
-        //             "low":"57441.3",
-        //             "open":"57692.1",
-        //             "ts":1637503316951,
-        //             "vol":"9924770"
-        //         ),
-        //         "ts":1637503316951
-        //     }
-        //
         $tick = $this->safe_value($response, 'tick', array());
         $ticker = $this->parse_ticker($tick, $market);
         $timestamp = $this->safe_integer($response, 'ts');
@@ -1284,16 +1282,55 @@ class huobi extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        $this->load_markets();
-        $response = $this->spotPublicGetMarketTickers ($params);
-        $tickers = $this->safe_value($response, 'data');
+        $options = $this->safe_value($this->options, 'fetchTickers', array());
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        $type = $this->safe_string($options, 'type', $defaultType);
+        $type = $this->safe_string($params, 'type', $type);
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+        $subType = $this->safe_string($options, 'subType', $defaultSubType);
+        $subType = $this->safe_string($params, 'subType', $subType);
+        $method = 'spotPublicGetMarketTickers';
+        $query = $this->omit($params, array( 'type', 'subType' ));
+        if ($type === 'future') {
+            $method = 'contractPublicGetMarketDetailBatchMerged';
+        } else if ($type === 'swap') {
+            if ($subType === 'inverse') {
+                $method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+            } else if ($subType === 'linear') {
+                $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+            }
+        }
+        $response = $this->$method ($query);
+        //
+        // future
+        //
+        //     {
+        //         "status":"ok",
+        //         "ticks":[
+        //             {
+        //                 "id":1637504679,
+        //                 "ts":1637504679372,
+        //                 "ask":[0.10644,100],
+        //                 "bid":[0.10624,26],
+        //                 "symbol":"TRX_CW",
+        //                 "open":"0.10233",
+        //                 "close":"0.10644",
+        //                 "low":"0.1017",
+        //                 "high":"0.10725",
+        //                 "amount":"2340267.415144052378486261756692535687481566",
+        //                 "count":882,
+        //                 "vol":"24706"
+        //             }
+        //         ],
+        //         "ts":1637504679376
+        //     }
+        //
+        $tickers = $this->safe_value_2($response, 'data', 'ticks', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $marketId = $this->safe_string($tickers[$i], 'symbol');
-            $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
-            $ticker = $this->parse_ticker($tickers[$i], $market);
+            $ticker = $this->parse_ticker($tickers[$i]);
+            $symbol = $ticker['symbol'];
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
             $result[$symbol] = $ticker;
