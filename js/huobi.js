@@ -1939,7 +1939,7 @@ module.exports = class huobi extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
         // return response
         return this.parseTransactions (response['data'], currency, since, limit);
     }
@@ -1963,7 +1963,7 @@ module.exports = class huobi extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
         // return response
         return this.parseTransactions (response['data'], currency, since, limit);
     }
