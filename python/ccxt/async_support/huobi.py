@@ -749,6 +749,7 @@ class huobi(Exchange):
                     # err-msg
                     'invalid symbol': BadSymbol,  # {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'symbol trade not open now': BadSymbol,  # {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
+                    'require-symbol': BadSymbol,  # {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null}
                 },
             },
             'options': {
@@ -766,7 +767,6 @@ class huobi(Exchange):
                 'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': True,
-                'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
@@ -1650,8 +1650,7 @@ class huobi(Exchange):
             request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit' or type == 'ioc' or type == 'limit-maker' or type == 'stop-limit' or type == 'stop-limit-fok':
             request['price'] = self.price_to_precision(symbol, price)
-        method = self.options['createOrderMethod']
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await self.spotPrivatePostV1OrderOrdersPlace(self.extend(request, params))
         timestamp = self.milliseconds()
         id = self.safe_string(response, 'data')
         return {
@@ -1676,7 +1675,16 @@ class huobi(Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        response = await self.privatePostOrderOrdersIdSubmitcancel({'id': id})
+        clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
+        request = {}
+        method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel'
+        if clientOrderId is None:
+            request['order-id'] = id
+        else:
+            request['client-order-id'] = clientOrderId
+            method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder'
+            params = self.omit(params, ['client-order-id', 'clientOrderId'])
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         'status': 'ok',
@@ -1745,7 +1753,7 @@ class huobi(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.privatePostOrderOrdersBatchCancelOpenOrders(self.extend(request, params))
+        response = await self.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(self.extend(request, params))
         #
         #     {
         #         code: 200,

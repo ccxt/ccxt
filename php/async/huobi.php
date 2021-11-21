@@ -732,6 +732,7 @@ class huobi extends Exchange {
                     // err-msg
                     'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
                     'symbol trade not open now' => '\\ccxt\\BadSymbol', // array("ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now")
+                    'require-symbol' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null)
                 ),
             ),
             'options' => array(
@@ -749,7 +750,6 @@ class huobi extends Exchange {
                 'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice' => true,
-                'createOrderMethod' => 'privatePostOrderOrdersPlace',
                 'language' => 'en-US',
                 'broker' => array(
                     'id' => 'AA03022abc',
@@ -1708,8 +1708,7 @@ class huobi extends Exchange {
         if ($type === 'limit' || $type === 'ioc' || $type === 'limit-maker' || $type === 'stop-limit' || $type === 'stop-limit-fok') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $method = $this->options['createOrderMethod'];
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->spotPrivatePostV1OrderOrdersPlace (array_merge($request, $params));
         $timestamp = $this->milliseconds();
         $id = $this->safe_string($response, 'data');
         return array(
@@ -1735,7 +1734,17 @@ class huobi extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        $response = yield $this->privatePostOrderOrdersIdSubmitcancel (array( 'id' => $id ));
+        $clientOrderId = $this->safe_string_2($params, 'client-order-id', 'clientOrderId');
+        $request = array();
+        $method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
+        if ($clientOrderId === null) {
+            $request['order-id'] = $id;
+        } else {
+            $request['client-order-id'] = $clientOrderId;
+            $method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
+            $params = $this->omit($params, array( 'client-order-id', 'clientOrderId' ));
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
         //         'status' => 'ok',
@@ -1808,7 +1817,7 @@ class huobi extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = yield $this->privatePostOrderOrdersBatchCancelOpenOrders (array_merge($request, $params));
+        $response = yield $this->spotPrivatePostV1OrderOrdersBatchCancelOpenOrders (array_merge($request, $params));
         //
         //     {
         //         code => 200,
