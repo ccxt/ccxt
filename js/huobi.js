@@ -1005,7 +1005,7 @@ module.exports = class huobi extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.marketGetDetailMerged (this.extend (request, params));
+        const response = await this.spotPublicGetMarketDetailMerged (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
