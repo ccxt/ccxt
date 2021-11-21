@@ -2096,7 +2096,7 @@ module.exports = class huobi extends Exchange {
             }
             params = this.omit (params, 'network');
         }
-        const response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
+        const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
         const id = this.safeString (response, 'data');
         return {
             'info': response,
