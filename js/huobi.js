@@ -845,7 +845,103 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.spotPublicGetV1CommonSymbols (params);
+        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        if ((type !== 'spot') && (type !== 'future') && (type !== 'swap')) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', or 'swap'"); // eslint-disable-line quotes
+        }
+        let method = 'spotPublicGetV1CommonSymbols';
+        if (type === 'future') {
+            method = 'contractPublicGetApiV1ContractContractInfo';
+        } else if (type === 'swap') {
+            const subType = this.safeString2 (this.options, 'fetchMarkets', 'subType', 'inverse');
+            if (subType === 'inverse') {
+                method = 'contractPublicGetSwapApiV1SwapContractInfo';
+            } else if (subType === 'linear') {
+                method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+            }
+        }
+        const response = await this[method] (query);
+        //
+        // spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "base-currency":"xrp3s",
+        //                 "quote-currency":"usdt",
+        //                 "price-precision":4,
+        //                 "amount-precision":4,
+        //                 "symbol-partition":"innovation",
+        //                 "symbol":"xrp3susdt",
+        //                 "state":"online",
+        //                 "value-precision":8,
+        //                 "min-order-amt":0.01,
+        //                 "max-order-amt":1616.4353,
+        //                 "min-order-value":5,
+        //                 "limit-order-min-order-amt":0.01,
+        //                 "limit-order-max-order-amt":1616.4353,
+        //                 "limit-order-max-buy-amt":1616.4353,
+        //                 "limit-order-max-sell-amt":1616.4353,
+        //                 "sell-market-min-order-amt":0.01,
+        //                 "sell-market-max-order-amt":1616.4353,
+        //                 "buy-market-max-order-value":2500,
+        //                 "max-order-value":2500,
+        //                 "underlying":"xrpusdt",
+        //                 "mgmt-fee-rate":0.035000000000000000,
+        //                 "charge-time":"23:55:00",
+        //                 "rebal-time":"00:00:00",
+        //                 "rebal-threshold":-5,
+        //                 "init-nav":10.000000000000000000,
+        //                 "api-trading":"enabled",
+        //                 "tags":"etp,nav,holdinglimit"
+        //             },
+        //         ]
+        //     }
+        //
+        // future
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC211126",
+        //                 "contract_type":"this_week",
+        //                 "contract_size":100.000000000000000000,
+        //                 "price_tick":0.010000000000000000,
+        //                 "delivery_date":"20211126",
+        //                 "delivery_time":"1637913600000",
+        //                 "create_date":"20211112",
+        //                 "contract_status":1,
+        //                 "settlement_time":"1637481600000"
+        //             },
+        //         ],
+        //         "ts":1637474595140
+        //     }
+        //
+        // swaps
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC-USDT",
+        //                 "contract_size":0.001000000000000000,
+        //                 "price_tick":0.100000000000000000,
+        //                 "delivery_time":"",
+        //                 "create_date":"20201021",
+        //                 "contract_status":1,
+        //                 "settlement_date":"1637481600000",
+        //                 "support_margin_mode":"all", // isolated
+        //             },
+        //         ],
+        //         "ts":1637474774467
+        //     }
+        //
         const markets = this.safeValue (response, 'data');
         const numMarkets = markets.length;
         if (numMarkets < 1) {
