@@ -1761,7 +1761,7 @@ module.exports = class huobi extends Exchange {
         } else {
             request['client-order-ids'] = clientOrderIds;
         }
-        const response = await this.privatePostOrderOrdersBatchcancel (this.extend (request, params));
+        const response = await this.spotPrivatePostV1OrderOrdersBatchcancel (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
