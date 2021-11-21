@@ -11,12 +11,16 @@ const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 module.exports = class cdax extends ccxt.cdax {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'cdax',
-            'name': 'CDAX',
-            'countries': [ 'RU' ],
-            'hostname': 'cdax.io',
+            'has': {
+                'ws': true,
+                'watchOrderBook': true,
+                'watchTickers': false, // for now
+                'watchTicker': true,
+                'watchTrades': true,
+                'watchBalance': false, // for now
+                'watchOHLCV': true,
+            },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg',
                 'api': {
                     'ws': {
                         'api': {
@@ -24,16 +28,19 @@ module.exports = class cdax extends ccxt.cdax {
                             'private': 'wss://{hostname}/api/ws/v2',
                         },
                     },
-                    'market': 'https://{hostname}/api',
-                    'public': 'https://{hostname}/api',
-                    'private': 'https://{hostname}/api',
-                    'v2Public': 'https://{hostname}/api',
-                    'v2Private': 'https://{hostname}/api',
                 },
                 'www': 'https://cdax.io',
                 'referral': 'https://cdax.io/invite?invite_code=esc74',
                 'doc': 'https://github.com/cloudapidoc/API_Docs',
                 'fees': 'https://cdax.io/about/fee',
+            },
+            'options': {
+                'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
+                'api': 'api', // or api-aws for clients hosted on AWS
+                'ws': {
+                    'gunzip': true,
+                },
             },
         });
     }
