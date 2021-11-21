@@ -766,7 +766,6 @@ class huobi(Exchange):
                 'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': True,
-                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
                 'broker': {
@@ -1400,11 +1399,10 @@ class huobi(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
-        method = self.options['fetchBalanceMethod']
         request = {
-            'id': self.accounts[0]['id'],
+            'account-id': self.accounts[0]['id'],
         }
-        response = getattr(self, method)(self.extend(request, params))
+        response = self.spotPrivateGetV1AccountAccountsAccountIdBalance(self.extend(request, params))
         balances = self.safe_value(response['data'], 'list', [])
         result = {'info': response}
         for i in range(0, len(balances)):
