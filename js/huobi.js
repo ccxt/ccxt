@@ -259,6 +259,7 @@ module.exports = class huobi extends Exchange {
                             'v1/common/currencys': 1,
                             'v2/reference/currencies': 1,
                             'v1/common/timestamp': 1,
+                            'v1/common/exchange': 1, // order limits
                             // Market Data
                             'market/history/kline': 1,
                             'market/detail/merged': 1,
@@ -794,7 +795,7 @@ module.exports = class huobi extends Exchange {
         const request = {
             'symbol': id,
         };
-        const response = await this.publicGetCommonExchange (this.extend (request, params));
+        const response = await this.spotPublicGetV1CommonExchange (this.extend (request, params));
         //
         //     { status:   "ok",
         //         data: {                                  symbol: "aidocbtc",
