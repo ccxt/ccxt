@@ -1868,7 +1868,7 @@ module.exports = class huobi extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.v2PrivateGetAccountDepositAddress (this.extend (request, params));
+        const response = await this.spotPrivateGetV2AccountDepositAddress (this.extend (request, params));
         //
         //     {
         //         code: 200,
