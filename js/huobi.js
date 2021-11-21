@@ -726,6 +726,7 @@ module.exports = class huobi extends Exchange {
                     // err-msg
                     'invalid symbol': BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'symbol trade not open now': BadSymbol, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
+                    'require-symbol': BadSymbol, // {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null}
                 },
             },
             'options': {
@@ -743,7 +744,6 @@ module.exports = class huobi extends Exchange {
                 'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': true,
-                'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
@@ -1702,8 +1702,7 @@ module.exports = class huobi extends Exchange {
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const method = this.options['createOrderMethod'];
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
         const timestamp = this.milliseconds ();
         const id = this.safeString (response, 'data');
         return {
