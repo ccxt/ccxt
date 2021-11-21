@@ -792,7 +792,7 @@ class huobi(Exchange):
         })
 
     async def fetch_time(self, params={}):
-        response = await self.publicGetCommonTimestamp(params)
+        response = await self.spotPublicGetV1CommonTimestamp(params)
         return self.safe_integer(response, 'data')
 
     async def fetch_trading_limits(self, symbols=None, params={}):

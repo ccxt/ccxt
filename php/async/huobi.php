@@ -776,7 +776,7 @@ class huobi extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        $response = yield $this->publicGetCommonTimestamp ($params);
+        $response = yield $this->spotPublicGetV1CommonTimestamp ($params);
         return $this->safe_integer($response, 'data');
     }
 
