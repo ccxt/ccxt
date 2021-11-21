@@ -265,6 +265,7 @@ class huobi extends Exchange {
                             'v1/common/currencys' => 1,
                             'v2/reference/currencies' => 1,
                             'v1/common/timestamp' => 1,
+                            'v1/common/exchange' => 1, // order limits
                             // Market Data
                             'market/history/kline' => 1,
                             'market/detail/merged' => 1,
@@ -800,7 +801,7 @@ class huobi extends Exchange {
         $request = array(
             'symbol' => $id,
         );
-        $response = yield $this->publicGetCommonExchange (array_merge($request, $params));
+        $response = yield $this->spotPublicGetV1CommonExchange (array_merge($request, $params));
         //
         //     { status =>   "ok",
         //         data => {                                  symbol => "aidocbtc",
@@ -1004,6 +1005,58 @@ class huobi extends Exchange {
         ), $market);
     }
 
+    public function fetch_ticker($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = yield $this->marketGetDetailMerged (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "ok",
+        //         "ch" => "market.btcusdt.detail.merged",
+        //         "ts" => 1583494336669,
+        //         "tick" => {
+        //             "amount" => 26228.672978342216,
+        //             "open" => 9078.95,
+        //             "close" => 9146.86,
+        //             "high" => 9155.41,
+        //             "id" => 209988544334,
+        //             "count" => 265846,
+        //             "low" => 8988.0,
+        //             "version" => 209988544334,
+        //             "ask" => array( 9146.87, 0.156134 ),
+        //             "vol" => 2.3822168242201668E8,
+        //             "bid" => array( 9146.86, 0.080758 ),
+        //         }
+        //     }
+        //
+        $ticker = $this->parse_ticker($response['tick'], $market);
+        $timestamp = $this->safe_integer($response, 'ts');
+        $ticker['timestamp'] = $timestamp;
+        $ticker['datetime'] = $this->iso8601($timestamp);
+        return $ticker;
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->spotPublicGetMarketTickers ($params);
+        $tickers = $this->safe_value($response, 'data');
+        $timestamp = $this->safe_integer($response, 'ts');
+        $result = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $marketId = $this->safe_string($tickers[$i], 'symbol');
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            $ticker = $this->parse_ticker($tickers[$i], $market);
+            $ticker['timestamp'] = $timestamp;
+            $ticker['datetime'] = $this->iso8601($timestamp);
+            $result[$symbol] = $ticker;
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -1044,58 +1097,6 @@ class huobi extends Exchange {
             return $result;
         }
         throw new ExchangeError($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json($response));
-    }
-
-    public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->marketGetDetailMerged (array_merge($request, $params));
-        //
-        //     {
-        //         "status" => "ok",
-        //         "ch" => "market.btcusdt.detail.merged",
-        //         "ts" => 1583494336669,
-        //         "tick" => {
-        //             "amount" => 26228.672978342216,
-        //             "open" => 9078.95,
-        //             "close" => 9146.86,
-        //             "high" => 9155.41,
-        //             "id" => 209988544334,
-        //             "count" => 265846,
-        //             "low" => 8988.0,
-        //             "version" => 209988544334,
-        //             "ask" => array( 9146.87, 0.156134 ),
-        //             "vol" => 2.3822168242201668E8,
-        //             "bid" => array( 9146.86, 0.080758 ),
-        //         }
-        //     }
-        //
-        $ticker = $this->parse_ticker($response['tick'], $market);
-        $timestamp = $this->safe_integer($response, 'ts');
-        $ticker['timestamp'] = $timestamp;
-        $ticker['datetime'] = $this->iso8601($timestamp);
-        return $ticker;
-    }
-
-    public function fetch_tickers($symbols = null, $params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->marketGetTickers ($params);
-        $tickers = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_integer($response, 'ts');
-        $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $marketId = $this->safe_string($tickers[$i], 'symbol');
-            $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
-            $ticker = $this->parse_ticker($tickers[$i], $market);
-            $ticker['timestamp'] = $timestamp;
-            $ticker['datetime'] = $this->iso8601($timestamp);
-            $result[$symbol] = $ticker;
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_trade($trade, $market = null) {
