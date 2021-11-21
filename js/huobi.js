@@ -1302,7 +1302,7 @@ module.exports = class huobi extends Exchange {
 
     async fetchAccounts (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountAccounts (params);
+        const response = await this.spotPrivateGetV1AccountAccounts (params);
         return response['data'];
     }
 
