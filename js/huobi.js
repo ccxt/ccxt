@@ -1728,10 +1728,17 @@ module.exports = class huobi extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const request = {
-            'order-id': id,
-        };
-        const response = await this.spotPrivatePostV1OrderOrdersOrderIdSubmitcancel (this.extend (request, params));
+        const clientOrderId = this.safeString2 (params, 'client-order-id', 'clientOrderId');
+        const request = {};
+        let method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
+        if (clientOrderId === undefined) {
+            request['order-id'] = id;
+        } else {
+            request['client-order-id'] = clientOrderId;
+            method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
+            params = this.omit (params, [ 'client-order-id', 'clientOrderId' ]);
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         'status': 'ok',
