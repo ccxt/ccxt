@@ -772,8 +772,25 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.spotPublicGetV1CommonTimestamp (params);
-        return this.safeInteger (response, 'data');
+        const options = this.safeValue (this.options, 'fetchTime', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        let method = 'spotPublicGetV1CommonTimestamp';
+        if ((type === 'future') || (type === 'swap')) {
+            method = 'contractPublicGetApiV1Timestamp';
+        }
+        const response = await this[method] (params);
+        //
+        // spot
+        //
+        //     {"status":"ok","data":1637504261099}
+        //
+        // future, swap
+        //
+        //     {"status":"ok","ts":1637504164707}
+        //
+        return this.safeInteger2 (response, 'data', 'ts');
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
@@ -850,14 +867,14 @@ module.exports = class huobi extends Exchange {
     async fetchMarkets (params = {}) {
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const fetchMarketsType = this.safeString (options, 'type', defaultType);
-        const type = this.safeString (params, 'type', fetchMarketsType);
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
         if ((type !== 'spot') && (type !== 'future') && (type !== 'swap')) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'"); // eslint-disable-line quotes
         }
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        const fetchMarketsSubType = this.safeString (options, 'subType', defaultSubType);
-        const subType = this.safeString (params, 'subType', fetchMarketsSubType);
+        let subType = this.safeString (options, 'subType', defaultSubType);
+        subType = this.safeString (params, 'subType', subType);
         if ((subType !== 'inverse') && (subType !== 'linear')) {
             throw new ExchangeError (this.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
         }
@@ -1228,7 +1245,7 @@ module.exports = class huobi extends Exchange {
         //         }
         //     }
         //
-        // future
+        // future, swap
         //
         //     {
         //         "ch":"market.BTC211126.detail.merged",
@@ -1247,27 +1264,6 @@ module.exports = class huobi extends Exchange {
         //             "vol":"394598"
         //         },
         //         "ts":1637502670059
-        //     }
-        //
-        // swaps
-        //
-        //     {
-        //         "ch":"market.BTC-USD.detail.merged",
-        //         "status":"ok",
-        //         "tick":{
-        //             "amount":"16857.96195264216972177875259405303584212",
-        //             "ask":[58768.9,3101],
-        //             "bid":[58768.8,4885],
-        //             "close":"58765.1",
-        //             "count":76595,
-        //             "high":"59845",
-        //             "id":1637503316,
-        //             "low":"57441.3",
-        //             "open":"57692.1",
-        //             "ts":1637503316951,
-        //             "vol":"9924770"
-        //         },
-        //         "ts":1637503316951
         //     }
         //
         const tick = this.safeValue (response, 'tick', {});
