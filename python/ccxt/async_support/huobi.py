@@ -764,7 +764,7 @@ class huobi(Exchange):
                     'OMNI': '',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
+                'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders',  # 'spot_private_get_v1_order_history'  # https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': True,
                 'language': 'en-US',
@@ -1430,7 +1430,7 @@ class huobi(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders')
+        method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {status:   "ok",
@@ -1454,9 +1454,9 @@ class huobi(Exchange):
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
-            'id': id,
+            'order-id': id,
         }
-        response = await self.privateGetOrderOrdersId(self.extend(request, params))
+        response = await self.spotPrivateGetV1OrderOrdersOrderId(self.extend(request, params))
         order = self.safe_value(response, 'data')
         return self.parse_order(order)
 
@@ -1496,7 +1496,7 @@ class huobi(Exchange):
         if limit is not None:
             request['size'] = limit
         omitted = self.omit(params, 'account-id')
-        response = await self.privateGetOrderOpenOrders(self.extend(request, omitted))
+        response = await self.spotPrivateGetV1OrderOpenOrders(self.extend(request, omitted))
         #
         #     {
         #         "status":"ok",
@@ -2007,7 +2007,7 @@ class huobi(Exchange):
             else:
                 request['chain'] = network + currency['id']
             params = self.omit(params, 'network')
-        response = await self.privatePostDwWithdrawApiCreate(self.extend(request, params))
+        response = await self.spotPrivatePostV1DwWithdrawApiCreate(self.extend(request, params))
         id = self.safe_string(response, 'data')
         return {
             'info': response,

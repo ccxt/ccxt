@@ -746,7 +746,7 @@ class huobi extends Exchange {
                     'OMNI' => '',
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                'fetchOrdersByStatesMethod' => 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice' => true,
                 'language' => 'en-US',
@@ -1463,7 +1463,7 @@ class huobi extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
+        $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders');
         $response = $this->$method (array_merge($request, $params));
         //
         //     { status =>   "ok",
@@ -1488,9 +1488,9 @@ class huobi extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'id' => $id,
+            'order-id' => $id,
         );
-        $response = $this->privateGetOrderOrdersId (array_merge($request, $params));
+        $response = $this->spotPrivateGetV1OrderOrdersOrderId (array_merge($request, $params));
         $order = $this->safe_value($response, 'data');
         return $this->parse_order($order);
     }
@@ -1542,7 +1542,7 @@ class huobi extends Exchange {
             $request['size'] = $limit;
         }
         $omitted = $this->omit($params, 'account-id');
-        $response = $this->privateGetOrderOpenOrders (array_merge($request, $omitted));
+        $response = $this->spotPrivateGetV1OrderOpenOrders (array_merge($request, $omitted));
         //
         //     {
         //         "status":"ok",
@@ -2101,7 +2101,7 @@ class huobi extends Exchange {
             }
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privatePostDwWithdrawApiCreate (array_merge($request, $params));
+        $response = $this->spotPrivatePostV1DwWithdrawApiCreate (array_merge($request, $params));
         $id = $this->safe_string($response, 'data');
         return array(
             'info' => $response,
