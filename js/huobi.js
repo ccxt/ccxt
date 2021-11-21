@@ -743,7 +743,6 @@ module.exports = class huobi extends Exchange {
                 'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
                 'broker': {
@@ -1422,11 +1421,10 @@ module.exports = class huobi extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const method = this.options['fetchBalanceMethod'];
         const request = {
-            'id': this.accounts[0]['id'],
+            'account-id': this.accounts[0]['id'],
         };
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance (this.extend (request, params));
         const balances = this.safeValue (response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
