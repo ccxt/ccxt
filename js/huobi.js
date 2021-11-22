@@ -872,12 +872,6 @@ module.exports = class huobi extends Exchange {
         if ((type !== 'spot') && (type !== 'future') && (type !== 'swap')) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'"); // eslint-disable-line quotes
         }
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString (options, 'subType', defaultSubType);
-        subType = this.safeString (params, 'subType', subType);
-        if ((subType !== 'inverse') && (subType !== 'linear')) {
-            throw new ExchangeError (this.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
-        }
         let method = 'spotPublicGetV1CommonSymbols';
         const query = this.omit (params, [ 'type', 'subType' ]);
         const spot = (type === 'spot');
@@ -887,6 +881,12 @@ module.exports = class huobi extends Exchange {
         let linear = undefined;
         let inverse = undefined;
         if (contract) {
+            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+            let subType = this.safeString (options, 'subType', defaultSubType);
+            subType = this.safeString (params, 'subType', subType);
+            if ((subType !== 'inverse') && (subType !== 'linear')) {
+                throw new ExchangeError (this.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
+            }
             linear = (subType === 'linear');
             inverse = (subType === 'inverse') || future;
             if (future) {
