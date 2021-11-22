@@ -1337,10 +1337,32 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            //
+            // from the API docs
+            //
+            //     to get depth data within step 150, use step0, step1, step2, step3, step4, step5, step14, step15（merged depth data 0-5,14-15, when step is 0，depth data will not be merged
+            //     to get depth data within step 20, use step6, step7, step8, step9, step10, step11, step12, step13(merged depth data 7-13), when step is 6, depth data will not be merged
+            //
             'type': 'step0',
+            // 'symbol': market['id'], // spot, future
+            // 'contract_code': market['id'], // swap
         };
-        const response = await this.spotPublicGetMarketDepth (this.extend (request, params));
+        let fieldName = 'symbol';
+        let method = 'spotPublicGetMarketDepth';
+        if (market['future']) {
+            method = 'contractPublicGetMarketDepth';
+        } else if (market['swap']) {
+            if (market['inverse']) {
+                method = 'contractPublicGetSwapExMarketDepth';
+            } else if (market['linear']) {
+                method = 'contractPublicGetLinearSwapExMarketDepth';
+            }
+            fieldName = 'contract_code';
+        }
+        request[fieldName] = market['id'];
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot, future, swap
         //
         //     {
         //         "status": "ok",
@@ -1357,7 +1379,10 @@ module.exports = class huobi extends Exchange {
         //                 [ 9101.010000000000000000, 0.287311000000000000 ],
         //                 [ 9101.030000000000000000, 0.012121000000000000 ],
         //             ],
+        //             "ch":"market.BTC-USD.depth.step0",
         //             "ts":1583474832008,
+        //             "id":1637554816,
+        //             "mrid":121654491624,
         //             "version":104999698780
         //         }
         //     }
