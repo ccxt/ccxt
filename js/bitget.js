@@ -767,16 +767,15 @@ module.exports = class bitget extends Exchange {
         //
         // spot
         //
-        //     {
-        //         "base_currency":"btc",
-        //         "quote_currency":"usdt",
-        //         "symbol":"btc_usdt",
-        //         "tick_size":"2",
-        //         "size_increment":"4",
-        //         "status":"1",
-        //         "base_asset_precision":"8"
-        //     }
-        //
+        //      {
+        //          "symbol": "BTC_USDT",
+        //          "status": "online",
+        //          "base_currency": "BTC",
+        //          "quote_currency": "USDT",
+        //          "tick_size": "2",
+        //          "size_increment": "4",
+        //          "base_asset_precision": "4"
+        //      }
         //
         // swap
         //
@@ -822,7 +821,7 @@ module.exports = class bitget extends Exchange {
         const status = this.safeString (market, 'status');
         let active = undefined;
         if (status !== undefined) {
-            active = (status === '1');
+            active = (status === '1') || (status === 'online');
         }
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
         return this.extend (fees, {
