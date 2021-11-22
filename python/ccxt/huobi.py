@@ -886,11 +886,6 @@ class huobi(Exchange):
         type = self.safe_string(params, 'type', type)
         if (type != 'spot') and (type != 'future') and (type != 'swap'):
             raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'")  # eslint-disable-line quotes
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        subType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', subType)
-        if (subType != 'inverse') and (subType != 'linear'):
-            raise ExchangeError(self.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'")  # eslint-disable-line quotes
         method = 'spotPublicGetV1CommonSymbols'
         query = self.omit(params, ['type', 'subType'])
         spot = (type == 'spot')
@@ -900,6 +895,11 @@ class huobi(Exchange):
         linear = None
         inverse = None
         if contract:
+            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
+            subType = self.safe_string(options, 'subType', defaultSubType)
+            subType = self.safe_string(params, 'subType', subType)
+            if (subType != 'inverse') and (subType != 'linear'):
+                raise ExchangeError(self.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'")  # eslint-disable-line quotes
             linear = (subType == 'linear')
             inverse = (subType == 'inverse') or future
             if future:

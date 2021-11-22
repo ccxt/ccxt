@@ -878,12 +878,6 @@ class huobi extends Exchange {
         if (($type !== 'spot') && ($type !== 'future') && ($type !== 'swap')) {
             throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'"); // eslint-disable-line quotes
         }
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-        $subType = $this->safe_string($options, 'subType', $defaultSubType);
-        $subType = $this->safe_string($params, 'subType', $subType);
-        if (($subType !== 'inverse') && ($subType !== 'linear')) {
-            throw new ExchangeError($this->id . " does not support '" . $subType . "' $type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
-        }
         $method = 'spotPublicGetV1CommonSymbols';
         $query = $this->omit($params, array( 'type', 'subType' ));
         $spot = ($type === 'spot');
@@ -893,6 +887,12 @@ class huobi extends Exchange {
         $linear = null;
         $inverse = null;
         if ($contract) {
+            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+            $subType = $this->safe_string($options, 'subType', $defaultSubType);
+            $subType = $this->safe_string($params, 'subType', $subType);
+            if (($subType !== 'inverse') && ($subType !== 'linear')) {
+                throw new ExchangeError($this->id . " does not support '" . $subType . "' $type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
+            }
             $linear = ($subType === 'linear');
             $inverse = ($subType === 'inverse') || $future;
             if ($future) {
