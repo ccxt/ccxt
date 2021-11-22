@@ -294,7 +294,6 @@ class gateio(Exchange):
                 'MPH': 'Morpher',  # conflict with 88MPH
                 'RAI': 'Rai Reflex Index',  # conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
-                'STX': 'Stox',
                 'TNC': 'Trinity Network Credit',
                 'TON': 'TONToken',
                 'VAI': 'VAIOT',
