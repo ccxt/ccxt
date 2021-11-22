@@ -929,15 +929,15 @@ module.exports = class bitmart extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // public fetchTrades spot
+        // public fetchTrades spot ( amount = count * price )
         //
         //     {
-        //         "amount":"0.005703",
-        //         "order_time":1599652045394,
-        //         "price":"0.034029",
-        //         "count":"0.1676",
-        //         "type":"sell"
-        //     }
+        //          "amount": "818.94",
+        //          "order_time": "1637601839035",    // ETH/USDT
+        //          "price": "4221.99",
+        //          "count": "0.19397",
+        //          "type": "buy"
+        //      }
         //
         // public fetchTrades contract, private fetchMyTrades contract
         //
@@ -995,9 +995,9 @@ module.exports = class bitmart extends Exchange {
         }
         let priceString = this.safeString2 (trade, 'price', 'deal_price');
         priceString = this.safeString (trade, 'price_avg', priceString);
-        let amountString = this.safeString2 (trade, 'amount', 'deal_vol');
+        let amountString = this.safeString2 (trade, 'count', 'deal_vol');
         amountString = this.safeString (trade, 'size', amountString);
-        const costString = this.safeString2 (trade, 'count', 'notional');
+        const costString = this.safeString2 (trade, 'amount', 'notional');
         const orderId = this.safeInteger (trade, 'order_id');
         const marketId = this.safeString2 (trade, 'contract_id', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
