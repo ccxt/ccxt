@@ -1566,12 +1566,25 @@ class huobi(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
             'period': self.timeframes[timeframe],
+            # 'symbol': market['id'],  # spot, future
+            # 'contract_code': market['id'],  # swap
+            # 'side': limit,  # max 2000
         }
+        fieldName = 'symbol'
+        method = 'spotPublicGetMarketHistoryKline'
+        if market['future']:
+            method = 'contractPublicGetMarketHistoryKline'
+        elif market['swap']:
+            if market['inverse']:
+                method = 'contractPublicGetSwapExMarketHistoryKline'
+            elif market['linear']:
+                method = 'contractPublicGetLinearSwapExMarketHistoryKline'
+            fieldName = 'contract_code'
+        request[fieldName] = market['id']
         if limit is not None:
-            request['size'] = limit
-        response = await self.spotPublicGetMarketHistoryKline(self.extend(request, params))
+            request['size'] = limit  # max 2000
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "status":"ok",
