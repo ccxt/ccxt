@@ -1607,13 +1607,28 @@ class huobi extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['id'],
             'period' => $this->timeframes[$timeframe],
+            // 'symbol' => $market['id'], // spot, future
+            // 'contract_code' => $market['id'], // swap
+            // 'side' => $limit, // max 2000
         );
-        if ($limit !== null) {
-            $request['size'] = $limit;
+        $fieldName = 'symbol';
+        $method = 'spotPublicGetMarketHistoryKline';
+        if ($market['future']) {
+            $method = 'contractPublicGetMarketHistoryKline';
+        } else if ($market['swap']) {
+            if ($market['inverse']) {
+                $method = 'contractPublicGetSwapExMarketHistoryKline';
+            } else if ($market['linear']) {
+                $method = 'contractPublicGetLinearSwapExMarketHistoryKline';
+            }
+            $fieldName = 'contract_code';
         }
-        $response = yield $this->spotPublicGetMarketHistoryKline (array_merge($request, $params));
+        $request[$fieldName] = $market['id'];
+        if ($limit !== null) {
+            $request['size'] = $limit; // max 2000
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
         //         "status":"ok",
