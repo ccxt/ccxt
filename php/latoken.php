@@ -146,6 +146,7 @@ class latoken extends Exchange {
                     'INSUFFICIENT_AUTHENTICATION' => '\\ccxt\\AuthenticationError', // for example, 2FA required.
                     'UNKNOWN_LOCATION' => '\\ccxt\\AuthenticationError', // user logged from unusual location, email confirmation required.
                     'TOO_MANY_REQUESTS' => '\\ccxt\\RateLimitExceeded', // too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
+                    'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds', // array("message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE")
                 ),
                 'broad' => array(
                     'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError', // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
@@ -660,13 +661,10 @@ class latoken extends Exchange {
             'currency' => $market['baseId'],
             'quote' => $market['quoteId'],
             // 'from' => (string) $since, // milliseconds
-            // 'limit' => $limit, // default 100
+            // 'limit' => $limit, // default 100, max 1000
         );
-        if ($since !== null) {
-            $request['from'] = (string) $since;
-        }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 50, max 100
+            $request['limit'] = $limit; // default 100, max 1000
         }
         $response = $this->publicGetTradeHistoryCurrencyQuote (array_merge($request, $params));
         //

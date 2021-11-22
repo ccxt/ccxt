@@ -279,7 +279,6 @@ module.exports = class gateio extends Exchange {
                 'MPH': 'Morpher', // conflict with 88MPH
                 'RAI': 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
-                'STX': 'Stox',
                 'TNC': 'Trinity Network Credit',
                 'TON': 'TONToken',
                 'VAI': 'VAIOT',
@@ -2051,7 +2050,7 @@ module.exports = class gateio extends Exchange {
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
         if (isLimitOrder && price === undefined) {
-            throw new ArgumentsRequired ('createOrder parameter price is required for ' + type + ' orders');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for ' + type + ' orders');
         }
         if (contract) {
             const amountToPrecision = this.amountToPrecision (symbol, amount);

@@ -695,6 +695,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - Japan
+     - .. image:: https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg
+          :target: https://www.huobi.co.jp/register/?invite_code=znnq3
+          :alt: huobijp
+     
+     - huobijp
+     - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://api-doc.huobi.co.jp
+          :alt: API Version 1
+     
+   * - Japan
      - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
           :target: https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976
           :alt: liquid
@@ -869,6 +880,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.buda.com
           :alt: API Version 2
+     
+   * - Russia
+     - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
+          :target: https://cdax.io/invite?invite_code=esc74
+          :alt: cdax
+     
+     - cdax
+     - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://github.com/cloudapidoc/API_Docs
+          :alt: API Version 1
      
    * - Russia
      - .. image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg
@@ -1364,6 +1386,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://bittrex.github.io/api/v3
           :alt: API Version 3
+     
+   * - US
+     - .. image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg
+          :target: https://btc-alpha.com/?r=123788
+          :alt: btcalpha
+     
+     - btcalpha
+     - `BTC-Alpha <https://btc-alpha.com/?r=123788>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://btc-alpha.github.io/api-docs
+          :alt: API Version 1
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg

@@ -971,6 +971,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
             'INSUFFICIENT': 'canceled',
+            'POSTONLY': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         };
@@ -1037,6 +1038,8 @@ module.exports = class bitfinex2 extends bitfinex {
         const market = this.market (symbol);
         const orderTypes = this.safeValue (this.options, 'orderTypes', {});
         const orderType = this.safeStringUpper (orderTypes, type, type);
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        params = this.omit (params, [ 'postOnly' ]);
         amount = (side === 'sell') ? -amount : amount;
         const request = {
             // 'gid': 0123456789, // int32,  optional group id for the order
@@ -1055,6 +1058,9 @@ module.exports = class bitfinex2 extends bitfinex {
             //     'aff_code': 'AFF_CODE_HERE'
             // },
         };
+        if (postOnly) {
+            request['flags'] = 4096;
+        }
         if ((orderType === 'LIMIT') || (orderType === 'EXCHANGE LIMIT')) {
             request['price'] = this.numberToString (price);
         } else if ((orderType === 'STOP') || (orderType === 'EXCHANGE STOP')) {

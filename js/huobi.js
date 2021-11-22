@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -65,13 +65,22 @@ module.exports = class huobi extends Exchange {
                 '1y': '1year',
             },
             'urls': {
-                'test': {
-                    'market': 'https://api.testnet.huobi.pro',
-                    'public': 'https://api.testnet.huobi.pro',
-                    'private': 'https://api.testnet.huobi.pro',
-                },
+                // 'test': {
+                //     'market': 'https://api.testnet.huobi.pro',
+                //     'public': 'https://api.testnet.huobi.pro',
+                //     'private': 'https://api.testnet.huobi.pro',
+                // },
                 'logo': 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
+                'hostnames': {
+                    'contract': 'api.hbdm.com',
+                    'spot': 'api.huobi.pro',
+                    // recommended for AWS
+                    // 'contract': 'api.hbdm.vn',
+                    // 'spot': 'api-aws.huobi.pro',
+                },
                 'api': {
+                    'contract': 'https://{hostname}',
+                    'spot': 'https://{hostname}',
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
@@ -93,6 +102,8 @@ module.exports = class huobi extends Exchange {
                 'fees': 'https://www.huobi.com/about/fee/',
             },
             'api': {
+                // ------------------------------------------------------------
+                // old api definitions
                 'v2Public': {
                     'get': {
                         'reference/currencies': 1, // 币链参考信息
@@ -234,6 +245,443 @@ module.exports = class huobi extends Exchange {
                         'subuser/transfer': 10,
                     },
                 },
+                // ------------------------------------------------------------
+                // new api definitions
+                // 'https://status.huobigroup.com/api/v2/summary.json': 1,
+                // 'https://status-dm.huobigroup.com/api/v2/summary.json': 1,
+                // 'https://status-swap.huobigroup.com/api/v2/summary.json': 1,
+                // 'https://status-linear-swap.huobigroup.com/api/v2/summary.json': 1,
+                'spot': {
+                    'public': {
+                        'get': {
+                            'v2/market-status': 1,
+                            'v1/common/symbols': 1,
+                            'v1/common/currencys': 1,
+                            'v2/reference/currencies': 1,
+                            'v1/common/timestamp': 1,
+                            'v1/common/exchange': 1, // order limits
+                            // Market Data
+                            'market/history/kline': 1,
+                            'market/detail/merged': 1,
+                            'market/tickers': 1,
+                            'market/depth': 1,
+                            'market/trade': 1,
+                            'market/history/trade': 1,
+                            'market/detail/': 1,
+                            'market/etp': 1,
+                            // ETP
+                            'v2/etp/reference': 1,
+                            'v2/etp/rebalance': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            // Account
+                            'v1/account/accounts': 0.2,
+                            'v1/account/accounts/{account-id}/balance': 0.2,
+                            'v2/account/valuation': 1,
+                            'v2/account/asset-valuation': 0.2,
+                            'v1/account/history': 4,
+                            'v2/account/ledger': 1,
+                            'v2/point/account': 5,
+                            // Wallet (Deposit and Withdraw)
+                            'v2/account/deposit/address': 1,
+                            'v2/account/withdraw/quota': 1,
+                            'v2/account/withdraw/address': 1,
+                            'v2/reference/currencies': 1,
+                            'v1/query/deposit-withdraw': 1,
+                            // Sub user management
+                            'v2/user/api-key': 1,
+                            'v2/user/uid': 1,
+                            'v2/sub-user/user-list': 1,
+                            'v2/sub-user/user-state': 1,
+                            'v2/sub-user/account-list': 1,
+                            'v2/sub-user/deposit-address': 1,
+                            'v2/sub-user/query-deposit': 1,
+                            'v1/subuser/aggregate-balance': 10,
+                            'v1/account/accounts/{sub-uid}': 1,
+                            // Trading
+                            'v1/order/openOrders': 0.4,
+                            'v1/order/orders/{order-id}': 0.4,
+                            'v1/order/orders/getClientOrder': 0.4,
+                            'v1/order/orders/{order-id}/matchresults': 0.4,
+                            'v1/order/orders': 0.4,
+                            'v1/order/history': 1,
+                            'v1/order/matchresults': 1,
+                            'v2/reference/transact-fee-rate': 1,
+                            // Conditional Order
+                            'v2/algo-orders/opening': 1,
+                            'v2/algo-orders/history': 1,
+                            'v2/algo-orders/specific': 1,
+                            // Margin Loan (Cross/Isolated)
+                            'v1/margin/loan-info': 1,
+                            'v1/margin/loan-orders': 0.2,
+                            'v1/margin/accounts/balance': 0.2,
+                            'v1/cross-margin/loan-info': 1,
+                            'v1/cross-margin/loan-orders': 1,
+                            'v1/cross-margin/accounts/balance': 1,
+                            'v2/account/repayment': 5,
+                            // Stable Coin Exchange
+                            'v1/stable-coin/quote': 1,
+                            // ETP
+                            'v2/etp/transactions': 5,
+                            'v2/etp/transaction': 5,
+                            'v2/etp/limit': 1,
+                        },
+                        'post': {
+                            // Account
+                            'v1/account/transfer': 1,
+                            'v1/futures/transfer': 1, // future transfers
+                            'v2/point/transfer': 5,
+                            'v2/account/transfer': 1, // swap transfers
+                            // Wallet (Deposit and Withdraw)
+                            'v1/dw/withdraw/api/create': 1,
+                            'v1/dw/withdraw-virtual/{withdraw-id}/cancel': 1,
+                            // Sub user management
+                            'v2/sub-user/deduct-mode': 1,
+                            'v2/sub-user/creation': 1,
+                            'v2/sub-user/management': 1,
+                            'v2/sub-user/tradable-market': 1,
+                            'v2/sub-user/transferability': 1,
+                            'v2/sub-user/api-key-generation': 1,
+                            'v2/sub-user/api-key-modification': 1,
+                            'v2/sub-user/api-key-deletion': 1,
+                            'v1/subuser/transfer': 10,
+                            // Trading
+                            'v1/order/orders/place': 0.2,
+                            'v1/order/batch-orders': 0.4,
+                            'v1/order/orders/{order-id}/submitcancel': 0.2,
+                            'v1/order/orders/submitCancelClientOrder': 0.2,
+                            'v1/order/orders/batchCancelOpenOrders': 0.4,
+                            'v1/order/orders/batchcancel': 0.4,
+                            'v2/algo-orders/cancel-all-after': 1,
+                            // Conditional Order
+                            'v2/algo-orders': 1,
+                            'v2/algo-orders/cancellation': 1,
+                            // Margin Loan (Cross/Isolated)
+                            'v2/account/repayment': 5,
+                            'v1/dw/transfer-in/margin': 10,
+                            'v1/dw/transfer-out/margin': 10,
+                            'v1/margin/orders': 10,
+                            'v1/margin/orders/{order-id}/repay': 10,
+                            'v1/cross-margin/transfer-in': 1,
+                            'v1/cross-margin/transfer-out': 1,
+                            'v1/cross-margin/orders': 1,
+                            'v1/cross-margin/orders/{order-id}/repay': 1,
+                            // Stable Coin Exchange
+                            'v1/stable-coin/exchange': 1,
+                            // ETP
+                            'v2/etp/creation': 5,
+                            'v2/etp/redemption': 5,
+                            'v2/etp/{transactId}/cancel': 10,
+                            'v2/etp/batch-cancel': 50,
+                        },
+                    },
+                },
+                'contract': {
+                    'public': {
+                        'get': {
+                            'api/v1/timestamp': 1,
+                            // Future Market Data interface
+                            'api/v1/contract_contract_info': 1,
+                            'api/v1/contract_index': 1,
+                            'api/v1/contract_price_limit': 1,
+                            'api/v1/contract_open_interest': 1,
+                            'api/v1/contract_delivery_price': 1,
+                            'market/depth': 1,
+                            'market/bbo': 1,
+                            'market/history/kline': 1,
+                            'index/market/history/mark_price_kline': 1,
+                            'market/detail/merged': 1,
+                            'market/detail/batch_merged': 1,
+                            'market/trade': 1,
+                            'market/history/trade': 1,
+                            'api/v1/contract_risk_info': 1,
+                            'api/v1/contract_insurance_fund': 1,
+                            'api/v1/contract_adjustfactor': 1,
+                            'api/v1/contract_his_open_interest': 1,
+                            'api/v1/contract_ladder_margin': 1,
+                            'api/v1/contract_api_state': 1,
+                            'api/v1/contract_elite_account_ratio': 1,
+                            'api/v1/contract_elite_position_ratio': 1,
+                            'api/v1/contract_liquidation_orders': 1,
+                            'api/v1/contract_settlement_records': 1,
+                            'index/market/history/index': 1,
+                            'index/market/history/basis': 1,
+                            'api/v1/contract_estimated_settlement_price': 1,
+                            // Swap Market Data interface
+                            'swap-api/v1/swap_contract_info': 1,
+                            'swap-api/v1/swap_index': 1,
+                            'swap-api/v1/swap_price_limit': 1,
+                            'swap-api/v1/swap_open_interest': 1,
+                            'swap-ex/market/depth': 1,
+                            'swap-ex/market/bbo': 1,
+                            'swap-ex/market/history/kline': 1,
+                            'index/market/history/swap_mark_price_kline': 1,
+                            'swap-ex/market/detail/merged': 1,
+                            'swap-ex/market/detail/batch_merged': 1,
+                            'swap-ex/market/trade': 1,
+                            'swap-ex/market/history/trade': 1,
+                            'swap-api/v1/swap_risk_info': 1,
+                            'swap-api/v1/swap_insurance_fund': 1,
+                            'swap-api/v1/swap_adjustfactor': 1,
+                            'swap-api/v1/swap_his_open_interest': 1,
+                            'swap-api/v1/swap_ladder_margin': 1,
+                            'swap-api/v1/swap_api_state': 1,
+                            'swap-api/v1/swap_elite_account_ratio': 1,
+                            'swap-api/v1/swap_elite_position_ratio': 1,
+                            'swap-api/v1/swap_estimated_settlement_price': 1,
+                            'swap-api/v1/swap_liquidation_orders': 1,
+                            'swap-api/v1/swap_settlement_records': 1,
+                            'swap-api/v1/swap_funding_rate': 1,
+                            'swap-api/v1/swap_batch_funding_rate': 1,
+                            'swap-api/v1/swap_historical_funding_rate': 1,
+                            'index/market/history/swap_premium_index_kline': 1,
+                            'index/market/history/swap_estimated_rate_kline': 1,
+                            'index/market/history/swap_basis': 1,
+                            // Swap Market Data interface
+                            'linear-swap-api/v1/swap_contract_info': 1,
+                            'linear-swap-api/v1/swap_index': 1,
+                            'linear-swap-api/v1/swap_price_limit': 1,
+                            'linear-swap-api/v1/swap_open_interest': 1,
+                            'linear-swap-ex/market/depth': 1,
+                            'linear-swap-ex/market/bbo': 1,
+                            'linear-swap-ex/market/history/kline': 1,
+                            'index/market/history/linear_swap_mark_price_kline': 1,
+                            'linear-swap-ex/market/detail/merged': 1,
+                            'linear-swap-ex/market/detail/batch_merged': 1,
+                            'linear-swap-ex/market/trade': 1,
+                            'linear-swap-ex/market/history/trade': 1,
+                            'linear-swap-api/v1/swap_risk_info': 1,
+                            'swap-api/v1/linear-swap-api/v1/swap_insurance_fund': 1,
+                            'linear-swap-api/v1/swap_adjustfactor': 1,
+                            'linear-swap-api/v1/swap_cross_adjustfactor': 1,
+                            'linear-swap-api/v1/swap_his_open_interest': 1,
+                            'linear-swap-api/v1/swap_ladder_margin': 1,
+                            'linear-swap-api/v1/swap_cross_ladder_margin': 1,
+                            'linear-swap-api/v1/swap_api_state': 1,
+                            'linear-swap-api/v1/swap_cross_transfer_state': 1,
+                            'linear-swap-api/v1/swap_cross_trade_state': 1,
+                            'linear-swap-api/v1/swap_elite_account_ratio': 1,
+                            'linear-swap-api/v1/swap_elite_position_ratio': 1,
+                            'linear-swap-api/v1/swap_liquidation_orders': 1,
+                            'linear-swap-api/v1/swap_settlement_records': 1,
+                            'linear-swap-api/v1/swap_funding_rate': 1,
+                            'linear-swap-api/v1/swap_batch_funding_rate': 1,
+                            'linear-swap-api/v1/swap_historical_funding_rate': 1,
+                            'index/market/history/linear_swap_premium_index_kline': 1,
+                            'index/market/history/linear_swap_estimated_rate_kline': 1,
+                            'index/market/history/linear_swap_basis': 1,
+                            'linear-swap-api/v1/swap_estimated_settlement_price': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            // Future Account Interface
+                            'api/v1/contract_api_trading_status': 1,
+                            // Swap Account Interface
+                            'swap-api/v1/swap_api_trading_status': 1,
+                            // Swap Account Interface
+                            'linear-swap-api/v1/swap_api_trading_status': 1,
+                        },
+                        'post': {
+                            // Future Account Interface
+                            'api/v1/contract_balance_valuation': 1,
+                            'api/v1/contract_account_info': 1,
+                            'api/v1/contract_position_info': 1,
+                            'api/v1/contract_sub_auth': 1,
+                            'api/v1/contract_sub_account_list': 1,
+                            'api/v1/contract_sub_account_info_list': 1,
+                            'api/v1/contract_sub_account_info': 1,
+                            'api/v1/contract_sub_position_info': 1,
+                            'api/v1/contract_financial_record': 1,
+                            'api/v1/contract_financial_record_exact': 1,
+                            'api/v1/contract_user_settlement_records': 1,
+                            'api/v1/contract_order_limit': 1,
+                            'api/v1/contract_fee': 1,
+                            'api/v1/contract_transfer_limit': 1,
+                            'api/v1/contract_position_limit': 1,
+                            'api/v1/contract_account_position_info': 1,
+                            'api/v1/contract_master_sub_transfer': 1,
+                            'api/v1/contract_master_sub_transfer_record': 1,
+                            'api/v1/contract_available_level_rate': 1,
+                            // Future Trade Interface
+                            'api/v1/contract_order': 1,
+                            'v1/contract_batchorder': 1,
+                            'api/v1/contract_cancel': 1,
+                            'api/v1/contract_cancelall': 1,
+                            'api/v1/contract_switch_lever_rate': 1,
+                            'api/v1/lightning_close_position': 1,
+                            'api/v1/contract_order_info': 1,
+                            'api/v1/contract_order_detail': 1,
+                            'api/v1/contract_openorders': 1,
+                            'api/v1/contract_hisorders': 1,
+                            'api/v1/contract_hisorders_exact': 1,
+                            'api/v1/contract_matchresults': 1,
+                            'api/v1/contract_matchresults_exact': 1,
+                            // Contract Strategy Order Interface
+                            'api/v1/contract_trigger_order': 1,
+                            'api/v1/contract_trigger_cancel': 1,
+                            'api/v1/contract_trigger_cancelall': 1,
+                            'api/v1/contract_trigger_openorders': 1,
+                            'api/v1/contract_trigger_hisorders': 1,
+                            'api/v1/contract_tpsl_order': 1,
+                            'api/v1/contract_tpsl_cancel': 1,
+                            'api/v1/contract_tpsl_cancelall': 1,
+                            'api/v1/contract_tpsl_openorders': 1,
+                            'api/v1/contract_tpsl_hisorders': 1,
+                            'api/v1/contract_relation_tpsl_order': 1,
+                            'api/v1/contract_track_order': 1,
+                            'api/v1/contract_track_cancel': 1,
+                            'api/v1/contract_track_cancelall': 1,
+                            'api/v1/contract_track_openorders': 1,
+                            'api/v1/contract_track_hisorders': 1,
+                            // Swap Account Interface
+                            'swap-api/v1/swap_balance_valuation': 1,
+                            'swap-api/v1/swap_account_info': 1,
+                            'swap-api/v1/swap_position_info': 1,
+                            'swap-api/v1/swap_account_position_info': 1,
+                            'swap-api/v1/swap_sub_auth': 1,
+                            'swap-api/v1/swap_sub_account_list': 1,
+                            'swap-api/v1/swap_sub_account_info_list': 1,
+                            'swap-api/v1/swap_sub_account_info': 1,
+                            'swap-api/v1/swap_sub_position_info': 1,
+                            'swap-api/v1/swap_financial_record': 1,
+                            'swap-api/v1/swap_financial_record_exact': 1,
+                            'swap-api/v1/swap_user_settlement_records': 1,
+                            'swap-api/v1/swap_available_level_rate': 1,
+                            'swap-api/v1/swap_order_limit': 1,
+                            'swap-api/v1/swap_fee': 1,
+                            'swap-api/v1/swap_transfer_limit': 1,
+                            'swap-api/v1/swap_position_limit': 1,
+                            'swap-api/v1/swap_master_sub_transfer': 1,
+                            'swap-api/v1/swap_master_sub_transfer_record': 1,
+                            // Swap Trade Interface
+                            'swap-api/v1/swap_order': 1,
+                            'swap-api/v1/swap_batchorder': 1,
+                            'swap-api/v1/swap_cancel': 1,
+                            'swap-api/v1/swap_cancelall': 1,
+                            'swap-api/v1/swap_lightning_close_position': 1,
+                            'swap-api/v1/swap_switch_lever_rate': 1,
+                            'swap-api/v1/swap_order_info': 1,
+                            'swap-api/v1/swap_order_detail': 1,
+                            'swap-api/v1/swap_openorders': 1,
+                            'swap-api/v1/swap_hisorders': 1,
+                            'swap-api/v1/swap_hisorders_exact': 1,
+                            'swap-api/v1/swap_matchresults': 1,
+                            'swap-api/v1/swap_matchresults_exact': 1,
+                            // Swap Strategy Order Interface
+                            'swap-api/v1/swap_trigger_order': 1,
+                            'swap-api/v1/swap_trigger_cancel': 1,
+                            'swap-api/v1/swap_trigger_cancelall': 1,
+                            'swap-api/v1/swap_trigger_openorders': 1,
+                            'swap-api/v1/swap_trigger_hisorders': 1,
+                            'swap-api/v1/swap_tpsl_order': 1,
+                            'swap-api/v1/swap_tpsl_cancel': 1,
+                            'swap-api/v1/swap_tpsl_cancelall': 1,
+                            'swap-api/v1/swap_tpsl_openorders': 1,
+                            'swap-api/v1/swap_tpsl_hisorders': 1,
+                            'swap-api/v1/swap_relation_tpsl_order': 1,
+                            'swap-api/v1/swap_track_order': 1,
+                            'swap-api/v1/swap_track_cancel': 1,
+                            'swap-api/v1/swap_track_cancelall': 1,
+                            'swap-api/v1/swap_track_openorders': 1,
+                            'swap-api/v1/swap_track_hisorders': 1,
+                            // Swap Account Interface
+                            'linear-swap-api/v1/swap_balance_valuation': 1,
+                            'linear-swap-api/v1/swap_account_info': 1,
+                            'linear-swap-api/v1/swap_cross_account_info': 1,
+                            'linear-swap-api/v1/swap_position_info': 1,
+                            'linear-swap-api/v1/swap_cross_position_info': 1,
+                            'linear-swap-api/v1/swap_account_position_info': 1,
+                            'linear-swap-api/v1/swap_cross_account_position_info': 1,
+                            'linear-swap-api/v1/swap_sub_auth': 1,
+                            'linear-swap-api/v1/swap_sub_account_list': 1,
+                            'linear-swap-api/v1/swap_cross_sub_account_list': 1,
+                            'linear-swap-api/v1/swap_sub_account_info_list': 1,
+                            'linear-swap-api/v1/swap_cross_sub_account_info_list': 1,
+                            'linear-swap-api/v1/swap_sub_account_info': 1,
+                            'linear-swap-api/v1/swap_cross_sub_account_info': 1,
+                            'linear-swap-api/v1/swap_sub_position_info': 1,
+                            'linear-swap-api/v1/swap_cross_sub_position_info': 1,
+                            'linear-swap-api/v1/swap_financial_record': 1,
+                            'linear-swap-api/v1/swap_financial_record_exact': 1,
+                            'linear-swap-api/v1/swap_user_settlement_records': 1,
+                            'linear-swap-api/v1/swap_cross_user_settlement_records': 1,
+                            'linear-swap-api/v1/swap_available_level_rate': 1,
+                            'linear-swap-api/v1/swap_cross_available_level_rate': 1,
+                            'linear-swap-api/v1/swap_order_limit': 1,
+                            'linear-swap-api/v1/swap_fee': 1,
+                            'linear-swap-api/v1/swap_transfer_limit': 1,
+                            'linear-swap-api/v1/swap_cross_transfer_limit': 1,
+                            'linear-swap-api/v1/swap_position_limit': 1,
+                            'linear-swap-api/v1/swap_cross_position_limit': 1,
+                            'linear-swap-api/v1/swap_master_sub_transfer': 1,
+                            'linear-swap-api/v1/swap_master_sub_transfer_record': 1,
+                            'linear-swap-api/v1/swap_transfer_inner': 1,
+                            // Swap Trade Interface
+                            'linear-swap-api/v1/swap_order': 1,
+                            'linear-swap-api/v1/swap_cross_order': 1,
+                            'linear-swap-api/v1/swap_batchorder': 1,
+                            'linear-swap-api/v1/swap_cross_batchorder': 1,
+                            'linear-swap-api/v1/swap_cancel': 1,
+                            'linear-swap-api/v1/swap_cross_cancel': 1,
+                            'linear-swap-api/v1/swap_cancelall': 1,
+                            'linear-swap-api/v1/swap_cross_cancelall': 1,
+                            'linear-swap-api/v1/swap_switch_lever_rate': 1,
+                            'linear-swap-api/v1/swap_cross_switch_lever_rate': 1,
+                            'linear-swap-api/v1/swap_lightning_close_position': 1,
+                            'linear-swap-api/v1/swap_cross_lightning_close_position': 1,
+                            'linear-swap-api/v1/swap_order_info': 1,
+                            'linear-swap-api/v1/swap_cross_order_info': 1,
+                            'linear-swap-api/v1/swap_order_detail': 1,
+                            'linear-swap-api/v1/swap_cross_order_detail': 1,
+                            'linear-swap-api/v1/swap_openorders': 1,
+                            'linear-swap-api/v1/swap_cross_openorders': 1,
+                            'linear-swap-api/v1/swap_hisorders': 1,
+                            'linear-swap-api/v1/swap_cross_hisorders': 1,
+                            'linear-swap-api/v1/swap_hisorders_exact': 1,
+                            'linear-swap-api/v1/swap_cross_hisorders_exact': 1,
+                            'linear-swap-api/v1/swap_matchresults': 1,
+                            'linear-swap-api/v1/swap_cross_matchresults': 1,
+                            'linear-swap-api/v1/swap_matchresults_exact': 1,
+                            'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
+                            // Swap Strategy Order Interface
+                            'linear-swap-api/v1/swap_trigger_order': 1,
+                            'linear-swap-api/v1/swap_cross_trigger_order': 1,
+                            'linear-swap-api/v1/swap_trigger_cancel': 1,
+                            'linear-swap-api/v1/swap_cross_trigger_cancel': 1,
+                            'linear-swap-api/v1/swap_trigger_cancelall': 1,
+                            'linear-swap-api/v1/swap_cross_trigger_cancelall': 1,
+                            'linear-swap-api/v1/swap_trigger_openorders': 1,
+                            'linear-swap-api/v1/swap_cross_trigger_openorders': 1,
+                            'linear-swap-api/v1/swap_trigger_hisorders': 1,
+                            'linear-swap-api/v1/swap_cross_trigger_hisorders': 1,
+                            'linear-swap-api/v1/swap_tpsl_order': 1,
+                            'linear-swap-api/v1/swap_cross_tpsl_order': 1,
+                            'linear-swap-api/v1/swap_tpsl_cancel': 1,
+                            'linear-swap-api/v1/swap_cross_tpsl_cancel': 1,
+                            'linear-swap-api/v1/swap_tpsl_cancelall': 1,
+                            'linear-swap-api/v1/swap_cross_tpsl_cancelall': 1,
+                            'linear-swap-api/v1/swap_tpsl_openorders': 1,
+                            'linear-swap-api/v1/swap_cross_tpsl_openorders': 1,
+                            'linear-swap-api/v1/swap_tpsl_hisorders': 1,
+                            'linear-swap-api/v1/swap_cross_tpsl_hisorders': 1,
+                            'linear-swap-api/v1/swap_relation_tpsl_order': 1,
+                            'linear-swap-api/v1/swap_cross_relation_tpsl_order': 1,
+                            'linear-swap-api/v1/swap_track_order': 1,
+                            'linear-swap-api/v1/swap_cross_track_order': 1,
+                            'linear-swap-api/v1/swap_track_cancel': 1,
+                            'linear-swap-api/v1/swap_cross_track_cancel': 1,
+                            'linear-swap-api/v1/swap_track_cancelall': 1,
+                            'linear-swap-api/v1/swap_cross_track_cancelall': 1,
+                            'linear-swap-api/v1/swap_track_openorders': 1,
+                            'linear-swap-api/v1/swap_cross_track_openorders': 1,
+                            'linear-swap-api/v1/swap_track_hisorders': 1,
+                            'linear-swap-api/v1/swap_cross_track_hisorders': 1,
+                        },
+                    },
+                },
             },
             'fees': {
                 'trading': {
@@ -278,9 +726,13 @@ module.exports = class huobi extends Exchange {
                     // err-msg
                     'invalid symbol': BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'symbol trade not open now': BadSymbol, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
+                    'require-symbol': BadSymbol, // {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null}
                 },
             },
+            'precisionMode': TICK_SIZE,
             'options': {
+                'defaultType': 'spot', // spot, future, swap
+                'defaultSubType': 'inverse', // inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'erc20',
@@ -292,12 +744,9 @@ module.exports = class huobi extends Exchange {
                     'OMNI': '',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
-                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
-                'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
@@ -323,8 +772,25 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetCommonTimestamp (params);
-        return this.safeInteger (response, 'data');
+        const options = this.safeValue (this.options, 'fetchTime', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        let method = 'spotPublicGetV1CommonTimestamp';
+        if ((type === 'future') || (type === 'swap')) {
+            method = 'contractPublicGetApiV1Timestamp';
+        }
+        const response = await this[method] (params);
+        //
+        // spot
+        //
+        //     {"status":"ok","data":1637504261099}
+        //
+        // future, swap
+        //
+        //     {"status":"ok","ts":1637504164707}
+        //
+        return this.safeInteger2 (response, 'data', 'ts');
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
@@ -347,7 +813,7 @@ module.exports = class huobi extends Exchange {
         const request = {
             'symbol': id,
         };
-        const response = await this.publicGetCommonExchange (this.extend (request, params));
+        const response = await this.spotPublicGetV1CommonExchange (this.extend (request, params));
         //
         //     { status:   "ok",
         //         data: {                                  symbol: "aidocbtc",
@@ -399,43 +865,231 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const method = this.options['fetchMarketsMethod'];
-        const response = await this[method] (params);
+        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        if ((type !== 'spot') && (type !== 'future') && (type !== 'swap')) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'"); // eslint-disable-line quotes
+        }
+        let method = 'spotPublicGetV1CommonSymbols';
+        const query = this.omit (params, [ 'type', 'subType' ]);
+        const spot = (type === 'spot');
+        const contract = (type !== 'spot');
+        const future = (type === 'future');
+        const swap = (type === 'swap');
+        let linear = undefined;
+        let inverse = undefined;
+        if (contract) {
+            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+            let subType = this.safeString (options, 'subType', defaultSubType);
+            subType = this.safeString (params, 'subType', subType);
+            if ((subType !== 'inverse') && (subType !== 'linear')) {
+                throw new ExchangeError (this.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
+            }
+            linear = (subType === 'linear');
+            inverse = (subType === 'inverse') || future;
+            if (future) {
+                method = 'contractPublicGetApiV1ContractContractInfo';
+            } else if (swap) {
+                if (inverse) {
+                    method = 'contractPublicGetSwapApiV1SwapContractInfo';
+                } else if (linear) {
+                    method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+                }
+            }
+        }
+        const response = await this[method] (query);
+        //
+        // spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "base-currency":"xrp3s",
+        //                 "quote-currency":"usdt",
+        //                 "price-precision":4,
+        //                 "amount-precision":4,
+        //                 "symbol-partition":"innovation",
+        //                 "symbol":"xrp3susdt",
+        //                 "state":"online",
+        //                 "value-precision":8,
+        //                 "min-order-amt":0.01,
+        //                 "max-order-amt":1616.4353,
+        //                 "min-order-value":5,
+        //                 "limit-order-min-order-amt":0.01,
+        //                 "limit-order-max-order-amt":1616.4353,
+        //                 "limit-order-max-buy-amt":1616.4353,
+        //                 "limit-order-max-sell-amt":1616.4353,
+        //                 "sell-market-min-order-amt":0.01,
+        //                 "sell-market-max-order-amt":1616.4353,
+        //                 "buy-market-max-order-value":2500,
+        //                 "max-order-value":2500,
+        //                 "underlying":"xrpusdt",
+        //                 "mgmt-fee-rate":0.035000000000000000,
+        //                 "charge-time":"23:55:00",
+        //                 "rebal-time":"00:00:00",
+        //                 "rebal-threshold":-5,
+        //                 "init-nav":10.000000000000000000,
+        //                 "api-trading":"enabled",
+        //                 "tags":"etp,nav,holdinglimit"
+        //             },
+        //         ]
+        //     }
+        //
+        // future
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC211126",
+        //                 "contract_type":"this_week",
+        //                 "contract_size":100.000000000000000000,
+        //                 "price_tick":0.010000000000000000,
+        //                 "delivery_date":"20211126",
+        //                 "delivery_time":"1637913600000",
+        //                 "create_date":"20211112",
+        //                 "contract_status":1,
+        //                 "settlement_time":"1637481600000"
+        //             },
+        //         ],
+        //         "ts":1637474595140
+        //     }
+        //
+        // swaps
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC-USDT",
+        //                 "contract_size":0.001000000000000000,
+        //                 "price_tick":0.100000000000000000,
+        //                 "delivery_time":"",
+        //                 "create_date":"20201021",
+        //                 "contract_status":1,
+        //                 "settlement_date":"1637481600000",
+        //                 "support_margin_mode":"all", // isolated
+        //             },
+        //         ],
+        //         "ts":1637474774467
+        //     }
+        //
         const markets = this.safeValue (response, 'data');
         const numMarkets = markets.length;
         if (numMarkets < 1) {
-            throw new NetworkError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
+            throw new NetworkError (this.id + ' fetchMarkets() returned an empty response: ' + this.json (markets));
         }
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const baseId = this.safeString (market, 'base-currency');
-            const quoteId = this.safeString (market, 'quote-currency');
-            const id = baseId + quoteId;
+            let baseId = undefined;
+            let quoteId = undefined;
+            let settleId = undefined;
+            let id = undefined;
+            if (contract) {
+                id = this.safeString (market, 'contract_code');
+                if (swap) {
+                    const parts = id.split ('-');
+                    baseId = this.safeString (market, 'symbol');
+                    quoteId = this.safeString (parts, 1);
+                    settleId = inverse ? baseId : quoteId;
+                } else if (future) {
+                    baseId = this.safeString (market, 'symbol');
+                    quoteId = 'USD';
+                    settleId = baseId;
+                }
+            } else {
+                baseId = this.safeString (market, 'base-currency');
+                quoteId = this.safeString (market, 'quote-currency');
+                id = baseId + quoteId;
+            }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            const settle = this.safeCurrencyCode (settleId);
+            let symbol = base + '/' + quote;
+            let expiry = undefined;
+            if (contract) {
+                if (inverse) {
+                    symbol += ':' + base;
+                } else if (linear) {
+                    symbol += ':' + quote;
+                }
+                if (future) {
+                    expiry = this.safeInteger (market, 'delivery_time');
+                    symbol += '-' + this.yymmdd (expiry);
+                }
+            }
+            const contractSize = this.safeNumber (market, 'contract_size');
+            let pricePrecision = undefined;
+            let amountPrecision = undefined;
+            let costPrecision = undefined;
+            if (spot) {
+                pricePrecision = this.safeString (market, 'price-precision');
+                pricePrecision = this.parseNumber ('1e-' + pricePrecision);
+                amountPrecision = this.safeString (market, 'amount-precision');
+                amountPrecision = this.parseNumber ('1e-' + amountPrecision);
+                costPrecision = this.safeString (market, 'value-precision');
+                costPrecision = this.parseNumber ('1e-' + costPrecision);
+            } else {
+                pricePrecision = this.safeNumber (market, 'price_tick');
+                amountPrecision = 1;
+            }
             const precision = {
-                'amount': this.safeInteger (market, 'amount-precision'),
-                'price': this.safeInteger (market, 'price-precision'),
-                'cost': this.safeInteger (market, 'value-precision'),
+                'amount': amountPrecision,
+                'price': pricePrecision,
+                'cost': costPrecision,
             };
-            const maker = (base === 'OMG') ? 0 : 0.2 / 100;
-            const taker = (base === 'OMG') ? 0 : 0.2 / 100;
+            let maker = undefined;
+            let taker = undefined;
+            if (spot) {
+                maker = (base === 'OMG') ? 0 : 0.2 / 100;
+                taker = (base === 'OMG') ? 0 : 0.2 / 100;
+            }
             const minAmount = this.safeNumber (market, 'min-order-amt', Math.pow (10, -precision['amount']));
             const maxAmount = this.safeNumber (market, 'max-order-amt');
             const minCost = this.safeNumber (market, 'min-order-value', 0);
-            const state = this.safeString (market, 'state');
-            const active = (state === 'online');
+            let active = undefined;
+            if (spot) {
+                const state = this.safeString (market, 'state');
+                active = (state === 'online');
+            } else if (contract) {
+                const contractStatus = this.safeInteger (market, 'contract_status');
+                active = (contractStatus === 1);
+            }
+            // 0 Delisting
+            // 1 Listing
+            // 2 Pending Listing
+            // 3 Suspension
+            // 4 Suspending of Listing
+            // 5 In Settlement
+            // 6 Delivering
+            // 7 Settlement Completed
+            // 8 Delivered
+            // 9 Suspending of Trade
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'type': 'spot',
-                'spot': true,
+                'settleId': settleId,
+                'type': type,
+                'contract': contract,
+                'spot': spot,
+                'future': future,
+                'swap': swap,
+                'linear': linear,
+                'inverse': inverse,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'contractSize': contractSize,
                 'active': active,
                 'precision': precision,
                 'taker': taker,
@@ -483,6 +1137,7 @@ module.exports = class huobi extends Exchange {
         //     }
         //
         // fetchTickers
+        //
         //     {
         //         symbol: "bhdht",
         //         open:  2.3938,
@@ -498,7 +1153,8 @@ module.exports = class huobi extends Exchange {
         //         askSize:  0.4156
         //     }
         //
-        const symbol = this.safeSymbol (undefined, market);
+        const marketId = this.safeString2 (ticker, 'symbol', 'contract_code');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 'ts');
         let bid = undefined;
         let bidVolume = undefined;
@@ -551,55 +1207,26 @@ module.exports = class huobi extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'type': 'step0',
-        };
-        const response = await this.marketGetDepth (this.extend (request, params));
-        //
-        //     {
-        //         "status": "ok",
-        //         "ch": "market.btcusdt.depth.step0",
-        //         "ts": 1583474832790,
-        //         "tick": {
-        //             "bids": [
-        //                 [ 9100.290000000000000000, 0.200000000000000000 ],
-        //                 [ 9099.820000000000000000, 0.200000000000000000 ],
-        //                 [ 9099.610000000000000000, 0.205000000000000000 ],
-        //             ],
-        //             "asks": [
-        //                 [ 9100.640000000000000000, 0.005904000000000000 ],
-        //                 [ 9101.010000000000000000, 0.287311000000000000 ],
-        //                 [ 9101.030000000000000000, 0.012121000000000000 ],
-        //             ],
-        //             "ts":1583474832008,
-        //             "version":104999698780
-        //         }
-        //     }
-        //
-        if ('tick' in response) {
-            if (!response['tick']) {
-                throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
-            }
-            const tick = this.safeValue (response, 'tick');
-            const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
-            const result = this.parseOrderBook (tick, symbol, timestamp);
-            result['nonce'] = this.safeInteger (tick, 'version');
-            return result;
-        }
-        throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
-    }
-
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.marketGetDetailMerged (this.extend (request, params));
+        const request = {};
+        let fieldName = 'symbol';
+        let method = 'spotPublicGetMarketDetailMerged';
+        if (market['future']) {
+            method = 'contractPublicGetMarketDetailMerged';
+        } else if (market['swap']) {
+            if (market['inverse']) {
+                method = 'contractPublicGetSwapExMarketDetailMerged';
+            } else if (market['linear']) {
+                method = 'contractPublicGetLinearSwapExMarketDetailMerged';
+            }
+            fieldName = 'contract_code';
+        }
+        request[fieldName] = market['id'];
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "status": "ok",
@@ -620,7 +1247,29 @@ module.exports = class huobi extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.parseTicker (response['tick'], market);
+        // future, swap
+        //
+        //     {
+        //         "ch":"market.BTC211126.detail.merged",
+        //         "status":"ok",
+        //         "tick":{
+        //             "amount":"669.3385682049668320322569544150680718474",
+        //             "ask":[59117.44,48],
+        //             "bid":[59082,48],
+        //             "close":"59087.97",
+        //             "count":5947,
+        //             "high":"59892.62",
+        //             "id":1637502670,
+        //             "low":"57402.87",
+        //             "open":"57638",
+        //             "ts":1637502670059,
+        //             "vol":"394598"
+        //         },
+        //         "ts":1637502670059
+        //     }
+        //
+        const tick = this.safeValue (response, 'tick', {});
+        const ticker = this.parseTicker (tick, market);
         const timestamp = this.safeInteger (response, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
@@ -628,21 +1277,127 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.marketGetTickers (params);
-        const tickers = this.safeValue (response, 'data');
+        const options = this.safeValue (this.options, 'fetchTickers', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        let subType = this.safeString (options, 'subType', defaultSubType);
+        subType = this.safeString (params, 'subType', subType);
+        let method = 'spotPublicGetMarketTickers';
+        const query = this.omit (params, [ 'type', 'subType' ]);
+        if (type === 'future') {
+            method = 'contractPublicGetMarketDetailBatchMerged';
+        } else if (type === 'swap') {
+            if (subType === 'inverse') {
+                method = 'contractPublicGetSwapExMarketDetailBatchMerged';
+            } else if (subType === 'linear') {
+                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+            }
+        }
+        const response = await this[method] (query);
+        //
+        // future
+        //
+        //     {
+        //         "status":"ok",
+        //         "ticks":[
+        //             {
+        //                 "id":1637504679,
+        //                 "ts":1637504679372,
+        //                 "ask":[0.10644,100],
+        //                 "bid":[0.10624,26],
+        //                 "symbol":"TRX_CW",
+        //                 "open":"0.10233",
+        //                 "close":"0.10644",
+        //                 "low":"0.1017",
+        //                 "high":"0.10725",
+        //                 "amount":"2340267.415144052378486261756692535687481566",
+        //                 "count":882,
+        //                 "vol":"24706"
+        //             }
+        //         ],
+        //         "ts":1637504679376
+        //     }
+        //
+        const tickers = this.safeValue2 (response, 'data', 'ticks', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            const marketId = this.safeString (tickers[i], 'symbol');
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            const ticker = this.parseTicker (tickers[i], market);
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
             result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            //
+            // from the API docs
+            //
+            //     to get depth data within step 150, use step0, step1, step2, step3, step4, step5, step14, step15（merged depth data 0-5,14-15, when step is 0，depth data will not be merged
+            //     to get depth data within step 20, use step6, step7, step8, step9, step10, step11, step12, step13(merged depth data 7-13), when step is 6, depth data will not be merged
+            //
+            'type': 'step0',
+            // 'symbol': market['id'], // spot, future
+            // 'contract_code': market['id'], // swap
+        };
+        let fieldName = 'symbol';
+        let method = 'spotPublicGetMarketDepth';
+        if (market['future']) {
+            method = 'contractPublicGetMarketDepth';
+        } else if (market['swap']) {
+            if (market['inverse']) {
+                method = 'contractPublicGetSwapExMarketDepth';
+            } else if (market['linear']) {
+                method = 'contractPublicGetLinearSwapExMarketDepth';
+            }
+            fieldName = 'contract_code';
+        }
+        request[fieldName] = market['id'];
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot, future, swap
+        //
+        //     {
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.depth.step0",
+        //         "ts": 1583474832790,
+        //         "tick": {
+        //             "bids": [
+        //                 [ 9100.290000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.820000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.610000000000000000, 0.205000000000000000 ],
+        //             ],
+        //             "asks": [
+        //                 [ 9100.640000000000000000, 0.005904000000000000 ],
+        //                 [ 9101.010000000000000000, 0.287311000000000000 ],
+        //                 [ 9101.030000000000000000, 0.012121000000000000 ],
+        //             ],
+        //             "ch":"market.BTC-USD.depth.step0",
+        //             "ts":1583474832008,
+        //             "id":1637554816,
+        //             "mrid":121654491624,
+        //             "version":104999698780
+        //         }
+        //     }
+        //
+        if ('tick' in response) {
+            if (!response['tick']) {
+                throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
+            }
+            const tick = this.safeValue (response, 'tick');
+            const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
+            const result = this.parseOrderBook (tick, symbol, timestamp);
+            result['nonce'] = this.safeInteger (tick, 'version');
+            return result;
+        }
+        throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
 
     parseTrade (trade, market = undefined) {
@@ -733,9 +1488,9 @@ module.exports = class huobi extends Exchange {
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'id': id,
+            'order-id': id,
         };
-        const response = await this.privateGetOrderOrdersIdMatchresults (this.extend (request, params));
+        const response = await this.spotPrivateGetV1OrderOrdersOrderIdMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], undefined, since, limit);
     }
 
@@ -754,7 +1509,7 @@ module.exports = class huobi extends Exchange {
             request['start-time'] = since; // a date within 120 days from today
             // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
-        const response = await this.privateGetOrderMatchresults (this.extend (request, params));
+        const response = await this.spotPrivateGetV1OrderMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
@@ -762,12 +1517,26 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            // 'symbol': market['id'], // spot, future
+            // 'contract_code': market['id'], // swap
         };
-        if (limit !== undefined) {
-            request['size'] = limit;
+        let fieldName = 'symbol';
+        let method = 'spotPublicGetMarketHistoryTrade';
+        if (market['future']) {
+            method = 'contractPublicGetMarketHistoryTrade';
+        } else if (market['swap']) {
+            if (market['inverse']) {
+                method = 'contractPublicGetSwapExMarketHistoryTrade';
+            } else if (market['linear']) {
+                method = 'contractPublicGetLinearSwapExMarketHistoryTrade';
+            }
+            fieldName = 'contract_code';
         }
-        const response = await this.marketGetHistoryTrade (this.extend (request, params));
+        request[fieldName] = market['id'];
+        if (limit !== undefined) {
+            request['size'] = limit; // max 2000
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -832,13 +1601,28 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
             'period': this.timeframes[timeframe],
+            // 'symbol': market['id'], // spot, future
+            // 'contract_code': market['id'], // swap
+            // 'side': limit, // max 2000
         };
-        if (limit !== undefined) {
-            request['size'] = limit;
+        let fieldName = 'symbol';
+        let method = 'spotPublicGetMarketHistoryKline';
+        if (market['future']) {
+            method = 'contractPublicGetMarketHistoryKline';
+        } else if (market['swap']) {
+            if (market['inverse']) {
+                method = 'contractPublicGetSwapExMarketHistoryKline';
+            } else if (market['linear']) {
+                method = 'contractPublicGetLinearSwapExMarketHistoryKline';
+            }
+            fieldName = 'contract_code';
         }
-        const response = await this.marketGetHistoryKline (this.extend (request, params));
+        request[fieldName] = market['id'];
+        if (limit !== undefined) {
+            request['size'] = limit; // max 2000
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "status":"ok",
@@ -857,12 +1641,12 @@ module.exports = class huobi extends Exchange {
 
     async fetchAccounts (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountAccounts (params);
+        const response = await this.spotPrivateGetV1AccountAccounts (params);
         return response['data'];
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.v2PublicGetReferenceCurrencies ();
+        const response = await this.spotPublicGetV2ReferenceCurrencies ();
         //     {
         //       "code": 200,
         //       "data": [
@@ -909,7 +1693,7 @@ module.exports = class huobi extends Exchange {
             const instStatus = this.safeString (entry, 'instStatus');
             const currencyActive = instStatus === 'normal';
             let fee = undefined;
-            let precision = undefined;
+            let minPrecision = undefined;
             let minWithdraw = undefined;
             let maxWithdraw = undefined;
             for (let j = 0; j < chains.length; j++) {
@@ -930,7 +1714,11 @@ module.exports = class huobi extends Exchange {
                 const withdraw = this.safeString (chain, 'withdrawStatus');
                 const deposit = this.safeString (chain, 'depositStatus');
                 const active = (withdraw === 'allowed') && (deposit === 'allowed');
-                precision = this.safeInteger (chain, 'withdrawPrecision');
+                let precision = this.safeString (chain, 'withdrawPrecision');
+                if (precision !== undefined) {
+                    precision = this.parseNumber ('1e-' + precision);
+                    minPrecision = (minPrecision === undefined) ? precision : Math.max (precision, minPrecision);
+                }
                 fee = this.safeNumber (chain, 'transactFeeWithdraw');
                 networks[network] = {
                     'info': chain,
@@ -966,7 +1754,7 @@ module.exports = class huobi extends Exchange {
                         'max': (networkLength <= 1) ? maxWithdraw : undefined,
                     },
                 },
-                'precision': (networkLength <= 1) ? precision : undefined,
+                'precision': minPrecision,
                 'networks': networks,
             };
         }
@@ -976,11 +1764,10 @@ module.exports = class huobi extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const method = this.options['fetchBalanceMethod'];
         const request = {
-            'id': this.accounts[0]['id'],
+            'account-id': this.accounts[0]['id'],
         };
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance (this.extend (request, params));
         const balances = this.safeValue (response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -1014,7 +1801,7 @@ module.exports = class huobi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
+        const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders');
         const response = await this[method] (this.extend (request, params));
         //
         //     { status:   "ok",
@@ -1039,9 +1826,9 @@ module.exports = class huobi extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'id': id,
+            'order-id': id,
         };
-        const response = await this.privateGetOrderOrdersId (this.extend (request, params));
+        const response = await this.spotPrivateGetV1OrderOrdersOrderId (this.extend (request, params));
         const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
@@ -1093,7 +1880,7 @@ module.exports = class huobi extends Exchange {
             request['size'] = limit;
         }
         const omitted = this.omit (params, 'account-id');
-        const response = await this.privateGetOrderOpenOrders (this.extend (request, omitted));
+        const response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, omitted));
         //
         //     {
         //         "status":"ok",
@@ -1258,8 +2045,7 @@ module.exports = class huobi extends Exchange {
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const method = this.options['createOrderMethod'];
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
         const timestamp = this.milliseconds ();
         const id = this.safeString (response, 'data');
         return {
@@ -1285,7 +2071,17 @@ module.exports = class huobi extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+        const clientOrderId = this.safeString2 (params, 'client-order-id', 'clientOrderId');
+        const request = {};
+        let method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
+        if (clientOrderId === undefined) {
+            request['order-id'] = id;
+        } else {
+            request['client-order-id'] = clientOrderId;
+            method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
+            params = this.omit (params, [ 'client-order-id', 'clientOrderId' ]);
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         'status': 'ok',
@@ -1308,7 +2104,7 @@ module.exports = class huobi extends Exchange {
         } else {
             request['client-order-ids'] = clientOrderIds;
         }
-        const response = await this.privatePostOrderOrdersBatchcancel (this.extend (request, params));
+        const response = await this.spotPrivatePostV1OrderOrdersBatchcancel (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -1358,7 +2154,7 @@ module.exports = class huobi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privatePostOrderOrdersBatchCancelOpenOrders (this.extend (request, params));
+        const response = await this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders (this.extend (request, params));
         //
         //     {
         //         code: 200,
@@ -1424,7 +2220,7 @@ module.exports = class huobi extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.v2PrivateGetAccountDepositAddress (this.extend (request, params));
+        const response = await this.spotPrivateGetV2AccountDepositAddress (this.extend (request, params));
         //
         //     {
         //         code: 200,
@@ -1495,7 +2291,7 @@ module.exports = class huobi extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
         // return response
         return this.parseTransactions (response['data'], currency, since, limit);
     }
@@ -1519,7 +2315,7 @@ module.exports = class huobi extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
         // return response
         return this.parseTransactions (response['data'], currency, since, limit);
     }
@@ -1643,7 +2439,7 @@ module.exports = class huobi extends Exchange {
             }
             params = this.omit (params, 'network');
         }
-        const response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
+        const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
         const id = this.safeString (response, 'data');
         return {
             'info': response,
@@ -1653,53 +2449,99 @@ module.exports = class huobi extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
-        if (api === 'market') {
-            url += api;
-        } else if ((api === 'public') || (api === 'private')) {
-            url += this.version;
-        } else if ((api === 'v2Public') || (api === 'v2Private')) {
-            url += 'v2';
-        }
-        url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'private' || api === 'v2Private') {
-            this.checkRequiredCredentials ();
-            const timestamp = this.ymdhms (this.milliseconds (), 'T');
-            let request = {
-                'SignatureMethod': 'HmacSHA256',
-                'SignatureVersion': '2',
-                'AccessKeyId': this.apiKey,
-                'Timestamp': timestamp,
-            };
-            if (method !== 'POST') {
-                request = this.extend (request, query);
+        if (typeof api === 'string') {
+            // signing implementation for the old endpoints
+            if (api === 'market') {
+                url += api;
+            } else if ((api === 'public') || (api === 'private')) {
+                url += this.version;
+            } else if ((api === 'v2Public') || (api === 'v2Private')) {
+                url += 'v2';
             }
-            request = this.keysort (request);
-            let auth = this.urlencode (request);
-            // unfortunately, PHP demands double quotes for the escaped newline symbol
-            // eslint-disable-next-line quotes
-            const payload = [ method, this.hostname, url, auth ].join ("\n");
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
-            auth += '&' + this.urlencode ({ 'Signature': signature });
-            url += '?' + auth;
-            if (method === 'POST') {
-                body = this.json (query);
-                headers = {
-                    'Content-Type': 'application/json',
+            url += '/' + this.implodeParams (path, params);
+            if (api === 'private' || api === 'v2Private') {
+                this.checkRequiredCredentials ();
+                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                let request = {
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'AccessKeyId': this.apiKey,
+                    'Timestamp': timestamp,
                 };
+                if (method !== 'POST') {
+                    request = this.extend (request, query);
+                }
+                request = this.keysort (request);
+                let auth = this.urlencode (request);
+                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                const payload = [ method, this.hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+                auth += '&' + this.urlencode ({ 'Signature': signature });
+                url += '?' + auth;
+                if (method === 'POST') {
+                    body = this.json (query);
+                    headers = {
+                        'Content-Type': 'application/json',
+                    };
+                } else {
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                }
             } else {
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                };
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
             }
+            url = this.implodeParams (this.urls['api'][api], {
+                'hostname': this.hostname,
+            }) + url;
         } else {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+            // signing implementation for the new endpoints
+            // const [ type, access ] = api;
+            const type = this.safeString (api, 0);
+            const access = this.safeString (api, 1);
+            url += this.implodeParams (path, params);
+            const hostname = this.safeString (this.urls['hostnames'], type);
+            if (access === 'public') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else if (access === 'private') {
+                this.checkRequiredCredentials ();
+                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                let request = {
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'AccessKeyId': this.apiKey,
+                    'Timestamp': timestamp,
+                };
+                if (method !== 'POST') {
+                    request = this.extend (request, query);
+                }
+                request = this.keysort (request);
+                let auth = this.urlencode (request);
+                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+                auth += '&' + this.urlencode ({ 'Signature': signature });
+                url += '?' + auth;
+                if (method === 'POST') {
+                    body = this.json (query);
+                    headers = {
+                        'Content-Type': 'application/json',
+                    };
+                } else {
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                }
             }
+            url = this.implodeParams (this.urls['api'][type], {
+                'hostname': hostname,
+            }) + url;
         }
-        url = this.implodeParams (this.urls['api'][api], {
-            'hostname': this.hostname,
-        }) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

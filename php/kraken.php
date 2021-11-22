@@ -319,6 +319,7 @@ class kraken extends Exchange {
                     'UNI' => 'UNI',
                     'USDC' => 'USDC',
                     'USDT' => 'Tether USD (ERC20)',
+                    'USDT-TRC20' => 'Tether USD (TRC20)',
                     'WAVES' => 'Waves',
                     'WBTC' => 'Wrapped Bitcoin (WBTC)',
                     'XLM' => 'Stellar XLM',
@@ -1832,18 +1833,21 @@ class kraken extends Exchange {
     public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
+        $network = $this->safe_string_upper($params, 'network');
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string($networks, $network, $network); // support ETH > ERC20 aliases
+        $params = $this->omit($params, 'network');
+        if (($code === 'USDT') && ($network === 'TRC20')) {
+            $code = $code . '-' . $network;
+        }
         $defaultDepositMethods = $this->safe_value($this->options, 'depositMethods', array());
         $defaultDepositMethod = $this->safe_string($defaultDepositMethods, $code);
         $depositMethod = $this->safe_string($params, 'method', $defaultDepositMethod);
-        $network = $this->safe_string($params, 'network');
         // if the user has specified an exchange-specific method in $params
         // we pass it as is, otherwise we take the 'network' unified param
         if ($depositMethod === null) {
             $depositMethods = $this->fetch_deposit_methods($code);
             if ($network !== null) {
-                $networks = $this->safe_value($this->options, 'networks', array());
-                $network = $this->safe_string($networks, $network, $network); // support ETH > ERC20 aliases
-                $params = $this->omit($params, 'network');
                 // find best matching deposit method, or fallback to the first one
                 for ($i = 0; $i < count($depositMethods); $i++) {
                     $entry = $this->safe_string($depositMethods[$i], 'method');

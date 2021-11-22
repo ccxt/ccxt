@@ -771,16 +771,15 @@ class bitget extends Exchange {
         //
         // $spot
         //
-        //     {
-        //         "base_currency":"btc",
-        //         "quote_currency":"usdt",
-        //         "symbol":"btc_usdt",
-        //         "tick_size":"2",
-        //         "size_increment":"4",
-        //         "status":"1",
-        //         "base_asset_precision":"8"
-        //     }
-        //
+        //      {
+        //          "symbol" => "BTC_USDT",
+        //          "status" => "online",
+        //          "base_currency" => "BTC",
+        //          "quote_currency" => "USDT",
+        //          "tick_size" => "2",
+        //          "size_increment" => "4",
+        //          "base_asset_precision" => "4"
+        //      }
         //
         // $swap
         //
@@ -826,7 +825,7 @@ class bitget extends Exchange {
         $status = $this->safe_string($market, 'status');
         $active = null;
         if ($status !== null) {
-            $active = ($status === '1');
+            $active = ($status === '1') || ($status === 'online');
         }
         $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
         return array_merge($fees, array(
