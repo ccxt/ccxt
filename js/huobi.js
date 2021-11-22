@@ -1601,13 +1601,28 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
             'period': this.timeframes[timeframe],
+            // 'symbol': market['id'], // spot, future
+            // 'contract_code': market['id'], // swap
+            // 'side': limit, // max 2000
         };
-        if (limit !== undefined) {
-            request['size'] = limit;
+        let fieldName = 'symbol';
+        let method = 'spotPublicGetMarketHistoryKline';
+        if (market['future']) {
+            method = 'contractPublicGetMarketHistoryKline';
+        } else if (market['swap']) {
+            if (market['inverse']) {
+                method = 'contractPublicGetSwapExMarketHistoryKline';
+            } else if (market['linear']) {
+                method = 'contractPublicGetLinearSwapExMarketHistoryKline';
+            }
+            fieldName = 'contract_code';
         }
-        const response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
+        request[fieldName] = market['id'];
+        if (limit !== undefined) {
+            request['size'] = limit; // max 2000
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "status":"ok",
