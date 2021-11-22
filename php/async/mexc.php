@@ -225,6 +225,7 @@ class mexc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'BYN' => 'BeyondFi',
                 'COFI' => 'COFIX', // conflict with CoinFi
                 'DFT' => 'dFuture',
                 'DRK' => 'DRK',
