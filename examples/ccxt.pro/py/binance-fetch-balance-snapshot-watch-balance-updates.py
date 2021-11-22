@@ -28,7 +28,7 @@ async def watch_balance(exchange):
     while True:
         try:
             update = await exchange.watch_balance()
-            balance = exchange.extend(balance, update)
+            balance = exchange.deep_extend(balance, update)
             # it will print the balance update when the balance changes
             # if the balance remains unchanged the exchange will not send it
             print('---------------------------------------------------------')
