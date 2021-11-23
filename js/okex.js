@@ -3554,14 +3554,15 @@ module.exports = class okex extends Exchange {
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
-            rates.push ({
-                'currency': this.safeString (rate, 'ccy'),
+            const currency = this.safeCurrencyCode (this.safeString (rate, 'ccy'));
+            rates[currency] = {
+                'currency': currency,
                 'rate': this.safeNumber (rate, 'interestRate'),
                 'span': 86400000,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'info': rate,
-            });
+            };
         }
         return rates;
     }

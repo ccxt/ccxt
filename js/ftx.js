@@ -2294,14 +2294,15 @@ module.exports = class ftx extends Exchange {
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const rate = result[i];
-            rates.push ({
-                'currency': this.safeCurrencyCode (this.safeString (rate, 'coin')),
+            const currency = this.safeCurrencyCode (this.safeString (rate, 'coin'));
+            rates[currency] = {
+                'currency': currency,
                 'rate': this.safeNumber (rate, 'previous'),
                 'span': 3600000,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'info': rate,
-            });
+            };
         }
         return rates;
     }
