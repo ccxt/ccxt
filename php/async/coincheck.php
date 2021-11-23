@@ -427,7 +427,7 @@ class coincheck extends Exchange {
             return;
         }
         //
-        //     array("$success":false,"$error":"disabled API Key")'
+        //     array("success":false,"error":"disabled API Key")'
         //
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {

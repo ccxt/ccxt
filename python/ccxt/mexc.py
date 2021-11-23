@@ -233,6 +233,7 @@ class mexc(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BYN': 'BeyondFi',
                 'COFI': 'COFIX',  # conflict with CoinFi
                 'DFT': 'dFuture',
                 'DRK': 'DRK',

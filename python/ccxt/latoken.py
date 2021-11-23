@@ -11,6 +11,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -28,8 +29,8 @@ class latoken(Exchange):
             'rateLimit': 1000,
             'has': {
                 'cancelAllOrders': True,
-                'cancelOrder': None,
-                'createOrder': None,
+                'cancelOrder': True,
+                'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchMarkets': True,
@@ -130,6 +131,7 @@ class latoken(Exchange):
             'commonCurrencies': {
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
+                'TRADE': 'Smart Trade Coin',
                 'TSL': 'Treasure SL',
             },
             'exceptions': {
@@ -153,6 +155,7 @@ class latoken(Exchange):
                     'INSUFFICIENT_AUTHENTICATION': AuthenticationError,  # for example, 2FA required.
                     'UNKNOWN_LOCATION': AuthenticationError,  # user logged from unusual location, email confirmation required.
                     'TOO_MANY_REQUESTS': RateLimitExceeded,  # too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
+                    'INSUFFICIENT_FUNDS': InsufficientFunds,  # {"message":"not enough balance on the spot account for currency(USDT), need(20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
                 },
                 'broad': {
                     'invalid API key, signature or digest': AuthenticationError,  # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
@@ -641,12 +644,10 @@ class latoken(Exchange):
             'currency': market['baseId'],
             'quote': market['quoteId'],
             # 'from': str(since),  # milliseconds
-            # 'limit': limit,  # default 100
+            # 'limit': limit,  # default 100, max 1000
         }
-        if since is not None:
-            request['from'] = str(since)
         if limit is not None:
-            request['limit'] = limit  # default 50, max 100
+            request['limit'] = limit  # default 100, max 1000
         response = self.publicGetTradeHistoryCurrencyQuote(self.extend(request, params))
         #
         #     [

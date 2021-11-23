@@ -110,9 +110,9 @@ class coinspot extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "$balances":array(
+        //         "balances":array(
         //             {
-        //                 "LTC":array("$balance":0.1,"audbalance":16.59,"rate":165.95)
+        //                 "LTC":array("balance":0.1,"audbalance":16.59,"rate":165.95)
         //             }
         //         )
         //     }
@@ -198,7 +198,7 @@ class coinspot extends Exchange {
         //     {
         //         "status":"ok",
         //         "orders":array(
-        //             array("amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"$market":"BTC/AUD"),
+        //             array("amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"),
         //         ),
         //     }
         //
@@ -211,12 +211,12 @@ class coinspot extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "$amount":0.00102091,
+        //         "amount":0.00102091,
         //         "rate":21549.09999991,
         //         "total":21.99969168,
         //         "coin":"BTC",
         //         "solddate":1604890646143,
-        //         "$market":"BTC/AUD"
+        //         "market":"BTC/AUD"
         //     }
         //
         $priceString = $this->safe_string($trade, 'rate');

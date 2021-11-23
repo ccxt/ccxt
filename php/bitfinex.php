@@ -440,7 +440,7 @@ class bitfinex extends Exchange {
         //             "maximum_order_size":"2000.0",
         //             "minimum_order_size":"0.0002",
         //             "expiration":"NA",
-        //             "$margin":true
+        //             "margin":true
         //         ),
         //     )
         //
@@ -614,7 +614,7 @@ class bitfinex extends Exchange {
         if ($message === null) {
             throw new ExchangeError($this->id . ' transfer failed');
         }
-        // [array("$status":"error","$message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
+        // [array("status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
         if ($status === 'error') {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
             throw new ExchangeError($this->id . ' ' . $message);
@@ -727,6 +727,50 @@ class bitfinex extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public) v1
+        //
+        //     {
+        //          "timestamp":1637258380,
+        //          "tid":894452833,
+        //          "price":"0.99941",
+        //          "amount":"261.38",
+        //          "exchange":"bitfinex",
+        //          "type":"sell"
+        //     }
+        //
+        //     {    "timestamp":1637258238,
+        //          "tid":894452800,
+        //          "price":"0.99958",
+        //          "amount":"261.90514",
+        //          "exchange":"bitfinex",
+        //          "type":"buy"
+        //     }
+        //
+        // fetchMyTrades (private) v1
+        //
+        //     {
+        //          "price":"0.99941",
+        //          "amount":"261.38",
+        //          "timestamp":"1637258380.0",
+        //          "type":"Sell",
+        //          "fee_currency":"UST",
+        //          "fee_amount":"-0.52245157",
+        //          "tid":894452833,
+        //          "order_id":78819731373
+        //     }
+        //
+        //     {
+        //         "price":"0.99958",
+        //         "amount":"261.90514",
+        //         "timestamp":"1637258238.0",
+        //         "type":"Buy",
+        //         "fee_currency":"UDC",
+        //         "fee_amount":"-0.52381028",
+        //         "tid":894452800,
+        //         "order_id":78819504838
+        //     }
+        //
         $id = $this->safe_string($trade, 'tid');
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $type = null;
@@ -796,6 +840,8 @@ class bitfinex extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $params = $this->omit($params, array( 'postOnly' ));
         $request = array(
             'symbol' => $this->market_id($symbol),
             'side' => $side,
@@ -809,6 +855,9 @@ class bitfinex extends Exchange {
             $request['price'] = (string) $this->nonce();
         } else {
             $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($postOnly) {
+            $request['is_postonly'] = true;
         }
         $response = $this->privatePostOrderNew (array_merge($request, $params));
         return $this->parse_order($response);
@@ -1074,7 +1123,7 @@ class bitfinex extends Exchange {
         //         {
         //             "id":581183,
         //             "txid" => 123456,
-        //             "$currency":"BTC",
+        //             "currency":"BTC",
         //             "method":"BITCOIN",
         //             "type":"WITHDRAWAL",
         //             "amount":".01",
@@ -1098,13 +1147,13 @@ class bitfinex extends Exchange {
         //         "id" => 12042490,
         //         "fee" => "-0.02",
         //         "txid" => "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
-        //         "$type" => "DEPOSIT",
+        //         "type" => "DEPOSIT",
         //         "amount" => "2099.849999",
         //         "method" => "RIPPLE",
-        //         "$status" => "COMPLETED",
+        //         "status" => "COMPLETED",
         //         "address" => "2505189261",
-        //         "$currency" => "XRP",
-        //         "$timestamp" => "1551730524.0",
+        //         "currency" => "XRP",
+        //         "timestamp" => "1551730524.0",
         //         "description" => "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
         //         "timestamp_created" => "1551730523.0"
         //     }
@@ -1115,13 +1164,13 @@ class bitfinex extends Exchange {
         //         "id" => 12725095,
         //         "fee" => "-60.0",
         //         "txid" => null,
-        //         "$type" => "WITHDRAWAL",
+        //         "type" => "WITHDRAWAL",
         //         "amount" => "9943.0",
         //         "method" => "WIRE",
-        //         "$status" => "SENDING",
+        //         "status" => "SENDING",
         //         "address" => null,
-        //         "$currency" => "EUR",
-        //         "$timestamp" => "1561802484.0",
+        //         "currency" => "EUR",
+        //         "timestamp" => "1561802484.0",
         //         "description" => "Name => bob, AccountAddress => some address, Account => someaccountno, Bank => bank address, SWIFT => foo, Country => UK, Details of Payment => withdrawal name, Intermediary Bank Name => , Intermediary Bank Address => , Intermediary Bank City => , Intermediary Bank Country => , Intermediary Bank Account => , Intermediary Bank SWIFT => , Fee => -60.0",
         //         "timestamp_created" => "1561716066.0"
         //     }

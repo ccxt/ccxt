@@ -270,7 +270,7 @@ module.exports = class gateio extends Exchange {
                 'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
-                'BYN': 'Beyond Finance',
+                'BYN': 'BeyondFi',
                 'EGG': 'Goose Finance',
                 'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'GTC_HT': 'Game.com HT',
@@ -279,7 +279,6 @@ module.exports = class gateio extends Exchange {
                 'MPH': 'Morpher', // conflict with 88MPH
                 'RAI': 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
-                'STX': 'Stox',
                 'TNC': 'Trinity Network Credit',
                 'TON': 'TONToken',
                 'VAI': 'VAIOT',
@@ -289,6 +288,9 @@ module.exports = class gateio extends Exchange {
                 'secret': true,
             },
             'options': {
+                'createOrder': {
+                    'expiration': 86400, // for conditional orders
+                },
                 'networks': {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
@@ -412,94 +414,97 @@ module.exports = class gateio extends Exchange {
             },
             // https://www.gate.io/docs/apiv4/en/index.html#label-list
             'exceptions': {
-                'INVALID_PARAM_VALUE': BadRequest,
-                'INVALID_PROTOCOL': BadRequest,
-                'INVALID_ARGUMENT': BadRequest,
-                'INVALID_REQUEST_BODY': BadRequest,
-                'MISSING_REQUIRED_PARAM': ArgumentsRequired,
-                'BAD_REQUEST': BadRequest,
-                'INVALID_CONTENT_TYPE': BadRequest,
-                'NOT_ACCEPTABLE': BadRequest,
-                'METHOD_NOT_ALLOWED': BadRequest,
-                'NOT_FOUND': ExchangeError,
-                'INVALID_CREDENTIALS': AuthenticationError,
-                'INVALID_KEY': AuthenticationError,
-                'IP_FORBIDDEN': AuthenticationError,
-                'READ_ONLY': PermissionDenied,
-                'INVALID_SIGNATURE': AuthenticationError,
-                'MISSING_REQUIRED_HEADER': AuthenticationError,
-                'REQUEST_EXPIRED': AuthenticationError,
-                'ACCOUNT_LOCKED': AccountSuspended,
-                'FORBIDDEN': PermissionDenied,
-                'SUB_ACCOUNT_NOT_FOUND': ExchangeError,
-                'SUB_ACCOUNT_LOCKED': AccountSuspended,
-                'MARGIN_BALANCE_EXCEPTION': ExchangeError,
-                'MARGIN_TRANSFER_FAILED': ExchangeError,
-                'TOO_MUCH_FUTURES_AVAILABLE': ExchangeError,
-                'FUTURES_BALANCE_NOT_ENOUGH': InsufficientFunds,
-                'ACCOUNT_EXCEPTION': ExchangeError,
-                'SUB_ACCOUNT_TRANSFER_FAILED': ExchangeError,
-                'ADDRESS_NOT_USED': ExchangeError,
-                'TOO_FAST': RateLimitExceeded,
-                'WITHDRAWAL_OVER_LIMIT': ExchangeError,
-                'API_WITHDRAW_DISABLED': ExchangeNotAvailable,
-                'INVALID_WITHDRAW_ID': ExchangeError,
-                'INVALID_WITHDRAW_CANCEL_STATUS': ExchangeError,
-                'INVALID_PRECISION': InvalidOrder,
-                'INVALID_CURRENCY': BadSymbol,
-                'INVALID_CURRENCY_PAIR': BadSymbol,
-                'POC_FILL_IMMEDIATELY': ExchangeError,
-                'ORDER_NOT_FOUND': OrderNotFound,
-                'ORDER_CLOSED': InvalidOrder,
-                'ORDER_CANCELLED': InvalidOrder,
-                'QUANTITY_NOT_ENOUGH': InvalidOrder,
-                'BALANCE_NOT_ENOUGH': InsufficientFunds,
-                'MARGIN_NOT_SUPPORTED': InvalidOrder,
-                'MARGIN_BALANCE_NOT_ENOUGH': InsufficientFunds,
-                'AMOUNT_TOO_LITTLE': InvalidOrder,
-                'AMOUNT_TOO_MUCH': InvalidOrder,
-                'REPEATED_CREATION': InvalidOrder,
-                'LOAN_NOT_FOUND': OrderNotFound,
-                'LOAN_RECORD_NOT_FOUND': OrderNotFound,
-                'NO_MATCHED_LOAN': ExchangeError,
-                'NOT_MERGEABLE': ExchangeError,
-                'NO_CHANGE': ExchangeError,
-                'REPAY_TOO_MUCH': ExchangeError,
-                'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
-                'TOO_MANY_ORDERS': InvalidOrder,
-                'MIXED_ACCOUNT_TYPE': InvalidOrder,
-                'AUTO_BORROW_TOO_MUCH': ExchangeError,
-                'TRADE_RESTRICTED': InsufficientFunds,
-                'USER_NOT_FOUND': ExchangeError,
-                'CONTRACT_NO_COUNTER': ExchangeError,
-                'CONTRACT_NOT_FOUND': BadSymbol,
-                'RISK_LIMIT_EXCEEDED': ExchangeError,
-                'INSUFFICIENT_AVAILABLE': InsufficientFunds,
-                'LIQUIDATE_IMMEDIATELY': InvalidOrder,
-                'LEVERAGE_TOO_HIGH': InvalidOrder,
-                'LEVERAGE_TOO_LOW': InvalidOrder,
-                'ORDER_NOT_OWNED': ExchangeError,
-                'ORDER_FINISHED': ExchangeError,
-                'POSITION_CROSS_MARGIN': ExchangeError,
-                'POSITION_IN_LIQUIDATION': ExchangeError,
-                'POSITION_IN_CLOSE': ExchangeError,
-                'POSITION_EMPTY': InvalidOrder,
-                'REMOVE_TOO_MUCH': ExchangeError,
-                'RISK_LIMIT_NOT_MULTIPLE': ExchangeError,
-                'RISK_LIMIT_TOO_HIGH': ExchangeError,
-                'RISK_LIMIT_TOO_lOW': ExchangeError,
-                'PRICE_TOO_DEVIATED': InvalidOrder,
-                'SIZE_TOO_LARGE': InvalidOrder,
-                'SIZE_TOO_SMALL': InvalidOrder,
-                'PRICE_OVER_LIQUIDATION': InvalidOrder,
-                'PRICE_OVER_BANKRUPT': InvalidOrder,
-                'ORDER_POC_IMMEDIATE': InvalidOrder,
-                'INCREASE_POSITION': InvalidOrder,
-                'CONTRACT_IN_DELISTING': ExchangeError,
-                'INTERNAL': ExchangeError,
-                'SERVER_ERROR': ExchangeError,
-                'TOO_BUSY': ExchangeNotAvailable,
+                'exact': {
+                    'INVALID_PARAM_VALUE': BadRequest,
+                    'INVALID_PROTOCOL': BadRequest,
+                    'INVALID_ARGUMENT': BadRequest,
+                    'INVALID_REQUEST_BODY': BadRequest,
+                    'MISSING_REQUIRED_PARAM': ArgumentsRequired,
+                    'BAD_REQUEST': BadRequest,
+                    'INVALID_CONTENT_TYPE': BadRequest,
+                    'NOT_ACCEPTABLE': BadRequest,
+                    'METHOD_NOT_ALLOWED': BadRequest,
+                    'NOT_FOUND': ExchangeError,
+                    'INVALID_CREDENTIALS': AuthenticationError,
+                    'INVALID_KEY': AuthenticationError,
+                    'IP_FORBIDDEN': AuthenticationError,
+                    'READ_ONLY': PermissionDenied,
+                    'INVALID_SIGNATURE': AuthenticationError,
+                    'MISSING_REQUIRED_HEADER': AuthenticationError,
+                    'REQUEST_EXPIRED': AuthenticationError,
+                    'ACCOUNT_LOCKED': AccountSuspended,
+                    'FORBIDDEN': PermissionDenied,
+                    'SUB_ACCOUNT_NOT_FOUND': ExchangeError,
+                    'SUB_ACCOUNT_LOCKED': AccountSuspended,
+                    'MARGIN_BALANCE_EXCEPTION': ExchangeError,
+                    'MARGIN_TRANSFER_FAILED': ExchangeError,
+                    'TOO_MUCH_FUTURES_AVAILABLE': ExchangeError,
+                    'FUTURES_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'ACCOUNT_EXCEPTION': ExchangeError,
+                    'SUB_ACCOUNT_TRANSFER_FAILED': ExchangeError,
+                    'ADDRESS_NOT_USED': ExchangeError,
+                    'TOO_FAST': RateLimitExceeded,
+                    'WITHDRAWAL_OVER_LIMIT': ExchangeError,
+                    'API_WITHDRAW_DISABLED': ExchangeNotAvailable,
+                    'INVALID_WITHDRAW_ID': ExchangeError,
+                    'INVALID_WITHDRAW_CANCEL_STATUS': ExchangeError,
+                    'INVALID_PRECISION': InvalidOrder,
+                    'INVALID_CURRENCY': BadSymbol,
+                    'INVALID_CURRENCY_PAIR': BadSymbol,
+                    'POC_FILL_IMMEDIATELY': ExchangeError,
+                    'ORDER_NOT_FOUND': OrderNotFound,
+                    'ORDER_CLOSED': InvalidOrder,
+                    'ORDER_CANCELLED': InvalidOrder,
+                    'QUANTITY_NOT_ENOUGH': InvalidOrder,
+                    'BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'MARGIN_NOT_SUPPORTED': InvalidOrder,
+                    'MARGIN_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'AMOUNT_TOO_LITTLE': InvalidOrder,
+                    'AMOUNT_TOO_MUCH': InvalidOrder,
+                    'REPEATED_CREATION': InvalidOrder,
+                    'LOAN_NOT_FOUND': OrderNotFound,
+                    'LOAN_RECORD_NOT_FOUND': OrderNotFound,
+                    'NO_MATCHED_LOAN': ExchangeError,
+                    'NOT_MERGEABLE': ExchangeError,
+                    'NO_CHANGE': ExchangeError,
+                    'REPAY_TOO_MUCH': ExchangeError,
+                    'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
+                    'TOO_MANY_ORDERS': InvalidOrder,
+                    'MIXED_ACCOUNT_TYPE': InvalidOrder,
+                    'AUTO_BORROW_TOO_MUCH': ExchangeError,
+                    'TRADE_RESTRICTED': InsufficientFunds,
+                    'USER_NOT_FOUND': ExchangeError,
+                    'CONTRACT_NO_COUNTER': ExchangeError,
+                    'CONTRACT_NOT_FOUND': BadSymbol,
+                    'RISK_LIMIT_EXCEEDED': ExchangeError,
+                    'INSUFFICIENT_AVAILABLE': InsufficientFunds,
+                    'LIQUIDATE_IMMEDIATELY': InvalidOrder,
+                    'LEVERAGE_TOO_HIGH': InvalidOrder,
+                    'LEVERAGE_TOO_LOW': InvalidOrder,
+                    'ORDER_NOT_OWNED': ExchangeError,
+                    'ORDER_FINISHED': ExchangeError,
+                    'POSITION_CROSS_MARGIN': ExchangeError,
+                    'POSITION_IN_LIQUIDATION': ExchangeError,
+                    'POSITION_IN_CLOSE': ExchangeError,
+                    'POSITION_EMPTY': InvalidOrder,
+                    'REMOVE_TOO_MUCH': ExchangeError,
+                    'RISK_LIMIT_NOT_MULTIPLE': ExchangeError,
+                    'RISK_LIMIT_TOO_HIGH': ExchangeError,
+                    'RISK_LIMIT_TOO_lOW': ExchangeError,
+                    'PRICE_TOO_DEVIATED': InvalidOrder,
+                    'SIZE_TOO_LARGE': InvalidOrder,
+                    'SIZE_TOO_SMALL': InvalidOrder,
+                    'PRICE_OVER_LIQUIDATION': InvalidOrder,
+                    'PRICE_OVER_BANKRUPT': InvalidOrder,
+                    'ORDER_POC_IMMEDIATE': InvalidOrder,
+                    'INCREASE_POSITION': InvalidOrder,
+                    'CONTRACT_IN_DELISTING': ExchangeError,
+                    'INTERNAL': ExchangeError,
+                    'SERVER_ERROR': ExchangeError,
+                    'TOO_BUSY': ExchangeNotAvailable,
+                },
             },
+            'broad': {},
         });
     }
 
@@ -1385,8 +1390,8 @@ module.exports = class gateio extends Exchange {
         const bid = this.safeNumber (ticker, 'highest_bid');
         const high = this.safeNumber (ticker, 'high_24h');
         const low = this.safeNumber (ticker, 'low_24h');
-        const baseVolume = this.safeNumber (ticker, 'base_volume', 'volume_24h_base');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume', 'volume_24h_quote');
+        const baseVolume = this.safeNumber2 (ticker, 'base_volume', 'volume_24h_base');
+        const quoteVolume = this.safeNumber2 (ticker, 'quote_volume', 'volume_24h_quote');
         const percentage = this.safeNumber (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1465,14 +1470,15 @@ module.exports = class gateio extends Exchange {
         } else {
             response = await this[method] (this.extend (request, params));
         }
-        //  SPOT
+        // spot
+        //
         //     [
-        //       {
-        //         "currency": "DBC",
-        //         "available": "0",
-        //         "locked": "0"
-        //       },
-        //       ...
+        //         {
+        //             "currency": "DBC",
+        //             "available": "0",
+        //             "locked": "0"
+        //         },
+        //         ...
         //     ]
         //
         //  MARGIN
@@ -1544,8 +1550,10 @@ module.exports = class gateio extends Exchange {
         //     position_margin: "0",
         //     user: "6333333",
         //   }
-        const result = {};
         const margin = type === 'margin';
+        const result = {
+            'info': response,
+        };
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             if (margin) {
@@ -2065,63 +2073,224 @@ module.exports = class gateio extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        //
-        // :param (str) symbol: base/quote currency pair
-        // :param (str) type: Order type (limit, market, ...)
-        // :param (str) side: buy or sell
-        // :param (number) amount: Amount of base currency ordered
-        // :param (number) price: Price of the base currency using quote currency
-        // :param (dict) params:
-        //          - type: market type (spot, futures, ...)
-        //          - reduceOnly
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
-        const marketType = this.safeString (params, 'type', defaultType);
         const contract = market['contract'];
-        const request = this.prepareRequest (market);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        params = this.omit (params, 'reduceOnly');
-        if (reduceOnly !== undefined) {
-            if (!contract) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
-            }
-            request['reduce_only'] = reduceOnly;
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        let methodTail = 'Orders';
+        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly');
+        const defaultTimeInForce = this.safeValue2 (params, 'tif', 'time_in_force', 'gtc');
+        let timeInForce = this.safeValue (params, 'timeInForce', defaultTimeInForce);
+        params = this.omit (params, [ 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ]);
+        const isLimitOrder = (type === 'limit');
+        const isMarketOrder = (type === 'market');
+        if (isLimitOrder && price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for ' + type + ' orders');
         }
         if (contract) {
-            if (side === 'sell') {
-                amount = 0 - amount;
+            const amountToPrecision = this.amountToPrecision (symbol, amount);
+            const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
+            amount = parseInt (signedAmount);
+            if (isMarketOrder) {
+                timeInForce = 'ioc';
+                price = 0;
             }
-            request['size'] = this.parseNumber (this.amountToPrecision (symbol, amount));
-        } else {
-            request['side'] = side;
-            request['type'] = type;
-            request['amount'] = this.amountToPrecision (symbol, amount);
-            request['account'] = marketType;
-            // if (margin) {
-            //     if (entering trade) {
-            //         request['auto_borrow'] = true;
-            //     } else if (exiting trade) {
-            //         request['auto_repay'] = true;
-            //     }
-            // }
+        } else if (!isLimitOrder) {
+            // Gateio doesn't have market orders for spot
+            throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets');
         }
-        if (type === 'limit') {
-            if (!price) {
-                throw new ArgumentsRequired ('Argument price is required for ' + this.id + '.createOrder for limit orders');
+        let request = undefined;
+        if (stopPrice === undefined) {
+            if (contract) {
+                // contract order
+                request = {
+                    'contract': market['id'], // filled in prepareRequest above
+                    'size': amount, // int64, positive = bid, negative = ask
+                    // 'iceberg': 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
+                    'price': this.priceToPrecision (symbol, price), // 0 for market order with tif set as ioc
+                    // 'close': false, // true to close the position, with size set to 0
+                    // 'reduce_only': false, // St as true to be reduce-only order
+                    // 'tif': 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
+                    // 'text': clientOrderId, // 't-abcdef1234567890',
+                    // 'auto_size': '', // close_long, close_short, note size also needs to be set to 0
+                    'settle': market['settleId'], // filled in prepareRequest above
+                };
+                if (reduceOnly !== undefined) {
+                    request['reduce_only'] = reduceOnly;
+                }
+                if (timeInForce !== undefined) {
+                    request['tif'] = timeInForce;
+                }
+            } else {
+                const options = this.safeValue (this.options, 'createOrder', {});
+                const defaultAccount = this.safeString (options, 'account', 'spot');
+                const account = this.safeString (params, 'account', defaultAccount);
+                params = this.omit (params, 'account');
+                // spot order
+                request = {
+                    // 'text': clientOrderId, // 't-abcdef1234567890',
+                    'currency_pair': market['id'], // filled in prepareRequest above
+                    'type': type,
+                    'account': account, // 'spot', 'margin', 'cross_margin'
+                    'side': side,
+                    'amount': this.amountToPrecision (symbol, amount),
+                    'price': this.priceToPrecision (symbol, price),
+                    // 'time_in_force': 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
+                    // 'iceberg': 0, // amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
+                    // 'auto_borrow': false, // used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+                    // 'auto_repay': false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
+                };
+                if (timeInForce !== undefined) {
+                    request['time_in_force'] = timeInForce;
+                }
             }
-            request['price'] = this.priceToPrecision (symbol, price);
-        } else if ((type === 'market') && contract) {
-            request['tif'] = 'ioc';
-            request['price'] = 0;
+            let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                // user-defined, must follow the rules if not empty
+                //     prefixed with t-
+                //     no longer than 28 bytes without t- prefix
+                //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
+                if (clientOrderId.length > 28) {
+                    throw new BadRequest (this.id + ' createOrder() clientOrderId or text param must be up to 28 characters');
+                }
+                params = this.omit (params, [ 'text', 'clientOrderId' ]);
+                if (clientOrderId[0] !== 't') {
+                    clientOrderId = 't-' + clientOrderId;
+                }
+                request['text'] = clientOrderId;
+            }
+        } else {
+            if (contract) {
+                // contract conditional order
+                const rule = (side === 'sell') ? 1 : 2;
+                request = {
+                    'initial': {
+                        'contract': market['id'],
+                        'size': amount, // positive = buy, negative = sell, set to 0 to close the position
+                        'price': this.priceToPrecision (symbol, price), // set to 0 to use market price
+                        // 'close': false, // set to true if trying to close the position
+                        // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
+                        // 'text': clientOrderId, // web, api, app
+                        // 'reduce_only': false,
+                    },
+                    'trigger': {
+                        // 'strategy_type': 0, // 0 = by price, 1 = by price gap, only 0 is supported currently
+                        // 'price_type': 0, // 0 latest deal price, 1 mark price, 2 index price
+                        'price': this.priceToPrecision (symbol, stopPrice), // price or gap
+                        'rule': rule, // 1 means price_type >= price, 2 means price_type <= price
+                        // 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    },
+                    'settle': market['settleId'],
+                };
+                const expiration = this.safeInteger (params, 'expiration');
+                if (expiration !== undefined) {
+                    request['trigger']['expiration'] = expiration;
+                    params = this.omit (params, 'expiration');
+                }
+                if (reduceOnly !== undefined) {
+                    request['initial']['reduce_only'] = reduceOnly;
+                }
+                if (timeInForce !== undefined) {
+                    request['initial']['tif'] = timeInForce;
+                }
+            } else {
+                // spot conditional order
+                const options = this.safeValue (this.options, 'createOrder', {});
+                const defaultAccount = this.safeString (options, 'account', 'normal');
+                const account = this.safeString (params, 'account', defaultAccount);
+                params = this.omit (params, 'account');
+                const defaultExpiration = this.safeInteger (options, 'expiration');
+                const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
+                const rule = (side === 'sell') ? '>=' : '<=';
+                request = {
+                    'trigger': {
+                        'price': this.priceToPrecision (symbol, stopPrice),
+                        'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
+                        'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
+                    },
+                    'put': {
+                        'type': type,
+                        'side': side,
+                        'price': this.priceToPrecision (symbol, price),
+                        'amount': this.amountToPrecision (symbol, amount),
+                        'account': account, // normal, margin
+                        'time_in_force': timeInForce, // gtc, ioc for taker only
+                    },
+                    'market': market['id'],
+                };
+            }
+            methodTail = 'PriceOrders';
         }
         const method = this.getSupportedMapping (market['type'], {
-            'spot': 'privateSpotPostOrders',
-            // 'margin': 'privateSpotPostOrders',
-            'swap': 'privateFuturesPostSettleOrders',
-            'future': 'privateDeliveryPostSettleOrders',
+            'spot': 'privateSpotPost' + methodTail,
+            'margin': 'privateSpotPost' + methodTail,
+            'swap': 'privateFuturesPostSettle' + methodTail,
+            'future': 'privateDeliveryPostSettle' + methodTail,
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.deepExtend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "id":"95282841887",
+        //         "text":"apiv4",
+        //         "create_time":"1637383156",
+        //         "update_time":"1637383156",
+        //         "create_time_ms":1637383156017,
+        //         "update_time_ms":1637383156017,
+        //         "status":"open",
+        //         "currency_pair":"ETH_USDT",
+        //         "type":"limit",
+        //         "account":"spot",
+        //         "side":"buy",
+        //         "amount":"0.01",
+        //         "price":"3500",
+        //         "time_in_force":"gtc",
+        //         "iceberg":"0",
+        //         "left":"0.01",
+        //         "fill_price":"0",
+        //         "filled_total":"0",
+        //         "fee":"0",
+        //         "fee_currency":"ETH",
+        //         "point_fee":"0",
+        //         "gt_fee":"0",
+        //         "gt_discount":false,
+        //         "rebated_fee":"0",
+        //         "rebated_fee_currency":"USDT"
+        //     }
+        //
+        // spot conditional
+        //
+        //     {"id":5891843}
+        //
+        // futures and perpetual swaps
+        //
+        //     {
+        //         "id":95938572327,
+        //         "contract":"ETH_USDT",
+        //         "mkfr":"0",
+        //         "tkfr":"0.0005",
+        //         "tif":"gtc",
+        //         "is_reduce_only":false,
+        //         "create_time":1637384600.08,
+        //         "price":"3000",
+        //         "size":1,
+        //         "refr":"0",
+        //         "left":1,
+        //         "text":"api",
+        //         "fill_price":"0",
+        //         "user":2436035,
+        //         "status":"open",
+        //         "is_liq":false,
+        //         "refu":0,
+        //         "is_close":false,
+        //         "iceberg":0
+        //     }
+        //
+        // futures and perpetual swaps conditionals
+        //
+        //     {"id":7615567}
+        //
         return this.parseOrder (response, market);
     }
 
@@ -2184,7 +2353,11 @@ module.exports = class gateio extends Exchange {
         let side = undefined;
         const contract = this.safeValue (market, 'contract');
         if (contract) {
-            side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
+            if (amount) {
+                side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
+            } else {
+                side = undefined;
+            }
             rawStatus = this.safeString (order, 'finish_as', 'open');
         } else {
             // open, closed, cancelled - almost already ccxt unified!
@@ -2438,30 +2611,87 @@ module.exports = class gateio extends Exchange {
             'futures': 'privateDeliveryDeleteSettleOrdersOrderId',
         });
         const response = await this[method] (this.extend (request, params));
-        // Perpetual swap
-        // {
-        //     id: "82241928192",
-        //     contract: "BTC_USDT",
-        //     mkfr: "0",
-        //     tkfr: "0.0005",
-        //     tif: "gtc",
-        //     is_reduce_only: false,
-        //     create_time: "1635196145.06",
-        //     finish_time: "1635196233.396",
-        //     price: "61000",
-        //     size: "4",
-        //     refr: "0",
-        //     left: "4",
-        //     text: "web",
-        //     fill_price: "0",
-        //     user: "6693577",
-        //     finish_as: "cancelled",
-        //     status: "finished",
-        //     is_liq: false,
-        //     refu: "0",
-        //     is_close: false,
-        //     iceberg: "0",
-        // }
+        //
+        // spot
+        //
+        //     {
+        //         "id":"95282841887",
+        //         "text":"apiv4",
+        //         "create_time":"1637383156",
+        //         "update_time":"1637383235",
+        //         "create_time_ms":1637383156017,
+        //         "update_time_ms":1637383235085,
+        //         "status":"cancelled",
+        //         "currency_pair":"ETH_USDT",
+        //         "type":"limit",
+        //         "account":"spot",
+        //         "side":"buy",
+        //         "amount":"0.01",
+        //         "price":"3500",
+        //         "time_in_force":"gtc",
+        //         "iceberg":"0",
+        //         "left":"0.01",
+        //         "fill_price":"0",
+        //         "filled_total":"0",
+        //         "fee":"0",
+        //         "fee_currency":"ETH",
+        //         "point_fee":"0",
+        //         "gt_fee":"0",
+        //         "gt_discount":false,
+        //         "rebated_fee":"0",
+        //         "rebated_fee_currency":"USDT"
+        //     }
+        //
+        // spot conditional
+        //
+        //     {
+        //         "market":"ETH_USDT",
+        //         "user":2436035,
+        //         "trigger":{
+        //             "price":"3500",
+        //             "rule":"\u003c=",
+        //             "expiration":86400
+        //         },
+        //         "put":{
+        //             "type":"limit",
+        //             "side":"buy",
+        //             "price":"3500",
+        //             "amount":"0.01000000000000000000",
+        //             "account":"normal",
+        //             "time_in_force":"gtc"
+        //         },
+        //         "id":5891843,
+        //         "ctime":1637382379,
+        //         "ftime":1637382673,
+        //         "status":"canceled"
+        //     }
+        //
+        // perpetual swaps
+        //
+        //     {
+        //         id: "82241928192",
+        //         contract: "BTC_USDT",
+        //         mkfr: "0",
+        //         tkfr: "0.0005",
+        //         tif: "gtc",
+        //         is_reduce_only: false,
+        //         create_time: "1635196145.06",
+        //         finish_time: "1635196233.396",
+        //         price: "61000",
+        //         size: "4",
+        //         refr: "0",
+        //         left: "4",
+        //         text: "web",
+        //         fill_price: "0",
+        //         user: "6693577",
+        //         finish_as: "cancelled",
+        //         status: "finished",
+        //         is_liq: false,
+        //         refu: "0",
+        //         is_close: false,
+        //         iceberg: "0",
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
@@ -2619,11 +2849,21 @@ module.exports = class gateio extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        //
+        //     {"label":"ORDER_NOT_FOUND","message":"Order not found"}
+        //     {"label":"INVALID_PARAM_VALUE","message":"invalid argument: status"}
+        //     {"label":"INVALID_PARAM_VALUE","message":"invalid argument: Trigger.rule"}
+        //     {"label":"INVALID_PARAM_VALUE","message":"invalid argument: trigger.expiration invalid range"}
+        //     {"label":"INVALID_ARGUMENT","detail":"invalid size"}
+        //
         const label = this.safeString (response, 'label');
         if (label !== undefined) {
-            const message = this.safeString2 (response, 'message', 'detail', '');
-            const Error = this.safeValue (this.exceptions, label, ExchangeError);
-            throw new Error (this.id + ' ' + message);
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], label, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };

@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 107 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 110 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -494,6 +494,18 @@ The CCXT library currently supports the following 107 cryptocurrency exchange ma
      
      - 
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg
+          :target: https://btc-alpha.com/?r=123788
+          :alt: btcalpha
+     
+     - btcalpha
+     - `BTC-Alpha <https://btc-alpha.com/?r=123788>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://btc-alpha.github.io/api-docs
+          :alt: API Version 1
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg
           :target: https://www.btcbox.co.jp/
           :alt: btcbox
@@ -587,6 +599,18 @@ The CCXT library currently supports the following 107 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.byte-trade.com/#description
           :alt: API Version *
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
+          :target: https://cdax.io/invite?invite_code=esc74
+          :alt: cdax
+     
+     - cdax
+     - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://github.com/cloudapidoc/API_Docs
+          :alt: API Version 1
      
      - 
      - 
@@ -961,6 +985,21 @@ The CCXT library currently supports the following 107 cryptocurrency exchange ma
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg
+          :target: https://www.huobi.co.jp/register/?invite_code=znnq3
+          :alt: huobijp
+     
+     - huobijp
+     - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://api-doc.huobi.co.jp
+          :alt: API Version 1
+     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -4994,10 +5033,10 @@ Perpetual Swaps (Perpetual Futures)
    // ↓  ↓    settlement asset or currency
    // ↓  ↓    ↓
    // ↓  ↓    ↓
-   'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract funded in BTC
-   'BTC/USDT:USDT' // BTC/USDT perpetual swap contract funded in USDT
-   'ETH/USDT:ETH'  // ETH/USDT perpetual swap contract funded in ETH
-   'ETH/USDT:USDT' // ETH/USDT perpetual swap contract funded in USDT
+   'BTC/USDT:BTC'  // BTC/USDT inverse perpetual swap contract funded in BTC
+   'BTC/USDT:USDT' // BTC/USDT linear perpetual swap contract funded in USDT
+   'ETH/USDT:ETH'  // ETH/USDT inverse perpetual swap contract funded in ETH
+   'ETH/USDT:USDT' // ETH/USDT linear perpetual swap contract funded in USDT
 
 Options
 ~~~~~~~
@@ -5017,10 +5056,10 @@ Options
    // ↓  ↓    ↓       ↓   ↓
    // ↓  ↓    ↓       ↓   ↓   type, put (P) or call (C)
    // ↓  ↓    ↓       ↓   ↓   ↓
-   'BTC/USDT:BTC-211225-60000-P'  // BTC/USDT options contract strike price 60000 USDT settled in BTC (inverse) on 2021-12-25
-   'BTC/USDT:USDT-211225-40000-C' // BTC/USDT options contract strike price 40000 USDT settled in USDT (linear, vanilla) on 2021-12-25
-   'ETH/USDT:ETH-210625-5000-P'   // ETH/USDT options contract strike price 5000 USDT settled in ETH (inverse) on 2021-06-25
-   'ETH/USDT:USDT-210625-5000-C'  // ETH/USDT options contract strike price 5000 USDT settled in USDT (linear, vanilla) on 2021-06-25
+   'BTC/USDT:BTC-211225-60000-P'  // BTC/USDT put option contract strike price 60000 USDT settled in BTC (inverse) on 2021-12-25
+   'ETH/USDT:USDT-211225-40000-C' // BTC/USDT call option contract strike price 40000 USDT settled in USDT (linear, vanilla) on 2021-12-25
+   'ETH/USDT:ETH-210625-5000-P'   // ETH/USDT put option contract strike price 5000 USDT settled in ETH (inverse) on 2021-06-25
+   'ETH/USDT:USDT-210625-5000-C'  // ETH/USDT call option contract strike price 5000 USDT settled in USDT (linear, vanilla) on 2021-06-25
 
 Deposit
 -------

@@ -456,6 +456,7 @@ declare module 'ccxt' {
     export class bittrex extends Exchange {}
     export class bitvavo extends Exchange {}
     export class bl3p extends Exchange {}
+    export class btcalpha extends Exchange {}
     export class btcbox extends Exchange {}
     export class btcmarkets extends Exchange {}
     export class btctradeua extends Exchange {}
@@ -464,7 +465,7 @@ declare module 'ccxt' {
     export class bw extends Exchange {}
     export class bybit extends Exchange {}
     export class bytetrade extends Exchange {}
-    export class cdax extends huobipro {}
+    export class cdax extends Exchange {}
     export class cex extends Exchange {}
     export class coinbase extends Exchange {}
     export class coinbaseprime extends coinbasepro {}
@@ -493,7 +494,7 @@ declare module 'ccxt' {
     export class hitbtc3 extends Exchange {}
     export class hollaex extends Exchange {}
     export class huobi extends Exchange {}
-    export class huobijp extends huobipro {}
+    export class huobijp extends Exchange {}
     export class huobipro extends huobi {}
     export class idex extends Exchange {}
     export class independentreserve extends Exchange {}
@@ -571,6 +572,7 @@ declare module 'ccxt' {
         | 'bittrex'
         | 'bitvavo'
         | 'bl3p'
+        | 'btcalpha'
         | 'btcbox'
         | 'btcmarkets'
         | 'btctradeua'

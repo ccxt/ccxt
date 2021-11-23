@@ -849,24 +849,24 @@ class deribit extends Exchange {
         //     {
         //         "trade_seq" => 3,
         //         "trade_id" => "ETH-34066",
-        //         "$timestamp" => 1550219814585,
+        //         "timestamp" => 1550219814585,
         //         "tick_direction" => 1,
         //         "state" => "open",
         //         "self_trade" => false,
         //         "reduce_only" => false,
-        //         "$price" => 0.04,
+        //         "price" => 0.04,
         //         "post_only" => false,
         //         "order_type" => "limit",
         //         "order_id" => "ETH-334607",
         //         "matching_id" => null,
-        //         "$liquidity" => "M",
+        //         "liquidity" => "M",
         //         "iv" => 56.83,
         //         "instrument_name" => "ETH-22FEB19-120-C",
         //         "index_price" => 121.37,
         //         "fee_currency" => "ETH",
-        //         "$fee" => 0.0011,
+        //         "fee" => 0.0011,
         //         "direction" => "buy",
-        //         "$amount" => 11
+        //         "amount" => 11
         //     }
         //
         $id = $this->safe_string($trade, 'trade_id');
@@ -1042,10 +1042,10 @@ class deribit extends Exchange {
         //         "time_in_force" => "good_til_cancelled",
         //         "reduce_only" => false,
         //         "profit_loss" => 0,
-        //         "$price" => "market_price",
+        //         "price" => "market_price",
         //         "post_only" => false,
-        //         "order_type" => "$market",
-        //         "order_state" => "$filled",
+        //         "order_type" => "market",
+        //         "order_state" => "filled",
         //         "order_id" => "ETH-349249",
         //         "max_show" => 40,
         //         "last_update_timestamp" => 1550657341322,
@@ -1058,8 +1058,8 @@ class deribit extends Exchange {
         //         "commission" => 0.000139,
         //         "average_price" => 143.81,
         //         "api" => true,
-        //         "$amount" => 40,
-        //         "$trades" => array(), // injected by createOrder
+        //         "amount" => 40,
+        //         "trades" => array(), // injected by createOrder
         //     }
         //
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
@@ -1131,8 +1131,8 @@ class deribit extends Exchange {
         //
         //     {
         //         "jsonrpc" => "2.0",
-        //         "$id" => 4316,
-        //         "$result" => {
+        //         "id" => 4316,
+        //         "result" => {
         //             "time_in_force" => "good_til_cancelled",
         //             "reduce_only" => false,
         //             "profit_loss" => 0.051134,
@@ -1210,8 +1210,8 @@ class deribit extends Exchange {
         //     {
         //         "jsonrpc" => "2.0",
         //         "id" => 5275,
-        //         "$result" => {
-        //             "$trades" => array(
+        //         "result" => {
+        //             "trades" => array(
         //                 {
         //                     "trade_seq" => 14151,
         //                     "trade_id" => "ETH-37435",
@@ -1219,8 +1219,8 @@ class deribit extends Exchange {
         //                     "tick_direction" => 2,
         //                     "state" => "closed",
         //                     "self_trade" => false,
-        //                     "$price" => 143.81,
-        //                     "order_type" => "$market",
+        //                     "price" => 143.81,
+        //                     "order_type" => "market",
         //                     "order_id" => "ETH-349249",
         //                     "matching_id" => null,
         //                     "liquidity" => "T",
@@ -1230,16 +1230,16 @@ class deribit extends Exchange {
         //                     "fee_currency" => "ETH",
         //                     "fee" => 0.000139,
         //                     "direction" => "buy",
-        //                     "$amount" => 40
+        //                     "amount" => 40
         //                 }
         //             ),
-        //             "$order" => {
+        //             "order" => {
         //                 "time_in_force" => "good_til_cancelled",
         //                 "reduce_only" => false,
         //                 "profit_loss" => 0,
-        //                 "$price" => "market_price",
+        //                 "price" => "market_price",
         //                 "post_only" => false,
-        //                 "order_type" => "$market",
+        //                 "order_type" => "market",
         //                 "order_state" => "filled",
         //                 "order_id" => "ETH-349249",
         //                 "max_show" => 40,
@@ -1253,7 +1253,7 @@ class deribit extends Exchange {
         //                 "commission" => 0.000139,
         //                 "average_price" => 143.81,
         //                 "api" => true,
-        //                 "$amount" => 40
+        //                 "amount" => 40
         //             }
         //         }
         //     }
@@ -1367,9 +1367,9 @@ class deribit extends Exchange {
         //
         //     {
         //         "jsonrpc" => "2.0",
-        //         "$id" => 9367,
-        //         "$result" => {
-        //             "$trades" => array(
+        //         "id" => 9367,
+        //         "result" => {
+        //             "trades" => array(
         //                 array(
         //                     "trade_seq" => 3,
         //                     "trade_id" => "ETH-34066",
@@ -1380,7 +1380,7 @@ class deribit extends Exchange {
         //                     "reduce_only" => false,
         //                     "price" => 0.04,
         //                     "post_only" => false,
-        //                     "order_type" => "$limit",
+        //                     "order_type" => "limit",
         //                     "order_id" => "ETH-334607",
         //                     "matching_id" => null,
         //                     "liquidity" => "M",
@@ -1437,8 +1437,8 @@ class deribit extends Exchange {
         //     {
         //         "jsonrpc" => "2.0",
         //         "id" => 9367,
-        //         "$result" => {
-        //             "$trades" => array(
+        //         "result" => {
+        //             "trades" => array(
         //                 array(
         //                     "trade_seq" => 3,
         //                     "trade_id" => "ETH-34066",
@@ -1449,7 +1449,7 @@ class deribit extends Exchange {
         //                     "reduce_only" => false,
         //                     "price" => 0.04,
         //                     "post_only" => false,
-        //                     "order_type" => "$limit",
+        //                     "order_type" => "limit",
         //                     "order_id" => "ETH-334607",
         //                     "matching_id" => null,
         //                     "liquidity" => "M",
@@ -1488,13 +1488,13 @@ class deribit extends Exchange {
         //     {
         //         "jsonrpc" => "2.0",
         //         "id" => 5611,
-        //         "$result" => {
+        //         "result" => {
         //             "count" => 1,
-        //             "$data" => array(
+        //             "data" => array(
         //                 {
         //                     "address" => "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
         //                     "amount" => 5,
-        //                     "$currency" => "BTC",
+        //                     "currency" => "BTC",
         //                     "received_timestamp" => 1549295017670,
         //                     "state" => "completed",
         //                     "transaction_id" => "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
@@ -1526,15 +1526,15 @@ class deribit extends Exchange {
         //     {
         //         "jsonrpc" => "2.0",
         //         "id" => 2745,
-        //         "$result" => {
+        //         "result" => {
         //             "count" => 1,
-        //             "$data" => array(
+        //             "data" => array(
         //                 {
         //                     "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
         //                     "amount" => 0.5,
         //                     "confirmed_timestamp" => null,
         //                     "created_timestamp" => 1550571443070,
-        //                     "$currency" => "BTC",
+        //                     "currency" => "BTC",
         //                     "fee" => 0.0001,
         //                     "id" => 1,
         //                     "priority" => 0.15,
@@ -1564,12 +1564,12 @@ class deribit extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         "$address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
+        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
         //         "amount" => 0.5,
         //         "confirmed_timestamp" => null,
         //         "created_timestamp" => 1550571443070,
-        //         "$currency" => "BTC",
-        //         "$fee" => 0.0001,
+        //         "currency" => "BTC",
+        //         "fee" => 0.0001,
         //         "id" => 1,
         //         "priority" => 0.15,
         //         "state" => "unconfirmed",
@@ -1580,9 +1580,9 @@ class deribit extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "$address" => "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
+        //         "address" => "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
         //         "amount" => 5,
-        //         "$currency" => "BTC",
+        //         "currency" => "BTC",
         //         "received_timestamp" => 1549295017670,
         //         "state" => "completed",
         //         "transaction_id" => "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
@@ -1637,7 +1637,7 @@ class deribit extends Exchange {
         //     {
         //         "jsonrpc" => "2.0",
         //         "id" => 404,
-        //         "$result" => {
+        //         "result" => {
         //             "average_price" => 0,
         //             "delta" => 0,
         //             "direction" => "buy",
@@ -1676,7 +1676,7 @@ class deribit extends Exchange {
         //     {
         //         "jsonrpc" => "2.0",
         //         "id" => 2236,
-        //         "$result" => array(
+        //         "result" => array(
         //             {
         //                 "average_price" => 7440.18,
         //                 "delta" => 0.006687487,

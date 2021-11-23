@@ -479,7 +479,7 @@ class gemini(Exchange):
         volume = self.safe_value(ticker, 'volume', {})
         timestamp = self.safe_integer(volume, 'timestamp')
         symbol = None
-        marketId = self.safe_string(ticker, 'pair')
+        marketId = self.safe_string_lower(ticker, 'pair')
         baseId = None
         quoteId = None
         base = None

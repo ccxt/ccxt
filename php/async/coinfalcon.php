@@ -297,14 +297,14 @@ class coinfalcon extends Exchange {
         //
         //     {
         //         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
-        //         "$market":"IOT-BTC"
-        //         "$price":"0.0000003"
+        //         "market":"IOT-BTC"
+        //         "price":"0.0000003"
         //         "size":"4.0"
         //         "size_filled":"3.0"
         //         "fee":"0.0075"
         //         "fee_currency_code":"iot"
         //         "funds":"0.0"
-        //         "$status":"canceled"
+        //         "status":"canceled"
         //         "order_type":"buy"
         //         "post_only":false
         //         "operation_type":"market_order"

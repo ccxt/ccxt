@@ -528,7 +528,7 @@ class okex extends Exchange {
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
                 'createMarketBuyOrderRequiresPrice' => false,
-                'fetchMarkets' => array( 'spot', 'futures', 'swap' ), // spot, futures, swap, option
+                'fetchMarkets' => array( 'spot', 'futures', 'swap', 'option' ), // spot, futures, swap, option
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 // 'fetchBalance' => array(
                 //     'type' => 'spot', // 'funding', 'trading', 'spot'
@@ -566,6 +566,7 @@ class okex extends Exchange {
                 'HSR' => 'HC',
                 'MAG' => 'Maggie',
                 'SBTC' => 'Super Bitcoin',
+                'TRADE' => 'Unitrade',
                 'YOYO' => 'YOYOW',
                 'WIN' => 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             ),
@@ -577,14 +578,14 @@ class okex extends Exchange {
         //
         //     {
         //         "code":"0",
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "begin":"1621328400000",
         //                 "end":"1621329000000",
         //                 "href":"https://www.okex.com/support/hc/en-us/articles/360060882172",
         //                 "scheDesc":"",
         //                 "serviceType":"1", // 0 WebSocket, 1 Spot/Margin, 2 Futures, 3 Perpetual, 4 Options, 5 Trading service
-        //                 "$state":"scheduled", // ongoing, completed, canceled
+        //                 "state":"scheduled", // ongoing, completed, canceled
         //                 "system":"classic", // classic, unified
         //                 "title":"Classic Spot System Upgrade"
         //             ),
@@ -617,7 +618,7 @@ class okex extends Exchange {
         //
         //     {
         //         "code":"0",
-        //         "$data":array(
+        //         "data":array(
         //             array("ts":"1621247923668")
         //         ),
         //         "msg":""
@@ -672,13 +673,37 @@ class okex extends Exchange {
         //         "uly":""
         //     }
         //
+        //     {
+        //         alias => "",
+        //         baseCcy => "",
+        //         category => "1",
+        //         ctMult => "0.1",
+        //         ctType => "",
+        //         ctVal => "1",
+        //         ctValCcy => "BTC",
+        //         expTime => "1648195200000",
+        //         instId => "BTC-USD-220325-194000-P",
+        //         instType => "OPTION",
+        //         lever => "",
+        //         listTime => "1631262612280",
+        //         lotSz => "1",
+        //         minSz => "1",
+        //         optType => "P",
+        //         quoteCcy => "",
+        //         settleCcy => "BTC",
+        //         state => "live",
+        //         stk => "194000",
+        //         tickSz => "0.0005",
+        //         uly => "BTC-USD"
+        //     }
+        //
         $id = $this->safe_string($market, 'instId');
         $type = $this->safe_string_lower($market, 'instType');
         $spot = ($type === 'spot');
         $futures = ($type === 'futures');
         $swap = ($type === 'swap');
         $option = ($type === 'option');
-        $contract = $swap || $futures;
+        $contract = $swap || $futures || $option;
         $baseId = $this->safe_string($market, 'baseCcy');
         $quoteId = $this->safe_string($market, 'quoteCcy');
         $settleCurrency = $this->safe_string($market, 'settleCcy');
@@ -701,6 +726,11 @@ class okex extends Exchange {
             if ($expiry !== null) {
                 $ymd = $this->yymmdd($expiry);
                 $symbol = $symbol . '-' . $ymd;
+            }
+            if ($option) {
+                $strikePrice = $this->safe_string($market, 'stk');
+                $optionType = $this->safe_string($market, 'optType');
+                $symbol = $symbol . '-' . $strikePrice . '-' . $optionType;
             }
         }
         $tickSize = $this->safe_string($market, 'tickSz');
@@ -784,7 +814,7 @@ class okex extends Exchange {
         //
         //     {
         //         "code":"0",
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "alias":"", // this_week, next_week, quarter, next_quarter
         //                 "baseCcy":"BTC",
@@ -834,19 +864,19 @@ class okex extends Exchange {
             return null;
         }
         // has['fetchCurrencies'] is currently set to false
-        // it will reply with array("msg":"Request header “OK_ACCESS_KEY“ can't be empty.","$code":"50103")
+        // it will reply with array("msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103")
         // if you attempt to access it without authentication
         $response = yield $this->privateGetAssetCurrencies ($params);
         //
         //     {
-        //         "$code":"0",
-        //         "$data":array(
+        //         "code":"0",
+        //         "data":array(
         //             {
         //                 "canDep":true,
-        //                 "$canInternal":true,
+        //                 "canInternal":true,
         //                 "canWd":true,
         //                 "ccy":"USDT",
-        //                 "$chain":"USDT-ERC20",
+        //                 "chain":"USDT-ERC20",
         //                 "maxFee":"40",
         //                 "minFee":"20",
         //                 "minWd":"2",
@@ -940,7 +970,7 @@ class okex extends Exchange {
         //     {
         //         "code":"0",
         //         "msg":"",
-        //         "$data":[
+        //         "data":[
         //             {
         //                 "asks":[
         //                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
@@ -968,7 +998,7 @@ class okex extends Exchange {
         //     {
         //         "instType":"SPOT",
         //         "instId":"ETH-BTC",
-        //         "$last":"0.07319",
+        //         "last":"0.07319",
         //         "lastSz":"0.044378",
         //         "askPx":"0.07322",
         //         "askSz":"4.2",
@@ -1028,7 +1058,7 @@ class okex extends Exchange {
         //     {
         //         "code":"0",
         //         "msg":"",
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "instType":"SPOT",
         //                 "instId":"ETH-BTC",
@@ -1113,7 +1143,7 @@ class okex extends Exchange {
         //
         //     {
         //         "instId":"ETH-BTC",
-        //         "$side":"sell",
+        //         "side":"sell",
         //         "sz":"0.119501",
         //         "px":"0.07065",
         //         "tradeId":"15826757",
@@ -1123,10 +1153,10 @@ class okex extends Exchange {
         // private fetchMyTrades
         //
         //     {
-        //         "$side":"buy",
+        //         "side":"buy",
         //         "fillSz":"0.007533",
         //         "fillPx":"2654.98",
-        //         "$fee":"-0.000007533",
+        //         "fee":"-0.000007533",
         //         "ordId":"317321390244397056",
         //         "instType":"SPOT",
         //         "instId":"ETH-USDT",
@@ -1200,7 +1230,7 @@ class okex extends Exchange {
         //     {
         //         "code":"0",
         //         "msg":"",
-        //         "$data":array(
+        //         "data":array(
         //             array("instId":"ETH-BTC","side":"sell","sz":"0.119501","px":"0.07065","tradeId":"15826757","ts":"1621446178316"),
         //             array("instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"),
         //             array("instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"),
@@ -1275,7 +1305,7 @@ class okex extends Exchange {
         //     {
         //         "code":"0",
         //         "msg":"",
-        //         "$data":[
+        //         "data":[
         //             ["1621447080000","0.07073","0.07073","0.07064","0.07064","12.08863","0.854309"],
         //             ["1621447020000","0.0708","0.0709","0.0707","0.07072","58.517435","4.143309"],
         //             ["1621446960000","0.0707","0.07082","0.0707","0.07076","53.850841","3.810921"],
@@ -1306,7 +1336,7 @@ class okex extends Exchange {
         //     {
         //         "code":"0",
         //         "msg":"",
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "instType":"SWAP",
         //                 "instId":"BTC-USDT-SWAP",
@@ -1580,9 +1610,9 @@ class okex extends Exchange {
             $request['tdMode'] = 'cash';
         } else if ($market['contract']) {
             if ($tdMode === null) {
-                throw new ArgumentsRequired($this->id . ' $params["$tdMode"] is required to be either "isolated" or "cross"');
+                throw new ArgumentsRequired($this->id . ' $params["tdMode"] is required to be either "isolated" or "cross"');
             } else if (($tdMode !== 'isolated') && ($tdMode !== 'cross')) {
-                throw new BadRequest($this->id . ' $params["$tdMode"] must be either "isolated" or "cross"');
+                throw new BadRequest($this->id . ' $params["tdMode"] must be either "isolated" or "cross"');
             }
         }
         $postOnly = $this->safe_value($params, 'postOnly', false);
@@ -1652,7 +1682,7 @@ class okex extends Exchange {
         //     {
         //         "code" => "0",
         //         "msg" => "",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "clOrdId" => "oktswap6",
         //                 "ordId" => "312269865356374016",
@@ -1691,7 +1721,7 @@ class okex extends Exchange {
         }
         $query = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
         $response = yield $this->privatePostTradeCancelOrder (array_merge($request, $query));
-        // array("code":"0","$data":[array("clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":"")],"msg":"")
+        // array("code":"0","data":[array("clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":"")],"msg":"")
         $data = $this->safe_value($response, 'data', array());
         $order = $this->safe_value($data, 0);
         return $this->parse_order($order, $market);
@@ -1728,13 +1758,13 @@ class okex extends Exchange {
         //         "category":"normal",
         //         "ccy":"",
         //         "clOrdId":"",
-        //         "$fee":"0",
+        //         "fee":"0",
         //         "feeCcy":"ETH",
         //         "fillPx":"",
         //         "fillSz":"0",
         //         "fillTime":"",
         //         "instId":"ETH-USDT",
-        //         "$instType":"SPOT",
+        //         "instType":"SPOT",
         //         "lever":"",
         //         "ordId":"317251910906576896",
         //         "ordType":"limit",
@@ -1743,7 +1773,7 @@ class okex extends Exchange {
         //         "px":"2000",
         //         "rebate":"0",
         //         "rebateCcy":"USDT",
-        //         "$side":"buy",
+        //         "side":"buy",
         //         "slOrdPx":"",
         //         "slTriggerPx":"",
         //         "state":"live",
@@ -1856,7 +1886,7 @@ class okex extends Exchange {
         //
         //     {
         //         "code":"0",
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "accFillSz":"0",
         //                 "avgPx":"",
@@ -1924,7 +1954,7 @@ class okex extends Exchange {
         //
         //     {
         //         "code":"0",
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "accFillSz":"0",
         //                 "avgPx":"",
@@ -1941,7 +1971,7 @@ class okex extends Exchange {
         //                 "instType":"SPOT",
         //                 "lever":"",
         //                 "ordId":"317251910906576896",
-        //                 "ordType":"$limit",
+        //                 "ordType":"limit",
         //                 "pnl":"0",
         //                 "posSide":"net",
         //                 "px":"2000",
@@ -2001,7 +2031,7 @@ class okex extends Exchange {
         //
         //     {
         //         "code":"0",
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "accFillSz":"0",
         //                 "avgPx":"",
@@ -2018,7 +2048,7 @@ class okex extends Exchange {
         //                 "instType":"SPOT",
         //                 "lever":"",
         //                 "ordId":"317251910906576896",
-        //                 "ordType":"$limit",
+        //                 "ordType":"limit",
         //                 "pnl":"0",
         //                 "posSide":"net",
         //                 "px":"2000",
@@ -2073,7 +2103,7 @@ class okex extends Exchange {
         //
         //     {
         //         "code":"0",
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "side":"buy",
         //                 "fillSz":"0.007533",
@@ -2190,9 +2220,9 @@ class okex extends Exchange {
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
         //     {
-        //         "$code" => "0",
+        //         "code" => "0",
         //         "msg" => "",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "bal" => "0.0000819307998198",
         //                 "balChg" => "-664.2679586599999802",
@@ -2220,9 +2250,9 @@ class okex extends Exchange {
         // privateGetAssetBills
         //
         //     {
-        //         "$code" => "0",
+        //         "code" => "0",
         //         "msg" => "",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "billId" => "12344",
         //                 "ccy" => "BTC",
@@ -2264,7 +2294,7 @@ class okex extends Exchange {
         //         "balChg" => "-664.2679586599999802",
         //         "billId" => "310394313544966151",
         //         "ccy" => "USDT",
-        //         "$fee" => "0",
+        //         "fee" => "0",
         //         "from" => "",
         //         "instId" => "LTC-USDT",
         //         "instType" => "SPOT",
@@ -2278,7 +2308,7 @@ class okex extends Exchange {
         //         "sz" => "664.26795866",
         //         "to" => "",
         //         "ts" => "1620275771196",
-        //         "$type" => "2"
+        //         "type" => "2"
         //     }
         //
         // privateGetAssetBills
@@ -2288,7 +2318,7 @@ class okex extends Exchange {
         //         "ccy" => "BTC",
         //         "balChg" => "2",
         //         "bal" => "12",
-        //         "$type" => "1",
+        //         "type" => "1",
         //         "ts" => "1597026383085"
         //     }
         //
@@ -2343,7 +2373,7 @@ class okex extends Exchange {
         //     {
         //         "addr" => "okbtothemoon",
         //         "memo" => "971668", // may be missing
-        //         "$tag":"52055", // may be missing
+        //         "tag":"52055", // may be missing
         //         "pmtId" => "", // may be missing
         //         "ccy" => "BTC",
         //         "to" => "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
@@ -2358,7 +2388,7 @@ class okex extends Exchange {
         //     }
         //
         //     {
-        //       "$chain" => "ETH-OKExChain",
+        //       "chain" => "ETH-OKExChain",
         //       "ctAddr" => "72315c",
         //       "ccy" => "ETH",
         //       "to" => "6",
@@ -2396,9 +2426,9 @@ class okex extends Exchange {
         $response = yield $this->privateGetAssetDepositAddress (array_merge($request, $params));
         //
         //     {
-        //         "$code" => "0",
+        //         "code" => "0",
         //         "msg" => "",
-        //         "$data" => array(
+        //         "data" => array(
         //             array(
         //                 "addr" => "okbtothemoon",
         //                 "memo" => "971668", // may be missing
@@ -2492,9 +2522,9 @@ class okex extends Exchange {
         $response = yield $this->privatePostAssetWithdrawal (array_merge($request, $query));
         //
         //     {
-        //         "$code" => "0",
+        //         "code" => "0",
         //         "msg" => "",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "amt" => "0.1",
         //                 "wdId" => "67485",
@@ -2531,9 +2561,9 @@ class okex extends Exchange {
         $response = yield $this->privateGetAssetDepositHistory (array_merge($request, $params));
         //
         //     {
-        //         "$code" => "0",
+        //         "code" => "0",
         //         "msg" => "",
-        //         "$data" => array(
+        //         "data" => array(
         //             array(
         //                 "amt" => "0.01044408",
         //                 "txId" => "1915737_3_0_0_asset",
@@ -2594,9 +2624,9 @@ class okex extends Exchange {
         $response = yield $this->privateGetAssetWithdrawalHistory (array_merge($request, $params));
         //
         //     {
-        //         "$code" => "0",
+        //         "code" => "0",
         //         "msg" => "",
-        //         "$data" => array(
+        //         "data" => array(
         //             array(
         //                 "amt" => "0.094",
         //                 "wdId" => "4703879",
@@ -2806,7 +2836,7 @@ class okex extends Exchange {
         //     {
         //         "code" => "0",
         //         "msg" => "",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "adl":"1",
         //                 "availPos":"1",
@@ -3078,9 +3108,9 @@ class okex extends Exchange {
         $response = yield $this->privatePostAssetTransfer (array_merge($request, $params));
         //
         //     {
-        //         "$code" => "0",
+        //         "code" => "0",
         //         "msg" => "",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "transId" => "754147",
         //                 "ccy" => "USDT",
@@ -3176,11 +3206,11 @@ class okex extends Exchange {
     public function parse_funding_rate($fundingRate, $market = null) {
         //
         //     {
-        //       "$fundingRate" => "0.00027815",
+        //       "fundingRate" => "0.00027815",
         //       "fundingTime" => "1634256000000",
         //       "instId" => "BTC-USD-SWAP",
         //       "instType" => "SWAP",
-        //       "$nextFundingRate" => "0.00017",
+        //       "nextFundingRate" => "0.00017",
         //       "nextFundingTime" => "1634284800000"
         //     }
         //
@@ -3228,7 +3258,7 @@ class okex extends Exchange {
         //
         //     {
         //       "code" => "0",
-        //       "$data" => array(
+        //       "data" => array(
         //         {
         //           "fundingRate" => "0.00027815",
         //           "fundingTime" => "1634256000000",
@@ -3337,7 +3367,7 @@ class okex extends Exchange {
         //       "execType" => "",
         //       "fee" => "0",
         //       "from" => "",
-        //       "$instId" => "ETH-USD-SWAP",
+        //       "instId" => "ETH-USD-SWAP",
         //       "instType" => "SWAP",
         //       "mgnMode" => "isolated",
         //       "notes" => "",
@@ -3450,7 +3480,7 @@ class okex extends Exchange {
         $market = $this->market($symbol);
         $lever = $this->safe_integer($params, 'lever');
         if (($lever === null) || ($lever < 1) || ($lever > 125)) {
-            throw new BadRequest($this->id . ' setMarginMode $params["$lever"] should be between 1 and 125');
+            throw new BadRequest($this->id . ' setMarginMode $params["lever"] should be between 1 and 125');
         }
         $params = $this->omit($params, array( 'lever' ));
         $request = array(
@@ -3465,7 +3495,7 @@ class okex extends Exchange {
         //       "data" => array(
         //         {
         //           "instId" => "BTC-USDT-SWAP",
-        //           "$lever" => "5",
+        //           "lever" => "5",
         //           "mgnMode" => "isolated",
         //           "posSide" => "long"
         //         }
@@ -3490,13 +3520,13 @@ class okex extends Exchange {
         $response = yield $this->privatePostAccountPositionMarginBalance (array_merge($request, $params));
         //
         //     {
-        //       "$code" => "0",
-        //       "$data" => array(
+        //       "code" => "0",
+        //       "data" => array(
         //         {
         //           "amt" => "0.01",
         //           "instId" => "ETH-USD-SWAP",
-        //           "$posSide" => "net",
-        //           "$type" => "reduce"
+        //           "posSide" => "net",
+        //           "type" => "reduce"
         //         }
         //       ),
         //       "msg" => ""
@@ -3535,8 +3565,8 @@ class okex extends Exchange {
             return; // fallback to default $error handler
         }
         //
-        //     array("$code":"1","$data":[array("clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":"")],"msg":"")
-        //     array("$code":"58001","$data":array(),"msg":"Incorrect trade password")
+        //     array("code":"1","data":[array("clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":"")],"msg":"")
+        //     array("code":"58001","data":array(),"msg":"Incorrect trade password")
         //
         $code = $this->safe_string($response, 'code');
         if ($code !== '0') {

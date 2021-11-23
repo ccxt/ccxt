@@ -329,7 +329,7 @@ class aofex extends Exchange {
         //     {
         //         "errno" => 0,
         //         "errmsg" => "success",
-        //         "$result" => array(
+        //         "result" => array(
         //             array( "available" => "0", "frozen" => "0", "currency" => "BTC" )
         //         )
         //     }
@@ -363,7 +363,7 @@ class aofex extends Exchange {
         //     {
         //         "errno":0,
         //         "errmsg":"success",
-        //         "$result" => {
+        //         "result" => {
         //             "toFee":"0.002","fromFee":"0.002"
         //         }
         //     }
@@ -537,12 +537,12 @@ class aofex extends Exchange {
         // fetchOrder trades
         //
         //     {
-        //         "$id":null,
-        //         "$ctime":"2020-03-23 20:07:17",
+        //         "id":null,
+        //         "ctime":"2020-03-23 20:07:17",
         //         "price":"123.9",
         //         "number":"0.010688626311541565",
         //         "total_price":"1.324320799999999903",
-        //         "$fee":"0.000021377252623083"
+        //         "fee":"0.000021377252623083"
         //     }
         //
         $id = $this->safe_string($trade, 'id');
@@ -651,14 +651,14 @@ class aofex extends Exchange {
         //         "order_sn" => "BL74426415849672087836G48N1",
         //         "symbol" => "ETH-USDT",
         //         "ctime" => "2020-03-23 20:40:08",
-        //         "$type" => 2,
-        //         "$side" => "buy",
-        //         "$price" => "90", // null for $market orders
-        //         "$number" => "0.1",
+        //         "type" => 2,
+        //         "side" => "buy",
+        //         "price" => "90", // null for $market orders
+        //         "number" => "0.1",
         //         "total_price" => "9.0", // 0 for $market orders
         //         "deal_number" => null,
         //         "deal_price" => null,
-        //         "$status" => 1,
+        //         "status" => 1,
         //     }
         //
         // fetchOrder
@@ -760,10 +760,10 @@ class aofex extends Exchange {
         //     {
         //         "errno" => 0,
         //         "errmsg" => "success",
-        //         "$result" => {
-        //             "$trades" => array(
+        //         "result" => {
+        //             "trades" => array(
         //                 array(
-        //                     "$id":null,
+        //                     "id":null,
         //                     "ctime":"2020-03-23 20:07:17",
         //                     "price":"123.9",
         //                     "number":"0.010688626311541565",
@@ -773,7 +773,7 @@ class aofex extends Exchange {
         //             ),
         //             "entrust":{
         //                 "order_sn":"BM7442641584965237751ZMAKJ5",
-        //                 "$symbol":"ETH-USDT",
+        //                 "symbol":"ETH-USDT",
         //                 "ctime":"2020-03-23 20:07:17",
         //                 "type":1,
         //                 "side":"buy",
@@ -818,10 +818,10 @@ class aofex extends Exchange {
         //     {
         //         "errno" => 0,
         //         "errmsg" => "success",
-        //         "$result" => array(
+        //         "result" => array(
         //             {
         //                 "order_sn" => "BL74426415849672087836G48N1",
-        //                 "$symbol" => "ETH-USDT",
+        //                 "symbol" => "ETH-USDT",
         //                 "ctime" => "2020-03-23 20:40:08",
         //                 "type" => 2,
         //                 "side" => "buy",
@@ -897,9 +897,9 @@ class aofex extends Exchange {
         //
         //     {
         //         "errno" => 0,
-        //         "errmsg" => "$success",
-        //         "$result" => {
-        //             "$success" => array( "avl12121", "bl3123123" ),
+        //         "errmsg" => "success",
+        //         "result" => {
+        //             "success" => array( "avl12121", "bl3123123" ),
         //             "failed" => array( "sd24564", "sdf6564564" )
         //         }
         //     }

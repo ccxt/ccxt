@@ -780,16 +780,15 @@ class bitget(Exchange):
         #
         # spot
         #
-        #     {
-        #         "base_currency":"btc",
-        #         "quote_currency":"usdt",
-        #         "symbol":"btc_usdt",
-        #         "tick_size":"2",
-        #         "size_increment":"4",
-        #         "status":"1",
-        #         "base_asset_precision":"8"
-        #     }
-        #
+        #      {
+        #          "symbol": "BTC_USDT",
+        #          "status": "online",
+        #          "base_currency": "BTC",
+        #          "quote_currency": "USDT",
+        #          "tick_size": "2",
+        #          "size_increment": "4",
+        #          "base_asset_precision": "4"
+        #      }
         #
         # swap
         #
@@ -833,7 +832,7 @@ class bitget(Exchange):
         status = self.safe_string(market, 'status')
         active = None
         if status is not None:
-            active = (status == '1')
+            active = (status == '1') or (status == 'online')
         fees = self.safe_value_2(self.fees, marketType, 'trading', {})
         return self.extend(fees, {
             'id': id,

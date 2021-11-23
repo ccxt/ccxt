@@ -190,7 +190,7 @@ class probit extends Exchange {
         //     {
         //         "data":array(
         //             array(
-        //                 "$id":"MONA-USDT",
+        //                 "id":"MONA-USDT",
         //                 "base_currency_id":"MONA",
         //                 "quote_currency_id":"USDT",
         //                 "min_price":"0.001",
@@ -205,7 +205,7 @@ class probit extends Exchange {
         //                 "taker_fee_rate":"0.2",
         //                 "maker_fee_rate":"0.2",
         //                 "show_in_ui":true,
-        //                 "$closed":false
+        //                 "closed":false
         //             ),
         //         )
         //     }
@@ -274,25 +274,25 @@ class probit extends Exchange {
         //     {
         //         "data":array(
         //             {
-        //                 "$id":"USDT",
+        //                 "id":"USDT",
         //                 "display_name":array("ko-kr":"테더","en-us":"Tether"),
         //                 "show_in_ui":true,
-        //                 "$platform":[
+        //                 "platform":[
         //                     array(
-        //                         "$id":"ETH",
-        //                         "$priority":1,
+        //                         "id":"ETH",
+        //                         "priority":1,
         //                         "deposit":true,
         //                         "withdrawal":true,
         //                         "currency_id":"USDT",
-        //                         "$precision":6,
+        //                         "precision":6,
         //                         "min_confirmation_count":15,
         //                         "require_destination_tag":false,
-        //                         "display_name":array("$name":array("ko-kr":"ERC-20","en-us":"ERC-20")),
+        //                         "display_name":array("name":array("ko-kr":"ERC-20","en-us":"ERC-20")),
         //                         "min_deposit_amount":"0",
         //                         "min_withdrawal_amount":"1",
         //                         "withdrawal_fee":[
-        //                             array("$amount":"0.01","$priority":2,"currency_id":"ETH"),
-        //                             array("$amount":"1.5","$priority":1,"currency_id":"USDT"),
+        //                             array("amount":"0.01","priority":2,"currency_id":"ETH"),
+        //                             array("amount":"1.5","priority":1,"currency_id":"USDT"),
         //                         ),
         //                         "deposit_fee":array(),
         //                         "suspended_reason":"",
@@ -300,18 +300,18 @@ class probit extends Exchange {
         //                         "withdrawal_suspended":false
         //                     ),
         //                     {
-        //                         "$id":"OMNI",
-        //                         "$priority":2,
+        //                         "id":"OMNI",
+        //                         "priority":2,
         //                         "deposit":true,
         //                         "withdrawal":true,
         //                         "currency_id":"USDT",
-        //                         "$precision":6,
+        //                         "precision":6,
         //                         "min_confirmation_count":3,
         //                         "require_destination_tag":false,
-        //                         "display_name":array("$name":array("ko-kr":"OMNI","en-us":"OMNI")),
+        //                         "display_name":array("name":array("ko-kr":"OMNI","en-us":"OMNI")),
         //                         "min_deposit_amount":"0",
         //                         "min_withdrawal_amount":"5",
-        //                         "withdrawal_fee":[array("$amount":"5","$priority":1,"currency_id":"USDT")],
+        //                         "withdrawal_fee":[array("amount":"5","priority":1,"currency_id":"USDT")],
         //                         "deposit_fee":array(),
         //                         "suspended_reason":"wallet_maintenance",
         //                         "deposit_suspended":false,
@@ -446,7 +446,7 @@ class probit extends Exchange {
         $response = yield $this->publicGetTicker (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "last":"0.022902",
         //                 "low":"0.021693",
@@ -473,7 +473,7 @@ class probit extends Exchange {
         $response = yield $this->publicGetTicker (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "last":"0.022902",
         //                 "low":"0.021693",
@@ -501,7 +501,7 @@ class probit extends Exchange {
         //         "last":"0.022902",
         //         "low":"0.021693",
         //         "high":"0.024093",
-        //         "$change":"-0.000047",
+        //         "change":"-0.000047",
         //         "base_volume":"15681.986",
         //         "quote_volume":"360.514403624",
         //         "market_id":"ETH-BTC",
@@ -600,7 +600,7 @@ class probit extends Exchange {
         $response = yield $this->publicGetTrade (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "id":"ETH-BTC:3331886",
         //                 "price":"0.022981",
@@ -629,26 +629,26 @@ class probit extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "$id":"ETH-BTC:3331886",
-        //         "$price":"0.022981",
+        //         "id":"ETH-BTC:3331886",
+        //         "price":"0.022981",
         //         "quantity":"12.337",
         //         "time":"2020-04-12T20:55:42.371Z",
-        //         "$side":"sell",
+        //         "side":"sell",
         //         "tick_direction":"down"
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "$id":"BTC-USDT:183566",
+        //         "id":"BTC-USDT:183566",
         //         "order_id":"17209376",
-        //         "$side":"sell",
+        //         "side":"sell",
         //         "fee_amount":"0.657396569175",
         //         "fee_currency_id":"USDT",
         //         "status":"settled",
-        //         "$price":"6573.96569175",
+        //         "price":"6573.96569175",
         //         "quantity":"0.1",
-        //         "$cost":"657.396569175",
+        //         "cost":"657.396569175",
         //         "time":"2018-08-10T06:06:46.000Z",
         //         "market_id":"BTC-USDT"
         //     }
@@ -778,7 +778,7 @@ class probit extends Exchange {
         $response = yield $this->publicGetCandle (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "market_id":"ETH-BTC",
         //                 "open":"0.02811",
@@ -1077,7 +1077,7 @@ class probit extends Exchange {
         $response = yield $this->privateGetDepositAddress (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "currency_id":"ETH",
         //                 "address":"0x12e2caf3c4051ba1146e612f532901a423a9898a",
