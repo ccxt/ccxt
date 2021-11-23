@@ -651,7 +651,7 @@ class gateio(Exchange):
                     quote = self.safe_currency_code(quoteId)
                     symbol = ''
                     if date is not None:
-                        symbol = base + '/' + quote + '-' + date + ':' + self.safe_currency_code(settle)
+                        symbol = base + '/' + quote + ':' + self.safe_currency_code(settle) + '-' + date
                     else:
                         symbol = base + '/' + quote + ':' + self.safe_currency_code(settle)
                     priceDeviate = self.safe_string(market, 'order_price_deviate')

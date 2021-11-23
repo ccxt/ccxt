@@ -644,7 +644,7 @@ class gateio extends Exchange {
                     $quote = $this->safe_currency_code($quoteId);
                     $symbol = '';
                     if ($date !== null) {
-                        $symbol = $base . '/' . $quote . '-' . $date . ':' . $this->safe_currency_code($settle);
+                        $symbol = $base . '/' . $quote . ':' . $this->safe_currency_code($settle) . '-' . $date;
                     } else {
                         $symbol = $base . '/' . $quote . ':' . $this->safe_currency_code($settle);
                     }
