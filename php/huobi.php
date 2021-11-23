@@ -1286,20 +1286,20 @@ class huobi extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-        $subType = $this->safe_string($options, 'subType', $defaultSubType);
-        $subType = $this->safe_string($params, 'subType', $subType);
         $method = 'spotPublicGetMarketTickers';
-        $query = $this->omit($params, array( 'type', 'subType' ));
         if ($type === 'future') {
             $method = 'contractPublicGetMarketDetailBatchMerged';
         } else if ($type === 'swap') {
+            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+            $subType = $this->safe_string($options, 'subType', $defaultSubType);
+            $subType = $this->safe_string($params, 'subType', $subType);
             if ($subType === 'inverse') {
                 $method = 'contractPublicGetSwapExMarketDetailBatchMerged';
             } else if ($subType === 'linear') {
                 $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
             }
         }
+        $query = $this->omit($params, array( 'type', 'subType' ));
         $response = $this->$method ($query);
         //
         // future
