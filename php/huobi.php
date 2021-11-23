@@ -1818,30 +1818,128 @@ class huobi extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $this->load_accounts();
-        $request = array(
-            'account-id' => $this->accounts[0]['id'],
-        );
-        $response = $this->spotPrivateGetV1AccountAccountsAccountIdBalance (array_merge($request, $params));
-        $balances = $this->safe_value($response['data'], 'list', array());
+        $options = $this->safe_value($this->options, 'fetchTickers', array());
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        $type = $this->safe_string($options, 'type', $defaultType);
+        $type = $this->safe_string($params, 'type', $type);
+        $params = $this->omit($params, 'type');
+        $request = array();
+        $method = null;
+        $spot = ($type === 'spot');
+        $future = ($type === 'future');
+        $swap = ($type === 'swap');
+        if ($spot) {
+            $this->load_accounts();
+            $request['account-id'] = $this->accounts[0]['id'];
+            $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+        } else if ($future) {
+            $method = 'contractPrivatePostApiV1ContractAccountInfo';
+        } else if ($swap) {
+            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+            $subType = $this->safe_string($options, 'subType', $defaultSubType);
+            $subType = $this->safe_string($params, 'subType', $subType);
+            if ($subType === 'inverse') {
+                $method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
+            } else if ($subType === 'linear') {
+                $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+            }
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // $spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             "id":1528640,
+        //             "type":"spot",
+        //             "state":"working",
+        //             "list":array(
+        //                 array("currency":"lun","type":"trade","balance":"0","seq-num":"0"),
+        //                 array("currency":"lun","type":"frozen","balance":"0","seq-num":"0"),
+        //                 array("currency":"ht","type":"frozen","balance":"0","seq-num":"145"),
+        //             )
+        //         ),
+        //         "ts":1637644827566
+        //     }
+        //
+        // $future, $swap
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             array(
+        //                 "symbol":"BTC",
+        //                 "margin_balance":0,
+        //                 "margin_position":0E-18,
+        //                 "margin_frozen":0,
+        //                 "margin_available":0E-18,
+        //                 "profit_real":0,
+        //                 "profit_unreal":0,
+        //                 "risk_rate":null,
+        //                 "withdraw_available":0,
+        //                 "liquidation_price":null,
+        //                 "lever_rate":5,
+        //                 "adjust_factor":0.025000000000000000,
+        //                 "margin_static":0,
+        //                 "is_debit":0, // $future only
+        //                 "contract_code":"BTC-USD", // $swap only
+        //                 "margin_asset":"USDT", // linear only
+        //                 "margin_mode":"isolated", // linear only
+        //                 "margin_account":"BTC-USDT" // linear only
+        //                 "transfer_profit_ratio":null // inverse only
+        //             ),
+        //         ),
+        //         "ts":1637644827566
+        //     }
+        //
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $account = null;
-            if (is_array($result) && array_key_exists($code, $result)) {
-                $account = $result[$code];
-            } else {
+        $data = $this->safe_value($response, 'data');
+        if ($spot) {
+            $balances = $this->safe_value($data, 'list', array());
+            for ($i = 0; $i < count($balances); $i++) {
+                $balance = $balances[$i];
+                $currencyId = $this->safe_string($balance, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $account = null;
+                if (is_array($result) && array_key_exists($code, $result)) {
+                    $account = $result[$code];
+                } else {
+                    $account = $this->account();
+                }
+                if ($balance['type'] === 'trade') {
+                    $account['free'] = $this->safe_string($balance, 'balance');
+                }
+                if ($balance['type'] === 'frozen') {
+                    $account['used'] = $this->safe_string($balance, 'balance');
+                }
+                $result[$code] = $account;
+            }
+        } else if ($future) {
+            for ($i = 0; $i < count($data); $i++) {
+                $balance = $data[$i];
+                $currencyId = $this->safe_string($balance, 'symbol');
+                $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'margin_available');
+                $account['used'] = $this->safe_string($balance, 'margin_frozen');
+                $result[$code] = $account;
             }
-            if ($balance['type'] === 'trade') {
-                $account['free'] = $this->safe_string($balance, 'balance');
+        } else if ($swap) {
+            for ($i = 0; $i < count($data); $i++) {
+                $balance = $data[$i];
+                $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
+                $symbol = $this->safe_symbol($marketId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'margin_available');
+                $account['used'] = $this->safe_string($balance, 'margin_frozen');
+                $currencyId = $this->safe_string_2($balance, 'margin_asset', 'symbol');
+                $code = $this->safe_currency_code($currencyId);
+                $accountsByCode = array();
+                $accountsByCode[$code] = $account;
+                $result[$symbol] = $this->parse_balance($accountsByCode);
             }
-            if ($balance['type'] === 'frozen') {
-                $account['used'] = $this->safe_string($balance, 'balance');
-            }
-            $result[$code] = $account;
+            return $result;
         }
         return $this->parse_balance($result);
     }

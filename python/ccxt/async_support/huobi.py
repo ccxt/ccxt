@@ -1760,27 +1760,120 @@ class huobi(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        await self.load_accounts()
-        request = {
-            'account-id': self.accounts[0]['id'],
-        }
-        response = await self.spotPrivateGetV1AccountAccountsAccountIdBalance(self.extend(request, params))
-        balances = self.safe_value(response['data'], 'list', [])
+        options = self.safe_value(self.options, 'fetchTickers', {})
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        type = self.safe_string(options, 'type', defaultType)
+        type = self.safe_string(params, 'type', type)
+        params = self.omit(params, 'type')
+        request = {}
+        method = None
+        spot = (type == 'spot')
+        future = (type == 'future')
+        swap = (type == 'swap')
+        if spot:
+            await self.load_accounts()
+            request['account-id'] = self.accounts[0]['id']
+            method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
+        elif future:
+            method = 'contractPrivatePostApiV1ContractAccountInfo'
+        elif swap:
+            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
+            subType = self.safe_string(options, 'subType', defaultSubType)
+            subType = self.safe_string(params, 'subType', subType)
+            if subType == 'inverse':
+                method = 'contractPrivatePostSwapApiV1SwapAccountInfo'
+            elif subType == 'linear':
+                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":{
+        #             "id":1528640,
+        #             "type":"spot",
+        #             "state":"working",
+        #             "list":[
+        #                 {"currency":"lun","type":"trade","balance":"0","seq-num":"0"},
+        #                 {"currency":"lun","type":"frozen","balance":"0","seq-num":"0"},
+        #                 {"currency":"ht","type":"frozen","balance":"0","seq-num":"145"},
+        #             ]
+        #         },
+        #         "ts":1637644827566
+        #     }
+        #
+        # future, swap
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":[
+        #             {
+        #                 "symbol":"BTC",
+        #                 "margin_balance":0,
+        #                 "margin_position":0E-18,
+        #                 "margin_frozen":0,
+        #                 "margin_available":0E-18,
+        #                 "profit_real":0,
+        #                 "profit_unreal":0,
+        #                 "risk_rate":null,
+        #                 "withdraw_available":0,
+        #                 "liquidation_price":null,
+        #                 "lever_rate":5,
+        #                 "adjust_factor":0.025000000000000000,
+        #                 "margin_static":0,
+        #                 "is_debit":0,  # future only
+        #                 "contract_code":"BTC-USD",  # swap only
+        #                 "margin_asset":"USDT",  # linear only
+        #                 "margin_mode":"isolated",  # linear only
+        #                 "margin_account":"BTC-USDT"  # linear only
+        #                 "transfer_profit_ratio":null  # inverse only
+        #             },
+        #         ],
+        #         "ts":1637644827566
+        #     }
+        #
         result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = None
-            if code in result:
-                account = result[code]
-            else:
+        data = self.safe_value(response, 'data')
+        if spot:
+            balances = self.safe_value(data, 'list', [])
+            for i in range(0, len(balances)):
+                balance = balances[i]
+                currencyId = self.safe_string(balance, 'currency')
+                code = self.safe_currency_code(currencyId)
+                account = None
+                if code in result:
+                    account = result[code]
+                else:
+                    account = self.account()
+                if balance['type'] == 'trade':
+                    account['free'] = self.safe_string(balance, 'balance')
+                if balance['type'] == 'frozen':
+                    account['used'] = self.safe_string(balance, 'balance')
+                result[code] = account
+        elif future:
+            for i in range(0, len(data)):
+                balance = data[i]
+                currencyId = self.safe_string(balance, 'symbol')
+                code = self.safe_currency_code(currencyId)
                 account = self.account()
-            if balance['type'] == 'trade':
-                account['free'] = self.safe_string(balance, 'balance')
-            if balance['type'] == 'frozen':
-                account['used'] = self.safe_string(balance, 'balance')
-            result[code] = account
+                account['free'] = self.safe_string(balance, 'margin_available')
+                account['used'] = self.safe_string(balance, 'margin_frozen')
+                result[code] = account
+        elif swap:
+            for i in range(0, len(data)):
+                balance = data[i]
+                marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
+                symbol = self.safe_symbol(marketId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'margin_available')
+                account['used'] = self.safe_string(balance, 'margin_frozen')
+                currencyId = self.safe_string_2(balance, 'margin_asset', 'symbol')
+                code = self.safe_currency_code(currencyId)
+                accountsByCode = {}
+                accountsByCode[code] = account
+                result[symbol] = self.parse_balance(accountsByCode)
+            return result
         return self.parse_balance(result)
 
     async def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
