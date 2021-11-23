@@ -1249,10 +1249,10 @@ module.exports = class gateio extends Exchange {
         //     };
         //
         const request = this.prepareRequest (market);
-        const spot = market['spot'];
+        const spotOrMargin = market['spot'] || market['margin'];
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
-            // 'margin': 'publicMarginGetOrderBook',
+            'margin': 'publicSpotGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
             'futures': 'publicDeliveryGetSettleOrderBook',
         });
@@ -1323,11 +1323,11 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (response, 'current');
-        if (!spot) {
+        if (!spotOrMargin) {
             timestamp = timestamp * 1000;
         }
-        const priceKey = spot ? 0 : 'p';
-        const amountKey = spot ? 1 : 's';
+        const priceKey = spotOrMargin ? 0 : 'p';
+        const amountKey = spotOrMargin ? 1 : 's';
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
     }
 
@@ -1337,7 +1337,7 @@ module.exports = class gateio extends Exchange {
         const request = this.prepareRequest (market);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTickers',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'futures': 'publicDeliveryGetSettleTickers',
         });
@@ -1424,7 +1424,7 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'type');
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetTickers',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'futures': 'publicDeliveryGetSettleTickers',
         });
@@ -1438,6 +1438,13 @@ module.exports = class gateio extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
+    fetchBalanceHelper (entry) {
+        const account = this.account ();
+        account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
+        account['free'] = this.safeString (entry, 'available');
+        return account;
+    }
+
     async fetchBalance (params = {}) {
         // :param params.type: spot, margin, crossMargin, swap or future
         // :param params.settle: Settle currency (usdt or btc) for perpetual swap and futures
@@ -1449,7 +1456,7 @@ module.exports = class gateio extends Exchange {
         const futures = type === 'futures';
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetAccounts',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'privateMarginGetAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'futures': 'privateDeliveryGetSettleAccounts',
         });
@@ -1463,7 +1470,7 @@ module.exports = class gateio extends Exchange {
         } else {
             response = await this[method] (this.extend (request, params));
         }
-        // spot
+        // Spot
         //
         //     [
         //         {
@@ -1474,70 +1481,105 @@ module.exports = class gateio extends Exchange {
         //         ...
         //     ]
         //
-        // Perpetual Swap
+        //  Margin
         //
-        //     {
-        //         order_margin: "0",
-        //         point: "0",
-        //         bonus: "0",
-        //         history: {
-        //             dnw: "2.1321",
-        //             pnl: "11.5351",
-        //             refr: "0",
-        //             point_fee: "0",
-        //             fund: "-0.32340576684",
-        //             bonus_dnw: "0",
-        //             point_refr: "0",
-        //             bonus_offset: "0",
-        //             fee: "-0.20132775",
-        //             point_dnw: "0",
+        //    [
+        //         {
+        //             "currency_pair":"DOGE_USDT",
+        //             "locked":false,
+        //             "risk":"9999.99",
+        //             "base": {
+        //               "currency":"DOGE",
+        //               "available":"0",
+        //               "locked":"0",
+        //               "borrowed":"0",
+        //               "interest":"0"
+        //             },
+        //             "quote": {
+        //               "currency":"USDT",
+        //               "available":"0.73402",
+        //               "locked":"0",
+        //               "borrowed":"0",
+        //               "interest":"0"
+        //             }
         //         },
-        //         unrealised_pnl: "13.315100000006",
-        //         total: "12.51345151332",
-        //         available: "0",
-        //         in_dual_mode: false,
-        //         currency: "USDT",
-        //         position_margin: "12.51345151332",
-        //         user: "6333333",
+        //         ...
+        //    ]
+        //
+        //  Perpetual Swap
+        //
+        //    {
+        //       order_margin: "0",
+        //       point: "0",
+        //       bonus: "0",
+        //       history: {
+        //         dnw: "2.1321",
+        //         pnl: "11.5351",
+        //         refr: "0",
+        //         point_fee: "0",
+        //         fund: "-0.32340576684",
+        //         bonus_dnw: "0",
+        //         point_refr: "0",
+        //         bonus_offset: "0",
+        //         fee: "-0.20132775",
+        //         point_dnw: "0",
+        //       },
+        //       unrealised_pnl: "13.315100000006",
+        //       total: "12.51345151332",
+        //       available: "0",
+        //       in_dual_mode: false,
+        //       currency: "USDT",
+        //       position_margin: "12.51345151332",
+        //       user: "6333333",
         //     }
         //
         //   Delivery Future
         //
         //     {
-        //         order_margin: "0",
-        //         point: "0",
-        //         history: {
-        //             dnw: "1",
-        //             pnl: "0",
-        //             refr: "0",
-        //             point_fee: "0",
-        //             point_dnw: "0",
-        //             settle: "0",
-        //             settle_fee: "0",
-        //             point_refr: "0",
-        //             fee: "0",
-        //         },
-        //         unrealised_pnl: "0",
-        //         total: "1",
-        //         available: "1",
-        //         currency: "USDT",
-        //         position_margin: "0",
-        //         user: "6333333",
+        //       order_margin: "0",
+        //       point: "0",
+        //       history: {
+        //         dnw: "1",
+        //         pnl: "0",
+        //         refr: "0",
+        //         point_fee: "0",
+        //         point_dnw: "0",
+        //         settle: "0",
+        //         settle_fee: "0",
+        //         point_refr: "0",
+        //         fee: "0",
+        //       },
+        //       unrealised_pnl: "0",
+        //       total: "1",
+        //       available: "1",
+        //       currency: "USDT",
+        //       position_margin: "0",
+        //       user: "6333333",
         //     }
         //
+        const margin = type === 'margin';
         const result = {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
-            const account = this.account ();
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
-            account['free'] = this.safeString (entry, 'available');
-            result[code] = account;
+            if (margin) {
+                const marketId = this.safeString (entry, 'currency_pair');
+                const symbol = this.safeSymbol (marketId, undefined, '_');
+                const base = this.safeValue (entry, 'base', {});
+                const quote = this.safeValue (entry, 'quote', {});
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency', {}));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency', {}));
+                const subResult = {};
+                subResult[baseCode] = this.fetchBalanceHelper (base);
+                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                result[symbol] = this.parseBalance (subResult);
+            } else {
+                const code = this.safeCurrencyCode (this.safeString (entry, 'currency', {}));
+                result[code] = this.fetchBalanceHelper (entry);
+            }
         }
-        return this.parseBalance (result);
+        return margin ? result : this.parseBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1701,7 +1743,7 @@ module.exports = class gateio extends Exchange {
         const request = this.prepareRequest (market);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTrades',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'futures': 'publicDeliveryGetSettleTrades',
         });
@@ -1767,7 +1809,7 @@ module.exports = class gateio extends Exchange {
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotGetMyTrades',
-            // 'margin': 'publicMarginGetCurrencyPairs',
+            'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTrades',
             'futures': 'privateDeliveryGetSettleMyTrades',
         });
