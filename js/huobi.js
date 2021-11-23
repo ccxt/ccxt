@@ -1102,7 +1102,7 @@ module.exports = class huobi extends Exchange {
                         'max': maxAmount,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': pricePrecision,
                         'max': undefined,
                     },
                     'cost': {
