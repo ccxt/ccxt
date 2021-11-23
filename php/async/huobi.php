@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
@@ -41,7 +42,9 @@ class huobi extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -49,7 +52,7 @@ class huobi extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
-                'fetchPremiumIndexOHLCV' => false,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -1613,14 +1616,40 @@ class huobi extends Exchange {
             // 'side' => $limit, // max 2000
         );
         $fieldName = 'symbol';
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
         $method = 'spotPublicGetMarketHistoryKline';
         if ($market['future']) {
-            $method = 'contractPublicGetMarketHistoryKline';
+            if ($price === 'mark') {
+                $method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
+            } else if ($price === 'index') {
+                $method = 'contractPublicGetIndexMarketHistoryIndex';
+            } else if ($price === 'premiumIndex') {
+                throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+            } else {
+                $method = 'contractPublicGetMarketHistoryKline';
+            }
         } else if ($market['swap']) {
             if ($market['inverse']) {
-                $method = 'contractPublicGetSwapExMarketHistoryKline';
+                if ($price === 'mark') {
+                    $method = 'contractPublicGetIndexMarketHistorySwapMarkPriceKline';
+                } else if ($price === 'index') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } else if ($price === 'premiumIndex') {
+                    $method = 'contractPublicGetIndexMarketHistorySwapPremiumIndexKline';
+                } else {
+                    $method = 'contractPublicGetSwapExMarketHistoryKline';
+                }
             } else if ($market['linear']) {
-                $method = 'contractPublicGetLinearSwapExMarketHistoryKline';
+                if ($price === 'mark') {
+                    $method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline';
+                } else if ($price === 'index') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } else if ($price === 'premiumIndex') {
+                    $method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline';
+                } else {
+                    $method = 'contractPublicGetLinearSwapExMarketHistoryKline';
+                }
             }
             $fieldName = 'contract_code';
         }
@@ -1643,6 +1672,27 @@ class huobi extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'premiumIndex',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_accounts($params = array ()) {

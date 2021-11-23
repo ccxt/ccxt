@@ -59,7 +59,9 @@ class huobi(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -67,7 +69,7 @@ class huobi(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
-                'fetchPremiumIndexOHLCV': False,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -1572,14 +1574,37 @@ class huobi(Exchange):
             # 'side': limit,  # max 2000
         }
         fieldName = 'symbol'
+        price = self.safe_string(params, 'price')
+        params = self.omit(params, 'price')
         method = 'spotPublicGetMarketHistoryKline'
         if market['future']:
-            method = 'contractPublicGetMarketHistoryKline'
+            if price == 'mark':
+                method = 'contractPublicGetIndexMarketHistoryMarkPriceKline'
+            elif price == 'index':
+                method = 'contractPublicGetIndexMarketHistoryIndex'
+            elif price == 'premiumIndex':
+                raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
+            else:
+                method = 'contractPublicGetMarketHistoryKline'
         elif market['swap']:
             if market['inverse']:
-                method = 'contractPublicGetSwapExMarketHistoryKline'
+                if price == 'mark':
+                    method = 'contractPublicGetIndexMarketHistorySwapMarkPriceKline'
+                elif price == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
+                elif price == 'premiumIndex':
+                    method = 'contractPublicGetIndexMarketHistorySwapPremiumIndexKline'
+                else:
+                    method = 'contractPublicGetSwapExMarketHistoryKline'
             elif market['linear']:
-                method = 'contractPublicGetLinearSwapExMarketHistoryKline'
+                if price == 'mark':
+                    method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline'
+                elif price == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
+                elif price == 'premiumIndex':
+                    method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline'
+                else:
+                    method = 'contractPublicGetLinearSwapExMarketHistoryKline'
             fieldName = 'contract_code'
         request[fieldName] = market['id']
         if limit is not None:
@@ -1599,6 +1624,24 @@ class huobi(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'premiumIndex',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def fetch_accounts(self, params={}):
         self.load_markets()
