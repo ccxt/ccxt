@@ -925,15 +925,15 @@ class bitmart(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # public fetchTrades spot
+        # public fetchTrades spot( amount = count * price )
         #
         #     {
-        #         "amount":"0.005703",
-        #         "order_time":1599652045394,
-        #         "price":"0.034029",
-        #         "count":"0.1676",
-        #         "type":"sell"
-        #     }
+        #          "amount": "818.94",
+        #          "order_time": "1637601839035",    # ETH/USDT
+        #          "price": "4221.99",
+        #          "count": "0.19397",
+        #          "type": "buy"
+        #      }
         #
         # public fetchTrades contract, private fetchMyTrades contract
         #
@@ -986,9 +986,9 @@ class bitmart(Exchange):
             takerOrMaker = 'maker' if (execType == 'M') else 'taker'
         priceString = self.safe_string_2(trade, 'price', 'deal_price')
         priceString = self.safe_string(trade, 'price_avg', priceString)
-        amountString = self.safe_string_2(trade, 'amount', 'deal_vol')
+        amountString = self.safe_string_2(trade, 'count', 'deal_vol')
         amountString = self.safe_string(trade, 'size', amountString)
-        costString = self.safe_string_2(trade, 'count', 'notional')
+        costString = self.safe_string_2(trade, 'amount', 'notional')
         orderId = self.safe_integer(trade, 'order_id')
         marketId = self.safe_string_2(trade, 'contract_id', 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
