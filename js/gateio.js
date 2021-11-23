@@ -638,7 +638,7 @@ module.exports = class gateio extends Exchange {
                     const quote = this.safeCurrencyCode (quoteId);
                     let symbol = '';
                     if (date !== undefined) {
-                        symbol = base + '/' + quote + '-' + date + ':' + this.safeCurrencyCode (settle);
+                        symbol = base + '/' + quote + ':' + this.safeCurrencyCode (settle) + '-' + date;
                     } else {
                         symbol = base + '/' + quote + ':' + this.safeCurrencyCode (settle);
                     }
