@@ -1820,13 +1820,15 @@ module.exports = class huobi extends Exchange {
         const request = {};
         let method = undefined;
         const spot = (type === 'spot');
+        const future = (type === 'future');
+        const swap = (type === 'swap');
         if (spot) {
             await this.loadAccounts ();
             request['account-id'] = this.accounts[0]['id'];
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
-        } else if (type === 'future') {
+        } else if (future) {
             method = 'contractPrivatePostApiV1ContractAccountInfo';
-        } else if (type === 'swap') {
+        } else if (swap) {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
             let subType = this.safeString (options, 'subType', defaultSubType);
             subType = this.safeString (params, 'subType', subType);
@@ -1907,26 +1909,31 @@ module.exports = class huobi extends Exchange {
                 }
                 result[code] = account;
             }
-        } else {
+        } else if (future) {
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
                 const currencyId = this.safeString (balance, 'symbol');
                 const code = this.safeCurrencyCode (currencyId);
-                let account = undefined;
-                if (code in result) {
-                    account = result[code];
-                } else {
-                    account = this.account ();
-                }
-                if (balance['type'] === 'trade') {
-                    account['free'] = this.safeString (balance, 'balance');
-                }
-                if (balance['type'] === 'frozen') {
-                    account['used'] = this.safeString (balance, 'balance');
-                }
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'margin_available');
+                account['used'] = this.safeString (balance, 'margin_frozen');
                 result[code] = account;
             }
-            // const response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance (this.extend (request, params));
+        } else if (swap) {
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
+                const symbol = this.safeSymbol (marketId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'margin_available');
+                account['used'] = this.safeString (balance, 'margin_frozen');
+                const currencyId = this.safeString2 (balance, 'margin_asset', 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                const accountsByCode = {};
+                accountsByCode[code] = account;
+                result[symbol] = this.parseBalance (accountsByCode);
+            }
+            return result;
         }
         return this.parseBalance (result);
     }
