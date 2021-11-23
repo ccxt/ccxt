@@ -1470,7 +1470,7 @@ module.exports = class gateio extends Exchange {
         } else {
             response = await this[method] (this.extend (request, params));
         }
-        // spot
+        // Spot
         //
         //     [
         //         {
@@ -1481,75 +1481,82 @@ module.exports = class gateio extends Exchange {
         //         ...
         //     ]
         //
-        //  MARGIN
-        //  [{
-        //    "currency_pair":"DOGE_USDT",
-        //    "locked":false,
-        //    "risk":"9999.99",
-        //    "base":{
-        //      "currency":"DOGE",
-        //      "available":"0",
-        //      "locked":"0",
-        //      "borrowed":"0",
-        //      "interest":"0"
-        //     },
-        //     "quote":{
-        //       "currency":"USDT",
-        //       "available":"0.73402",
-        //       "locked":"0",
-        //       "borrowed":"0",
-        //       "interest":"0"
-        //      }
-        //  }]
+        //  Margin
+        //
+        //    [
+        //         {
+        //             "currency_pair":"DOGE_USDT",
+        //             "locked":false,
+        //             "risk":"9999.99",
+        //             "base": {
+        //               "currency":"DOGE",
+        //               "available":"0",
+        //               "locked":"0",
+        //               "borrowed":"0",
+        //               "interest":"0"
+        //             },
+        //             "quote": {
+        //               "currency":"USDT",
+        //               "available":"0.73402",
+        //               "locked":"0",
+        //               "borrowed":"0",
+        //               "interest":"0"
+        //             }
+        //         },
+        //         ...
+        //    ]
         //
         //  Perpetual Swap
-        //  {
-        //     order_margin: "0",
-        //     point: "0",
-        //     bonus: "0",
-        //     history: {
-        //       dnw: "2.1321",
-        //       pnl: "11.5351",
-        //       refr: "0",
-        //       point_fee: "0",
-        //       fund: "-0.32340576684",
-        //       bonus_dnw: "0",
-        //       point_refr: "0",
-        //       bonus_offset: "0",
-        //       fee: "-0.20132775",
-        //       point_dnw: "0",
-        //     },
-        //     unrealised_pnl: "13.315100000006",
-        //     total: "12.51345151332",
-        //     available: "0",
-        //     in_dual_mode: false,
-        //     currency: "USDT",
-        //     position_margin: "12.51345151332",
-        //     user: "6333333",
-        //   }
+        //
+        //    {
+        //       order_margin: "0",
+        //       point: "0",
+        //       bonus: "0",
+        //       history: {
+        //         dnw: "2.1321",
+        //         pnl: "11.5351",
+        //         refr: "0",
+        //         point_fee: "0",
+        //         fund: "-0.32340576684",
+        //         bonus_dnw: "0",
+        //         point_refr: "0",
+        //         bonus_offset: "0",
+        //         fee: "-0.20132775",
+        //         point_dnw: "0",
+        //       },
+        //       unrealised_pnl: "13.315100000006",
+        //       total: "12.51345151332",
+        //       available: "0",
+        //       in_dual_mode: false,
+        //       currency: "USDT",
+        //       position_margin: "12.51345151332",
+        //       user: "6333333",
+        //     }
         //
         //   Delivery Future
-        //   {
-        //     order_margin: "0",
-        //     point: "0",
-        //     history: {
-        //       dnw: "1",
-        //       pnl: "0",
-        //       refr: "0",
-        //       point_fee: "0",
-        //       point_dnw: "0",
-        //       settle: "0",
-        //       settle_fee: "0",
-        //       point_refr: "0",
-        //       fee: "0",
-        //     },
-        //     unrealised_pnl: "0",
-        //     total: "1",
-        //     available: "1",
-        //     currency: "USDT",
-        //     position_margin: "0",
-        //     user: "6333333",
-        //   }
+        //
+        //     {
+        //       order_margin: "0",
+        //       point: "0",
+        //       history: {
+        //         dnw: "1",
+        //         pnl: "0",
+        //         refr: "0",
+        //         point_fee: "0",
+        //         point_dnw: "0",
+        //         settle: "0",
+        //         settle_fee: "0",
+        //         point_refr: "0",
+        //         fee: "0",
+        //       },
+        //       unrealised_pnl: "0",
+        //       total: "1",
+        //       available: "1",
+        //       currency: "USDT",
+        //       position_margin: "0",
+        //       user: "6333333",
+        //     }
+        //
         const margin = type === 'margin';
         const result = {
             'info': response,
