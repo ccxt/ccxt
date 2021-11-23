@@ -478,7 +478,7 @@ class gemini extends Exchange {
         $volume = $this->safe_value($ticker, 'volume', array());
         $timestamp = $this->safe_integer($volume, 'timestamp');
         $symbol = null;
-        $marketId = $this->safe_string($ticker, 'pair');
+        $marketId = $this->safe_string_lower($ticker, 'pair');
         $baseId = null;
         $quoteId = null;
         $base = null;
