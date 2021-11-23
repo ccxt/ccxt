@@ -3557,7 +3557,7 @@ module.exports = class okex extends Exchange {
             rates.push ({
                 'currency': this.safeString (rate, 'ccy'),
                 'rate': this.safeNumber (rate, 'interestRate'),
-                'increment': 'daily',
+                'span': 86400000,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'info': rate,
@@ -3579,7 +3579,7 @@ module.exports = class okex extends Exchange {
         return {
             'currency': currency,
             'rate': this.safeNumber (rate, 'interestRate'),
-            'increment': 'daily',
+            'span': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': rate,

@@ -2836,7 +2836,7 @@ module.exports = class gateio extends Exchange {
         return {
             'currency': currency,
             'rate': this.safeNumber (rate, 'rate'),
-            'increment': 'daily',
+            'span': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': rate,

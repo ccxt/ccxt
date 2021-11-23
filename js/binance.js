@@ -4912,7 +4912,7 @@ module.exports = class binance extends Exchange {
         return {
             'currency': this.safeCurrencyCode (this.safeString (rate, 'asset')),
             'rate': this.safeNumber (rate, 'dailyInterestRate'),
-            'increment': 'daily',
+            'span': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': response,

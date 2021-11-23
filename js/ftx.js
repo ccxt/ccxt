@@ -2297,7 +2297,7 @@ module.exports = class ftx extends Exchange {
             rates.push ({
                 'currency': this.safeCurrencyCode (this.safeString (rate, 'coin')),
                 'rate': this.safeNumber (rate, 'previous'),
-                'increment': 'hourly',
+                'span': 3600000,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'info': rate,
@@ -2319,7 +2319,7 @@ module.exports = class ftx extends Exchange {
                 return {
                     'currency': currency,
                     'rate': this.safeNumber (rate, 'previous'),
-                    'increment': 'hourly',
+                    'span': 3600000,
                     'timestamp': timestamp,
                     'datetime': this.iso8601 (timestamp),
                     'info': rate,
