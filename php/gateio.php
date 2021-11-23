@@ -1254,10 +1254,10 @@ class gateio extends Exchange {
         //     );
         //
         $request = $this->prepare_request($market);
-        $spot = $market['spot'];
+        $spotOrMargin = $market['spot'] || $market['margin'];
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'publicSpotGetOrderBook',
-            // 'margin' => 'publicMarginGetOrderBook',
+            'margin' => 'publicSpotGetOrderBook',
             'swap' => 'publicFuturesGetSettleOrderBook',
             'futures' => 'publicDeliveryGetSettleOrderBook',
         ));
@@ -1328,11 +1328,11 @@ class gateio extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 'current');
-        if (!$spot) {
+        if (!$spotOrMargin) {
             $timestamp = $timestamp * 1000;
         }
-        $priceKey = $spot ? 0 : 'p';
-        $amountKey = $spot ? 1 : 's';
+        $priceKey = $spotOrMargin ? 0 : 'p';
+        $amountKey = $spotOrMargin ? 1 : 's';
         return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', $priceKey, $amountKey);
     }
 
@@ -1342,7 +1342,7 @@ class gateio extends Exchange {
         $request = $this->prepare_request($market);
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'publicSpotGetTickers',
-            // 'margin' => 'publicMarginGetTickers',
+            'margin' => 'publicSpotGetTickers',
             'swap' => 'publicFuturesGetSettleTickers',
             'futures' => 'publicDeliveryGetSettleTickers',
         ));
@@ -1429,7 +1429,7 @@ class gateio extends Exchange {
         $params = $this->omit($params, 'type');
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'publicSpotGetTickers',
-            // 'margin' => 'publicMarginGetTickers',
+            'margin' => 'publicSpotGetTickers',
             'swap' => 'publicFuturesGetSettleTickers',
             'futures' => 'publicDeliveryGetSettleTickers',
         ));
@@ -1443,8 +1443,15 @@ class gateio extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
+    public function fetch_balance_helper($entry) {
+        $account = $this->account();
+        $account['used'] = $this->safe_string_2($entry, 'locked', 'position_margin');
+        $account['free'] = $this->safe_string($entry, 'available');
+        return $account;
+    }
+
     public function fetch_balance($params = array ()) {
-        // :param $params->type => spot, margin, crossMargin, $swap or future
+        // :param $params->type => spot, $margin, crossMargin, $swap or future
         // :param $params->settle => Settle currency (usdt or btc) for perpetual $swap and $futures
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
@@ -1454,7 +1461,7 @@ class gateio extends Exchange {
         $futures = $type === 'futures';
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotGetAccounts',
-            // 'margin' => 'publicMarginGetTickers',
+            'margin' => 'privateMarginGetAccounts',
             'swap' => 'privateFuturesGetSettleAccounts',
             'futures' => 'privateDeliveryGetSettleAccounts',
         ));
@@ -1468,7 +1475,7 @@ class gateio extends Exchange {
         } else {
             $response = $this->$method (array_merge($request, $params));
         }
-        // spot
+        // Spot
         //
         //     array(
         //         array(
@@ -1479,70 +1486,105 @@ class gateio extends Exchange {
         //         ...
         //     )
         //
-        // Perpetual Swap
+        //  Margin
         //
-        //     {
-        //         order_margin => "0",
-        //         point => "0",
-        //         bonus => "0",
-        //         history => array(
-        //             dnw => "2.1321",
-        //             pnl => "11.5351",
-        //             refr => "0",
-        //             point_fee => "0",
-        //             fund => "-0.32340576684",
-        //             bonus_dnw => "0",
-        //             point_refr => "0",
-        //             bonus_offset => "0",
-        //             fee => "-0.20132775",
-        //             point_dnw => "0",
+        //    array(
+        //         {
+        //             "currency_pair":"DOGE_USDT",
+        //             "locked":false,
+        //             "risk":"9999.99",
+        //             "base" => array(
+        //               "currency":"DOGE",
+        //               "available":"0",
+        //               "locked":"0",
+        //               "borrowed":"0",
+        //               "interest":"0"
+        //             ),
+        //             "quote" => array(
+        //               "currency":"USDT",
+        //               "available":"0.73402",
+        //               "locked":"0",
+        //               "borrowed":"0",
+        //               "interest":"0"
+        //             }
         //         ),
-        //         unrealised_pnl => "13.315100000006",
-        //         total => "12.51345151332",
-        //         available => "0",
-        //         in_dual_mode => false,
-        //         currency => "USDT",
-        //         position_margin => "12.51345151332",
-        //         user => "6333333",
+        //         ...
+        //    )
+        //
+        //  Perpetual Swap
+        //
+        //    {
+        //       order_margin => "0",
+        //       point => "0",
+        //       bonus => "0",
+        //       history => array(
+        //         dnw => "2.1321",
+        //         pnl => "11.5351",
+        //         refr => "0",
+        //         point_fee => "0",
+        //         fund => "-0.32340576684",
+        //         bonus_dnw => "0",
+        //         point_refr => "0",
+        //         bonus_offset => "0",
+        //         fee => "-0.20132775",
+        //         point_dnw => "0",
+        //       ),
+        //       unrealised_pnl => "13.315100000006",
+        //       total => "12.51345151332",
+        //       available => "0",
+        //       in_dual_mode => false,
+        //       currency => "USDT",
+        //       position_margin => "12.51345151332",
+        //       user => "6333333",
         //     }
         //
         //   Delivery Future
         //
         //     {
-        //         order_margin => "0",
-        //         point => "0",
-        //         history => array(
-        //             dnw => "1",
-        //             pnl => "0",
-        //             refr => "0",
-        //             point_fee => "0",
-        //             point_dnw => "0",
-        //             settle => "0",
-        //             settle_fee => "0",
-        //             point_refr => "0",
-        //             fee => "0",
-        //         ),
-        //         unrealised_pnl => "0",
-        //         total => "1",
-        //         available => "1",
-        //         currency => "USDT",
-        //         position_margin => "0",
-        //         user => "6333333",
+        //       order_margin => "0",
+        //       point => "0",
+        //       history => array(
+        //         dnw => "1",
+        //         pnl => "0",
+        //         refr => "0",
+        //         point_fee => "0",
+        //         point_dnw => "0",
+        //         settle => "0",
+        //         settle_fee => "0",
+        //         point_refr => "0",
+        //         fee => "0",
+        //       ),
+        //       unrealised_pnl => "0",
+        //       total => "1",
+        //       available => "1",
+        //       currency => "USDT",
+        //       position_margin => "0",
+        //       user => "6333333",
         //     }
         //
+        $margin = $type === 'margin';
         $result = array(
             'info' => $response,
         );
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
-            $account = $this->account();
-            $currencyId = $this->safe_string($entry, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $account['used'] = $this->safe_string_2($entry, 'locked', 'position_margin');
-            $account['free'] = $this->safe_string($entry, 'available');
-            $result[$code] = $account;
+            if ($margin) {
+                $marketId = $this->safe_string($entry, 'currency_pair');
+                $symbol = $this->safe_symbol($marketId, null, '_');
+                $base = $this->safe_value($entry, 'base', array());
+                $quote = $this->safe_value($entry, 'quote', array());
+                $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency', array()));
+                $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency', array()));
+                $subResult = array();
+                $subResult[$baseCode] = $this->fetch_balance_helper($base);
+                $subResult[$quoteCode] = $this->fetch_balance_helper($quote);
+                $result[$symbol] = $this->parse_balance($subResult);
+            } else {
+                $code = $this->safe_currency_code($this->safe_string($entry, 'currency', array()));
+                $result[$code] = $this->fetch_balance_helper($entry);
+            }
         }
-        return $this->parse_balance($result);
+        return $margin ? $result : $this->parse_balance($result);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -1706,7 +1748,7 @@ class gateio extends Exchange {
         $request = $this->prepare_request($market);
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'publicSpotGetTrades',
-            // 'margin' => 'publicMarginGetTickers',
+            'margin' => 'publicSpotGetTrades',
             'swap' => 'publicFuturesGetSettleTrades',
             'futures' => 'publicDeliveryGetSettleTrades',
         ));
@@ -1772,7 +1814,7 @@ class gateio extends Exchange {
         }
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'privateSpotGetMyTrades',
-            // 'margin' => 'publicMarginGetCurrencyPairs',
+            'margin' => 'privateSpotGetMyTrades',
             'swap' => 'privateFuturesGetSettleMyTrades',
             'futures' => 'privateDeliveryGetSettleMyTrades',
         ));

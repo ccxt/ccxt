@@ -35,7 +35,9 @@ module.exports = class huobi extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -43,7 +45,7 @@ module.exports = class huobi extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPremiumIndexOHLCV': false,
+                'fetchPremiumIndexOHLCV': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -1607,14 +1609,40 @@ module.exports = class huobi extends Exchange {
             // 'side': limit, // max 2000
         };
         let fieldName = 'symbol';
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
         let method = 'spotPublicGetMarketHistoryKline';
         if (market['future']) {
-            method = 'contractPublicGetMarketHistoryKline';
+            if (price === 'mark') {
+                method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
+            } else if (price === 'index') {
+                method = 'contractPublicGetIndexMarketHistoryIndex';
+            } else if (price === 'premiumIndex') {
+                throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+            } else {
+                method = 'contractPublicGetMarketHistoryKline';
+            }
         } else if (market['swap']) {
             if (market['inverse']) {
-                method = 'contractPublicGetSwapExMarketHistoryKline';
+                if (price === 'mark') {
+                    method = 'contractPublicGetIndexMarketHistorySwapMarkPriceKline';
+                } else if (price === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                } else if (price === 'premiumIndex') {
+                    method = 'contractPublicGetIndexMarketHistorySwapPremiumIndexKline';
+                } else {
+                    method = 'contractPublicGetSwapExMarketHistoryKline';
+                }
             } else if (market['linear']) {
-                method = 'contractPublicGetLinearSwapExMarketHistoryKline';
+                if (price === 'mark') {
+                    method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline';
+                } else if (price === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                } else if (price === 'premiumIndex') {
+                    method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline';
+                } else {
+                    method = 'contractPublicGetLinearSwapExMarketHistoryKline';
+                }
             }
             fieldName = 'contract_code';
         }
@@ -1637,6 +1665,27 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'premiumIndex',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     async fetchAccounts (params = {}) {
