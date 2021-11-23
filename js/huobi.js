@@ -1763,30 +1763,121 @@ module.exports = class huobi extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
-        const request = {
-            'account-id': this.accounts[0]['id'],
-        };
-        const response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance (this.extend (request, params));
-        const balances = this.safeValue (response['data'], 'list', []);
+        const options = this.safeValue (this.options, 'fetchTickers', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        params = this.omit (params, 'type');
+        const request = {};
+        let method = undefined;
+        const spot = (type === 'spot');
+        if (spot) {
+            await this.loadAccounts ();
+            request['account-id'] = this.accounts[0]['id'];
+            method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+        } else if (type === 'future') {
+            method = 'contractPrivatePostApiV1ContractAccountInfo';
+        } else if (type === 'swap') {
+            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+            let subType = this.safeString (options, 'subType', defaultSubType);
+            subType = this.safeString (params, 'subType', subType);
+            if (subType === 'inverse') {
+                method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
+            } else if (subType === 'linear') {
+                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":{
+        //             "id":1528640,
+        //             "type":"spot",
+        //             "state":"working",
+        //             "list":[
+        //                 {"currency":"lun","type":"trade","balance":"0","seq-num":"0"},
+        //                 {"currency":"lun","type":"frozen","balance":"0","seq-num":"0"},
+        //                 {"currency":"ht","type":"frozen","balance":"0","seq-num":"145"},
+        //             ]
+        //         },
+        //         "ts":1637644827566
+        //     }
+        //
+        // future, swap
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "margin_balance":0,
+        //                 "margin_position":0E-18,
+        //                 "margin_frozen":0,
+        //                 "margin_available":0E-18,
+        //                 "profit_real":0,
+        //                 "profit_unreal":0,
+        //                 "risk_rate":null,
+        //                 "withdraw_available":0,
+        //                 "liquidation_price":null,
+        //                 "lever_rate":5,
+        //                 "adjust_factor":0.025000000000000000,
+        //                 "margin_static":0,
+        //                 "is_debit":0, // future only
+        //                 "contract_code":"BTC-USD", // swap only
+        //                 "margin_asset":"USDT", // linear only
+        //                 "margin_mode":"isolated", // linear only
+        //                 "margin_account":"BTC-USDT" // linear only
+        //                 "transfer_profit_ratio":null // inverse only
+        //             },
+        //         ],
+        //         "ts":1637644827566
+        //     }
+        //
         const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            let account = undefined;
-            if (code in result) {
-                account = result[code];
-            } else {
-                account = this.account ();
+        const data = this.safeValue (response, 'data');
+        if (spot) {
+            const balances = this.safeValue (data, 'list', []);
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                let account = undefined;
+                if (code in result) {
+                    account = result[code];
+                } else {
+                    account = this.account ();
+                }
+                if (balance['type'] === 'trade') {
+                    account['free'] = this.safeString (balance, 'balance');
+                }
+                if (balance['type'] === 'frozen') {
+                    account['used'] = this.safeString (balance, 'balance');
+                }
+                result[code] = account;
             }
-            if (balance['type'] === 'trade') {
-                account['free'] = this.safeString (balance, 'balance');
+        } else {
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const currencyId = this.safeString (balance, 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                let account = undefined;
+                if (code in result) {
+                    account = result[code];
+                } else {
+                    account = this.account ();
+                }
+                if (balance['type'] === 'trade') {
+                    account['free'] = this.safeString (balance, 'balance');
+                }
+                if (balance['type'] === 'frozen') {
+                    account['used'] = this.safeString (balance, 'balance');
+                }
+                result[code] = account;
             }
-            if (balance['type'] === 'frozen') {
-                account['used'] = this.safeString (balance, 'balance');
-            }
-            result[code] = account;
+            // const response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance (this.extend (request, params));
         }
         return this.parseBalance (result);
     }
