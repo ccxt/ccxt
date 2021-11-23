@@ -1272,18 +1272,18 @@ class huobi(Exchange):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         type = self.safe_string(options, 'type', defaultType)
         type = self.safe_string(params, 'type', type)
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        subType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', subType)
         method = 'spotPublicGetMarketTickers'
-        query = self.omit(params, ['type', 'subType'])
         if type == 'future':
             method = 'contractPublicGetMarketDetailBatchMerged'
         elif type == 'swap':
+            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
+            subType = self.safe_string(options, 'subType', defaultSubType)
+            subType = self.safe_string(params, 'subType', subType)
             if subType == 'inverse':
                 method = 'contractPublicGetSwapExMarketDetailBatchMerged'
             elif subType == 'linear':
                 method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged'
+        query = self.omit(params, ['type', 'subType'])
         response = await getattr(self, method)(query)
         #
         # future

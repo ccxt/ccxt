@@ -1281,20 +1281,20 @@ module.exports = class huobi extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString (options, 'subType', defaultSubType);
-        subType = this.safeString (params, 'subType', subType);
         let method = 'spotPublicGetMarketTickers';
-        const query = this.omit (params, [ 'type', 'subType' ]);
         if (type === 'future') {
             method = 'contractPublicGetMarketDetailBatchMerged';
         } else if (type === 'swap') {
+            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+            let subType = this.safeString (options, 'subType', defaultSubType);
+            subType = this.safeString (params, 'subType', subType);
             if (subType === 'inverse') {
                 method = 'contractPublicGetSwapExMarketDetailBatchMerged';
             } else if (subType === 'linear') {
                 method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
             }
         }
+        const query = this.omit (params, [ 'type', 'subType' ]);
         const response = await this[method] (query);
         //
         // future

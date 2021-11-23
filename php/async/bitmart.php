@@ -934,15 +934,15 @@ class bitmart extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
-        // public fetchTrades spot
+        // public fetchTrades spot ( amount = count * price )
         //
         //     {
-        //         "amount":"0.005703",
-        //         "order_time":1599652045394,
-        //         "price":"0.034029",
-        //         "count":"0.1676",
-        //         "type":"sell"
-        //     }
+        //          "amount" => "818.94",
+        //          "order_time" => "1637601839035",    // ETH/USDT
+        //          "price" => "4221.99",
+        //          "count" => "0.19397",
+        //          "type" => "buy"
+        //      }
         //
         // public fetchTrades contract, private fetchMyTrades contract
         //
@@ -1000,9 +1000,9 @@ class bitmart extends Exchange {
         }
         $priceString = $this->safe_string_2($trade, 'price', 'deal_price');
         $priceString = $this->safe_string($trade, 'price_avg', $priceString);
-        $amountString = $this->safe_string_2($trade, 'amount', 'deal_vol');
+        $amountString = $this->safe_string_2($trade, 'count', 'deal_vol');
         $amountString = $this->safe_string($trade, 'size', $amountString);
-        $costString = $this->safe_string_2($trade, 'count', 'notional');
+        $costString = $this->safe_string_2($trade, 'amount', 'notional');
         $orderId = $this->safe_integer($trade, 'order_id');
         $marketId = $this->safe_string_2($trade, 'contract_id', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
