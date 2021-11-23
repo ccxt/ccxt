@@ -1109,7 +1109,7 @@ class huobi extends Exchange {
                         'max' => $maxAmount,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $pricePrecision,
                         'max' => null,
                     ),
                     'cost' => array(

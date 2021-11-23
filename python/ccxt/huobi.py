@@ -1103,7 +1103,7 @@ class huobi(Exchange):
                         'max': maxAmount,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': pricePrecision,
                         'max': None,
                     },
                     'cost': {
