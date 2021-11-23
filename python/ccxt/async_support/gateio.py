@@ -1232,10 +1232,10 @@ class gateio(Exchange):
         #     }
         #
         request = self.prepare_request(market)
-        spot = market['spot']
+        spotOrMargin = market['spot'] or market['margin']
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetOrderBook',
-            # 'margin': 'publicMarginGetOrderBook',
+            'margin': 'publicSpotGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
             'futures': 'publicDeliveryGetSettleOrderBook',
         })
@@ -1305,10 +1305,10 @@ class gateio(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 'current')
-        if not spot:
+        if not spotOrMargin:
             timestamp = timestamp * 1000
-        priceKey = 0 if spot else 'p'
-        amountKey = 1 if spot else 's'
+        priceKey = 0 if spotOrMargin else 'p'
+        amountKey = 1 if spotOrMargin else 's'
         return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -1317,7 +1317,7 @@ class gateio(Exchange):
         request = self.prepare_request(market)
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetTickers',
-            # 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'futures': 'publicDeliveryGetSettleTickers',
         })
@@ -1402,7 +1402,7 @@ class gateio(Exchange):
         params = self.omit(params, 'type')
         method = self.get_supported_mapping(type, {
             'spot': 'publicSpotGetTickers',
-            # 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'futures': 'publicDeliveryGetSettleTickers',
         })
@@ -1413,6 +1413,12 @@ class gateio(Exchange):
             request['settle'] = 'usdt' if swap else 'btc'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_tickers(response, symbols)
+
+    def fetch_balance_helper(self, entry):
+        account = self.account()
+        account['used'] = self.safe_string_2(entry, 'locked', 'position_margin')
+        account['free'] = self.safe_string(entry, 'available')
+        return account
 
     async def fetch_balance(self, params={}):
         # :param params.type: spot, margin, crossMargin, swap or future
@@ -1425,7 +1431,7 @@ class gateio(Exchange):
         futures = type == 'futures'
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGetAccounts',
-            # 'margin': 'publicMarginGetTickers',
+            'margin': 'privateMarginGetAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'futures': 'privateDeliveryGetSettleAccounts',
         })
@@ -1438,7 +1444,7 @@ class gateio(Exchange):
             response = [response_item]
         else:
             response = await getattr(self, method)(self.extend(request, params))
-        # spot
+        # Spot
         #
         #     [
         #         {
@@ -1449,69 +1455,103 @@ class gateio(Exchange):
         #         ...
         #     ]
         #
-        # Perpetual Swap
+        #  Margin
         #
-        #     {
-        #         order_margin: "0",
-        #         point: "0",
-        #         bonus: "0",
-        #         history: {
-        #             dnw: "2.1321",
-        #             pnl: "11.5351",
-        #             refr: "0",
-        #             point_fee: "0",
-        #             fund: "-0.32340576684",
-        #             bonus_dnw: "0",
-        #             point_refr: "0",
-        #             bonus_offset: "0",
-        #             fee: "-0.20132775",
-        #             point_dnw: "0",
+        #    [
+        #         {
+        #             "currency_pair":"DOGE_USDT",
+        #             "locked":false,
+        #             "risk":"9999.99",
+        #             "base": {
+        #               "currency":"DOGE",
+        #               "available":"0",
+        #               "locked":"0",
+        #               "borrowed":"0",
+        #               "interest":"0"
+        #             },
+        #             "quote": {
+        #               "currency":"USDT",
+        #               "available":"0.73402",
+        #               "locked":"0",
+        #               "borrowed":"0",
+        #               "interest":"0"
+        #             }
         #         },
-        #         unrealised_pnl: "13.315100000006",
-        #         total: "12.51345151332",
-        #         available: "0",
-        #         in_dual_mode: False,
-        #         currency: "USDT",
-        #         position_margin: "12.51345151332",
-        #         user: "6333333",
+        #         ...
+        #    ]
+        #
+        #  Perpetual Swap
+        #
+        #    {
+        #       order_margin: "0",
+        #       point: "0",
+        #       bonus: "0",
+        #       history: {
+        #         dnw: "2.1321",
+        #         pnl: "11.5351",
+        #         refr: "0",
+        #         point_fee: "0",
+        #         fund: "-0.32340576684",
+        #         bonus_dnw: "0",
+        #         point_refr: "0",
+        #         bonus_offset: "0",
+        #         fee: "-0.20132775",
+        #         point_dnw: "0",
+        #       },
+        #       unrealised_pnl: "13.315100000006",
+        #       total: "12.51345151332",
+        #       available: "0",
+        #       in_dual_mode: False,
+        #       currency: "USDT",
+        #       position_margin: "12.51345151332",
+        #       user: "6333333",
         #     }
         #
         #   Delivery Future
         #
         #     {
-        #         order_margin: "0",
-        #         point: "0",
-        #         history: {
-        #             dnw: "1",
-        #             pnl: "0",
-        #             refr: "0",
-        #             point_fee: "0",
-        #             point_dnw: "0",
-        #             settle: "0",
-        #             settle_fee: "0",
-        #             point_refr: "0",
-        #             fee: "0",
-        #         },
-        #         unrealised_pnl: "0",
-        #         total: "1",
-        #         available: "1",
-        #         currency: "USDT",
-        #         position_margin: "0",
-        #         user: "6333333",
+        #       order_margin: "0",
+        #       point: "0",
+        #       history: {
+        #         dnw: "1",
+        #         pnl: "0",
+        #         refr: "0",
+        #         point_fee: "0",
+        #         point_dnw: "0",
+        #         settle: "0",
+        #         settle_fee: "0",
+        #         point_refr: "0",
+        #         fee: "0",
+        #       },
+        #       unrealised_pnl: "0",
+        #       total: "1",
+        #       available: "1",
+        #       currency: "USDT",
+        #       position_margin: "0",
+        #       user: "6333333",
         #     }
         #
+        margin = type == 'margin'
         result = {
             'info': response,
         }
         for i in range(0, len(response)):
             entry = response[i]
-            account = self.account()
-            currencyId = self.safe_string(entry, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account['used'] = self.safe_string_2(entry, 'locked', 'position_margin')
-            account['free'] = self.safe_string(entry, 'available')
-            result[code] = account
-        return self.parse_balance(result)
+            if margin:
+                marketId = self.safe_string(entry, 'currency_pair')
+                symbol = self.safe_symbol(marketId, None, '_')
+                base = self.safe_value(entry, 'base', {})
+                quote = self.safe_value(entry, 'quote', {})
+                baseCode = self.safe_currency_code(self.safe_string(base, 'currency', {}))
+                quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency', {}))
+                subResult = {}
+                subResult[baseCode] = self.fetch_balance_helper(base)
+                subResult[quoteCode] = self.fetch_balance_helper(quote)
+                result[symbol] = self.parse_balance(subResult)
+            else:
+                code = self.safe_currency_code(self.safe_string(entry, 'currency', {}))
+                result[code] = self.fetch_balance_helper(entry)
+        return result if margin else self.parse_balance(result)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -1659,7 +1699,7 @@ class gateio(Exchange):
         request = self.prepare_request(market)
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetTrades',
-            # 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'futures': 'publicDeliveryGetSettleTrades',
         })
@@ -1720,7 +1760,7 @@ class gateio(Exchange):
             # request['to'] = since + 7 * 24 * 60 * 60
         method = self.get_supported_mapping(market['type'], {
             'spot': 'privateSpotGetMyTrades',
-            # 'margin': 'publicMarginGetCurrencyPairs',
+            'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTrades',
             'futures': 'privateDeliveryGetSettleMyTrades',
         })
