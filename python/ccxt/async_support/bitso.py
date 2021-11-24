@@ -326,15 +326,69 @@ class bitso(Exchange):
         }
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "book": "btc_usdt",
+        #          "created_at": "2021-11-24T12:14:53+0000",
+        #          "amount": "0.00026562",
+        #          "maker_side": "sell",
+        #          "price": "56471.55",
+        #          "tid": "52557338"
+        #      }
+        #
+        # fetchMyTrades(private)
+        #
+        #      {
+        #          "book": "btc_usdt",
+        #          "created_at": "2021-11-24T12:31:03+0000",
+        #          "minor": "11.30356000",
+        #          "major": "-0.00020000",
+        #          "fees_amount": "0.01119052",
+        #          "fees_currency": "usdt",
+        #          "minor_currency": "usdt",
+        #          "major_currency": "btc",
+        #          "oid": "djTzMIWx2Vi3iMjl",
+        #          "tid": "52559051",
+        #          "price": "56517.80",
+        #          "side": "sell",
+        #          "maker_side": "buy"
+        #      }
+        #
+        # fetchOrderTrades(private)
+        #
+        #      {
+        #          "book": "btc_usdt",
+        #          "created_at": "2021-11-24T12:30:52+0000",
+        #          "minor": "-11.33047916",
+        #          "major": "0.00020020",
+        #          "fees_amount": "0.00000020",
+        #          "fees_currency": "btc",
+        #          "minor_currency": "usdt",
+        #          "major_currency": "btc",
+        #          "oid": "O0D2zcljjjQF5xlG",
+        #          "tid": "52559030",
+        #          "price": "56595.80",
+        #          "side": "buy",
+        #          "maker_side": "sell"
+        #      }
+        #
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         marketId = self.safe_string(trade, 'book')
         symbol = self.safe_symbol(marketId, market, '_')
         side = self.safe_string_2(trade, 'side', 'maker_side')
-        amount = self.safe_number_2(trade, 'amount', 'major')
+        makerSide = self.safe_string(trade, 'maker_side')
+        takerOrMaker = None
+        if side == makerSide:
+            takerOrMaker = 'maker'
+        else:
+            takerOrMaker = 'taker'
+        amount = self.safe_string_2(trade, 'amount', 'major')
         if amount is not None:
-            amount = abs(amount)
+            amount = Precise.string_abs(amount)
         fee = None
-        feeCost = self.safe_number(trade, 'fees_amount')
+        feeCost = self.safe_string(trade, 'fees_amount')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fees_currency')
             feeCurrency = self.safe_currency_code(feeCurrencyId)
@@ -342,13 +396,13 @@ class bitso(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        cost = self.safe_number(trade, 'minor')
+        cost = self.safe_string(trade, 'minor')
         if cost is not None:
-            cost = abs(cost)
-        price = self.safe_number(trade, 'price')
+            cost = Precise.string_abs(cost)
+        price = self.safe_string(trade, 'price')
         orderId = self.safe_string(trade, 'oid')
         id = self.safe_string(trade, 'tid')
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -357,12 +411,12 @@ class bitso(Exchange):
             'order': orderId,
             'type': None,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
