@@ -64,6 +64,8 @@ console.log ('CCXT v' + ccxt.version)
             'deposit',
             'editOrder',
             'fetchBalance',
+            'fetchBorrowRate',
+            'fetchBorrowRates',
             'fetchCanceledOrders',
             'fetchClosedOrder',
             'fetchClosedOrders',
