@@ -197,7 +197,7 @@ class deribit extends Exchange {
                         'get_order_history_by_instrument',
                         'get_order_margin_by_ids',
                         'get_order_state',
-                        'get_stop_order_history',
+                        'get_stop_order_history', // deprecated
                         'get_trigger_order_history',
                         'get_user_trades_by_currency',
                         'get_user_trades_by_currency_and_time',
