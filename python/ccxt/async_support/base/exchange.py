@@ -30,6 +30,7 @@ from ccxt.base.errors import BadSymbol
 # -----------------------------------------------------------------------------
 
 from ccxt.base.exchange import Exchange as BaseExchange
+from ccxt.base.headers import HeadersList, HeadersDict
 
 # -----------------------------------------------------------------------------
 
@@ -168,7 +169,11 @@ class Exchange(BaseExchange):
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
         if json_response is not None:
-            return json_response
+            # Exchange.parse_json will return a dict or list always
+            if isinstance(json_response, dict):
+                return HeadersDict(json_response, headers)
+            else:
+                return HeadersList(json_response, headers)
         if self.is_text_response(headers):
             return http_response
         return response.content

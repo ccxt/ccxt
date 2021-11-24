@@ -26,6 +26,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
+from ccxt.base.headers import HeadersList, HeadersDict
 
 # -----------------------------------------------------------------------------
 
@@ -655,7 +656,11 @@ class Exchange(object):
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         if json_response is not None:
-            return json_response
+            # Exchange.parse_json will return a dict or list always
+            if isinstance(json_response, dict):
+                return HeadersDict(json_response, headers)
+            else:
+                return HeadersList(json_response, headers)
         elif self.is_text_response(headers):
             return http_response
         else:

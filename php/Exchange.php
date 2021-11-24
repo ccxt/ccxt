@@ -1690,8 +1690,11 @@ class Exchange {
         if ($curl_errno) {
             throw new NetworkError($this->id . ' unknown error: ' . strval($curl_errno) . ' ' . $curl_error);
         }
-
-        return isset($json_response) ? $json_response : $result;
+        if (isset($json_response)) {
+            return new Headers($json_response, $headers);
+        } else {
+            return $result;
+        }
     }
 
     public function handle_http_status_code($http_status_code, $status_text, $url, $method, $body) {

@@ -667,7 +667,16 @@ module.exports = class Exchange {
             }
             this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
             this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
-            return json || responseBody
+            if (json !== undefined) {
+                Object.defineProperty (json, 'headers', {
+                    '__proto__': undefined,
+                    'value': responseHeaders,
+                    'writable': true,
+                })
+                return json
+            } else {
+                return responseBody
+            }
         })
     }
 

@@ -20,6 +20,7 @@ const TICK_SIZE = ccxt\TICK_SIZE;
 const NO_PADDING = ccxt\NO_PADDING;
 const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 
+use ccxt\Headers;
 use React;
 use Recoil;
 
@@ -177,7 +178,11 @@ class Exchange extends \ccxt\Exchange {
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
         $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
 
-        return isset($json_response) ? $json_response : $response_body;
+        if (isset($json_response)) {
+            return new Headers($json_response, $headers);
+        } else {
+            return $result;
+        }
     }
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
