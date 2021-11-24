@@ -31,6 +31,7 @@ module.exports = class gateio extends Exchange {
                 },
             },
             'has': {
+                'cancelAllOrdr': true,
                 'cancelOrder': true,
                 'createMarketOrder': false,
                 'createOrder': true,
@@ -2599,7 +2600,7 @@ module.exports = class gateio extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol parameter');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol parameter');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
