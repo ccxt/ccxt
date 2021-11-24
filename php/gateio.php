@@ -36,6 +36,7 @@ class gateio extends Exchange {
                 ),
             ),
             'has' => array(
+                'cancelAllOrdr' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
@@ -2604,7 +2605,7 @@ class gateio extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders requires a $symbol parameter');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol parameter');
         }
         $this->load_markets();
         $market = $this->market($symbol);

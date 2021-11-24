@@ -46,6 +46,7 @@ class gateio(Exchange):
                 },
             },
             'has': {
+                'cancelAllOrdr': True,
                 'cancelOrder': True,
                 'createMarketOrder': False,
                 'createOrder': True,
@@ -2491,7 +2492,7 @@ class gateio(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol parameter')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
         request = {
