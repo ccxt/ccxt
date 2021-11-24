@@ -174,6 +174,7 @@ class coinmate extends Exchange {
                     'Incorrect order ID' => '\\ccxt\\InvalidOrder',
                     'Minimum Order Size ' => '\\ccxt\\InvalidOrder',
                     'TOO MANY REQUESTS' => '\\ccxt\\RateLimitExceeded',
+                    'Access denied.' => '\\ccxt\\AuthenticationError', // array("error":true,"errorMessage":"Access denied.","data":null)
                 ),
             ),
         ));
