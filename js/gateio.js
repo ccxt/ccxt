@@ -2863,7 +2863,6 @@ module.exports = class gateio extends Exchange {
             side = 'sell';
         }
         const maintenanceRate = this.safeString (position, 'maintenance_rate');
-        const markPrice = this.safeString (position, 'mark_price');
         const notional = this.safeString (position, 'value');
         const initialMargin = this.safeString (position, 'margin');
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
@@ -2880,13 +2879,13 @@ module.exports = class gateio extends Exchange {
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealised_pnl'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),
-            'contractSize': this.parseNumber (Precise.stringDiv (notional, Precise.stringMul (size, markPrice))),
+            'contractSize': this.safeNumber (market, 'contractSize'),
             //     realisedPnl: position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
-            'markPrice': this.parseNumber (markPrice),
+            'markPrice': this.safeNumber (position, 'mark_price'),
             'collateral': undefined,
             'marginType': undefined,
             'side': side,
