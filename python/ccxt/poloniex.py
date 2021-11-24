@@ -228,6 +228,7 @@ class poloniex(Exchange):
                     'Invalid currencyPair parameter.': BadSymbol,  # {"error":"Invalid currencyPair parameter."}
                     'Trading is disabled in self market.': BadSymbol,  # {"error":"Trading is disabled in self market."}
                     'Invalid orderNumber parameter.': OrderNotFound,
+                    'Order is beyond acceptable bounds.': InvalidOrder,  # {"error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA"}
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder,  # {"error":"Total must be at least 0.0001."}

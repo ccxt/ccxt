@@ -215,6 +215,7 @@ class poloniex extends Exchange {
                     'Invalid currencyPair parameter.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currencyPair parameter.")
                     'Trading is disabled in this market.' => '\\ccxt\\BadSymbol', // array("error":"Trading is disabled in this market.")
                     'Invalid orderNumber parameter.' => '\\ccxt\\OrderNotFound',
+                    'Order is beyond acceptable bounds.' => '\\ccxt\\InvalidOrder', // array("error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA")
                 ),
                 'broad' => array(
                     'Total must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Total must be at least 0.0001.")
