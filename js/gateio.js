@@ -2855,38 +2855,38 @@ module.exports = class gateio extends Exchange {
         const contract = this.safeValue (position, 'contract');
         market = this.safeMarket (contract, market);
         const now = this.milliseconds ();
-        const size = this.safeNumber (position, 'size');
+        const size = this.safeString (position, 'size');
         let side = undefined;
         if (size > 0) {
             side = 'buy';
         } else if (size < 0) {
             side = 'sell';
         }
-        const maintenanceRate = this.safeValue (position, 'maintenance_rate');
-        const markPrice = this.safeValue (position, 'mark_price');
-        const notional = this.safeNumber (position, 'value');
-        const initialMargin = this.safeValue (position, 'margin');
+        const maintenanceRate = this.safeString (position, 'maintenance_rate');
+        const markPrice = this.safeString (position, 'mark_price');
+        const notional = this.safeString (position, 'value');
+        const initialMargin = this.safeString (position, 'margin');
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
-        const unrealisedPnl = this.safeValue (position, 'unrealised_pnl');
+        const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
         return {
             'info': position,
             'symbol': market['symbol'],
             'timestamp': now,
             'datetime': this.iso8601 (now),
-            'initialMargin': initialMargin,
+            'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMargin, notional)),
             'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
-            'maintenanceMarginPercentage': maintenanceRate,
-            'entryPrice': this.safeValue (position, 'entry_price'),
-            'notional': notional,
-            'leverage': this.safeValue (position, 'leverage'),
-            'unrealizedPnl': this.safeValue (position, 'unrealised_pnl'),
-            'contracts': size,
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
+            'entryPrice': this.safeNumber (position, 'entry_price'),
+            'notional': this.parseNumber (notional),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealised_pnl'),
+            'contracts': this.parseNumber (size),
             'contractSize': this.parseNumber (Precise.stringDiv (notional, Precise.stringMul (size, markPrice))),
             //     realisedPnl: position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
-            'markPrice': markPrice,
+            'markPrice': this.parseNumber (markPrice),
             'collateral': undefined,
             'marginType': undefined,
             'side': side,
@@ -2909,16 +2909,14 @@ module.exports = class gateio extends Exchange {
         //    Other exchange specific params
         //
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'futures');
+        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'swap');
         const type = this.safeString (params, 'type', defaultType);
         const method = this.getSupportedMapping (type, {
             'swap': 'privateFuturesGetSettlePositions',
             'futures': 'privateDeliveryGetSettlePositions',
         });
-        const settle = this.safeString (params, 'settle');
-        if (!settle) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions requires a value for key "settle" in params');
-        }
+        const defaultSettle = type === 'swap' ? 'usdt' : 'btc';
+        const settle = this.safeString (params, 'settle', defaultSettle);
         const request = {
             'settle': settle,
         };
