@@ -2870,7 +2870,7 @@ module.exports = class gateio extends Exchange {
         const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
         return {
             'info': position,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': now,
             'datetime': this.iso8601 (now),
             'initialMargin': this.parseNumber (initialMargin),
