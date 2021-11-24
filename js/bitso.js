@@ -377,6 +377,13 @@ module.exports = class bitso extends Exchange {
         const marketId = this.safeString (trade, 'book');
         const symbol = this.safeSymbol (marketId, market, '_');
         const side = this.safeString2 (trade, 'side', 'maker_side');
+        const makerSide = this.safeString (trade, 'maker_side');
+        let takerOrMaker = undefined;
+        if (side === makerSide) {
+            takerOrMaker = 'maker';
+        } else {
+            takerOrMaker = 'taker';
+        }
         let amount = this.safeString2 (trade, 'amount', 'major');
         if (amount !== undefined) {
             amount = Precise.stringAbs (amount);
@@ -407,7 +414,7 @@ module.exports = class bitso extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
