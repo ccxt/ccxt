@@ -2702,7 +2702,7 @@ module.exports = class gateio extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders(symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = { };
         let market = undefined;
@@ -2712,7 +2712,7 @@ module.exports = class gateio extends Exchange {
         }
         return await this.privateSpotDeleteOrders (this.extend (request, params));
     }
-        
+
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
