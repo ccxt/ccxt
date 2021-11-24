@@ -1000,7 +1000,7 @@ module.exports = class kraken extends Exchange {
         }
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const cost = this.safeNumber (trade, 'cost') || this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'id': id,
             'order': orderId,
