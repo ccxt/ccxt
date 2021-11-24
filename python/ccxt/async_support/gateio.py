@@ -2591,6 +2591,15 @@ class gateio(Exchange):
         #
         return self.parse_order(response, market)
 
+    async def cancel_all_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        return await self.privateSpotDeleteOrders(self.extend(request, params))
+
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
         currency = self.currency(code)

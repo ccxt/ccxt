@@ -2707,6 +2707,17 @@ class gateio extends Exchange {
         return $this->parse_order($response, $market);
     }
 
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        return $this->privateSpotDeleteOrders (array_merge($request, $params));
+    }
+
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
