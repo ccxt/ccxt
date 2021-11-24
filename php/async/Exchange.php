@@ -179,7 +179,7 @@ class Exchange extends \ccxt\Exchange {
         $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
 
         if (isset($json_response)) {
-            return new Headers($json_response, $headers);
+            return new Headers($json_response, $response_headers);
         } else {
             return $result;
         }

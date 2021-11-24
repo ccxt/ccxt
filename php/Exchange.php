@@ -1691,7 +1691,7 @@ class Exchange {
             throw new NetworkError($this->id . ' unknown error: ' . strval($curl_errno) . ' ' . $curl_error);
         }
         if (isset($json_response)) {
-            return new Headers($json_response, $headers);
+            return new Headers($json_response, $response_headers);
         } else {
             return $result;
         }
