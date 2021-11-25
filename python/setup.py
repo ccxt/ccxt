@@ -78,7 +78,7 @@ setup(
             'aiohttp>=3.0.1',
             'aiodns>=1.1.1',
             'ccxt>=1.62.2',
-            'yarl==1.6.3',
+            'yarl==1.7.2',
         ],
         'qa': [
             'flake8==3.7.9'
