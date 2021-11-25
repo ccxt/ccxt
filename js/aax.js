@@ -870,7 +870,7 @@ module.exports = class aax extends Exchange {
             request['clOrdID'] = clientOrderId;
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly !== undefined) {
             request['execInst'] = 'Post-Only';
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly' ]);
