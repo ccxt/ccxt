@@ -4955,35 +4955,25 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async fetchMarginInterestRate (currency, since = undefined, limit = undefined, tier = undefined, params = {}) {
+    async fetchBorrowRateHistory (currency, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit > 100) {
-            throw new BadRequest (this.id + ' getMarginInterestRate limit parameter cannot exceed 100');
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory limit parameter cannot exceed 100');
         } else if (!limit) {
-            limit = 20;
+            limit = 100; // Assures we get up to present day
         }
         const request = {
             'asset': this.safeCurrencyCode (currency),
             'limit': limit,
         };
-        if (tier) {
-            request['vipLevel'] = tier;
-        }
         if (since) {
-            const sinceDate = new Date (since);
-            const threeMonthsAgo = new Date ();
-            threeMonthsAgo.setMonth (threeMonthsAgo.getMonth () - 3);
-            threeMonthsAgo.setDate (threeMonthsAgo.getDate ());
-            threeMonthsAgo.setHours (0, 0, 0);
-            if (sinceDate <= threeMonthsAgo) {
-                throw new BadRequest (this.id + ' getMarginInterestRate since parameter cannot pre-date today - 3 months');
+            if (!this.timestampWithinXMonths (since, 3)) {
+                throw new BadRequest (this.id + 'fetchBorrowRateHistory cannot pre-date today - 3 months');
             }
             request['startTime'] = since;
             const timeSinceStart = Precise.stringMul (limit.toString (), '86400000');
             const endTime = Precise.stringAdd (since.toString (), timeSinceStart);
-            const now = new Date ();
-            now.setHours (0, 0, 0); // Binance gives an error if passed this
-            request['endTime'] = parseInt (Precise.stringMin (endTime, now.getTime ().toString ()));
+            request['endTime'] = parseInt (Precise.stringMin (endTime, this.dayStart ().toString ()));
         }
         const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
         const result = [];
@@ -4995,7 +4985,7 @@ module.exports = class binance extends Exchange {
                 'rate': this.safeNumber (rate, 'dailyInterestRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
-                'tier': this.safeNumber (rate, 'vipLevel'),
+                'info': rate,
             });
         }
         return result;
