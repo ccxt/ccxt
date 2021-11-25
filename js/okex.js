@@ -1170,11 +1170,8 @@ module.exports = class okex extends Exchange {
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (trade, 'ts');
-        const priceString = this.safeString2 (trade, 'fillPx', 'px');
-        const amountString = this.safeString2 (trade, 'fillSz', 'sz');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const price = this.safeString2 (trade, 'fillPx', 'px');
+        const amount = this.safeString2 (trade, 'fillSz', 'sz');
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'ordId');
         const feeCostString = this.safeString (trade, 'fee');
@@ -1184,7 +1181,7 @@ module.exports = class okex extends Exchange {
             const feeCurrencyId = this.safeString (trade, 'feeCcy');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': this.parseNumber (feeCostSigned),
+                'cost': feeCostSigned,
                 'currency': feeCurrencyCode,
             };
         }
@@ -1194,7 +1191,7 @@ module.exports = class okex extends Exchange {
         } else if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1206,9 +1203,9 @@ module.exports = class okex extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': fee,
-        };
+        });
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
