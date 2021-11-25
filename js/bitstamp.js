@@ -710,18 +710,6 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
-    parseTradingFee (balances, symbol) {
-        const market = this.market (symbol);
-        const feeString = this.safeString (balances, market['id'] + '_fee');
-        const dividedFeeString = Precise.stringDiv (feeString, '100');
-        const tradeFee = this.parseNumber (dividedFeeString);
-        return {
-            'symbol': symbol,
-            'maker': tradeFee,
-            'taker': tradeFee,
-        };
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -875,7 +863,19 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
-    praseTradingFees (balance) {
+    parseTradingFee (balances, symbol) {
+        const market = this.market (symbol);
+        const feeString = this.safeString (balances, market['id'] + '_fee');
+        const dividedFeeString = Precise.stringDiv (feeString, '100');
+        const tradeFee = this.parseNumber (dividedFeeString);
+        return {
+            'symbol': symbol,
+            'maker': tradeFee,
+            'taker': tradeFee,
+        };
+    }
+
+    parseTradingFees (balance) {
         const result = { 'info': balance };
         const markets = Object.keys (this.markets);
         for (let i = 0; i < markets.length; i++) {
@@ -889,7 +889,7 @@ module.exports = class bitstamp extends Exchange {
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
-        return this.praseTradingFees (balance);
+        return this.parseTradingFees (balance);
     }
 
     parseFundingFees (balance) {
@@ -919,7 +919,7 @@ module.exports = class bitstamp extends Exchange {
     async fetchFees (params = {}) {
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
-        const tradingFees = this.praseTradingFees (balance);
+        const tradingFees = this.parseTradingFees (balance);
         delete tradingFees['info'];
         const fundingFees = this.parseFundingFees (balance);
         delete fundingFees['info'];
