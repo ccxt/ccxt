@@ -2658,3 +2658,23 @@ class Exchange(object):
         type = self.safe_string(params, 'type', market_type)
         params = self.omit(params, 'type')
         return [type, params]
+
+    def timestamp_within_x_months(self, timestamp, months):
+        since_date = datetime.datetime.utcfromtimestamp(timestamp / 1000)
+        now = datetime.datetime.now()
+        x_months_ago = datetime.datetime(
+            year=now.year,
+            month=now.month - months,
+            day=now.day,
+            hour=0,
+        )
+        return since_date > x_months_ago
+
+    def day_start(self):
+        now = datetime.datetime.now(datetime.timezone.utc)
+        return int(datetime.datetime(
+            year=now.year,
+            month=now.month,
+            day=now.day,
+            hour=0,
+        ).timestamp()) * 1000
