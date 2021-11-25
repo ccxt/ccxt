@@ -2027,14 +2027,11 @@ class binance(Exchange):
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'T', 'time')
-        priceString = self.safe_string_2(trade, 'p', 'price')
-        amountString = self.safe_string_2(trade, 'q', 'qty')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
+        price = self.safe_string_2(trade, 'p', 'price')
+        amount = self.safe_string_2(trade, 'q', 'qty')
+        cost = self.safe_string_2(trade, 'quoteQty', 'baseQty')  # inverse futures
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        costString = Precise.string_mul(priceString, amountString)
-        cost = self.parse_number(costString)
         id = self.safe_string_2(trade, 't', 'a')
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
@@ -2051,7 +2048,7 @@ class binance(Exchange):
         fee = None
         if 'commission' in trade:
             fee = {
-                'cost': self.safe_number(trade, 'commission'),
+                'cost': self.safe_string(trade, 'commission'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         takerOrMaker = None
@@ -2059,7 +2056,7 @@ class binance(Exchange):
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         if 'maker' in trade:
             takerOrMaker = 'maker' if trade['maker'] else 'taker'
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2073,7 +2070,7 @@ class binance(Exchange):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
