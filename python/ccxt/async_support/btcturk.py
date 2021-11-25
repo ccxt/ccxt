@@ -562,7 +562,7 @@ class btcturk(Exchange):
         #
         id = self.safe_string(order, 'id')
         price = self.safe_string(order, 'price')
-        amountString = self.safe_string(order, 'amount')
+        amountString = self.safe_string_2(order, 'amount', 'quantity')
         amount = Precise.string_abs(amountString)
         remaining = self.safe_string(order, 'leftAmount')
         marketId = self.safe_number(order, 'pairSymbol')
