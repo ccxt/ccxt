@@ -1972,10 +1972,17 @@ module.exports = class huobi extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'order-id': id,
-        };
-        const response = await this.spotPrivateGetV1OrderOrdersOrderId (this.extend (request, params));
+        const request = {};
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        let method = 'spotPrivateGetV1OrderOrdersOrderId';
+        if (clientOrderId !== undefined) {
+            method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
+            // will be filled below in extend ()
+            // request['clientOrderId'] = clientOrderId;
+        } else {
+            request['order-id'] = id;
+        }
+        const response = await this[method] (this.extend (request, params));
         const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
