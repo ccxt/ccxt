@@ -14,7 +14,6 @@ use \ccxt\AddressPending;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\DDoSProtection;
-use \ccxt\Precise;
 
 class bittrex extends Exchange {
 
@@ -553,26 +552,25 @@ class bittrex extends Exchange {
         //
         // public fetchTrades
         //
-        //     {
-        //         "id":"9c5589db-42fb-436c-b105-5e2edcb95673",
-        //         "executedAt":"2020-10-03T11:48:43.38Z",
-        //         "quantity":"0.17939626",
-        //         "rate":"0.03297952",
-        //         "takerSide":"BUY"
-        //     }
+        //      {
+        //          "id" => "8a614d4e-e455-45b0-9aac-502b0aeb433f",
+        //          "executedAt" => "2021-11-25T14:54:44.65Z",
+        //          "quantity" => "30.00000000",
+        //          "rate" => "1.72923112",
+        //          "takerSide" => "SELL"
+        //      }
         //
         // private fetchOrderTrades
-        //
-        //     {
-        //         "id" => "aaa3e9bd-5b86-4a21-8b3d-1275c1d30b8e",
-        //         "marketSymbol" => "OMG-BTC",
-        //         "executedAt" => "2020-10-02T16:00:30.3Z",
-        //         "quantity" => "7.52710000",
-        //         "rate" => "0.00034907",
-        //         "orderId" => "3a3dbd33-3a30-4ae5-a41d-68d3c1ac537e",
-        //         "commission" => "0.00000525",
-        //         "isTaker" => false
-        //     }
+        //      {
+        //          "id" => "8a614d4e-e455-45b0-9aac-502b0aeb433f",
+        //          "marketSymbol" => "ADA-USDT",
+        //          "executedAt" => "2021-11-25T14:54:44.65Z",
+        //          "quantity" => "30.00000000",
+        //          "rate" => "1.72923112",
+        //          "orderId" => "6f7abf18-6901-4659-a48c-db0e88440ea4",
+        //          "commission" => "0.38907700",
+        //          "isTaker" =>  true
+        //      }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'executedAt'));
         $id = $this->safe_string($trade, 'id');
@@ -581,24 +579,21 @@ class bittrex extends Exchange {
         $market = $this->safe_market($marketId, $market, '-');
         $priceString = $this->safe_string($trade, 'rate');
         $amountString = $this->safe_string($trade, 'quantity');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $takerOrMaker = null;
         $isTaker = $this->safe_value($trade, 'isTaker');
         if ($isTaker !== null) {
             $takerOrMaker = $isTaker ? 'taker' : 'maker';
         }
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'commission');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'commission');
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $market['quote'],
             );
         }
         $side = $this->safe_string_lower($trade, 'takerSide');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -608,11 +603,11 @@ class bittrex extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'type' => null,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_time($params = array ()) {
