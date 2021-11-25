@@ -174,6 +174,7 @@ class coinmate extends Exchange {
                     'Incorrect order ID' => '\\ccxt\\InvalidOrder',
                     'Minimum Order Size ' => '\\ccxt\\InvalidOrder',
                     'TOO MANY REQUESTS' => '\\ccxt\\RateLimitExceeded',
+                    'Access denied.' => '\\ccxt\\AuthenticationError', // array("error":true,"errorMessage":"Access denied.","data":null)
                 ),
             ),
         ));
@@ -185,7 +186,7 @@ class coinmate extends Exchange {
         //     {
         //         "error":false,
         //         "errorMessage":null,
-        //         "$data" => array(
+        //         "data" => array(
         //             array(
         //                 "name":"BTC_EUR",
         //                 "firstCurrency":"BTC",
@@ -449,10 +450,10 @@ class coinmate extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "$timestamp":1561598833416,
+        //         "timestamp":1561598833416,
         //         "transactionId":"4156303",
-        //         "$price":10950.41,
-        //         "$amount":0.004,
+        //         "price":10950.41,
+        //         "amount":0.004,
         //         "currencyPair":"BTC_EUR",
         //         "tradeType":"BUY"
         //     }
@@ -508,7 +509,7 @@ class coinmate extends Exchange {
         //     {
         //         "error":false,
         //         "errorMessage":null,
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "timestamp":1561598833416,
         //                 "transactionId":"4156303",

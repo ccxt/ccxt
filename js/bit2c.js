@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -349,16 +348,16 @@ module.exports = class bit2c extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
         let id = undefined;
-        let priceString = undefined;
-        let amountString = undefined;
+        let price = undefined;
+        let amount = undefined;
         let orderId = undefined;
-        let feeCost = undefined;
+        let fee = undefined;
         let side = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
             timestamp = this.safeTimestamp (trade, 'ticks');
-            priceString = this.safeString (trade, 'price');
-            amountString = this.safeString (trade, 'firstAmount');
+            price = this.safeString (trade, 'price');
+            amount = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId|tradeId'
             if (market === undefined) {
                 const marketId = this.safeString (trade, 'pair');
@@ -376,12 +375,18 @@ module.exports = class bit2c extends Exchange {
             } else if (side === 1) {
                 side = 'sell';
             }
-            feeCost = this.safeNumber (trade, 'feeAmount');
+            const feeCost = this.safeString (trade, 'feeAmount');
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': 'NIS',
+                };
+            }
         } else {
             timestamp = this.safeTimestamp (trade, 'date');
             id = this.safeString (trade, 'tid');
-            priceString = this.safeString (trade, 'price');
-            amountString = this.safeString (trade, 'amount');
+            price = this.safeString (trade, 'price');
+            amount = this.safeString (trade, 'amount');
             side = this.safeValue (trade, 'isBid');
             if (side !== undefined) {
                 if (side) {
@@ -395,10 +400,7 @@ module.exports = class bit2c extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -410,13 +412,9 @@ module.exports = class bit2c extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': cost,
-            'fee': {
-                'cost': feeCost,
-                'currency': 'NIS',
-                'rate': undefined,
-            },
-        };
+            'cost': undefined,
+            'fee': fee,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

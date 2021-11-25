@@ -863,18 +863,17 @@ module.exports = class aax extends Exchange {
             // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
             // 'clOrdID': clientOrderId, // up to 20 chars, lowercase and uppercase letters only
             // 'timeInForce': 'GTC', // GTC, IOC, FOK, default is GTC
-            // 'execInst': 'Post-Only', // the only value supported by the exchange, futures-only
+            // 'execInst': 'Post-Only', // the only value supported by the exchange, futures and spot
         };
-        const timeInForce = this.safeString (params, 'timeInForce');
-        if (timeInForce !== undefined) {
-            request['timeInForce'] = timeInForce;
-            params = this.omit (params, 'timeInForce');
-        }
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly !== undefined) {
+            request['execInst'] = 'Post-Only';
+        }
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly' ]);
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice === undefined) {
             if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {

@@ -188,7 +188,7 @@ class oceanex extends Exchange {
         //     {
         //         "code":0,
         //         "message":"Operation successful",
-        //         "$data" => {
+        //         "data" => {
         //             "at":1559431729,
         //             "ticker" => {
         //                 "buy":"0.0065",
@@ -217,9 +217,9 @@ class oceanex extends Exchange {
         //     {
         //         "code":0,
         //         "message":"Operation successful",
-        //         "$data" => {
+        //         "data" => {
         //             "at":1559431729,
-        //             "$ticker" => {
+        //             "ticker" => {
         //                 "buy":"0.0065",
         //                 "sell":"0.00677",
         //                 "low":"0.00677",
@@ -246,7 +246,7 @@ class oceanex extends Exchange {
         //
         //         {
         //             "at":1559431729,
-        //             "$ticker" => {
+        //             "ticker" => {
         //                 "buy":"0.0065",
         //                 "sell":"0.00677",
         //                 "low":"0.00677",
@@ -297,7 +297,7 @@ class oceanex extends Exchange {
         //         "code":0,
         //         "message":"Operation successful",
         //         "data" => {
-        //             "$timestamp":1559433057,
+        //             "timestamp":1559433057,
         //             "asks" => [
         //                 ["100.0","20.0"],
         //                 ["4.74","2000.0"],
@@ -333,9 +333,9 @@ class oceanex extends Exchange {
         //     {
         //         "code":0,
         //         "message":"Operation successful",
-        //         "$data" => [
+        //         "data" => [
         //             array(
-        //                 "$timestamp":1559433057,
+        //                 "timestamp":1559433057,
         //                 "market" => "bagvet",
         //                 "asks" => [
         //                     ["100.0","20.0"],
@@ -550,7 +550,7 @@ class oceanex extends Exchange {
         //         "created_at" => "2019-01-18T00:38:18Z",
         //         "trades_count" => 0,
         //         "remaining_volume" => "0.2",
-        //         "$price" => "1001.0",
+        //         "price" => "1001.0",
         //         "created_on" => "1547771898",
         //         "side" => "buy",
         //         "volume" => "0.2",
@@ -559,7 +559,7 @@ class oceanex extends Exchange {
         //         "avg_price" => "0.0",
         //         "executed_volume" => "0.0",
         //         "id" => 473797,
-        //         "$market" => "veteth"
+        //         "market" => "veteth"
         //     }
         //
         $status = $this->parse_order_status($this->safe_value($order, 'state'));
@@ -678,7 +678,7 @@ class oceanex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         //
-        //     array("$code":1011,"$message":"This IP 'x.x.x.x' is not allowed","data":array())
+        //     array("code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":array())
         //
         if ($response === null) {
             return;

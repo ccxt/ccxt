@@ -14,7 +14,6 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class ascendex(Exchange):
@@ -279,7 +278,7 @@ class ascendex(Exchange):
                 'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
-                'BYN': 'Beyond Finance',
+                'BYN': 'BeyondFi',
             },
         })
 
@@ -857,16 +856,13 @@ class ascendex(Exchange):
         timestamp = self.safe_integer(trade, 'ts')
         priceString = self.safe_string_2(trade, 'price', 'p')
         amountString = self.safe_string(trade, 'q')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         buyerIsMaker = self.safe_value(trade, 'bm', False)
         makerOrTaker = 'maker' if buyerIsMaker else 'taker'
         side = 'buy' if buyerIsMaker else 'sell'
         symbol = None
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -876,11 +872,11 @@ class ascendex(Exchange):
             'type': None,
             'takerOrMaker': makerOrTaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

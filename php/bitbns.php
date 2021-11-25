@@ -134,11 +134,11 @@ class bitbns extends Exchange {
         //
         //     {
         //         "data":array(
-        //             "BTC":array("$status":1),
-        //             "ETH":array("$status":1),
-        //             "XRP":array("$status":1),
+        //             "BTC":array("status":1),
+        //             "ETH":array("status":1),
+        //             "XRP":array("status":1),
         //         ),
-        //         "$status":1,
+        //         "status":1,
         //         "error":null,
         //         "code":200
         //     }
@@ -159,19 +159,19 @@ class bitbns extends Exchange {
         //
         //     array(
         //         array(
-        //             "$id":"BTC",
-        //             "$symbol":"BTC/INR",
-        //             "$base":"BTC",
-        //             "$quote":"INR",
-        //             "$baseId":"BTC",
-        //             "$quoteId":"",
+        //             "id":"BTC",
+        //             "symbol":"BTC/INR",
+        //             "base":"BTC",
+        //             "quote":"INR",
+        //             "baseId":"BTC",
+        //             "quoteId":"",
         //             "active":true,
         //             "limits":array(
         //                 "amount":array("min":"0.00017376","max":20),
         //                 "price":array("min":2762353.2359999996,"max":6445490.883999999),
         //                 "cost":array("min":800,"max":128909817.67999998)
         //             ),
-        //             "$precision":array(
+        //             "precision":array(
         //                 "amount":8,
         //                 "price":2
         //             ),
@@ -254,7 +254,7 @@ class bitbns extends Exchange {
         //             [49444.63,0.098211],
         //             [49449.01,0.066309],
         //         ],
-        //         "$timestamp":1619172786577,
+        //         "timestamp":1619172786577,
         //         "datetime":"2021-04-23T10:13:06.577Z",
         //         "nonce":""
         //     }
@@ -266,7 +266,7 @@ class bitbns extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
-        //         "$symbol":"BTC/INR",
+        //         "symbol":"BTC/INR",
         //         "info":array(
         //             "highest_buy_bid":4368494.31,
         //             "lowest_sell_bid":4374835.09,
@@ -274,7 +274,7 @@ class bitbns extends Exchange {
         //             "yes_price":4531016.27,
         //             "volume":array("max":"4569119.23","min":"4254552.13","volume":62.17722344)
         //         ),
-        //         "$timestamp":1619100020845,
+        //         "timestamp":1619100020845,
         //         "datetime":1619100020845,
         //         "high":"4569119.23",
         //         "low":"4254552.13",
@@ -285,7 +285,7 @@ class bitbns extends Exchange {
         //         "vwap":"",
         //         "open":4531016.27,
         //         "close":4374835.09,
-        //         "$last":4374835.09,
+        //         "last":4374835.09,
         //         "baseVolume":62.17722344,
         //         "quoteVolume":"",
         //         "previousClose":"",
@@ -365,7 +365,7 @@ class bitbns extends Exchange {
         $response = $this->v1PostCurrentCoinBalanceEVERYTHING ($params);
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             "availableorderMoney":0,
         //             "availableorderBTC":0,
         //             "availableorderXRP":0,
@@ -376,7 +376,7 @@ class bitbns extends Exchange {
         //         ),
         //         "status":1,
         //         "error":null,
-        //         "$code":200
+        //         "code":200
         //     }
         //
         $timestamp = null;
@@ -424,9 +424,9 @@ class bitbns extends Exchange {
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
-        //         "$status":1,
+        //         "status":1,
         //         "error":null,
-        //         "$id":5424475,
+        //         "id":5424475,
         //         "code":200
         //     }
         //
@@ -437,16 +437,16 @@ class bitbns extends Exchange {
         //         "btc":0.01,
         //         "rate":2000,
         //         "time":"2021-04-25T17:05:42.000Z",
-        //         "$type":0,
-        //         "$status":0,
+        //         "type":0,
+        //         "status":0,
         //         "total":0.01,
         //         "avg_cost":null,
-        //         "$side":"BUY",
-        //         "$amount":0.01,
-        //         "$remaining":0.01,
-        //         "$filled":0,
-        //         "$cost":null,
-        //         "$fee":0.05
+        //         "side":"BUY",
+        //         "amount":0.01,
+        //         "remaining":0.01,
+        //         "filled":0,
+        //         "cost":null,
+        //         "fee":0.05
         //     }
         //
         // fetchOpenOrders
@@ -456,8 +456,8 @@ class bitbns extends Exchange {
         //         "btc":0.01,
         //         "rate":2000,
         //         "time":"2021-04-25T17:05:42.000Z",
-        //         "$type":0,
-        //         "$status":0
+        //         "type":0,
+        //         "status":0
         //     }
         //
         $id = $this->safe_string_2($order, 'id', 'entry_id');
@@ -578,7 +578,7 @@ class bitbns extends Exchange {
         $response = $this->v1PostOrderStatusSymbol (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "entry_id":5424475,
         //                 "btc":0.01,
@@ -621,7 +621,7 @@ class bitbns extends Exchange {
         $response = $this->v2PostGetordersnew (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "entry_id":5424475,
         //                 "btc":0.01,
@@ -648,12 +648,12 @@ class bitbns extends Exchange {
         //         "type" => "BTC Sell order executed",
         //         "typeI" => 6,
         //         "crypto" => 5000,
-        //         "$amount" => 35.4,
+        //         "amount" => 35.4,
         //         "rate" => 709800,
         //         "date" => "2020-05-22T15:05:34.000Z",
         //         "unit" => "INR",
-        //         "$factor" => 100000000,
-        //         "$fee" => 0.09,
+        //         "factor" => 100000000,
+        //         "fee" => 0.09,
         //         "delh_btc" => -5000,
         //         "delh_inr" => 0,
         //         "del_btc" => 0,
@@ -665,10 +665,10 @@ class bitbns extends Exchange {
         //
         //     {
         //         "tradeId":"1909151",
-        //         "$price":"61904.6300",
+        //         "price":"61904.6300",
         //         "quote_volume":1618.05,
         //         "base_volume":0.02607254,
-        //         "$timestamp":1634548602000,
+        //         "timestamp":1634548602000,
         //         "type":"buy"
         //     }
         //
@@ -678,23 +678,20 @@ class bitbns extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp', $timestamp);
         $amountString = $this->safe_string_2($trade, 'amount', 'base_volume');
         $priceString = $this->safe_string_2($trade, 'rate', 'price');
-        $price = $this->parse_number($priceString);
         $factor = $this->safe_string($trade, 'factor');
-        $amountScaled = Precise::string_div($amountString, $factor);
-        $amount = $this->parse_number($amountScaled);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountScaled));
+        $amountScaledString = Precise::string_div($amountString, $factor);
         $symbol = $market['symbol'];
         $side = $this->safe_string_lower($trade, 'type');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyCode = $market['quote'];
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -704,11 +701,11 @@ class bitbns extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountScaledString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -727,7 +724,7 @@ class bitbns extends Exchange {
         $response = $this->v1PostListExecutedOrdersSymbol (array_merge($request, $params));
         //
         //     {
-        //         "$data" => array(
+        //         "data" => array(
         //             array(
         //                 "type" => "BTC Sell order executed",
         //                 "typeI" => 6,
@@ -804,7 +801,7 @@ class bitbns extends Exchange {
         $response = $this->v1PostDepositHistorySymbol (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "type":"USDT deposited",
         //                 "typeI":1,
@@ -822,7 +819,7 @@ class bitbns extends Exchange {
         //         ),
         //         "status":1,
         //         "error":null,
-        //         "$code":200
+        //         "code":200
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -872,13 +869,13 @@ class bitbns extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "$type":"USDT deposited",
+        //         "type":"USDT deposited",
         //         "typeI":1,
-        //         "$amount":100,
+        //         "amount":100,
         //         "date":"2021-04-24T14:56:04.000Z",
         //         "unit":"USDT",
         //         "factor":100,
-        //         "$fee":0,
+        //         "fee":0,
         //         "delh_btc":0,
         //         "delh_inr":0,
         //         "rate":0,
@@ -941,7 +938,7 @@ class bitbns extends Exchange {
         $response = $this->v1PostGetCoinAddressSymbol (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             "token":"0x680dee9edfff0c397736e10b017cf6a0aee4ba31",
         //             "expiry":"2022-04-24 22:30:11"
         //         ),
@@ -1008,8 +1005,8 @@ class bitbns extends Exchange {
             return; // fallback to default $error handler
         }
         //
-        //     array("msg":"Invalid Request","status":-1,"$code":400)
-        //     array("data":array(),"status":0,"$error":"Nothing to show","$code":417)
+        //     array("msg":"Invalid Request","status":-1,"code":400)
+        //     array("data":array(),"status":0,"error":"Nothing to show","code":417)
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');

@@ -147,6 +147,8 @@ class ftx(Exchange):
                         'nft/collections',
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
+                        # pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -1751,7 +1753,7 @@ class ftx(Exchange):
         results = []
         for i in range(0, len(result)):
             results.append(self.parse_position(result[i]))
-        return results
+        return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position):
         #

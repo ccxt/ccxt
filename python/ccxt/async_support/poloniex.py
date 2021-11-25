@@ -173,6 +173,7 @@ class poloniex(Exchange):
                 'REPV2': 'REP',
                 'STR': 'XLM',
                 'SOC': 'SOCC',
+                'TRADE': 'Unitrade',
                 'XAP': 'API Coin',
                 # self is not documented in the API docs for Poloniex
                 # https://github.com/ccxt/ccxt/issues/7084
@@ -227,6 +228,7 @@ class poloniex(Exchange):
                     'Invalid currencyPair parameter.': BadSymbol,  # {"error":"Invalid currencyPair parameter."}
                     'Trading is disabled in self market.': BadSymbol,  # {"error":"Trading is disabled in self market."}
                     'Invalid orderNumber parameter.': OrderNotFound,
+                    'Order is beyond acceptable bounds.': InvalidOrder,  # {"error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA"}
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder,  # {"error":"Total must be at least 0.0001."}

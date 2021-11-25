@@ -173,7 +173,7 @@ class coinbase extends Exchange {
         $response = yield $this->publicGetTime ($params);
         //
         //     {
-        //         "$data" => {
+        //         "data" => {
         //             "epoch" => 1589295679,
         //             "iso" => "2020-05-12T15:01:19Z"
         //         }
@@ -195,8 +195,8 @@ class coinbase extends Exchange {
         //         "name" => "XLM Wallet",
         //         "primary" => false,
         //         "type" => "wallet",
-        //         "$currency" => array(
-        //             "$code" => "XLM",
+        //         "currency" => array(
+        //             "code" => "XLM",
         //             "name" => "Stellar Lumens",
         //             "color" => "#000000",
         //             "sort_index" => 127,
@@ -209,11 +209,11 @@ class coinbase extends Exchange {
         //         ),
         //         "balance" => array(
         //             "amount" => "0.0000000",
-        //             "$currency" => "XLM"
+        //             "currency" => "XLM"
         //         ),
         //         "created_at" => null,
         //         "updated_at" => null,
-        //         "resource" => "$account",
+        //         "resource" => "account",
         //         "resource_path" => "/v2/accounts/XLM",
         //         "allow_deposits" => true,
         //         "allow_withdrawals" => true
@@ -258,11 +258,11 @@ class coinbase extends Exchange {
         $response = yield $this->privatePostAccountsAccountIdAddresses (array_merge($request, $params));
         //
         //     {
-        //         "$data" => {
+        //         "data" => {
         //             "id" => "05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
-        //             "$address" => "coinbasebase",
+        //             "address" => "coinbasebase",
         //             "address_info" => array(
-        //                 "$address" => "coinbasebase",
+        //                 "address" => "coinbasebase",
         //                 "destination_tag" => "287594668"
         //             ),
         //             "name" => null,
@@ -270,7 +270,7 @@ class coinbase extends Exchange {
         //             "updated_at" => "2019-07-01T14:39:29Z",
         //             "network" => "eosio",
         //             "uri_scheme" => "eosio",
-        //             "resource" => "$address",
+        //             "resource" => "address",
         //             "resource_path" => "/v2/accounts/14cfc769-e852-52f3-b831-711c104d194c/addresses/05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
         //             "warnings" => array(
         //                 array(
@@ -353,16 +353,16 @@ class coinbase extends Exchange {
         // fiat deposit
         //
         //     {
-        //         "$id" => "f34c19f3-b730-5e3d-9f72",
-        //         "$status" => "completed",
+        //         "id" => "f34c19f3-b730-5e3d-9f72",
+        //         "status" => "completed",
         //         "payment_method" => array(
-        //             "$id" => "a022b31d-f9c7-5043-98f2",
+        //             "id" => "a022b31d-f9c7-5043-98f2",
         //             "resource" => "payment_method",
         //             "resource_path" => "/v2/payment-methods/a022b31d-f9c7-5043-98f2"
         //         ),
-        //         "$transaction" => array(
-        //             "$id" => "04ed4113-3732-5b0c-af86-b1d2146977d0",
-        //             "resource" => "$transaction",
+        //         "transaction" => array(
+        //             "id" => "04ed4113-3732-5b0c-af86-b1d2146977d0",
+        //             "resource" => "transaction",
         //             "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86"
         //         ),
         //         "user_reference" => "2VTYTH",
@@ -370,12 +370,12 @@ class coinbase extends Exchange {
         //         "updated_at" => "2017-02-09T07:01:26Z",
         //         "resource" => "deposit",
         //         "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72",
-        //         "$committed" => true,
+        //         "committed" => true,
         //         "payout_at" => "2017-02-12T07:01:17Z",
         //         "instant" => false,
-        //         "$fee" => array( "$amount" => "0.00", "$currency" => "EUR" ),
-        //         "$amount" => array( "$amount" => "114.02", "$currency" => "EUR" ),
-        //         "subtotal" => array( "$amount" => "114.02", "$currency" => "EUR" ),
+        //         "fee" => array( "amount" => "0.00", "currency" => "EUR" ),
+        //         "amount" => array( "amount" => "114.02", "currency" => "EUR" ),
+        //         "subtotal" => array( "amount" => "114.02", "currency" => "EUR" ),
         //         "hold_until" => null,
         //         "hold_days" => 0,
         //         "hold_business_days" => 0,
@@ -385,16 +385,16 @@ class coinbase extends Exchange {
         // fiat_withdrawal
         //
         //     {
-        //         "$id" => "cfcc3b4a-eeb6-5e8c-8058",
-        //         "$status" => "completed",
+        //         "id" => "cfcc3b4a-eeb6-5e8c-8058",
+        //         "status" => "completed",
         //         "payment_method" => array(
-        //             "$id" => "8b94cfa4-f7fd-5a12-a76a",
+        //             "id" => "8b94cfa4-f7fd-5a12-a76a",
         //             "resource" => "payment_method",
         //             "resource_path" => "/v2/payment-methods/8b94cfa4-f7fd-5a12-a76a"
         //         ),
-        //         "$transaction" => array(
-        //             "$id" => "fcc2550b-5104-5f83-a444",
-        //             "resource" => "$transaction",
+        //         "transaction" => array(
+        //             "id" => "fcc2550b-5104-5f83-a444",
+        //             "resource" => "transaction",
         //             "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/fcc2550b-5104-5f83-a444"
         //         ),
         //         "user_reference" => "MEUGK",
@@ -402,12 +402,12 @@ class coinbase extends Exchange {
         //         "updated_at" => "2018-07-26T08:58:18Z",
         //         "resource" => "withdrawal",
         //         "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/cfcc3b4a-eeb6-5e8c-8058",
-        //         "$committed" => true,
+        //         "committed" => true,
         //         "payout_at" => "2018-07-31T08:55:12Z",
         //         "instant" => false,
-        //         "$fee" => array( "$amount" => "0.15", "$currency" => "EUR" ),
-        //         "$amount" => array( "$amount" => "13130.69", "$currency" => "EUR" ),
-        //         "subtotal" => array( "$amount" => "13130.84", "$currency" => "EUR" ),
+        //         "fee" => array( "amount" => "0.15", "currency" => "EUR" ),
+        //         "amount" => array( "amount" => "13130.69", "currency" => "EUR" ),
+        //         "subtotal" => array( "amount" => "13130.84", "currency" => "EUR" ),
         //         "idem" => "e549dee5-63ed-4e79-8a96",
         //         "next_step" => null
         //     }
@@ -453,28 +453,28 @@ class coinbase extends Exchange {
     public function parse_trade($trade, $market = null) {
         //
         //     {
-        //         "$id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //         "id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
         //         "status" => "completed",
         //         "payment_method" => array(
-        //             "$id" => "83562370-3e5c-51db-87da-752af5ab9559",
+        //             "id" => "83562370-3e5c-51db-87da-752af5ab9559",
         //             "resource" => "payment_method",
         //             "resource_path" => "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
         //         ),
         //         "transaction" => array(
-        //             "$id" => "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //             "id" => "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
         //             "resource" => "transaction",
         //             "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
         //         ),
-        //         "$amount" => array( "$amount" => "1.00000000", "currency" => "BTC" ),
-        //         "total" => array( "$amount" => "10.25", "currency" => "USD" ),
-        //         "subtotal" => array( "$amount" => "10.10", "currency" => "USD" ),
+        //         "amount" => array( "amount" => "1.00000000", "currency" => "BTC" ),
+        //         "total" => array( "amount" => "10.25", "currency" => "USD" ),
+        //         "subtotal" => array( "amount" => "10.10", "currency" => "USD" ),
         //         "created_at" => "2015-01-31T20:49:02Z",
         //         "updated_at" => "2015-02-11T16:54:02-08:00",
         //         "resource" => "buy",
         //         "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
         //         "committed" => true,
         //         "instant" => false,
-        //         "$fee" => array( "$amount" => "0.15", "currency" => "USD" ),
+        //         "fee" => array( "amount" => "0.15", "currency" => "USD" ),
         //         "payout_at" => "2015-02-18T16:54:00-08:00"
         //     }
         //
@@ -608,12 +608,12 @@ class coinbase extends Exchange {
         $currencies = $this->safe_value($response, 'currencies', array());
         //
         //     {
-        //         "$data":array(
-        //             array("$id":"AED","$name":"United Arab Emirates Dirham","min_size":"0.01000000"),
-        //             array("$id":"AFN","$name":"Afghan Afghani","min_size":"0.01000000"),
-        //             array("$id":"ALL","$name":"Albanian Lek","min_size":"0.01000000"),
-        //             array("$id":"AMD","$name":"Armenian Dram","min_size":"0.01000000"),
-        //             array("$id":"ANG","$name":"Netherlands Antillean Gulden","min_size":"0.01000000"),
+        //         "data":array(
+        //             array("id":"AED","name":"United Arab Emirates Dirham","min_size":"0.01000000"),
+        //             array("id":"AFN","name":"Afghan Afghani","min_size":"0.01000000"),
+        //             array("id":"ALL","name":"Albanian Lek","min_size":"0.01000000"),
+        //             array("id":"AMD","name":"Armenian Dram","min_size":"0.01000000"),
+        //             array("id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"),
         //             // ...
         //         ),
         //     }
@@ -621,9 +621,9 @@ class coinbase extends Exchange {
         $exchangeRates = $this->safe_value($response, 'exchangeRates', array());
         //
         //     {
-        //         "$data":{
-        //             "$currency":"USD",
-        //             "$rates":array(
+        //         "data":{
+        //             "currency":"USD",
+        //             "rates":array(
         //                 "AED":"3.67",
         //                 "AFN":"78.21",
         //                 "ALL":"110.42",
@@ -1193,7 +1193,7 @@ class coinbase extends Exchange {
         // or
         //
         //    {
-        //      "$errors" => array(
+        //      "errors" => array(
         //        {
         //          "id" => "not_found",
         //          "message" => "Not found"

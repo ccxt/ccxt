@@ -190,6 +190,10 @@ module.exports = class bitstamp extends Exchange {
                         'cel_address/',
                         'sxp_withdrawal/',
                         'sxp_address/',
+                        'ada_withdrawal/',
+                        'ada_address/',
+                        'slp_withdrawal/',
+                        'slp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -1550,7 +1554,7 @@ module.exports = class bitstamp extends Exchange {
         const response = await this[method] (this.extend (request, params));
         return {
             'info': response,
-            'id': response['id'],
+            'id': this.safeString (response, 'id'),
         };
     }
 

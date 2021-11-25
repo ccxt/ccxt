@@ -195,6 +195,10 @@ class bitstamp extends Exchange {
                         'cel_address/',
                         'sxp_withdrawal/',
                         'sxp_address/',
+                        'ada_withdrawal/',
+                        'ada_address/',
+                        'slp_withdrawal/',
+                        'slp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -447,8 +451,8 @@ class bitstamp extends Exchange {
         $response = yield $this->publicGetOrderBookPair (array_merge($request, $params));
         //
         //     {
-        //         "$timestamp" => "1583652948",
-        //         "$microtimestamp" => "1583652948955826",
+        //         "timestamp" => "1583652948",
+        //         "microtimestamp" => "1583652948955826",
         //         "bids" => array(
         //             array( "8750.00", "1.33685271" ),
         //             array( "8749.39", "0.07700000" ),
@@ -516,7 +520,7 @@ class bitstamp extends Exchange {
         //         "btc" => 0.0,
         //         "eth" => "0.05000000",
         //         "type" => "0",
-        //         "$id" => XXX,
+        //         "id" => XXX,
         //         "eur" => 0.0
         //     }
         //
@@ -599,12 +603,12 @@ class bitstamp extends Exchange {
         //
         //     {
         //         "usd" => "6.0134400000000000",
-        //         "$price" => "4008.96000000",
+        //         "price" => "4008.96000000",
         //         "datetime" => "2019-03-28 23:07:37.233599",
-        //         "$fee" => "0.02",
+        //         "fee" => "0.02",
         //         "btc" => "0.00150000",
         //         "tid" => 84452058,
-        //         "$type" => 2
+        //         "type" => 2
         //     }
         //
         // from fetchOrder:
@@ -802,9 +806,9 @@ class bitstamp extends Exchange {
         $response = yield $this->publicGetOhlcPair (array_merge($request, $params));
         //
         //     {
-        //         "$data" => {
+        //         "data" => {
         //             "pair" => "BTC/USD",
-        //             "$ohlc" => array(
+        //             "ohlc" => array(
         //                 array("high" => "9064.77", "timestamp" => "1593961440", "volume" => "18.49436608", "low" => "9040.87", "close" => "9064.77", "open" => "9040.87"),
         //                 array("high" => "9071.59", "timestamp" => "1593961500", "volume" => "3.48631711", "low" => "9058.76", "close" => "9061.07", "open" => "9064.66"),
         //                 array("high" => "9067.33", "timestamp" => "1593961560", "volume" => "0.04142833", "low" => "9061.94", "close" => "9061.94", "open" => "9067.33"),
@@ -1022,7 +1026,7 @@ class bitstamp extends Exchange {
         //
         //     {
         //         "status" => "Finished",
-        //         "$id" => 3047704374,
+        //         "id" => 3047704374,
         //         "client_order_id" => ""
         //         "transactions" => array(
         //             {
@@ -1139,13 +1143,13 @@ class bitstamp extends Exchange {
         // fetchTransactions
         //
         //     {
-        //         "$fee" => "0.00000000",
+        //         "fee" => "0.00000000",
         //         "btc_usd" => "0.00",
-        //         "$id" => 1234567894,
+        //         "id" => 1234567894,
         //         "usd" => 0,
         //         "btc" => 0,
         //         "datetime" => "2018-09-08 09:00:31",
-        //         "$type" => "1",
+        //         "type" => "1",
         //         "xrp" => "-20.00000000",
         //         "eur" => 0,
         //     }
@@ -1164,12 +1168,12 @@ class bitstamp extends Exchange {
         //     }
         //
         //     {
-        //         "$id" => 3386432,
-        //         "$type" => 14,
-        //         "$amount" => "863.21332500",
-        //         "$status" => 2,
-        //         "$address" => "rE1sdh25BJQ3qFwngiTBwaq3zPGGYcrjp1?dt=1455",
-        //         "$currency" => "XRP",
+        //         "id" => 3386432,
+        //         "type" => 14,
+        //         "amount" => "863.21332500",
+        //         "status" => 2,
+        //         "address" => "rE1sdh25BJQ3qFwngiTBwaq3zPGGYcrjp1?dt=1455",
+        //         "currency" => "XRP",
         //         "datetime" => "2018-01-05 15:27:55",
         //         "transaction_id" => "001743B03B0C79BA166A064AC0142917B050347B4CB23BA2AB4B91B3C5608F4C"
         //     }
@@ -1284,16 +1288,16 @@ class bitstamp extends Exchange {
         //         xrp => '50.00000000' } ) }
         //
         // partially filled $order:
-        //   { "$id" => 468646390,
+        //   { "id" => 468646390,
         //     "client_order_id" => "",
-        //     "$status" => "Canceled",
-        //     "$transactions" => [array(
+        //     "status" => "Canceled",
+        //     "transactions" => [array(
         //         "eth" => "0.23000000",
         //         "fee" => "0.09",
         //         "tid" => 25810126,
         //         "usd" => "69.8947000000000000",
         //         "type" => 2,
-        //         "$price" => "303.89000000",
+        //         "price" => "303.89000000",
         //         "datetime" => "2017-11-11 07:22:20.710567"
         //     )]}
         //
@@ -1372,7 +1376,7 @@ class bitstamp extends Exchange {
         //             "usd" => 0,
         //             "btc" => 0,
         //             "datetime" => "2018-09-08 09:00:31",
-        //             "$type" => "1",
+        //             "type" => "1",
         //             "xrp" => "-20.00000000",
         //             "eur" => 0,
         //         ),
@@ -1383,7 +1387,7 @@ class bitstamp extends Exchange {
         //             "usd" => 0,
         //             "btc" => 0,
         //             "datetime" => "2018-09-07 18:47:52",
-        //             "$type" => "0",
+        //             "type" => "0",
         //             "xrp" => "20.00000000",
         //             "eur" => 0,
         //         ),
@@ -1555,7 +1559,7 @@ class bitstamp extends Exchange {
         $response = yield $this->$method (array_merge($request, $params));
         return array(
             'info' => $response,
-            'id' => $response['id'],
+            'id' => $this->safe_string($response, 'id'),
         );
     }
 
@@ -1613,8 +1617,8 @@ class bitstamp extends Exchange {
             return;
         }
         //
-        //     array("$error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
-        //     array("$status" => "$error", "$reason" => array("__all__" => ["Minimum order size is 5.0 EUR."]))
+        //     array("error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
+        //     array("status" => "error", "reason" => array("__all__" => ["Minimum order size is 5.0 EUR."]))
         //     reuse of a nonce gives => array( $status => 'error', $reason => 'Invalid nonce', $code => 'API0004' )
         $status = $this->safe_string($response, 'status');
         $error = $this->safe_value($response, 'error');

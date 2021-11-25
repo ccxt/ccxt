@@ -113,8 +113,8 @@ class bitbank extends Exchange {
         //
         //     {
         //       "success" => 1,
-        //       "$data" => {
-        //         "$pairs" => array(
+        //       "data" => {
+        //         "pairs" => array(
         //           {
         //             "name" => "btc_jpy",
         //             "base_asset" => "btc",
@@ -253,23 +253,20 @@ class bitbank extends Exchange {
         }
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string_2($trade, 'transaction_id', 'trade_id');
         $takerOrMaker = $this->safe_string($trade, 'maker_taker');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee_amount_quote');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee_amount_quote');
+        if ($feeCostString !== null) {
             $fee = array(
                 'currency' => $feeCurrency,
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
             );
         }
         $orderId = $this->safe_string($trade, 'order_id');
         $type = $this->safe_string($trade, 'type');
         $side = $this->safe_string($trade, 'side');
-        return array(
+        return $this->safe_trade(array(
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
@@ -278,12 +275,12 @@ class bitbank extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -334,11 +331,11 @@ class bitbank extends Exchange {
         //
         //     {
         //         "success":1,
-        //         "$data":{
-        //             "$candlestick":[
+        //         "data":{
+        //             "candlestick":[
         //                 {
         //                     "type":"5min",
-        //                     "$ohlcv":[
+        //                     "ohlcv":[
         //                         ["0.02501786","0.02501786","0.02501786","0.02501786","0.0000",1591488000000],
         //                         ["0.02501747","0.02501953","0.02501747","0.02501953","0.3017",1591488300000],
         //                         ["0.02501762","0.02501762","0.02500392","0.02500392","0.1500",1591488600000],
@@ -362,8 +359,8 @@ class bitbank extends Exchange {
         //
         //     {
         //       "success" => "1",
-        //       "$data" => {
-        //         "$assets" => array(
+        //       "data" => {
+        //         "assets" => array(
         //           {
         //             "asset" => "jpy",
         //             "amount_precision" => "4",

@@ -279,7 +279,7 @@ class coinbasepro extends Exchange {
         //
         //     array(
         //         {
-        //             "$id":"ZEC-BTC",
+        //             "id":"ZEC-BTC",
         //             "base_currency":"ZEC",
         //             "quote_currency":"BTC",
         //             "base_min_size":"0.01000000",
@@ -294,7 +294,7 @@ class coinbasepro extends Exchange {
         //             "limit_only":false,
         //             "cancel_only":false,
         //             "trading_disabled":false,
-        //             "$status":"online",
+        //             "status":"online",
         //             "status_message":""
         //         }
         //     )
@@ -441,8 +441,8 @@ class coinbasepro extends Exchange {
         //         "price":"0.997999",
         //         "size":"80.29769",
         //         "time":"2020-01-28T02:13:33.012523Z",
-        //         "$bid":"0.997094",
-        //         "$ask":"0.998",
+        //         "bid":"0.997094",
+        //         "ask":"0.998",
         //         "volume":"1903188.03750000"
         //     }
         //
@@ -707,20 +707,20 @@ class coinbasepro extends Exchange {
         // createOrder
         //
         //     {
-        //         "$id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
-        //         "$price" => "0.10000000",
+        //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "price" => "0.10000000",
         //         "size" => "0.01000000",
         //         "product_id" => "BTC-USD",
-        //         "$side" => "buy",
+        //         "side" => "buy",
         //         "stp" => "dc",
-        //         "$type" => "limit",
+        //         "type" => "limit",
         //         "time_in_force" => "GTC",
         //         "post_only" => false,
         //         "created_at" => "2016-12-08T20:02:28.53864Z",
         //         "fill_fees" => "0.0000000000000000",
         //         "filled_size" => "0.00000000",
         //         "executed_value" => "0.0000000000000000",
-        //         "$status" => "pending",
+        //         "status" => "pending",
         //         "settled" => false
         //     }
         //
@@ -866,18 +866,20 @@ class coinbasepro extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
         if ($clientOrderId !== null) {
             $request['client_oid'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
         }
         $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
         if ($stopPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-            $params = $this->omit($params, array( 'stopPrice', 'stop_price' ));
         }
         $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
         if ($timeInForce !== null) {
             $request['time_in_force'] = $timeInForce;
-            $params = $this->omit($params, array( 'timeInForce', 'time_in_force' ));
         }
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        if ($postOnly) {
+            $request['post_only'] = true;
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only' ));
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['size'] = $this->amount_to_precision($symbol, $amount);
@@ -900,12 +902,12 @@ class coinbasepro extends Exchange {
         //
         //     {
         //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
-        //         "$price" => "0.10000000",
+        //         "price" => "0.10000000",
         //         "size" => "0.01000000",
         //         "product_id" => "BTC-USD",
-        //         "$side" => "buy",
+        //         "side" => "buy",
         //         "stp" => "dc",
-        //         "$type" => "limit",
+        //         "type" => "limit",
         //         "time_in_force" => "GTC",
         //         "post_only" => false,
         //         "created_at" => "2016-12-08T20:02:28.53864Z",

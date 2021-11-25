@@ -19,7 +19,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.precise import Precise
 
 
 class bitforex(Exchange):
@@ -180,6 +179,25 @@ class bitforex(Exchange):
         return result
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public) v1
+        #
+        #      {
+        #          "price":57594.53,
+        #          "amount":0.3172,
+        #          "time":1637329685322,
+        #          "direction":1,
+        #          "tid":"1131019666"
+        #      }
+        #
+        #      {
+        #          "price":57591.33,
+        #          "amount":0.002,
+        #          "time":1637329685322,
+        #          "direction":1,
+        #          "tid":"1131019639"
+        #      }
+        #
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -188,12 +206,9 @@ class bitforex(Exchange):
         orderId = None
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         sideId = self.safe_integer(trade, 'direction')
         side = self.parse_side(sideId)
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -201,13 +216,13 @@ class bitforex(Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'order': orderId,
             'fee': None,
             'takerOrMaker': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -218,6 +233,22 @@ class bitforex(Exchange):
             request['size'] = limit
         market = self.market(symbol)
         response = await self.publicGetApiV1MarketTrades(self.extend(request, params))
+        #
+        # {
+        #  "data":
+        #      [
+        #          {
+        #              "price":57594.53,
+        #              "amount":0.3172,
+        #              "time":1637329685322,
+        #              "direction":1,
+        #              "tid":"1131019666"
+        #          }
+        #      ],
+        #  "success": True,
+        #  "time": 1637329688475
+        # }
+        #
         return self.parse_trades(response['data'], market, since, limit)
 
     async def fetch_balance(self, params={}):

@@ -2067,8 +2067,9 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
-        const priceString = this.safeString2 (trade, 'p', 'price');
-        const amountString = this.safeString2 (trade, 'q', 'qty');
+        const price = this.safeString2 (trade, 'p', 'price');
+        const amount = this.safeString2 (trade, 'q', 'qty');
+        const cost = this.safeString2 (trade, 'quoteQty', 'baseQty');  // inverse futures
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         let id = this.safeString2 (trade, 't', 'a');
@@ -2110,9 +2111,9 @@ module.exports = class binance extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': priceString,
-            'amount': amountString,
-            'cost': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         }, market);
     }
@@ -2337,7 +2338,7 @@ module.exports = class binance extends Exchange {
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         let cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
-        cost = this.safeString2 (order, 'cumBase', cost);
+        cost = this.safeString (order, 'cumBase', cost);
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
@@ -2388,7 +2389,8 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const orderType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((orderType !== 'future') && (orderType !== 'delivery')) {
@@ -2410,6 +2412,10 @@ module.exports = class binance extends Exchange {
                 method += 'Test';
             }
             params = this.omit (params, 'test');
+            // only supported for spot/margin api (all margin markets are spot markets)
+            if (postOnly) {
+                type = 'LIMIT_MAKER';
+            }
         }
         const uppercaseType = type.toUpperCase ();
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
@@ -4391,6 +4397,7 @@ module.exports = class binance extends Exchange {
         } else {
             collateralString = this.safeString (position, 'isolatedMargin');
         }
+        collateralString = (collateralString === undefined) ? '0' : collateralString;
         const collateralFloat = parseFloat (collateralString);
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));

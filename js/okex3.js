@@ -696,6 +696,7 @@ module.exports = class okex3 extends Exchange {
                 'HSR': 'HC',
                 'MAG': 'Maggie',
                 'SBTC': 'Super Bitcoin',
+                'TRADE': 'Unitrade',
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
@@ -2174,7 +2175,7 @@ module.exports = class okex3 extends Exchange {
         if (amount !== undefined) {
             if (filled !== undefined) {
                 amount = Precise.stringMax (amount, filled);
-                remaining = Precise.stringMax (0, Precise.stringSub (amount, filled));
+                remaining = Precise.stringMax ('0', Precise.stringSub (amount, filled));
             }
         }
         if (type === 'market') {

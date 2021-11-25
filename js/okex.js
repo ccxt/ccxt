@@ -523,7 +523,7 @@ module.exports = class okex extends Exchange {
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
                 'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': [ 'spot', 'futures', 'swap' ], // spot, futures, swap, option
+                'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
@@ -561,6 +561,7 @@ module.exports = class okex extends Exchange {
                 'HSR': 'HC',
                 'MAG': 'Maggie',
                 'SBTC': 'Super Bitcoin',
+                'TRADE': 'Unitrade',
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
@@ -667,13 +668,37 @@ module.exports = class okex extends Exchange {
         //         "uly":""
         //     }
         //
+        //     {
+        //         alias: "",
+        //         baseCcy: "",
+        //         category: "1",
+        //         ctMult: "0.1",
+        //         ctType: "",
+        //         ctVal: "1",
+        //         ctValCcy: "BTC",
+        //         expTime: "1648195200000",
+        //         instId: "BTC-USD-220325-194000-P",
+        //         instType: "OPTION",
+        //         lever: "",
+        //         listTime: "1631262612280",
+        //         lotSz: "1",
+        //         minSz: "1",
+        //         optType: "P",
+        //         quoteCcy: "",
+        //         settleCcy: "BTC",
+        //         state: "live",
+        //         stk: "194000",
+        //         tickSz: "0.0005",
+        //         uly: "BTC-USD"
+        //     }
+        //
         const id = this.safeString (market, 'instId');
         const type = this.safeStringLower (market, 'instType');
         const spot = (type === 'spot');
         const futures = (type === 'futures');
         const swap = (type === 'swap');
         const option = (type === 'option');
-        const contract = swap || futures;
+        const contract = swap || futures || option;
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy');
         const settleCurrency = this.safeString (market, 'settleCcy');
@@ -696,6 +721,11 @@ module.exports = class okex extends Exchange {
             if (expiry !== undefined) {
                 const ymd = this.yymmdd (expiry);
                 symbol = symbol + '-' + ymd;
+            }
+            if (option) {
+                const strikePrice = this.safeString (market, 'stk');
+                const optionType = this.safeString (market, 'optType');
+                symbol = symbol + '-' + strikePrice + '-' + optionType;
             }
         }
         const tickSize = this.safeString (market, 'tickSz');

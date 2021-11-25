@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -168,6 +167,25 @@ module.exports = class bitforex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public) v1
+        //
+        //      {
+        //          "price":57594.53,
+        //          "amount":0.3172,
+        //          "time":1637329685322,
+        //          "direction":1,
+        //          "tid":"1131019666"
+        //      }
+        //
+        //      {
+        //          "price":57591.33,
+        //          "amount":0.002,
+        //          "time":1637329685322,
+        //          "direction":1,
+        //          "tid":"1131019639"
+        //      }
+        //
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -177,12 +195,9 @@ module.exports = class bitforex extends Exchange {
         const orderId = undefined;
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const sideId = this.safeInteger (trade, 'direction');
         const side = this.parseSide (sideId);
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -190,13 +205,13 @@ module.exports = class bitforex extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'order': orderId,
             'fee': undefined,
             'takerOrMaker': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -209,6 +224,22 @@ module.exports = class bitforex extends Exchange {
         }
         const market = this.market (symbol);
         const response = await this.publicGetApiV1MarketTrades (this.extend (request, params));
+        //
+        // {
+        //  "data":
+        //      [
+        //          {
+        //              "price":57594.53,
+        //              "amount":0.3172,
+        //              "time":1637329685322,
+        //              "direction":1,
+        //              "tid":"1131019666"
+        //          }
+        //      ],
+        //  "success": true,
+        //  "time": 1637329688475
+        // }
+        //
         return this.parseTrades (response['data'], market, since, limit);
     }
 

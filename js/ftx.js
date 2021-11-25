@@ -126,6 +126,8 @@ module.exports = class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
+                        // pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -1814,7 +1816,7 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < result.length; i++) {
             results.push (this.parsePosition (result[i]));
         }
-        return results;
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     parsePosition (position) {

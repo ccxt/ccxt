@@ -404,7 +404,7 @@ class gemini extends Exchange {
         $response = $this->publicGetV2TickerSymbol (array_merge($request, $params));
         //
         //     {
-        //         "$symbol":"BTCUSD",
+        //         "symbol":"BTCUSD",
         //         "open":"9080.58",
         //         "high":"9184.53",
         //         "low":"9063.56",
@@ -443,7 +443,7 @@ class gemini extends Exchange {
         //
         //     {
         //         "pair" => "BATUSD",
-        //         "$price" => "0.20687",
+        //         "price" => "0.20687",
         //         "percentChange24h" => "0.0146"
         //     }
         //
@@ -452,19 +452,19 @@ class gemini extends Exchange {
         //     {
         //         "bid":"9117.95",
         //         "ask":"9117.96",
-        //         "$volume":array(
+        //         "volume":array(
         //             "BTC":"1615.46861748",
         //             "USD":"14727307.57545006088",
-        //             "$timestamp":1594982700000
+        //             "timestamp":1594982700000
         //         ),
-        //         "$last":"9115.23"
+        //         "last":"9115.23"
         //     }
         //
         // fetchTickerV2
         //
         //     {
-        //         "$symbol":"BTCUSD",
-        //         "$open":"9080.58",
+        //         "symbol":"BTCUSD",
+        //         "open":"9080.58",
         //         "high":"9184.53",
         //         "low":"9063.56",
         //         "close":"9116.08",
@@ -477,7 +477,7 @@ class gemini extends Exchange {
         $volume = $this->safe_value($ticker, 'volume', array());
         $timestamp = $this->safe_integer($volume, 'timestamp');
         $symbol = null;
-        $marketId = $this->safe_string($ticker, 'pair');
+        $marketId = $this->safe_string_lower($ticker, 'pair');
         $baseId = null;
         $quoteId = null;
         $base = null;
@@ -562,13 +562,13 @@ class gemini extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "$timestamp":1601617445,
+        //         "timestamp":1601617445,
         //         "timestampms":1601617445144,
         //         "tid":14122489752,
-        //         "$price":"0.46476",
-        //         "$amount":"28.407209",
+        //         "price":"0.46476",
+        //         "amount":"28.407209",
         //         "exchange":"gemini",
-        //         "$type":"buy"
+        //         "type":"buy"
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'timestampms');
@@ -913,9 +913,9 @@ class gemini extends Exchange {
         }
         //
         //     {
-        //         "$result" => "error",
-        //         "$reason" => "BadNonce",
-        //         "$message" => "Out-of-sequence nonce <1234> precedes previously used nonce <2345>"
+        //         "result" => "error",
+        //         "reason" => "BadNonce",
+        //         "message" => "Out-of-sequence nonce <1234> precedes previously used nonce <2345>"
         //     }
         //
         $result = $this->safe_string($response, 'result');

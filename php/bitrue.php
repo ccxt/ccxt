@@ -449,12 +449,12 @@ class bitrue extends Exchange {
         //                 "defaultPrice":"0.0000006100",
         //             ),
         //         ],
-        //         "$coins":[
+        //         "coins":[
         //             array(
         //                 "coin":"sbr",
         //                 "coinFulName":"Saber",
-        //                 "$enableWithdraw":true,
-        //                 "$enableDeposit":true,
+        //                 "enableWithdraw":true,
+        //                 "enableDeposit":true,
         //                 "chains":["SOLANA"],
         //                 "withdrawFee":"2.0",
         //                 "minWithdraw":"5.0",
@@ -529,15 +529,15 @@ class bitrue extends Exchange {
         //         "exchangeFilters":array(),
         //         "symbols":[
         //             array(
-        //                 "$symbol":"SHABTC",
-        //                 "$status":"TRADING",
+        //                 "symbol":"SHABTC",
+        //                 "status":"TRADING",
         //                 "baseAsset":"sha",
         //                 "baseAssetPrecision":0,
         //                 "quoteAsset":"btc",
         //                 "quotePrecision":10,
         //                 "orderTypes":["MARKET","LIMIT"],
         //                 "icebergAllowed":false,
-        //                 "$filters":array(
+        //                 "filters":array(
         //                     array("filterType":"PRICE_FILTER","minPrice":"0.00000001349","maxPrice":"0.00000017537","priceScale":10),
         //                     array("filterType":"LOT_SIZE","minQty":"1.0","minVal":"0.00020","maxQty":"1000000000","volumeScale":0),
         //                 ),
@@ -650,7 +650,7 @@ class bitrue extends Exchange {
         //         "buyerCommission":0,
         //         "sellerCommission":0,
         //         "updateTime":null,
-        //         "$balances":array(
+        //         "balances":array(
         //             array("asset":"sbr","free":"0","locked":"0"),
         //             array("asset":"ksm","free":"0","locked":"0"),
         //             array("asset":"neo3s","free":"0","locked":"0"),
@@ -715,7 +715,7 @@ class bitrue extends Exchange {
         //
         //     {
         //         "id":397945892,
-        //         "$last":"1.143411",
+        //         "last":"1.143411",
         //         "lowestAsk":"1.144223",
         //         "highestBid":"1.141696",
         //         "percentChange":"-0.001432",
@@ -766,9 +766,9 @@ class bitrue extends Exchange {
         //     {
         //         "code":"200",
         //         "msg":"success",
-        //         "$data":{
+        //         "data":{
         //             "DODO3S_USDT":{
-        //                 "$id":397945892,
+        //                 "id":397945892,
         //                 "last":"1.143411",
         //                 "lowestAsk":"1.144223",
         //                 "highestBid":"1.141696",
@@ -818,9 +818,9 @@ class bitrue extends Exchange {
         //     {
         //         "code":"200",
         //         "msg":"success",
-        //         "$data":{
+        //         "data":{
         //             "DODO3S_USDT":{
-        //                 "$id":397945892,
+        //                 "id":397945892,
         //                 "last":"1.143411",
         //                 "lowestAsk":"1.144223",
         //                 "highestBid":"1.141696",
@@ -862,14 +862,14 @@ class bitrue extends Exchange {
         //         "l" => 27781,         // Last tradeId
         //         "T" => 1498793709153, // Timestamp
         //         "m" => true,          // Was the buyer the maker?
-        //         "M" => true           // Was the $trade the best $price match?
+        //         "M" => true           // Was the $trade the best price match?
         //     }
         //
         // recent public trades and old public trades
         //
         //     {
-        //         "$id" => 28457,
-        //         "$price" => "4.00000100",
+        //         "id" => 28457,
+        //         "price" => "4.00000100",
         //         "qty" => "12.00000000",
         //         "time" => 1499865549590,
         //         "isBuyerMaker" => true,
@@ -879,11 +879,11 @@ class bitrue extends Exchange {
         // private trades
         //
         //     {
-        //         "$symbol":"USDCUSDT",
-        //         "$id":20725156,
-        //         "$orderId":2880918576,
+        //         "symbol":"USDCUSDT",
+        //         "id":20725156,
+        //         "orderId":2880918576,
         //         "origClientOrderId":null,
-        //         "$price":"0.9996000000000000",
+        //         "price":"0.9996000000000000",
         //         "qty":"100.0000000000000000",
         //         "commission":null,
         //         "commissionAssert":null,
@@ -896,12 +896,8 @@ class bitrue extends Exchange {
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
         $priceString = $this->safe_string_2($trade, 'p', 'price');
         $amountString = $this->safe_string_2($trade, 'q', 'qty');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $costString = Precise::string_mul($priceString, $amountString);
-        $cost = $this->parse_number($costString);
         $id = $this->safe_string_2($trade, 't', 'a');
         $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
@@ -920,7 +916,7 @@ class bitrue extends Exchange {
         $fee = null;
         if (is_array($trade) && array_key_exists('commission', $trade)) {
             $fee = array(
-                'cost' => $this->safe_number($trade, 'commission'),
+                'cost' => $this->safe_string($trade, 'commission'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAsset')),
             );
         }
@@ -931,7 +927,7 @@ class bitrue extends Exchange {
         if (is_array($trade) && array_key_exists('maker', $trade)) {
             $takerOrMaker = $trade['maker'] ? 'maker' : 'taker';
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -941,11 +937,11 @@ class bitrue extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1019,27 +1015,27 @@ class bitrue extends Exchange {
         // createOrder
         //
         //     {
-        //         "$symbol":"USDCUSDT",
+        //         "symbol":"USDCUSDT",
         //         "orderId":2878854881,
-        //         "$clientOrderId":"",
+        //         "clientOrderId":"",
         //         "transactTime":1635551031276
         //     }
         //
         // fetchOpenOrders
         //
         //     {
-        //         "$symbol":"USDCUSDT",
+        //         "symbol":"USDCUSDT",
         //         "orderId":"2878854881",
-        //         "$clientOrderId":"",
-        //         "$price":"1.1000000000000000",
+        //         "clientOrderId":"",
+        //         "price":"1.1000000000000000",
         //         "origQty":"100.0000000000000000",
         //         "executedQty":"0.0000000000000000",
         //         "cummulativeQuoteQty":"0.0000000000000000",
-        //         "$status":"NEW",
-        //         "$timeInForce":"",
-        //         "$type":"LIMIT",
-        //         "$side":"SELL",
-        //         "$stopPrice":"",
+        //         "status":"NEW",
+        //         "timeInForce":"",
+        //         "type":"LIMIT",
+        //         "side":"SELL",
+        //         "stopPrice":"",
         //         "icebergQty":"",
         //         "time":1635551031000,
         //         "updateTime":1635551031000,
@@ -1150,9 +1146,9 @@ class bitrue extends Exchange {
         $response = $this->v1PrivatePostOrder (array_merge($request, $params));
         //
         //     {
-        //         "$symbol":"USDCUSDT",
+        //         "symbol":"USDCUSDT",
         //         "orderId":2878854881,
-        //         "$clientOrderId":"",
+        //         "clientOrderId":"",
         //         "transactTime":1635551031276
         //     }
         //
@@ -1202,7 +1198,7 @@ class bitrue extends Exchange {
         //
         //     array(
         //         {
-        //             "$symbol" => "LTCBTC",
+        //             "symbol" => "LTCBTC",
         //             "orderId" => 1,
         //             "clientOrderId" => "myOrder1",
         //             "price" => "0.1",
@@ -1237,7 +1233,7 @@ class bitrue extends Exchange {
         //
         //     array(
         //         {
-        //             "$symbol":"USDCUSDT",
+        //             "symbol":"USDCUSDT",
         //             "orderId":"2878854881",
         //             "clientOrderId":"",
         //             "price":"1.1000000000000000",
@@ -1281,8 +1277,8 @@ class bitrue extends Exchange {
         $response = $this->v1PrivateDeleteOrder (array_merge($request, $query));
         //
         //     {
-        //         "$symbol" => "LTCBTC",
-        //         "$origClientOrderId" => "myOrder1",
+        //         "symbol" => "LTCBTC",
+        //         "origClientOrderId" => "myOrder1",
         //         "orderId" => 1,
         //         "clientOrderId" => "cancelMyOrder1"
         //     }
@@ -1314,7 +1310,7 @@ class bitrue extends Exchange {
         //
         //     array(
         //         {
-        //             "$symbol":"USDCUSDT",
+        //             "symbol":"USDCUSDT",
         //             "id":20725156,
         //             "orderId":2880918576,
         //             "origClientOrderId":null,
@@ -1356,9 +1352,9 @@ class bitrue extends Exchange {
         $response = $this->v1PrivateGetDepositHistory (array_merge($request, $params));
         //
         //     {
-        //         "$code":200,
+        //         "code":200,
         //         "msg":"succ",
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "id":2659137,
         //                 "symbol":"USDC",
@@ -1418,9 +1414,9 @@ class bitrue extends Exchange {
         $response = $this->v1PrivateGetWithdrawHistory (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 200,
+        //         "code" => 200,
         //         "msg" => "succ",
-        //         "$data" => {
+        //         "data" => {
         //             "msg" => null,
         //             "amount" => 1000,
         //             "fee" => 1,
@@ -1456,58 +1452,58 @@ class bitrue extends Exchange {
         //
         //     array(
         //         "symbol" => "XRP",
-        //         "$amount" => "261.3361000000000000",
-        //         "$fee" => "0.0E-15",
+        //         "amount" => "261.3361000000000000",
+        //         "fee" => "0.0E-15",
         //         "createdAt" => 1548816979000,
         //         "updatedAt" => 1548816999000,
-        //         "$addressFrom" => "",
-        //         "$addressTo" => "raLPjTYeGezfdb6crXZzcC8RkLBEwbBHJ5_18113641",
-        //         "$txid" => "86D6EB68A7A28938BCE06BD348F8C07DEF500C5F7FE92069EF8C0551CE0F2C7D",
+        //         "addressFrom" => "",
+        //         "addressTo" => "raLPjTYeGezfdb6crXZzcC8RkLBEwbBHJ5_18113641",
+        //         "txid" => "86D6EB68A7A28938BCE06BD348F8C07DEF500C5F7FE92069EF8C0551CE0F2C7D",
         //         "confirmations" => 8,
-        //         "$status" => 1,
-        //         "$tagType" => "Tag"
+        //         "status" => 1,
+        //         "tagType" => "Tag"
         //     ),
         //     {
         //         "symbol" => "XRP",
-        //         "$amount" => "20.0000000000000000",
-        //         "$fee" => "0.0E-15",
+        //         "amount" => "20.0000000000000000",
+        //         "fee" => "0.0E-15",
         //         "createdAt" => 1544669393000,
         //         "updatedAt" => 1544669413000,
-        //         "$addressFrom" => "",
-        //         "$addressTo" => "raLPjTYeGezfdb6crXZzcC8RkLBEwbBHJ5_18113641",
-        //         "$txid" => "515B23E1F9864D3AF7F5B4C4FCBED784BAE861854FAB95F4031922B6AAEFC7AC",
+        //         "addressFrom" => "",
+        //         "addressTo" => "raLPjTYeGezfdb6crXZzcC8RkLBEwbBHJ5_18113641",
+        //         "txid" => "515B23E1F9864D3AF7F5B4C4FCBED784BAE861854FAB95F4031922B6AAEFC7AC",
         //         "confirmations" => 7,
-        //         "$status" => 1,
-        //         "$tagType" => "Tag"
+        //         "status" => 1,
+        //         "tagType" => "Tag"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "$id" => 183745,
+        //         "id" => 183745,
         //         "symbol" => "usdt_erc20",
-        //         "$amount" => "8.4000000000000000",
-        //         "$fee" => "1.6000000000000000",
-        //         "$payAmount" => "0.0000000000000000",
+        //         "amount" => "8.4000000000000000",
+        //         "fee" => "1.6000000000000000",
+        //         "payAmount" => "0.0000000000000000",
         //         "createdAt" => 1595336441000,
         //         "updatedAt" => 1595336576000,
-        //         "$addressFrom" => "",
-        //         "$addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
-        //         "$txid" => "",
+        //         "addressFrom" => "",
+        //         "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        //         "txid" => "",
         //         "confirmations" => 0,
-        //         "$status" => 6,
-        //         "$tagType" => null
+        //         "status" => 6,
+        //         "tagType" => null
         //     }
         //
         // withdraw
         //
         //     {
         //         "msg" => null,
-        //         "$amount" => 1000,
-        //         "$fee" => 1,
-        //         "$ctime" => null,
+        //         "amount" => 1000,
+        //         "fee" => 1,
+        //         "ctime" => null,
         //         "coin" => "usdt_erc20",
-        //         "$addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
+        //         "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
@@ -1654,9 +1650,9 @@ class bitrue extends Exchange {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
-        // $error $response in a form => array( "$code" => -1013, "msg" => "Invalid quantity." )
+        // $error $response in a form => array( "code" => -1013, "msg" => "Invalid quantity." )
         // following block cointains legacy checks against $message patterns in "msg" property
-        // will switch "$code" checks eventually, when we know all of them
+        // will switch "code" checks eventually, when we know all of them
         if ($code >= 400) {
             if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {
                 throw new InvalidOrder($this->id . ' order cost = amount * price is zero or less ' . $body);
@@ -1702,7 +1698,7 @@ class bitrue extends Exchange {
             if (($error === '200') || Precise::string_equals($error, '0')) {
                 return;
             }
-            // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+            // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
             // despite that their $message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {

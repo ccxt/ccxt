@@ -46,6 +46,7 @@ class gateio(Exchange):
                 },
             },
             'has': {
+                'cancelAllOrdr': True,
                 'cancelOrder': True,
                 'createMarketOrder': False,
                 'createOrder': True,
@@ -285,7 +286,7 @@ class gateio(Exchange):
                 'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
-                'BYN': 'Beyond Finance',
+                'BYN': 'BeyondFi',
                 'EGG': 'Goose Finance',
                 'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
                 'GTC_HT': 'Game.com HT',
@@ -294,7 +295,6 @@ class gateio(Exchange):
                 'MPH': 'Morpher',  # conflict with 88MPH
                 'RAI': 'Rai Reflex Index',  # conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
-                'STX': 'Stox',
                 'TNC': 'Trinity Network Credit',
                 'TON': 'TONToken',
                 'VAI': 'VAIOT',
@@ -304,6 +304,9 @@ class gateio(Exchange):
                 'secret': True,
             },
             'options': {
+                'createOrder': {
+                    'expiration': 86400,  # for conditional orders
+                },
                 'networks': {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
@@ -427,94 +430,97 @@ class gateio(Exchange):
             },
             # https://www.gate.io/docs/apiv4/en/index.html#label-list
             'exceptions': {
-                'INVALID_PARAM_VALUE': BadRequest,
-                'INVALID_PROTOCOL': BadRequest,
-                'INVALID_ARGUMENT': BadRequest,
-                'INVALID_REQUEST_BODY': BadRequest,
-                'MISSING_REQUIRED_PARAM': ArgumentsRequired,
-                'BAD_REQUEST': BadRequest,
-                'INVALID_CONTENT_TYPE': BadRequest,
-                'NOT_ACCEPTABLE': BadRequest,
-                'METHOD_NOT_ALLOWED': BadRequest,
-                'NOT_FOUND': ExchangeError,
-                'INVALID_CREDENTIALS': AuthenticationError,
-                'INVALID_KEY': AuthenticationError,
-                'IP_FORBIDDEN': AuthenticationError,
-                'READ_ONLY': PermissionDenied,
-                'INVALID_SIGNATURE': AuthenticationError,
-                'MISSING_REQUIRED_HEADER': AuthenticationError,
-                'REQUEST_EXPIRED': AuthenticationError,
-                'ACCOUNT_LOCKED': AccountSuspended,
-                'FORBIDDEN': PermissionDenied,
-                'SUB_ACCOUNT_NOT_FOUND': ExchangeError,
-                'SUB_ACCOUNT_LOCKED': AccountSuspended,
-                'MARGIN_BALANCE_EXCEPTION': ExchangeError,
-                'MARGIN_TRANSFER_FAILED': ExchangeError,
-                'TOO_MUCH_FUTURES_AVAILABLE': ExchangeError,
-                'FUTURES_BALANCE_NOT_ENOUGH': InsufficientFunds,
-                'ACCOUNT_EXCEPTION': ExchangeError,
-                'SUB_ACCOUNT_TRANSFER_FAILED': ExchangeError,
-                'ADDRESS_NOT_USED': ExchangeError,
-                'TOO_FAST': RateLimitExceeded,
-                'WITHDRAWAL_OVER_LIMIT': ExchangeError,
-                'API_WITHDRAW_DISABLED': ExchangeNotAvailable,
-                'INVALID_WITHDRAW_ID': ExchangeError,
-                'INVALID_WITHDRAW_CANCEL_STATUS': ExchangeError,
-                'INVALID_PRECISION': InvalidOrder,
-                'INVALID_CURRENCY': BadSymbol,
-                'INVALID_CURRENCY_PAIR': BadSymbol,
-                'POC_FILL_IMMEDIATELY': ExchangeError,
-                'ORDER_NOT_FOUND': OrderNotFound,
-                'ORDER_CLOSED': InvalidOrder,
-                'ORDER_CANCELLED': InvalidOrder,
-                'QUANTITY_NOT_ENOUGH': InvalidOrder,
-                'BALANCE_NOT_ENOUGH': InsufficientFunds,
-                'MARGIN_NOT_SUPPORTED': InvalidOrder,
-                'MARGIN_BALANCE_NOT_ENOUGH': InsufficientFunds,
-                'AMOUNT_TOO_LITTLE': InvalidOrder,
-                'AMOUNT_TOO_MUCH': InvalidOrder,
-                'REPEATED_CREATION': InvalidOrder,
-                'LOAN_NOT_FOUND': OrderNotFound,
-                'LOAN_RECORD_NOT_FOUND': OrderNotFound,
-                'NO_MATCHED_LOAN': ExchangeError,
-                'NOT_MERGEABLE': ExchangeError,
-                'NO_CHANGE': ExchangeError,
-                'REPAY_TOO_MUCH': ExchangeError,
-                'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
-                'TOO_MANY_ORDERS': InvalidOrder,
-                'MIXED_ACCOUNT_TYPE': InvalidOrder,
-                'AUTO_BORROW_TOO_MUCH': ExchangeError,
-                'TRADE_RESTRICTED': InsufficientFunds,
-                'USER_NOT_FOUND': ExchangeError,
-                'CONTRACT_NO_COUNTER': ExchangeError,
-                'CONTRACT_NOT_FOUND': BadSymbol,
-                'RISK_LIMIT_EXCEEDED': ExchangeError,
-                'INSUFFICIENT_AVAILABLE': InsufficientFunds,
-                'LIQUIDATE_IMMEDIATELY': InvalidOrder,
-                'LEVERAGE_TOO_HIGH': InvalidOrder,
-                'LEVERAGE_TOO_LOW': InvalidOrder,
-                'ORDER_NOT_OWNED': ExchangeError,
-                'ORDER_FINISHED': ExchangeError,
-                'POSITION_CROSS_MARGIN': ExchangeError,
-                'POSITION_IN_LIQUIDATION': ExchangeError,
-                'POSITION_IN_CLOSE': ExchangeError,
-                'POSITION_EMPTY': InvalidOrder,
-                'REMOVE_TOO_MUCH': ExchangeError,
-                'RISK_LIMIT_NOT_MULTIPLE': ExchangeError,
-                'RISK_LIMIT_TOO_HIGH': ExchangeError,
-                'RISK_LIMIT_TOO_lOW': ExchangeError,
-                'PRICE_TOO_DEVIATED': InvalidOrder,
-                'SIZE_TOO_LARGE': InvalidOrder,
-                'SIZE_TOO_SMALL': InvalidOrder,
-                'PRICE_OVER_LIQUIDATION': InvalidOrder,
-                'PRICE_OVER_BANKRUPT': InvalidOrder,
-                'ORDER_POC_IMMEDIATE': InvalidOrder,
-                'INCREASE_POSITION': InvalidOrder,
-                'CONTRACT_IN_DELISTING': ExchangeError,
-                'INTERNAL': ExchangeError,
-                'SERVER_ERROR': ExchangeError,
-                'TOO_BUSY': ExchangeNotAvailable,
+                'exact': {
+                    'INVALID_PARAM_VALUE': BadRequest,
+                    'INVALID_PROTOCOL': BadRequest,
+                    'INVALID_ARGUMENT': BadRequest,
+                    'INVALID_REQUEST_BODY': BadRequest,
+                    'MISSING_REQUIRED_PARAM': ArgumentsRequired,
+                    'BAD_REQUEST': BadRequest,
+                    'INVALID_CONTENT_TYPE': BadRequest,
+                    'NOT_ACCEPTABLE': BadRequest,
+                    'METHOD_NOT_ALLOWED': BadRequest,
+                    'NOT_FOUND': ExchangeError,
+                    'INVALID_CREDENTIALS': AuthenticationError,
+                    'INVALID_KEY': AuthenticationError,
+                    'IP_FORBIDDEN': AuthenticationError,
+                    'READ_ONLY': PermissionDenied,
+                    'INVALID_SIGNATURE': AuthenticationError,
+                    'MISSING_REQUIRED_HEADER': AuthenticationError,
+                    'REQUEST_EXPIRED': AuthenticationError,
+                    'ACCOUNT_LOCKED': AccountSuspended,
+                    'FORBIDDEN': PermissionDenied,
+                    'SUB_ACCOUNT_NOT_FOUND': ExchangeError,
+                    'SUB_ACCOUNT_LOCKED': AccountSuspended,
+                    'MARGIN_BALANCE_EXCEPTION': ExchangeError,
+                    'MARGIN_TRANSFER_FAILED': ExchangeError,
+                    'TOO_MUCH_FUTURES_AVAILABLE': ExchangeError,
+                    'FUTURES_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'ACCOUNT_EXCEPTION': ExchangeError,
+                    'SUB_ACCOUNT_TRANSFER_FAILED': ExchangeError,
+                    'ADDRESS_NOT_USED': ExchangeError,
+                    'TOO_FAST': RateLimitExceeded,
+                    'WITHDRAWAL_OVER_LIMIT': ExchangeError,
+                    'API_WITHDRAW_DISABLED': ExchangeNotAvailable,
+                    'INVALID_WITHDRAW_ID': ExchangeError,
+                    'INVALID_WITHDRAW_CANCEL_STATUS': ExchangeError,
+                    'INVALID_PRECISION': InvalidOrder,
+                    'INVALID_CURRENCY': BadSymbol,
+                    'INVALID_CURRENCY_PAIR': BadSymbol,
+                    'POC_FILL_IMMEDIATELY': ExchangeError,
+                    'ORDER_NOT_FOUND': OrderNotFound,
+                    'ORDER_CLOSED': InvalidOrder,
+                    'ORDER_CANCELLED': InvalidOrder,
+                    'QUANTITY_NOT_ENOUGH': InvalidOrder,
+                    'BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'MARGIN_NOT_SUPPORTED': InvalidOrder,
+                    'MARGIN_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'AMOUNT_TOO_LITTLE': InvalidOrder,
+                    'AMOUNT_TOO_MUCH': InvalidOrder,
+                    'REPEATED_CREATION': InvalidOrder,
+                    'LOAN_NOT_FOUND': OrderNotFound,
+                    'LOAN_RECORD_NOT_FOUND': OrderNotFound,
+                    'NO_MATCHED_LOAN': ExchangeError,
+                    'NOT_MERGEABLE': ExchangeError,
+                    'NO_CHANGE': ExchangeError,
+                    'REPAY_TOO_MUCH': ExchangeError,
+                    'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
+                    'TOO_MANY_ORDERS': InvalidOrder,
+                    'MIXED_ACCOUNT_TYPE': InvalidOrder,
+                    'AUTO_BORROW_TOO_MUCH': ExchangeError,
+                    'TRADE_RESTRICTED': InsufficientFunds,
+                    'USER_NOT_FOUND': ExchangeError,
+                    'CONTRACT_NO_COUNTER': ExchangeError,
+                    'CONTRACT_NOT_FOUND': BadSymbol,
+                    'RISK_LIMIT_EXCEEDED': ExchangeError,
+                    'INSUFFICIENT_AVAILABLE': InsufficientFunds,
+                    'LIQUIDATE_IMMEDIATELY': InvalidOrder,
+                    'LEVERAGE_TOO_HIGH': InvalidOrder,
+                    'LEVERAGE_TOO_LOW': InvalidOrder,
+                    'ORDER_NOT_OWNED': ExchangeError,
+                    'ORDER_FINISHED': ExchangeError,
+                    'POSITION_CROSS_MARGIN': ExchangeError,
+                    'POSITION_IN_LIQUIDATION': ExchangeError,
+                    'POSITION_IN_CLOSE': ExchangeError,
+                    'POSITION_EMPTY': InvalidOrder,
+                    'REMOVE_TOO_MUCH': ExchangeError,
+                    'RISK_LIMIT_NOT_MULTIPLE': ExchangeError,
+                    'RISK_LIMIT_TOO_HIGH': ExchangeError,
+                    'RISK_LIMIT_TOO_lOW': ExchangeError,
+                    'PRICE_TOO_DEVIATED': InvalidOrder,
+                    'SIZE_TOO_LARGE': InvalidOrder,
+                    'SIZE_TOO_SMALL': InvalidOrder,
+                    'PRICE_OVER_LIQUIDATION': InvalidOrder,
+                    'PRICE_OVER_BANKRUPT': InvalidOrder,
+                    'ORDER_POC_IMMEDIATE': InvalidOrder,
+                    'INCREASE_POSITION': InvalidOrder,
+                    'CONTRACT_IN_DELISTING': ExchangeError,
+                    'INTERNAL': ExchangeError,
+                    'SERVER_ERROR': ExchangeError,
+                    'TOO_BUSY': ExchangeNotAvailable,
+                },
             },
+            'broad': {},
         })
 
     async def fetch_markets(self, params={}):
@@ -646,7 +652,7 @@ class gateio(Exchange):
                     quote = self.safe_currency_code(quoteId)
                     symbol = ''
                     if date is not None:
-                        symbol = base + '/' + quote + '-' + date + ':' + self.safe_currency_code(settle)
+                        symbol = base + '/' + quote + ':' + self.safe_currency_code(settle) + '-' + date
                     else:
                         symbol = base + '/' + quote + ':' + self.safe_currency_code(settle)
                     priceDeviate = self.safe_string(market, 'order_price_deviate')
@@ -1227,10 +1233,10 @@ class gateio(Exchange):
         #     }
         #
         request = self.prepare_request(market)
-        spot = market['spot']
+        spotOrMargin = market['spot'] or market['margin']
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetOrderBook',
-            # 'margin': 'publicMarginGetOrderBook',
+            'margin': 'publicSpotGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
             'futures': 'publicDeliveryGetSettleOrderBook',
         })
@@ -1300,10 +1306,10 @@ class gateio(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 'current')
-        if not spot:
+        if not spotOrMargin:
             timestamp = timestamp * 1000
-        priceKey = 0 if spot else 'p'
-        amountKey = 1 if spot else 's'
+        priceKey = 0 if spotOrMargin else 'p'
+        amountKey = 1 if spotOrMargin else 's'
         return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -1312,7 +1318,7 @@ class gateio(Exchange):
         request = self.prepare_request(market)
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetTickers',
-            # 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'futures': 'publicDeliveryGetSettleTickers',
         })
@@ -1364,8 +1370,8 @@ class gateio(Exchange):
         bid = self.safe_number(ticker, 'highest_bid')
         high = self.safe_number(ticker, 'high_24h')
         low = self.safe_number(ticker, 'low_24h')
-        baseVolume = self.safe_number(ticker, 'base_volume', 'volume_24h_base')
-        quoteVolume = self.safe_number(ticker, 'quote_volume', 'volume_24h_quote')
+        baseVolume = self.safe_number_2(ticker, 'base_volume', 'volume_24h_base')
+        quoteVolume = self.safe_number_2(ticker, 'quote_volume', 'volume_24h_quote')
         percentage = self.safe_number(ticker, 'change_percentage')
         return self.safe_ticker({
             'symbol': symbol,
@@ -1397,7 +1403,7 @@ class gateio(Exchange):
         params = self.omit(params, 'type')
         method = self.get_supported_mapping(type, {
             'spot': 'publicSpotGetTickers',
-            # 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'futures': 'publicDeliveryGetSettleTickers',
         })
@@ -1408,6 +1414,12 @@ class gateio(Exchange):
             request['settle'] = 'usdt' if swap else 'btc'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_tickers(response, symbols)
+
+    def fetch_balance_helper(self, entry):
+        account = self.account()
+        account['used'] = self.safe_string_2(entry, 'locked', 'position_margin')
+        account['free'] = self.safe_string(entry, 'available')
+        return account
 
     async def fetch_balance(self, params={}):
         # :param params.type: spot, margin, crossMargin, swap or future
@@ -1420,7 +1432,7 @@ class gateio(Exchange):
         futures = type == 'futures'
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGetAccounts',
-            # 'margin': 'publicMarginGetTickers',
+            'margin': 'privateMarginGetAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'futures': 'privateDeliveryGetSettleAccounts',
         })
@@ -1433,74 +1445,114 @@ class gateio(Exchange):
             response = [response_item]
         else:
             response = await getattr(self, method)(self.extend(request, params))
-        #  SPOT
+        # Spot
+        #
         #     [
-        #       {
-        #         "currency": "DBC",
-        #         "available": "0",
-        #         "locked": "0"
-        #       },
-        #       ...
+        #         {
+        #             "currency": "DBC",
+        #             "available": "0",
+        #             "locked": "0"
+        #         },
+        #         ...
         #     ]
         #
+        #  Margin
+        #
+        #    [
+        #         {
+        #             "currency_pair":"DOGE_USDT",
+        #             "locked":false,
+        #             "risk":"9999.99",
+        #             "base": {
+        #               "currency":"DOGE",
+        #               "available":"0",
+        #               "locked":"0",
+        #               "borrowed":"0",
+        #               "interest":"0"
+        #             },
+        #             "quote": {
+        #               "currency":"USDT",
+        #               "available":"0.73402",
+        #               "locked":"0",
+        #               "borrowed":"0",
+        #               "interest":"0"
+        #             }
+        #         },
+        #         ...
+        #    ]
+        #
         #  Perpetual Swap
-        #  {
-        #     order_margin: "0",
-        #     point: "0",
-        #     bonus: "0",
-        #     history: {
-        #       dnw: "2.1321",
-        #       pnl: "11.5351",
-        #       refr: "0",
-        #       point_fee: "0",
-        #       fund: "-0.32340576684",
-        #       bonus_dnw: "0",
-        #       point_refr: "0",
-        #       bonus_offset: "0",
-        #       fee: "-0.20132775",
-        #       point_dnw: "0",
-        #     },
-        #     unrealised_pnl: "13.315100000006",
-        #     total: "12.51345151332",
-        #     available: "0",
-        #     in_dual_mode: False,
-        #     currency: "USDT",
-        #     position_margin: "12.51345151332",
-        #     user: "6333333",
-        #   }
+        #
+        #    {
+        #       order_margin: "0",
+        #       point: "0",
+        #       bonus: "0",
+        #       history: {
+        #         dnw: "2.1321",
+        #         pnl: "11.5351",
+        #         refr: "0",
+        #         point_fee: "0",
+        #         fund: "-0.32340576684",
+        #         bonus_dnw: "0",
+        #         point_refr: "0",
+        #         bonus_offset: "0",
+        #         fee: "-0.20132775",
+        #         point_dnw: "0",
+        #       },
+        #       unrealised_pnl: "13.315100000006",
+        #       total: "12.51345151332",
+        #       available: "0",
+        #       in_dual_mode: False,
+        #       currency: "USDT",
+        #       position_margin: "12.51345151332",
+        #       user: "6333333",
+        #     }
         #
         #   Delivery Future
-        #   {
-        #     order_margin: "0",
-        #     point: "0",
-        #     history: {
-        #       dnw: "1",
-        #       pnl: "0",
-        #       refr: "0",
-        #       point_fee: "0",
-        #       point_dnw: "0",
-        #       settle: "0",
-        #       settle_fee: "0",
-        #       point_refr: "0",
-        #       fee: "0",
-        #     },
-        #     unrealised_pnl: "0",
-        #     total: "1",
-        #     available: "1",
-        #     currency: "USDT",
-        #     position_margin: "0",
-        #     user: "6333333",
-        #   }
-        result = {}
+        #
+        #     {
+        #       order_margin: "0",
+        #       point: "0",
+        #       history: {
+        #         dnw: "1",
+        #         pnl: "0",
+        #         refr: "0",
+        #         point_fee: "0",
+        #         point_dnw: "0",
+        #         settle: "0",
+        #         settle_fee: "0",
+        #         point_refr: "0",
+        #         fee: "0",
+        #       },
+        #       unrealised_pnl: "0",
+        #       total: "1",
+        #       available: "1",
+        #       currency: "USDT",
+        #       position_margin: "0",
+        #       user: "6333333",
+        #     }
+        #
+        margin = type == 'margin'
+        result = {
+            'info': response,
+        }
         for i in range(0, len(response)):
             entry = response[i]
-            account = self.account()
-            currencyId = self.safe_string(entry, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account['used'] = self.safe_string_2(entry, 'locked', 'position_margin')
-            account['free'] = self.safe_string(entry, 'available')
-            result[code] = account
-        return self.parse_balance(result)
+            if margin:
+                marketId = self.safe_string(entry, 'currency_pair')
+                symbol = self.safe_symbol(marketId, None, '_')
+                base = self.safe_value(entry, 'base', {})
+                quote = self.safe_value(entry, 'quote', {})
+                baseCode = self.safe_currency_code(self.safe_string(base, 'currency', {}))
+                quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency', {}))
+                subResult = {}
+                subResult[baseCode] = self.fetch_balance_helper(base)
+                subResult[quoteCode] = self.fetch_balance_helper(quote)
+                result[symbol] = self.parse_balance(subResult)
+            else:
+                code = self.safe_currency_code(self.safe_string(entry, 'currency', {}))
+                result[code] = self.fetch_balance_helper(entry)
+        return result if margin else self.parse_balance(result)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -1648,7 +1700,7 @@ class gateio(Exchange):
         request = self.prepare_request(market)
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetTrades',
-            # 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'futures': 'publicDeliveryGetSettleTrades',
         })
@@ -1709,7 +1761,7 @@ class gateio(Exchange):
             # request['to'] = since + 7 * 24 * 60 * 60
         method = self.get_supported_mapping(market['type'], {
             'spot': 'privateSpotGetMyTrades',
-            # 'margin': 'publicMarginGetCurrencyPairs',
+            'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTrades',
             'futures': 'privateDeliveryGetSettleMyTrades',
         })
@@ -1959,57 +2011,209 @@ class gateio(Exchange):
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        #
-        # :param(str) symbol: base/quote currency pair
-        # :param(str) type: Order type(limit, market, ...)
-        # :param(str) side: buy or sell
-        # :param(number) amount: Amount of base currency ordered
-        # :param(number) price: Price of the base currency using quote currency
-        # :param(dict) params:
-        #          - type: market type(spot, futures, ...)
-        #          - reduceOnly
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', 'spot')
-        marketType = self.safe_string(params, 'type', defaultType)
         contract = market['contract']
-        request = self.prepare_request(market)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        params = self.omit(params, 'reduceOnly')
-        if reduceOnly is not None:
-            if not contract:
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for futures and perpetuals only')
-            request['reduce_only'] = reduceOnly
+        stopPrice = self.safe_number(params, 'stopPrice')
+        methodTail = 'Orders'
+        reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly')
+        defaultTimeInForce = self.safe_value_2(params, 'tif', 'time_in_force', 'gtc')
+        timeInForce = self.safe_value(params, 'timeInForce', defaultTimeInForce)
+        params = self.omit(params, ['stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce'])
+        isLimitOrder = (type == 'limit')
+        isMarketOrder = (type == 'market')
+        if isLimitOrder and price is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for ' + type + ' orders')
         if contract:
-            if side == 'sell':
-                amount = 0 - amount
-            request['size'] = self.parse_number(self.amount_to_precision(symbol, amount))
+            amountToPrecision = self.amount_to_precision(symbol, amount)
+            signedAmount = Precise.string_neg(amountToPrecision) if (side == 'sell') else amountToPrecision
+            amount = int(signedAmount)
+            if isMarketOrder:
+                timeInForce = 'ioc'
+                price = 0
+        elif not isLimitOrder:
+            # Gateio doesn't have market orders for spot
+            raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets')
+        request = None
+        if stopPrice is None:
+            if contract:
+                # contract order
+                request = {
+                    'contract': market['id'],  # filled in prepareRequest above
+                    'size': amount,  # int64, positive = bid, negative = ask
+                    # 'iceberg': 0,  # int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
+                    'price': self.price_to_precision(symbol, price),  # 0 for market order with tif set as ioc
+                    # 'close': False,  # True to close the position, with size set to 0
+                    # 'reduce_only': False,  # St as True to be reduce-only order
+                    # 'tif': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
+                    # 'text': clientOrderId,  # 't-abcdef1234567890',
+                    # 'auto_size': '',  # close_long, close_short, note size also needs to be set to 0
+                    'settle': market['settleId'],  # filled in prepareRequest above
+                }
+                if reduceOnly is not None:
+                    request['reduce_only'] = reduceOnly
+                if timeInForce is not None:
+                    request['tif'] = timeInForce
+            else:
+                options = self.safe_value(self.options, 'createOrder', {})
+                defaultAccount = self.safe_string(options, 'account', 'spot')
+                account = self.safe_string(params, 'account', defaultAccount)
+                params = self.omit(params, 'account')
+                # spot order
+                request = {
+                    # 'text': clientOrderId,  # 't-abcdef1234567890',
+                    'currency_pair': market['id'],  # filled in prepareRequest above
+                    'type': type,
+                    'account': account,  # 'spot', 'margin', 'cross_margin'
+                    'side': side,
+                    'amount': self.amount_to_precision(symbol, amount),
+                    'price': self.price_to_precision(symbol, price),
+                    # 'time_in_force': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
+                    # 'iceberg': 0,  # amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
+                    # 'auto_borrow': False,  # used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+                    # 'auto_repay': False,  # automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
+                }
+                if timeInForce is not None:
+                    request['time_in_force'] = timeInForce
+            clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
+            if clientOrderId is not None:
+                # user-defined, must follow the rules if not empty
+                #     prefixed with t-
+                #     no longer than 28 bytes without t- prefix
+                #     can only include 0-9, A-Z, a-z, underscores(_), hyphens(-) or dots(.)
+                if len(clientOrderId) > 28:
+                    raise BadRequest(self.id + ' createOrder() clientOrderId or text param must be up to 28 characters')
+                params = self.omit(params, ['text', 'clientOrderId'])
+                if clientOrderId[0] != 't':
+                    clientOrderId = 't-' + clientOrderId
+                request['text'] = clientOrderId
         else:
-            request['side'] = side
-            request['type'] = type
-            request['amount'] = self.amount_to_precision(symbol, amount)
-            request['account'] = marketType
-            # if margin:
-            #     if entering trade:
-            #         request['auto_borrow'] = True
-            #     elif exiting trade:
-            #         request['auto_repay'] = True
-            #     }
-            # }
-        if type == 'limit':
-            if not price:
-                raise ArgumentsRequired('Argument price is required for ' + self.id + '.createOrder for limit orders')
-            request['price'] = self.price_to_precision(symbol, price)
-        elif (type == 'market') and contract:
-            request['tif'] = 'ioc'
-            request['price'] = 0
+            if contract:
+                # contract conditional order
+                rule = 1 if (side == 'sell') else 2
+                request = {
+                    'initial': {
+                        'contract': market['id'],
+                        'size': amount,  # positive = buy, negative = sell, set to 0 to close the position
+                        'price': self.price_to_precision(symbol, price),  # set to 0 to use market price
+                        # 'close': False,  # set to True if trying to close the position
+                        # 'tif': 'gtc',  # gtc, ioc, if using market price, only ioc is supported
+                        # 'text': clientOrderId,  # web, api, app
+                        # 'reduce_only': False,
+                    },
+                    'trigger': {
+                        # 'strategy_type': 0,  # 0 = by price, 1 = by price gap, only 0 is supported currently
+                        # 'price_type': 0,  # 0 latest deal price, 1 mark price, 2 index price
+                        'price': self.price_to_precision(symbol, stopPrice),  # price or gap
+                        'rule': rule,  # 1 means price_type >= price, 2 means price_type <= price
+                        # 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    },
+                    'settle': market['settleId'],
+                }
+                expiration = self.safe_integer(params, 'expiration')
+                if expiration is not None:
+                    request['trigger']['expiration'] = expiration
+                    params = self.omit(params, 'expiration')
+                if reduceOnly is not None:
+                    request['initial']['reduce_only'] = reduceOnly
+                if timeInForce is not None:
+                    request['initial']['tif'] = timeInForce
+            else:
+                # spot conditional order
+                options = self.safe_value(self.options, 'createOrder', {})
+                defaultAccount = self.safe_string(options, 'account', 'normal')
+                account = self.safe_string(params, 'account', defaultAccount)
+                params = self.omit(params, 'account')
+                defaultExpiration = self.safe_integer(options, 'expiration')
+                expiration = self.safe_integer(params, 'expiration', defaultExpiration)
+                rule = '>=' if (side == 'sell') else '<='
+                request = {
+                    'trigger': {
+                        'price': self.price_to_precision(symbol, stopPrice),
+                        'rule': rule,  # >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
+                        'expiration': expiration,  # required, how long(in seconds) to wait for the condition to be triggered before cancelling the order
+                    },
+                    'put': {
+                        'type': type,
+                        'side': side,
+                        'price': self.price_to_precision(symbol, price),
+                        'amount': self.amount_to_precision(symbol, amount),
+                        'account': account,  # normal, margin
+                        'time_in_force': timeInForce,  # gtc, ioc for taker only
+                    },
+                    'market': market['id'],
+                }
+            methodTail = 'PriceOrders'
         method = self.get_supported_mapping(market['type'], {
-            'spot': 'privateSpotPostOrders',
-            # 'margin': 'privateSpotPostOrders',
-            'swap': 'privateFuturesPostSettleOrders',
-            'future': 'privateDeliveryPostSettleOrders',
+            'spot': 'privateSpotPost' + methodTail,
+            'margin': 'privateSpotPost' + methodTail,
+            'swap': 'privateFuturesPostSettle' + methodTail,
+            'future': 'privateDeliveryPostSettle' + methodTail,
         })
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.deep_extend(request, params))
+        #
+        # spot
+        #
+        #     {
+        #         "id":"95282841887",
+        #         "text":"apiv4",
+        #         "create_time":"1637383156",
+        #         "update_time":"1637383156",
+        #         "create_time_ms":1637383156017,
+        #         "update_time_ms":1637383156017,
+        #         "status":"open",
+        #         "currency_pair":"ETH_USDT",
+        #         "type":"limit",
+        #         "account":"spot",
+        #         "side":"buy",
+        #         "amount":"0.01",
+        #         "price":"3500",
+        #         "time_in_force":"gtc",
+        #         "iceberg":"0",
+        #         "left":"0.01",
+        #         "fill_price":"0",
+        #         "filled_total":"0",
+        #         "fee":"0",
+        #         "fee_currency":"ETH",
+        #         "point_fee":"0",
+        #         "gt_fee":"0",
+        #         "gt_discount":false,
+        #         "rebated_fee":"0",
+        #         "rebated_fee_currency":"USDT"
+        #     }
+        #
+        # spot conditional
+        #
+        #     {"id":5891843}
+        #
+        # futures and perpetual swaps
+        #
+        #     {
+        #         "id":95938572327,
+        #         "contract":"ETH_USDT",
+        #         "mkfr":"0",
+        #         "tkfr":"0.0005",
+        #         "tif":"gtc",
+        #         "is_reduce_only":false,
+        #         "create_time":1637384600.08,
+        #         "price":"3000",
+        #         "size":1,
+        #         "refr":"0",
+        #         "left":1,
+        #         "text":"api",
+        #         "fill_price":"0",
+        #         "user":2436035,
+        #         "status":"open",
+        #         "is_liq":false,
+        #         "refu":0,
+        #         "is_close":false,
+        #         "iceberg":0
+        #     }
+        #
+        # futures and perpetual swaps conditionals
+        #
+        #     {"id":7615567}
+        #
         return self.parse_order(response, market)
 
     def parse_order_status(self, status):
@@ -2070,7 +2274,10 @@ class gateio(Exchange):
         side = None
         contract = self.safe_value(market, 'contract')
         if contract:
-            side = 'buy' if Precise.string_gt(amountRaw, '0') else 'sell'
+            if amount:
+                side = 'buy' if Precise.string_gt(amountRaw, '0') else 'sell'
+            else:
+                side = None
             rawStatus = self.safe_string(order, 'finish_as', 'open')
         else:
             # open, closed, cancelled - almost already ccxt unified!
@@ -2285,7 +2492,7 @@ class gateio(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol parameter')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol parameter')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2302,31 +2509,97 @@ class gateio(Exchange):
             'futures': 'privateDeliveryDeleteSettleOrdersOrderId',
         })
         response = await getattr(self, method)(self.extend(request, params))
-        # Perpetual swap
-        # {
-        #     id: "82241928192",
-        #     contract: "BTC_USDT",
-        #     mkfr: "0",
-        #     tkfr: "0.0005",
-        #     tif: "gtc",
-        #     is_reduce_only: False,
-        #     create_time: "1635196145.06",
-        #     finish_time: "1635196233.396",
-        #     price: "61000",
-        #     size: "4",
-        #     refr: "0",
-        #     left: "4",
-        #     text: "web",
-        #     fill_price: "0",
-        #     user: "6693577",
-        #     finish_as: "cancelled",
-        #     status: "finished",
-        #     is_liq: False,
-        #     refu: "0",
-        #     is_close: False,
-        #     iceberg: "0",
-        # }
+        #
+        # spot
+        #
+        #     {
+        #         "id":"95282841887",
+        #         "text":"apiv4",
+        #         "create_time":"1637383156",
+        #         "update_time":"1637383235",
+        #         "create_time_ms":1637383156017,
+        #         "update_time_ms":1637383235085,
+        #         "status":"cancelled",
+        #         "currency_pair":"ETH_USDT",
+        #         "type":"limit",
+        #         "account":"spot",
+        #         "side":"buy",
+        #         "amount":"0.01",
+        #         "price":"3500",
+        #         "time_in_force":"gtc",
+        #         "iceberg":"0",
+        #         "left":"0.01",
+        #         "fill_price":"0",
+        #         "filled_total":"0",
+        #         "fee":"0",
+        #         "fee_currency":"ETH",
+        #         "point_fee":"0",
+        #         "gt_fee":"0",
+        #         "gt_discount":false,
+        #         "rebated_fee":"0",
+        #         "rebated_fee_currency":"USDT"
+        #     }
+        #
+        # spot conditional
+        #
+        #     {
+        #         "market":"ETH_USDT",
+        #         "user":2436035,
+        #         "trigger":{
+        #             "price":"3500",
+        #             "rule":"\u003c=",
+        #             "expiration":86400
+        #         },
+        #         "put":{
+        #             "type":"limit",
+        #             "side":"buy",
+        #             "price":"3500",
+        #             "amount":"0.01000000000000000000",
+        #             "account":"normal",
+        #             "time_in_force":"gtc"
+        #         },
+        #         "id":5891843,
+        #         "ctime":1637382379,
+        #         "ftime":1637382673,
+        #         "status":"canceled"
+        #     }
+        #
+        # perpetual swaps
+        #
+        #     {
+        #         id: "82241928192",
+        #         contract: "BTC_USDT",
+        #         mkfr: "0",
+        #         tkfr: "0.0005",
+        #         tif: "gtc",
+        #         is_reduce_only: False,
+        #         create_time: "1635196145.06",
+        #         finish_time: "1635196233.396",
+        #         price: "61000",
+        #         size: "4",
+        #         refr: "0",
+        #         left: "4",
+        #         text: "web",
+        #         fill_price: "0",
+        #         user: "6693577",
+        #         finish_as: "cancelled",
+        #         status: "finished",
+        #         is_liq: False,
+        #         refu: "0",
+        #         is_close: False,
+        #         iceberg: "0",
+        #     }
+        #
         return self.parse_order(response, market)
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        return await self.privateSpotDeleteOrders(self.extend(request, params))
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
@@ -2467,8 +2740,17 @@ class gateio(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        #
+        #     {"label":"ORDER_NOT_FOUND","message":"Order not found"}
+        #     {"label":"INVALID_PARAM_VALUE","message":"invalid argument: status"}
+        #     {"label":"INVALID_PARAM_VALUE","message":"invalid argument: Trigger.rule"}
+        #     {"label":"INVALID_PARAM_VALUE","message":"invalid argument: trigger.expiration invalid range"}
+        #     {"label":"INVALID_ARGUMENT","detail":"invalid size"}
+        #
         label = self.safe_string(response, 'label')
         if label is not None:
-            message = self.safe_string_2(response, 'message', 'detail', '')
-            Error = self.safe_value(self.exceptions, label, ExchangeError)
-            raise Error(self.id + ' ' + message)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], label, feedback)
+            raise ExchangeError(feedback)

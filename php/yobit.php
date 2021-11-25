@@ -279,7 +279,7 @@ class yobit extends Exchange {
         //                 "max_price":10000,
         //                 "min_amount":0.0001,
         //                 "min_total":0.0001,
-        //                 "$hidden":0,
+        //                 "hidden":0,
         //                 "fee":0.2,
         //                 "fee_buyer":0.2,
         //                 "fee_seller":0.2
@@ -815,8 +815,8 @@ class yobit extends Exchange {
             //
             // 1 - Liqui only returns the integer 'success' key from their private API
             //
-            //     array( "$success" => 1, ... ) $httpCode === 200
-            //     array( "$success" => 0, ... ) $httpCode === 200
+            //     array( "success" => 1, ... ) $httpCode === 200
+            //     array( "success" => 0, ... ) $httpCode === 200
             //
             // 2 - However, exchanges derived from Liqui, can return non-integers
             //
@@ -825,12 +825,12 @@ class yobit extends Exchange {
             //     array( "sucesss" => "0", ... ), $httpCode >= 200 (can be 403, 502, etc)
             //
             //     Or just a string
-            //     array( "$success" => "true", ... )
-            //     array( "$success" => "false", ... ), $httpCode >= 200
+            //     array( "success" => "true", ... )
+            //     array( "success" => "false", ... ), $httpCode >= 200
             //
             //     Or a boolean
-            //     array( "$success" => true, ... )
-            //     array( "$success" => false, ... ), $httpCode >= 200
+            //     array( "success" => true, ... )
+            //     array( "success" => false, ... ), $httpCode >= 200
             //
             // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
             //

@@ -929,15 +929,15 @@ module.exports = class bitmart extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // public fetchTrades spot
+        // public fetchTrades spot ( amount = count * price )
         //
         //     {
-        //         "amount":"0.005703",
-        //         "order_time":1599652045394,
-        //         "price":"0.034029",
-        //         "count":"0.1676",
-        //         "type":"sell"
-        //     }
+        //          "amount": "818.94",
+        //          "order_time": "1637601839035",    // ETH/USDT
+        //          "price": "4221.99",
+        //          "count": "0.19397",
+        //          "type": "buy"
+        //      }
         //
         // public fetchTrades contract, private fetchMyTrades contract
         //
@@ -993,31 +993,28 @@ module.exports = class bitmart extends Exchange {
         if (execType !== undefined) {
             takerOrMaker = (execType === 'M') ? 'maker' : 'taker';
         }
-        let price = this.safeNumber2 (trade, 'price', 'deal_price');
-        price = this.safeNumber (trade, 'price_avg', price);
-        let amount = this.safeNumber2 (trade, 'amount', 'deal_vol');
-        amount = this.safeNumber (trade, 'size', amount);
-        let cost = this.safeNumber2 (trade, 'count', 'notional');
-        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
-            cost = amount * price;
-        }
+        let priceString = this.safeString2 (trade, 'price', 'deal_price');
+        priceString = this.safeString (trade, 'price_avg', priceString);
+        let amountString = this.safeString2 (trade, 'count', 'deal_vol');
+        amountString = this.safeString (trade, 'size', amountString);
+        const costString = this.safeString2 (trade, 'amount', 'notional');
         const orderId = this.safeInteger (trade, 'order_id');
         const marketId = this.safeString2 (trade, 'contract_id', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const feeCost = this.safeNumber (trade, 'fees');
+        const feeCostString = this.safeString (trade, 'fees');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_coin_name');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             if ((feeCurrencyCode === undefined) && (market !== undefined)) {
                 feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -1026,12 +1023,12 @@ module.exports = class bitmart extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
