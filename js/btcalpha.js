@@ -167,6 +167,30 @@ module.exports = class btcalpha extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id": "202203440",
+        //          "timestamp": "1637856276.264215",
+        //          "pair": "AAVE_USDT",
+        //          "price": "320.79900000",
+        //          "amount": "0.05000000",
+        //          "type": "buy"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "id": "202203440",
+        //          "timestamp": "1637856276.264215",
+        //          "pair": "AAVE_USDT",
+        //          "price": "320.79900000",
+        //          "amount": "0.05000000",
+        //          "type": "buy",
+        //          "my_side": "buy"
+        //      }
+        //
         let symbol = undefined;
         if (market === undefined) {
             market = this.safeValue (this.markets_by_id, trade['pair']);
@@ -177,27 +201,23 @@ module.exports = class btcalpha extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        const id = this.safeString2 (trade, 'id', 'tid');
-        const side = this.safeString2 (trade, 'my_side', 'side');
-        const orderId = this.safeString (trade, 'o_id');
-        return {
+        const id = this.safeString (trade, 'id');
+        const side = this.safeString2 (trade, 'type', 'my_side');
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': orderId,
+            'order': id,
             'type': 'limit',
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
