@@ -202,7 +202,7 @@ module.exports = class btcalpha extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString (trade, 'id');
-        const side = this.safeString2 (trade, 'type', 'my_side');
+        const side = this.safeString2 (trade, 'my_side', 'type');
         return this.safeTrade ({
             'id': id,
             'info': trade,
