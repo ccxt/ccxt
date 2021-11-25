@@ -171,6 +171,30 @@ class btcalpha extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id" => "202203440",
+        //          "timestamp" => "1637856276.264215",
+        //          "pair" => "AAVE_USDT",
+        //          "price" => "320.79900000",
+        //          "amount" => "0.05000000",
+        //          "type" => "buy"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "id" => "202203440",
+        //          "timestamp" => "1637856276.264215",
+        //          "pair" => "AAVE_USDT",
+        //          "price" => "320.79900000",
+        //          "amount" => "0.05000000",
+        //          "type" => "buy",
+        //          "my_side" => "buy"
+        //      }
+        //
         $symbol = null;
         if ($market === null) {
             $market = $this->safe_value($this->markets_by_id, $trade['pair']);
@@ -181,27 +205,23 @@ class btcalpha extends Exchange {
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        $id = $this->safe_string_2($trade, 'id', 'tid');
-        $side = $this->safe_string_2($trade, 'my_side', 'side');
-        $orderId = $this->safe_string($trade, 'o_id');
-        return array(
+        $id = $this->safe_string($trade, 'id');
+        $side = $this->safe_string_2($trade, 'my_side', 'type');
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'order' => $orderId,
+            'order' => $id,
             'type' => 'limit',
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
