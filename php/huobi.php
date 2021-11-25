@@ -1978,10 +1978,17 @@ class huobi extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array(
-            'order-id' => $id,
-        );
-        $response = $this->spotPrivateGetV1OrderOrdersOrderId (array_merge($request, $params));
+        $request = array();
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $method = 'spotPrivateGetV1OrderOrdersOrderId';
+        if ($clientOrderId !== null) {
+            $method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
+            // will be filled below in extend ()
+            // $request['clientOrderId'] = $clientOrderId;
+        } else {
+            $request['order-id'] = $id;
+        }
+        $response = $this->$method (array_merge($request, $params));
         $order = $this->safe_value($response, 'data');
         return $this->parse_order($order);
     }

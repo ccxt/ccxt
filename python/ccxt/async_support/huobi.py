@@ -1908,10 +1908,16 @@ class huobi(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
-            'order-id': id,
-        }
-        response = await self.spotPrivateGetV1OrderOrdersOrderId(self.extend(request, params))
+        request = {}
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        method = 'spotPrivateGetV1OrderOrdersOrderId'
+        if clientOrderId is not None:
+            method = 'spotPrivateGetV1OrderOrdersGetClientOrder'
+            # will be filled below in self.extend()
+            # request['clientOrderId'] = clientOrderId
+        else:
+            request['order-id'] = id
+        response = await getattr(self, method)(self.extend(request, params))
         order = self.safe_value(response, 'data')
         return self.parse_order(order)
 
