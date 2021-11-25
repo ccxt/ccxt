@@ -998,10 +998,8 @@ module.exports = class kraken extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.safeNumber (trade, 'cost') || this.parseNumber (Precise.stringMul (priceString, amountString));
-        return {
+        const cost = this.safeString (trade, 'cost');
+        return this.safeTrade ({
             'id': id,
             'order': orderId,
             'info': trade,
@@ -1015,7 +1013,7 @@ module.exports = class kraken extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
