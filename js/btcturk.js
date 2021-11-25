@@ -585,7 +585,7 @@ module.exports = class btcturk extends Exchange {
         //
         const id = this.safeString (order, 'id');
         const price = this.safeString (order, 'price');
-        const amountString = this.safeString (order, 'amount');
+        const amountString = this.safeString2 (order, 'amount', 'quantity');
         const amount = Precise.stringAbs (amountString);
         const remaining = this.safeString (order, 'leftAmount');
         const marketId = this.safeNumber (order, 'pairSymbol');
