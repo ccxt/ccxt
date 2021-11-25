@@ -1205,7 +1205,7 @@ module.exports = class okex extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        });
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
