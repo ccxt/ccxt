@@ -852,16 +852,15 @@ class aax(Exchange):
             # 'stopPrice': self.price_to_precision(symbol, stopPrice),
             # 'clOrdID': clientOrderId,  # up to 20 chars, lowercase and uppercase letters only
             # 'timeInForce': 'GTC',  # GTC, IOC, FOK, default is GTC
-            # 'execInst': 'Post-Only',  # the only value supported by the exchange, futures-only
+            # 'execInst': 'Post-Only',  # the only value supported by the exchange, futures and spot
         }
-        timeInForce = self.safe_string(params, 'timeInForce')
-        if timeInForce is not None:
-            request['timeInForce'] = timeInForce
-            params = self.omit(params, 'timeInForce')
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
-            params = self.omit(params, ['clOrdID', 'clientOrderId'])
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly is not None:
+            request['execInst'] = 'Post-Only'
+        params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly'])
         stopPrice = self.safe_number(params, 'stopPrice')
         if stopPrice is None:
             if (orderType == 'STOP-LIMIT') or (orderType == 'STOP'):

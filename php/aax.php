@@ -865,18 +865,17 @@ class aax extends Exchange {
             // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice),
             // 'clOrdID' => $clientOrderId, // up to 20 chars, lowercase and uppercase letters only
             // 'timeInForce' => 'GTC', // GTC, IOC, FOK, default is GTC
-            // 'execInst' => 'Post-Only', // the only value supported by the exchange, futures-only
+            // 'execInst' => 'Post-Only', // the only value supported by the exchange, futures and spot
         );
-        $timeInForce = $this->safe_string($params, 'timeInForce');
-        if ($timeInForce !== null) {
-            $request['timeInForce'] = $timeInForce;
-            $params = $this->omit($params, 'timeInForce');
-        }
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly !== null) {
+            $request['execInst'] = 'Post-Only';
+        }
+        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly' ));
         $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice === null) {
             if (($orderType === 'STOP-LIMIT') || ($orderType === 'STOP')) {
