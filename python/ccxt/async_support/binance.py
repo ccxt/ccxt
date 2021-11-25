@@ -2284,7 +2284,7 @@ class binance(Exchange):
         # - Futures market: cumQuote.
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
         cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
-        cost = self.safe_string_2(order, 'cumBase', cost)
+        cost = self.safe_string(order, 'cumBase', cost)
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')

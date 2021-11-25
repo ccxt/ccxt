@@ -2347,7 +2347,7 @@ class binance extends Exchange {
         // - Futures $market => cumQuote.
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
         $cost = $this->safe_string_2($order, 'cummulativeQuoteQty', 'cumQuote');
-        $cost = $this->safe_string_2($order, 'cumBase', $cost);
+        $cost = $this->safe_string($order, 'cumBase', $cost);
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
