@@ -586,34 +586,42 @@ module.exports = class bitstamp extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     {
-        //         date: '1551814435',
-        //         tid: '83581898',
-        //         price: '0.03532850',
-        //         type: '1',
-        //         amount: '0.85945907'
-        //     },
+        //      {
+        //          "date": "1637845199",
+        //          "tid": "209895701",
+        //          "amount": "0.00500000",
+        //          "type": "0",
+        //          "price": "4451.25"
+        //      }
         //
         // fetchMyTrades, trades returned within fetchOrder (private)
         //
-        //     {
-        //         "usd": "6.0134400000000000",
-        //         "price": "4008.96000000",
-        //         "datetime": "2019-03-28 23:07:37.233599",
-        //         "fee": "0.02",
-        //         "btc": "0.00150000",
-        //         "tid": 84452058,
-        //         "type": 2
-        //     }
+        //      {
+        //          "fee": "0.11128",
+        //          "eth_usdt":  4451.25,
+        //          "datetime": "2021-11-25 12:59:59.322000",
+        //          "usdt": "-22.26",
+        //          "order_id":  1429545880227846,
+        //          "usd":  0,
+        //          "btc":  0,
+        //          "eth": "0.00500000",
+        //          "type": "2",
+        //          "id":  209895701,
+        //          "eur":  0
+        //      }
         //
         // from fetchOrder:
-        //    { fee: '0.000019',
-        //     price: '0.00015803',
-        //     datetime: '2018-01-07 10:45:34.132551',
-        //     btc: '0.0079015000000000',
-        //     tid: 42777395,
-        //     type: 2, //(0 - deposit; 1 - withdrawal; 2 - market trade) NOT buy/sell
-        //     xrp: '50.00000000' }
+        //
+        //      {
+        //          "fee": "0.11128",
+        //          "price": "4451.25000000",
+        //          "datetime": "2021-11-25 12:59:59.322000",
+        //          "usdt": "22.25625000",
+        //          "tid": 209895701,
+        //          "eth": "0.00500000",
+        //          "type": 2
+        //      }
+        //
         const id = this.safeString2 (trade, 'id', 'tid');
         let symbol = undefined;
         let side = undefined;
@@ -1019,22 +1027,23 @@ module.exports = class bitstamp extends Exchange {
         }
         const response = await this.privatePostOrderStatus (this.extend (request, params));
         //
-        //     {
-        //         "status": "Finished",
-        //         "id": 3047704374,
-        //         "client_order_id": ""
-        //         "transactions": [
-        //             {
-        //                 "usd": "6.0134400000000000",
-        //                 "price": "4008.96000000",
-        //                 "datetime": "2019-03-28 23:07:37.233599",
-        //                 "fee": "0.02",
-        //                 "btc": "0.00150000",
-        //                 "tid": 84452058,
-        //                 "type": 2
-        //             }
+        //      {
+        //          "status": "Finished",
+        //          "id": 1429545880227846,
+        //          "amount_remaining": "0.00000000",
+        //          "transactions": [
+        //              {
+        //                  "fee": "0.11128",
+        //                  "price": "4451.25000000",
+        //                  "datetime": "2021-11-25 12:59:59.322000",
+        //                  "usdt": "22.25625000",
+        //                  "tid": 209895701,
+        //                  "eth": "0.00500000",
+        //                  "type": 2
+        //              }
         //         ]
         //     }
+        //
         return this.parseOrder (response, market);
     }
 
