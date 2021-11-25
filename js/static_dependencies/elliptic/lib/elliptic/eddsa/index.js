@@ -64,7 +64,7 @@ EDDSA.prototype.signModified = function sign(message, secret) {
   let s_ = this.hashInt (Rencoded, pubKey, message)
   s_ = s_.mul (secretLE)
   var S = r.add(s_).umod(this.curve.n);
-  var Sencoded = S.toArray ('le')
+  var Sencoded = S.toArray ('le', 32)
   Sencoded[31] |= signBit
   return this.makeSignature({ R: R, S: S, Rencoded: Rencoded, Sencoded: Sencoded });
 };
