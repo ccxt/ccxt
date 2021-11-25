@@ -50,6 +50,7 @@ module.exports = class huobi extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -793,6 +794,51 @@ module.exports = class huobi extends Exchange {
         //     {"status":"ok","ts":1637504164707}
         //
         return this.safeInteger2 (response, 'data', 'ts');
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "symbol":"btcusdt",
+        //         "actualMakerRate":"0.002",
+        //         "actualTakerRate":"0.002",
+        //         "takerFeeRate":"0.002",
+        //         "makerFeeRate":"0.002"
+        //     }
+        //
+        const marketId = this.safeString (fee, 'symbol');
+        return {
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': this.safeNumber (fee, 'actualMakerRate'),
+            'taker': this.safeNumber (fee, 'actualTakerRate'),
+        };
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbols': market['id'], // trading symbols comma-separated
+        };
+        const response = await this.spotPrivateGetV2ReferenceTransactFeeRate (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data":[
+        //             {
+        //                 "symbol":"btcusdt",
+        //                 "actualMakerRate":"0.002",
+        //                 "actualTakerRate":"0.002",
+        //                 "takerFeeRate":"0.002",
+        //                 "makerFeeRate":"0.002"
+        //             }
+        //         ],
+        //         "success":true
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
+        return this.parseTradingFee (first);
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
