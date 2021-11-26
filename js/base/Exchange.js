@@ -1608,8 +1608,7 @@ module.exports = class Exchange {
             if (contractSize !== undefined) {
                 const inverse = this.safeValue (market, 'inverse', false);
                 if (inverse) {
-                    // todo: remove constants
-                    multiplyPrice = Precise.stringDiv ('1', price, 8);
+                    multiplyPrice = Precise.stringDiv ('1', price);
                 }
                 multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
             }
@@ -1914,8 +1913,7 @@ module.exports = class Exchange {
             if (contractSize !== undefined) {
                 const inverse = this.safeValue (market, 'inverse', false);
                 if (inverse) {
-                    // todo: remove constants
-                    multiplyPrice = Precise.stringDiv ('1', multiplyPrice, 8);
+                    multiplyPrice = Precise.stringDiv ('1', multiplyPrice);
                 }
                 multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
             }
