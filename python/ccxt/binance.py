@@ -3242,11 +3242,11 @@ class binance(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()
         currency = self.currency(code)
-        fromAccount = fromAccount.lower()
-        toAccount = toAccount.lower()
         type = self.safe_string(params, 'type')
         if type is None:
             accountsByType = self.safe_value(self.options, 'accountsByType', {})
+            fromAccount = fromAccount.lower()
+            toAccount = toAccount.lower()
             fromId = self.safe_string(accountsByType, fromAccount)
             toId = self.safe_string(accountsByType, toAccount)
             if fromId is None:

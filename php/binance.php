@@ -3395,11 +3395,11 @@ class binance extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
-        $fromAccount = strtolower($fromAccount);
-        $toAccount = strtolower($toAccount);
         $type = $this->safe_string($params, 'type');
         if ($type === null) {
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $fromAccount = strtolower($fromAccount);
+            $toAccount = strtolower($toAccount);
             $fromId = $this->safe_string($accountsByType, $fromAccount);
             $toId = $this->safe_string($accountsByType, $toAccount);
             if ($fromId === null) {
