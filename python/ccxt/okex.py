@@ -1156,11 +1156,8 @@ class okex(Exchange):
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'ts')
-        priceString = self.safe_string_2(trade, 'fillPx', 'px')
-        amountString = self.safe_string_2(trade, 'fillSz', 'sz')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        price = self.safe_string_2(trade, 'fillPx', 'px')
+        amount = self.safe_string_2(trade, 'fillSz', 'sz')
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'ordId')
         feeCostString = self.safe_string(trade, 'fee')
@@ -1170,7 +1167,7 @@ class okex(Exchange):
             feeCurrencyId = self.safe_string(trade, 'feeCcy')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': self.parse_number(feeCostSigned),
+                'cost': feeCostSigned,
                 'currency': feeCurrencyCode,
             }
         takerOrMaker = self.safe_string(trade, 'execType')
@@ -1178,7 +1175,7 @@ class okex(Exchange):
             takerOrMaker = 'taker'
         elif takerOrMaker == 'M':
             takerOrMaker = 'maker'
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1190,9 +1187,9 @@ class okex(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

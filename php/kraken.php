@@ -959,8 +959,8 @@ class kraken extends Exchange {
         $timestamp = null;
         $side = null;
         $type = null;
-        $priceString = null;
-        $amountString = null;
+        $price = null;
+        $amount = null;
         $id = null;
         $orderId = null;
         $fee = null;
@@ -969,8 +969,8 @@ class kraken extends Exchange {
             $timestamp = $this->safe_timestamp($trade, 2);
             $side = ($trade[3] === 's') ? 'sell' : 'buy';
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
-            $priceString = $this->safe_string($trade, 0);
-            $amountString = $this->safe_string($trade, 1);
+            $price = $this->safe_string($trade, 0);
+            $amount = $this->safe_string($trade, 1);
             $tradeLength = is_array($trade) ? count($trade) : 0;
             if ($tradeLength > 6) {
                 $id = $this->safe_string($trade, 6); // artificially added as per #1794
@@ -991,15 +991,15 @@ class kraken extends Exchange {
             $timestamp = $this->safe_timestamp($trade, 'time');
             $side = $this->safe_string($trade, 'type');
             $type = $this->safe_string($trade, 'ordertype');
-            $priceString = $this->safe_string($trade, 'price');
-            $amountString = $this->safe_string($trade, 'vol');
+            $price = $this->safe_string($trade, 'price');
+            $amount = $this->safe_string($trade, 'vol');
             if (is_array($trade) && array_key_exists('fee', $trade)) {
                 $currency = null;
                 if ($market !== null) {
                     $currency = $market['quote'];
                 }
                 $fee = array(
-                    'cost' => $this->safe_number($trade, 'fee'),
+                    'cost' => $this->safe_string($trade, 'fee'),
                     'currency' => $currency,
                 );
             }
@@ -1007,10 +1007,8 @@ class kraken extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        return array(
+        $cost = $this->safe_string($trade, 'cost');
+        return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'info' => $trade,
@@ -1024,7 +1022,7 @@ class kraken extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

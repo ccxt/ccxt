@@ -1816,10 +1816,10 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < result.length; i++) {
             results.push (this.parsePosition (result[i]));
         }
-        return results;
+        return this.filterByArray (results, 'symbol', symbols, false);
     }
 
-    parsePosition (position) {
+    parsePosition (position, market = undefined) {
         //
         //   {
         //     "future": "XMR-PERP",
@@ -1842,7 +1842,8 @@ module.exports = class ftx extends Exchange {
         const contractsString = this.safeString (position, 'size');
         const rawSide = this.safeString (position, 'side');
         const side = (rawSide === 'buy') ? 'long' : 'short';
-        const symbol = this.safeString (position, 'future');
+        const marketId = this.safeString (position, 'future');
+        const symbol = this.safeSymbol (marketId, market);
         const liquidationPriceString = this.safeString (position, 'estimatedLiquidationPrice');
         const initialMarginPercentage = this.safeString (position, 'initialMarginRequirement');
         const leverage = parseInt (Precise.stringDiv ('1', initialMarginPercentage, 0));

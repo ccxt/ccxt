@@ -57,6 +57,7 @@ class huobi extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -800,6 +801,51 @@ class huobi extends Exchange {
         //     array("status":"ok","ts":1637504164707)
         //
         return $this->safe_integer_2($response, 'data', 'ts');
+    }
+
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     {
+        //         "symbol":"btcusdt",
+        //         "actualMakerRate":"0.002",
+        //         "actualTakerRate":"0.002",
+        //         "takerFeeRate":"0.002",
+        //         "makerFeeRate":"0.002"
+        //     }
+        //
+        $marketId = $this->safe_string($fee, 'symbol');
+        return array(
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'maker' => $this->safe_number($fee, 'actualMakerRate'),
+            'taker' => $this->safe_number($fee, 'actualTakerRate'),
+        );
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbols' => $market['id'], // trading symbols comma-separated
+        );
+        $response = yield $this->spotPrivateGetV2ReferenceTransactFeeRate (array_merge($request, $params));
+        //
+        //     {
+        //         "code":200,
+        //         "data":array(
+        //             {
+        //                 "symbol":"btcusdt",
+        //                 "actualMakerRate":"0.002",
+        //                 "actualTakerRate":"0.002",
+        //                 "takerFeeRate":"0.002",
+        //                 "makerFeeRate":"0.002"
+        //             }
+        //         ),
+        //         "success":true
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $first = $this->safe_value($data, 0, array());
+        return $this->parse_trading_fee($first);
     }
 
     public function fetch_trading_limits($symbols = null, $params = array ()) {
@@ -1979,10 +2025,17 @@ class huobi extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
-        $request = array(
-            'order-id' => $id,
-        );
-        $response = yield $this->spotPrivateGetV1OrderOrdersOrderId (array_merge($request, $params));
+        $request = array();
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $method = 'spotPrivateGetV1OrderOrdersOrderId';
+        if ($clientOrderId !== null) {
+            $method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
+            // will be filled below in extend ()
+            // $request['clientOrderId'] = $clientOrderId;
+        } else {
+            $request['order-id'] = $id;
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         $order = $this->safe_value($response, 'data');
         return $this->parse_order($order);
     }

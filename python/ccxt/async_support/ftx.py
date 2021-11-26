@@ -1753,9 +1753,9 @@ class ftx(Exchange):
         results = []
         for i in range(0, len(result)):
             results.append(self.parse_position(result[i]))
-        return results
+        return self.filter_by_array(results, 'symbol', symbols, False)
 
-    def parse_position(self, position):
+    def parse_position(self, position, market=None):
         #
         #   {
         #     "future": "XMR-PERP",
@@ -1778,7 +1778,8 @@ class ftx(Exchange):
         contractsString = self.safe_string(position, 'size')
         rawSide = self.safe_string(position, 'side')
         side = 'long' if (rawSide == 'buy') else 'short'
-        symbol = self.safe_string(position, 'future')
+        marketId = self.safe_string(position, 'future')
+        symbol = self.safe_symbol(marketId, market)
         liquidationPriceString = self.safe_string(position, 'estimatedLiquidationPrice')
         initialMarginPercentage = self.safe_string(position, 'initialMarginRequirement')
         leverage = int(Precise.string_div('1', initialMarginPercentage, 0))

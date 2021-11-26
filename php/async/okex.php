@@ -1175,11 +1175,8 @@ class okex extends Exchange {
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($trade, 'ts');
-        $priceString = $this->safe_string_2($trade, 'fillPx', 'px');
-        $amountString = $this->safe_string_2($trade, 'fillSz', 'sz');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $price = $this->safe_string_2($trade, 'fillPx', 'px');
+        $amount = $this->safe_string_2($trade, 'fillSz', 'sz');
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'ordId');
         $feeCostString = $this->safe_string($trade, 'fee');
@@ -1189,7 +1186,7 @@ class okex extends Exchange {
             $feeCurrencyId = $this->safe_string($trade, 'feeCcy');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $this->parse_number($feeCostSigned),
+                'cost' => $feeCostSigned,
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -1199,7 +1196,7 @@ class okex extends Exchange {
         } else if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1211,9 +1208,9 @@ class okex extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

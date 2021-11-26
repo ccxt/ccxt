@@ -1820,10 +1820,10 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($result); $i++) {
             $results[] = $this->parse_position($result[$i]);
         }
-        return $results;
+        return $this->filter_by_array($results, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position) {
+    public function parse_position($position, $market = null) {
         //
         //   {
         //     "future" => "XMR-PERP",
@@ -1846,7 +1846,8 @@ class ftx extends Exchange {
         $contractsString = $this->safe_string($position, 'size');
         $rawSide = $this->safe_string($position, 'side');
         $side = ($rawSide === 'buy') ? 'long' : 'short';
-        $symbol = $this->safe_string($position, 'future');
+        $marketId = $this->safe_string($position, 'future');
+        $symbol = $this->safe_symbol($marketId, $market);
         $liquidationPriceString = $this->safe_string($position, 'estimatedLiquidationPrice');
         $initialMarginPercentage = $this->safe_string($position, 'initialMarginRequirement');
         $leverage = intval(Precise::string_div('1', $initialMarginPercentage, 0));

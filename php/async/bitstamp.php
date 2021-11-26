@@ -715,18 +715,6 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function parse_trading_fee($balances, $symbol) {
-        $market = $this->market($symbol);
-        $feeString = $this->safe_string($balances, $market['id'] . '_fee');
-        $dividedFeeString = Precise::string_div($feeString, '100');
-        $tradeFee = $this->parse_number($dividedFeeString);
-        return array(
-            'symbol' => $symbol,
-            'maker' => $tradeFee,
-            'taker' => $tradeFee,
-        );
-    }
-
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -880,7 +868,19 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function prase_trading_fees($balance) {
+    public function parse_trading_fee($balances, $symbol) {
+        $market = $this->market($symbol);
+        $feeString = $this->safe_string($balances, $market['id'] . '_fee');
+        $dividedFeeString = Precise::string_div($feeString, '100');
+        $tradeFee = $this->parse_number($dividedFeeString);
+        return array(
+            'symbol' => $symbol,
+            'maker' => $tradeFee,
+            'taker' => $tradeFee,
+        );
+    }
+
+    public function parse_trading_fees($balance) {
         $result = array( 'info' => $balance );
         $markets = is_array($this->markets) ? array_keys($this->markets) : array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -894,7 +894,7 @@ class bitstamp extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         yield $this->load_markets();
         $balance = yield $this->privatePostBalance ($params);
-        return $this->prase_trading_fees($balance);
+        return $this->parse_trading_fees($balance);
     }
 
     public function parse_funding_fees($balance) {
@@ -924,7 +924,7 @@ class bitstamp extends Exchange {
     public function fetch_fees($params = array ()) {
         yield $this->load_markets();
         $balance = yield $this->privatePostBalance ($params);
-        $tradingFees = $this->prase_trading_fees($balance);
+        $tradingFees = $this->parse_trading_fees($balance);
         unset($tradingFees['info']);
         $fundingFees = $this->parse_funding_fees($balance);
         unset($fundingFees['info']);

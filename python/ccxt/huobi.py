@@ -74,6 +74,7 @@ class huobi(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -815,6 +816,49 @@ class huobi(Exchange):
         #     {"status":"ok","ts":1637504164707}
         #
         return self.safe_integer_2(response, 'data', 'ts')
+
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "symbol":"btcusdt",
+        #         "actualMakerRate":"0.002",
+        #         "actualTakerRate":"0.002",
+        #         "takerFeeRate":"0.002",
+        #         "makerFeeRate":"0.002"
+        #     }
+        #
+        marketId = self.safe_string(fee, 'symbol')
+        return {
+            'symbol': self.safe_symbol(marketId, market),
+            'maker': self.safe_number(fee, 'actualMakerRate'),
+            'taker': self.safe_number(fee, 'actualTakerRate'),
+        }
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbols': market['id'],  # trading symbols comma-separated
+        }
+        response = self.spotPrivateGetV2ReferenceTransactFeeRate(self.extend(request, params))
+        #
+        #     {
+        #         "code":200,
+        #         "data":[
+        #             {
+        #                 "symbol":"btcusdt",
+        #                 "actualMakerRate":"0.002",
+        #                 "actualTakerRate":"0.002",
+        #                 "takerFeeRate":"0.002",
+        #                 "makerFeeRate":"0.002"
+        #             }
+        #         ],
+        #         "success":true
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0, {})
+        return self.parse_trading_fee(first)
 
     def fetch_trading_limits(self, symbols=None, params={}):
         # self method should not be called directly, use loadTradingLimits() instead
@@ -1908,10 +1952,16 @@ class huobi(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
-            'order-id': id,
-        }
-        response = self.spotPrivateGetV1OrderOrdersOrderId(self.extend(request, params))
+        request = {}
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        method = 'spotPrivateGetV1OrderOrdersOrderId'
+        if clientOrderId is not None:
+            method = 'spotPrivateGetV1OrderOrdersGetClientOrder'
+            # will be filled below in self.extend()
+            # request['clientOrderId'] = clientOrderId
+        else:
+            request['order-id'] = id
+        response = getattr(self, method)(self.extend(request, params))
         order = self.safe_value(response, 'data')
         return self.parse_order(order)
 

@@ -2067,14 +2067,11 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
-        const priceString = this.safeString2 (trade, 'p', 'price');
-        const amountString = this.safeString2 (trade, 'q', 'qty');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
+        const price = this.safeString2 (trade, 'p', 'price');
+        const amount = this.safeString2 (trade, 'q', 'qty');
+        const cost = this.safeString2 (trade, 'quoteQty', 'baseQty');  // inverse futures
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const costString = Precise.stringMul (priceString, amountString);
-        const cost = this.parseNumber (costString);
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
@@ -2093,7 +2090,7 @@ module.exports = class binance extends Exchange {
         let fee = undefined;
         if ('commission' in trade) {
             fee = {
-                'cost': this.safeNumber (trade, 'commission'),
+                'cost': this.safeString (trade, 'commission'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
@@ -2104,7 +2101,7 @@ module.exports = class binance extends Exchange {
         if ('maker' in trade) {
             takerOrMaker = trade['maker'] ? 'maker' : 'taker';
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2118,7 +2115,7 @@ module.exports = class binance extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

@@ -687,17 +687,6 @@ class bitstamp(Exchange):
             'fee': fee,
         }
 
-    def parse_trading_fee(self, balances, symbol):
-        market = self.market(symbol)
-        feeString = self.safe_string(balances, market['id'] + '_fee')
-        dividedFeeString = Precise.string_div(feeString, '100')
-        tradeFee = self.parse_number(dividedFeeString)
-        return {
-            'symbol': symbol,
-            'maker': tradeFee,
-            'taker': tradeFee,
-        }
-
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -841,7 +830,18 @@ class bitstamp(Exchange):
             'taker': balance['fee'],
         }
 
-    def prase_trading_fees(self, balance):
+    def parse_trading_fee(self, balances, symbol):
+        market = self.market(symbol)
+        feeString = self.safe_string(balances, market['id'] + '_fee')
+        dividedFeeString = Precise.string_div(feeString, '100')
+        tradeFee = self.parse_number(dividedFeeString)
+        return {
+            'symbol': symbol,
+            'maker': tradeFee,
+            'taker': tradeFee,
+        }
+
+    def parse_trading_fees(self, balance):
         result = {'info': balance}
         markets = list(self.markets.keys())
         for i in range(0, len(markets)):
@@ -853,7 +853,7 @@ class bitstamp(Exchange):
     def fetch_trading_fees(self, params={}):
         self.load_markets()
         balance = self.privatePostBalance(params)
-        return self.prase_trading_fees(balance)
+        return self.parse_trading_fees(balance)
 
     def parse_funding_fees(self, balance):
         withdraw = {}
@@ -878,7 +878,7 @@ class bitstamp(Exchange):
     def fetch_fees(self, params={}):
         self.load_markets()
         balance = self.privatePostBalance(params)
-        tradingFees = self.prase_trading_fees(balance)
+        tradingFees = self.parse_trading_fees(balance)
         del tradingFees['info']
         fundingFees = self.parse_funding_fees(balance)
         del fundingFees['info']
