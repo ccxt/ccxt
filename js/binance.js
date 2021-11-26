@@ -4955,15 +4955,16 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async fetchBorrowRateHistory (currency, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit > 100) {
             throw new BadRequest (this.id + ' fetchBorrowRateHistory limit parameter cannot exceed 100');
         } else if (!limit) {
             limit = 100; // Assures we get up to present day
         }
+        const currencyId = this.currency (code)['id'];
         const request = {
-            'asset': this.safeCurrencyCode (currency),
+            'asset': currencyId,
             'limit': limit,
         };
         if (since) {
@@ -4981,7 +4982,7 @@ module.exports = class binance extends Exchange {
             const rate = response[i];
             const timestamp = this.safeNumber (rate, 'timestamp');
             result.push ({
-                'currency': this.safeCurrencyCode (this.safeString (rate, 'asset')),
+                'currency': currencyId,
                 'rate': this.safeNumber (rate, 'dailyInterestRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
