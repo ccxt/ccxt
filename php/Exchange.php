@@ -3031,7 +3031,7 @@ class Exchange {
                 $inverse = $this->safe_value($market, 'inverse', false);
                 if ($inverse) {
                     // todo => remove constants
-                    $multiplyPrice = Precise::string_div('1', $price, 8);
+                    $multiplyPrice = Precise::string_div('1', $price);
                 }
                 $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
             }
@@ -3336,7 +3336,7 @@ class Exchange {
             if ($contractSize !== null) {
                 $inverse = $this->safe_value($market, 'inverse', false);
                 if ($inverse) {
-                    $multiplyPrice = Precise::string_div('1', $multiplyPrice, 8);
+                    $multiplyPrice = Precise::string_div('1', $multiplyPrice);
                 }
                 $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
             }
