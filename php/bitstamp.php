@@ -590,42 +590,50 @@ class bitstamp extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     array(
-        //         date => '1551814435',
-        //         tid => '83581898',
-        //         $price => '0.03532850',
-        //         $type => '1',
-        //         $amount => '0.85945907'
-        //     ),
+        //      {
+        //          "date" => "1637845199",
+        //          "tid" => "209895701",
+        //          "amount" => "0.00500000",
+        //          "type" => "0",             // Transaction $type => 0 - buy; 1 - sell
+        //          "price" => "4451.25"
+        //      }
         //
         // fetchMyTrades, trades returned within fetchOrder (private)
         //
-        //     {
-        //         "usd" => "6.0134400000000000",
-        //         "price" => "4008.96000000",
-        //         "datetime" => "2019-03-28 23:07:37.233599",
-        //         "fee" => "0.02",
-        //         "btc" => "0.00150000",
-        //         "tid" => 84452058,
-        //         "type" => 2
-        //     }
+        //      {
+        //          "fee" => "0.11128",
+        //          "eth_usdt" =>  4451.25,
+        //          "datetime" => "2021-11-25 12:59:59.322000",
+        //          "usdt" => "-22.26",
+        //          "order_id" =>  1429545880227846,
+        //          "usd" =>  0,
+        //          "btc" =>  0,
+        //          "eth" => "0.00500000",
+        //          "type" => "2",                    // Transaction $type => 0 - deposit; 1 - withdrawal; 2 - $market $trade; 14 - sub account transfer; 25 - credited with staked assets; 26 - sent assets to staking; 27 - staking reward; 32 - referral reward; 35 - inter account transfer.
+        //          "id" =>  209895701,
+        //          "eur" =>  0
+        //      }
         //
-        // from fetchOrder:
-        //    { $fee => '0.000019',
-        //     $price => '0.00015803',
-        //     datetime => '2018-01-07 10:45:34.132551',
-        //     btc => '0.0079015000000000',
-        //     tid => 42777395,
-        //     $type => 2, //(0 - deposit; 1 - withdrawal; 2 - $market $trade) NOT buy/sell
-        //     xrp => '50.00000000' }
+        // from fetchOrder (private)
+        //
+        //      {
+        //          "fee" => "0.11128",
+        //          "price" => "4451.25000000",
+        //          "datetime" => "2021-11-25 12:59:59.322000",
+        //          "usdt" => "22.25625000",
+        //          "tid" => 209895701,
+        //          "eth" => "0.00500000",
+        //          "type" => 2                       // Transaction $type => 0 - deposit; 1 - withdrawal; 2 - $market $trade
+        //      }
+        //
         $id = $this->safe_string_2($trade, 'id', 'tid');
         $symbol = null;
         $side = null;
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
         $orderId = $this->safe_string($trade, 'order_id');
         $type = null;
-        $cost = $this->safe_number($trade, 'cost');
+        $costString = $this->safe_string($trade, 'cost');
         if ($market === null) {
             $keys = is_array($trade) ? array_keys($trade) : array();
             for ($i = 0; $i < count($keys); $i++) {
@@ -642,12 +650,12 @@ class bitstamp extends Exchange {
                 $market = $this->get_market_from_trade($trade);
             }
         }
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $feeCurrency = null;
         if ($market !== null) {
-            $price = $this->safe_number($trade, $market['symbolId'], $price);
-            $amount = $this->safe_number($trade, $market['baseId'], $amount);
-            $cost = $this->safe_number($trade, $market['quoteId'], $cost);
+            $priceString = $this->safe_string($trade, $market['symbolId'], $priceString);
+            $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
+            $costString = $this->safe_string($trade, $market['quoteId'], $costString);
             $feeCurrency = $market['quote'];
             $symbol = $market['symbol'];
         }
@@ -664,10 +672,11 @@ class bitstamp extends Exchange {
         }
         // if it is a private $trade
         if (is_array($trade) && array_key_exists('id', $trade)) {
-            if ($amount !== null) {
-                if ($amount < 0) {
+            if ($amountString !== null) {
+                $isAmountNeg = Precise::string_lt($amountString, '0');
+                if ($isAmountNeg) {
                     $side = 'sell';
-                    $amount = -$amount;
+                    $amountString = Precise::string_neg($amountString);
                 } else {
                     $side = 'buy';
                 }
@@ -680,24 +689,17 @@ class bitstamp extends Exchange {
                 $side = 'buy';
             }
         }
-        if ($cost === null) {
-            if ($price !== null) {
-                if ($amount !== null) {
-                    $cost = $price * $amount;
-                }
-            }
-        }
-        if ($cost !== null) {
-            $cost = abs($cost);
+        if ($costString !== null) {
+            $costString = Precise::string_abs($costString);
         }
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrency,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -707,11 +709,11 @@ class bitstamp extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1023,22 +1025,23 @@ class bitstamp extends Exchange {
         }
         $response = $this->privatePostOrderStatus (array_merge($request, $params));
         //
-        //     {
-        //         "status" => "Finished",
-        //         "id" => 3047704374,
-        //         "client_order_id" => ""
-        //         "transactions" => array(
-        //             {
-        //                 "usd" => "6.0134400000000000",
-        //                 "price" => "4008.96000000",
-        //                 "datetime" => "2019-03-28 23:07:37.233599",
-        //                 "fee" => "0.02",
-        //                 "btc" => "0.00150000",
-        //                 "tid" => 84452058,
-        //                 "type" => 2
-        //             }
+        //      {
+        //          "status" => "Finished",
+        //          "id" => 1429545880227846,
+        //          "amount_remaining" => "0.00000000",
+        //          "transactions" => array(
+        //              {
+        //                  "fee" => "0.11128",
+        //                  "price" => "4451.25000000",
+        //                  "datetime" => "2021-11-25 12:59:59.322000",
+        //                  "usdt" => "22.25625000",
+        //                  "tid" => 209895701,
+        //                  "eth" => "0.00500000",
+        //                  "type" => 2
+        //              }
         //         )
         //     }
+        //
         return $this->parse_order($response, $market);
     }
 

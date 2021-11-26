@@ -581,42 +581,50 @@ class bitstamp(Exchange):
         #
         # fetchTrades(public)
         #
-        #     {
-        #         date: '1551814435',
-        #         tid: '83581898',
-        #         price: '0.03532850',
-        #         type: '1',
-        #         amount: '0.85945907'
-        #     },
+        #      {
+        #          "date": "1637845199",
+        #          "tid": "209895701",
+        #          "amount": "0.00500000",
+        #          "type": "0",             # Transaction type: 0 - buy; 1 - sell
+        #          "price": "4451.25"
+        #      }
         #
         # fetchMyTrades, trades returned within fetchOrder(private)
         #
-        #     {
-        #         "usd": "6.0134400000000000",
-        #         "price": "4008.96000000",
-        #         "datetime": "2019-03-28 23:07:37.233599",
-        #         "fee": "0.02",
-        #         "btc": "0.00150000",
-        #         "tid": 84452058,
-        #         "type": 2
-        #     }
+        #      {
+        #          "fee": "0.11128",
+        #          "eth_usdt":  4451.25,
+        #          "datetime": "2021-11-25 12:59:59.322000",
+        #          "usdt": "-22.26",
+        #          "order_id":  1429545880227846,
+        #          "usd":  0,
+        #          "btc":  0,
+        #          "eth": "0.00500000",
+        #          "type": "2",                    # Transaction type: 0 - deposit; 1 - withdrawal; 2 - market trade; 14 - sub account transfer; 25 - credited with staked assets; 26 - sent assets to staking; 27 - staking reward; 32 - referral reward; 35 - inter account transfer.
+        #          "id":  209895701,
+        #          "eur":  0
+        #      }
         #
-        # from fetchOrder:
-        #    {fee: '0.000019',
-        #     price: '0.00015803',
-        #     datetime: '2018-01-07 10:45:34.132551',
-        #     btc: '0.0079015000000000',
-        #     tid: 42777395,
-        #     type: 2,  #(0 - deposit; 1 - withdrawal; 2 - market trade) NOT buy/sell
-        #     xrp: '50.00000000'}
+        # from fetchOrder(private)
+        #
+        #      {
+        #          "fee": "0.11128",
+        #          "price": "4451.25000000",
+        #          "datetime": "2021-11-25 12:59:59.322000",
+        #          "usdt": "22.25625000",
+        #          "tid": 209895701,
+        #          "eth": "0.00500000",
+        #          "type": 2                       # Transaction type: 0 - deposit; 1 - withdrawal; 2 - market trade
+        #      }
+        #
         id = self.safe_string_2(trade, 'id', 'tid')
         symbol = None
         side = None
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
         orderId = self.safe_string(trade, 'order_id')
         type = None
-        cost = self.safe_number(trade, 'cost')
+        costString = self.safe_string(trade, 'cost')
         if market is None:
             keys = list(trade.keys())
             for i in range(0, len(keys)):
@@ -628,12 +636,12 @@ class bitstamp(Exchange):
             # try to deduce it from used keys
             if market is None:
                 market = self.get_market_from_trade(trade)
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         feeCurrency = None
         if market is not None:
-            price = self.safe_number(trade, market['symbolId'], price)
-            amount = self.safe_number(trade, market['baseId'], amount)
-            cost = self.safe_number(trade, market['quoteId'], cost)
+            priceString = self.safe_string(trade, market['symbolId'], priceString)
+            amountString = self.safe_string(trade, market['baseId'], amountString)
+            costString = self.safe_string(trade, market['quoteId'], costString)
             feeCurrency = market['quote']
             symbol = market['symbol']
         timestamp = self.safe_string_2(trade, 'date', 'datetime')
@@ -647,10 +655,11 @@ class bitstamp(Exchange):
                 timestamp = timestamp * 1000
         # if it is a private trade
         if 'id' in trade:
-            if amount is not None:
-                if amount < 0:
+            if amountString is not None:
+                isAmountNeg = Precise.string_lt(amountString, '0')
+                if isAmountNeg:
                     side = 'sell'
-                    amount = -amount
+                    amountString = Precise.string_neg(amountString)
                 else:
                     side = 'buy'
         else:
@@ -659,19 +668,15 @@ class bitstamp(Exchange):
                 side = 'sell'
             elif side == '0':
                 side = 'buy'
-        if cost is None:
-            if price is not None:
-                if amount is not None:
-                    cost = price * amount
-        if cost is not None:
-            cost = abs(cost)
+        if costString is not None:
+            costString = Precise.string_abs(costString)
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -681,11 +686,11 @@ class bitstamp(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -966,22 +971,23 @@ class bitstamp(Exchange):
             request['id'] = id
         response = self.privatePostOrderStatus(self.extend(request, params))
         #
-        #     {
-        #         "status": "Finished",
-        #         "id": 3047704374,
-        #         "client_order_id": ""
-        #         "transactions": [
-        #             {
-        #                 "usd": "6.0134400000000000",
-        #                 "price": "4008.96000000",
-        #                 "datetime": "2019-03-28 23:07:37.233599",
-        #                 "fee": "0.02",
-        #                 "btc": "0.00150000",
-        #                 "tid": 84452058,
-        #                 "type": 2
-        #             }
+        #      {
+        #          "status": "Finished",
+        #          "id": 1429545880227846,
+        #          "amount_remaining": "0.00000000",
+        #          "transactions": [
+        #              {
+        #                  "fee": "0.11128",
+        #                  "price": "4451.25000000",
+        #                  "datetime": "2021-11-25 12:59:59.322000",
+        #                  "usdt": "22.25625000",
+        #                  "tid": 209895701,
+        #                  "eth": "0.00500000",
+        #                  "type": 2
+        #              }
         #         ]
         #     }
+        #
         return self.parse_order(response, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
