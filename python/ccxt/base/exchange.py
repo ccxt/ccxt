@@ -2501,7 +2501,7 @@ class Exchange(object):
             # contract trading )
             contractSize = self.safe_string(market, 'contractSize')
             if contractSize is not None:
-                inverse = self.safe_string(market, 'inverse', False)
+                inverse = self.safe_value(market, 'inverse', False)
                 if inverse:
                     multiplyPrice = Precise.string_div('1', multiplyPrice, 8)
                 multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
