@@ -1602,7 +1602,17 @@ module.exports = class Exchange {
         const price = this.safeString (trade, 'price');
         let cost = this.safeString (trade, 'cost');
         if (cost === undefined) {
-            cost = Precise.stringMul (price, amount);
+            // contract trading
+            const contractSize = this.safeString (market, 'contractSize');
+            let multiplyPrice = price;
+            if (contractSize !== undefined) {
+                const inverse = this.safeValue (market, 'inverse', false);
+                if (inverse) {
+                    multiplyPrice = Precise.stringDiv ('1', price);
+                }
+                multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
+            }
+            cost = Precise.stringMul (multiplyPrice, amount);
         }
         const parseFee = this.safeValue (trade, 'fee') === undefined;
         const parseFees = this.safeValue (trade, 'fees') === undefined;
@@ -1892,21 +1902,22 @@ module.exports = class Exchange {
         // also ensure the cost field is calculated correctly
         const costPriceExists = (average !== undefined) || (price !== undefined);
         if (parseCost && (filled !== undefined) && costPriceExists) {
+            let multiplyPrice = undefined;
             if (average === undefined) {
-                cost = Precise.stringMul (price, filled);
+                multiplyPrice = price;
             } else {
-                cost = Precise.stringMul (average, filled);
+                multiplyPrice = average;
             }
             // contract trading
             const contractSize = this.safeString (market, 'contractSize');
             if (contractSize !== undefined) {
                 const inverse = this.safeValue (market, 'inverse', false);
                 if (inverse) {
-                    // todo: remove constants
-                    cost = Precise.stringDiv ('1', cost, 8);
+                    multiplyPrice = Precise.stringDiv ('1', multiplyPrice);
                 }
-                cost = Precise.stringMul (cost, contractSize);
+                multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
             }
+            cost = Precise.stringMul (multiplyPrice, filled);
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');

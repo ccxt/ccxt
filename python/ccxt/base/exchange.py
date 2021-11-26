@@ -2260,7 +2260,15 @@ class Exchange(object):
         price = self.safe_string(trade, 'price')
         cost = self.safe_string(trade, 'cost')
         if cost is None:
-            cost = Precise.string_mul(price, amount)
+            # contract trading
+            contractSize = self.safe_string(market, 'contractSize')
+            multiplyPrice = price
+            if contractSize is not None:
+                inverse = self.safe_value(market, 'inverse', False)
+                if inverse:
+                    multiplyPrice = Precise.string_div('1', price)
+                multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
+            cost = Precise.string_mul(multiplyPrice, amount)
         parseFee = self.safe_value(trade, 'fee') is None
         parseFees = self.safe_value(trade, 'fees') is None
         shouldParseFees = parseFee or parseFees
@@ -2484,17 +2492,19 @@ class Exchange(object):
         # also ensure the cost field is calculated correctly
         costPriceExists = (average is not None) or (price is not None)
         if parseCost and (filled is not None) and costPriceExists:
+            multiplyPrice = None
             if average is None:
-                cost = Precise.string_mul(price, filled)
+                multiplyPrice = price
             else:
-                cost = Precise.string_mul(average, filled)
+                multiplyPrice = average
             # contract trading )
             contractSize = self.safe_string(market, 'contractSize')
             if contractSize is not None:
-                inverse = self.safe_string(market, 'inverse', False)
+                inverse = self.safe_value(market, 'inverse', False)
                 if inverse:
-                    cost = Precise.string_div('1', cost, 8)
-                cost = Precise.string_mul(cost, contractSize)
+                    multiplyPrice = Precise.string_div('1', multiplyPrice)
+                multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
+            cost = Precise.string_mul(multiplyPrice, filled)
         # support for market orders
         orderType = self.safe_value(order, 'type')
         emptyPrice = (price is None) or Precise.string_equals(price, '0')
