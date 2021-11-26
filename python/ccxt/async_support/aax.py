@@ -1754,7 +1754,7 @@ class aax(Exchange):
         code = self.safe_currency_code(currencyId)
         return {
             'info': depositAddress,
-            'code': code,
+            'currency': code,
             'address': address,
             'tag': tag,
             'network': network,

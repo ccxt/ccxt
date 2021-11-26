@@ -1822,7 +1822,7 @@ class aax extends Exchange {
         $code = $this->safe_currency_code($currencyId);
         return array(
             'info' => $depositAddress,
-            'code' => $code,
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
             'network' => $network,
