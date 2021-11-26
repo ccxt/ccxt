@@ -1820,7 +1820,7 @@ module.exports = class aax extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         return {
             'info': depositAddress,
-            'code': code,
+            'currency': code,
             'address': address,
             'tag': tag,
             'network': network,
