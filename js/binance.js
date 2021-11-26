@@ -3389,11 +3389,11 @@ module.exports = class binance extends Exchange {
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = fromAccount.toLowerCase ();
-        toAccount = toAccount.toLowerCase ();
         let type = this.safeString (params, 'type');
         if (type === undefined) {
             const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+            fromAccount = fromAccount.toLowerCase ();
+            toAccount = toAccount.toLowerCase ();
             const fromId = this.safeString (accountsByType, fromAccount);
             const toId = this.safeString (accountsByType, toAccount);
             if (fromId === undefined) {
