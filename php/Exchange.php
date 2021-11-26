@@ -3024,7 +3024,18 @@ class Exchange {
         $price = $this->safe_string($trade, 'price');
         $cost = $this->safe_string($trade, 'cost');
         if ($cost === null) {
-            $cost = Precise::string_mul($price, $amount);
+            // contract trading
+            $contractSize = $this->safe_string($market, 'contractSize');
+            $multiplyPrice = $price;
+            if ($contractSize !== null) {
+                $inverse = $this->safe_value($market, 'inverse', false);
+                if ($inverse) {
+                    // todo => remove constants
+                    $multiplyPrice = Precise::string_div('1', $price, 8);
+                }
+                $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
+            }
+            $cost = Precise::string_mul($multiplyPrice, $amount);
         }
         $parseFee = $this->safe_value($trade, 'fee') === null;
         $parseFees = $this->safe_value($trade, 'fees') === null;
@@ -3314,20 +3325,22 @@ class Exchange {
         // also ensure the $cost field is calculated correctly
         $costPriceExists = ($average !== null) || ($price !== null);
         if ($parseCost && ($filled !== null) && $costPriceExists) {
+            $multiplyPrice = null;
             if ($average === null) {
-                $cost = Precise::string_mul($price, $filled);
+                $multiplyPrice = $price;
             } else {
-                $cost = Precise::string_mul($average, $filled);
+                $multiplyPrice = $average;
             }
             // contract trading
             $contractSize = $this->safe_string($market, 'contractSize');
             if ($contractSize !== null) {
                 $inverse = $this->safe_value($market, 'inverse', false);
                 if ($inverse) {
-                    $cost = Precise::string_div('1', $cost, 8);
+                    $multiplyPrice = Precise::string_div('1', $multiplyPrice, 8);
                 }
-                $cost = Precise::string_mul($cost, $contractSize);
+                $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
             }
+            $cost = Precise::string_mul($multiplyPrice, $contractSize);
         }
         // support for $market orders
         $orderType = $this->safe_value($order, 'type');
