@@ -141,6 +141,7 @@ class coinbase extends Exchange {
                     'jumio_face_match_verification_required' => '\\ccxt\\AuthenticationError', // 400 Document verification including face match is required to complete this request
                     'unverified_email' => '\\ccxt\\AuthenticationError', // 400 User has not verified their email
                     'authentication_error' => '\\ccxt\\AuthenticationError', // 401 Invalid auth (generic)
+                    'invalid_authentication_method' => '\\ccxt\\AuthenticationError', // 401 API access is blocked for deleted users.
                     'invalid_token' => '\\ccxt\\AuthenticationError', // 401 Invalid Oauth token
                     'revoked_token' => '\\ccxt\\AuthenticationError', // 401 Revoked Oauth token
                     'expired_token' => '\\ccxt\\AuthenticationError', // 401 Expired Oauth token
