@@ -229,6 +229,30 @@ class bitflyer(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public) v1
+        #
+        #     {
+        #          "id":2278466664,
+        #          "side":"SELL",
+        #          "price":56810.7,
+        #          "size":0.08798,
+        #          "exec_date":"2021-11-19T11:46:39.323",
+        #          "buy_child_order_acceptance_id":"JRF20211119-114209-236525",
+        #          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
+        #      }
+        #
+        #      {
+        #          "id":2278463423,
+        #          "side":"BUY",
+        #          "price":56757.83,
+        #          "size":0.6003,"exec_date":"2021-11-19T11:28:00.523",
+        #          "buy_child_order_acceptance_id":"JRF20211119-112800-236526",
+        #          "sell_child_order_acceptance_id":"JRF20211119-112734-062017"
+        #      }
+        #
+        #
+        #
         side = self.safe_string_lower(trade, 'side')
         if side is not None:
             if len(side) < 1:
