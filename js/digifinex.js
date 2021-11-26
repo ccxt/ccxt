@@ -1233,7 +1233,7 @@ module.exports = class digifinex extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         return {
             'info': depositAddress,
-            'code': code,
+            'currency': code,
             'address': address,
             'tag': tag,
             'network': undefined,
