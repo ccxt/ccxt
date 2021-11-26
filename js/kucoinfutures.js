@@ -26,7 +26,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createOrder': true,
-                'fetchAccounts': undefined,
+                'fetchAccounts': false,
                 'fetchBalance': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': undefined,
@@ -36,6 +36,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchFundingHistory': true,
                 'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': false,
+                'fetchL3OrderBook': false,
                 'fetchLedger': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -260,6 +261,41 @@ module.exports = class kucoinfutures extends kucoin {
         });
     }
 
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetAccounts (params);
+        //
+        // { 
+        //     "code": "200000",
+        //     "data": {
+        //       "accountEquity": 99.8999305281, //Account equity = marginBalance + Unrealised PNL 
+        //       "unrealisedPNL": 0, //Unrealised profit and loss
+        //       "marginBalance": 99.8999305281, //Margin balance = positionMargin + orderMargin + frozenFunds + availableBalance - unrealisedPNL
+        //       "positionMargin": 0, //Position margin
+        //       "orderMargin": 0, //Order margin
+        //       "frozenFunds": 0, //Frozen funds for withdrawal and out-transfer
+        //       "availableBalance": 99.8999305281 //Available balance
+        //       "currency": "XBT" //currency code
+        //     }
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const accountId = this.safeString (account, 'id');
+            const currencyId = this.safeString (account, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const type = this.safeString (account, 'type');  // main or trade
+            result.push ({
+                'id': accountId,
+                'type': type,
+                'currency': code,
+                'info': account,
+            });
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.futuresPublicGetContractsActive (params);
         //
@@ -414,32 +450,8 @@ module.exports = class kucoinfutures extends kucoin {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.futuresPublicGetTicker (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "sequence":  1629930362547,
-        //             "symbol": "ETHUSDTM",
-        //             "side": "buy",
-        //             "size":  130,
-        //             "price": "4724.7",
-        //             "bestBidSize":  5,
-        //             "bestBidPrice": "4724.6",
-        //             "bestAskPrice": "4724.65",
-        //             "tradeId": "618d2a5a77a0c4431d2335f4",
-        //             "ts":  1636641371963227600,
-        //             "bestAskSize":  1789
-        //          }
-        //     }
-        //
-        return this.parseTicker (response['data'], market);
+    async fetchCurrencies (params = {}) {
+        // TODO: Emulate?
     }
 
     async fetchTime (params = {}) {
@@ -449,29 +461,6 @@ module.exports = class kucoinfutures extends kucoin {
         //     data: 1637385119302,
         // }
         return this.safeNumber (response, 'data');
-    }
-
-    async fetchStatus (params = {}) {
-        const response = await this.futuresPublicGetStatus (params);
-        //
-        // {
-        //     code: "200000",
-        //     data: {
-        //         msg: "",
-        //         status: "open",
-        //     },
-        // }
-        //
-        const data = this.safeValue (response, 'data', {});
-        let status = this.safeValue (data, 'status');
-        if (status !== undefined) {
-            status = (status === 'open') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-            });
-        }
-        return this.status;
     }
 
     async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
@@ -531,14 +520,41 @@ module.exports = class kucoinfutures extends kucoin {
         ];
     }
 
-    async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
-        // Only here to overwrite superclass method
-        throw new ExchangeError ('fetchL3OrderBook is not available using ' + this.id);
+    async createDepositAddress (code, params = {}) {
+        throw new BadRequest (this.id + ' has no method fetchAccounts');
     }
 
-    async transferIn (code, amount, params = {}) {
-        // transfer from spot wallet to usdm futures wallet
-        return await this.futuresTransfer (code, amount, 1, params);
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const currencyId = currency['id'];
+        const request = {
+            'currency': currencyId, // Currency,including XBT,USDT
+        };
+        const response = await this.futuresPrivateGetDepositAddresses (this.extend (request, params));
+        //
+        // {
+        //     "code": "200000",
+        //     "data": {
+        //       "address": "0x78d3ad1c0aa1bf068e19c94a2d7b16c9c0fcd8b1",//Deposit address
+        //       "memo": null//Address tag. If the returned value is null, it means that the requested token has no memo. If you are to transfer funds from another platform to KuCoin Futures and if the token to be transferred has memo(tag), you need to fill in the memo to ensure the transferred funds will be sent to the address you specified. 
+        //     } 
+        // }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'address');
+        const tag = this.safeString (data, 'memo');
+        if (currencyId !== 'NIM') {
+            // contains spaces
+            this.checkAddress (address);
+        }
+        return {
+            'info': response,
+            'currency': currencyId,
+            'address': address,
+            'tag': tag,
+            'network': undefined,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -580,6 +596,10 @@ module.exports = class kucoinfutures extends kucoin {
         const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
+    }
+
+    async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
+        throw new BadRequest (this.id + ' only can only fetch the L2 order book')
     }
 
     parseTicker (ticker, market = undefined) {
@@ -701,6 +721,23 @@ module.exports = class kucoinfutures extends kucoin {
         } else {
             throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
         }
+    }
+
+    async fetchFundingFee (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
+        const data = response['data'];
+        const withdrawFees = {};
+        withdrawFees[code] = this.safeNumber (data, 'withdrawMinFee');
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -1054,13 +1091,88 @@ module.exports = class kucoinfutures extends kucoin {
         };
     }
 
-    async transferIn (code, amount, params = {}) {
-        // transfer from spot wallet to usdm futures wallet
-        return await this.futuresTransfer (code, amount, 1, params);
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        // only fetches one balance at a time
+        // by default it will only fetch the BTC balance of the futures account
+        // you can send 'currency' in params to fetch other currencies
+        // fetchBalance ({ 'type': 'futures', 'currency': 'USDT' })
+        const response = await this.futuresPrivateGetAccountOverview (params);
+        //
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             accountEquity: 0.00005,
+        //             unrealisedPNL: 0,
+        //             marginBalance: 0.00005,
+        //             positionMargin: 0,
+        //             orderMargin: 0,
+        //             frozenFunds: 0,
+        //             availableBalance: 0.00005,
+        //             currency: 'XBT'
+        //         }
+        //     }
+        //
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const data = this.safeValue (response, 'data');
+        const currencyId = this.safeString (data, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'availableBalance');
+        account['total'] = this.safeString (data, 'accountEquity');
+        result[code] = account;
+        return this.parseBalance (result);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        if ((fromAccount !== 'spot' && fromAccount !== 'trade' && fromAccount !== 'trading') || (toAccount !== 'futures' && toAccount !== 'contract')) {
+            throw new BadRequest (this.id + ' only supports transfers from contract(futures) account to trade(spot) account');
+        }
+        this.transferOut (code, amount, params);
     }
 
     async transferOut (code, amount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const currencyId = currency['id'];
+        const request = {
+            'currency': currencyId, // Currency,including XBT,USDT
+        };
         // transfer from usdm futures wallet to spot wallet
-        return await this.futuresTransfer (code, amount, 2, params);
+        const response =  await this.privateFuturesTransferOut (this.extend (request, params));
+        //
+        // { 
+        //     "code": "200000",
+        //     "data": {
+        //       "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }  
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        return {
+            'info': response,
+            'id': data['applyId'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
+            'amount': amount,
+            'fromAccount': 'futures',
+            'toAccount': 'spot',
+            'status': undefined,
+        };
     }
+
+    // inherits: fetchClosedOrders, fetchOpenOrders, nonce, loadTimeDifference, sign, handleErrors, fetchDeposits, withdraw, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchTicker, fetchStatus
+
+    // fetchMyTrades
+    // fetchTrades
+    // parseTrade
+    // parseLedgerEntryType
+    // parseLedgerEntry
+    // fetchLedger
+
 };

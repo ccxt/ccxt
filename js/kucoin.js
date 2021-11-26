@@ -36,8 +36,8 @@ module.exports = class kucoin extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFee': true,
-                'fetchFundingHistory': true,
+                'fetchFundingFee': false,
+                'fetchFundingHistory': false,
                 'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': false,
                 'fetchL3OrderBook': true,
@@ -426,7 +426,11 @@ module.exports = class kucoin extends Exchange {
     }
 
     async loadTimeDifference (params = {}) {
-        const response = await this.publicGetTimestamp (params);
+        const method = this.getSupportedMapping (this.id, {
+            'kucoin': 'publicGetTimestamp',
+            'kucoinfutures': 'futuresPublicGetTimestamp',
+        });
+        const response = await this[method] (params);
         const after = this.milliseconds ();
         const kucoinTime = this.safeInteger (response, 'data');
         this.options['timeDifference'] = parseInt (after - kucoinTime);
@@ -446,7 +450,11 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.publicGetStatus (params);
+        const method = this.getSupportedMapping (this.id, {
+            'kucoin': 'publicGetStatus',
+            'kucoinfutures': 'futuresPublicGetStatus',
+        });
+        const response = await this[method] (params);
         //
         //     {
         //         "code":"200000",
@@ -685,23 +693,6 @@ module.exports = class kucoin extends Exchange {
         return result;
     }
 
-    async fetchFundingFee (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
-        const data = response['data'];
-        const withdrawFees = {};
-        withdrawFees[code] = this.safeNumber (data, 'withdrawMinFee');
-        return {
-            'info': response,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        };
-    }
-
     isFuturesMethod (methodName, params) {
         //
         // Helper
@@ -866,7 +857,11 @@ module.exports = class kucoin extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetMarketStats (this.extend (request, params));
+        const method = this.getSupportedMapping (this.id, {
+            'kucoin': 'publicGetMarketStats',
+            'kucoinfutures': 'futuresPublicGetTicker',
+        });
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
@@ -1770,7 +1765,7 @@ module.exports = class kucoin extends Exchange {
         }
         const tag = this.safeString (transaction, 'memo');
         let timestamp = this.safeInteger2 (transaction, 'createdAt', 'createAt');
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString2 (transaction, 'id', 'withdrawelId');
         let updated = this.safeInteger (transaction, 'updatedAt');
         const isV1 = !('createdAt' in transaction);
         // if it's a v1 structure
@@ -1817,10 +1812,13 @@ module.exports = class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = 'privateGetDeposits';
+        let method = this.getSupportedMapping (this.id, {
+            'kucoin': 'privateGetDeposits',
+            'kucoinfutures': 'futuresPrivateGetDepositList',
+        });
         if (since !== undefined) {
             // if since is earlier than 2019-02-18T00:00:00Z
-            if (since < 1550448000000) {
+            if (since < 1550448000000 && this.id === 'kucoin') {
                 request['startAt'] = parseInt (since / 1000);
                 method = 'privateGetHistDeposits';
             } else {
@@ -1881,10 +1879,13 @@ module.exports = class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = 'privateGetWithdrawals';
+        let method = this.getSupportedMapping (this.id, {
+            'kucoin': 'privateGetWithdrawals',
+            'kucoinfutures': 'futuresPrivateGetWithdrawalList',
+        });
         if (since !== undefined) {
             // if since is earlier than 2019-02-18T00:00:00Z
-            if (since < 1550448000000) {
+            if (since < 1550448000000 && this.id === 'kucoin') {
                 request['startAt'] = parseInt (since / 1000);
                 method = 'privateGetHistWithdrawals';
             } else {
@@ -1946,77 +1947,40 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');
-        if ((type === 'contract') || (type === 'futures')) {
-            // futures api requires a futures apiKey
-            // only fetches one balance at a time
-            // by default it will only fetch the BTC balance of the futures account
-            // you can send 'currency' in params to fetch other currencies
-            // fetchBalance ({ 'type': 'futures', 'currency': 'USDT' })
-            const response = await this.futuresPrivateGetAccountOverview (params);
-            //
-            //     {
-            //         code: '200000',
-            //         data: {
-            //             accountEquity: 0.00005,
-            //             unrealisedPNL: 0,
-            //             marginBalance: 0.00005,
-            //             positionMargin: 0,
-            //             orderMargin: 0,
-            //             frozenFunds: 0,
-            //             availableBalance: 0.00005,
-            //             currency: 'XBT'
-            //         }
-            //     }
-            //
-            const result = {
-                'info': response,
-                'timestamp': undefined,
-                'datetime': undefined,
-            };
-            const data = this.safeValue (response, 'data');
-            const currencyId = this.safeString (data, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (data, 'availableBalance');
-            account['total'] = this.safeString (data, 'accountEquity');
-            result[code] = account;
-            return this.safeBalance (result);
-        } else {
-            const request = {
-                'type': type,
-            };
-            const response = await this.privateGetAccounts (this.extend (request, params));
-            //
-            //     {
-            //         "code":"200000",
-            //         "data":[
-            //             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
-            //             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
-            //             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
-            //         ]
-            //     }
-            //
-            const data = this.safeValue (response, 'data', []);
-            const result = {
-                'info': response,
-                'timestamp': undefined,
-                'datetime': undefined,
-            };
-            for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
-                const balanceType = this.safeString (balance, 'type');
-                if (balanceType === type) {
-                    const currencyId = this.safeString (balance, 'currency');
-                    const code = this.safeCurrencyCode (currencyId);
-                    const account = this.account ();
-                    account['total'] = this.safeString (balance, 'balance');
-                    account['free'] = this.safeString (balance, 'available');
-                    account['used'] = this.safeString (balance, 'holds');
-                    result[code] = account;
-                }
+        const request = {
+            'type': type,
+        };
+        const response = await this.privateGetAccounts (this.extend (request, params));
+        //
+        //     {
+        //         "code":"200000",
+        //         "data":[
+        //             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
+        //             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
+        //             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const balanceType = this.safeString (balance, 'type');
+            if (balanceType === type) {
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeString (balance, 'balance');
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'holds');
+                result[code] = account;
             }
-            return this.safeBalance (result);
         }
+        return this.safeBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
