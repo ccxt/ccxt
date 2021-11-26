@@ -30,6 +30,7 @@ module.exports = class huobi extends Exchange {
                 'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -2771,6 +2772,31 @@ module.exports = class huobi extends Exchange {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });
+    }
+
+    async fetchBorrowRates (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetMarginLoanInfo (params);
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'data');
+        const rates = {};
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const currencies = this.safeValue (market, 'currencies');
+            for (let j = 0; j < currencies.length; j++) {
+                const currency = currencies[j];
+                const currencyId = this.safeString (currency, 'currency');
+                const upperCurrencyId = this.safeCurrencyCode (currencyId, 'currency');
+                rates[upperCurrencyId] = {
+                    'currency': upperCurrencyId,
+                    'rate': this.safeNumber (currency, 'actual-rate'),
+                    'span': 86400000,
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                };
+            }
+        }
+        return rates;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
