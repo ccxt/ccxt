@@ -236,6 +236,30 @@ module.exports = class bitflyer extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public) v1
+        //
+        //     {
+        //          "id":2278466664,
+        //          "side":"SELL",
+        //          "price":56810.7,
+        //          "size":0.08798,
+        //          "exec_date":"2021-11-19T11:46:39.323",
+        //          "buy_child_order_acceptance_id":"JRF20211119-114209-236525",
+        //          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
+        //      }
+        //
+        //      {
+        //          "id":2278463423,
+        //          "side":"BUY",
+        //          "price":56757.83,
+        //          "size":0.6003,"exec_date":"2021-11-19T11:28:00.523",
+        //          "buy_child_order_acceptance_id":"JRF20211119-112800-236526",
+        //          "sell_child_order_acceptance_id":"JRF20211119-112734-062017"
+        //      }
+        //
+        //
+        //
         let side = this.safeStringLower (trade, 'side');
         if (side !== undefined) {
             if (side.length < 1) {
