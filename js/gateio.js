@@ -2824,17 +2824,17 @@ module.exports = class gateio extends Exchange {
         return response;
     }
 
-    async fetchBorrowRate (currency, params = {}) {
+    async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
-        currency = this.safeCurrencyCode (currency);
+        const currencyId = this.currency (code)['id'];
         const request = {
-            'currency': currency,
+            'currency': currencyId,
         };
         const response = await this.publicMarginGetFundingBook (this.extend (request, params));
         const rate = response[0];
         const timestamp = this.safeNumber (rate, 'timestamp');
         return {
-            'currency': currency,
+            'currency': currencyId,
             'rate': this.safeNumber (rate, 'rate'),
             'span': 86400000,
             'timestamp': timestamp,

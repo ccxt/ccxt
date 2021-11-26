@@ -3567,18 +3567,18 @@ module.exports = class okex extends Exchange {
         return rates;
     }
 
-    async fetchBorrowRate (currency, params = {}) {
+    async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
-        currency = this.safeCurrencyCode (currency);
+        const currencyId = this.currency (code)['id'];
         const request = {
-            'ccy': currency,
+            'ccy': currencyId,
         };
         const response = await this.privateGetAccountInterestRate (this.extend (request, params));
         const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data');
         const rate = data[0];
         return {
-            'currency': currency,
+            'currency': currencyId,
             'rate': this.safeNumber (rate, 'interestRate'),
             'span': 86400000,
             'timestamp': timestamp,
