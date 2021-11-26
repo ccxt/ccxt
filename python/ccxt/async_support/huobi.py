@@ -74,6 +74,7 @@ class huobi(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -815,6 +816,49 @@ class huobi(Exchange):
         #     {"status":"ok","ts":1637504164707}
         #
         return self.safe_integer_2(response, 'data', 'ts')
+
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "symbol":"btcusdt",
+        #         "actualMakerRate":"0.002",
+        #         "actualTakerRate":"0.002",
+        #         "takerFeeRate":"0.002",
+        #         "makerFeeRate":"0.002"
+        #     }
+        #
+        marketId = self.safe_string(fee, 'symbol')
+        return {
+            'symbol': self.safe_symbol(marketId, market),
+            'maker': self.safe_number(fee, 'actualMakerRate'),
+            'taker': self.safe_number(fee, 'actualTakerRate'),
+        }
+
+    async def fetch_trading_fee(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbols': market['id'],  # trading symbols comma-separated
+        }
+        response = await self.spotPrivateGetV2ReferenceTransactFeeRate(self.extend(request, params))
+        #
+        #     {
+        #         "code":200,
+        #         "data":[
+        #             {
+        #                 "symbol":"btcusdt",
+        #                 "actualMakerRate":"0.002",
+        #                 "actualTakerRate":"0.002",
+        #                 "takerFeeRate":"0.002",
+        #                 "makerFeeRate":"0.002"
+        #             }
+        #         ],
+        #         "success":true
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0, {})
+        return self.parse_trading_fee(first)
 
     async def fetch_trading_limits(self, symbols=None, params={}):
         # self method should not be called directly, use loadTradingLimits() instead
