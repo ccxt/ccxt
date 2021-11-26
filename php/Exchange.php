@@ -3340,7 +3340,7 @@ class Exchange {
                 }
                 $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
             }
-            $cost = Precise::string_mul($multiplyPrice, $contractSize);
+            $cost = Precise::string_mul($multiplyPrice, $filled);
         }
         // support for $market orders
         $orderType = $this->safe_value($order, 'type');
