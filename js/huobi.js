@@ -53,6 +53,7 @@ module.exports = class huobi extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -753,6 +754,14 @@ module.exports = class huobi extends Exchange {
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
+                },
+                'accountsByType': {
+                    'spot': 'pro',
+                    'futures': 'futures',
+                },
+                'typesByAccount': {
+                    'pro': 'spot',
+                    'futures': 'futures',
                 },
             },
             'commonCurrencies': {
@@ -2645,6 +2654,71 @@ module.exports = class huobi extends Exchange {
             'info': response,
             'id': id,
         };
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // transfer
+        //
+        //     {
+        //         "data": 12345,
+        //         "status": "ok"
+        //     }
+        //
+        const id = this.safeString (transfer, 'data');
+        const code = this.safeCurrencyCode (undefined, currency);
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let type = this.safeString (params, 'type');
+        if (type === undefined) {
+            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+            fromAccount = fromAccount.toLowerCase (); // pro, futures
+            toAccount = toAccount.toLowerCase (); // pro, futures
+            const fromId = this.safeString (accountsByType, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount);
+            if (fromId === undefined) {
+                const keys = Object.keys (accountsByType);
+                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+            }
+            if (toId === undefined) {
+                const keys = Object.keys (accountsByType);
+                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+            }
+            type = fromAccount + '-to-' + toAccount;
+        }
+        const request = {
+            'currency': currency['id'],
+            'amount': parseFloat (this.currencyToPrecision (code, amount)),
+            'type': type,
+        };
+        const response = await this.spotPrivatePostFuturesTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "data": 12345,
+        //         "status": "ok"
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        return this.extend (transfer, {
+            'amount': amount,
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
