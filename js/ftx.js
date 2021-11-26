@@ -1816,7 +1816,7 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < result.length; i++) {
             results.push (this.parsePosition (result[i]));
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArray (results, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
