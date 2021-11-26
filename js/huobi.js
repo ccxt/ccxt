@@ -2776,7 +2776,7 @@ module.exports = class huobi extends Exchange {
 
     async fetchBorrowRates (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetMarginLoanInfo (params);
+        const response = await this.spotPrivateGetV1MarginLoanInfo (params);
         const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data');
         const rates = {};
@@ -2786,9 +2786,9 @@ module.exports = class huobi extends Exchange {
             for (let j = 0; j < currencies.length; j++) {
                 const currency = currencies[j];
                 const currencyId = this.safeString (currency, 'currency');
-                const upperCurrencyId = this.safeCurrencyCode (currencyId, 'currency');
-                rates[upperCurrencyId] = {
-                    'currency': upperCurrencyId,
+                const code = this.safeCurrencyCode (currencyId, 'currency');
+                rates[code] = {
+                    'currency': code,
                     'rate': this.safeNumber (currency, 'actual-rate'),
                     'span': 86400000,
                     'timestamp': timestamp,
