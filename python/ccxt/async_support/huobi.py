@@ -77,6 +77,7 @@ class huobi(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -777,6 +778,14 @@ class huobi(Exchange):
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
+                },
+                'accountsByType': {
+                    'spot': 'pro',
+                    'future': 'futures',
+                },
+                'typesByAccount': {
+                    'pro': 'spot',
+                    'futures': 'future',
                 },
             },
             'commonCurrencies': {
@@ -2518,6 +2527,66 @@ class huobi(Exchange):
             'info': response,
             'id': id,
         }
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     {
+        #         "data": 12345,
+        #         "status": "ok"
+        #     }
+        #
+        id = self.safe_string(transfer, 'data')
+        code = self.safe_currency_code(None, currency)
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': None,
+            'datetime': None,
+            'currency': code,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+        }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        type = self.safe_string(params, 'type')
+        if type is None:
+            accountsByType = self.safe_value(self.options, 'accountsByType', {})
+            fromAccount = fromAccount.lower()  # pro, futures
+            toAccount = toAccount.lower()  # pro, futures
+            fromId = self.safe_string(accountsByType, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount)
+            if fromId is None:
+                keys = list(accountsByType.keys())
+                raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+            if toId is None:
+                keys = list(accountsByType.keys())
+                raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+            type = fromAccount + '-to-' + toAccount
+        request = {
+            'currency': currency['id'],
+            'amount': float(self.currency_to_precision(code, amount)),
+            'type': type,
+        }
+        response = await self.spotPrivatePostFuturesTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "data": 12345,
+        #         "status": "ok"
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        return self.extend(transfer, {
+            'amount': amount,
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'

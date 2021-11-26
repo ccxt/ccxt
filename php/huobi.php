@@ -59,6 +59,7 @@ class huobi extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -759,6 +760,14 @@ class huobi extends Exchange {
                 'language' => 'en-US',
                 'broker' => array(
                     'id' => 'AA03022abc',
+                ),
+                'accountsByType' => array(
+                    'spot' => 'pro',
+                    'future' => 'futures',
+                ),
+                'typesByAccount' => array(
+                    'pro' => 'spot',
+                    'futures' => 'future',
                 ),
             ),
             'commonCurrencies' => array(
@@ -2651,6 +2660,71 @@ class huobi extends Exchange {
             'info' => $response,
             'id' => $id,
         );
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     {
+        //         "data" => 12345,
+        //         "status" => "ok"
+        //     }
+        //
+        $id = $this->safe_string($transfer, 'data');
+        $code = $this->safe_currency_code(null, $currency);
+        return array(
+            'info' => $transfer,
+            'id' => $id,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $code,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $type = $this->safe_string($params, 'type');
+        if ($type === null) {
+            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $fromAccount = strtolower($fromAccount); // pro, futures
+            $toAccount = strtolower($toAccount); // pro, futures
+            $fromId = $this->safe_string($accountsByType, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount);
+            if ($fromId === null) {
+                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+                throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+            }
+            if ($toId === null) {
+                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+                throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+            }
+            $type = $fromAccount . '-to-' . $toAccount;
+        }
+        $request = array(
+            'currency' => $currency['id'],
+            'amount' => floatval($this->currency_to_precision($code, $amount)),
+            'type' => $type,
+        );
+        $response = $this->spotPrivatePostFuturesTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "data" => 12345,
+        //         "status" => "ok"
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        return array_merge($transfer, array(
+            'amount' => $amount,
+            'currency' => $code,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
