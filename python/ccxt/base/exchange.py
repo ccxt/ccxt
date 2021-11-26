@@ -2266,8 +2266,7 @@ class Exchange(object):
             if contractSize is not None:
                 inverse = self.safe_value(market, 'inverse', False)
                 if inverse:
-                    # todo: remove constants
-                    multiplyPrice = Precise.string_div('1', price, 8)
+                    multiplyPrice = Precise.string_div('1', price)
                 multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
             cost = Precise.string_mul(multiplyPrice, amount)
         parseFee = self.safe_value(trade, 'fee') is None
@@ -2503,7 +2502,7 @@ class Exchange(object):
             if contractSize is not None:
                 inverse = self.safe_value(market, 'inverse', False)
                 if inverse:
-                    multiplyPrice = Precise.string_div('1', multiplyPrice, 8)
+                    multiplyPrice = Precise.string_div('1', multiplyPrice)
                 multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
             cost = Precise.string_mul(multiplyPrice, filled)
         # support for market orders
