@@ -590,7 +590,7 @@ module.exports = class bitstamp extends Exchange {
         //          "date": "1637845199",
         //          "tid": "209895701",
         //          "amount": "0.00500000",
-        //          "type": "0",
+        //          "type": "0",             // Transaction type: 0 - buy; 1 - sell
         //          "price": "4451.25"
         //      }
         //
@@ -605,12 +605,12 @@ module.exports = class bitstamp extends Exchange {
         //          "usd":  0,
         //          "btc":  0,
         //          "eth": "0.00500000",
-        //          "type": "2",
+        //          "type": "2",                    // Transaction type: 0 - deposit; 1 - withdrawal; 2 - market trade; 14 - sub account transfer; 25 - credited with staked assets; 26 - sent assets to staking; 27 - staking reward; 32 - referral reward; 35 - inter account transfer.
         //          "id":  209895701,
         //          "eur":  0
         //      }
         //
-        // from fetchOrder:
+        // from fetchOrder (private)
         //
         //      {
         //          "fee": "0.11128",
@@ -619,17 +619,17 @@ module.exports = class bitstamp extends Exchange {
         //          "usdt": "22.25625000",
         //          "tid": 209895701,
         //          "eth": "0.00500000",
-        //          "type": 2
+        //          "type": 2                       // Transaction type: 0 - deposit; 1 - withdrawal; 2 - market trade
         //      }
         //
         const id = this.safeString2 (trade, 'id', 'tid');
         let symbol = undefined;
         let side = undefined;
-        let price = this.safeNumber (trade, 'price');
-        let amount = this.safeNumber (trade, 'amount');
+        let priceString = this.safeString (trade, 'price');
+        let amountString = this.safeString (trade, 'amount');
         const orderId = this.safeString (trade, 'order_id');
         const type = undefined;
-        let cost = this.safeNumber (trade, 'cost');
+        let costString = this.safeString (trade, 'cost');
         if (market === undefined) {
             const keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
@@ -646,12 +646,12 @@ module.exports = class bitstamp extends Exchange {
                 market = this.getMarketFromTrade (trade);
             }
         }
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let feeCurrency = undefined;
         if (market !== undefined) {
-            price = this.safeNumber (trade, market['symbolId'], price);
-            amount = this.safeNumber (trade, market['baseId'], amount);
-            cost = this.safeNumber (trade, market['quoteId'], cost);
+            priceString = this.safeString (trade, market['symbolId'], priceString);
+            amountString = this.safeString (trade, market['baseId'], amountString);
+            costString = this.safeString (trade, market['quoteId'], costString);
             feeCurrency = market['quote'];
             symbol = market['symbol'];
         }
@@ -668,10 +668,11 @@ module.exports = class bitstamp extends Exchange {
         }
         // if it is a private trade
         if ('id' in trade) {
-            if (amount !== undefined) {
-                if (amount < 0) {
+            if (amountString !== undefined) {
+                const isAmountNeg = Precise.stringLt (amountString, '0');
+                if (isAmountNeg) {
                     side = 'sell';
-                    amount = -amount;
+                    amountString = Precise.stringNeg (amountString);
                 } else {
                     side = 'buy';
                 }
@@ -684,24 +685,17 @@ module.exports = class bitstamp extends Exchange {
                 side = 'buy';
             }
         }
-        if (cost === undefined) {
-            if (price !== undefined) {
-                if (amount !== undefined) {
-                    cost = price * amount;
-                }
-            }
-        }
-        if (cost !== undefined) {
-            cost = Math.abs (cost);
+        if (costString !== undefined) {
+            costString = Precise.stringAbs (costString);
         }
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -711,11 +705,11 @@ module.exports = class bitstamp extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     parseTradingFee (balances, symbol) {
