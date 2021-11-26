@@ -138,6 +138,7 @@ module.exports = class coinbase extends Exchange {
                     'jumio_face_match_verification_required': AuthenticationError, // 400 Document verification including face match is required to complete this request
                     'unverified_email': AuthenticationError, // 400 User has not verified their email
                     'authentication_error': AuthenticationError, // 401 Invalid auth (generic)
+                    'invalid_authentication_method': AuthenticationError, // 401 API access is blocked for deleted users.
                     'invalid_token': AuthenticationError, // 401 Invalid Oauth token
                     'revoked_token': AuthenticationError, // 401 Revoked Oauth token
                     'expired_token': AuthenticationError, // 401 Expired Oauth token
