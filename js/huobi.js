@@ -757,11 +757,11 @@ module.exports = class huobi extends Exchange {
                 },
                 'accountsByType': {
                     'spot': 'pro',
-                    'futures': 'futures',
+                    'future': 'futures',
                 },
                 'typesByAccount': {
                     'pro': 'spot',
-                    'futures': 'futures',
+                    'futures': 'future',
                 },
             },
             'commonCurrencies': {
