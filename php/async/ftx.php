@@ -1820,7 +1820,7 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($result); $i++) {
             $results[] = $this->parse_position($result[$i]);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array($results, 'symbol', $symbols, false);
     }
 
     public function parse_position($position, $market = null) {

@@ -1753,7 +1753,7 @@ class ftx(Exchange):
         results = []
         for i in range(0, len(result)):
             results.append(self.parse_position(result[i]))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array(results, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
