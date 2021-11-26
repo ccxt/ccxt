@@ -19,7 +19,7 @@ before_install:
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip install ccxt
 - pip install requests[security]
-- git pull --tags
+- git pull --tags --no-rebase
 - phpenv global 7.4.2
 - pecl install ds
 - php -i | grep php.ini
