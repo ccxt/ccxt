@@ -5504,4 +5504,60 @@ module.exports = class binance extends Exchange {
         //
         return response;
     }
+
+    async fetchBorrowInterestHistory (code = undefined, since = undefined, limit = undefined, params = {}) {
+        this.loadMarkets ();
+        const request = {};
+        const defaultType = this.safeString2 (this.options, 'fetchBorrowInterestHistory', 'defaultType', 'margin');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        if (code !== undefined) {
+            request['asset'] = this.currency (code)['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const isolatedSymbol = this.getSupportedMapping (type, {
+            'margin': true,
+            'cross_margin': false,
+        });
+        request['isolatedSymbol'] = isolatedSymbol;
+        const response = await this.sapiGetMarginInterestHistory (this.extend (request, params));
+        //
+        // {
+        //     "rows":[
+        //         {
+        //             "isolatedSymbol": "BNBUSDT", // isolated symbol, will not be returned for crossed margin
+        //             "asset": "BNB",
+        //             "interest": "0.02414667",
+        //             "interestAccuredTime": 1566813600000,
+        //             "interestRate": "0.01600000",
+        //             "principal": "36.22000000",  # TODO: Is this the amount borrowed?
+        //             "type": "ON_BORROW"
+        //         }
+        //     ],
+        //     "total": 1
+        // }
+        //
+        const rows = this.safeValue (response, 'rows');
+        const interestHistory = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const timestamp = this.safeNumber (row, 'interestAccuredTime');
+            interestHistory.push ({
+                'symbol': this.safeString (row, 'isolatedSymbol'), // isolated symbol, will not be returned for crossed margin
+                'currency': this.safeCurrencyCode (row, 'asset'),
+                'interest': this.safeNumber (row, 'interest'),
+                'interestRate': this.safeNumber (row, 'interestRate'),
+                'amountBorrowed': undefined,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': row,
+            });
+        }
+        return interestHistory;
+    }
 };
