@@ -1446,6 +1446,7 @@ module.exports = class Exchange {
                     const quoteId = this.safeString (parts, 1);
                     const base = this.safeCurrencyCode (baseId)
                     const quote = this.safeCurrencyCode (quoteId)
+                    // TODO: What is this? Will this conflict with gateio, okex, and kucoin symbols?
                     const symbol = base + '/' + quote
                     return {
                         'id': marketId,

@@ -1171,17 +1171,12 @@ module.exports = class binance extends Exchange {
         });
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
+    amountToPrecision (symbol, amount) {
+        return super.amountToPrecision (this.getCorrectSymbol (symbol), amount);
     }
 
-    currencyToPrecision (currency, fee) {
-        // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue (this.currencies[currency], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
-        } else {
-            return this.numberToString (fee);
-        }
+    costToPrecision (symbol, cost) {
+        return super.costToPrecision (this.getCorrectSymbol (symbol), cost);
     }
 
     nonce () {
@@ -1510,11 +1505,13 @@ module.exports = class binance extends Exchange {
         }
         const markets = this.safeValue (response, 'symbols', []);
         const result = [];
+        this.oldSymbolMappings = {};
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const spot = (type === 'spot');
             const future = (type === 'future');
             const delivery = (type === 'delivery');
+            const contract = future || delivery;
             const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
@@ -1529,10 +1526,16 @@ module.exports = class binance extends Exchange {
             let symbol = undefined;
             let expiry = undefined;
             if (idSymbol) {
-                symbol = id;
-                expiry = this.safeInteger (market, 'deliveryDate');
+                expiry = this.safeString (market, 'deliveryDate');
+                symbol = base + '/' + quote + ':' + settle + '-' + expiry;
+                this.oldSymbolMappings[id] = symbol;
+                expiry = parseInt (expiry);
+            } else if (contract) { // Already known that it's not delivery
+                symbol = base + '/' + quote + ':' + settle;
+                this.oldSymbolMappings[base + '/' + quote] = symbol;
             } else {
                 symbol = base + '/' + quote;
+                this.oldSymbolMappings[base + '/' + quote] = symbol;
             }
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
@@ -1697,6 +1700,46 @@ module.exports = class binance extends Exchange {
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         return this.safeBalance (result);
+    }
+
+    getCorrectSymbol (symbol) {
+        if (this.markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        if (symbol in this.oldSymbolMappings) {
+            return this.oldSymbolMappings[symbol];
+        } else {
+            return symbol;
+        }
+    }
+
+    getCorrectSymbols (symbols) {
+        if (this.markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        const newSymbols = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            if (symbol in this.oldSymbolMappings) {
+                newSymbols.push (this.oldSymbolMappings[symbol]);
+            } else {
+                newSymbols.push (symbol);
+            }
+        }
+        return newSymbols;
+    }
+
+    market (symbol) {
+        return super.market (this.getCorrectSymbol (symbol));
+    }
+
+    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
+        return super.loadTradingLimits (this.getCorrectSymbols (symbols), reload, params);
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        symbol = this.getCorrectSymbol (symbol);
+        return super.calculateFee (symbol, type, side, amount, price, takerOrMaker, params);
     }
 
     async fetchBalance (params = {}) {
@@ -2077,7 +2120,7 @@ module.exports = class binance extends Exchange {
             method = 'publicGetTickerBookTicker';
         }
         const response = await this[method] (query);
-        return this.parseTickers (response, symbols);
+        return this.parseTickers (response, this.getCorrectSymbols (symbols));
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -2095,7 +2138,7 @@ module.exports = class binance extends Exchange {
         }
         const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
         const response = await this[method] (query);
-        return this.parseTickers (response, symbols);
+        return this.parseTickers (response, this.getCorrectSymbols (symbols));
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -3166,7 +3209,7 @@ module.exports = class binance extends Exchange {
         const tradedCurrency = this.safeCurrencyCode (currencyId);
         const bnb = this.currency ('BNB');
         const earnedCurrency = bnb['code'];
-        const applicantSymbol = earnedCurrency + '/' + tradedCurrency;
+        const applicantSymbol = this.getCorrectSymbol (earnedCurrency + '/' + tradedCurrency);
         let tradedCurrencyIsQuote = false;
         if (applicantSymbol in this.markets) {
             tradedCurrencyIsQuote = true;
@@ -3186,7 +3229,7 @@ module.exports = class binance extends Exchange {
             costString = this.safeString (trade, 'amount');
             side = 'buy';
         } else {
-            symbol = tradedCurrency + '/' + earnedCurrency;
+            symbol = this.getCorrectSymbol (tradedCurrency + '/' + earnedCurrency);
             amountString = this.safeString (trade, 'amount');
             costString = this.safeString (trade, 'transferedAmount');
             side = 'sell';
@@ -4267,7 +4310,7 @@ module.exports = class binance extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, this.getCorrectSymbol (symbol), since, limit);
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
@@ -4290,7 +4333,7 @@ module.exports = class binance extends Exchange {
             const parsed = this.parseFundingRate (entry);
             result.push (parsed);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArray (result, 'symbol', this.getCorrectSymbols (symbols));
     }
 
     parseFundingRate (premiumIndex, market = undefined) {
@@ -4800,7 +4843,7 @@ module.exports = class binance extends Exchange {
         }
         const account = await this[method] (query);
         const result = this.parseAccountPositions (account);
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArray (result, 'symbol', this.getCorrectSymbols (symbols), false);
     }
 
     async fetchPositionsRisk (symbols = undefined, params = {}) {
@@ -4884,7 +4927,7 @@ module.exports = class binance extends Exchange {
             const parsed = this.parsePositionRisk (response[i]);
             result.push (parsed);
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArray (result, 'symbol', this.getCorrectSymbols (symbols), false);
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
