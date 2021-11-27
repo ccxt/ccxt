@@ -2108,7 +2108,8 @@ module.exports = class gateio extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets');
         }
         let request = undefined;
-        if (stopPrice === undefined) {
+        const trigger = this.safeValue (params, 'trigger');
+        if (stopPrice === undefined && trigger === undefined) {
             if (contract) {
                 // contract order
                 request = {
