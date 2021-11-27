@@ -1121,6 +1121,65 @@ module.exports = class ftx extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchAllBalances (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetWalletAllBalances (params);
+        //
+        // {
+        //     "success": true,
+        //     "result": {
+        //       "main": [
+        //         {
+        //           "coin": "USDTBEAR",
+        //           "free": 2320.2,
+        //           "spotBorrow": 0.0,
+        //           "total": 2340.2,
+        //           "usdValue": 2340.2,
+        //           "availableWithoutBorrow": 2320.2
+        //         },
+        //         {
+        //           "coin": "BTC",
+        //           "free": 2.0,
+        //           "spotBorrow": 0.0,
+        //           "total": 3.2,
+        //           "usdValue": 23456.7,
+        //           "availableWithoutBorrow": 2.0
+        //         }
+        //       ],
+        //       "Battle Royale": [
+        //         {
+        //           "coin": "USD",
+        //           "free": 2000.0,
+        //           "spotBorrow": 0.0,
+        //           "total": 2200.0,
+        //           "usdValue": 2200.0,
+        //           "availableWithoutBorrow": 2000.0
+        //         }
+        //       ]
+        //     }
+        // }
+        //
+        const returnObject = {
+            'info': response,
+        };
+        const data = this.safeValue (response, 'result', []);
+        const accounts = Object.keys (data);
+        for (let i = 0; i < accounts.length; i++) {
+            const accountName = accounts[i];
+            const balances = data[accountName];
+            returnObject[accountName] = {};
+            for (let j = 0; j < balances.length; j++) {
+                const balance = balances[j];
+                const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
+                const account = this.account ();
+                account['free'] = this.safeString2 (balance, 'availableWithoutBorrow', 'free');
+                account['total'] = this.safeString (balance, 'total');
+                returnObject[accountName][code] = account;
+            }
+        }
+        return this.parseBalance (returnObject);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'new': 'open',
