@@ -2549,4 +2549,43 @@ module.exports = class ftx extends Exchange {
             return borrowRateHistory;
         }
     }
+
+    async fetchBorrowInterestHistory (code = undefined, since = undefined, limit = undefined, params = {}) {
+        this.loadMarkets ();
+        const request = {};
+        if (since !== undefined) {
+            request['start_time'] = Precise.stringDiv (since, '1000');
+        }
+        const response = await this.privateGetSpotMarginBorrowHistory (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "result": [
+        //       {
+        //         "coin": "BTC",
+        //         "cost": 0.00047864470072,
+        //         "rate": 1.961096e-05,
+        //         "size": 24.407,
+        //         "time": "2020-11-30T12:00:00+00:00"
+        //       }
+        //     ]
+        // }
+        //
+        const result = this.safeValue (response, 'result');
+        const interestHistory = [];
+        for (let i = 0; i < result.length; i++) {
+            const payment = result[i];
+            interestHistory.push ({
+                'symbol': undefined,
+                'currency': this.safeString (payment, 'coin'),
+                'interest': this.safeNumber (payment, 'cost'),
+                'interestRate': this.safeNumber (payment, 'rate'),
+                'amountBorrowed': this.safeNumber (payment, 'size'),
+                'timestamp': undefined,
+                'datetime': this.safeString (payment, 'time'),
+                'info': payment,
+            });
+        }
+        return interestHistory;
+    }
 };
