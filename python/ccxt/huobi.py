@@ -2136,7 +2136,13 @@ class huobi(Exchange):
         request = {
             'account-id': self.accounts[0]['id'],
             'symbol': market['id'],
-            'type': side + '-' + type,
+            'type': side + '-' + type,  # buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            # 'amount': self.amount_to_precision(symbol, amount),  # for buy market orders it's the order cost
+            # 'price': self.price_to_precision(symbol, price),
+            # 'source': 'spot-api',  # optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
+            # 'client-order-id': clientOrderId,  # optional, max 64 chars, must be unique within 8 hours
+            # 'stop-price': self.price_to_precision(symbol, stopPrice),  # trigger price for stop limit orders
+            # 'operator': 'gte',  # gte, lte, trigger price condition
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
         if clientOrderId is None:
