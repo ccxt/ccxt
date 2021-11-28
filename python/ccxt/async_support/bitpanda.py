@@ -15,7 +15,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.precise import Precise
 
 
 class bitpanda(Exchange):
@@ -778,27 +777,23 @@ class bitpanda(Exchange):
         side = self.safe_string_lower_2(trade, 'side', 'taker_side')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        cost = self.safe_number(trade, 'volume')
-        if (cost is None) and (amountString is not None) and (priceString is not None):
-            cost = self.parse_number(Precise.string_mul(amountString, priceString))
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
+        costString = self.safe_string(trade, 'volume')
         marketId = self.safe_string(trade, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        feeCost = self.safe_number(feeInfo, 'fee_amount')
+        feeCostString = self.safe_string(feeInfo, 'fee_amount')
         takerOrMaker = None
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRate = self.safe_number(feeInfo, 'fee_percentage')
+            feeRateString = self.safe_string(feeInfo, 'fee_percentage')
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': feeRate,
+                'rate': feeRateString,
             }
             takerOrMaker = self.safe_string_lower(feeInfo, 'fee_type')
-        return {
+        return self.safe_trade({
             'id': self.safe_string_2(trade, 'trade_id', 'sequence'),
             'order': self.safe_string(trade, 'order_id'),
             'timestamp': timestamp,
@@ -806,13 +801,13 @@ class bitpanda(Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
