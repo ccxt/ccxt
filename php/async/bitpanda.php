@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
 
 class bitpanda extends Exchange {
 
@@ -795,29 +794,24 @@ class bitpanda extends Exchange {
         $side = $this->safe_string_lower_2($trade, 'side', 'taker_side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $cost = $this->safe_number($trade, 'volume');
-        if (($cost === null) && ($amountString !== null) && ($priceString !== null)) {
-            $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-        }
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
+        $costString = $this->safe_string($trade, 'volume');
         $marketId = $this->safe_string($trade, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $feeCost = $this->safe_number($feeInfo, 'fee_amount');
+        $feeCostString = $this->safe_string($feeInfo, 'fee_amount');
         $takerOrMaker = null;
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($feeInfo, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $feeRate = $this->safe_number($feeInfo, 'fee_percentage');
+            $feeRateString = $this->safe_string($feeInfo, 'fee_percentage');
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
-                'rate' => $feeRate,
+                'rate' => $feeRateString,
             );
             $takerOrMaker = $this->safe_string_lower($feeInfo, 'fee_type');
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $this->safe_string_2($trade, 'trade_id', 'sequence'),
             'order' => $this->safe_string($trade, 'order_id'),
             'timestamp' => $timestamp,
@@ -825,13 +819,13 @@ class bitpanda extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
