@@ -194,7 +194,7 @@ The contents of the repository are structured as follows:
 /dist/                     # a folder for the generated browser bundle of CCXT
 /ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
-/doc/                      # Sphinx-generated rst-docs for http://ccxt.readthedocs.io/
+/doc/                      # Sphinx-generated rst-docs for http://docs.ccxt.com/
 /js/                       # the JS version of the library
 /php/                      # PHP ccxt module/package folder
 /python/                   # Python ccxt module/package folder for PyPI
