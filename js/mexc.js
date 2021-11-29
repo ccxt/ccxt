@@ -1531,10 +1531,11 @@ module.exports = class mexc extends Exchange {
         } else if (side === 'sell') {
             orderSide = 'ASK';
         }
-        let orderType = undefined;
-        const uppercaseOrderType = type.toUpperCase ();
-        if (uppercaseOrderType === 'LIMIT') {
+        let orderType = type.toUpperCase ();
+        if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
+        } else if ((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL')) {
+            throw new InvalidOrder (this.id + ' createOrder does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
         }
         const request = {
             'symbol': market['id'],
