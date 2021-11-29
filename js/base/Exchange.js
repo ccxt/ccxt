@@ -1574,7 +1574,7 @@ module.exports = class Exchange {
         }
     }
 
-    reduceFeesByCurrency (fees = undefined, string = false) {
+    reduceFeesByCurrency (fees, string = false) {
         //
         // this function takes a list of fee structures having the following format
         //
