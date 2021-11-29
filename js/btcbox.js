@@ -154,6 +154,7 @@ module.exports = class btcbox extends Exchange {
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
+        //
         //      {
         //          "date":"0",
         //          "price":3,
@@ -199,15 +200,15 @@ module.exports = class btcbox extends Exchange {
         }
         const response = await this.publicGetOrders (this.extend (request, params));
         //
-        // [
-        //      {
-        //          "date":"0",
-        //          "price":3,
-        //          "amount":0.1,
-        //          "tid":"1",
-        //          "type":"buy"
-        //      },
-        // ]
+        //     [
+        //          {
+        //              "date":"0",
+        //              "price":3,
+        //              "amount":0.1,
+        //              "tid":"1",
+        //              "type":"buy"
+        //          },
+        //     ]
         //
         return this.parseTrades (response, market, since, limit);
     }
