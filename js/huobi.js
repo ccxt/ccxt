@@ -2219,6 +2219,7 @@ module.exports = class huobi extends Exchange {
         await this.loadAccounts ();
         const market = this.market (symbol);
         const request = {
+            // spot -----------------------------------------------------------
             'account-id': this.accounts[0]['id'],
             'symbol': market['id'],
             'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
@@ -2228,6 +2229,51 @@ module.exports = class huobi extends Exchange {
             // 'client-order-id': clientOrderId, // optional, max 64 chars, must be unique within 8 hours
             // 'stop-price': this.priceToPrecision (symbol, stopPrice), // trigger price for stop limit orders
             // 'operator': 'gte', // gte, lte, trigger price condition
+            // futures --------------------------------------------------------
+            // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
+            // 'contract_code': market['id'], // optional BTC180914
+            // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'volume': this.amountToPrecision (symbol, amount),
+            //
+            //     direction buy, offset open = open long
+            //     direction sell, offset close = close long
+            //     direction sell, offset open = open short
+            //     direction buy, offset close = close short
+            //
+            // 'direction': side, // true Transaction direction
+            // 'offset': 'string', // open, close
+            // 'lever_rate': 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
+            //
+            //     limit
+            //     opponent // BBO
+            //     post_only
+            //     optimal_5
+            //     optimal_10
+            //     optimal_20
+            //     ioc
+            //     fok
+            //     opponent_ioc // IOC order using the BBO price
+            //     optimal_5_ioc
+            //     optimal_10_ioc
+            //     optimal_20_ioc
+            //     opponent_fok // FOR order using the BBO price
+            //     optimal_5_fok
+            //     optimal_10_fok
+            //     optimal_20_fok
+            //
+            // 'order_price_type': 'limit', // required
+            // 'tp_trigger_price': this.priceToPrecision (symbol, triggerPrice),
+            // 'tp_order_price': this.priceToPrecision (symbol, price),
+            // 'tp_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
+            // 'sl_trigger_price': this.priceToPrecision (symbol, stopLossPrice),
+            // 'sl_order_price': this.priceToPrecision (symbol, price),
+            // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
+            // swap -----------------------------------------------------------
+            //
+            //     ...
+            //
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
