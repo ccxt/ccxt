@@ -1574,27 +1574,87 @@ module.exports = class Exchange {
         }
     }
 
-    reduceFeesByCurrency (fees, string = false) {
+    reduceFeesByCurrency (fees = undefined, string = false) {
+        //
+        // this function takes a list of fee structures having the following format
+        //
+        //     string = true
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': '0.1' },
+        //         { 'currency': 'BTC', 'cost': '0.2'  },
+        //         { 'currency': 'BTC', 'cost': '0.2', 'rate': '0.00123' },
+        //         { 'currency': 'BTC', 'cost': '0.4', 'rate': '0.00123' },
+        //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
+        //         { 'currency': 'USDT', 'cost': '12.3456' },
+        //     ]
+        //
+        //     string = false
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': 0.1 },
+        //         { 'currency': 'BTC', 'cost': 0.2 },
+        //         { 'currency': 'BTC', 'cost': 0.2, 'rate': 0.00123 },
+        //         { 'currency': 'BTC', 'cost': 0.4, 'rate': 0.00123 },
+        //         { 'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456 },
+        //         { 'currency': 'USDT', 'cost': 12.3456 },
+        //     ]
+        //
+        // and returns a reduced fee list, where fees are summed per currency and rate (if any)
+        //
+        //     string = true
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': '0.3'  },
+        //         { 'currency': 'BTC', 'cost': '0.7', 'rate': '0.00123' },
+        //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
+        //         { 'currency': 'USDT', 'cost': '12.3456' },
+        //     ]
+        //
+        //     string  = false
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': 0.3  },
+        //         { 'currency': 'BTC', 'cost': 0.7, 'rate': 0.00123 },
+        //         { 'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456 },
+        //         { 'currency': 'USDT', 'cost': 12.3456 },
+        //     ]
+        //
         const reduced = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
-            const feeCurrencyCode = this.safeValue (fee, 'currency');
+            const feeCurrencyCode = this.safeString (fee, 'currency');
             if (feeCurrencyCode !== undefined) {
-                if (feeCurrencyCode in reduced) {
+                const rate = this.safeString (fee, 'rate');
+                const cost = this.safeValue (fee, 'cost');
+                if (!(feeCurrencyCode in reduced)) {
+                    reduced[feeCurrencyCode] = {};
+                }
+                const rateKey = (rate === undefined) ? '' : rate;
+                if (rateKey in reduced[feeCurrencyCode]) {
                     if (string) {
-                        reduced[feeCurrencyCode]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode]['cost'], fee['cost']);
+                        reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                     } else {
-                        reduced[feeCurrencyCode]['cost'] = this.sum (reduced[feeCurrencyCode]['cost'], fee['cost']);
+                        reduced[feeCurrencyCode][rateKey]['cost'] = this.sum (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                     }
                 } else {
-                    reduced[feeCurrencyCode] = {
-                        'cost': string ? fee['cost'] : this.parseNumber (fee['cost']),
+                    reduced[feeCurrencyCode][rateKey] = {
                         'currency': feeCurrencyCode,
+                        'cost': string ? cost : this.parseNumber (cost),
                     };
+                    if (rate !== undefined) {
+                        reduced[feeCurrencyCode][rateKey]['rate'] = string ? rate : this.parseNumber (rate);
+                    }
                 }
             }
         }
-        return Object.values (reduced);
+        let result = [];
+        const feeValues = Object.values (reduced);
+        for (let i = 0; i < feeValues.length; i++) {
+            const reducedFeeValues = Object.values (feeValues[i]);
+            result = this.arrayConcat (result, reducedFeeValues);
+        }
+        return result;
     }
 
     safeTrade (trade, market = undefined) {
