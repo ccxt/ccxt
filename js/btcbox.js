@@ -162,9 +162,6 @@ module.exports = class btcbox extends Exchange {
         //          "type":"buy"
         //      }
         //
-        //
-        //
-        //
         const timestamp = this.safeTimestamp (trade, 'date');
         let symbol = undefined;
         if (market !== undefined) {
