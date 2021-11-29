@@ -66,7 +66,9 @@ cd ccxt.pro
 npm install
 
 # Step 4: Build the CCXT Pro library with Node.js and NPM
-npm run build
+# This step is optional, you don't have to build the library if you just want to install it.
+# The build-step is only necessary if you're making your own edited custom build.
+# npm run build
 
 # Step 5: Make an NPM link to CCXT Pro
 npm link
@@ -196,7 +198,9 @@ cd ccxt.pro
 # ...
 
 # Step 3: Build the CCXT Pro library with Node.js and NPM
-npm run build
+# This step is optional, you don't have to build the library if you just want to install it.
+# The build-step is only necessary if you're making your own edited custom build.
+# npm run build
 
 # Step 4: Build the CCXT Pro PHP Composer package from the local repository
 composer install --ignore-platform-reqs
