@@ -358,9 +358,6 @@ class btcturk extends Exchange {
         $order = $this->safe_string($trade, 'orderId');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = Precise::string_abs($this->safe_string($trade, 'amount'));
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
         $side = $this->safe_string_2($trade, 'side', 'orderType');
@@ -369,11 +366,11 @@ class btcturk extends Exchange {
         if ($feeAmountString !== null) {
             $feeCurrency = $this->safe_string($trade, 'denominatorSymbol');
             $fee = array(
-                'cost' => $this->parse_number(Precise::string_abs($feeAmountString)),
+                'cost' => Precise::string_abs($feeAmountString),
                 'currency' => $this->safe_currency_code($feeCurrency),
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $order,
@@ -383,11 +380,11 @@ class btcturk extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
