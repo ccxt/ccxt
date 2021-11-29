@@ -1246,13 +1246,7 @@ module.exports = class phemex extends Exchange {
                 };
             }
         }
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        if (costString === undefined) {
-            costString = Precise.stringMul (priceString, amountString);
-        }
-        const cost = this.parseNumber (costString);
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'symbol': symbol,
@@ -1262,11 +1256,11 @@ module.exports = class phemex extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     parseSpotBalance (response) {
