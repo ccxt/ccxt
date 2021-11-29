@@ -1465,10 +1465,11 @@ class mexc(Exchange):
             orderSide = 'BID'
         elif side == 'sell':
             orderSide = 'ASK'
-        orderType = None
-        uppercaseOrderType = type.upper()
-        if uppercaseOrderType == 'LIMIT':
+        orderType = type.upper()
+        if orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
+        elif (orderType != 'POST_ONLY') and (orderType != 'IMMEDIATE_OR_CANCEL'):
+            raise InvalidOrder(self.id + ' createOrder does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL')
         request = {
             'symbol': market['id'],
             'price': self.price_to_precision(symbol, price),
