@@ -581,8 +581,8 @@ class bitvavo extends Exchange {
         //         $orderId => '85d082e1-eda4-4209-9580-248281a29a9a',
         //         fillId => '861d2da5-aa93-475c-8d9a-dce431bd4211',
         //         $side => 'sell',
-        //         $amount => '0.1',
-        //         $price => '211.46',
+        //         amount => '0.1',
+        //         price => '211.46',
         //         $taker => true,
         //         $fee => '0.056',
         //         feeCurrency => 'EUR'
@@ -590,9 +590,6 @@ class bitvavo extends Exchange {
         //
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string($trade, 'side');
         $id = $this->safe_string_2($trade, 'id', 'fillId');
@@ -603,18 +600,18 @@ class bitvavo extends Exchange {
         if ($taker !== null) {
             $takerOrMaker = $taker ? 'taker' : 'maker';
         }
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
         $orderId = $this->safe_string($trade, 'orderId');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'symbol' => $symbol,
@@ -624,11 +621,11 @@ class bitvavo extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
