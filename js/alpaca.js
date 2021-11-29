@@ -19,9 +19,14 @@ module.exports = class alpaca extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/26471228/142237130-8f3a06c5-7e35-4fa1-9a82-28ac25795490.jpg',
                 'www': 'https://alpaca.markets',
                 'api': {
-                    'public': 'https://{subdomain}.alpaca.markets/{version}',
-                    'private': 'https://{subdomain}.alpaca.markets/{version}',
-                    'cryptoPrivate': 'https://{subdomain}.alpaca.markets/{version}',
+                    'public': 'https://api.alpaca.markets/{version}',
+                    'private': 'https://api.alpaca.markets/{version}',
+                    'cryptoPrivate': 'https://data.alpaca.markets/{version}',
+                },
+                'test': {
+                    'public': 'https://paper-api.alpaca.markets/{version}',
+                    'private': 'https://paper-api.alpaca.markets/{version}',
+                    'cryptoPrivate': 'https://data.alpaca.markets/{version}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
                 'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
@@ -76,11 +81,6 @@ module.exports = class alpaca extends Exchange {
                     'public': 'v2',
                     'private': 'v2',
                     'cryptoPrivate': 'v1beta1', // crypto beta
-                },
-                'subdomain': {
-                    'public': 'api',
-                    'private': 'api',
-                    'cryptoPrivate': 'data',
                 },
                 'defaultExchange': 'CBSE',
                 'exchanges': [
@@ -625,12 +625,10 @@ module.exports = class alpaca extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const subdomains = this.safeValue (this.options, 'subdomain');
-        const subdomain = this.safeValue (subdomains, api);
         const versions = this.safeValue (this.options, 'versions');
         const version = this.safeString (versions, api);
         let endpoint = '/' + this.implodeParams (path, params);
-        let url = this.implodeParams (this.urls['api'][api], { 'subdomain': subdomain, 'version': version });
+        let url = this.implodeParams (this.urls['api'][api], { 'version': version });
         headers = (headers !== undefined) ? headers : {};
         if ((api === 'private') || (api === 'cryptoPrivate')) {
             headers['APCA-API-KEY-ID'] = this.apiKey;
