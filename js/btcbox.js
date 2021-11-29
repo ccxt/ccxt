@@ -274,7 +274,7 @@ module.exports = class btcbox extends Exchange {
         //         "amount_original":1.2,
         //         "amount_outstanding":1.2,
         //         "status":"closed",
-        //         "trades":[]                       // no clarification of trade value structure of order endpoint
+        //         "trades":[] // no clarification of trade value structure of order endpoint
         //     }
         //
         const id = this.safeString (order, 'id');
