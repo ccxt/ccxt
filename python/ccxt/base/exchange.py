@@ -2269,7 +2269,7 @@ class Exchange(object):
         #
         #     [
         #         {'currency': 'BTC', 'cost': '0.3'  },
-        #         {'currency': 'BTC', 'cost': '0.7', 'rate': '0.00123'},
+        #         {'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123'},
         #         {'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456'},
         #         {'currency': 'USDT', 'cost': '12.3456'},
         #     ]
@@ -2278,7 +2278,7 @@ class Exchange(object):
         #
         #     [
         #         {'currency': 'BTC', 'cost': 0.3  },
-        #         {'currency': 'BTC', 'cost': 0.7, 'rate': 0.00123},
+        #         {'currency': 'BTC', 'cost': 0.6, 'rate': 0.00123},
         #         {'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456},
         #         {'currency': 'USDT', 'cost': 12.3456},
         #     ]

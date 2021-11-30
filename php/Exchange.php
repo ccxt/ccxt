@@ -3028,7 +3028,7 @@ class Exchange {
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => '0.3'  ),
-        //         array( 'currency' => 'BTC', 'cost' => '0.7', 'rate' => '0.00123' ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.6', 'rate' => '0.00123' ),
         //         array( 'currency' => 'BTC', 'cost' => '0.5', 'rate' => '0.00456' ),
         //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
         //     )
@@ -3037,7 +3037,7 @@ class Exchange {
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => 0.3  ),
-        //         array( 'currency' => 'BTC', 'cost' => 0.7, 'rate' => 0.00123 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.6, 'rate' => 0.00123 ),
         //         array( 'currency' => 'BTC', 'cost' => 0.5, 'rate' => 0.00456 ),
         //         array( 'currency' => 'USDT', 'cost' => 12.3456 ),
         //     )
