@@ -442,7 +442,7 @@ module.exports = class cryptocom extends Exchange {
             'instrument_name': this.marketId (symbol),
         };
         if (limit) {
-            request.depth = limit;
+            request['depth'] = limit;
         }
         const response = await this.publicGetPublicGetBook (this.extend (request, params));
         // {
