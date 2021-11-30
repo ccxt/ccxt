@@ -477,7 +477,7 @@ class kraken(Exchange):
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': math.pow(10, precision['amount']),
+                        'max': None,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),

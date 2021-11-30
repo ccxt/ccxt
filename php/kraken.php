@@ -467,7 +467,7 @@ class kraken extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => $minAmount,
-                        'max' => pow(10, $precision['amount']),
+                        'max' => null,
                     ),
                     'price' => array(
                         'min' => pow(10, -$precision['price']),
