@@ -224,7 +224,7 @@ exchange = ccxt.poloniex({
     #
     # ↓ The "proxy" property setting below is for CORS-proxying only!
     # Do not use it if you don't know what a CORS proxy is.
-    # https://docs.ccxt.com/Install#cors-access-control-allow-origin
+    # https://docs.ccxt.com/en/latest/install.html#cors-access-control-allow-origin
     # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
     # In Python you rarely need to use it, if ever at all.
     #
@@ -268,7 +268,7 @@ async def test_gdax():
         #
         # ↓ The "proxy" property setting below is for CORS-proxying only!
         # Do not use it if you don't know what a CORS proxy is.
-        # https://docs.ccxt.com/Install#cors-access-control-allow-origin
+        # https://docs.ccxt.com/en/latest/install.html#cors-access-control-allow-origin
         # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
         # In Python you rarely need to use it, if ever at all.
         #
