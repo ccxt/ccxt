@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -153,6 +152,17 @@ module.exports = class btcbox extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "date":"0",
+        //          "price":3,
+        //          "amount":0.1,
+        //          "tid":"1",
+        //          "type":"buy"
+        //      }
+        //
         const timestamp = this.safeTimestamp (trade, 'date');
         let symbol = undefined;
         if (market !== undefined) {
@@ -161,12 +171,9 @@ module.exports = class btcbox extends Exchange {
         const id = this.safeString (trade, 'tid');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const type = undefined;
         const side = this.safeString (trade, 'type');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': undefined,
@@ -176,11 +183,11 @@ module.exports = class btcbox extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -192,6 +199,17 @@ module.exports = class btcbox extends Exchange {
             request['coin'] = market['baseId'];
         }
         const response = await this.publicGetOrders (this.extend (request, params));
+        //
+        //     [
+        //          {
+        //              "date":"0",
+        //              "price":3,
+        //              "amount":0.1,
+        //              "tid":"1",
+        //              "type":"buy"
+        //          },
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -254,7 +272,7 @@ module.exports = class btcbox extends Exchange {
         //         "amount_original":1.2,
         //         "amount_outstanding":1.2,
         //         "status":"closed",
-        //         "trades":[]
+        //         "trades":[] // no clarification of trade value structure of order endpoint
         //     }
         //
         const id = this.safeString (order, 'id');
@@ -317,6 +335,18 @@ module.exports = class btcbox extends Exchange {
             'coin': market['baseId'],
         }, params);
         const response = await this.privatePostTradeView (this.extend (request, params));
+        //
+        //      {
+        //          "id":11,
+        //          "datetime":"2014-10-21 10:47:20",
+        //          "type":"sell",
+        //          "price":42000,
+        //          "amount_original":1.2,
+        //          "amount_outstanding":1.2,
+        //          "status":"closed",
+        //          "trades":[]
+        //      }
+        //
         return this.parseOrder (response, market);
     }
 
@@ -332,6 +362,18 @@ module.exports = class btcbox extends Exchange {
             'coin': market['baseId'],
         };
         const response = await this.privatePostTradeList (this.extend (request, params));
+        //
+        // [
+        //      {
+        //          "id":"7",
+        //          "datetime":"2014-10-20 13:27:38",
+        //          "type":"buy",
+        //          "price":42750,
+        //          "amount_original":0.235,
+        //          "amount_outstanding":0.235
+        //      },
+        // ]
+        //
         const orders = this.parseOrders (response, market, since, limit);
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
