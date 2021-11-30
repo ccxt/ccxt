@@ -27,6 +27,23 @@ class bitwyre(Exchange):
             'countries': ['ID'],  # Indonesia
             'has': {
                 'fetchTime': True,
+                'CORS': None,
+                'createMarketOrder': None,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': None,
+                'fetchMarkets': True,
+                'fetchMyTrades': None,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': None,
+                'fetchTime': True,
+                'fetchTrades': None,
+                'withdraw': None
             },
             'version': '1.0',
             'urls': {
@@ -36,8 +53,8 @@ class bitwyre(Exchange):
                     'private': 'https://api.bitwyre.net/private',
                 },
                 'api': {
-                    'public': 'http://0.0.0.0:3001/public',
-                    'private': 'http://0.0.0.0:3002/private',
+                    'public': 'https://api.bitwyre.id/public',
+                    'private': 'https://api.bitwyre.id/private',
                 },
                 'www': 'https://www.bitwyre.com',
                 'doc': 'https://docs.bitwyre.com',
@@ -46,9 +63,11 @@ class bitwyre(Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'assets',
                         'contract',
                         'depth',
                         'orderlag',
+                        'pairs',
                         'ticker',
                         'time',
                         'throughput',
@@ -68,7 +87,7 @@ class bitwyre(Exchange):
                         'orders/open'
                     ],
                     'post': [
-                        'orders'
+                        'orders',
                         'account/deposit/crypto'
                     ]
                 },
@@ -134,22 +153,75 @@ class bitwyre(Exchange):
         return self.nanoseconds() - self.options['timeDifference']
     
     def fetch_markets(self, params={}):
-        response = self.publicGetPairs(params)
+        params_pairs_spot = {
+            "market": "crypto",
+            "product": "spot",
+            "country": "id"
+        }
+        response_pairs_spot = self.publicGetPairs(params_pairs_spot)
+        result = self.safe_value(response_pairs_spot, 'result', {})
 
-    def fetch_orderlag(self, params={}):
-        params_keys = set(params.keys())
-        valid_keys = set(["instrument"])
-        invalid_keys = params_keys - valid_keys
-        if invalid_keys:
-            raise BadSymbol(self.id + ': Invalid parameter(s) ' + str(list(invalid_keys)))
+        params_pairs_stablecoins = {
+            "market": "stablecoin",
+            "product": "spot",
+            "country": "id"
+        }
+        response_pairs_stablecoins = self.publicGetPairs(params_pairs_stablecoins)
+        result_pairs_stablecoins = self.safe_value(response_pairs_stablecoins, 'result', {})
+
+        params_asset = {}
+        response_asset = self.publicGetAssets(params_asset)
+        result_asset = self.safe_value(response_asset, 'result', {})
+        asset_map = {}
+        for asset_dict in result_asset:
+            asset = self.safe_string_lower(asset_dict, 'asset', "")
+            asset_map[asset] = asset_dict
+
+        result.extend(result_pairs_stablecoins)
+        for pairs_market in result:
+            instrument = self.safe_string_lower(pairs_market, 'instrument', "")
+            base_quote = instrument.split('_')[0]
+            
+            if base_quote in asset_map:
+                pairs_market.update(asset_map[base_quote])
         
-        instrument = self.safe_string(params, 'instrument')
+        # [
+        #     {
+        #         "instrument": "eth_usdt_spot",
+        #         "symbol": "ETH/USDT",
+        #         "asset": "eth",
+        #         "btc_equivalent": "",
+        #         "constant_multiplier": "1000000000",
+        #         "icon_url": "https://robin.bitwyre.id/app/Raster/ETH_125px.png",
+        #         "is_deposit_enabled": true,
+        #         "is_trading_enabled": true,
+        #         "is_withdraw_enabled": true,
+        #         "local_equivalent": "",
+        #         "local_reference": "",
+        #         "max_withdrawal": "1000",
+        #         "min_withdrawal": "0",
+        #         "name": "Ethereum",
+        #         "precision": "1e-9",
+        #         "type": "crypto",
+        #         "withdrawal_fee": "0"
+        #     }
+        # ]
+        return result
+
+    def fetch_orderlag(self, symbol=None, params={}):
+        if symbol is not None:
+            self.load_markets()
+            market = self.market(symbol)
+            instrument = market['instrument']
+            params = {
+                'instrument': instrument,
+            }
         method = 'publicGetOrderlag'
         response = getattr(self, method)(params)
         result = self.safe_value(response, 'result', {})
         error = self.safe_value(response, 'error', [])
         if result == {} or error != []:
-            raise BadSymbol(self.id + ': Invalid pairs ' + instrument + ', Error ' + error)
+            raise BadSymbol(self.id + ': Invalid pairs ' + symbol + ', Error ' + error)
         elif isinstance(result, list):
             try:
                 result = result[0]
@@ -163,21 +235,21 @@ class bitwyre(Exchange):
         #
         return result
 
-    def fetch_throughput(self, params={}):
-        params_keys = set(params.keys())
-        valid_keys = set(["instrument"])
-        invalid_keys = params_keys - valid_keys
-        if invalid_keys:
-            raise BadSymbol(self.id + ': Invalid parameter(s) ' + str(list(invalid_keys)))
-
-        instrument = self.safe_string(params, 'instrument')
+    def fetch_throughput(self, symbol=None, params={}):
+        if symbol is not None:
+            self.load_markets()
+            market = self.market(symbol)
+            instrument = market['instrument']
+            params = {
+                'instrument': instrument,
+            }
         method = 'publicGetThroughput'
         response = getattr(self, method)(params)
         result = self.safe_value(response, 'result', {})
         error = self.safe_value(response, 'error', [])
     
         if result == {} or error != []:
-            raise BadSymbol(self.id + ': Invalid pairs ' + instrument + ', Error ' + str(error))
+            raise BadSymbol(self.id + ': Invalid pairs ' + symbol + ', Error ' + str(error))
         elif isinstance(result, list):
             try:
                 result = result[0]
@@ -231,16 +303,20 @@ class bitwyre(Exchange):
         #
         return result
     
-    def fetch_contract(self, params={}):
-        instrument = self.safe_string(params, 'instrument')
-        if instrument is None:
-            raise ArgumentsRequired(self.id + ' fetchContract() requires instrument parameter')
+    def fetch_contract(self, symbol=None, params={}):
+        if symbol is None:
+            symbol = 'all'
+
+        params = {
+            'instrument': symbol,
+        }
+        
         method = 'publicGetContract'
         response = getattr(self, method)(params)
         result = self.safe_value(response, 'result', {})
         error = self.safe_value(response, 'error', [])
-        if error != []:
-            raise BadRequest(self.id + ': Bad Request with instrument ' + instrument + ', Error ' + str(error))
+        if error != [] or result == {}:
+            raise BadRequest(self.id + ': Bad Request with symbol ' + symbol + ', Error ' + str(error))
         #
         #   {
         #     "24h_volume": null,
@@ -273,19 +349,20 @@ class bitwyre(Exchange):
         #
         return result
     
-    def fetch_depth(self, params={}):
-        instrument = self.safe_string(params, 'instrument')
-        if instrument is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderbook() requires instrument parameter')
-        depth_num = self.safe_string(params, 'depth_num')
-        if depth_num is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderbook() requires depth_num parameter')
+    def fetch_order_book(self, symbol, depth_num, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        instrument = market['instrument']
+        params = {
+            'instrument': instrument,
+            'depth_num': depth_num,
+        }
         method = 'publicGetDepth'
         response = getattr(self, method)(params)
         result = self.safe_value(response, 'result', {})
         error = self.safe_value(response, 'error', [])
         if error != []:
-            raise BadRequest(self.id + ': Bad Request with instrument ' + instrument + ', Error ' + str(error))
+            raise BadRequest(self.id + ': Bad Request with symbol ' + symbol + ', Error ' + str(error))
         # {
         #     "asks": [
         #         [
@@ -319,10 +396,13 @@ class bitwyre(Exchange):
         # }
         return result
     
-    def fetch_ticker(self, params={}):
-        instrument = self.safe_string(params, 'instrument')
-        if instrument is None:
-            raise ArgumentsRequired(self.id + ' fetchDepth() requires instrument parameter')
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        instrument = market['instrument']
+        params = {
+            "instrument": instrument
+        }
         method = 'publicGetTicker'
         response = getattr(self, method)(params)
         result = self.safe_value(response, 'result', {})
@@ -389,16 +469,21 @@ class bitwyre(Exchange):
         # ]
         return result
     
-    def fetch_open_orders(self, params={}):
+    def fetch_open_orders(self, symbol, params={}):
         params_keys = set(params.keys())
-        valid_keys = set(["instrument", "from_time", "to_time"])
+        valid_keys = set(["from_time", "to_time"])
         invalid_keys = params_keys - valid_keys
         if invalid_keys:
             raise BadRequest(self.id + ': Invalid parameter(s) ' + str(list(invalid_keys)))
+
+        self.load_markets()
+        market = self.market(symbol)
+        instrument = market['instrument']
+        instrument_dict = {"instrument": instrument}
+        request = self.extend(instrument_dict, params)
         
-        response = {}
         method = 'privateGetOrdersOpen'
-        response = getattr(self, method)(params)
+        response = getattr(self, method)(request)
         result = self.safe_value(response, 'result', {})
         # {
         #     "usdt_usd_spot": [
@@ -437,16 +522,21 @@ class bitwyre(Exchange):
         # }
         return result
     
-    def fetch_closed_orders(self, params={}):
+    def fetch_closed_orders(self, symbol, params={}):
         params_keys = set(params.keys())
-        valid_keys = set(["instrument", "from_time", "to_time"])
+        valid_keys = set(["from_time", "to_time"])
         invalid_keys = params_keys - valid_keys
         if invalid_keys:
             raise BadRequest(self.id + ': Invalid parameter(s) ' + str(list(invalid_keys)))
         
-        response = {}
+        self.load_markets()
+        market = self.market(symbol)
+        instrument = market['instrument']
+        instrument_dict = {"instrument": instrument}
+        request = self.extend(instrument_dict, params)
+        
         method = 'privateGetOrdersClosed'
-        response = getattr(self, method)(params)
+        response = getattr(self, method)(request)
         result = self.safe_value(response, 'result', {})
         # {
         #     "usdt_usd_spot": [
@@ -584,49 +674,102 @@ class bitwyre(Exchange):
         # ]
         return result
     
-    def create_order(self, symbol, type, side=None, amount=None, price=None, params={}):
-        if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if price is None:
+            if type == 'market':
+                ordtype = 1
+            else:
+                raise ArgumentsRequired(self.id + ' non-market orders must include price parameter')
+        elif type == 'limit':
+            ordtype = 2
+        else:
+            raise ExchangeError(self.id + ' allows market/limit orders only')
+        
+        if side == 'buy':
+            side = 1
+        elif side == 'sell':
+            side = 2
+        else:
+            raise ExchangeError(self.id + ' allows sell/buy side only')
+
         self.load_markets()
         market = self.market(symbol)
-        print("market: ", market)
-        return
-    
-    def cancel_order(self, id, symbol=None, quantity=-1, params={}):
-        if id is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires an id argument')
-        # if symbol is None:
-        #     raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        # self.load_markets()
-        # market = self.market(symbol)
+        instrument = market['instrument']
         request = {
-            'order_id': id,
-            'quantity': quantity,
+            'instrument': instrument,
+            'ordtype': ordtype,
+            'orderqty': amount,
+            'side': side,
+            'price': price
         }
-        return self.privateDeleteOrdersCancel(self.extend(request, params))
-    
-    def cancel_order_per_instrument(self, id, symbol=None, quantity=-1, params={}):
-        if id is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires an id argument')
-        # if symbol is None:
-        #     raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        # self.load_markets()
-        # market = self.market(symbol)
+        method = 'privatePostOrders'
+        response = getattr(self, method)(self.extend(request, params))
+        error = self.safe_value(response, 'error', {})
+        if error != []:
+            raise BadRequest(self.id + ': Bad Order Request: Error '+ str(error))
+        result = self.safe_value(response, 'result', {})
+
+        return result
+
+    def cancel_order(self, symbol, id, quantity=[-1], params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        _ = market['instrument']
         request = {
-            'order_id': id,
-            'quantity': quantity,
+            'order_ids': id,
+            'qtys': quantity,
         }
-        return self.privateDeleteOrdersCancel(self.extend(request, params))
-    
-    def create_crypto_deposit_address(self, params={}):
+        method = 'privateDeleteOrdersCancel'
+        response = getattr(self, method)(self.extend(request, params))
+        result = self.safe_value(response, 'result', {})
+
+        return result
+
+    def cancel_order_per_symbol(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        instrument = market['instrument']
+        request = {
+            'instrument': instrument,
+        }
+        method = 'privateDeleteOrdersCancelInstrumentInstrument'
+        response = getattr(self, method)(self.extend(request, params))
+        result = self.safe_value(response, 'result', {})
+
+        return result
+
+    def fetch_crypto_deposit_address(self, params={}):
         params_keys = set(params.keys())
         valid_keys = set(["asset"])
         invalid_keys = params_keys - valid_keys
         if invalid_keys:
             raise BadRequest(self.id + ': Invalid parameter(s) ' + str(list(invalid_keys)))
+        
+        asset = self.safe_string_lower(params, 'asset')
+        if asset is None:
+            raise ArgumentsRequired(self.id + ' fetchCryptoDepositAddress() requires asset parameter')
+        
+        params_asset = {
+            'type': 'crypto'
+        }
+        response_asset = self.publicGetAssets(params_asset)
+        result_asset = self.safe_value(response_asset, 'result', {})
+        if not any(d['asset'] == asset for d in result_asset):
+            raise BadRequest(self.id + ' fetchCryptoDepositAddress() asset '+ asset +' does not exist')
 
-    def nonce(self):
-        return self.nanoseconds()
+        method = 'privatePostAccountDepositCrypto'
+        response = getattr(self, method)(params)
+        result = self.safe_value(response, 'result', {})
+        # {
+        #     "deposit": {
+        #         "BTC": [
+        #             {
+        #                 "address": "moEZpc8f3aakqK1ckuoN2WpYKbAeGo9xtg"
+        #             }
+        #         ]
+        #     }
+        # }
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
@@ -640,7 +783,6 @@ class bitwyre(Exchange):
             uri_path = '/' + api + '/' + self.implode_params(path, params)
             url += '/' + self.implode_params(path, params)
             params = self.omit(params, self.extract_params(path))
-            print("params: ", params, type(params), "uri_path: ", uri_path)
             if params == {}:
                 payload = None
                 payload_json = self.json(self.json(payload))
@@ -663,7 +805,5 @@ class bitwyre(Exchange):
             if payload is not None:
                 body.update({'payload': self.json(payload)})
             body = self.urlencode(body)
-            print("path: ", path)
-            print(url)
         
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
