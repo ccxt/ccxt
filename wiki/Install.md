@@ -153,7 +153,7 @@ docker run -it ccxt
 
 ## Proxy
 
-In some specific cases you may want a proxy, if you experience issues with [DDoS protection by Cloudflare](https://docs.ccxt.com/en/latest/manual.html#ddos-protection-by-cloudflare) or your network / country / IP is rejected by their filters.
+In some specific cases you may want a proxy, if you experience issues with [DDoS protection by Cloudflare](https://docs.ccxt.com/en/latest/manual.html#ddos-protection-by-cloudflare-incapsula) or your network / country / IP is rejected by their filters.
 
 **Bear in mind that each added intermediary contributes to the overall latency and roundtrip time. Longer delays can result in price slippage.**
 
