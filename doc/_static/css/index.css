@@ -27,6 +27,10 @@ ul.current {
     background: #343131;
 }
 
+.wy-menu .toctree-l1 > a {
+    "border: 0!important;
+}
+
 ul > .toctree-l1.current > ul > .toctree-l2 {
    background: #edf0f2;
 }
@@ -119,6 +123,7 @@ a:visited:not(.icon) {
 .wy-side-scroll {
    scrollbar-width: none;
     -ms-overflow-style: none;
+    overscroll-behavior: contain;
 }
 
 td:first-child {
