@@ -130,7 +130,7 @@ include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
-The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.2+. Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.2+. Read the [Manual](https://docs.ccxt.com) for more details.
 
 ### Docker
 
@@ -153,7 +153,7 @@ docker run -it ccxt
 
 ## Proxy
 
-In some specific cases you may want a proxy, if you experience issues with [DDoS protection by Cloudflare](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare) or your network / country / IP is rejected by their filters.
+In some specific cases you may want a proxy, if you experience issues with [DDoS protection by Cloudflare](https://docs.ccxt.com/en/latest/manual.html#ddos-protection-by-cloudflare-incapsula) or your network / country / IP is rejected by their filters.
 
 **Bear in mind that each added intermediary contributes to the overall latency and roundtrip time. Longer delays can result in price slippage.**
 
@@ -224,7 +224,7 @@ exchange = ccxt.poloniex({
     #
     # ↓ The "proxy" property setting below is for CORS-proxying only!
     # Do not use it if you don't know what a CORS proxy is.
-    # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
+    # https://docs.ccxt.com/Install#cors-access-control-allow-origin
     # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
     # In Python you rarely need to use it, if ever at all.
     #
@@ -268,7 +268,7 @@ async def test_gdax():
         #
         # ↓ The "proxy" property setting below is for CORS-proxying only!
         # Do not use it if you don't know what a CORS proxy is.
-        # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
+        # https://docs.ccxt.com/Install#cors-access-control-allow-origin
         # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
         # In Python you rarely need to use it, if ever at all.
         #
