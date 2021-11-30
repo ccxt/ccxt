@@ -120,6 +120,7 @@ class coincheck extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     'disabled API Key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":"disabled API Key")'
+                    'invalid authentication' => '\\ccxt\\AuthenticationError', // array("success":false,"error":"invalid authentication")
                 ),
                 'broad' => array(),
             ),
@@ -428,6 +429,7 @@ class coincheck extends Exchange {
         }
         //
         //     array("success":false,"error":"disabled API Key")'
+        //     array("success":false,"error":"invalid authentication")
         //
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
