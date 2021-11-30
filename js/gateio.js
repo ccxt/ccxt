@@ -36,7 +36,7 @@ module.exports = class gateio extends Exchange {
                 'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowRate': true,
+                'fetchBorrowRate': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -2822,35 +2822,6 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         return response;
-    }
-
-    async fetchBorrowRate (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.publicMarginGetFundingBook (this.extend (request, params));
-        //
-        // [
-        //     {
-        //          "rate":"0.0003",
-        //          "amount":"6249098.618783217966",
-        //          "days":10
-        //     }
-        //     ...
-        // ]
-        //
-        const rate = this.safeValue (response, 0);
-        const timestamp = this.safeNumber (rate, 'timestamp');
-        return {
-            'currency': code,
-            'rate': this.safeNumber (rate, 'rate'),
-            'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'info': rate,
-        };
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
