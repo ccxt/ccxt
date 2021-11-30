@@ -1433,7 +1433,7 @@ module.exports = class gateio extends Exchange {
         const futures = type === 'futures';
         const swap = type === 'swap';
         const settle = this.safeString (params, 'settle');
-        if ((swap || futures) && !settle) {
+        if ((swap || futures) && (settle === undefined)) {
             request['settle'] = swap ? 'usdt' : 'btc';
         }
         const response = await this[method] (this.extend (request, params));
