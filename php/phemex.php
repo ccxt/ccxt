@@ -1248,13 +1248,7 @@ class phemex extends Exchange {
                 );
             }
         }
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        if ($costString === null) {
-            $costString = Precise::string_mul($priceString, $amountString);
-        }
-        $cost = $this->parse_number($costString);
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'symbol' => $symbol,
@@ -1264,11 +1258,11 @@ class phemex extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function parse_spot_balance($response) {
