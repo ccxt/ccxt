@@ -1437,7 +1437,8 @@ class gateio extends Exchange {
         $request = array();
         $futures = $type === 'futures';
         $swap = $type === 'swap';
-        if (($swap || $futures) && !$params['settle']) {
+        $settle = $this->safe_string($params, 'settle');
+        if (($swap || $futures) && ($settle === null)) {
             $request['settle'] = $swap ? 'usdt' : 'btc';
         }
         $response = $this->$method (array_merge($request, $params));

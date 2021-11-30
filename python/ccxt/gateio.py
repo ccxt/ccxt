@@ -1410,7 +1410,8 @@ class gateio(Exchange):
         request = {}
         futures = type == 'futures'
         swap = type == 'swap'
-        if (swap or futures) and not params['settle']:
+        settle = self.safe_string(params, 'settle')
+        if (swap or futures) and (settle is None):
             request['settle'] = 'usdt' if swap else 'btc'
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_tickers(response, symbols)
