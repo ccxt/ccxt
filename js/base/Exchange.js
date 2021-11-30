@@ -1697,10 +1697,10 @@ module.exports = class Exchange {
             const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
-                reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
+                reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
             }
             if (!parseFee && (reducedLength === 0)) {
-                fee['cost'] = this.parseNumber (this.safeString (fee, 'cost'));
+                fee['cost'] = this.safeNumber (fee, 'cost');
                 reducedFees.push (fee);
             }
             if (parseFees) {
@@ -1711,7 +1711,7 @@ module.exports = class Exchange {
             }
             const tradeFee = this.safeValue (trade, 'fee');
             if (tradeFee !== undefined) {
-                tradeFee['cost'] = this.parseNumber (this.safeString (tradeFee, 'cost'));
+                tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
                 trade['fee'] = tradeFee;
             }
         }
@@ -1860,7 +1860,8 @@ module.exports = class Exchange {
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
         const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
-        const parseFee = this.safeValue (order, 'fee') === undefined;
+        const fee = this.safeValue (order, 'fee');
+        const parseFee = (fee === undefined);
         const parseFees = this.safeValue (order, 'fees') === undefined;
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeValue (order, 'fees', []);
@@ -1926,7 +1927,8 @@ module.exports = class Exchange {
                 reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
             }
             if (!parseFee && (reducedLength === 0)) {
-                reducedFees.push (order['fee']);
+                fee['cost'] = this.safeNumber (fee, 'cost');
+                reducedFees.push (fee);
             }
             if (parseFees) {
                 order['fees'] = reducedFees;
