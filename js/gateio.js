@@ -2213,7 +2213,7 @@ module.exports = class gateio extends Exchange {
                 const rule = (side === 'sell') ? '>=' : '<=';
                 request = {
                     'trigger': {
-                        'price': this.priceToPrecision (symbol, stopPrice),
+                        'price': stopPrice ? this.priceToPrecision (symbol, stopPrice) : '',
                         'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     },
