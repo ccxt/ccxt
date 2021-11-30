@@ -33,7 +33,7 @@ window.addEventListener ('load', function () {
         $faqlinks = $('a.reference.internal[href^="FAQ.html#"]')
     }
     $faqlinks.each (function () {
-        this.innerText = this.innerText.split ('?')[0] + '?';
+        this.parentNode.parentNode.remove ()
     });
     // set the height values for the sticky css property
     const $linkGroups = $links.parents ('ul');
