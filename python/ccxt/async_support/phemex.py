@@ -1209,12 +1209,7 @@ class phemex(Exchange):
                     'rate': self.parse_number(feeRateString),
                     'currency': feeCurrencyCode,
                 }
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        if costString is None:
-            costString = Precise.string_mul(priceString, amountString)
-        cost = self.parse_number(costString)
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'symbol': symbol,
@@ -1224,11 +1219,11 @@ class phemex(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def parse_spot_balance(self, response):
         #
