@@ -1432,7 +1432,7 @@ module.exports = class gateio extends Exchange {
         const request = {};
         const futures = type === 'futures';
         const swap = type === 'swap';
-        const settle = this.safeString (params, 'settle')
+        const settle = this.safeString (params, 'settle');
         if ((swap || futures) && !settle) {
             request['settle'] = swap ? 'usdt' : 'btc';
         }
