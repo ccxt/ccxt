@@ -304,6 +304,8 @@ async function testExchange (exchange) {
     await tests['fetchTransactions'] (exchange, code)
     await tests['fetchDeposits']     (exchange, code)
     await tests['fetchWithdrawals']  (exchange, code)
+    await tests['fetchBorrowRate']   (exchange, code)
+    await tests['fetchBorrowRates']  (exchange, code)
 
     if (exchange.extendedTest) {
 
