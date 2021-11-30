@@ -2298,7 +2298,7 @@ module.exports = class ftx extends Exchange {
             rates[currency] = {
                 'currency': currency,
                 'rate': this.safeNumber (rate, 'previous'),
-                'span': 3600000,
+                'period': 3600000,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'info': rate,
@@ -2315,12 +2315,12 @@ module.exports = class ftx extends Exchange {
         const result = this.safeValue (response, 'result');
         for (let i = 0; i < result.length; i++) {
             const rate = result[i];
-            const coin = rate['coin'];
+            const coin = this.safeCurrencyCode (this.safeString (rate, 'coin'));
             if (coin === currencyId) {
                 return {
                     'currency': currencyId,
                     'rate': this.safeNumber (rate, 'previous'),
-                    'span': 3600000,
+                    'period': 3600000,
                     'timestamp': timestamp,
                     'datetime': this.iso8601 (timestamp),
                     'info': rate,

@@ -4908,12 +4908,12 @@ module.exports = class binance extends Exchange {
             // 'vipLevel': this.safeInteger (params, 'vipLevel'),
         };
         const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
-        const rate = response[0];
+        const rate = this.safeValue (response, 0);
         const timestamp = this.safeNumber (rate, 'timestamp');
         return {
             'currency': currencyId,
             'rate': this.safeNumber (rate, 'dailyInterestRate'),
-            'span': 86400000,
+            'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': response,

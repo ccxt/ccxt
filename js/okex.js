@@ -3558,7 +3558,7 @@ module.exports = class okex extends Exchange {
             rates[currency] = {
                 'currency': currency,
                 'rate': this.safeNumber (rate, 'interestRate'),
-                'span': 86400000,
+                'period': 86400000,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'info': rate,
@@ -3576,11 +3576,11 @@ module.exports = class okex extends Exchange {
         const response = await this.privateGetAccountInterestRate (this.extend (request, params));
         const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data');
-        const rate = data[0];
+        const rate = this.safeValue (data, 0);
         return {
             'currency': currencyId,
             'rate': this.safeNumber (rate, 'interestRate'),
-            'span': 86400000,
+            'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': rate,

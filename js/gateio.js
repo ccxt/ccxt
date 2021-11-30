@@ -2831,12 +2831,12 @@ module.exports = class gateio extends Exchange {
             'currency': currencyId,
         };
         const response = await this.publicMarginGetFundingBook (this.extend (request, params));
-        const rate = response[0];
+        const rate = this.safeValue (response, 0);
         const timestamp = this.safeNumber (rate, 'timestamp');
         return {
             'currency': currencyId,
             'rate': this.safeNumber (rate, 'rate'),
-            'span': 86400000,
+            'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': rate,
