@@ -2826,15 +2826,25 @@ module.exports = class gateio extends Exchange {
 
     async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
-        const currencyId = this.currency (code)['id'];
+        const currency = this.currency (code);
         const request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         };
         const response = await this.publicMarginGetFundingBook (this.extend (request, params));
+        //
+        // [
+        //     {
+        //          "rate":"0.0003",
+        //          "amount":"6249098.618783217966",
+        //          "days":10
+        //     }
+        //     ...
+        // ]
+        //
         const rate = this.safeValue (response, 0);
         const timestamp = this.safeNumber (rate, 'timestamp');
         return {
-            'currency': currencyId,
+            'currency': code,
             'rate': this.safeNumber (rate, 'rate'),
             'period': 86400000,
             'timestamp': timestamp,

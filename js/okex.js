@@ -3549,14 +3549,24 @@ module.exports = class okex extends Exchange {
     async fetchBorrowRates (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccountInterestRate (params);
+        // {
+        //     "code": "0",
+        //     "data": [
+        //         {
+        //             "ccy":"BTC",
+        //             "interestRate":"0.00000833"
+        //         }
+        //         ...
+        //     ],
+        // }
         const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data');
-        const rates = [];
+        const rates = {};
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
-            const currency = this.safeCurrencyCode (this.safeString (rate, 'ccy'));
-            rates[currency] = {
-                'currency': currency,
+            const code = this.safeCurrencyCode (this.safeString (rate, 'ccy'));
+            rates[code] = {
+                'currency': code,
                 'rate': this.safeNumber (rate, 'interestRate'),
                 'period': 86400000,
                 'timestamp': timestamp,
@@ -3569,16 +3579,27 @@ module.exports = class okex extends Exchange {
 
     async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
-        const currencyId = this.currency (code)['id'];
+        const currency = this.currency (code);
         const request = {
-            'ccy': currencyId,
+            'ccy': currency['id'],
         };
         const response = await this.privateGetAccountInterestRate (this.extend (request, params));
+        // {
+        //     "code": "0",
+        //     "data":[
+        //          {
+        //             "ccy":"USDT",
+        //             "interestRate":"0.00002065"
+        //          }
+        //          ...
+        //     ],
+        //     "msg":""
+        // }
         const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data');
         const rate = this.safeValue (data, 0);
         return {
-            'currency': currencyId,
+            'currency': code,
             'rate': this.safeNumber (rate, 'interestRate'),
             'period': 86400000,
             'timestamp': timestamp,

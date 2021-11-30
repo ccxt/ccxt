@@ -2289,14 +2289,27 @@ module.exports = class ftx extends Exchange {
     async fetchBorrowRates (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetSpotMarginBorrowRates ();
+        //
+        // {
+        //     "success":true,
+        //     "result":[
+        //         {
+        //             "coin": "1INCH",
+        //             "previous": 0.0000462375,
+        //             "estimate": 0.0000462375
+        //         }
+        //         ...
+        //     ]
+        // }
+        //
         const timestamp = this.milliseconds ();
         const result = this.safeValue (response, 'result');
-        const rates = [];
+        const rates = {};
         for (let i = 0; i < result.length; i++) {
             const rate = result[i];
-            const currency = this.safeCurrencyCode (this.safeString (rate, 'coin'));
-            rates[currency] = {
-                'currency': currency,
+            const code = this.safeCurrencyCode (this.safeString (rate, 'coin'));
+            rates[code] = {
+                'currency': code,
                 'rate': this.safeNumber (rate, 'previous'),
                 'period': 3600000,
                 'timestamp': timestamp,
@@ -2310,15 +2323,28 @@ module.exports = class ftx extends Exchange {
     async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetSpotMarginBorrowRates (params);
+        //
+        // {
+        //     "success":true,
+        //     "result":[
+        //         {
+        //             "coin": "1INCH",
+        //             "previous": 0.0000462375,
+        //             "estimate": 0.0000462375
+        //         }
+        //         ...
+        //     ]
+        // }
+        //
         const timestamp = this.milliseconds ();
         const currencyId = this.currency (code)['id'];
         const result = this.safeValue (response, 'result');
         for (let i = 0; i < result.length; i++) {
             const rate = result[i];
             const coin = this.safeCurrencyCode (this.safeString (rate, 'coin'));
-            if (coin === currencyId) {
+            if (code === coin) {
                 return {
-                    'currency': currencyId,
+                    'currency': code,
                     'rate': this.safeNumber (rate, 'previous'),
                     'period': 3600000,
                     'timestamp': timestamp,
