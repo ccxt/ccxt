@@ -99,7 +99,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
 
+[Naas.ai CCXT Templates](https://www.naas.ai/tools/ccxt) – Naas notebooks enable you to easily access data, automation and AI.
+
 [Download Cryptocurrency Data with CCXT](https://backtest-rookies.com/2018/03/08/download-cryptocurrency-data-with-ccxt/) – A sample script to download historical data from exchanges with a video overview: [Easy Python script to download crypto currency market data with CCXT package](https://www.youtube.com/watch?v=PTGkJsrF7kQ).
+
+[How to Properly Download and Validate Cryptocurrency Data](https://medium.com/@dmitriy.kavyazin/how-to-properly-download-and-validate-cryptocurrency-data-fa90ac1c5f8b) – An article explaining how to properly obtain cryptocurrency price and volume data for use in trading and statistical modeling (with CCXT).
 
 [ccxt 를 사용하여 가상화폐 데이터 다운로드하기](https://antilibrary.org/2174) – A Korean translation of the above article.
 
