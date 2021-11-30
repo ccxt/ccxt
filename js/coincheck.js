@@ -426,9 +426,7 @@ module.exports = class coincheck extends Exchange {
         }
         //
         //     {"success":false,"error":"disabled API Key"}'
-        //
         //     {"success":false,"error":"invalid authentication"}
-        //
         //
         const success = this.safeValue (response, 'success', true);
         if (!success) {
