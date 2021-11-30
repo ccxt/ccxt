@@ -61,9 +61,9 @@ module.exports = class cryptocom extends Exchange {
                 '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
-                '1d': '1d',
-                '1w': '7d',
-                '2w': '14d',
+                '1d': '1D',
+                '1w': '7D',
+                '2w': '14D',
                 '1M': '1M',
             },
             'urls': {
