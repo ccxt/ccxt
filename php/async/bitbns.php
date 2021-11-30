@@ -677,12 +677,25 @@ class bitbns extends Exchange {
         $orderId = $this->safe_string_2($trade, 'id', 'tradeId');
         $timestamp = $this->parse8601($this->safe_string($trade, 'date'));
         $timestamp = $this->safe_integer($trade, 'timestamp', $timestamp);
-        $amountString = $this->safe_string_2($trade, 'amount', 'base_volume');
         $priceString = $this->safe_string_2($trade, 'rate', 'price');
-        $factor = $this->safe_string($trade, 'factor');
-        $amountScaledString = Precise::string_div($amountString, $factor);
-        $symbol = $market['symbol'];
+        $amountString = $this->safe_string($trade, 'amount');
         $side = $this->safe_string_lower($trade, 'type');
+        if ($side !== null) {
+            if (mb_strpos($side, 'buy') !== false) {
+                $side = 'buy';
+            } else if (mb_strpos($side, 'sell') !== false) {
+                $side = 'sell';
+            }
+        }
+        $factor = $this->safe_string($trade, 'factor');
+        $costString = null;
+        if ($factor !== null) {
+            $amountString = Precise::string_div($amountString, $factor);
+        } else {
+            $amountString = $this->safe_string($trade, 'base_volume');
+            $costString = $this->safe_string($trade, 'quote_volume');
+        }
+        $symbol = $market['symbol'];
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         if ($feeCostString !== null) {
@@ -703,8 +716,8 @@ class bitbns extends Exchange {
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $priceString,
-            'amount' => $amountScaledString,
-            'cost' => null,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
         ), $market);
     }

@@ -655,12 +655,22 @@ class bitbns(Exchange):
         orderId = self.safe_string_2(trade, 'id', 'tradeId')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
         timestamp = self.safe_integer(trade, 'timestamp', timestamp)
-        amountString = self.safe_string_2(trade, 'amount', 'base_volume')
         priceString = self.safe_string_2(trade, 'rate', 'price')
-        factor = self.safe_string(trade, 'factor')
-        amountScaledString = Precise.string_div(amountString, factor)
-        symbol = market['symbol']
+        amountString = self.safe_string(trade, 'amount')
         side = self.safe_string_lower(trade, 'type')
+        if side is not None:
+            if side.find('buy') >= 0:
+                side = 'buy'
+            elif side.find('sell') >= 0:
+                side = 'sell'
+        factor = self.safe_string(trade, 'factor')
+        costString = None
+        if factor is not None:
+            amountString = Precise.string_div(amountString, factor)
+        else:
+            amountString = self.safe_string(trade, 'base_volume')
+            costString = self.safe_string(trade, 'quote_volume')
+        symbol = market['symbol']
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
@@ -680,8 +690,8 @@ class bitbns(Exchange):
             'side': side,
             'takerOrMaker': None,
             'price': priceString,
-            'amount': amountScaledString,
-            'cost': None,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
         }, market)
 
