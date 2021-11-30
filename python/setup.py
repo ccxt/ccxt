@@ -29,7 +29,7 @@ with open(package_json, encoding='utf-8') as f:
 
 project_urls = {
     'Homepage': 'https://ccxt.trade',
-    'Documentation': 'https://ccxt.readthedocs.io/en/latest/manual.html',
+    'Documentation': 'https://docs.ccxt.com/en/latest/manual.html',
     'Discord': 'https://discord.gg/dhzSKYU',
     'Twitter': 'https://twitter.com/ccxt_official',
     'Funding': 'https://opencollective.com/ccxt',

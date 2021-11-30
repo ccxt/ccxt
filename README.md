@@ -5,7 +5,7 @@
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-### [Install](#install) · [Usage](#usage) · [Manual](https://ccxt.readthedocs.io/en/latest/manual.html) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social) · [CCXT Pro](https://ccxt.pro)
+### [Install](#install) · [Usage](#usage) · [Manual](https://docs.ccxt.com/en/latest/manual.html) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social) · [CCXT Pro](https://ccxt.pro)
 
 The **CCXT** library is used to connect and trade with cryptocurrency exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, and related software engineering.
 
@@ -169,7 +169,7 @@ The CCXT library currently supports the following 110 cryptocurrency exchange ma
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                   | zaif               | [Zaif](https://zaif.jp)                                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                  |                                                                                                                             |                                                                              |
 | [![zb](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)](https://www.zbex.club/en/register?ref=4301lera)                                      | zb                 | [ZB](https://www.zbex.club/en/register?ref=4301lera)                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.zb.com/i/developer)                                                       | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 
-The list above is updated frequently, new crypto markets, exchanges, bug fixes, and API endpoints are introduced on a regular basis. See the [Manual](https://ccxt.readthedocs.io/en/latest/manual.html) for more details. If you can't find a cryptocurrency exchange in the list above and want it to be added, post a link to it by opening an issue here on GitHub or send us an email.
+The list above is updated frequently, new crypto markets, exchanges, bug fixes, and API endpoints are introduced on a regular basis. See the [Manual](https://docs.ccxt.com/en/latest/manual.html) for more details. If you can't find a cryptocurrency exchange in the list above and want it to be added, post a link to it by opening an issue here on GitHub or send us an email.
 
 The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
@@ -270,7 +270,7 @@ include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
-The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://ccxt.readthedocs.io/en/latest/manual.html) for more details.
+The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://docs.ccxt.com/en/latest/manual.html) for more details.
 
 ### Docker
 
@@ -288,7 +288,7 @@ You don't need the Docker image if you're not going to develop CCXT. If you just
 
 ## Documentation
 
-Read the [Manual](https://ccxt.readthedocs.io/en/latest/manual.html) for more details.
+Read the [Manual](https://docs.ccxt.com/en/latest/manual.html) for more details.
 
 ## Usage
 
@@ -330,7 +330,7 @@ exchange.methodName ()  // camelcase pseudocode
 exchange.method_name () // underscore pseudocode
 ```
 
-Read the [Manual](https://ccxt.readthedocs.io/en/latest/manual.html) for more details.
+Read the [Manual](https://docs.ccxt.com/en/latest/manual.html) for more details.
 
 ### JavaScript
 
@@ -474,7 +474,7 @@ $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId
 
 ## Contributing
 
-Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://ccxt.readthedocs.io/en/latest/manual.html) for more details.
+Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://docs.ccxt.com/en/latest/manual.html) for more details.
 
 ## Support Developer Team
 
