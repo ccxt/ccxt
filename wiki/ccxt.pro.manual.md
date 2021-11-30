@@ -901,6 +901,6 @@ watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 - this method is a work in progress now (may be unavailable)
 ```
 
-## Error Handling
+### Error Handling
 
 In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/en/latest/manual.html#error-handling) for more details.
