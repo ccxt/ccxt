@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { RateLimitExceeded, BadSymbol, OrderNotFound, ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -474,9 +473,6 @@ module.exports = class bw extends Exchange {
         const timestamp = this.safeTimestamp (trade, 2);
         const priceString = this.safeString (trade, 5);
         const amountString = this.safeString (trade, 6);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 1);
         let symbol = undefined;
         if (marketId !== undefined) {
@@ -495,7 +491,7 @@ module.exports = class bw extends Exchange {
         }
         const sideString = this.safeString (trade, 4);
         const side = (sideString === 'ask') ? 'sell' : 'buy';
-        return {
+        return this.safeTrade ({
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -504,12 +500,12 @@ module.exports = class bw extends Exchange {
             'type': 'limit',
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
