@@ -457,7 +457,7 @@ module.exports = class kraken extends Exchange {
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': Math.pow (10, precision['amount']),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
