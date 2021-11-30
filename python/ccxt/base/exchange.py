@@ -2345,9 +2345,9 @@ class Exchange(object):
             reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
             reducedLength = len(reducedFees)
             for i in range(0, reducedLength):
-                reducedFees[i]['cost'] = self.parse_number(reducedFees[i]['cost'])
+                reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
             if not parseFee and (reducedLength == 0):
-                fee['cost'] = self.parse_number(self.safe_string(fee, 'cost'))
+                fee['cost'] = self.safe_number(fee, 'cost')
                 reducedFees.append(fee)
             if parseFees:
                 trade['fees'] = reducedFees
@@ -2355,7 +2355,7 @@ class Exchange(object):
                 trade['fee'] = reducedFees[0]
             tradeFee = self.safe_value(trade, 'fee')
             if tradeFee is not None:
-                tradeFee['cost'] = self.parse_number(self.safe_string(tradeFee, 'cost'))
+                tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
                 trade['fee'] = tradeFee
         trade['amount'] = self.parse_number(amount)
         trade['price'] = self.parse_number(price)
@@ -2473,7 +2473,8 @@ class Exchange(object):
         parseFilled = (filled is None)
         parseCost = (cost is None)
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
-        parseFee = self.safe_value(order, 'fee') is None
+        fee = self.safe_value(order, 'fee')
+        parseFee = (fee is None)
         parseFees = self.safe_value(order, 'fees') is None
         shouldParseFees = parseFee or parseFees
         fees = self.safe_value(order, 'fees', [])
@@ -2525,7 +2526,8 @@ class Exchange(object):
             for i in range(0, reducedLength):
                 reducedFees[i]['cost'] = self.parse_number(reducedFees[i]['cost'])
             if not parseFee and (reducedLength == 0):
-                reducedFees.append(order['fee'])
+                fee['cost'] = self.safe_number(fee, 'cost')
+                reducedFees.append(fee)
             if parseFees:
                 order['fees'] = reducedFees
             if parseFee and (reducedLength == 1):
@@ -2554,7 +2556,7 @@ class Exchange(object):
                 multiplyPrice = price
             else:
                 multiplyPrice = average
-            # contract trading )
+            # contract trading
             contractSize = self.safe_string(market, 'contractSize')
             if contractSize is not None:
                 inverse = self.safe_value(market, 'inverse', False)
