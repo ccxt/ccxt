@@ -53,8 +53,8 @@ class bitwyre(Exchange):
                     'private': 'https://api.bitwyre.net/private',
                 },
                 'api': {
-                    'public': 'https://api.bitwyre.id/public',
-                    'private': 'https://api.bitwyre.id/private',
+                    'public': 'https://api.bitwyre.com/public',
+                    'private': 'https://api.bitwyre.com/private',
                 },
                 'www': 'https://www.bitwyre.com',
                 'doc': 'https://docs.bitwyre.com',
