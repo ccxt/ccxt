@@ -678,9 +678,9 @@ module.exports = class bitbns extends Exchange {
         let amountString = this.safeString (trade, 'amount');
         let side = this.safeStringLower (trade, 'type');
         if (side !== undefined) {
-            if (side.indexOf ('buy')) {
+            if (side.indexOf ('buy') >= 0) {
                 side = 'buy';
-            } else if (side.indexOf ('sell')) {
+            } else if (side.indexOf ('sell') >= 0) {
                 side = 'sell';
             }
         }
