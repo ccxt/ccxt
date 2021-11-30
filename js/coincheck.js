@@ -117,6 +117,7 @@ module.exports = class coincheck extends Exchange {
             'exceptions': {
                 'exact': {
                     'disabled API Key': AuthenticationError, // {"success":false,"error":"disabled API Key"}'
+                    'invalid authentication': AuthenticationError, // {"success":false,"error":"invalid authentication"}
                 },
                 'broad': {},
             },
@@ -425,6 +426,7 @@ module.exports = class coincheck extends Exchange {
         }
         //
         //     {"success":false,"error":"disabled API Key"}'
+        //     {"success":false,"error":"invalid authentication"}
         //
         const success = this.safeValue (response, 'success', true);
         if (!success) {

@@ -120,6 +120,7 @@ class coincheck(Exchange):
             'exceptions': {
                 'exact': {
                     'disabled API Key': AuthenticationError,  # {"success":false,"error":"disabled API Key"}'
+                    'invalid authentication': AuthenticationError,  # {"success":false,"error":"invalid authentication"}
                 },
                 'broad': {},
             },
@@ -395,6 +396,7 @@ class coincheck(Exchange):
             return
         #
         #     {"success":false,"error":"disabled API Key"}'
+        #     {"success":false,"error":"invalid authentication"}
         #
         success = self.safe_value(response, 'success', True)
         if not success:
