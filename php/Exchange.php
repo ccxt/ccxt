@@ -3090,7 +3090,6 @@ class Exchange {
             if ($contractSize !== null) {
                 $inverse = $this->safe_value($market, 'inverse', false);
                 if ($inverse) {
-                    // todo => remove constants
                     $multiplyPrice = Precise::string_div('1', $price);
                 }
                 $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
@@ -3120,10 +3119,10 @@ class Exchange {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
             $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
             for ($i = 0; $i < $reducedLength; $i++) {
-                $reducedFees[$i]['cost'] = $this->parse_number($reducedFees[$i]['cost']);
+                $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
             }
             if (!$parseFee && ($reducedLength === 0)) {
-                $fee['cost'] = $this->parse_number($this->safe_string($fee, 'cost'));
+                $fee['cost'] = $this->safe_number($fee, 'cost');
                 $reducedFees[] = $fee;
             }
             if ($parseFees) {
@@ -3134,7 +3133,7 @@ class Exchange {
             }
             $tradeFee = $this->safe_value($trade, 'fee');
             if ($tradeFee !== null) {
-                $tradeFee['cost'] = $this->parse_number($this->safe_string($tradeFee, 'cost'));
+                $tradeFee['cost'] = $this->safe_number($tradeFee, 'cost');
                 $trade['fee'] = $tradeFee;
             }
         }
@@ -3283,7 +3282,8 @@ class Exchange {
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
         $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
-        $parseFee = $this->safe_value($order, 'fee') === null;
+        $fee = $this->safe_value($order, 'fee');
+        $parseFee = ($fee === null);
         $parseFees = $this->safe_value($order, 'fees') === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = $this->safe_value($order, 'fees', array());
@@ -3349,7 +3349,8 @@ class Exchange {
                 $reducedFees[$i]['cost'] = $this->parse_number($reducedFees[$i]['cost']);
             }
             if (!$parseFee && ($reducedLength === 0)) {
-                $reducedFees[] = $order['fee'];
+                $fee['cost'] = $this->safe_number($fee, 'cost');
+                $reducedFees[] = $fee;
             }
             if ($parseFees) {
                 $order['fees'] = $reducedFees;
@@ -3410,7 +3411,7 @@ class Exchange {
         }
         // we have $trades with string values at this point so we will mutate them
         for ($i = 0; $i < count($trades); $i++) {
-            $entry =& $trades[$i];
+            $entry = &$trades[$i];
             $entry['amount'] = $this->safe_number($entry, 'amount');
             $entry['price'] = $this->safe_number($entry, 'price');
             $entry['cost'] = $this->safe_number($entry, 'cost');
