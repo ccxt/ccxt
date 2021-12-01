@@ -2,23 +2,8 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
     , testBorrowRate = require ('./test.borrowRate.js')
-
-// ----------------------------------------------------------------------------
-
-const printBorrowRateOneLiner = (borrowRate, method, code) => {
-
-    log (code.toString ().green,
-        method,
-        borrowRate['datetime'],
-        'rate: '       + (borrowRate['rate']),
-        'period: '     + (borrowRate['period']))
-}
 
 // ----------------------------------------------------------------------------
 
@@ -28,13 +13,11 @@ module.exports = async (exchange, code) => {
 
     if (exchange.has[method]) {
 
-        // log (symbol.green, 'fetching borrowRate...')
-
         const borrowRate = await exchange.fetchBorrowRate (code)
 
         testBorrowRate (exchange, borrowRate, method, code)
 
-        printBorrowRateOneLiner (borrowRate, method, code)
+        console.log (code, method, borrowRate['datetime'], 'rate:', borrowRate['rate'], 'period:', borrowRate['period'])
 
         if (code) {
             assert (borrowRate['currency'] === code)
@@ -44,6 +27,6 @@ module.exports = async (exchange, code) => {
 
     } else {
 
-        log (code.green, 'fetchBorrowRate () not supported')
+        console.log (code, 'fetchBorrowRate () not supported')
     }
 }
