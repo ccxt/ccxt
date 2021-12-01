@@ -4978,6 +4978,17 @@ module.exports = class binance extends Exchange {
             request['endTime'] = parseInt (Precise.stringMin (endTime, now));   // Cannot have an endTime later than current time
         }
         const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "asset": "USDT",
+        //         "timestamp": 1638230400000,
+        //         "dailyInterestRate": "0.0006",
+        //         "vipLevel": 0
+        //     },
+        //     ...
+        // ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
