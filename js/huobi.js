@@ -2774,6 +2774,64 @@ module.exports = class huobi extends Exchange {
         });
     }
 
+    async fetchBorrowRatesPerSymbol (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.spotPrivateGetV1MarginLoanInfo (params);
+        // {
+        //     "status": "ok",
+        //     "data": [
+        //         {
+        //             "symbol": "1inchusdt",
+        //             "currencies": [
+        //                 {
+        //                     "currency": "1inch",
+        //                     "interest-rate": "0.00098",
+        //                     "min-loan-amt": "90.000000000000000000",
+        //                     "max-loan-amt": "1000.000000000000000000",
+        //                     "loanable-amt": "0.0",
+        //                     "actual-rate": "0.00098"
+        //                 },
+        //                 {
+        //                     "currency": "usdt",
+        //                     "interest-rate": "0.00098",
+        //                     "min-loan-amt": "100.000000000000000000",
+        //                     "max-loan-amt": "1000.000000000000000000",
+        //                     "loanable-amt": "0.0",
+        //                     "actual-rate": "0.00098"
+        //                 }
+        //             ]
+        //         },
+        //         ...
+        //     ]
+        // }
+        const timestamp = this.milliseconds ();
+        const data = this.safeValue (response, 'data');
+        const rates = {};
+        for (let i = 0; i < data.length; i++) {
+            const rate = data[i];
+            const currencies = this.safeValue (rate, 'currencies');
+            const symbolRates = {
+                'info': rate,
+            };
+            for (let j = 0; j < currencies.length; j++) {
+                const currency = currencies[j];
+                const currencyId = this.safeString (currency, 'currency');
+                const code = this.safeCurrencyCode (currencyId, 'currency');
+                symbolRates[code] = {
+                    'currency': code,
+                    'rate': this.safeNumber (currency, 'actual-rate'),
+                    'span': 86400000,
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                };
+            }
+            const market = this.markets_by_id[this.safeString (rate, 'symbol')];
+            const symbol = market['symbol'];
+            rates[symbol] = symbolRates;
+        }
+        return rates;
+    }
+
     async fetchBorrowRates (params = {}) {
         await this.loadMarkets ();
         const response = await this.spotPrivateGetV1MarginLoanInfo (params);
@@ -2820,6 +2878,7 @@ module.exports = class huobi extends Exchange {
                     'span': 86400000,
                     'timestamp': timestamp,
                     'datetime': this.iso8601 (timestamp),
+                    'info': undefined,
                 };
             }
         }
