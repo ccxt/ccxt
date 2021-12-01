@@ -1182,17 +1182,12 @@ module.exports = class binance extends Exchange {
         });
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.market (symbol)['precision']['quote'], this.precisionMode, this.paddingMode);
+    amountToPrecision (symbol, amount) {
+        return super.amountToPrecision (this.getCorrectSymbol (symbol), amount);
     }
 
-    currencyToPrecision (currency, fee) {
-        // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue (this.currencies[currency], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
-        } else {
-            return this.numberToString (fee);
-        }
+    costToPrecision (symbol, cost) {
+        return super.costToPrecision (this.getCorrectSymbol (symbol), cost);
     }
 
     nonce () {
@@ -1524,7 +1519,7 @@ module.exports = class binance extends Exchange {
         }
         const markets = this.safeValue (response, 'symbols', []);
         const result = [];
-        this.markets_by_deprecated_symbols = {};
+        this.oldSymbolMappings = {};
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const spot = (type === 'spot');
@@ -1544,21 +1539,17 @@ module.exports = class binance extends Exchange {
             const idSymbol = contract && (contractType !== 'PERPETUAL');
             let symbol = undefined;
             let expiry = undefined;
-            let deprecatedSymbol = undefined;
             if (idSymbol) {
                 expiry = this.safeString (market, 'deliveryDate');
                 symbol = base + '/' + quote + ':' + settle + '-' + expiry;
-                deprecatedSymbol = id;
                 this.oldSymbolMappings[id] = symbol;
                 expiry = parseInt (expiry);
             } else if (contract) { // Already known that it's not delivery
                 symbol = base + '/' + quote + ':' + settle;
-                deprecatedSymbol = base + '/' + quote;
                 this.oldSymbolMappings[base + '/' + quote] = symbol;
             } else {
                 symbol = base + '/' + quote;
-                deprecatedSymbol = base + '/' + quote;
-                this.oldSymbolMappings[deprecatedSymbol] = symbol;
+                this.oldSymbolMappings[base + '/' + quote] = symbol;
             }
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
@@ -1669,7 +1660,6 @@ module.exports = class binance extends Exchange {
                 entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
             }
             result.push (entry);
-            this.markets_by_deprecated_symbols[deprecatedSymbol] = entry;
         }
         return result;
     }
@@ -1737,22 +1727,6 @@ module.exports = class binance extends Exchange {
         return this.safeBalance (result);
     }
 
-    market (symbol) {
-        if (this.markets === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded')
-        }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol];
-            } else if (symbol in this.markets_by_id) {
-                return this.markets_by_id[symbol];
-            } else if (symbol in this.markets_by_id) {
-                return this.markets_by_deprecated_symbols[symbol];
-            }
-        }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
-    }
-
     getCorrectSymbol (symbol) {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
@@ -1780,8 +1754,17 @@ module.exports = class binance extends Exchange {
         return newSymbols;
     }
 
+    market (symbol) {
+        return super.market (this.getCorrectSymbol (symbol));
+    }
+
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
         return super.loadTradingLimits (this.getCorrectSymbols (symbols), reload, params);
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        symbol = this.getCorrectSymbol (symbol);
+        return super.calculateFee (symbol, type, side, amount, price, takerOrMaker, params);
     }
 
     async fetchBalance (params = {}) {
