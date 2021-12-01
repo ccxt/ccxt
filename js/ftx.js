@@ -2344,7 +2344,7 @@ module.exports = class ftx extends Exchange {
             const coin = this.safeCurrencyCode (this.safeString (rate, 'coin'));
             if (code === coin) {
                 return {
-                    'currency': code,
+                    'currency': coin,
                     'rate': this.safeNumber (rate, 'previous'),
                     'period': 3600000,
                     'timestamp': timestamp,

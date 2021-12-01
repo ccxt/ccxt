@@ -31,7 +31,6 @@ module.exports = (exchange, borrowRate, method, code) => {
 
     assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000)   // Milliseconds in an hour or a day
     assert (borrowRate['rate'] > 0)
-    assert (borrowRate['currency'] === code)
 
     return borrowRate
 }

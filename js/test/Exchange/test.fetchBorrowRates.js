@@ -11,7 +11,7 @@ const log       = require ('ololog')
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = async (exchange, code) => {
+module.exports = async (exchange) => {
 
     if (exchange.has.fetchBorrowRates) {
 
@@ -28,11 +28,11 @@ module.exports = async (exchange, code) => {
         } catch (e) {
 
             log ('failed to fetch all borrow rates, fetching multiple borrow rates at once...')
-            borrowRates = await exchange[method] ([ code ])
+            borrowRates = await exchange[method] ()
             log ('fetched', Object.keys (borrowRates).length.toString ().green, 'borrow rates')
         }
 
-        Object.values (borrowRates).forEach ((borrowRate) => testBorrowRate (exchange, borrowRate, method, code))
+        Object.values (borrowRates).forEach ((borrowRate) => testBorrowRate (exchange, borrowRate, method))
         return borrowRates
 
     } else {

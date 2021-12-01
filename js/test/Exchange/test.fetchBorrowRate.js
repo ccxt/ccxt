@@ -24,7 +24,7 @@ const printBorrowRateOneLiner = (borrowRate, method, code) => {
 
 module.exports = async (exchange, code) => {
 
-    const method = 'fetchborrowRate'
+    const method = 'fetchBorrowRate'
 
     if (exchange.has[method]) {
 
@@ -36,11 +36,14 @@ module.exports = async (exchange, code) => {
 
         printBorrowRateOneLiner (borrowRate, method, code)
 
+        if (code) {
+            assert (borrowRate['currency'] === code)
+        }
+
         return borrowRate
 
     } else {
 
-        log (code.green, 'fetchborrowRate () not supported')
+        log (code.green, 'fetchBorrowRate () not supported')
     }
 }
-
