@@ -2806,13 +2806,13 @@ module.exports = class huobi extends Exchange {
         // }
         const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data');
-        const rates = {};
+        const rates = {
+            'info': response,
+        };
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const currencies = this.safeValue (rate, 'currencies');
-            const symbolRates = {
-                'info': rate,
-            };
+            const symbolRates = {};
             for (let j = 0; j < currencies.length; j++) {
                 const currency = currencies[j];
                 const currencyId = this.safeString (currency, 'currency');
