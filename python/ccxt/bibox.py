@@ -38,6 +38,8 @@ class bibox(Exchange):
                 'createMarketOrder': None,  # or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,

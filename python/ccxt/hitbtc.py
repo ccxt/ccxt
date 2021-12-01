@@ -37,6 +37,8 @@ class hitbtc(Exchange):
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,

@@ -50,6 +50,8 @@ class bittrex(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,

@@ -43,6 +43,8 @@ class binance(Exchange):
                 'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': True,
+                'fetchBorrowRates': False,
                 'fetchBidsAsks': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
@@ -4602,3 +4604,33 @@ class binance(Exchange):
 
     def add_margin(self, symbol, amount, params={}):
         return self.modify_margin_helper(symbol, amount, 1, params)
+
+    def fetch_borrow_rate(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            # 'vipLevel': self.safe_integer(params, 'vipLevel'),
+        }
+        response = self.sapiGetMarginInterestRateHistory(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "asset": "USDT",
+        #         "timestamp": 1638230400000,
+        #         "dailyInterestRate": "0.0006",
+        #         "vipLevel": 0
+        #     },
+        #     ...
+        # ]
+        #
+        rate = self.safe_value(response, 0)
+        timestamp = self.safe_number(rate, 'timestamp')
+        return {
+            'currency': code,
+            'rate': self.safe_number(rate, 'dailyInterestRate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': response,
+        }

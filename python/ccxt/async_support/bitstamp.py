@@ -45,6 +45,8 @@ class bitstamp(Exchange):
                 'CORS': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchFees': True,

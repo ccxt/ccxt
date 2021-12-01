@@ -32,6 +32,8 @@ class coinbase(Exchange):
                 'createOrder': None,
                 'deposit': None,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchBidsAsks': None,
                 'fetchClosedOrders': None,
                 'fetchCurrencies': True,

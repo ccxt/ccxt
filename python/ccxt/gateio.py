@@ -51,6 +51,8 @@ class gateio(Exchange):
                 'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -94,6 +96,7 @@ class gateio(Exchange):
                             'currency_pairs/{currency_pair}': 1,
                             'cross/currencies': 1,
                             'cross/currencies/{currency}': 1,
+                            'funding_book': 1,
                         },
                     },
                     'futures': {

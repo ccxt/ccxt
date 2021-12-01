@@ -60,6 +60,8 @@ class ftx(Exchange):
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': True,
+                'fetchBorrowRates': True,
                 'fetchClosedOrders': None,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -2186,3 +2188,35 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_funding_rate(result, market)
+
+    def fetch_borrow_rates(self, params={}):
+        self.load_markets()
+        response = self.privateGetSpotMarginBorrowRates()
+        #
+        # {
+        #     "success":true,
+        #     "result":[
+        #         {
+        #             "coin": "1INCH",
+        #             "previous": 0.0000462375,
+        #             "estimate": 0.0000462375
+        #         }
+        #         ...
+        #     ]
+        # }
+        #
+        timestamp = self.milliseconds()
+        result = self.safe_value(response, 'result')
+        rates = {}
+        for i in range(0, len(result)):
+            rate = result[i]
+            code = self.safe_currency_code(self.safe_string(rate, 'coin'))
+            rates[code] = {
+                'currency': code,
+                'rate': self.safe_number(rate, 'previous'),
+                'period': 3600000,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': rate,
+            }
+        return rates

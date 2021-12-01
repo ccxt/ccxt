@@ -41,6 +41,8 @@ class gateio extends Exchange {
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -84,6 +86,7 @@ class gateio extends Exchange {
                             'currency_pairs/{currency_pair}' => 1,
                             'cross/currencies' => 1,
                             'cross/currencies/{currency}' => 1,
+                            'funding_book' => 1,
                         ),
                     ),
                     'futures' => array(

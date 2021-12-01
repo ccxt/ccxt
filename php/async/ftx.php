@@ -43,6 +43,8 @@ class ftx extends Exchange {
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => true,
+                'fetchBorrowRates' => true,
                 'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -2286,5 +2288,39 @@ class ftx extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_funding_rate($result, $market);
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetSpotMarginBorrowRates ();
+        //
+        // {
+        //     "success":true,
+        //     "result":array(
+        //         {
+        //             "coin" => "1INCH",
+        //             "previous" => 0.0000462375,
+        //             "estimate" => 0.0000462375
+        //         }
+        //         ...
+        //     )
+        // }
+        //
+        $timestamp = $this->milliseconds();
+        $result = $this->safe_value($response, 'result');
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $rate = $result[$i];
+            $code = $this->safe_currency_code($this->safe_string($rate, 'coin'));
+            $rates[$code] = array(
+                'currency' => $code,
+                'rate' => $this->safe_number($rate, 'previous'),
+                'period' => 3600000,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $rate,
+            );
+        }
+        return $rates;
     }
 }

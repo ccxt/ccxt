@@ -44,6 +44,8 @@ class bybit(Exchange):
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,

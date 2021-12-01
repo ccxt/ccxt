@@ -44,6 +44,8 @@ class okex(Exchange):
                 'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': True,
+                'fetchBorrowRates': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -3387,6 +3389,65 @@ class okex(Exchange):
             'code': code,
             'symbol': symbol,
             'status': status,
+        }
+
+    def fetch_borrow_rates(self, params={}):
+        self.load_markets()
+        response = self.privateGetAccountInterestRate(params)
+        # {
+        #     "code": "0",
+        #     "data": [
+        #         {
+        #             "ccy":"BTC",
+        #             "interestRate":"0.00000833"
+        #         }
+        #         ...
+        #     ],
+        # }
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'data')
+        rates = {}
+        for i in range(0, len(data)):
+            rate = data[i]
+            code = self.safe_currency_code(self.safe_string(rate, 'ccy'))
+            rates[code] = {
+                'currency': code,
+                'rate': self.safe_number(rate, 'interestRate'),
+                'period': 86400000,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': rate,
+            }
+        return rates
+
+    def fetch_borrow_rate(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'ccy': currency['id'],
+        }
+        response = self.privateGetAccountInterestRate(self.extend(request, params))
+        # {
+        #     "code": "0",
+        #     "data":[
+        #          {
+        #             "ccy":"USDT",
+        #             "interestRate":"0.00002065"
+        #          }
+        #          ...
+        #     ],
+        #     "msg":""
+        # }
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'data')
+        rate = self.safe_value(data, 0)
+        return {
+            'currency': code,
+            'rate': self.safe_number(rate, 'interestRate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': rate,
         }
 
     def reduce_margin(self, symbol, amount, params={}):

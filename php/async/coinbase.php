@@ -30,6 +30,8 @@ class coinbase extends Exchange {
                 'createOrder' => null,
                 'deposit' => null,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRates' => false,
                 'fetchBidsAsks' => null,
                 'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
