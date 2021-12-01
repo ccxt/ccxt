@@ -2,13 +2,9 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = (exchange, ticker, method, symbol) => {
 
@@ -35,40 +31,32 @@ module.exports = (exchange, ticker, method, symbol) => {
         'quoteVolume':   1.234, // volume of quote currency
     }
 
-    expect (ticker).to.have.all.keys (format)
-
-    const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'baseVolume', 'quoteVolume', 'vwap' ]
+    const keys = Object.keys (format)
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i]
+        assert (key in ticker)
+    }
 
     assert (!('first' in ticker), '`first` field leftover in ' + exchange.id)
     assert (ticker['last'] === ticker['close'], '`last` != `close` in ' + exchange.id)
 
-    log (ticker['datetime'], exchange.id, method, ticker['symbol'], ticker['last'])
+    console.log (ticker['datetime'], exchange.id, method, ticker['symbol'], ticker['last'])
 
-    keys.forEach ((key) => assert (key in ticker))
-
-    const { high, low, vwap, baseVolume, quoteVolume } = ticker
-
+    // const { high, low, vwap, baseVolume, quoteVolume } = ticker
     // this assert breaks QuadrigaCX sometimes... still investigating
-    // if (vwap)
+    // if (vwap) {
     //     assert (vwap >= low && vwap <= high)
-
+    // }
     // if (baseVolume && quoteVolume && high && low) {
     //     assert (quoteVolume >= baseVolume * low) // this assertion breaks therock
     //     assert (quoteVolume <= baseVolume * high)
     // }
-
     // if (baseVolume && vwap) {
     //     assert (quoteVolume)
     // }
-
     // if (quoteVolume && vwap) {
     //     assert (baseVolume)
     // }
-
-    // log (symbol.green, 'ticker',
-    //     ticker['datetime'],
-    //     ... (keys.map (key =>
-    //         key + ': ' + ticker[key])))
 
     if (![
 
