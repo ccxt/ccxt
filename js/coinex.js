@@ -190,6 +190,7 @@ module.exports = class coinex extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'defaultType': 'main',
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -566,7 +567,7 @@ module.exports = class coinex extends Exchange {
             'trades': undefined,
             'fee': {
                 'currency': feeCurrency,
-                'cost': this.safeNumber (order, 'deal_fee'),
+                'cost': this.safeString (order, 'deal_fee'),
             },
             'info': order,
         }, market);
@@ -612,6 +613,81 @@ module.exports = class coinex extends Exchange {
         const response = await this.privateDeleteOrderPending (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancellAllOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        let accountId = this.safeString2 (params, 'id', 'account_id');
+        if (accountId === undefined) {
+            accountId = '0'; // default to main account, note: account id is a required parameter, margin account ID's can be found by calling the getMarginAccount method
+        }
+        const request = {
+            'account_id': accountId, // main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
+            'market': marketId,
+        };
+        const response = await this.privateDeleteOrderPending (this.extend (request, params));
+        //
+        // {"code": 0, "data": null, "message": "Success"}
+        //
+        return response;
+    }
+
+    async getMarginAccount (params = {}) {
+        const symbol = this.safeString (params, 'market');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' getMarginAccountId() requires a market argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const request = {
+            'market': marketId,
+        };
+        params = this.omit (params, 'market');
+        const response = await this.privateGetMarginAccount (this.extend (request, params));
+        //
+        //      {
+        //              code:    0,
+        //              data: {
+        //                  "account_id":    126,
+        //                  "leverage":    3,
+        //                  "market_type":   "AAVEUSDT",
+        //                  "sell_asset_type":   "AAVE",
+        //                  "buy_asset_type":   "USDT",
+        //                  "balance": {
+        //                      "sell_type": "0",
+        //                      "buy_type": "0"
+        //                              },
+        //                  "frozen": {
+        //                      "sell_type": "0",
+        //                      "buy_type": "0"
+        //                              },
+        //                  "loan": {
+        //                      "sell_type": "0",
+        //                      "buy_type": "0"
+        //                              },
+        //                  "interest": {
+        //                      "sell_type": "0",
+        //                      "buy_type": "0"
+        //                              },
+        //                  "can_transfer": {
+        //                      "sell_type": "0",
+        //                      "buy_type": "0"
+        //                              },
+        //                  "warn_rate":   "",
+        //                  "liquidation_price":   ""
+        //                  },
+        //           message:   "Success"
+        //      }
+        //
+        return {
+            'info': response['data'],
+        };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -991,7 +1067,7 @@ module.exports = class coinex extends Exchange {
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') || (data === undefined) || ((message !== 'Success') && (message !== 'Succeeded') && (message !== 'Ok') && !data)) {
+        if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message !== 'Ok') && !data)) {
             const responseCodes = {
                 // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
                 '23': PermissionDenied, // IP Prohibited
