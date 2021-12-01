@@ -399,10 +399,7 @@ class buda extends Exchange {
             $side = $this->safe_string($trade, 3);
             $id = $this->safe_string($trade, 4);
         }
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'order' => $order,
             'info' => $trade,
@@ -412,11 +409,11 @@ class buda extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -584,7 +581,7 @@ class buda extends Exchange {
             }
         }
         $paidFee = $this->safe_value($order, 'paid_fee', array());
-        $feeCost = $this->safe_number($paidFee, 0);
+        $feeCost = $this->safe_string($paidFee, 0);
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($paidFee, 1);

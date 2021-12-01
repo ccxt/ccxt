@@ -12,7 +12,6 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
-from ccxt.base.precise import Precise
 
 
 class buda(Exchange):
@@ -380,10 +379,7 @@ class buda(Exchange):
             amountString = self.safe_string(trade, 2)
             side = self.safe_string(trade, 3)
             id = self.safe_string(trade, 4)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        return {
+        return self.safe_trade({
             'id': id,
             'order': order,
             'info': trade,
@@ -393,11 +389,11 @@ class buda(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -548,7 +544,7 @@ class buda(Exchange):
             if limitPrice is not None:
                 price = limitPrice
         paidFee = self.safe_value(order, 'paid_fee', [])
-        feeCost = self.safe_number(paidFee, 0)
+        feeCost = self.safe_string(paidFee, 0)
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(paidFee, 1)
