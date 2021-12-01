@@ -15,4 +15,3 @@ module.exports = async (exchange) => {
         console.log ('fetching trading fees not supported')
     }
 }
-
