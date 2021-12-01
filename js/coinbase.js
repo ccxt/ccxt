@@ -27,6 +27,8 @@ module.exports = class coinbase extends Exchange {
                 'createOrder': undefined,
                 'deposit': undefined,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRates': false,
                 'fetchBidsAsks': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,

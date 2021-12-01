@@ -24,6 +24,8 @@ module.exports = class bitstamp extends Exchange {
                 'CORS': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFees': true,

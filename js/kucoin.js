@@ -28,6 +28,8 @@ module.exports = class kucoin extends Exchange {
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,

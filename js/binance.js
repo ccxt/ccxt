@@ -25,6 +25,8 @@ module.exports = class binance extends Exchange {
                 'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRates': false,
                 'fetchBidsAsks': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
@@ -4896,5 +4898,36 @@ module.exports = class binance extends Exchange {
 
     async addMargin (symbol, amount, params = {}) {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            // 'vipLevel': this.safeInteger (params, 'vipLevel'),
+        };
+        const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "asset": "USDT",
+        //         "timestamp": 1638230400000,
+        //         "dailyInterestRate": "0.0006",
+        //         "vipLevel": 0
+        //     },
+        //     ...
+        // ]
+        //
+        const rate = this.safeValue (response, 0);
+        const timestamp = this.safeNumber (rate, 'timestamp');
+        return {
+            'currency': code,
+            'rate': this.safeNumber (rate, 'dailyInterestRate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': response,
+        };
     }
 };
