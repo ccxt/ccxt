@@ -62,6 +62,7 @@ module.exports = (exchange, ticker, method, symbol) => {
 
         'bigone',
         'bitmart',
+        'bitrue',
         'btcturk',
         'bybit',
         'coinmarketcap',
