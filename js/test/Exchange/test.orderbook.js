@@ -2,27 +2,9 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
 
 // ----------------------------------------------------------------------------
-
-const printOrderBookOneLiner = (orderbook, method, symbol) => {
-
-    const bids = orderbook.bids
-    const asks = orderbook.asks
-
-    log (symbol.toString ().green,
-        method,
-        orderbook['nonce'] || orderbook['datetime'],
-        bids.length, 'bids:', bids[0],
-        asks.length, 'asks:', asks[0])
-}
-
-/*  ------------------------------------------------------------------------ */
 
 module.exports = (exchange, orderbook, method, symbol) => {
 
@@ -41,8 +23,8 @@ module.exports = (exchange, orderbook, method, symbol) => {
         assert (keys[i] in orderbook)
     }
 
-    const bids = orderbook.bids
-    const asks = orderbook.asks
+    const bids = orderbook['bids']
+    const asks = orderbook['asks']
 
     for (let i = 0; i < bids.length; i++) {
         if (bids.length > (i + 1)) {
@@ -69,11 +51,10 @@ module.exports = (exchange, orderbook, method, symbol) => {
 
     ].includes (exchange.id)) {
 
-        if (bids.length && asks.length)
-            assert (bids[0][0] <= asks[0][0],
-                `bids[0][0]: ${bids[0][0]} (of ${bids.length}); asks[0][0]:${asks[0][0]} (of ${asks.length})`)
-
+        if (bids.length && asks.length) {
+            assert (bids[0][0] <= asks[0][0], 'bids[0][0]:', bids[0][0], 'of', bids.length, 'asks[0][0]:', asks[0][0], 'of', asks.length)
+        }
     }
 
-    printOrderBookOneLiner (orderbook, method, symbol)
+    console.log (symbol, method, orderbook['nonce'] || orderbook['datetime'], bids.length, 'bids:', bids[0], asks.length, 'asks:', asks[0])
 }
