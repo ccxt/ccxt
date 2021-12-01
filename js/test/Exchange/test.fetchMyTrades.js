@@ -5,7 +5,7 @@
 const assert = require ('assert')
     , testTrade = require ('./test.trade.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
 
@@ -19,8 +19,6 @@ module.exports = async (exchange, symbol) => {
     }
 
     if (exchange.has.fetchMyTrades) {
-
-        // log ('fetching my trades...')
 
         const trades = await exchange.fetchMyTrades (symbol)
 
@@ -36,9 +34,6 @@ module.exports = async (exchange, symbol) => {
                 assert (trades[i].timestamp >= trades[i - 1].timestamp)
             }
         }
-
-        // trades.forEach (trade => log.dim ('-'.repeat (80), "\n", trade))
-        // log (asTable (trades))
 
     } else {
 
