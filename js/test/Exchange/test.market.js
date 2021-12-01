@@ -48,7 +48,6 @@ module.exports = (exchange, market, method) => {
     }
 
     expect (market).to.deep.include.all.keys (format)
-    expect (market).to.not.have.key ('lot')
 
     // assert ((market['baseId'] === undefined) || (typeof market['baseId'] === 'string'))
     // assert ((market['quoteId'] === undefined) || (typeof market['quoteId'] === 'string'))
