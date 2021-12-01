@@ -2,11 +2,7 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
     , testTrade = require ('./test.trade.js')
 
 /*  ------------------------------------------------------------------------ */
@@ -18,7 +14,7 @@ module.exports = async (exchange, symbol) => {
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, 'found in ignored exchanges, skipping fetchMyTrades...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping fetchMyTrades...')
         return
     }
 
@@ -30,7 +26,7 @@ module.exports = async (exchange, symbol) => {
 
         assert (trades instanceof Array)
 
-        log ('fetched', trades.length.toString ().green, 'trades')
+        console.log ('fetched', trades.length, 'trades')
 
         const now = Date.now ()
 
@@ -46,6 +42,6 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        log ('fetching my trades not supported')
+        console.log ('fetching my trades not supported')
     }
 }
