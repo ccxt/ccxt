@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.62.65';
+$version = '1.62.67';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.62.65';
+    const VERSION = '1.62.67';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -365,6 +365,7 @@ class Exchange {
         'parsePrecision' => 'parse_precision',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'getSupportedMapping' => 'get_supported_mapping',
+        'fetchBorrowRate' => 'fetch_borrow_rate',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -3492,5 +3493,18 @@ class Exchange {
         } else {
             throw new NotSupported ($this->id . ' ' . $key . ' does not have a value in mapping');
         }
+    }
+
+    public function fetch_borrow_rate($code, $params = array()) {
+        $this->load_markets();
+        if (!$this->has['fetchBorrowRates']) {
+            throw new NotSupported($this->id + 'fetchBorrowRate() is not supported yet');
+        }
+        $borrow_rates = $this->fetch_borrow_rates($params);
+        $rate = $this->safe_value($borrow_rates, $code);
+        if ($rate == null) {
+            throw new ExchangeError($this->id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + $code);
+        }
+        return $rate;
     }
 }

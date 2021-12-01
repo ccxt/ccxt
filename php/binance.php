@@ -31,6 +31,8 @@ class binance extends Exchange {
                 'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => true,
+                'fetchBorrowRates' => false,
                 'fetchBidsAsks' => true,
                 'fetchClosedOrders' => 'emulated',
                 'fetchCurrencies' => true,
@@ -4902,5 +4904,36 @@ class binance extends Exchange {
 
     public function add_margin($symbol, $amount, $params = array ()) {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
+    }
+
+    public function fetch_borrow_rate($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'asset' => $currency['id'],
+            // 'vipLevel' => $this->safe_integer($params, 'vipLevel'),
+        );
+        $response = $this->sapiGetMarginInterestRateHistory (array_merge($request, $params));
+        //
+        // array(
+        //     array(
+        //         "asset" => "USDT",
+        //         "timestamp" => 1638230400000,
+        //         "dailyInterestRate" => "0.0006",
+        //         "vipLevel" => 0
+        //     ),
+        //     ...
+        // )
+        //
+        $rate = $this->safe_value($response, 0);
+        $timestamp = $this->safe_number($rate, 'timestamp');
+        return array(
+            'currency' => $code,
+            'rate' => $this->safe_number($rate, 'dailyInterestRate'),
+            'period' => 86400000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $response,
+        );
     }
 }

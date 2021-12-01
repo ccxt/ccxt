@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.62.65'
+__version__ = '1.62.67'
 
 # -----------------------------------------------------------------------------
 
@@ -2635,3 +2635,13 @@ class Exchange(object):
             return mapping[key]
         else:
             raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
+
+    def fetch_borrow_rate(self, code, params={}):
+        self.load_markets()
+        if not self.has['fetchBorrowRates']:
+            raise NotSupported(self.id + 'fetchBorrowRate() is not supported yet')
+        borrow_rates = self.fetch_borrow_rates(params)
+        rate = self.safe_value(borrow_rates, code)
+        if rate is None:
+            raise ExchangeError(self.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code)
+        return rate

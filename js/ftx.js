@@ -39,6 +39,8 @@ module.exports = class ftx extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -2282,5 +2284,39 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseFundingRate (result, market);
+    }
+
+    async fetchBorrowRates (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetSpotMarginBorrowRates ();
+        //
+        // {
+        //     "success":true,
+        //     "result":[
+        //         {
+        //             "coin": "1INCH",
+        //             "previous": 0.0000462375,
+        //             "estimate": 0.0000462375
+        //         }
+        //         ...
+        //     ]
+        // }
+        //
+        const timestamp = this.milliseconds ();
+        const result = this.safeValue (response, 'result');
+        const rates = {};
+        for (let i = 0; i < result.length; i++) {
+            const rate = result[i];
+            const code = this.safeCurrencyCode (this.safeString (rate, 'coin'));
+            rates[code] = {
+                'currency': code,
+                'rate': this.safeNumber (rate, 'previous'),
+                'period': 3600000,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': rate,
+            };
+        }
+        return rates;
     }
 };

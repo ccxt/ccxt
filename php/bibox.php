@@ -26,6 +26,8 @@ class bibox extends Exchange {
                 'createMarketOrder' => null, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,

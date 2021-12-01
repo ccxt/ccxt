@@ -2061,4 +2061,17 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping')
         }
     }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        if (!this.has['fetchBorrowRates']) {
+            throw new NotSupported (this.id + 'fetchBorrowRate() is not supported yet')
+        }
+        const borrowRates = await this.fetchBorrowRates (params);
+        const rate = this.safeValue (borrowRates, code);
+        if (rate === undefined) {
+            throw new ExchangeError (this.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+        }
+        return rate;
+    }
 }

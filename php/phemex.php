@@ -27,6 +27,8 @@ class phemex extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,

@@ -29,6 +29,8 @@ class bybit extends Exchange {
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
