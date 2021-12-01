@@ -241,6 +241,7 @@ class bitmart extends Exchange {
                     '50023' => '\\ccxt\\BadSymbol', // 400, This Symbol can't place order by api
                     '50029' => '\\ccxt\\InvalidOrder', // array("message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":array())
                     '53000' => '\\ccxt\\AccountSuspended', // 403, Your account is frozen due to security policies. Please contact customer service
+                    '53001' => '\\ccxt\\AccountSuspended', // array("message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":array())
                     '57001' => '\\ccxt\\BadRequest', // 405, Method Not Allowed
                     '58001' => '\\ccxt\\BadRequest', // 415, Unsupported Media Type
                     '59001' => '\\ccxt\\ExchangeError', // 500, User account not found
