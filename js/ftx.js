@@ -2319,40 +2319,4 @@ module.exports = class ftx extends Exchange {
         }
         return rates;
     }
-
-    async fetchBorrowRate (code, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetSpotMarginBorrowRates (params);
-        //
-        // {
-        //     "success":true,
-        //     "result":[
-        //         {
-        //             "coin": "1INCH",
-        //             "previous": 0.0000462375,
-        //             "estimate": 0.0000462375
-        //         }
-        //         ...
-        //     ]
-        // }
-        //
-        const timestamp = this.milliseconds ();
-        const currencyId = this.currency (code)['id'];
-        const result = this.safeValue (response, 'result');
-        for (let i = 0; i < result.length; i++) {
-            const rate = result[i];
-            const coin = this.safeCurrencyCode (this.safeString (rate, 'coin'));
-            if (code === coin) {
-                return {
-                    'currency': coin,
-                    'rate': this.safeNumber (rate, 'previous'),
-                    'period': 3600000,
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                    'info': rate,
-                };
-            }
-        }
-        throw new BadRequest ('Could not find rate for ' + currencyId);
-    }
 };
