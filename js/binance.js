@@ -4957,36 +4957,37 @@ module.exports = class binance extends Exchange {
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (limit > 100) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistory limit parameter cannot exceed 100');
+        if (limit > 93) {
+            // Binance API says the limit is 100, but illegal parameter errors are returned when limit is > 93
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory limit parameter cannot exceed 93');
         } else if (!limit) {
-            limit = 100; // Assures we get up to present day
+            limit = 93;
         }
-        const currencyId = this.currency (code)['id'];
+        const currency = this.currency (code);
         const request = {
-            'asset': currencyId,
+            'asset': currency['id'],
             'limit': limit,
+            'startTime': since,
         };
         if (since) {
-            if (!this.timestampWithinXMonths (since, 3)) {
-                throw new BadRequest (this.id + 'fetchBorrowRateHistory cannot pre-date today - 3 months');
-            }
-            request['startTime'] = since;
-            const timeSinceStart = Precise.stringMul (limit.toString (), '86400000');
-            const endTime = Precise.stringAdd (since.toString (), timeSinceStart);
-            request['endTime'] = parseInt (Precise.stringMin (endTime, this.dayStart ().toString ()));
+            const sinceString = since.toString ();
+            const limitString = Precise.stringSub (limit.toString (), '1');
+            const timeSinceStart = Precise.stringMul (limitString, '86400000');
+            const endTime = Precise.stringAdd (sinceString, timeSinceStart);    // Is required when startTime pre-dates today - 93 days
+            const now = this.milliseconds ().toString ();
+            request['endTime'] = parseInt (Precise.stringMin (endTime, now));   // Cannot have an endTime later than current time
         }
         const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const rate = response[i];
-            const timestamp = this.safeNumber (rate, 'timestamp');
+            const item = response[i];
+            const timestamp = this.safeNumber (item, 'timestamp');
             result.push ({
-                'currency': currencyId,
-                'rate': this.safeNumber (rate, 'dailyInterestRate'),
+                'currency': code,
+                'rate': this.safeNumber (item, 'dailyInterestRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
-                'info': rate,
+                'info': item,
             });
         }
         return result;
