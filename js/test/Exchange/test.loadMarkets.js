@@ -33,4 +33,3 @@ module.exports = async (exchange) => {
         console.log ('loading markets not supported')
     }
 }
-
