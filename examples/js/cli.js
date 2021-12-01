@@ -244,13 +244,15 @@ async function main () {
                     try {
 
                         const result = await exchange[methodName] (... args)
-                        printHumanReadable (exchange, result)
 
                         end = exchange.milliseconds ()
 
                         console.log (end - start, 'ms')
 
                         start = end
+
+                        printHumanReadable (exchange, result)
+
 
                     } catch (e) {
 
