@@ -33,4 +33,3 @@ module.exports = async (exchange) => {
         console.log ('fetching currencies not supported')
     }
 }
-
