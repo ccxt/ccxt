@@ -2,13 +2,9 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = (exchange, currency, method) => {
 
@@ -41,15 +37,16 @@ module.exports = (exchange, currency, method) => {
         //----------------------------------------------------------------------
     }
 
-    expect (currency).to.deep.include.all.keys (format)
+    const keys = Object.keys (format)
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i]
+        assert (key in currency)
+    }
 
     // expect (currency['precision']).to.not.be.undefined
-
     // expect (currency['limits']['amount']['min']).to.not.be.undefined
     // expect (currency['limits']['price']['min']).to.not.be.undefined
     // expect (market['limits']['cost']['min']).to.not.be.undefined
-
-    // log (market)
 
     return currency
 }
