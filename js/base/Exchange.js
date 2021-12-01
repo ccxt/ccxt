@@ -2089,13 +2089,4 @@ module.exports = class Exchange {
         params = this.omit (params, 'type');
         return [ type, params ];
     }
-
-    timestampWithinXMonths (timestamp, months) {
-        const sinceDate = new Date (timestamp);
-        const xMonthsAgo = new Date ();
-        xMonthsAgo.setMonth (xMonthsAgo.getMonth () - months);
-        xMonthsAgo.setHours (0, 0, 0);
-        return sinceDate > xMonthsAgo;
-    }
-
 }

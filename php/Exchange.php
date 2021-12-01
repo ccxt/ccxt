@@ -3537,13 +3537,4 @@ class Exchange {
         $params = $this->omit($params, $type);
         return array($type, $params);
     }
-
-    public function timestamp_within_x_months($timestamp, $months) {
-        $utc = new DateTimeZone("UTC");
-        $since_date = (new DateTime('@'.$timestamp / 1000))->setTimezone($utc);
-        $x_months_ago = new DateTime('today midnight', $utc);
-        $x_months_ago->modify('-'.$months.' months');
-        return $since_date > $x_months_ago;
-    }
-
 }
