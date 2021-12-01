@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -395,10 +394,7 @@ module.exports = class buda extends Exchange {
             side = this.safeString (trade, 3);
             id = this.safeString (trade, 4);
         }
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        return {
+        return this.safeTrade ({
             'id': id,
             'order': order,
             'info': trade,
@@ -408,11 +404,11 @@ module.exports = class buda extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -580,7 +576,7 @@ module.exports = class buda extends Exchange {
             }
         }
         const paidFee = this.safeValue (order, 'paid_fee', []);
-        const feeCost = this.safeNumber (paidFee, 0);
+        const feeCost = this.safeString (paidFee, 0);
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (paidFee, 1);
