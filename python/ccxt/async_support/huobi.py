@@ -54,6 +54,7 @@ class huobi(Exchange):
                 'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRates': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -2639,6 +2640,111 @@ class huobi(Exchange):
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         })
+
+    async def fetch_borrow_rates_per_symbol(self, params={}):
+        await self.load_markets()
+        response = await self.spotPrivateGetV1MarginLoanInfo(params)
+        # {
+        #     "status": "ok",
+        #     "data": [
+        #         {
+        #             "symbol": "1inchusdt",
+        #             "currencies": [
+        #                 {
+        #                     "currency": "1inch",
+        #                     "interest-rate": "0.00098",
+        #                     "min-loan-amt": "90.000000000000000000",
+        #                     "max-loan-amt": "1000.000000000000000000",
+        #                     "loanable-amt": "0.0",
+        #                     "actual-rate": "0.00098"
+        #                 },
+        #                 {
+        #                     "currency": "usdt",
+        #                     "interest-rate": "0.00098",
+        #                     "min-loan-amt": "100.000000000000000000",
+        #                     "max-loan-amt": "1000.000000000000000000",
+        #                     "loanable-amt": "0.0",
+        #                     "actual-rate": "0.00098"
+        #                 }
+        #             ]
+        #         },
+        #         ...
+        #     ]
+        # }
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'data')
+        rates = {
+            'info': response,
+        }
+        for i in range(0, len(data)):
+            rate = data[i]
+            currencies = self.safe_value(rate, 'currencies')
+            symbolRates = {}
+            for j in range(0, len(currencies)):
+                currency = currencies[j]
+                currencyId = self.safe_string(currency, 'currency')
+                code = self.safe_currency_code(currencyId, 'currency')
+                symbolRates[code] = {
+                    'currency': code,
+                    'rate': self.safe_number(currency, 'actual-rate'),
+                    'span': 86400000,
+                    'timestamp': timestamp,
+                    'datetime': self.iso8601(timestamp),
+                }
+            market = self.markets_by_id[self.safe_string(rate, 'symbol')]
+            symbol = market['symbol']
+            rates[symbol] = symbolRates
+        return rates
+
+    async def fetch_borrow_rates(self, params={}):
+        await self.load_markets()
+        response = await self.spotPrivateGetV1MarginLoanInfo(params)
+        # {
+        #     "status": "ok",
+        #     "data": [
+        #         {
+        #             "symbol": "1inchusdt",
+        #             "currencies": [
+        #                 {
+        #                     "currency": "1inch",
+        #                     "interest-rate": "0.00098",
+        #                     "min-loan-amt": "90.000000000000000000",
+        #                     "max-loan-amt": "1000.000000000000000000",
+        #                     "loanable-amt": "0.0",
+        #                     "actual-rate": "0.00098"
+        #                 },
+        #                 {
+        #                     "currency": "usdt",
+        #                     "interest-rate": "0.00098",
+        #                     "min-loan-amt": "100.000000000000000000",
+        #                     "max-loan-amt": "1000.000000000000000000",
+        #                     "loanable-amt": "0.0",
+        #                     "actual-rate": "0.00098"
+        #                 }
+        #             ]
+        #         },
+        #         ...
+        #     ]
+        # }
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'data')
+        rates = {}
+        for i in range(0, len(data)):
+            market = data[i]
+            currencies = self.safe_value(market, 'currencies')
+            for j in range(0, len(currencies)):
+                currency = currencies[j]
+                currencyId = self.safe_string(currency, 'currency')
+                code = self.safe_currency_code(currencyId, 'currency')
+                rates[code] = {
+                    'currency': code,
+                    'rate': self.safe_number(currency, 'actual-rate'),
+                    'span': 86400000,
+                    'timestamp': timestamp,
+                    'datetime': self.iso8601(timestamp),
+                    'info': None,
+                }
+        return rates
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'

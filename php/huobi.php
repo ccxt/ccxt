@@ -36,6 +36,7 @@ class huobi extends Exchange {
                 'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRates' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -2777,6 +2778,117 @@ class huobi extends Exchange {
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
         ));
+    }
+
+    public function fetch_borrow_rates_per_symbol($params = array ()) {
+        $this->load_markets();
+        $response = $this->spotPrivateGetV1MarginLoanInfo ($params);
+        // {
+        //     "status" => "ok",
+        //     "data" => array(
+        //         {
+        //             "symbol" => "1inchusdt",
+        //             "currencies" => array(
+        //                 array(
+        //                     "currency" => "1inch",
+        //                     "interest-$rate" => "0.00098",
+        //                     "min-loan-amt" => "90.000000000000000000",
+        //                     "max-loan-amt" => "1000.000000000000000000",
+        //                     "loanable-amt" => "0.0",
+        //                     "actual-$rate" => "0.00098"
+        //                 ),
+        //                 array(
+        //                     "currency" => "usdt",
+        //                     "interest-$rate" => "0.00098",
+        //                     "min-loan-amt" => "100.000000000000000000",
+        //                     "max-loan-amt" => "1000.000000000000000000",
+        //                     "loanable-amt" => "0.0",
+        //                     "actual-$rate" => "0.00098"
+        //                 }
+        //             )
+        //         ),
+        //         ...
+        //     )
+        // }
+        $timestamp = $this->milliseconds();
+        $data = $this->safe_value($response, 'data');
+        $rates = array(
+            'info' => $response,
+        );
+        for ($i = 0; $i < count($data); $i++) {
+            $rate = $data[$i];
+            $currencies = $this->safe_value($rate, 'currencies');
+            $symbolRates = array();
+            for ($j = 0; $j < count($currencies); $j++) {
+                $currency = $currencies[$j];
+                $currencyId = $this->safe_string($currency, 'currency');
+                $code = $this->safe_currency_code($currencyId, 'currency');
+                $symbolRates[$code] = array(
+                    'currency' => $code,
+                    'rate' => $this->safe_number($currency, 'actual-rate'),
+                    'span' => 86400000,
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                );
+            }
+            $market = $this->markets_by_id[$this->safe_string($rate, 'symbol')];
+            $symbol = $market['symbol'];
+            $rates[$symbol] = $symbolRates;
+        }
+        return $rates;
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        $this->load_markets();
+        $response = $this->spotPrivateGetV1MarginLoanInfo ($params);
+        // {
+        //     "status" => "ok",
+        //     "data" => array(
+        //         {
+        //             "symbol" => "1inchusdt",
+        //             "currencies" => array(
+        //                 array(
+        //                     "currency" => "1inch",
+        //                     "interest-rate" => "0.00098",
+        //                     "min-loan-amt" => "90.000000000000000000",
+        //                     "max-loan-amt" => "1000.000000000000000000",
+        //                     "loanable-amt" => "0.0",
+        //                     "actual-rate" => "0.00098"
+        //                 ),
+        //                 array(
+        //                     "currency" => "usdt",
+        //                     "interest-rate" => "0.00098",
+        //                     "min-loan-amt" => "100.000000000000000000",
+        //                     "max-loan-amt" => "1000.000000000000000000",
+        //                     "loanable-amt" => "0.0",
+        //                     "actual-rate" => "0.00098"
+        //                 }
+        //             )
+        //         ),
+        //         ...
+        //     )
+        // }
+        $timestamp = $this->milliseconds();
+        $data = $this->safe_value($response, 'data');
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $market = $data[$i];
+            $currencies = $this->safe_value($market, 'currencies');
+            for ($j = 0; $j < count($currencies); $j++) {
+                $currency = $currencies[$j];
+                $currencyId = $this->safe_string($currency, 'currency');
+                $code = $this->safe_currency_code($currencyId, 'currency');
+                $rates[$code] = array(
+                    'currency' => $code,
+                    'rate' => $this->safe_number($currency, 'actual-rate'),
+                    'span' => 86400000,
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                    'info' => null,
+                );
+            }
+        }
+        return $rates;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
