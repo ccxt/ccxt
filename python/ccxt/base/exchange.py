@@ -262,6 +262,8 @@ class Exchange(object):
         'deposit': False,
         'editOrder': 'emulated',
         'fetchBalance': True,
+        'fetchBorrowRate': False,
+        'fetchBorrowRates': False,
         'fetchClosedOrders': False,
         'fetchCurrencies': False,
         'fetchDepositAddress': False,

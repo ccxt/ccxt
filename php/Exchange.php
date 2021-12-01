@@ -1149,6 +1149,8 @@ class Exchange {
             'createOrder' => true,
             'deposit' => false,
             'fetchBalance' => true,
+            'fetchBorrowRate' => false,
+            'fetchBorrowRates' => false,
             'fetchClosedOrders' => false,
             'fetchCurrencies' => false,
             'fetchDepositAddress' => false,

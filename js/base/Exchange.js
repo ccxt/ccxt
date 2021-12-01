@@ -74,6 +74,8 @@ module.exports = class Exchange {
                 'editOrder': 'emulated',
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchBorrowRate': undefined,
+                'fetchBorrowRates': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': undefined,
                 'fetchDepositAddress': undefined,
