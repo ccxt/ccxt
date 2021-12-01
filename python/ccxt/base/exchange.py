@@ -2669,12 +2669,3 @@ class Exchange(object):
             hour=0,
         )
         return since_date > x_months_ago
-
-    def day_start(self):
-        now = datetime.datetime.now(datetime.timezone.utc)
-        return int(datetime.datetime(
-            year=now.year,
-            month=now.month,
-            day=now.day,
-            hour=0,
-        ).timestamp()) * 1000

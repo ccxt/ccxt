@@ -2098,10 +2098,4 @@ module.exports = class Exchange {
         return sinceDate > xMonthsAgo;
     }
 
-    dayStart () {
-        const now = new Date ();
-        now.setHours (0, 0, 0);
-        return now.getTime ();
-    }
-
 }

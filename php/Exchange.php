@@ -3546,10 +3546,4 @@ class Exchange {
         return $since_date > $x_months_ago;
     }
 
-    public function day_start(){
-        $utc = new DateTimeZone("UTC");
-        $date = new DateTime('today midnight', $utc);
-        return $date->getTimestamp() * 1000;
-    }
-
 }
