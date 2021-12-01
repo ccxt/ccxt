@@ -13,7 +13,7 @@ module.exports = async (exchange, code) => {
 
         const transactions = await exchange.fetchWithdrawals (code)
 
-        console.log ('fetched', transactions.length.toString ().green, 'withdrawals, asserting each...')
+        console.log ('fetched', transactions.length, 'withdrawals, asserting each...')
 
         assert (transactions instanceof Array)
 

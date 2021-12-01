@@ -17,7 +17,7 @@ module.exports = async (exchange, symbol) => {
 
         assert (orders instanceof Array)
 
-        console.log ('fetched', orders.length.toString ().green, 'open orders')
+        console.log ('fetched', orders.length, 'open orders')
 
         const now = Date.now ()
 

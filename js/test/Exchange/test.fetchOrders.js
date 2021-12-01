@@ -23,7 +23,7 @@ module.exports = async (exchange, symbol) => {
 
         const orders = await exchange.fetchOrders (symbol)
 
-        console.log ('fetched', orders.length.toString ().green, 'orders, asserting each...')
+        console.log ('fetched', orders.length, 'orders, asserting each...')
 
         assert (orders instanceof Array)
 
