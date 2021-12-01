@@ -624,11 +624,13 @@ class Exchange {
     }
 
     public function filter_by($array, $key, $value = null) {
-        $grouped = static::group_by($array, $key);
-        if (is_array($grouped) && array_key_exists($value, $grouped)) {
-            return $grouped[$value];
+        $result = array();
+        foreach ($array as $element) {
+            if (isset($key, $element) && ($element[$key] == $value)) {
+                $result[] = $element[$key];
+            }
         }
-        return array();
+        return $result;
     }
 
     public static function group_by($array, $key) {
