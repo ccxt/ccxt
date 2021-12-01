@@ -2,48 +2,46 @@
 
 // ----------------------------------------------------------------------------
 
-const log = require ('ololog')
-    , ansi = require ('ansicolor').nice
+const assert = require ('assert')
     , chai = require ('chai')
     , expect = chai.expect
-    , assert = chai.assert
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = (exchange, item, code, now) => {
     expect (item).to.be.an ('object')
-    expect (item).to.have.property ('id')
+    assert ('id' in item)
     expect (typeof item.id).to.be.oneOf (['string', 'undefined'])
-    expect (item).to.have.property ('direction')
+    assert ('direction' in item)
     expect (item.direction).to.be.oneOf (['in', 'out'])
-    expect (item).to.have.property ('account')
+    assert ('account' in item)
     expect (typeof item.account).to.be.oneOf (['string', 'undefined'])
-    expect (item).to.have.property ('referenceId')
+    assert ('referenceId' in item)
     expect (typeof item.referenceId).to.be.oneOf (['string', 'undefined'])
-    expect (item).to.have.property ('referenceAccount')
+    assert ('referenceAccount' in item)
     expect (typeof item.referenceAccount).to.be.oneOf (['string', 'undefined'])
-    expect (item).to.have.property ('type')
+    assert ('type' in item)
     // expect (item.type).to.be.oneOf (['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee', /* TODO: add more types here */ ])
-    expect (item).to.have.property ('currency')
+    assert ('currency' in item)
     expect (exchange.currencies).to.have.property (item.currency)
-    expect (item).to.have.property ('amount')
+    assert ('amount' in item)
     expect (typeof item.amount).to.be.oneOf (['number', 'undefined'])
-    expect (item).to.have.property ('before')
+    assert ('before' in item)
     expect (typeof item.balanceBefore).to.be.oneOf (['number', 'undefined'])
-    expect (item).to.have.property ('after')
+    assert ('after' in item)
     expect (typeof item.balanceAfter).to.be.oneOf (['number', 'undefined'])
-    expect (item).to.have.property ('timestamp')
+    assert ('timestamp' in item)
     expect (typeof item.timestamp).to.be.oneOf (['number', 'undefined'])
     expect (item.timestamp).to.be.gt (1230940800000)
     expect (item.timestamp).to.be.lt (now)
-    expect (item).to.have.property ('datetime')
+    assert ('datetime' in item)
     expect (item.datetime).to.be.equal (exchange.iso8601 (item.timestamp))
-    expect (item).to.have.property ('fee')
+    assert ('fee' in item)
     if (item.fee !== undefined) {
         expect (item.fee).to.be.an ('object')
-        expect (item.fee).to.have.property ('cost')
+        assert ('cost' in item.fee)
         expect (typeof item.fee.cost).to.be.oneOf (['number', 'undefined'])
-        expect (item.fee).to.have.property ('currency')
+        assert ('currency' in item.fee)
         expect (item.fee.currency).to.be.equal (item.currency)
     }
     expect (item).to.have.property ('info').that.is.an ('object')
