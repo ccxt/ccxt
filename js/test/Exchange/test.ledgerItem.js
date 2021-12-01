@@ -9,7 +9,7 @@ const assert = require ('assert')
 // ----------------------------------------------------------------------------
 
 module.exports = (exchange, item, code, now) => {
-    expect (item).to.be.an ('object')
+    assert (typeof item === 'object')
     assert ('id' in item)
     assert (item['id'] === undefined || typeof item['id'] === 'string')
     assert ('direction' in item)
