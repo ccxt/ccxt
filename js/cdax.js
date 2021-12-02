@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -567,34 +566,56 @@ module.exports = class cdax extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     {
-        //         "amount": 0.010411000000000000,
-        //         "trade-id": 102090736910,
-        //         "ts": 1583497692182,
-        //         "id": 10500517034273194594947,
-        //         "price": 9096.050000000000000000,
-        //         "direction": "sell"
-        //     }
+        //      {
+        //          "id": "112522757755423628681413936",
+        //          "ts": "1638457111917",
+        //          "trade-id": "100454385963",
+        //          "amount": "13.7962",
+        //          "price": "1.697867",
+        //          "direction": "buy"
+        //      }
         //
         // fetchMyTrades (private)
         //
-        //     {
-        //          'symbol': 'swftcbtc',
-        //          'fee-currency': 'swftc',
-        //          'filled-fees': '0',
-        //          'source': 'spot-api',
-        //          'id': 83789509854000,
-        //          'type': 'buy-limit',
-        //          'order-id': 83711103204909,
-        //          'filled-points': '0.005826843283532154',
-        //          'fee-deduct-currency': 'ht',
-        //          'filled-amount': '45941.53',
-        //          'price': '0.0000001401',
-        //          'created-at': 1597933260729,
-        //          'match-id': 100087455560,
-        //          'role': 'maker',
-        //          'trade-id': 100050305348
-        //     },
+        //      {
+        //          "symbol": "adausdt",
+        //          "fee-currency": "usdt",
+        //          "source": "spot-api",
+        //          "order-id": "423628498050504",
+        //          "created-at": "1638455779233",
+        //          "role": "taker",
+        //          "price": "1.672487",
+        //          "match-id": "112521868633",
+        //          "trade-id": "100454375614",
+        //          "filled-amount": "6.8",
+        //          "filled-fees": "0.0227458232",
+        //          "filled-points": "0.0",
+        //          "fee-deduct-currency": "",
+        //          "fee-deduct-state": "done",
+        //          "id": "422419583501532",
+        //          "type": "sell-market"
+        //      },
+        //
+        // fetchOrderTrades (private)
+        //
+        //      {
+        //          "symbol": "adausdt",
+        //          "fee-currency": "usdt",
+        //          "source": "spot-api",
+        //          "match-id": "112521868633",
+        //          "trade-id": "100454375614",
+        //          "role": "taker",
+        //          "order-id": "423628498050504",
+        //          "price": "1.672487",
+        //          "created-at": "1638455779233",
+        //          "filled-amount": "6.8",
+        //          "filled-fees": "0.0227458232",
+        //          "filled-points": "0.0",
+        //          "fee-deduct-currency": "",
+        //          "fee-deduct-state": "done",
+        //          "id": "422419583501532",
+        //          "type": "sell-market"
+        //      }
         //
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -610,28 +631,25 @@ module.exports = class cdax extends Exchange {
         const takerOrMaker = this.safeString (trade, 'role');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'filled-amount', 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
-        let feeCost = this.safeNumber (trade, 'filled-fees');
+        let feeCostString = this.safeString (trade, 'filled-fees');
         let feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
-        const filledPoints = this.safeNumber (trade, 'filled-points');
+        const filledPoints = this.safeString (trade, 'filled-points');
         if (filledPoints !== undefined) {
-            if ((feeCost === undefined) || (feeCost === 0.0)) {
-                feeCost = filledPoints;
+            if ((feeCostString === undefined) || (feeCostString === '0.0')) {
+                feeCostString = filledPoints;
                 feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-deduct-currency'));
             }
         }
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             };
         }
         const tradeId = this.safeString2 (trade, 'trade-id', 'tradeId');
         const id = this.safeString (trade, 'id', tradeId);
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'order': order,
@@ -641,11 +659,11 @@ module.exports = class cdax extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1099,15 +1117,15 @@ module.exports = class cdax extends Exchange {
         const filled = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
         const price = this.safeString (order, 'price');
         const cost = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        const feeCost = this.safeNumber2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
+        const feeCostString = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             let feeCurrency = undefined;
             if (market !== undefined) {
                 feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             };
         }
