@@ -2039,7 +2039,8 @@ class gateio(Exchange):
             # Gateio doesn't have market orders for spot
             raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets')
         request = None
-        if stopPrice is None:
+        trigger = self.safe_value(params, 'trigger')
+        if stopPrice is None and trigger is None:
             if contract:
                 # contract order
                 request = {
@@ -2131,9 +2132,10 @@ class gateio(Exchange):
                 defaultExpiration = self.safe_integer(options, 'expiration')
                 expiration = self.safe_integer(params, 'expiration', defaultExpiration)
                 rule = '>=' if (side == 'sell') else '<='
+                triggerPrice = self.safe_value(trigger, 'price', stopPrice)
                 request = {
                     'trigger': {
-                        'price': self.price_to_precision(symbol, stopPrice),
+                        'price': self.price_to_precision(symbol, triggerPrice),
                         'rule': rule,  # >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration,  # required, how long(in seconds) to wait for the condition to be triggered before cancelling the order
                     },
