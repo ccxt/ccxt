@@ -264,17 +264,15 @@ module.exports = class kucoinfutures extends kucoin {
     async fetchAccounts (params = {}) {
         const response = await this.privateGetAccounts (params);
         //
-        // { 
+        // {
         //     "code": "200000",
         //     "data": {
-        //       "accountEquity": 99.8999305281, //Account equity = marginBalance + Unrealised PNL 
-        //       "unrealisedPNL": 0, //Unrealised profit and loss
-        //       "marginBalance": 99.8999305281, //Margin balance = positionMargin + orderMargin + frozenFunds + availableBalance - unrealisedPNL
-        //       "positionMargin": 0, //Position margin
-        //       "orderMargin": 0, //Order margin
-        //       "frozenFunds": 0, //Frozen funds for withdrawal and out-transfer
-        //       "availableBalance": 99.8999305281 //Available balance
-        //       "currency": "XBT" //currency code
+        //         "accountEquity": 99.8999305281, //Account equity = marginBalance + Unrealised PNL 
+        //         "unrealisedPNL": 0, //Unrealised profit and lossavailableBalance - unrealisedPNL
+        //         "positionMargin": 0, //Position margin
+        //         "orderMargin": 0, //Order margin
+        //         "frozenFunds": 0, //Frozen funds for withdrawal and out-transfer
+        //         "availableBalance": 99.8999305281, //Available balance"currency": "XBT" //currency code
         //     }
         // }
         //
@@ -456,10 +454,12 @@ module.exports = class kucoinfutures extends kucoin {
 
     async fetchTime (params = {}) {
         const response = await this.futuresPublicGetTimestamp (params);
+        //
         // {
         //     code: "200000",
         //     data: 1637385119302,
         // }
+        //
         return this.safeNumber (response, 'data');
     }
 
@@ -485,14 +485,16 @@ module.exports = class kucoinfutures extends kucoin {
         }
         request['to'] = endAt;
         const response = await this.futuresPublicGetKlineQuery (this.extend (request, params));
-        //     {
-        //         "code":"200000",
-        //         "data":[
-        //             [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
-        //             [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
-        //             [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
-        //         ]
-        //     }
+        //
+        // {
+        //     "code":"200000",
+        //     "data":[
+        //         [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
+        //         [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
+        //         [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
+        //     ]
+        // }
+        //
         const data = this.safeValue (response, 'data', []);
         since = this.safeString (since);
         return this.parseOHLCVs (data, market, timeframe, Precise.stringDiv (since, '1000'), limit);
@@ -500,15 +502,15 @@ module.exports = class kucoinfutures extends kucoin {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        //     [
-        //         "1545904980000",          // Start time of the candle cycle
-        //         "0.058",                  // opening price
-        //         "0.049",                  // closing price
-        //         "0.058",                  // highest price
-        //         "0.049",                  // lowest price
-        //         "0.018",                  // base volume
-        //         "0.000945",               // quote volume
-        //     ]
+        // [
+        //     "1545904980000",          // Start time of the candle cycle
+        //     "0.058",                  // opening price
+        //     "0.049",                  // closing price
+        //     "0.058",                  // highest price
+        //     "0.049",                  // lowest price
+        //     "0.018",                  // base volume
+        //     "0.000945",               // quote volume
+        // ]
         //
         return [
             Precise.stringDiv (this.safeString (ohlcv, 0), '1000'),
@@ -537,8 +539,8 @@ module.exports = class kucoinfutures extends kucoin {
         //     "code": "200000",
         //     "data": {
         //       "address": "0x78d3ad1c0aa1bf068e19c94a2d7b16c9c0fcd8b1",//Deposit address
-        //       "memo": null//Address tag. If the returned value is null, it means that the requested token has no memo. If you are to transfer funds from another platform to KuCoin Futures and if the token to be transferred has memo(tag), you need to fill in the memo to ensure the transferred funds will be sent to the address you specified. 
-        //     } 
+        //       "memo": null//Address tag. If the returned value is null, it means that the requested token has no memo. If you are to transfer funds from another platform to KuCoin Futures and if the token to be transferred has memo(tag), you need to fill in the memo to ensure the transferred funds will be sent to the address you specified.
+        //     }
         // }
         //
         const data = this.safeValue (response, 'data', {});
@@ -682,6 +684,7 @@ module.exports = class kucoinfutures extends kucoin {
             }
             const method = 'futuresPrivateGetFundingHistory';
             const response = await this[method] (this.extend (request, params));
+            //
             // {
             //  "data": {
             //     "dataList": [
@@ -698,6 +701,7 @@ module.exports = class kucoinfutures extends kucoin {
             //       },
             //  }
             // }
+            //
             const data = this.safeValue (response, 'data');
             const dataList = this.safeValue (data, 'dataList');
             const fees = [];
@@ -887,12 +891,14 @@ module.exports = class kucoinfutures extends kucoin {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.futuresPrivatePostOrders (this.extend (request, params));
+        //
         // {
         //     code: "200000",
         //     data: {
         //         orderId: "619717484f1d010001510cde",
         //     },
         // }
+        //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
         return {
@@ -926,6 +932,7 @@ module.exports = class kucoinfutures extends kucoin {
             'orderId': id,
         };
         const response = await this.futuresPrivateDeleteOrdersOrderId (this.extend (request, params));
+        //
         // {
         //     code: "200000",
         //     data: {
@@ -934,6 +941,7 @@ module.exports = class kucoinfutures extends kucoin {
         //         ],
         //     },
         // }
+        //
         return this.safeValue (response, 'data');
     }
 
@@ -953,6 +961,7 @@ module.exports = class kucoinfutures extends kucoin {
         //         ],
         //     },
         // }
+        //
         return this.safeValue (response, 'data');
     }
 
@@ -1061,6 +1070,7 @@ module.exports = class kucoinfutures extends kucoin {
             'symbol': this.marketId (symbol),
         };
         const response = await this.futuresPublicGetFundingRateSymbolCurrent (this.extend (request, params));
+        //
         // {
         //     code: "200000",
         //     data: {
@@ -1071,6 +1081,7 @@ module.exports = class kucoinfutures extends kucoin {
         //         predictedValue: 0.0001,
         //     },
         // }
+        //
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeNumber (data, 'timePoint');
         return {
@@ -1143,13 +1154,13 @@ module.exports = class kucoinfutures extends kucoin {
             'currency': currencyId, // Currency,including XBT,USDT
         };
         // transfer from usdm futures wallet to spot wallet
-        const response =  await this.privateFuturesTransferOut (this.extend (request, params));
+        const response = await this.privateFuturesTransferOut (this.extend (request, params));
         //
-        // { 
+        // {
         //     "code": "200000",
         //     "data": {
         //       "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
-        //     }  
+        //     }
         // }
         //
         const data = this.safeValue (response, 'data');
