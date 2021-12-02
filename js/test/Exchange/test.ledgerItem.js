@@ -3,8 +3,6 @@
 // ----------------------------------------------------------------------------
 
 const assert = require ('assert')
-    , chai = require ('chai')
-    , expect = chai.expect
 
 // ----------------------------------------------------------------------------
 
@@ -32,10 +30,10 @@ module.exports = (exchange, item, code, now) => {
     assert ((item['after'] === undefined) || (typeof item['after'] === 'number'))
     assert ('timestamp' in item)
     assert ((item['timestamp'] === undefined) || (typeof item['timestamp'] === 'number'))
-    expect (item.timestamp).to.be.gt (1230940800000)
-    expect (item.timestamp).to.be.lt (now)
+    assert (item['timestamp'] >= 1230940800000)
+    assert (item['timestamp'] <= now)
     assert ('datetime' in item)
-    expect (item.datetime).to.be.equal (exchange.iso8601 (item.timestamp))
+    assert (item['datetime'] === exchange.iso8601 (item['timestamp']))
     assert ('fee' in item)
     if (item['fee'] !== undefined) {
         assert (typeof item['fee'] === 'object')
