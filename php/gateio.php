@@ -2117,7 +2117,8 @@ class gateio extends Exchange {
             throw new InvalidOrder($this->id . ' createOrder() does not support ' . $type . ' orders for ' . $market['type'] . ' markets');
         }
         $request = null;
-        if ($stopPrice === null) {
+        $trigger = $this->safe_value($params, 'trigger');
+        if ($stopPrice === null && $trigger === null) {
             if ($contract) {
                 // $contract order
                 $request = array(
@@ -2219,9 +2220,10 @@ class gateio extends Exchange {
                 $defaultExpiration = $this->safe_integer($options, 'expiration');
                 $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
                 $rule = ($side === 'sell') ? '>=' : '<=';
+                $triggerPrice = $this->safe_value($trigger, 'price', $stopPrice);
                 $request = array(
                     'trigger' => array(
-                        'price' => $this->price_to_precision($symbol, $stopPrice),
+                        'price' => $this->price_to_precision($symbol, $triggerPrice),
                         'rule' => $rule, // >= triggered when $market $price larger than or equal to $price field, <= triggered when $market $price less than or equal to $price field
                         'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     ),
