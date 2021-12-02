@@ -264,17 +264,17 @@ module.exports = class kucoinfutures extends kucoin {
     async fetchAccounts (params = {}) {
         const response = await this.privateGetAccounts (params);
         //
-        // {
-        //     "code": "200000",
-        //     "data": {
-        //         "accountEquity": 99.8999305281, //Account equity = marginBalance + Unrealised PNL 
-        //         "unrealisedPNL": 0, //Unrealised profit and lossavailableBalance - unrealisedPNL
-        //         "positionMargin": 0, //Position margin
-        //         "orderMargin": 0, //Order margin
-        //         "frozenFunds": 0, //Frozen funds for withdrawal and out-transfer
-        //         "availableBalance": 99.8999305281, //Available balance"currency": "XBT" //currency code
-        //     }
-        // }
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "accountEquity": 99.8999305281, //Account equity = marginBalance + Unrealised PNL 
+        //            "unrealisedPNL": 0, //Unrealised profit and lossavailableBalance - unrealisedPNL
+        //            "positionMargin": 0, //Position margin
+        //            "orderMargin": 0, //Order margin
+        //            "frozenFunds": 0, //Frozen funds for withdrawal and out-transfer
+        //            "availableBalance": 99.8999305281, //Available balance"currency": "XBT" //currency code
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data');
         const result = [];
@@ -297,73 +297,73 @@ module.exports = class kucoinfutures extends kucoin {
     async fetchMarkets (params = {}) {
         const response = await this.futuresPublicGetContractsActive (params);
         //
-        //  {
-        //     "code": "200000",
-        //     "data": {
-        //         "symbol": "ETHUSDTM",
-        //         "rootSymbol": "USDT",
-        //         "type": "FFWCSX",
-        //         "firstOpenDate": 1591086000000,
-        //         "expireDate": null,
-        //         "settleDate": null,
-        //         "baseCurrency": "ETH",
-        //         "quoteCurrency": "USDT",
-        //         "settleCurrency": "USDT",
-        //         "maxOrderQty": 1000000,
-        //         "maxPrice": 1000000.0000000000,
-        //         "lotSize": 1,
-        //         "tickSize": 0.05,
-        //         "indexPriceTickSize": 0.01,
-        //         "multiplier": 0.01,
-        //         "initialMargin": 0.01,
-        //         "maintainMargin": 0.005,
-        //         "maxRiskLimit": 1000000,
-        //         "minRiskLimit": 1000000,
-        //         "riskStep": 500000,
-        //         "makerFeeRate": 0.00020,
-        //         "takerFeeRate": 0.00060,
-        //         "takerFixFee": 0.0000000000,
-        //         "makerFixFee": 0.0000000000,
-        //         "settlementFee": null,
-        //         "isDeleverage": true,
-        //         "isQuanto": true,
-        //         "isInverse": false,
-        //         "markMethod": "FairPrice",
-        //         "fairMethod": "FundingRate",
-        //         "fundingBaseSymbol": ".ETHINT8H",
-        //         "fundingQuoteSymbol": ".USDTINT8H",
-        //         "fundingRateSymbol": ".ETHUSDTMFPI8H",
-        //         "indexSymbol": ".KETHUSDT",
-        //         "settlementSymbol": "",
-        //         "status": "Open",
-        //         "fundingFeeRate": 0.000535,
-        //         "predictedFundingFeeRate": 0.002197,
-        //         "openInterest": "8724443",
-        //         "turnoverOf24h": 341156641.03354263,
-        //         "volumeOf24h": 74833.54000000,
-        //         "markPrice": 4534.07,
-        //         "indexPrice":4531.92,
-        //         "lastTradePrice": 4545.4500000000,
-        //         "nextFundingRateTime": 25481884,
-        //         "maxLeverage": 100,
-        //         "sourceExchanges":  [
-        //             "huobi",
-        //             "Okex",
-        //             "Binance",
-        //             "Kucoin",
-        //             "Poloniex",
-        //             "Hitbtc"
-        //         ],
-        //         "premiumsSymbol1M": ".ETHUSDTMPI",
-        //         "premiumsSymbol8H": ".ETHUSDTMPI8H",
-        //         "fundingBaseSymbol1M": ".ETHINT",
-        //         "fundingQuoteSymbol1M": ".USDTINT",
-        //         "lowPrice": 4456.90,
-        //         "highPrice":  4674.25,
-        //         "priceChgPct": 0.0046,
-        //         "priceChg": 21.15
-        //     }
-        //  }
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "ETHUSDTM",
+        //            "rootSymbol": "USDT",
+        //            "type": "FFWCSX",
+        //            "firstOpenDate": 1591086000000,
+        //            "expireDate": null,
+        //            "settleDate": null,
+        //            "baseCurrency": "ETH",
+        //            "quoteCurrency": "USDT",
+        //            "settleCurrency": "USDT",
+        //            "maxOrderQty": 1000000,
+        //            "maxPrice": 1000000.0000000000,
+        //            "lotSize": 1,
+        //            "tickSize": 0.05,
+        //            "indexPriceTickSize": 0.01,
+        //            "multiplier": 0.01,
+        //            "initialMargin": 0.01,
+        //            "maintainMargin": 0.005,
+        //            "maxRiskLimit": 1000000,
+        //            "minRiskLimit": 1000000,
+        //            "riskStep": 500000,
+        //            "makerFeeRate": 0.00020,
+        //            "takerFeeRate": 0.00060,
+        //            "takerFixFee": 0.0000000000,
+        //            "makerFixFee": 0.0000000000,
+        //            "settlementFee": null,
+        //            "isDeleverage": true,
+        //            "isQuanto": true,
+        //            "isInverse": false,
+        //            "markMethod": "FairPrice",
+        //            "fairMethod": "FundingRate",
+        //            "fundingBaseSymbol": ".ETHINT8H",
+        //            "fundingQuoteSymbol": ".USDTINT8H",
+        //            "fundingRateSymbol": ".ETHUSDTMFPI8H",
+        //            "indexSymbol": ".KETHUSDT",
+        //            "settlementSymbol": "",
+        //            "status": "Open",
+        //            "fundingFeeRate": 0.000535,
+        //            "predictedFundingFeeRate": 0.002197,
+        //            "openInterest": "8724443",
+        //            "turnoverOf24h": 341156641.03354263,
+        //            "volumeOf24h": 74833.54000000,
+        //            "markPrice": 4534.07,
+        //            "indexPrice":4531.92,
+        //            "lastTradePrice": 4545.4500000000,
+        //            "nextFundingRateTime": 25481884,
+        //            "maxLeverage": 100,
+        //            "sourceExchanges":  [
+        //                "huobi",
+        //                "Okex",
+        //                "Binance",
+        //                "Kucoin",
+        //                "Poloniex",
+        //                "Hitbtc"
+        //            ],
+        //            "premiumsSymbol1M": ".ETHUSDTMPI",
+        //            "premiumsSymbol8H": ".ETHUSDTMPI8H",
+        //            "fundingBaseSymbol1M": ".ETHINT",
+        //            "fundingQuoteSymbol1M": ".USDTINT",
+        //            "lowPrice": 4456.90,
+        //            "highPrice":  4674.25,
+        //            "priceChgPct": 0.0046,
+        //            "priceChg": 21.15
+        //        }
+        //    }
         //
         const result = [];
         const data = this.safeValue (response, 'data');
@@ -455,10 +455,10 @@ module.exports = class kucoinfutures extends kucoin {
     async fetchTime (params = {}) {
         const response = await this.futuresPublicGetTimestamp (params);
         //
-        // {
-        //     code: "200000",
-        //     data: 1637385119302,
-        // }
+        //    {
+        //        code: "200000",
+        //        data: 1637385119302,
+        //    }
         //
         return this.safeNumber (response, 'data');
     }
@@ -486,14 +486,14 @@ module.exports = class kucoinfutures extends kucoin {
         request['to'] = endAt;
         const response = await this.futuresPublicGetKlineQuery (this.extend (request, params));
         //
-        // {
-        //     "code":"200000",
-        //     "data":[
-        //         [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
-        //         [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
-        //         [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
-        //     ]
-        // }
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
+        //            [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
+        //            [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
+        //        ]
+        //    }
         //
         const data = this.safeValue (response, 'data', []);
         since = this.safeString (since);
@@ -502,15 +502,15 @@ module.exports = class kucoinfutures extends kucoin {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        // [
-        //     "1545904980000",          // Start time of the candle cycle
-        //     "0.058",                  // opening price
-        //     "0.049",                  // closing price
-        //     "0.058",                  // highest price
-        //     "0.049",                  // lowest price
-        //     "0.018",                  // base volume
-        //     "0.000945",               // quote volume
-        // ]
+        //    [
+        //        "1545904980000",          // Start time of the candle cycle
+        //        "0.058",                  // opening price
+        //        "0.049",                  // closing price
+        //        "0.058",                  // highest price
+        //        "0.049",                  // lowest price
+        //        "0.018",                  // base volume
+        //        "0.000945",               // quote volume
+        //    ]
         //
         return [
             Precise.stringDiv (this.safeString (ohlcv, 0), '1000'),
@@ -535,13 +535,13 @@ module.exports = class kucoinfutures extends kucoin {
         };
         const response = await this.futuresPrivateGetDepositAddresses (this.extend (request, params));
         //
-        // {
-        //     "code": "200000",
-        //     "data": {
-        //       "address": "0x78d3ad1c0aa1bf068e19c94a2d7b16c9c0fcd8b1",//Deposit address
-        //       "memo": null//Address tag. If the returned value is null, it means that the requested token has no memo. If you are to transfer funds from another platform to KuCoin Futures and if the token to be transferred has memo(tag), you need to fill in the memo to ensure the transferred funds will be sent to the address you specified.
-        //     }
-        // }
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "address": "0x78d3ad1c0aa1bf068e19c94a2d7b16c9c0fcd8b1",//Deposit address
+        //            "memo": null//Address tag. If the returned value is null, it means that the requested token has no memo. If you are to transfer funds from another platform to KuCoin Futures and if the token to be //transferred has memo(tag), you need to fill in the memo to ensure the transferred funds will be sent //to the address you specified.
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
@@ -685,22 +685,23 @@ module.exports = class kucoinfutures extends kucoin {
             const method = 'futuresPrivateGetFundingHistory';
             const response = await this[method] (this.extend (request, params));
             //
-            // {
-            //  "data": {
-            //     "dataList": [
-            //       {
-            //         "id": 36275152660006,                // id
-            //         "symbol": "XBTUSDM",                 // Symbol
-            //         "timePoint": 1557918000000,          // Time point (milisecond)
-            //         "fundingRate": 0.000013,             // Funding rate
-            //         "markPrice": 8058.27,                // Mark price
-            //         "positionQty": 10,                   // Position size
-            //         "positionCost": -0.001241,           // Position value at settlement period
-            //         "funding": -0.00000464,              // Settled funding fees. A positive number means that the user received the funding fee, and vice versa.
-            //         "settleCurrency": "XBT"              // Settlement currency
-            //       },
-            //  }
-            // }
+            //    {
+            //        "data": {
+            //            "dataList": [
+            //                {
+            //                    "id": 36275152660006,                // id
+            //                    "symbol": "XBTUSDM",                 // Symbol
+            //                    "timePoint": 1557918000000,          // Time point (milisecond)
+            //                    "fundingRate": 0.000013,             // Funding rate
+            //                    "markPrice": 8058.27,                // Mark price
+            //                    "positionQty": 10,                   // Position size
+            //                    "positionCost": -0.001241,           // Position value at settlement period
+            //                    "funding": -0.00000464,              // Settled funding fees. A positive number means that the user received the funding fee, and vice versa.
+            //                    "settleCurrency": "XBT"              // Settlement currency
+            //                },
+            //            ]
+            //        }
+            //    }
             //
             const data = this.safeValue (response, 'data');
             const dataList = this.safeValue (data, 'dataList');
@@ -892,12 +893,12 @@ module.exports = class kucoinfutures extends kucoin {
         }
         const response = await this.futuresPrivatePostOrders (this.extend (request, params));
         //
-        // {
-        //     code: "200000",
-        //     data: {
-        //         orderId: "619717484f1d010001510cde",
-        //     },
-        // }
+        //    {
+        //        code: "200000",
+        //        data: {
+        //            orderId: "619717484f1d010001510cde",
+        //        },
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
@@ -933,14 +934,14 @@ module.exports = class kucoinfutures extends kucoin {
         };
         const response = await this.futuresPrivateDeleteOrdersOrderId (this.extend (request, params));
         //
-        // {
-        //     code: "200000",
-        //     data: {
-        //         cancelledOrderIds: [
-        //              "619714b8b6353000014c505a",
-        //         ],
-        //     },
-        // }
+        //   {
+        //       code: "200000",
+        //       data: {
+        //           cancelledOrderIds: [
+        //                "619714b8b6353000014c505a",
+        //           ],
+        //       },
+        //   }
         //
         return this.safeValue (response, 'data');
     }
@@ -953,14 +954,14 @@ module.exports = class kucoinfutures extends kucoin {
         }
         const response = await this.futuresPrivateDeleteOrders (this.extend (request, params));
         // ? futuresPrivateDeleteStopOrders
-        // {
-        //     code: "200000",
-        //     data: {
-        //         cancelledOrderIds: [
-        //              "619714b8b6353000014c505a",
-        //         ],
-        //     },
-        // }
+        //   {
+        //       code: "200000",
+        //       data: {
+        //           cancelledOrderIds: [
+        //                "619714b8b6353000014c505a",
+        //           ],
+        //       },
+        //   }
         //
         return this.safeValue (response, 'data');
     }
@@ -1071,16 +1072,16 @@ module.exports = class kucoinfutures extends kucoin {
         };
         const response = await this.futuresPublicGetFundingRateSymbolCurrent (this.extend (request, params));
         //
-        // {
-        //     code: "200000",
-        //     data: {
-        //         symbol: ".ETHUSDTMFPI8H",
-        //         granularity: 28800000,
-        //         timePoint: 1637380800000,
-        //         value: 0.0001,
-        //         predictedValue: 0.0001,
-        //     },
-        // }
+        //    {
+        //        code: "200000",
+        //        data: {
+        //            symbol: ".ETHUSDTMFPI8H",
+        //            granularity: 28800000,
+        //            timePoint: 1637380800000,
+        //            value: 0.0001,
+        //            predictedValue: 0.0001,
+        //        },
+        //    }
         //
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeNumber (data, 'timePoint');
@@ -1156,12 +1157,12 @@ module.exports = class kucoinfutures extends kucoin {
         // transfer from usdm futures wallet to spot wallet
         const response = await this.privateFuturesTransferOut (this.extend (request, params));
         //
-        // {
-        //     "code": "200000",
-        //     "data": {
-        //       "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
-        //     }
-        // }
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data');
         return {
@@ -1197,37 +1198,37 @@ module.exports = class kucoinfutures extends kucoin {
         }
         const response = await this.futuresPrivateGetFills (this.extend (request, params));
         //
-        // {
-        //     "code": "200000",
-        //     "data": {
-        //       "currentPage": 1,
-        //       "pageSize": 1,
-        //       "totalNum": 251915,
-        //       "totalPage": 251915,
-        //       "items": [
-        //           {
-        //               "symbol": "XBTUSDM",  // Ticker symbol of the contract
-        //               "tradeId": "5ce24c1f0c19fc3c58edc47c",  // Trade ID
-        //               "orderId": "5ce24c16b210233c36ee321d",  // Order ID
-        //               "side": "sell",  // Transaction side
-        //               "liquidity": "taker",  // Liquidity- taker or maker
-        //               "price": "8302",  // Filled price
-        //               "size": 10,  // Filled amount
-        //               "value": "0.001204529",  // Order value
-        //               "feeRate": "0.0005",  // Floating fees
-        //               "fixFee": "0.00000006",  // Fixed fees
-        //               "feeCurrency": "XBT",  // Charging currency
-        //               "stop": "",  // A mark to the stop order type
-        //               "fee": "0.0000012022",  // Transaction fee
-        //               "orderType": "limit",  // Order type
-        //               "tradeType": "trade",  // Trade type (trade, liquidation, ADL or settlement)
-        //               "createdAt": 1558334496000,  // Time the order created
-        //               "settleCurrency": "XBT", // settlement currency
-        //               "tradeTime": 1558334496000000000 // trade time in nanosecond
-        //           }
-        //         ]
-        //     }
-        // }
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //          "currentPage": 1,
+        //          "pageSize": 1,
+        //          "totalNum": 251915,
+        //          "totalPage": 251915,
+        //          "items": [
+        //              {
+        //                  "symbol": "XBTUSDM",  // Ticker symbol of the contract
+        //                  "tradeId": "5ce24c1f0c19fc3c58edc47c",  // Trade ID
+        //                  "orderId": "5ce24c16b210233c36ee321d",  // Order ID
+        //                  "side": "sell",  // Transaction side
+        //                  "liquidity": "taker",  // Liquidity- taker or maker
+        //                  "price": "8302",  // Filled price
+        //                  "size": 10,  // Filled amount
+        //                  "value": "0.001204529",  // Order value
+        //                  "feeRate": "0.0005",  // Floating fees
+        //                  "fixFee": "0.00000006",  // Fixed fees
+        //                  "feeCurrency": "XBT",  // Charging currency
+        //                  "stop": "",  // A mark to the stop order type
+        //                  "fee": "0.0000012022",  // Transaction fee
+        //                  "orderType": "limit",  // Order type
+        //                  "tradeType": "trade",  // Trade type (trade, liquidation, ADL or settlement)
+        //                  "createdAt": 1558334496000,  // Time the order created
+        //                  "settleCurrency": "XBT", // settlement currency
+        //                  "tradeTime": 1558334496000000000 // trade time in nanosecond
+        //              }
+        //            ]
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
         const trades = this.safeValue (data, 'items', {});
@@ -1258,11 +1259,5 @@ module.exports = class kucoinfutures extends kucoin {
         const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
-
-    // inherits: fetchClosedOrders, fetchOpenOrders, nonce, loadTimeDifference, sign, handleErrors, fetchDeposits, withdraw, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchTicker, fetchStatus, parseTrade
-
-    // parseLedgerEntryType
-    // parseLedgerEntry
-    // fetchLedger
-
+    // inherited methods from class Kucoin include: fetchClosedOrders, fetchOpenOrders, nonce, loadTimeDifference, sign, handleErrors, fetchDeposits, withdraw, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchTicker, fetchStatus, parseTrade, parseLedgerEntryTyp, parseLedgerEntr, fetchLedger
 };
