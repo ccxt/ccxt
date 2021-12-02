@@ -35,7 +35,7 @@ class Throttle {
                     this.running = false
                 }
             } else {
-                await sleep(this.config['delay'] * 1000);
+                await sleep (this.config['delay'] * 1000);
                 const current = now ()
                 const elapsed = current - lastTimestamp
                 lastTimestamp = current
