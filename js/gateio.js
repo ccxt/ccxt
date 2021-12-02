@@ -2112,7 +2112,8 @@ module.exports = class gateio extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets');
         }
         let request = undefined;
-        if (stopPrice === undefined) {
+        const trigger = this.safeValue (params, 'trigger');
+        if (stopPrice === undefined && trigger === undefined) {
             if (contract) {
                 // contract order
                 request = {
@@ -2214,9 +2215,10 @@ module.exports = class gateio extends Exchange {
                 const defaultExpiration = this.safeInteger (options, 'expiration');
                 const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
                 const rule = (side === 'sell') ? '>=' : '<=';
+                const triggerPrice = this.safeValue (trigger, 'price', stopPrice);
                 request = {
                     'trigger': {
-                        'price': this.priceToPrecision (symbol, stopPrice),
+                        'price': this.priceToPrecision (symbol, triggerPrice),
                         'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     },
