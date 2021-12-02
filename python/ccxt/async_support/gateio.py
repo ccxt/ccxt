@@ -46,7 +46,7 @@ class gateio(Exchange):
                 },
             },
             'has': {
-                'cancelAllOrdr': True,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': False,
                 'createOrder': True,
