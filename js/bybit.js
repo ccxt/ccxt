@@ -2007,6 +2007,9 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request = {
             // 'order_id': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
@@ -2016,17 +2019,13 @@ module.exports = class bybit extends Exchange {
             // 'limit' 20, // max 50
         };
         let market = undefined;
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        } else {
-            const orderId = this.safeString (params, 'order_id');
-            if (orderId !== undefined) {
-                request['order_id'] = orderId;
-                params = this.omit (params, 'order_id');
-            }
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+        const orderId = this.safeString (params, 'order_id');
+        if (orderId !== undefined) {
+            request['order_id'] = orderId;
+            params = this.omit (params, 'order_id');
         }
+        market = this.market (symbol);
+        request['symbol'] = market['id'];
         if (since !== undefined) {
             request['start_time'] = since;
         }
