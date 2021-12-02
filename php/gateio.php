@@ -36,7 +36,7 @@ class gateio extends Exchange {
                 ),
             ),
             'has' => array(
-                'cancelAllOrdr' => true,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
