@@ -32,7 +32,7 @@ const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overridea
 
     let clearInnerTimeout = () => {}
     let active = true
-    
+
     const id = setTimeout (() => {
         active = true
         const rest = targetTime - now ()
