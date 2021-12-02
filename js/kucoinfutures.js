@@ -1234,9 +1234,33 @@ module.exports = class kucoinfutures extends kucoin {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTradeHistory (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "sequence": 102,                                  //Sequence number
+        //            "tradeId": "5cbd7377a6ffab0c7ba98b26",      //Transaction ID
+        //            "takerOrderId": "5cbd7377a6ffab0c7ba98b27", //Taker order ID
+        //            "makerOrderId": "5cbd7377a6ffab0c7ba98b28", //Maker order ID
+        //            "price": "7000.0",                          //Filled price
+        //            "size": 1,                                //Filled quantity
+        //            "side": "buy",                              //Side-taker                "ts": //1545904567062140823                   //Filled time - nanosecond
+        //            }
+        //    }
+        //
+        const trades = this.safeValue (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
     // inherits: fetchClosedOrders, fetchOpenOrders, nonce, loadTimeDifference, sign, handleErrors, fetchDeposits, withdraw, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchTicker, fetchStatus, parseTrade
 
-    // fetchTrades
     // parseLedgerEntryType
     // parseLedgerEntry
     // fetchLedger
