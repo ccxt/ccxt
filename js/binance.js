@@ -5505,12 +5505,10 @@ module.exports = class binance extends Exchange {
         return response;
     }
 
-    async fetchBorrowInterestHistory (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterestHistory (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.loadMarkets ();
         const request = {};
-        const defaultType = this.safeString2 (this.options, 'fetchBorrowInterestHistory', 'defaultType', 'margin');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let market = undefined;
         if (code !== undefined) {
             request['asset'] = this.currency (code)['id'];
         }
@@ -5520,11 +5518,10 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const isolatedSymbol = this.getSupportedMapping (type, {
-            'margin': true,
-            'cross_margin': false,
-        });
-        request['isolatedSymbol'] = isolatedSymbol;
+        if (symbol) {
+            market = this.market (symbol);
+            request['isolatedSymbol'] = market['id'];
+        }
         const response = await this.sapiGetMarginInterestHistory (this.extend (request, params));
         //
         // {
@@ -5548,11 +5545,11 @@ module.exports = class binance extends Exchange {
             const row = rows[i];
             const timestamp = this.safeNumber (row, 'interestAccuredTime');
             interestHistory.push ({
-                'symbol': this.safeString (row, 'isolatedSymbol'), // isolated symbol, will not be returned for crossed margin
-                'currency': this.safeCurrencyCode (row, 'asset'),
+                'account': this.safeString (row, 'isolatedSymbol', 'CROSS'), // isolated symbol, will not be returned for crossed margin
+                'currency': this.safeCurrencyCode (this.safeString (row, 'asset')),
                 'interest': this.safeNumber (row, 'interest'),
                 'interestRate': this.safeNumber (row, 'interestRate'),
-                'amountBorrowed': undefined,
+                'amountBorrowed': this.safeNumber (row, 'principal'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'info': row,

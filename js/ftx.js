@@ -2550,7 +2550,7 @@ module.exports = class ftx extends Exchange {
         }
     }
 
-    async fetchBorrowInterestHistory (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterestHistory (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
