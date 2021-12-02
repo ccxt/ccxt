@@ -20,7 +20,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.precise import Precise
 
 
 class cdax(Exchange):
@@ -560,34 +559,56 @@ class cdax(Exchange):
         #
         # fetchTrades(public)
         #
-        #     {
-        #         "amount": 0.010411000000000000,
-        #         "trade-id": 102090736910,
-        #         "ts": 1583497692182,
-        #         "id": 10500517034273194594947,
-        #         "price": 9096.050000000000000000,
-        #         "direction": "sell"
-        #     }
+        #      {
+        #          "id": "112522757755423628681413936",
+        #          "ts": "1638457111917",
+        #          "trade-id": "100454385963",
+        #          "amount": "13.7962",
+        #          "price": "1.697867",
+        #          "direction": "buy"
+        #      }
         #
         # fetchMyTrades(private)
         #
-        #     {
-        #          'symbol': 'swftcbtc',
-        #          'fee-currency': 'swftc',
-        #          'filled-fees': '0',
-        #          'source': 'spot-api',
-        #          'id': 83789509854000,
-        #          'type': 'buy-limit',
-        #          'order-id': 83711103204909,
-        #          'filled-points': '0.005826843283532154',
-        #          'fee-deduct-currency': 'ht',
-        #          'filled-amount': '45941.53',
-        #          'price': '0.0000001401',
-        #          'created-at': 1597933260729,
-        #          'match-id': 100087455560,
-        #          'role': 'maker',
-        #          'trade-id': 100050305348
-        #     },
+        #      {
+        #          "symbol": "adausdt",
+        #          "fee-currency": "usdt",
+        #          "source": "spot-api",
+        #          "order-id": "423628498050504",
+        #          "created-at": "1638455779233",
+        #          "role": "taker",
+        #          "price": "1.672487",
+        #          "match-id": "112521868633",
+        #          "trade-id": "100454375614",
+        #          "filled-amount": "6.8",
+        #          "filled-fees": "0.0227458232",
+        #          "filled-points": "0.0",
+        #          "fee-deduct-currency": "",
+        #          "fee-deduct-state": "done",
+        #          "id": "422419583501532",
+        #          "type": "sell-market"
+        #      },
+        #
+        # fetchOrderTrades(private)
+        #
+        #      {
+        #          "symbol": "adausdt",
+        #          "fee-currency": "usdt",
+        #          "source": "spot-api",
+        #          "match-id": "112521868633",
+        #          "trade-id": "100454375614",
+        #          "role": "taker",
+        #          "order-id": "423628498050504",
+        #          "price": "1.672487",
+        #          "created-at": "1638455779233",
+        #          "filled-amount": "6.8",
+        #          "filled-fees": "0.0227458232",
+        #          "filled-points": "0.0",
+        #          "fee-deduct-currency": "",
+        #          "fee-deduct-state": "done",
+        #          "id": "422419583501532",
+        #          "type": "sell-market"
+        #      }
         #
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -602,25 +623,22 @@ class cdax(Exchange):
         takerOrMaker = self.safe_string(trade, 'role')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'filled-amount', 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
-        feeCost = self.safe_number(trade, 'filled-fees')
+        feeCostString = self.safe_string(trade, 'filled-fees')
         feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
-        filledPoints = self.safe_number(trade, 'filled-points')
+        filledPoints = self.safe_string(trade, 'filled-points')
         if filledPoints is not None:
-            if (feeCost is None) or (feeCost == 0.0):
-                feeCost = filledPoints
+            if (feeCostString is None) or (feeCostString == '0.0'):
+                feeCostString = filledPoints
                 feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-deduct-currency'))
-        if feeCost is not None:
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             }
         tradeId = self.safe_string_2(trade, 'trade-id', 'tradeId')
         id = self.safe_string(trade, 'id', tradeId)
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'order': order,
@@ -630,11 +648,11 @@ class cdax(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1047,14 +1065,14 @@ class cdax(Exchange):
         filled = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
         price = self.safe_string(order, 'price')
         cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
-        feeCost = self.safe_number_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
+        feeCostString = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrency = None
             if market is not None:
                 feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             }
         return self.safe_order2({
