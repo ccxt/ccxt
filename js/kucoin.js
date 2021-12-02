@@ -1619,7 +1619,7 @@ module.exports = class kucoin extends Exchange {
                 'rate': this.safeNumber (trade, 'feeRate'),
             };
         }
-        let type = this.safeString (trade, 'type');
+        let type = this.safeString (trade, 'type', 'orderType');
         if (type === 'match') {
             type = undefined;
         }

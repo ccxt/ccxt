@@ -1177,11 +1177,66 @@ module.exports = class kucoinfutures extends kucoin {
         };
     }
 
-    // inherits: fetchClosedOrders, fetchOpenOrders, nonce, loadTimeDifference, sign, handleErrors, fetchDeposits, withdraw, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchTicker, fetchStatus
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
+            // symbol (String) [optional] Symbol of the contract
+            // side (String) [optional] buy or sell
+            // type (String) [optional] limit, market, limit_stop or market_stop
+            // startAt (long) [optional] Start time (milisecond)
+            // endAt (long) [optional] End time (milisecond)
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        const response = await this.futuresPrivateGetFills (this.extend (request, params));
+        //
+        // {
+        //     "code": "200000",
+        //     "data": {
+        //       "currentPage": 1,
+        //       "pageSize": 1,
+        //       "totalNum": 251915,
+        //       "totalPage": 251915,
+        //       "items": [
+        //           {
+        //               "symbol": "XBTUSDM",  // Ticker symbol of the contract
+        //               "tradeId": "5ce24c1f0c19fc3c58edc47c",  // Trade ID
+        //               "orderId": "5ce24c16b210233c36ee321d",  // Order ID
+        //               "side": "sell",  // Transaction side
+        //               "liquidity": "taker",  // Liquidity- taker or maker
+        //               "price": "8302",  // Filled price
+        //               "size": 10,  // Filled amount
+        //               "value": "0.001204529",  // Order value
+        //               "feeRate": "0.0005",  // Floating fees
+        //               "fixFee": "0.00000006",  // Fixed fees
+        //               "feeCurrency": "XBT",  // Charging currency
+        //               "stop": "",  // A mark to the stop order type
+        //               "fee": "0.0000012022",  // Transaction fee
+        //               "orderType": "limit",  // Order type
+        //               "tradeType": "trade",  // Trade type (trade, liquidation, ADL or settlement)
+        //               "createdAt": 1558334496000,  // Time the order created
+        //               "settleCurrency": "XBT", // settlement currency
+        //               "tradeTime": 1558334496000000000 // trade time in nanosecond
+        //           }
+        //         ]
+        //     }
+        // }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'items', {});
+        return this.parseTrades (trades, market, since, limit);
+    }
 
-    // fetchMyTrades
+    // inherits: fetchClosedOrders, fetchOpenOrders, nonce, loadTimeDifference, sign, handleErrors, fetchDeposits, withdraw, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchTicker, fetchStatus, parseTrade
+
     // fetchTrades
-    // parseTrade
     // parseLedgerEntryType
     // parseLedgerEntry
     // fetchLedger
