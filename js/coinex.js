@@ -637,7 +637,7 @@ module.exports = class coinex extends Exchange {
         return response;
     }
 
-    async getMarginAccount (params = {}) {
+    async fetchMarginAccount (params = {}) {
         const symbol = this.safeString (params, 'market');
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' getMarginAccountId() requires a market argument');
