@@ -190,7 +190,6 @@ module.exports = class coinex extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'defaultType': 'main',
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -624,7 +623,7 @@ module.exports = class coinex extends Exchange {
         const marketId = market['id'];
         let accountId = this.safeString2 (params, 'id', 'account_id');
         if (accountId === undefined) {
-            accountId = '0'; // default to main account, note: account id is a required parameter, margin account ID's can be found by calling the getMarginAccount method
+            accountId = '0'; // default to main account, note: account id is a required parameter, margin account ID's can be found by calling fetchBalance() with 'type'='margin' and a specified market
         }
         const request = {
             'account_id': accountId, // main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
@@ -635,59 +634,6 @@ module.exports = class coinex extends Exchange {
         // {"code": 0, "data": null, "message": "Success"}
         //
         return response;
-    }
-
-    async fetchMarginAccount (params = {}) {
-        const symbol = this.safeString (params, 'market');
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' getMarginAccountId() requires a market argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketId = market['id'];
-        const request = {
-            'market': marketId,
-        };
-        params = this.omit (params, 'market');
-        const response = await this.privateGetMarginAccount (this.extend (request, params));
-        //
-        //      {
-        //              code:    0,
-        //              data: {
-        //                  "account_id":    126,
-        //                  "leverage":    3,
-        //                  "market_type":   "AAVEUSDT",
-        //                  "sell_asset_type":   "AAVE",
-        //                  "buy_asset_type":   "USDT",
-        //                  "balance": {
-        //                      "sell_type": "0",
-        //                      "buy_type": "0"
-        //                              },
-        //                  "frozen": {
-        //                      "sell_type": "0",
-        //                      "buy_type": "0"
-        //                              },
-        //                  "loan": {
-        //                      "sell_type": "0",
-        //                      "buy_type": "0"
-        //                              },
-        //                  "interest": {
-        //                      "sell_type": "0",
-        //                      "buy_type": "0"
-        //                              },
-        //                  "can_transfer": {
-        //                      "sell_type": "0",
-        //                      "buy_type": "0"
-        //                              },
-        //                  "warn_rate":   "",
-        //                  "liquidation_price":   ""
-        //                  },
-        //           message:   "Success"
-        //      }
-        //
-        return {
-            'info': response['data'],
-        };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
