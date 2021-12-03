@@ -949,43 +949,40 @@ module.exports = class bybit extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     {
-        //         id: 43785688,
-        //         symbol: 'BTCUSD',
-        //         price: 7786,
-        //         qty: 67,
-        //         side: 'Sell',
-        //         time: '2020-03-11T19:18:30.123Z'
-        //     }
+        //      {
+        //          "id": "44275042152",
+        //          "symbol": "AAVEUSDT",
+        //          "price": "256.35",
+        //          "qty": "0.1",
+        //          "side": "Buy",
+        //          "time": "2021-11-30T12:46:14.000Z",
+        //          "trade_time_ms": "1638276374312"
+        //      }
         //
         // fetchMyTrades, fetchOrderTrades (private)
         //
-        //     {
-        //         "closed_size": 0,
-        //         "cross_seq": 277136382,
-        //         "exec_fee": "0.0000001",
-        //         "exec_id": "256e5ef8-abfe-5772-971b-f944e15e0d68",
-        //         "exec_price": "8178.5",
-        //         "exec_qty": 1,
-        //         // the docs say the exec_time field is "abandoned" now
-        //         // the user should use "trade_time_ms"
-        //         "exec_time": "1571676941.70682",
-        //         "exec_type": "Trade", //Exec Type Enum
-        //         "exec_value": "0.00012227",
-        //         "fee_rate": "0.00075",
-        //         "last_liquidity_ind": "RemovedLiquidity", //Liquidity Enum
-        //         "leaves_qty": 0,
-        //         "nth_fill": 2,
-        //         "order_id": "7ad50cb1-9ad0-4f74-804b-d82a516e1029",
-        //         "order_link_id": "",
-        //         "order_price": "8178",
-        //         "order_qty": 1,
-        //         "order_type": "Market", //Order Type Enum
-        //         "side": "Buy", //Side Enum
-        //         "symbol": "BTCUSD", //Symbol Enum
-        //         "user_id": 1,
-        //         "trade_time_ms": 1577480599000
-        //     }
+        //      {
+        //          "order_id": "b020b4bc-6fe2-45b5-adbc-dd07794f9746",
+        //          "order_link_id": "",
+        //          "side": "Buy",
+        //          "symbol": "AAVEUSDT",
+        //          "exec_id": "09abe8f0-aea6-514e-942b-7da8cb935120",
+        //          "price": "269.3",
+        //          "order_price": "269.3",
+        //          "order_qty": "0.1",
+        //          "order_type": "Market",
+        //          "fee_rate": "0.00075",
+        //          "exec_price": "256.35",
+        //          "exec_type": "Trade",
+        //          "exec_qty": "0.1",
+        //          "exec_fee": "0.01922625",
+        //          "exec_value": "25.635",
+        //          "leaves_qty": "0",
+        //          "closed_size": "0",
+        //          "last_liquidity_ind": "RemovedLiquidity",
+        //          "trade_time": "1638276374",
+        //          "trade_time_ms": "1638276374312"
+        //      }
         //
         const id = this.safeString2 (trade, 'id', 'exec_id');
         const marketId = this.safeString (trade, 'symbol');
@@ -993,12 +990,7 @@ module.exports = class bybit extends Exchange {
         const symbol = market['symbol'];
         const amountString = this.safeString2 (trade, 'qty', 'exec_qty');
         const priceString = this.safeString2 (trade, 'exec_price', 'price');
-        let cost = this.safeNumber (trade, 'exec_value');
-        const amount = this.parseNumber (amountString);
-        const price = this.parseNumber (priceString);
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
+        const costString = this.safeString (trade, 'exec_value');
         let timestamp = this.parse8601 (this.safeString (trade, 'time'));
         if (timestamp === undefined) {
             timestamp = this.safeInteger (trade, 'trade_time_ms');
@@ -1006,17 +998,17 @@ module.exports = class bybit extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
         const takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
-        const feeCost = this.safeNumber (trade, 'exec_fee');
+        const feeCostString = this.safeString (trade, 'exec_fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': this.safeNumber (trade, 'fee_rate'),
+                'rate': this.safeString (trade, 'fee_rate'),
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -1026,11 +1018,11 @@ module.exports = class bybit extends Exchange {
             'type': this.safeStringLower (trade, 'order_type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -1122,6 +1114,7 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        // note: any funds in the 'spot' account will not be returned or visible from this endpoint
         await this.loadMarkets ();
         const request = {};
         const coin = this.safeString (params, 'coin');
@@ -1330,12 +1323,11 @@ module.exports = class bybit extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
         const side = this.safeStringLower (order, 'side');
-        const feeCostString = this.safeString (order, 'cum_exec_fee');
-        const feeCost = this.parseNumber (Precise.stringAbs (feeCostString));
+        const feeCostString = Precise.stringAbs (this.safeString (order, 'cum_exec_fee'));
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             };
         }
@@ -2017,6 +2009,9 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request = {
             // 'order_id': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
@@ -2026,18 +2021,13 @@ module.exports = class bybit extends Exchange {
             // 'limit' 20, // max 50
         };
         let market = undefined;
-        if (symbol === undefined) {
-            const orderId = this.safeString (params, 'order_id');
-            if (orderId === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument or an order_id param');
-            } else {
-                request['order_id'] = orderId;
-                params = this.omit (params, 'order_id');
-            }
-        } else {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+        const orderId = this.safeString (params, 'order_id');
+        if (orderId !== undefined) {
+            request['order_id'] = orderId;
+            params = this.omit (params, 'order_id');
         }
+        market = this.market (symbol);
+        request['symbol'] = market['id'];
         if (since !== undefined) {
             request['start_time'] = since;
         }
