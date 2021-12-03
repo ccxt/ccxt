@@ -1771,10 +1771,10 @@ class bybit(Exchange):
         linear = (marketDefined and market['linear']) or (marketType == 'linear')
         inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')
         futures = (marketDefined and market['futures']) or (marketType == 'futures')
-        if linear:
-            defaultMethod = 'privateLinearGetOrderList'
-        elif inverse:
+        if inverse:
             defaultMethod = 'v2PrivateGetOrderList'
+        elif linear:
+            defaultMethod = 'privateLinearGetOrderList'
         elif futures:
             defaultMethod = 'futuresPrivateGetOrderList'
         query = params
