@@ -621,10 +621,7 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        let accountId = this.safeString2 (params, 'id', 'account_id');
-        if (accountId === undefined) {
-            accountId = '0'; // default to main account, note: account id is a required parameter, margin account ID's can be found by calling fetchBalance() with 'type'='margin' and a specified market
-        }
+        const accountId = this.safeString (params, 'id', '0');
         const request = {
             'account_id': accountId, // main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
             'market': marketId,
