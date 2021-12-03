@@ -452,6 +452,59 @@ module.exports = class coinex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        const accountType = this.safeString (params, 'type', 'main');
+        params = this.omit (params, 'type');
+        if (accountType === 'margin') {
+            const symbol = this.safeString (params, 'market');
+            params = this.omit (params, 'market');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + 'fetching a margin account requires a market parameter');
+            }
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            const request = {
+                'market': marketId,
+            };
+            const response = await this.privateGetMarginAccount (this.extend (request, params));
+            //
+            //      {
+            //              code:    0,
+            //              data: {
+            //                  "account_id":    126,
+            //                  "leverage":    3,
+            //                  "market_type":   "AAVEUSDT",
+            //                  "sell_asset_type":   "AAVE",
+            //                  "buy_asset_type":   "USDT",
+            //                  "balance": {
+            //                      "sell_type": "0",
+            //                      "buy_type": "0"
+            //                              },
+            //                  "frozen": {
+            //                      "sell_type": "0",
+            //                      "buy_type": "0"
+            //                              },
+            //                  "loan": {
+            //                      "sell_type": "0",
+            //                      "buy_type": "0"
+            //                              },
+            //                  "interest": {
+            //                      "sell_type": "0",
+            //                      "buy_type": "0"
+            //                              },
+            //                  "can_transfer": {
+            //                      "sell_type": "0",
+            //                      "buy_type": "0"
+            //                              },
+            //                  "warn_rate":   "",
+            //                  "liquidation_price":   ""
+            //                  },
+            //           message:   "Success"
+            //      }
+            //
+            return {
+                'info': response['data'],
+            };
+        }
         const response = await this.privateGetBalanceInfo (params);
         //
         //     {
