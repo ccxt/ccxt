@@ -1102,8 +1102,9 @@ module.exports = class cdax extends Exchange {
         let side = undefined;
         let type = undefined;
         let status = undefined;
+        let orderType = undefined;
         if ('type' in order) {
-            const orderType = order['type'].split ('-');
+            orderType = order['type'].split ('-');
             side = orderType[0];
             type = orderType[1];
             status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -1113,10 +1114,16 @@ module.exports = class cdax extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
         const clientOrderId = this.safeString (order, 'client-order-id');
-        const amount = this.safeString (order, 'amount');
-        const filled = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
-        const price = this.safeString (order, 'price');
-        const cost = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
+        const filledString = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
+        const priceString = this.safeString (order, 'price');
+        const costString = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
+        let amountString = this.safeString (order, 'amount');
+        if (side && type) {
+            orderType = orderType.join ('-');
+            if (orderType === 'buy-market') {
+                amountString = undefined;
+            }
+        }
         const feeCostString = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
         if (feeCostString !== undefined) {
@@ -1141,12 +1148,12 @@ module.exports = class cdax extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': undefined,
             'average': undefined,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
+            'cost': costString,
+            'amount': amountString,
+            'filled': filledString,
             'remaining': undefined,
             'status': status,
             'fee': fee,
