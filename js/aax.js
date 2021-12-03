@@ -249,6 +249,7 @@ module.exports = class aax extends Exchange {
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
+                    'SOL': 'SPL',
                 },
             },
         });
@@ -615,9 +616,11 @@ module.exports = class aax extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "p":"9395.50000000",
-        //         "q":"50.000000",
-        //         "t":1592563996718
+        //         "i":"T1qzQeZG9g",
+        //         "p":"-61348.81000000",
+        //         "q":"0.045400",
+        //         "s":"sell",
+        //         "t":1635731102731
         //     }
         //
         // private fetchMyTrades
@@ -656,13 +659,11 @@ module.exports = class aax extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'createTime'));
         }
-        const id = this.safeString2 (trade, 'tid', 'tradeID');
-        let symbol = undefined;
+        let id = this.safeString2 (trade, 'tid', 'tradeID');
+        id = this.safeString (trade, 'i', id);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = market['symbol'];
         let priceString = this.safeString2 (trade, 'p', 'filledPrice');
         const amountString = this.safeString2 (trade, 'q', 'filledQty');
         const orderId = this.safeString (trade, 'orderID');
@@ -681,12 +682,9 @@ module.exports = class aax extends Exchange {
             side = (priceString[0] === '-') ? 'sell' : 'buy';
         }
         priceString = Precise.stringAbs (priceString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderType = this.parseOrderType (this.safeString (trade, 'orderType'));
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'commission');
+        const feeCost = this.safeString (trade, 'commission');
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
             if (market !== undefined) {
@@ -701,7 +699,7 @@ module.exports = class aax extends Exchange {
                 'cost': feeCost,
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -711,11 +709,11 @@ module.exports = class aax extends Exchange {
             'side': side,
             'order': orderId,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -730,11 +728,12 @@ module.exports = class aax extends Exchange {
         const response = await this.publicGetMarketTrades (request);
         //
         //     {
-        //         "e":"BTCUSDFP@trades",
-        //         "trades": [
-        //             {"p":"9395.50000000","q":"50.000000","t":1592563996718},
-        //             {"p":"9395.50000000","q":"50.000000","t":1592563993577},
-        //         ],
+        //         "e":"BTCUSDT@trades",
+        //         "trades":[
+        //             {"i":"T1qzQeZG9g","p":"-61348.81000000","q":"0.045400","s":"sell","t":1635731102731},
+        //             {"i":"T1qzQeU6UK","p":"61343.10000000","q":"0.179300","s":"buy","t":1635731102133},
+        //             {"i":"T1qzQe5BQm","p":"-61346.02000000","q":"0.021100","s":"sell","t":1635731099231},
+        //         ]
         //     }
         //
         const trades = this.safeValue (response, 'trades', []);
@@ -864,18 +863,17 @@ module.exports = class aax extends Exchange {
             // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
             // 'clOrdID': clientOrderId, // up to 20 chars, lowercase and uppercase letters only
             // 'timeInForce': 'GTC', // GTC, IOC, FOK, default is GTC
-            // 'execInst': 'Post-Only', // the only value supported by the exchange, futures-only
+            // 'execInst': 'Post-Only', // the only value supported by the exchange, futures and spot
         };
-        const timeInForce = this.safeString (params, 'timeInForce');
-        if (timeInForce !== undefined) {
-            request['timeInForce'] = timeInForce;
-            params = this.omit (params, 'timeInForce');
-        }
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly !== undefined) {
+            request['execInst'] = 'Post-Only';
+        }
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly' ]);
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice === undefined) {
             if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {
@@ -1409,8 +1407,8 @@ module.exports = class aax extends Exchange {
             // 'base': market['baseId'],
             // 'quote': market['quoteId'],
             // 'orderStatus': undefined, // 1 new, 2 filled, 3 canceled
-            // 'startDate': this.ymd (since),
-            // 'endDate': this.ymd (this.milliseconds()),
+            // 'startDate': this.yyyymmdd (since),
+            // 'endDate': this.yyyymmdd (this.milliseconds()),
             // 'orderType': undefined, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side': 'undefined', // BUY, SELL
             // 'clOrdID': clientOrderId,
@@ -1439,7 +1437,7 @@ module.exports = class aax extends Exchange {
             request['pageSize'] = limit; // default 10
         }
         if (since !== undefined) {
-            request['startDate'] = this.ymd (since);
+            request['startDate'] = this.yyyymmdd (since);
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1631,16 +1629,16 @@ module.exports = class aax extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const execInst = this.safeString (order, 'execInst');
         const postOnly = (execInst === 'Post-Only');
-        const average = this.safeNumber (order, 'avgPrice');
-        const amount = this.safeNumber (order, 'orderQty');
-        const filled = this.safeNumber (order, 'cumQty');
-        let remaining = this.safeNumber (order, 'leavesQty');
-        if ((filled === 0) && (remaining === 0)) {
+        const average = this.safeString (order, 'avgPrice');
+        const amount = this.safeString (order, 'orderQty');
+        const filled = this.safeString (order, 'cumQty');
+        let remaining = this.safeString (order, 'leavesQty');
+        if ((Precise.stringEquals (filled, '0')) && (Precise.stringEquals (remaining, '0'))) {
             remaining = undefined;
         }
         let lastTradeTimestamp = this.safeValue (order, 'transactTime');
@@ -1663,7 +1661,7 @@ module.exports = class aax extends Exchange {
                 'cost': feeCost,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -1685,7 +1683,7 @@ module.exports = class aax extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': fee,
-        });
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1697,8 +1695,8 @@ module.exports = class aax extends Exchange {
             // 'orderID': id,
             // 'base': market['baseId'],
             // 'quote': market['quoteId'],
-            // 'startDate': this.ymd (since),
-            // 'endDate': this.ymd (this.milliseconds()),
+            // 'startDate': this.yyyymmdd (since),
+            // 'endDate': this.yyyymmdd (this.milliseconds()),
             // 'orderType': undefined, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side': 'undefined', // BUY, SELL
         };
@@ -1721,7 +1719,7 @@ module.exports = class aax extends Exchange {
             request['pageSize'] = limit; // default 10
         }
         if (since !== undefined) {
-            request['startDate'] = this.ymd (since);
+            request['startDate'] = this.yyyymmdd (since);
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1822,7 +1820,7 @@ module.exports = class aax extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         return {
             'info': depositAddress,
-            'code': code,
+            'currency': code,
             'address': address,
             'tag': tag,
             'network': network,

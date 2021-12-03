@@ -143,9 +143,9 @@ class zaif extends Exchange {
         //             "is_token" => false,
         //             "aux_unit_min" => 5.0,
         //             "aux_japanese" => "\u65e5\u672c\u5186",
-        //             "$id" => 1,
+        //             "id" => 1,
         //             "item_unit_step" => 0.0001,
-        //             "$name" => "BTC/JPY",
+        //             "name" => "BTC/JPY",
         //             "seq" => 0,
         //             "title" => "BTC/JPY"
         //         }
@@ -352,9 +352,9 @@ class zaif extends Exchange {
         //     {
         //         "currency_pair" => "btc_jpy",
         //         "action" => "ask",
-        //         "$amount" => 0.03,
-        //         "$price" => 56000,
-        //         "$timestamp" => 1402021125,
+        //         "amount" => 0.03,
+        //         "price" => 56000,
+        //         "timestamp" => 1402021125,
         //         "comment" : "demo"
         //     }
         //
@@ -363,10 +363,10 @@ class zaif extends Exchange {
         $timestamp = $this->safe_timestamp($order, 'timestamp');
         $marketId = $this->safe_string($order, 'currency_pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
         $id = $this->safe_string($order, 'id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -388,7 +388,7 @@ class zaif extends Exchange {
             'fee' => null,
             'info' => $order,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -492,7 +492,7 @@ class zaif extends Exchange {
             return;
         }
         //
-        //     array("$error" => "unsupported currency_pair")
+        //     array("error" => "unsupported currency_pair")
         //
         $feedback = $this->id . ' ' . $body;
         $error = $this->safe_string($response, 'error');

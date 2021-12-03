@@ -444,7 +444,7 @@ module.exports = class coinone extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'orderId');
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
         const timestamp = this.safeTimestamp (order, 'timestamp');
         let side = this.safeString (order, 'type');
         if (side === 'ask') {
@@ -452,13 +452,14 @@ module.exports = class coinone extends Exchange {
         } else if (side === 'bid') {
             side = 'buy';
         }
-        const remaining = this.safeNumber (order, 'remainQty');
-        const amount = this.safeNumber (order, 'qty');
+        const remaining = this.safeString (order, 'remainQty');
+        const amount = this.safeString (order, 'qty');
         let status = this.safeString (order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'live') {
             if ((remaining !== undefined) && (amount !== undefined)) {
-                if (remaining < amount) {
+                const isLessThan = Precise.stringLt (remaining, amount);
+                if (isLessThan) {
                     status = 'canceled';
                 }
             }
@@ -492,7 +493,7 @@ module.exports = class coinone extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -514,7 +515,7 @@ module.exports = class coinone extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

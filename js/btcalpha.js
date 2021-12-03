@@ -167,6 +167,30 @@ module.exports = class btcalpha extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id": "202203440",
+        //          "timestamp": "1637856276.264215",
+        //          "pair": "AAVE_USDT",
+        //          "price": "320.79900000",
+        //          "amount": "0.05000000",
+        //          "type": "buy"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "id": "202203440",
+        //          "timestamp": "1637856276.264215",
+        //          "pair": "AAVE_USDT",
+        //          "price": "320.79900000",
+        //          "amount": "0.05000000",
+        //          "type": "buy",
+        //          "my_side": "buy"
+        //      }
+        //
         let symbol = undefined;
         if (market === undefined) {
             market = this.safeValue (this.markets_by_id, trade['pair']);
@@ -177,27 +201,23 @@ module.exports = class btcalpha extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        const id = this.safeString2 (trade, 'id', 'tid');
-        const side = this.safeString2 (trade, 'my_side', 'side');
-        const orderId = this.safeString (trade, 'o_id');
-        return {
+        const id = this.safeString (trade, 'id');
+        const side = this.safeString2 (trade, 'my_side', 'type');
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': orderId,
+            'order': id,
             'type': 'limit',
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -286,34 +306,53 @@ module.exports = class btcalpha extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let symbol = undefined;
-        if (market === undefined) {
-            market = this.safeValue (this.markets_by_id, order['pair']);
+        //
+        // fetchClosedOrders / fetchOrder
+        //     {
+        //       "id": "923763073",
+        //       "date": "1635451090368",
+        //       "type": "sell",
+        //       "pair": "XRP_USDT",
+        //       "price": "1.00000000",
+        //       "amount": "0.00000000",
+        //       "status": "3",
+        //       "amount_filled": "10.00000000",
+        //       "amount_original": "10.0"
+        //       "trades": [],
+        //     }
+        //
+        // createOrder
+        //     {
+        //       "success": true,
+        //       "date": "1635451754.497541",
+        //       "type": "sell",
+        //       "oid": "923776755",
+        //       "price": "1.0",
+        //       "amount": "10.0",
+        //       "amount_filled": "0.0",
+        //       "amount_original": "10.0",
+        //       "trades": []
+        //     }
+        //
+        const marketId = this.safeString (order, 'pair');
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
+        const success = this.safeValue (order, 'success', false);
+        let timestamp = undefined;
+        if (success) {
+            timestamp = this.safeTimestamp (order, 'date');
+        } else {
+            timestamp = this.safeInteger (order, 'date');
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const timestamp = this.safeTimestamp (order, 'date');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
+        const price = this.safeString (order, 'price');
+        const remaining = this.safeString (order, 'amount');
+        const filled = this.safeString (order, 'amount_filled');
+        const amount = this.safeString (order, 'amount_original');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString2 (order, 'oid', 'id');
-        let trades = this.safeValue (order, 'trades', []);
-        trades = this.parseTrades (trades, market);
+        const trades = this.safeValue (order, 'trades');
         const side = this.safeString2 (order, 'my_side', 'type');
-        let filled = undefined;
-        const numTrades = trades.length;
-        if (numTrades > 0) {
-            filled = 0.0;
-            for (let i = 0; i < numTrades; i++) {
-                filled = this.sum (filled, trades[i]['amount']);
-            }
-        }
-        let remaining = undefined;
-        if ((amount !== undefined) && (amount > 0) && (filled !== undefined)) {
-            remaining = Math.max (0, amount - filled);
-        }
-        return {
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -335,7 +374,7 @@ module.exports = class btcalpha extends Exchange {
             'info': order,
             'lastTradeTimestamp': undefined,
             'average': undefined,
-        };
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

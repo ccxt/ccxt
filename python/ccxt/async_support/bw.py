@@ -11,7 +11,6 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.precise import Precise
 
 
 class bw(Exchange):
@@ -469,9 +468,6 @@ class bw(Exchange):
         timestamp = self.safe_timestamp(trade, 2)
         priceString = self.safe_string(trade, 5)
         amountString = self.safe_string(trade, 6)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 1)
         symbol = None
         if marketId is not None:
@@ -487,7 +483,7 @@ class bw(Exchange):
             symbol = market['symbol']
         sideString = self.safe_string(trade, 4)
         side = 'sell' if (sideString == 'ask') else 'buy'
-        return {
+        return self.safe_trade({
             'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -496,12 +492,12 @@ class bw(Exchange):
             'type': 'limit',
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -705,13 +701,13 @@ class bw(Exchange):
             side = 'sell'
         elif side == '1':
             side = 'buy'
-        amount = self.safe_number(order, 'amount')
-        price = self.safe_number(order, 'price')
-        filled = self.safe_number(order, 'completeAmount')
-        remaining = self.safe_number_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
-        cost = self.safe_number(order, 'totalMoney')
+        amount = self.safe_string(order, 'amount')
+        price = self.safe_string(order, 'price')
+        filled = self.safe_string(order, 'completeAmount')
+        remaining = self.safe_string_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
+        cost = self.safe_string(order, 'totalMoney')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': self.safe_string(order, 'entrustId'),
             'clientOrderId': None,
@@ -733,7 +729,7 @@ class bw(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -953,6 +949,7 @@ class bw(Exchange):
             'currency': code,
             'address': self.check_address(address),
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

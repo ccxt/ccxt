@@ -292,12 +292,12 @@ module.exports = class luno extends Exchange {
         }
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const price = this.safeNumber (order, 'limit_price');
-        const amount = this.safeNumber (order, 'limit_volume');
+        const price = this.safeString (order, 'limit_price');
+        const amount = this.safeString (order, 'limit_volume');
         const quoteFee = this.safeNumber (order, 'fee_counter');
         const baseFee = this.safeNumber (order, 'fee_base');
-        const filled = this.safeNumber (order, 'base');
-        const cost = this.safeNumber (order, 'counter');
+        const filled = this.safeString (order, 'base');
+        const cost = this.safeString (order, 'counter');
         const fee = { 'currency': undefined };
         if (quoteFee) {
             fee['cost'] = quoteFee;
@@ -311,7 +311,7 @@ module.exports = class luno extends Exchange {
             }
         }
         const id = this.safeString (order, 'order_id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -333,7 +333,7 @@ module.exports = class luno extends Exchange {
             'fee': fee,
             'info': order,
             'average': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

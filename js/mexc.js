@@ -59,7 +59,7 @@ module.exports = class mexc extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg',
                 'api': {
                     'spot': {
-                        'public': 'https://www.mxc.com/open/api/v2',
+                        'public': 'https://www.mexc.com/open/api/v2',
                         'private': 'https://www.mexc.com/open/api/v2',
                     },
                     'contract': {
@@ -219,6 +219,13 @@ module.exports = class mexc extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BYN': 'BeyondFi',
+                'COFI': 'COFIX', // conflict with CoinFi
+                'DFT': 'dFuture',
+                'DRK': 'DRK',
+                'HERO': 'Step Hero', // conflict with Metahero
+                'MIMO': 'Mimosa',
+                'PROS': 'Pros.Finance', // conflict with Prosper
                 'SIN': 'Sin City Token',
             },
             'exceptions': {
@@ -1176,7 +1183,8 @@ module.exports = class mexc extends Exchange {
         networkId = parts.join ('');
         networkId = networkId.replace ('-20', '20');
         const networksById = {
-            'ETH': 'ERC20',
+            'ETH': 'ETH',
+            'ERC20': 'ERC20',
             'BEP20(BSC)': 'BEP20',
             'TRX': 'TRC20',
         };
@@ -1240,7 +1248,7 @@ module.exports = class mexc extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         const rawNetwork = this.safeString (params, 'network');
-        params = this.omit ('network');
+        params = this.omit (params, 'network');
         const response = await this.fetchDepositAddressesByNetwork (code, params);
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
@@ -1523,10 +1531,11 @@ module.exports = class mexc extends Exchange {
         } else if (side === 'sell') {
             orderSide = 'ASK';
         }
-        let orderType = undefined;
-        const uppercaseOrderType = type.toUpperCase ();
-        if (uppercaseOrderType === 'LIMIT') {
+        let orderType = type.toUpperCase ();
+        if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
+        } else if ((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL')) {
+            throw new InvalidOrder (this.id + ' createOrder does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
         }
         const request = {
             'symbol': market['id'],
@@ -1737,7 +1746,7 @@ module.exports = class mexc extends Exchange {
             'fee': undefined,
             'trades': undefined,
             'info': order,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

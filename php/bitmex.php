@@ -281,7 +281,7 @@ class bitmex extends Exchange {
         //
         //     array(
         //         {
-        //             "$account":1455728,
+        //             "account":1455728,
         //             "currency":"XBt",
         //             "riskLimit":1000000000000,
         //             "prevState":"",
@@ -519,7 +519,7 @@ class bitmex extends Exchange {
         //             "clOrdID" => "string",
         //             "clOrdLinkID" => "string",
         //             "account" => 0,
-        //             "$symbol" => "string",
+        //             "symbol" => "string",
         //             "side" => "string",
         //             "lastQty" => 0,
         //             "lastPx" => 0,
@@ -606,11 +606,11 @@ class bitmex extends Exchange {
         //
         //     {
         //         "transactID":"00000000-0000-0000-0000-000000000000",
-        //         "$account":121210,
-        //         "$currency":"XBt",
+        //         "account":121210,
+        //         "currency":"XBt",
         //         "transactType":"UnrealisedPNL",
-        //         "$amount":-5508,
-        //         "$fee":0,
+        //         "amount":-5508,
+        //         "fee":0,
         //         "transactStatus":"Pending",
         //         "address":"XBTUSD",
         //         "tx":"",
@@ -618,7 +618,7 @@ class bitmex extends Exchange {
         //         "transactTime":null,  # ←---------------------------- null
         //         "walletBalance":139198767,
         //         "marginBalance":139193259,
-        //         "$timestamp":null  # ←---------------------------- null
+        //         "timestamp":null  # ←---------------------------- null
         //     }
         //
         $id = $this->safe_string($item, 'transactID');
@@ -1050,9 +1050,9 @@ class bitmex extends Exchange {
         $response = $this->publicGetTradeBucketed (array_merge($request, $params));
         //
         //     array(
-        //         array("$timestamp":"2015-09-25T13:38:00.000Z","$symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
-        //         array("$timestamp":"2015-09-25T13:39:00.000Z","$symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
-        //         array("$timestamp":"2015-09-25T13:40:00.000Z","$symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0)
+        //         array("timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
+        //         array("timestamp":"2015-09-25T13:39:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
+        //         array("timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0)
         //     )
         //
         $result = $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -1092,8 +1092,8 @@ class bitmex extends Exchange {
         //         "clOrdID" => "string",
         //         "clOrdLinkID" => "string",
         //         "account" => 0,
-        //         "$symbol" => "string",
-        //         "$side" => "string",
+        //         "symbol" => "string",
+        //         "side" => "string",
         //         "lastQty" => 0,
         //         "lastPx" => 0,
         //         "underlyingLastPx" => 0,
@@ -1108,7 +1108,7 @@ class bitmex extends Exchange {
         //         "pegPriceType" => "string",
         //         "currency" => "string",
         //         "settlCurrency" => "string",
-        //         "$execType" => "string",
+        //         "execType" => "string",
         //         "ordType" => "string",
         //         "timeInForce" => "string",
         //         "execInst" => "string",
@@ -1133,7 +1133,7 @@ class bitmex extends Exchange {
         //         "homeNotional" => 0,
         //         "foreignNotional" => 0,
         //         "transactTime" => "2019-03-05T12:47:02.762Z",
-        //         "$timestamp" => "2019-03-05T12:47:02.762Z"
+        //         "timestamp" => "2019-03-05T12:47:02.762Z"
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
@@ -1218,11 +1218,11 @@ class bitmex extends Exchange {
         //         "clOrdID":"",
         //         "clOrdLinkID":"",
         //         "account":1455728,
-        //         "$symbol":"XBTUSD",
-        //         "$side":"Sell",
+        //         "symbol":"XBTUSD",
+        //         "side":"Sell",
         //         "simpleOrderQty":null,
         //         "orderQty":1,
-        //         "$price":40000,
+        //         "price":40000,
         //         "displayQty":null,
         //         "stopPx":null,
         //         "pegOffsetValue":null,
@@ -1230,8 +1230,8 @@ class bitmex extends Exchange {
         //         "currency":"USD",
         //         "settlCurrency":"XBt",
         //         "ordType":"Limit",
-        //         "$timeInForce":"GoodTillCancel",
-        //         "$execInst":"",
+        //         "timeInForce":"GoodTillCancel",
+        //         "execInst":"",
         //         "contingencyType":"",
         //         "exDestination":"XBME",
         //         "ordStatus":"New",
@@ -1246,7 +1246,7 @@ class bitmex extends Exchange {
         //         "multiLegReportingType":"SingleSecurity",
         //         "text":"Submitted via API.",
         //         "transactTime":"2021-01-02T21:38:49.246Z",
-        //         "$timestamp":"2021-01-02T21:38:49.246Z"
+        //         "timestamp":"2021-01-02T21:38:49.246Z"
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
@@ -1254,10 +1254,10 @@ class bitmex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($order, 'timestamp'));
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'transactTime'));
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'orderQty');
-        $filled = $this->safe_number($order, 'cumQty', 0.0);
-        $average = $this->safe_number($order, 'avgPx');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'orderQty');
+        $filled = $this->safe_string($order, 'cumQty', 0.0);
+        $average = $this->safe_string($order, 'avgPx');
         $id = $this->safe_string($order, 'orderID');
         $type = $this->safe_string_lower($order, 'ordType');
         $side = $this->safe_string_lower($order, 'side');
@@ -1266,7 +1266,7 @@ class bitmex extends Exchange {
         $stopPrice = $this->safe_number($order, 'stopPx');
         $execInst = $this->safe_string($order, 'execInst');
         $postOnly = ($execInst === 'ParticipateDoNotInitiate');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1288,7 +1288,7 @@ class bitmex extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1431,7 +1431,7 @@ class bitmex extends Exchange {
         //             "clOrdID" => "string",
         //             "clOrdLinkID" => "string",
         //             "account" => 0,
-        //             "$symbol" => "string",
+        //             "symbol" => "string",
         //             "side" => "string",
         //             "simpleOrderQty" => 0,
         //             "orderQty" => 0,

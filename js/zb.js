@@ -442,6 +442,7 @@ module.exports = class zb extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': depositAddress,
         };
     }
@@ -859,10 +860,10 @@ module.exports = class zb extends Exchange {
         const timestamp = this.safeInteger (order, 'trade_date');
         const marketId = this.safeString (order, 'currency');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const price = this.safeNumber (order, 'price');
-        const filled = this.safeNumber (order, 'trade_amount');
-        const amount = this.safeNumber (order, 'total_amount');
-        const cost = this.safeNumber (order, 'trade_money');
+        const price = this.safeString (order, 'price');
+        const filled = this.safeString (order, 'trade_amount');
+        const amount = this.safeString (order, 'total_amount');
+        const cost = this.safeString (order, 'trade_money');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
         const feeCost = this.safeNumber (order, 'fees');
@@ -880,7 +881,7 @@ module.exports = class zb extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -902,7 +903,7 @@ module.exports = class zb extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrderStatus (status) {

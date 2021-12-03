@@ -412,15 +412,15 @@ class lbank(Exchange):
         timestamp = self.safe_integer(order, 'create_time')
         # Limit Order Request Returns: Order Price
         # Market Order Returns: cny amount of market order
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount', 0.0)
-        filled = self.safe_number(order, 'deal_amount', 0.0)
-        average = self.safe_number(order, 'avg_price')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        filled = self.safe_string(order, 'deal_amount')
+        average = self.safe_string(order, 'avg_price')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'order_id')
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -442,7 +442,7 @@ class lbank(Exchange):
             'fee': None,
             'info': self.safe_value(order, 'info', order),
             'average': average,
-        })
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

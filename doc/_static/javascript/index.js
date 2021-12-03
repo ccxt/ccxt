@@ -33,7 +33,7 @@ window.addEventListener ('load', function () {
         $faqlinks = $('a.reference.internal[href^="FAQ.html#"]')
     }
     $faqlinks.each (function () {
-        this.innerText = this.innerText.split ('?')[0] + '?';
+        this.parentNode.parentNode.remove ()
     });
     // set the height values for the sticky css property
     const $linkGroups = $links.parents ('ul');
@@ -118,6 +118,12 @@ window.addEventListener ('load', function () {
             $('.swiper-container').css ('max-width', width + 'px');
             $('#widget').css ('display', 'initial').trigger ('resize');
             $('#widget-wrapper').css ('border-style', 'solid');
+            const brokerRef = $('.bnc-broker-widget-link')
+            for (let i = 0; i < brokerRef.length; i++) {
+                const element = brokerRef[i]
+                const url = new URL (element.href)
+                element.href = url.origin + url.pathname
+            }
         }, 0);
         return result;
     }

@@ -188,7 +188,7 @@ class oceanex extends Exchange {
         //     {
         //         "code":0,
         //         "message":"Operation successful",
-        //         "$data" => {
+        //         "data" => {
         //             "at":1559431729,
         //             "ticker" => {
         //                 "buy":"0.0065",
@@ -217,9 +217,9 @@ class oceanex extends Exchange {
         //     {
         //         "code":0,
         //         "message":"Operation successful",
-        //         "$data" => {
+        //         "data" => {
         //             "at":1559431729,
-        //             "$ticker" => {
+        //             "ticker" => {
         //                 "buy":"0.0065",
         //                 "sell":"0.00677",
         //                 "low":"0.00677",
@@ -246,7 +246,7 @@ class oceanex extends Exchange {
         //
         //         {
         //             "at":1559431729,
-        //             "$ticker" => {
+        //             "ticker" => {
         //                 "buy":"0.0065",
         //                 "sell":"0.00677",
         //                 "low":"0.00677",
@@ -297,7 +297,7 @@ class oceanex extends Exchange {
         //         "code":0,
         //         "message":"Operation successful",
         //         "data" => {
-        //             "$timestamp":1559433057,
+        //             "timestamp":1559433057,
         //             "asks" => [
         //                 ["100.0","20.0"],
         //                 ["4.74","2000.0"],
@@ -333,9 +333,9 @@ class oceanex extends Exchange {
         //     {
         //         "code":0,
         //         "message":"Operation successful",
-        //         "$data" => [
+        //         "data" => [
         //             array(
-        //                 "$timestamp":1559433057,
+        //                 "timestamp":1559433057,
         //                 "market" => "bagvet",
         //                 "asks" => [
         //                     ["100.0","20.0"],
@@ -559,7 +559,7 @@ class oceanex extends Exchange {
         //         "avg_price" => "0.0",
         //         "executed_volume" => "0.0",
         //         "id" => 473797,
-        //         "$market" => "veteth"
+        //         "market" => "veteth"
         //     }
         //
         $status = $this->parse_order_status($this->safe_value($order, 'state'));
@@ -569,7 +569,12 @@ class oceanex extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         }
-        return $this->safe_order(array(
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'avg_price');
+        $amount = $this->safe_string($order, 'volume');
+        $remaining = $this->safe_string($order, 'remaining_volume');
+        $filled = $this->safe_string($order, 'executed_volume');
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
@@ -581,17 +586,17 @@ class oceanex extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $this->safe_value($order, 'side'),
-            'price' => $this->safe_number($order, 'price'),
+            'price' => $price,
             'stopPrice' => null,
-            'average' => $this->safe_number($order, 'avg_price'),
-            'amount' => $this->safe_number($order, 'volume'),
-            'remaining' => $this->safe_number($order, 'remaining_volume'),
-            'filled' => $this->safe_number($order, 'executed_volume'),
+            'average' => $average,
+            'amount' => $amount,
+            'remaining' => $remaining,
+            'filled' => $filled,
             'status' => $status,
             'cost' => null,
             'trades' => null,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status($status) {
@@ -673,7 +678,7 @@ class oceanex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         //
-        //     array("$code":1011,"$message":"This IP 'x.x.x.x' is not allowed","data":array())
+        //     array("code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":array())
         //
         if ($response === null) {
             return;

@@ -138,14 +138,14 @@ class tidex extends Exchange {
         //
         //     array(
         //         {
-        //             "$id":2,
+        //             "id":2,
         //             "symbol":"BTC",
         //             "type":2,
-        //             "$name":"Bitcoin",
+        //             "name":"Bitcoin",
         //             "amountPoint":8,
-        //             "$depositEnable":true,
+        //             "depositEnable":true,
         //             "depositMinAmount":0.0005,
-        //             "$withdrawEnable":true,
+        //             "withdrawEnable":true,
         //             "withdrawFee":0.0004,
         //             "withdrawMinAmount":0.0005,
         //             "settings":array(
@@ -155,7 +155,7 @@ class tidex extends Exchange {
         //                 "ConfirmationCount":3,
         //                 "NeedMemo":false
         //             ),
-        //             "$visible":true,
+        //             "visible":true,
         //             "isDelisted":false
         //         }
         //     )
@@ -226,7 +226,7 @@ class tidex extends Exchange {
         //                 "min_amount":0.001,
         //                 "max_amount":1000000.0,
         //                 "min_total":0.0001,
-        //                 "$hidden":0,
+        //                 "hidden":0,
         //                 "fee":0.1,
         //             ),
         //         ),
@@ -290,7 +290,7 @@ class tidex extends Exchange {
         //     {
         //         "success":1,
         //         "return":array(
-        //             "$funds":array(
+        //             "funds":array(
         //                 "btc":array("value":0.0000499885629956,"inOrders":0.0),
         //                 "eth":array("value":0.000000030741708,"inOrders":0.0),
         //                 "tdx":array("value":0.0000000155385356,"inOrders":0.0)
@@ -541,6 +541,8 @@ class tidex extends Exchange {
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
+        $amountString = (string) $amount;
+        $priceString = (string) $price;
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -552,8 +554,8 @@ class tidex extends Exchange {
         $response = $this->privatePostTrade (array_merge($request, $params));
         $id = null;
         $status = 'open';
-        $filled = 0.0;
-        $remaining = $amount;
+        $filledString = '0.0';
+        $remainingString = $amountString;
         $returnResult = $this->safe_value($response, 'return');
         if ($returnResult !== null) {
             $id = $this->safe_string($returnResult, 'order_id');
@@ -561,11 +563,11 @@ class tidex extends Exchange {
                 $id = $this->safe_string($returnResult, 'init_order_id');
                 $status = 'closed';
             }
-            $filled = $this->safe_number($returnResult, 'received', $filled);
-            $remaining = $this->safe_number($returnResult, 'remains', $amount);
+            $filledString = $this->safe_string($returnResult, 'received', $filledString);
+            $remainingString = $this->safe_string($returnResult, 'remains', $amountString);
         }
         $timestamp = $this->milliseconds();
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -574,18 +576,18 @@ class tidex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
             'cost' => null,
-            'amount' => $amount,
-            'remaining' => $remaining,
-            'filled' => $filled,
+            'amount' => $amountString,
+            'remaining' => $remainingString,
+            'filled' => $filledString,
             'fee' => null,
             // 'trades' => $this->parse_trades(order['trades'], $market),
             'info' => $response,
             'clientOrderId' => null,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -614,15 +616,15 @@ class tidex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $remaining = null;
         $amount = null;
-        $price = $this->safe_number($order, 'rate');
+        $price = $this->safe_string($order, 'rate');
         if (is_array($order) && array_key_exists('start_amount', $order)) {
-            $amount = $this->safe_number($order, 'start_amount');
-            $remaining = $this->safe_number($order, 'amount');
+            $amount = $this->safe_string($order, 'start_amount');
+            $remaining = $this->safe_string($order, 'amount');
         } else {
-            $remaining = $this->safe_number($order, 'amount');
+            $remaining = $this->safe_string($order, 'amount');
         }
         $fee = null;
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -644,7 +646,7 @@ class tidex extends Exchange {
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -746,12 +748,12 @@ class tidex extends Exchange {
         //                 "id":1111,
         //                 "asset_id":1,
         //                 "asset":"BTC",
-        //                 "$amount":0.0093,
+        //                 "amount":0.0093,
         //                 "fee":0.0007,
         //                 "create_time":1575128018,
         //                 "status":"Created",
         //                 "data":array(
-        //                     "$address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+        //                     "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
         //                     "memo":"memo",
         //                     "tx":null,
         //                     "error":null
@@ -815,8 +817,8 @@ class tidex extends Exchange {
             //
             // 1 - The exchange only returns the integer 'success' key from their private API
             //
-            //     array( "$success" => 1, ... ) $httpCode === 200
-            //     array( "$success" => 0, ... ) $httpCode === 200
+            //     array( "success" => 1, ... ) $httpCode === 200
+            //     array( "success" => 0, ... ) $httpCode === 200
             //
             // 2 - However, derived exchanges can return non-integers
             //
@@ -825,12 +827,12 @@ class tidex extends Exchange {
             //     array( "sucesss" => "0", ... ), $httpCode >= 200 (can be 403, 502, etc)
             //
             //     Or just a string
-            //     array( "$success" => "true", ... )
-            //     array( "$success" => "false", ... ), $httpCode >= 200
+            //     array( "success" => "true", ... )
+            //     array( "success" => "false", ... ), $httpCode >= 200
             //
             //     Or a boolean
-            //     array( "$success" => true, ... )
-            //     array( "$success" => false, ... ), $httpCode >= 200
+            //     array( "success" => true, ... )
+            //     array( "success" => false, ... ), $httpCode >= 200
             //
             // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
             //

@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, BadSymbol } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -99,14 +98,18 @@ module.exports = class qtrade extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'quote',
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.0025,
+                    'taker': 0.005,
                     'maker': 0.0,
                 },
                 'funding': {
                     'withdraw': {},
                 },
+            },
+            'commonCurrencies': {
+                'BTM': 'Bitmark',
             },
             'exceptions': {
                 'exact': {
@@ -631,17 +634,12 @@ module.exports = class qtrade extends Exchange {
         }
         const side = this.safeString (trade, 'side');
         const marketId = this.safeString (trade, 'market_string');
-        const symbol = this.safeSymbol (marketId, market, '_');
-        let cost = this.safeNumber2 (trade, 'base_volume', 'base_amount');
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString2 (trade, 'market_amount', 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
+        market = this.safeMarket (marketId, market);
+        const cost = this.safeString2 (trade, 'base_volume', 'base_amount');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString2 (trade, 'market_amount', 'amount');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'base_fee');
+        const feeCost = this.safeString (trade, 'base_fee');
         if (feeCost !== undefined) {
             const feeCurrencyCode = (market === undefined) ? undefined : market['quote'];
             fee = {
@@ -652,12 +650,12 @@ module.exports = class qtrade extends Exchange {
         const taker = this.safeValue (trade, 'taker', true);
         const takerOrMaker = taker ? 'taker' : 'maker';
         const orderId = this.safeString (trade, 'order_id');
-        const result = {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -666,8 +664,7 @@ module.exports = class qtrade extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
-        return result;
+        }, market);
     }
 
     async fetchBalance (params = {}) {
@@ -1024,6 +1021,7 @@ module.exports = class qtrade extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': depositAddress,
         };
     }

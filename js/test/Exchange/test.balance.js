@@ -2,9 +2,7 @@
 
 // ----------------------------------------------------------------------------
 
-const log    = require ('ololog')
-    , chai   = require ('chai')
-    , assert = chai.assert
+const assert = require ('assert')
 
 // ----------------------------------------------------------------------------
 
@@ -25,8 +23,6 @@ module.exports = (exchange, balance, method) => {
         'RUB',
         'XRP',
     ]
-
-    // log.yellow (balance)
 
     assert (typeof balance['total'] === 'object')
     assert (typeof balance['free'] === 'object')
@@ -60,6 +56,6 @@ module.exports = (exchange, balance, method) => {
         result = 'zero balance'
     }
 
-    log (result)
+    console.log (result)
 
 }

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -250,23 +250,20 @@ module.exports = class bitbank extends Exchange {
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString2 (trade, 'transaction_id', 'trade_id');
         const takerOrMaker = this.safeString (trade, 'maker_taker');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee_amount_quote');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee_amount_quote');
+        if (feeCostString !== undefined) {
             fee = {
                 'currency': feeCurrency,
-                'cost': feeCost,
+                'cost': feeCostString,
             };
         }
         const orderId = this.safeString (trade, 'order_id');
         const type = this.safeString (trade, 'type');
         const side = this.safeString (trade, 'side');
-        return {
+        return this.safeTrade ({
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -275,12 +272,12 @@ module.exports = class bitbank extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -317,15 +314,15 @@ module.exports = class bitbank extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let date = this.milliseconds ();
-        date = this.ymd (date);
-        date = date.split ('-');
         const request = {
             'pair': market['id'],
             'candletype': this.timeframes[timeframe],
-            'yyyymmdd': date.join (''),
+            'yyyymmdd': this.yyyymmdd (since, ''),
         };
         const response = await this.publicGetPairCandlestickCandletypeYyyymmdd (this.extend (request, params));
         //
@@ -431,15 +428,15 @@ module.exports = class bitbank extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (order, 'ordered_at');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'start_amount');
-        const filled = this.safeNumber (order, 'executed_amount');
-        const remaining = this.safeNumber (order, 'remaining_amount');
-        const average = this.safeNumber (order, 'average_price');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'start_amount');
+        const filled = this.safeString (order, 'executed_amount');
+        const remaining = this.safeString (order, 'remaining_amount');
+        const average = this.safeString (order, 'average_price');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -461,7 +458,7 @@ module.exports = class bitbank extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -561,6 +558,7 @@ module.exports = class bitbank extends Exchange {
             'currency': currency,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response,
         };
     }

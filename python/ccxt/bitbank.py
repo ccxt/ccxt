@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -250,22 +251,19 @@ class bitbank(Exchange):
             feeCurrency = market['quote']
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string_2(trade, 'transaction_id', 'trade_id')
         takerOrMaker = self.safe_string(trade, 'maker_taker')
         fee = None
-        feeCost = self.safe_number(trade, 'fee_amount_quote')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee_amount_quote')
+        if feeCostString is not None:
             fee = {
                 'currency': feeCurrency,
-                'cost': feeCost,
+                'cost': feeCostString,
             }
         orderId = self.safe_string(trade, 'order_id')
         type = self.safe_string(trade, 'type')
         side = self.safe_string(trade, 'side')
-        return {
+        return self.safe_trade({
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -274,12 +272,12 @@ class bitbank(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -313,15 +311,14 @@ class bitbank(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        if since is None:
+            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument')
         self.load_markets()
         market = self.market(symbol)
-        date = self.milliseconds()
-        date = self.ymd(date)
-        date = date.split('-')
         request = {
             'pair': market['id'],
             'candletype': self.timeframes[timeframe],
-            'yyyymmdd': ''.join(date),
+            'yyyymmdd': self.yyyymmdd(since, ''),
         }
         response = self.publicGetPairCandlestickCandletypeYyyymmdd(self.extend(request, params))
         #
@@ -421,15 +418,15 @@ class bitbank(Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'ordered_at')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'start_amount')
-        filled = self.safe_number(order, 'executed_amount')
-        remaining = self.safe_number(order, 'remaining_amount')
-        average = self.safe_number(order, 'average_price')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'start_amount')
+        filled = self.safe_string(order, 'executed_amount')
+        remaining = self.safe_string(order, 'remaining_amount')
+        average = self.safe_string(order, 'average_price')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -451,7 +448,7 @@ class bitbank(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
-        })
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -538,6 +535,7 @@ class bitbank(Exchange):
             'currency': currency,
             'address': address,
             'tag': None,
+            'network': None,
             'info': response,
         }
 

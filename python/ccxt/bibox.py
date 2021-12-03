@@ -31,13 +31,15 @@ class bibox(Exchange):
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
-            'hostname': 'bibox365.com',
+            'hostname': 'bibox.com',
             'has': {
                 'cancelOrder': True,
                 'CORS': None,
                 'createMarketOrder': None,  # or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -351,17 +353,14 @@ class bibox(Exchange):
         feeRate = None  # todo: deduce from market if market is defined
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         if feeCostString is not None:
             fee = {
-                'cost': self.parse_number(Precise.string_neg(feeCostString)),
+                'cost': Precise.string_neg(feeCostString),
                 'currency': feeCurrency,
                 'rate': feeRate,
             }
         id = self.safe_string(trade, 'id')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': None,  # Bibox does not have it(documented) yet
@@ -371,11 +370,11 @@ class bibox(Exchange):
             'type': 'limit',
             'takerOrMaker': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -942,11 +941,11 @@ class bibox(Exchange):
         rawType = self.safe_string(order, 'order_type')
         type = 'market' if (rawType == '1') else 'limit'
         timestamp = self.safe_integer(order, 'createdAt')
-        price = self.safe_number(order, 'price')
-        average = self.safe_number(order, 'deal_price')
-        filled = self.safe_number(order, 'deal_amount')
-        amount = self.safe_number(order, 'amount')
-        cost = self.safe_number_2(order, 'deal_money', 'money')
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'deal_price')
+        filled = self.safe_string(order, 'deal_amount')
+        amount = self.safe_string(order, 'amount')
+        cost = self.safe_string_2(order, 'deal_money', 'money')
         rawSide = self.safe_string(order, 'order_side')
         side = 'buy' if (rawSide == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -958,7 +957,7 @@ class bibox(Exchange):
                 'cost': feeCost,
                 'currency': None,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -980,7 +979,7 @@ class bibox(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1195,6 +1194,7 @@ class bibox(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

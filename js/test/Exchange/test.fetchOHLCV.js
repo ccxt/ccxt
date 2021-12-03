@@ -2,14 +2,9 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
-    , testOHLCV = require ('./test.ohlcv.js')
+const testOHLCV = require ('./test.ohlcv.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
 
@@ -20,7 +15,7 @@ module.exports = async (exchange, symbol) => {
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, 'found in ignored exchanges, skipping fetchOHLCV...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping fetchOHLCV...')
         return
     }
 
@@ -31,8 +26,6 @@ module.exports = async (exchange, symbol) => {
         const duration = exchange.parseTimeframe (timeframe)
         const since = exchange.milliseconds () - duration * limit * 1000 - 1000
 
-        // log (symbol.green, 'fetching OHLCV...')
-
         const ohlcvs = await exchange.fetchOHLCV (symbol, timeframe, since, limit)
 
         const now = Date.now ()
@@ -42,12 +35,12 @@ module.exports = async (exchange, symbol) => {
             testOHLCV (exchange, ohlcv, symbol, now)
         }
 
-        log (symbol.green, 'fetched', Object.keys (ohlcvs).length.toString ().green, 'OHLCVs')
+        console.log (symbol.green, 'fetched', Object.keys (ohlcvs).length, 'OHLCVs')
 
         return ohlcvs
 
     } else {
 
-        log ('fetching OHLCV not supported')
+        console.log ('fetching OHLCV not supported')
     }
 }

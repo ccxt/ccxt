@@ -26,7 +26,7 @@ module.exports = class gemini extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchDepositAddress': undefined,
+                'fetchDepositAddress': undefined, // TODO
                 'fetchDeposits': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -111,6 +111,7 @@ module.exports = class gemini extends Exchange {
                         'v1/transfers',
                         'v1/addresses/{network}',
                         'v1/deposit/{network}/newAddress',
+                        'v1/deposit/{currency}/newAddress',
                         'v1/withdraw/{currency}',
                         'v1/account/transfer/{currency}',
                         'v1/payments/addbank',
@@ -195,6 +196,26 @@ module.exports = class gemini extends Exchange {
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
+                'networkIds': {
+                    'bitcoin': 'BTC',
+                    'ethereum': 'ERC20',
+                    'bitcoincash': 'BCH',
+                    'litecoin': 'LTC',
+                    'zcash': 'ZEC',
+                    'filecoin': 'FIL',
+                    'dogecoin': 'DOGE',
+                    'tezos': 'XTZ',
+                },
+                'networks': {
+                    'BTC': 'bitcoin',
+                    'ERC20': 'ethereum',
+                    'BCH': 'bitcoincash',
+                    'LTC': 'litecoin',
+                    'ZEC': 'zcash',
+                    'FIL': 'filecoin',
+                    'DOGE': 'dogecoin',
+                    'XTZ': 'tezos',
+                },
             },
         });
     }
@@ -453,7 +474,7 @@ module.exports = class gemini extends Exchange {
         const volume = this.safeValue (ticker, 'volume', {});
         const timestamp = this.safeInteger (volume, 'timestamp');
         let symbol = undefined;
-        const marketId = this.safeString (ticker, 'pair');
+        const marketId = this.safeStringLower (ticker, 'pair');
         let baseId = undefined;
         let quoteId = undefined;
         let base = undefined;
@@ -622,9 +643,9 @@ module.exports = class gemini extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.safeInteger (order, 'timestampms');
-        const amount = this.safeNumber (order, 'original_amount');
-        const remaining = this.safeNumber (order, 'remaining_amount');
-        const filled = this.safeNumber (order, 'executed_amount');
+        const amount = this.safeString (order, 'original_amount');
+        const remaining = this.safeString (order, 'remaining_amount');
+        const filled = this.safeString (order, 'executed_amount');
         let status = 'closed';
         if (order['is_live']) {
             status = 'open';
@@ -632,8 +653,8 @@ module.exports = class gemini extends Exchange {
         if (order['is_cancelled']) {
             status = 'canceled';
         }
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'avg_execution_price');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'avg_execution_price');
         let type = this.safeString (order, 'type');
         if (type === 'exchange limit') {
             type = 'limit';
@@ -648,7 +669,7 @@ module.exports = class gemini extends Exchange {
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -670,7 +691,7 @@ module.exports = class gemini extends Exchange {
             'remaining': remaining,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -808,6 +829,43 @@ module.exports = class gemini extends Exchange {
             'updated': undefined,
             'fee': fee,
         };
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //      {
+        //          address: "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        //          timestamp: "1636813923098",
+        //          addressVersion: "eV1"                                         }
+        //      }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        return {
+            'currency': currency,
+            'network': undefined,
+            'address': address,
+            'tag': undefined,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddressesByNetwork (code, params = {}) {
+        await this.loadMarkets ();
+        const network = this.safeString (params, 'network');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + 'fetchDepositAddressesByNetwork() requires a network parameter');
+        }
+        params = this.omit (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeString (networks, network, network);
+        const networkIds = this.safeValue (this.options, 'networkIds', {});
+        const networkCode = this.safeString (networkIds, networkId, network);
+        const request = {
+            'network': networkId,
+        };
+        const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
+        const results = this.parseDepositAddresses (response, [code], false, { 'network': networkCode, 'currency': code });
+        return this.groupBy (results, 'network');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

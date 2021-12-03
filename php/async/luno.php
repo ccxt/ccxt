@@ -117,7 +117,7 @@ class luno extends Exchange {
         $response = yield $this->exchangeGetMarkets ($params);
         //
         //     {
-        //         "$markets":array(
+        //         "markets":array(
         //             array(
         //                 "market_id":"BCHXBT",
         //                 "trading_status":"ACTIVE",
@@ -295,12 +295,12 @@ class luno extends Exchange {
         }
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $price = $this->safe_number($order, 'limit_price');
-        $amount = $this->safe_number($order, 'limit_volume');
+        $price = $this->safe_string($order, 'limit_price');
+        $amount = $this->safe_string($order, 'limit_volume');
         $quoteFee = $this->safe_number($order, 'fee_counter');
         $baseFee = $this->safe_number($order, 'fee_base');
-        $filled = $this->safe_number($order, 'base');
-        $cost = $this->safe_number($order, 'counter');
+        $filled = $this->safe_string($order, 'base');
+        $cost = $this->safe_string($order, 'counter');
         $fee = array( 'currency' => null );
         if ($quoteFee) {
             $fee['cost'] = $quoteFee;
@@ -314,7 +314,7 @@ class luno extends Exchange {
             }
         }
         $id = $this->safe_string($order, 'order_id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -336,7 +336,7 @@ class luno extends Exchange {
             'fee' => $fee,
             'info' => $order,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -435,7 +435,7 @@ class luno extends Exchange {
 
     public function parse_trade($trade, $market) {
         // For public $trade data (is_buy === True) indicates 'buy' $side but for private $trade data
-        // is_buy indicates maker or taker. The value of "$type" (ASK/BID) indicate sell/buy $side->
+        // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy $side->
         // Private $trade data includes ID field which public $trade data does not.
         $orderId = $this->safe_string($trade, 'order_id');
         $takerOrMaker = null;

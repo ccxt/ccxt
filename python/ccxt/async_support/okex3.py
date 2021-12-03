@@ -724,6 +724,7 @@ class okex3(Exchange):
                 'HSR': 'HC',
                 'MAG': 'Maggie',
                 'SBTC': 'Super Bitcoin',
+                'TRADE': 'Unitrade',
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken',  # https://github.com/ccxt/ccxt/issues/5701
             },
@@ -2110,24 +2111,24 @@ class okex3(Exchange):
         if market is not None:
             if symbol is None:
                 symbol = market['symbol']
-        amount = self.safe_number(order, 'size')
-        filled = self.safe_number_2(order, 'filled_size', 'filled_qty')
+        amount = self.safe_string(order, 'size')
+        filled = self.safe_string_2(order, 'filled_size', 'filled_qty')
         remaining = None
         if amount is not None:
             if filled is not None:
-                amount = max(amount, filled)
-                remaining = max(0, amount - filled)
+                amount = Precise.string_max(amount, filled)
+                remaining = Precise.string_max('0', Precise.string_sub(amount, filled))
         if type == 'market':
-            remaining = 0
-        cost = self.safe_number_2(order, 'filled_notional', 'funds')
-        price = self.safe_number(order, 'price')
-        average = self.safe_number(order, 'price_avg')
+            remaining = '0'
+        cost = self.safe_string_2(order, 'filled_notional', 'funds')
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'price_avg')
         if cost is None:
             if filled is not None and average is not None:
-                cost = average * filled
+                cost = Precise.string_mul(average, filled)
         else:
-            if (average is None) and (filled is not None) and (filled > 0):
-                average = cost / filled
+            if (average is None) and (filled is not None) and Precise.string_gt(filled, '0'):
+                average = Precise.string_div(cost, filled)
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCost = self.safe_number(order, 'fee')
         fee = None
@@ -2141,7 +2142,7 @@ class okex3(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
         stopPrice = self.safe_number(order, 'trigger_price')
-        return {
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2163,7 +2164,7 @@ class okex3(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -3150,8 +3151,8 @@ class okex3(Exchange):
             market = self.market(code)  # we intentionally put a market inside here for the margin and swap ledgers
             marketInfo = self.safe_value(market, 'info', {})
             settlementCurrencyId = self.safe_string(marketInfo, 'settlement_currency')
-            settlementCurrencyСode = self.safe_currency_code(settlementCurrencyId)
-            currency = self.currency(settlementCurrencyСode)
+            settlementCurrencyCode = self.safe_currency_code(settlementCurrencyId)
+            currency = self.currency(settlementCurrencyCode)
             underlyingId = self.safe_string(marketInfo, 'underlying')
             request['underlying'] = underlyingId
         elif (type == 'margin') or (type == 'swap'):

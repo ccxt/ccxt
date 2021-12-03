@@ -73,7 +73,7 @@ class mexc(Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg',
                 'api': {
                     'spot': {
-                        'public': 'https://www.mxc.com/open/api/v2',
+                        'public': 'https://www.mexc.com/open/api/v2',
                         'private': 'https://www.mexc.com/open/api/v2',
                     },
                     'contract': {
@@ -233,6 +233,13 @@ class mexc(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BYN': 'BeyondFi',
+                'COFI': 'COFIX',  # conflict with CoinFi
+                'DFT': 'dFuture',
+                'DRK': 'DRK',
+                'HERO': 'Step Hero',  # conflict with Metahero
+                'MIMO': 'Mimosa',
+                'PROS': 'Pros.Finance',  # conflict with Prosper
                 'SIN': 'Sin City Token',
             },
             'exceptions': {
@@ -1138,7 +1145,8 @@ class mexc(Exchange):
         networkId = ''.join(parts)
         networkId = networkId.replace('-20', '20')
         networksById = {
-            'ETH': 'ERC20',
+            'ETH': 'ETH',
+            'ERC20': 'ERC20',
             'BEP20(BSC)': 'BEP20',
             'TRX': 'TRC20',
         }
@@ -1198,7 +1206,7 @@ class mexc(Exchange):
 
     def fetch_deposit_address(self, code, params={}):
         rawNetwork = self.safe_string(params, 'network')
-        params = self.omit('network')
+        params = self.omit(params, 'network')
         response = self.fetch_deposit_addresses_by_network(code, params)
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(networks, rawNetwork, rawNetwork)
@@ -1457,10 +1465,11 @@ class mexc(Exchange):
             orderSide = 'BID'
         elif side == 'sell':
             orderSide = 'ASK'
-        orderType = None
-        uppercaseOrderType = type.upper()
-        if uppercaseOrderType == 'LIMIT':
+        orderType = type.upper()
+        if orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
+        elif (orderType != 'POST_ONLY') and (orderType != 'IMMEDIATE_OR_CANCEL'):
+            raise InvalidOrder(self.id + ' createOrder does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL')
         request = {
             'symbol': market['id'],
             'price': self.price_to_precision(symbol, price),
@@ -1652,7 +1661,7 @@ class mexc(Exchange):
             'fee': None,
             'trades': None,
             'info': order,
-        })
+        }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

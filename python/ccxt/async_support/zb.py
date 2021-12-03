@@ -448,6 +448,7 @@ class zb(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': depositAddress,
         }
 
@@ -830,10 +831,10 @@ class zb(Exchange):
         timestamp = self.safe_integer(order, 'trade_date')
         marketId = self.safe_string(order, 'currency')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_number(order, 'price')
-        filled = self.safe_number(order, 'trade_amount')
-        amount = self.safe_number(order, 'total_amount')
-        cost = self.safe_number(order, 'trade_money')
+        price = self.safe_string(order, 'price')
+        filled = self.safe_string(order, 'trade_amount')
+        amount = self.safe_string(order, 'total_amount')
+        cost = self.safe_string(order, 'trade_money')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
         feeCost = self.safe_number(order, 'fees')
@@ -849,7 +850,7 @@ class zb(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -871,7 +872,7 @@ class zb(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def parse_order_status(self, status):
         statuses = {

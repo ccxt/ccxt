@@ -913,11 +913,11 @@ class digifinex(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'executed_amount')
-        price = self.safe_number(order, 'price')
-        average = self.safe_number(order, 'avg_price')
-        return self.safe_order({
+        amount = self.safe_string(order, 'amount')
+        filled = self.safe_string(order, 'executed_amount')
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'avg_price')
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -939,7 +939,7 @@ class digifinex(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
@@ -1191,9 +1191,10 @@ class digifinex(Exchange):
         code = self.safe_currency_code(currencyId)
         return {
             'info': depositAddress,
-            'code': code,
+            'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
         }
 
     async def fetch_deposit_address(self, code, params={}):

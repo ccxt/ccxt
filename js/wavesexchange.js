@@ -32,6 +32,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'signIn': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -51,6 +52,14 @@ module.exports = class wavesexchange extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
+                'test': {
+                    'matcher': 'http://matcher-testnet.waves.exchange',
+                    'node': 'https://nodes-testnet.wavesnodes.com',
+                    'public': 'https://api-testnet.wavesplatform.com/v0',
+                    'private': 'https://api-testnet.waves.exchange/v1',
+                    'forward': 'https://testnet.waves.exchange/api/v1/forward/matcher',
+                    'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
+                },
                 'api': {
                     'matcher': 'http://matcher.waves.exchange',
                     'node': 'https://nodes.waves.exchange',
@@ -217,7 +226,9 @@ module.exports = class wavesexchange extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'deposit/addresses/{code}',
+                        'deposit/addresses/{currency}',
+                        'deposit/addresses/{currency}/{platform}',
+                        'platforms',
                         'deposit/currencies',
                         'withdraw/currencies',
                         'withdraw/addresses/{currency}/{address}',
@@ -251,6 +262,18 @@ module.exports = class wavesexchange extends Exchange {
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
                 'wavesPrecision': 8,
+                'messagePrefix': 'W', // W for production, T for testnet
+                'networks': {
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                },
+                'reverseNetworks': {
+                    'ETH': 'ERC20',
+                    'BSC': 'BEP20',
+                },
+            },
+            'commonCurrencies': {
+                'EGG': 'Waves Ducks',
             },
             'requiresEddsa': true,
             'exceptions': {
@@ -280,6 +303,11 @@ module.exports = class wavesexchange extends Exchange {
                 '1051904': AuthenticationError,
             },
         });
+    }
+
+    setSandboxMode (enabled) {
+        this.options['messagePrefix'] = enabled ? 'T' : 'W';
+        return super.setSandboxMode (enabled);
     }
 
     async getQuotes () {
@@ -504,14 +532,16 @@ module.exports = class wavesexchange extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async getAccessToken () {
+    async signIn (params = {}) {
         if (!this.safeString (this.options, 'accessToken')) {
             const prefix = 'ffffff01';
             const expiresDelta = 60 * 60 * 24 * 7;
             let seconds = this.sum (this.seconds (), expiresDelta);
             seconds = seconds.toString ();
             const clientId = 'waves.exchange';
-            const message = 'W:' + clientId + ':' + seconds;
+            // W for production, T for testnet
+            const defaultMessagePrefix = this.safeString (this.options, 'messagePrefix', 'W');
+            const message = defaultMessagePrefix + ':' + clientId + ':' + seconds;
             const messageHex = this.binaryToBase16 (this.stringToBinary (this.encode (message)));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16 (this.base58ToBinary (this.secret));
@@ -730,29 +760,105 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        await this.getAccessToken ();
-        const supportedCurrencies = await this.privateGetDepositCurrencies ();
+        await this.signIn ();
+        const networks = this.safeValue (this.options, 'networks', {});
+        const rawNetwork = this.safeStringUpper (params, 'network');
+        const network = this.safeString (networks, rawNetwork, rawNetwork);
+        params = this.omit (params, [ 'network' ]);
+        const supportedCurrencies = await this.privateGetPlatforms ();
+        //
+        //     {
+        //       "type": "list",
+        //       "page_info": {
+        //         "has_next_page": false,
+        //         "last_cursor": null
+        //       },
+        //       "items": [
+        //         {
+        //           "type": "platform",
+        //           "id": "ETH",
+        //           "name": "Ethereum",
+        //           "currencies": [
+        //             "BAG",
+        //             "BNT",
+        //             "CRV",
+        //             "EGG",
+        //             "ETH",
+        //             "EURN",
+        //             "FL",
+        //             "NSBT",
+        //             "USDAP",
+        //             "USDC",
+        //             "USDFL",
+        //             "USDN",
+        //             "USDT",
+        //             "WAVES"
+        //           ]
+        //         }
+        //       ]
+        //     }
+        //
         const currencies = {};
+        const networksByCurrency = {};
         const items = this.safeValue (supportedCurrencies, 'items', []);
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
-            const currencyCode = this.safeString (entry, 'id');
-            currencies[currencyCode] = true;
+            const currencyId = this.safeString (entry, 'id');
+            const innerCurrencies = this.safeValue (entry, 'currencies', []);
+            for (let j = 0; j < innerCurrencies.length; j++) {
+                const currencyCode = this.safeString (innerCurrencies, j);
+                currencies[currencyCode] = true;
+                if (!(currencyCode in networksByCurrency)) {
+                    networksByCurrency[currencyCode] = {};
+                }
+                networksByCurrency[currencyCode][currencyId] = true;
+            }
         }
         if (!(code in currencies)) {
             const codes = Object.keys (currencies);
-            throw new ExchangeError (this.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + codes.toString ());
+            throw new ExchangeError (this.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + codes.join (', '));
         }
-        const request = this.extend ({
-            'code': code,
-        }, params);
-        const response = await this.privateGetDepositAddressesCode (request);
+        let response = undefined;
+        if (network === undefined) {
+            const request = {
+                'currency': code,
+            };
+            response = await this.privateGetDepositAddressesCurrency (this.extend (request, params));
+        } else {
+            const supportedNetworks = networksByCurrency[code];
+            if (!(network in supportedNetworks)) {
+                const supportedNetworkKeys = Object.keys (supportedNetworks);
+                throw new ExchangeError (this.id + ' ' + network + ' network ' + code + ' deposit address not supported. Network must be one of ' + supportedNetworkKeys.join (', '));
+            }
+            if (network === 'WAVES') {
+                const request = {
+                    'publicKey': this.apiKey,
+                };
+                const response = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
+                const address = this.safeString (response, 'address');
+                return {
+                    'address': address,
+                    'code': code,
+                    'network': network,
+                    'tag': undefined,
+                    'info': response,
+                };
+            } else {
+                const request = {
+                    'currency': code,
+                    'platform': network,
+                };
+                response = await this.privateGetDepositAddressesCurrencyPlatform (this.extend (request, params));
+            }
+        }
+        //
         // {
         //   "type": "deposit_addresses",
         //   "currency": {
         //     "type": "deposit_currency",
         //     "id": "ERGO",
         //     "waves_asset_id": "5dJj4Hn9t2Ve3tRpNGirUHy4yBK6qdJRAJYV21yPPuGz",
+        //     "platform_id": "BSC",
         //     "decimals": 9,
         //     "status": "active",
         //     "allowed_amount": {
@@ -768,12 +874,17 @@ module.exports = class wavesexchange extends Exchange {
         //     "9fRAAQjF8Yqg7qicQCL884zjimsRnuwsSavsM1rUdDaoG8mThku"
         //   ]
         // }
+        const currency = this.safeValue (response, 'currency');
+        const networkId = this.safeString (currency, 'platform_id');
+        const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
+        const unifiedNetwork = this.safeString (reverseNetworks, networkId, networkId);
         const addresses = this.safeValue (response, 'deposit_addresses');
         const address = this.safeString (addresses, 0);
         return {
             'address': address,
             'code': code,
             'tag': undefined,
+            'network': unifiedNetwork,
             'info': response,
         };
     }
@@ -1024,7 +1135,7 @@ module.exports = class wavesexchange extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
-        await this.getAccessToken ();
+        await this.signIn ();
         const wavesAddress = await this.getWavesAddress ();
         const response = await this.forwardPostMatcherOrdersWavesAddressCancel ({
             'wavesAddress': wavesAddress,
@@ -1106,7 +1217,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.getAccessToken ();
+        await this.signIn ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1122,7 +1233,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.getAccessToken ();
+        await this.signIn ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1241,10 +1352,10 @@ module.exports = class wavesexchange extends Exchange {
             symbol = market['symbol'];
         }
         const amountCurrency = this.safeCurrencyCode (this.safeString (assetPair, 'amountAsset', 'WAVES'));
-        const price = this.parseNumber (this.priceFromPrecision (symbol, priceString));
-        const amount = this.parseNumber (this.currencyFromPrecision (amountCurrency, amountString));
-        const filled = this.parseNumber (this.currencyFromPrecision (amountCurrency, filledString));
-        const average = this.parseNumber (this.priceFromPrecision (symbol, this.safeString (order, 'avgWeighedPrice')));
+        const price = this.priceFromPrecision (symbol, priceString);
+        const amount = this.currencyFromPrecision (amountCurrency, amountString);
+        const filled = this.currencyFromPrecision (amountCurrency, filledString);
+        const average = this.priceFromPrecision (symbol, this.safeString (order, 'avgWeighedPrice'));
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let fee = undefined;
         if ('type' in order) {
@@ -1260,7 +1371,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fee': this.parseNumber (this.currencyFromPrecision (currency, this.safeString (order, 'matcherFee'))),
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1282,7 +1393,7 @@ module.exports = class wavesexchange extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async getWavesAddress () {
@@ -1615,7 +1726,7 @@ module.exports = class wavesexchange extends Exchange {
                 break;
             }
         }
-        await this.getAccessToken ();
+        await this.signIn ();
         let proxyAddress = undefined;
         if (code === 'WAVES' && !isErc20) {
             proxyAddress = address;

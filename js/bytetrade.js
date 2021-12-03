@@ -564,12 +564,12 @@ module.exports = class bytetrade extends Exchange {
         const timestamp = this.safeInteger (order, 'timestamp');
         const datetime = this.safeString (order, 'datetime');
         const lastTradeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber (order, 'filled');
-        const remaining = this.safeNumber (order, 'remaining');
-        const cost = this.safeNumber (order, 'cost');
-        const average = this.safeNumber (order, 'average');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
+        const filled = this.safeString (order, 'filled');
+        const remaining = this.safeString (order, 'remaining');
+        const cost = this.safeString (order, 'cost');
+        const average = this.safeString (order, 'average');
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
@@ -583,7 +583,7 @@ module.exports = class bytetrade extends Exchange {
             'cost': feeCost,
             'rate': feeRate,
         };
-        return {
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -605,7 +605,7 @@ module.exports = class bytetrade extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1131,7 +1131,7 @@ module.exports = class bytetrade extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'chainType': chainType,
+            'network': chainType,
             'info': response,
         };
     }

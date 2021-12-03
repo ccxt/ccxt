@@ -702,6 +702,7 @@ class okex3 extends Exchange {
                 'HSR' => 'HC',
                 'MAG' => 'Maggie',
                 'SBTC' => 'Super Bitcoin',
+                'TRADE' => 'Unitrade',
                 'YOYO' => 'YOYOW',
                 'WIN' => 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             ),
@@ -988,7 +989,7 @@ class okex3 extends Exchange {
         // despite that their docs say these endpoints are public:
         //     https://www.okex.com/api/account/v3/withdrawal/fee
         //     https://www.okex.com/api/account/v3/currencies
-        // it will still reply with array( "$code":30001, "message" => "OK-ACCESS-KEY header is required" )
+        // it will still reply with array( "code":30001, "message" => "OK-ACCESS-KEY header is required" )
         // if you attempt to access it without authentication
         $response = yield $this->accountGetCurrencies ($params);
         //
@@ -1217,16 +1218,16 @@ class okex3 extends Exchange {
         //         array(
         //             "created_at":"2019-03-15T02:52:56.000Z",
         //             "exec_type":"T", // whether the order is taker or maker
-        //             "$fee":"0.00000082",
+        //             "fee":"0.00000082",
         //             "instrument_id":"BTC-USDT",
         //             "ledger_id":"3963052721",
         //             "liquidity":"T", // whether the order is taker or maker
         //             "order_id":"2482659399697408",
-        //             "$price":"3888.6",
+        //             "price":"3888.6",
         //             "product_id":"BTC-USDT",
-        //             "$side":"buy",
+        //             "side":"buy",
         //             "size":"0.00055306",
-        //             "$timestamp":"2019-03-15T02:52:56.000Z"
+        //             "timestamp":"2019-03-15T02:52:56.000Z"
         //         ),
         //
         //     futures trades, swap trades
@@ -1235,13 +1236,13 @@ class okex3 extends Exchange {
         //             "trade_id":"197429674631450625",
         //             "instrument_id":"EOS-USD-SWAP",
         //             "order_id":"6a-7-54d663a28-0",
-        //             "$price":"3.633",
+        //             "price":"3.633",
         //             "order_qty":"1.0000",
-        //             "$fee":"-0.000551",
+        //             "fee":"-0.000551",
         //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
-        //             "$timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
+        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
         //             "exec_type":"M", // whether the order is taker or maker
-        //             "$side":"short", // "buy" in futures trades
+        //             "side":"short", // "buy" in futures trades
         //         }
         //
         $symbol = null;
@@ -1572,7 +1573,7 @@ class okex3 extends Exchange {
         //         array(
         //             "currency:BTC" => array(
         //                 "available":"0",
-        //                 "$balance":"0",
+        //                 "balance":"0",
         //                 "borrowed":"0",
         //                 "can_withdraw":"0",
         //                 "frozen":"0",
@@ -1582,7 +1583,7 @@ class okex3 extends Exchange {
         //             ),
         //             "currency:USDT" => array(
         //                 "available":"100",
-        //                 "$balance":"100",
+        //                 "balance":"100",
         //                 "borrowed":"0",
         //                 "can_withdraw":"100",
         //                 "frozen":"0",
@@ -1650,10 +1651,10 @@ class okex3 extends Exchange {
     public function parse_futures_balance($response) {
         //
         //     {
-        //         "$info":{
+        //         "info":{
         //             "eos":array(
         //                 "auto_margin":"0",
-        //                 "$contracts" => array(
+        //                 "contracts" => array(
         //                     array(
         //                         "available_qty":"40.37069445",
         //                         "fixed_balance":"0",
@@ -1680,7 +1681,7 @@ class okex3 extends Exchange {
         //         }
         //     }
         //
-        // their root field name is "$info", so our $info will contain their $info
+        // their root field name is "info", so our $info will contain their $info
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1725,7 +1726,7 @@ class okex3 extends Exchange {
     public function parse_swap_balance($response) {
         //
         //     {
-        //         "$info" => array(
+        //         "info" => array(
         //             {
         //                 "equity":"3.0139",
         //                 "fixed_balance":"0.0000",
@@ -1735,14 +1736,14 @@ class okex3 extends Exchange {
         //                 "margin_mode":"crossed",
         //                 "margin_ratio":"1.0913",
         //                 "realized_pnl":"-0.0006",
-        //                 "$timestamp":"2019-03-25T03:46:10.336Z",
+        //                 "timestamp":"2019-03-25T03:46:10.336Z",
         //                 "total_avail_balance":"3.0000",
         //                 "unrealized_pnl":"0.0145"
         //             }
         //         )
         //     }
         //
-        // their root field name is "$info", so our $info will contain their $info
+        // their root field name is "info", so our $info will contain their $info
         $result = array( 'info' => $response );
         $timestamp = null;
         $info = $this->safe_value($response, 'info', array());
@@ -2044,7 +2045,7 @@ class okex3 extends Exchange {
         //     {
         //         "btc-usdt" => array(
         //             {
-        //                 "$result":true,
+        //                 "result":true,
         //                 "client_oid":"a123",
         //                 "order_id" => "2510832677225473"
         //             }
@@ -2054,7 +2055,7 @@ class okex3 extends Exchange {
         // futures, swap
         //
         //     {
-        //         "$result" => true,
+        //         "result" => true,
         //         "client_oid" => "oktfuture10", // missing if requested by order_id
         //         "order_id" => "2517535534836736",
         //         "instrument_id" => "EOS-USD-190628"
@@ -2123,14 +2124,14 @@ class okex3 extends Exchange {
         //         "notional":"",
         //         "order_id":"2500723297813504",
         //         "order_type":"0",
-        //         "$price":"4013",
+        //         "price":"4013",
         //         "product_id":"BTC-USDT", // missing in futures and swap orders
-        //         "$side":"buy",
+        //         "side":"buy",
         //         "size":"0.001",
-        //         "$status":"$filled",
+        //         "status":"filled",
         //         "state" => "2",
-        //         "$timestamp":"2019-03-18T07:26:49.000Z",
-        //         "$type":"limit"
+        //         "timestamp":"2019-03-18T07:26:49.000Z",
+        //         "type":"limit"
         //     }
         //
         //     // futures and swap orders
@@ -2138,15 +2139,15 @@ class okex3 extends Exchange {
         //     {
         //         "instrument_id":"EOS-USD-190628",
         //         "size":"10",
-        //         "$timestamp":"2019-03-20T10:04:55.000Z",
+        //         "timestamp":"2019-03-20T10:04:55.000Z",
         //         "filled_qty":"10", // filled_size in spot and margin orders
-        //         "$fee":"-0.00841043",
+        //         "fee":"-0.00841043",
         //         "order_id":"2512669605501952",
-        //         "$price":"3.668",
+        //         "price":"3.668",
         //         "price_avg":"3.567", // missing in spot and margin orders
-        //         "$status":"2",
+        //         "status":"2",
         //         "state" => "2",
-        //         "$type":"4",
+        //         "type":"4",
         //         "contract_val":"10",
         //         "leverage":"10", // missing in swap, spot and margin orders
         //         "client_oid":"",
@@ -2174,28 +2175,28 @@ class okex3 extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $amount = $this->safe_number($order, 'size');
-        $filled = $this->safe_number_2($order, 'filled_size', 'filled_qty');
+        $amount = $this->safe_string($order, 'size');
+        $filled = $this->safe_string_2($order, 'filled_size', 'filled_qty');
         $remaining = null;
         if ($amount !== null) {
             if ($filled !== null) {
-                $amount = max ($amount, $filled);
-                $remaining = max (0, $amount - $filled);
+                $amount = Precise::string_max($amount, $filled);
+                $remaining = Precise::string_max('0', Precise::string_sub($amount, $filled));
             }
         }
         if ($type === 'market') {
-            $remaining = 0;
+            $remaining = '0';
         }
-        $cost = $this->safe_number_2($order, 'filled_notional', 'funds');
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'price_avg');
+        $cost = $this->safe_string_2($order, 'filled_notional', 'funds');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'price_avg');
         if ($cost === null) {
             if ($filled !== null && $average !== null) {
-                $cost = $average * $filled;
+                $cost = Precise::string_mul($average, $filled);
             }
         } else {
-            if (($average === null) && ($filled !== null) && ($filled > 0)) {
-                $average = $cost / $filled;
+            if (($average === null) && ($filled !== null) && Precise::string_gt($filled, '0')) {
+                $average = Precise::string_div($cost, $filled);
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
@@ -2213,7 +2214,7 @@ class okex3 extends Exchange {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
         $stopPrice = $this->safe_number($order, 'trigger_price');
-        return array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -2235,7 +2236,7 @@ class okex3 extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -2286,7 +2287,7 @@ class okex3 extends Exchange {
         //         "status":"filled",
         //         "state" => "2",
         //         "timestamp":"2019-03-15T02:52:56.000Z",
-        //         "$type":"limit"
+        //         "type":"limit"
         //     }
         //
         // futures, swap
@@ -2302,7 +2303,7 @@ class okex3 extends Exchange {
         //         "price_avg":"3.712",
         //         "status":"2",
         //         "state" => "2",
-        //         "$type":"2",
+        //         "type":"2",
         //         "contract_val":"10",
         //         "leverage":"10",
         //         "client_oid":"", // missing in swap orders
@@ -2371,13 +2372,13 @@ class okex3 extends Exchange {
         //                 "side":"buy",
         //                 "size":"0.001",
         //                 "status":"filled",
-        //                 "$state" => "2",
+        //                 "state" => "2",
         //                 "timestamp":"2019-03-18T07:26:49.000Z",
-        //                 "$type":"$limit"
+        //                 "type":"limit"
         //             ),
         //         ),
         //         {
-        //             "$before":"2500723297813504",
+        //             "before":"2500723297813504",
         //             "after":"2500650881647616"
         //         }
         //     )
@@ -2397,8 +2398,8 @@ class okex3 extends Exchange {
         //                 "price":"3.668",
         //                 "price_avg":"3.567",
         //                 "status":"2",
-        //                 "$state" => "2",
-        //                 "$type":"4",
+        //                 "state" => "2",
+        //                 "type":"4",
         //                 "contract_val":"10",
         //                 "leverage":"10", // missing in swap $orders
         //                 "client_oid":"",
@@ -2538,9 +2539,9 @@ class okex3 extends Exchange {
         $response = yield $this->accountPostWithdrawal (array_merge($request, $query));
         //
         //     {
-        //         "$amount":"0.1",
+        //         "amount":"0.1",
         //         "withdrawal_id":"67485",
-        //         "$currency":"btc",
+        //         "currency":"btc",
         //         "result":true
         //     }
         //
@@ -2621,9 +2622,9 @@ class okex3 extends Exchange {
         // withdraw
         //
         //     {
-        //         "$amount":"0.1",
+        //         "amount":"0.1",
         //         "withdrawal_id":"67485",
-        //         "$currency":"btc",
+        //         "currency":"btc",
         //         "result":true
         //     }
         //
@@ -2644,15 +2645,15 @@ class okex3 extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "$amount" => "4.19511659",
-        //         "$txid" => "14c9a8c925647cdb7e5b2937ea9aefe2b29b2c273150ad3f44b3b8a4635ed437",
-        //         "$currency" => "XMR",
+        //         "amount" => "4.19511659",
+        //         "txid" => "14c9a8c925647cdb7e5b2937ea9aefe2b29b2c273150ad3f44b3b8a4635ed437",
+        //         "currency" => "XMR",
         //         "from" => "",
         //         "to" => "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
         //         "tag" => "1234567",
         //         "deposit_id" => 11571659, <-- we can use this
-        //         "$timestamp" => "2019-10-01T14:54:19.000Z",
-        //         "$status" => "2"
+        //         "timestamp" => "2019-10-01T14:54:19.000Z",
+        //         "status" => "2"
         //     }
         //
         $type = null;
@@ -2794,14 +2795,14 @@ class okex3 extends Exchange {
         //
         //     array(
         //         "currency":"USDT",
-        //         "$fee":"-0.04647925", // ←--- $fee in received quote currency
-        //         "$price":"129.13", // ←------ $price
+        //         "fee":"-0.04647925", // ←--- $fee in received quote currency
+        //         "price":"129.13", // ←------ $price
         //         "size":"30.98616393", // ←-- $cost
         //     ),
         //     array(
         //         "currency":"ETH",
-        //         "$fee":"0",
-        //         "$price":"129.13",
+        //         "fee":"0",
+        //         "price":"129.13",
         //         "size":"0.23996099", // ←--- $amount
         //     ),
         //
@@ -2809,14 +2810,14 @@ class okex3 extends Exchange {
         //
         //     array(
         //         "currency":"ETH",
-        //         "$fee":"-0.00036049", // ←--- $fee in received base currency
-        //         "$price":"129.16", // ←------ $price
+        //         "fee":"-0.00036049", // ←--- $fee in received base currency
+        //         "price":"129.16", // ←------ $price
         //         "size":"0.240322", // ←----- $amount
         //     ),
         //     {
         //         "currency":"USDT",
-        //         "$fee":"0",
-        //         "$price":"129.16",
+        //         "fee":"0",
+        //         "price":"129.16",
         //         "size":"31.03998952", // ←-- $cost
         //     }
         //
@@ -3280,8 +3281,8 @@ class okex3 extends Exchange {
             $market = $this->market($code); // we intentionally put a $market inside here for the margin and swap ledgers
             $marketInfo = $this->safe_value($market, 'info', array());
             $settlementCurrencyId = $this->safe_string($marketInfo, 'settlement_currency');
-            $settlementCurrencyСode = $this->safe_currency_code($settlementCurrencyId);
-            $currency = $this->currency($settlementCurrencyСode);
+            $settlementCurrencyCode = $this->safe_currency_code($settlementCurrencyId);
+            $currency = $this->currency($settlementCurrencyCode);
             $underlyingId = $this->safe_string($marketInfo, 'underlying');
             $request['underlying'] = $underlyingId;
         } else if (($type === 'margin') || ($type === 'swap')) {
@@ -3370,7 +3371,7 @@ class okex3 extends Exchange {
         //         {
         //             "amount":0.00051843,
         //             "balance":0.00100941,
-        //             "$currency":"BTC",
+        //             "currency":"BTC",
         //             "fee":0,
         //             "ledger_id":8987285,
         //             "timestamp":"2018-10-12T11:01:14.000Z",
@@ -3385,10 +3386,10 @@ class okex3 extends Exchange {
         //             "timestamp":"2019-03-18T07:08:25.000Z",
         //             "ledger_id":"3995334780",
         //             "created_at":"2019-03-18T07:08:25.000Z",
-        //             "$currency":"BTC",
+        //             "currency":"BTC",
         //             "amount":"0.0009985",
         //             "balance":"0.0029955",
-        //             "$type":"trade",
+        //             "type":"trade",
         //             "details":{
         //                 "instrument_id":"BTC-USDT",
         //                 "order_id":"2500650881647616",
@@ -3405,10 +3406,10 @@ class okex3 extends Exchange {
         //                 "created_at":"2019-03-20T03:45:05.000Z",
         //                 "ledger_id":"78918186",
         //                 "timestamp":"2019-03-20T03:45:05.000Z",
-        //                 "$currency":"EOS",
+        //                 "currency":"EOS",
         //                 "amount":"0", // ?
         //                 "balance":"0.59957711",
-        //                 "$type":"transfer",
+        //                 "type":"transfer",
         //                 "details":{
         //                     "instrument_id":"EOS-USDT",
         //                     "order_id":"787057",
@@ -3430,8 +3431,8 @@ class okex3 extends Exchange {
         //             "timestamp":"2019-03-19T14:40:24.000Z",
         //             "amount":"-0.00529521",
         //             "balance":"0",
-        //             "$currency":"EOS",
-        //             "$type":"fee",
+        //             "currency":"EOS",
+        //             "type":"fee",
         //             "details":{
         //                 "order_id":"2506982456445952",
         //                 "instrument_id":"EOS-USD-190628"
@@ -3445,7 +3446,7 @@ class okex3 extends Exchange {
         //         array(
         //             "amount":"0.004742",
         //             "fee":"-0.000551",
-        //             "$type":"match",
+        //             "type":"match",
         //             "instrument_id":"EOS-USD-SWAP",
         //             "ledger_id":"197429674941902848",
         //             "timestamp":"2019-03-25T05:56:31.286Z"
@@ -3487,26 +3488,26 @@ class okex3 extends Exchange {
         // $account
         //
         //     {
-        //         "$amount":0.00051843,
+        //         "amount":0.00051843,
         //         "balance":0.00100941,
-        //         "$currency":"BTC",
-        //         "$fee":0,
+        //         "currency":"BTC",
+        //         "fee":0,
         //         "ledger_id":8987285,
-        //         "$timestamp":"2018-10-12T11:01:14.000Z",
+        //         "timestamp":"2018-10-12T11:01:14.000Z",
         //         "typename":"Get from activity"
         //     }
         //
         // spot
         //
         //     {
-        //         "$timestamp":"2019-03-18T07:08:25.000Z",
+        //         "timestamp":"2019-03-18T07:08:25.000Z",
         //         "ledger_id":"3995334780",
         //         "created_at":"2019-03-18T07:08:25.000Z",
-        //         "$currency":"BTC",
-        //         "$amount":"0.0009985",
+        //         "currency":"BTC",
+        //         "amount":"0.0009985",
         //         "balance":"0.0029955",
-        //         "$type":"trade",
-        //         "$details":{
+        //         "type":"trade",
+        //         "details":{
         //             "instrument_id":"BTC-USDT",
         //             "order_id":"2500650881647616",
         //             "product_id":"BTC-USDT"
@@ -3518,12 +3519,12 @@ class okex3 extends Exchange {
         //     {
         //         "created_at":"2019-03-20T03:45:05.000Z",
         //         "ledger_id":"78918186",
-        //         "$timestamp":"2019-03-20T03:45:05.000Z",
-        //         "$currency":"EOS",
-        //         "$amount":"0", // ?
+        //         "timestamp":"2019-03-20T03:45:05.000Z",
+        //         "currency":"EOS",
+        //         "amount":"0", // ?
         //         "balance":"0.59957711",
-        //         "$type":"transfer",
-        //         "$details":{
+        //         "type":"transfer",
+        //         "details":{
         //             "instrument_id":"EOS-USDT",
         //             "order_id":"787057",
         //             "product_id":"EOS-USDT"
@@ -3534,12 +3535,12 @@ class okex3 extends Exchange {
         //
         //     {
         //         "ledger_id":"2508090544914461",
-        //         "$timestamp":"2019-03-19T14:40:24.000Z",
-        //         "$amount":"-0.00529521",
+        //         "timestamp":"2019-03-19T14:40:24.000Z",
+        //         "amount":"-0.00529521",
         //         "balance":"0",
-        //         "$currency":"EOS",
-        //         "$type":"$fee",
-        //         "$details":{
+        //         "currency":"EOS",
+        //         "type":"fee",
+        //         "details":{
         //             "order_id":"2506982456445952",
         //             "instrument_id":"EOS-USD-190628"
         //         }
@@ -3548,12 +3549,12 @@ class okex3 extends Exchange {
         // swap
         //
         //     array(
-        //         "$amount":"0.004742",
-        //         "$fee":"-0.000551",
-        //         "$type":"match",
+        //         "amount":"0.004742",
+        //         "fee":"-0.000551",
+        //         "type":"match",
         //         "instrument_id":"EOS-USD-SWAP",
         //         "ledger_id":"197429674941902848",
-        //         "$timestamp":"2019-03-25T05:56:31.286Z"
+        //         "timestamp":"2019-03-25T05:56:31.286Z"
         //     ),
         //
         $id = $this->safe_string($item, 'ledger_id');
@@ -3657,7 +3658,7 @@ class okex3 extends Exchange {
         }
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
-            // array("$message":"name resolution failed")
+            // array("message":"name resolution failed")
             throw new ExchangeNotAvailable($feedback);
         }
         //

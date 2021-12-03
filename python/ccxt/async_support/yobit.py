@@ -130,6 +130,7 @@ class yobit(Exchange):
                 'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
                 'DSH': 'DASH',
+                'EGG': 'EggCoin',
                 'EKO': 'EkoCoin',
                 'ENTER': 'ENTRC',
                 'EPC': 'ExperienceCoin',
@@ -173,6 +174,7 @@ class yobit(Exchange):
                 'PIVX': 'Darknet',
                 'PRS': 'PRE',
                 'PUTIN': 'PutinCoin',
+                'SPACE': 'Spacecoin',
                 'STK': 'StakeCoin',
                 'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
@@ -182,6 +184,8 @@ class yobit(Exchange):
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'SBTC': 'Super Bitcoin',
+                'SOLO': 'SoloCoin',
+                'SUPER': 'SuperCoin',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
                 'UST': 'Uservice',
@@ -392,7 +396,7 @@ class yobit(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             symbol = self.safe_symbol(id)
-            result[symbol] = self.parse_order_book(response[id])
+            result[symbol] = self.parse_order_book(response[id], symbol)
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -595,13 +599,13 @@ class yobit(Exchange):
         timestamp = self.safe_timestamp(order, 'timestamp_created')
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        remaining = self.safe_number(order, 'amount')
-        amount = self.safe_number(order, 'start_amount')
-        price = self.safe_number(order, 'rate')
+        remaining = self.safe_string(order, 'amount')
+        amount = self.safe_string(order, 'start_amount')
+        price = self.safe_string(order, 'rate')
         fee = None
         type = 'limit'
         side = self.safe_string(order, 'type')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -623,7 +627,7 @@ class yobit(Exchange):
             'fee': fee,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -708,6 +712,7 @@ class yobit(Exchange):
             'currency': code,
             'address': address,
             'tag': None,
+            'network': None,
             'info': response,
         }
 

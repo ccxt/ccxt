@@ -696,6 +696,7 @@ module.exports = class okex3 extends Exchange {
                 'HSR': 'HC',
                 'MAG': 'Maggie',
                 'SBTC': 'Super Bitcoin',
+                'TRADE': 'Unitrade',
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
@@ -2168,28 +2169,28 @@ module.exports = class okex3 extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let amount = this.safeNumber (order, 'size');
-        const filled = this.safeNumber2 (order, 'filled_size', 'filled_qty');
+        let amount = this.safeString (order, 'size');
+        const filled = this.safeString2 (order, 'filled_size', 'filled_qty');
         let remaining = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
-                amount = Math.max (amount, filled);
-                remaining = Math.max (0, amount - filled);
+                amount = Precise.stringMax (amount, filled);
+                remaining = Precise.stringMax ('0', Precise.stringSub (amount, filled));
             }
         }
         if (type === 'market') {
-            remaining = 0;
+            remaining = '0';
         }
-        let cost = this.safeNumber2 (order, 'filled_notional', 'funds');
-        const price = this.safeNumber (order, 'price');
-        let average = this.safeNumber (order, 'price_avg');
+        let cost = this.safeString2 (order, 'filled_notional', 'funds');
+        const price = this.safeString (order, 'price');
+        let average = this.safeString (order, 'price_avg');
         if (cost === undefined) {
             if (filled !== undefined && average !== undefined) {
-                cost = average * filled;
+                cost = Precise.stringMul (average, filled);
             }
         } else {
-            if ((average === undefined) && (filled !== undefined) && (filled > 0)) {
-                average = cost / filled;
+            if ((average === undefined) && (filled !== undefined) && Precise.stringGt (filled, '0')) {
+                average = Precise.stringDiv (cost, filled);
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -2207,7 +2208,7 @@ module.exports = class okex3 extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumber (order, 'trigger_price');
-        return {
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2229,7 +2230,7 @@ module.exports = class okex3 extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -3274,8 +3275,8 @@ module.exports = class okex3 extends Exchange {
             const market = this.market (code); // we intentionally put a market inside here for the margin and swap ledgers
             const marketInfo = this.safeValue (market, 'info', {});
             const settlementCurrencyId = this.safeString (marketInfo, 'settlement_currency');
-            const settlementCurrencyСode = this.safeCurrencyCode (settlementCurrencyId);
-            currency = this.currency (settlementCurrencyСode);
+            const settlementCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
+            currency = this.currency (settlementCurrencyCode);
             const underlyingId = this.safeString (marketInfo, 'underlying');
             request['underlying'] = underlyingId;
         } else if ((type === 'margin') || (type === 'swap')) {

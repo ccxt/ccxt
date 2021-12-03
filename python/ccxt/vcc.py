@@ -944,14 +944,14 @@ class vcc(Exchange):
         marketId = baseId + '_' + quoteId
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        amount = self.safe_number(order, 'quantity')
-        filled = self.safe_number(order, 'executed_quantity')
+        amount = self.safe_string(order, 'quantity')
+        filled = self.safe_string(order, 'executed_quantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        cost = self.safe_number(order, 'ceiling')
+        cost = self.safe_string(order, 'ceiling')
         id = self.safe_string(order, 'id')
-        price = self.safe_number(order, 'price')
-        average = self.safe_number(order, 'executed_price')
-        remaining = self.safe_number(order, 'remaining')
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'executed_price')
+        remaining = self.safe_string(order, 'remaining')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'trade_type')
         fee = {
@@ -963,7 +963,7 @@ class vcc(Exchange):
         if updated != created:
             lastTradeTimestamp = updated
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': id,
             'timestamp': created,
@@ -985,7 +985,7 @@ class vcc(Exchange):
             'fee': fee,
             'trades': None,
             'info': order,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -1192,6 +1192,7 @@ class vcc(Exchange):
             'currency': self.safe_currency_code(currencyId),
             'address': address,
             'tag': tag,
+            'network': None,
             'info': data,
         }
 

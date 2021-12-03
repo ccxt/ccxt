@@ -74,6 +74,8 @@ module.exports = class Exchange {
                 'editOrder': 'emulated',
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchBorrowRate': undefined,
+                'fetchBorrowRates': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': undefined,
                 'fetchDepositAddress': undefined,
@@ -173,11 +175,6 @@ module.exports = class Exchange {
                 '401': AuthenticationError,
                 '511': AuthenticationError,
             },
-            // some exchanges report only 'free' on `fetchBlance` call (i.e. report no 'used' funds)
-            // in this case ccxt will try to infer 'used' funds from open order cache, which might be stale
-            // still, some exchanges report number of open orders together with balance
-            // if you set the following flag to 'true' ccxt will leave 'used' funds undefined in case of discrepancy
-            'dontGetUsedBalanceFromStaleCache': false,
             'commonCurrencies': { // gets extended/overwritten in subclasses
                 'XBT': 'BTC',
                 'BCC': 'BCH',
@@ -228,6 +225,7 @@ module.exports = class Exchange {
         this.substituteCommonCurrencyCodes = true  // reserved
         this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
         this.number = Number // or String (a pointer to a function)
+        this.handleContentTypeApplicationZip = false
 
         // whether fees should be summed by currency code
         this.reduceFees = true
@@ -637,9 +635,24 @@ module.exports = class Exchange {
     }
 
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
+        const responseHeaders = this.getResponseHeaders (response)
+
+        if (this.handleContentTypeApplicationZip && (responseHeaders['Content-Type'] === 'application/zip')) {
+            const responseBuffer = response.buffer ();
+            if (this.enableLastResponseHeaders) {
+                this.last_response_headers = responseHeaders
+            }
+            if (this.enableLastHttpResponse) {
+                this.last_http_response = responseBuffer
+            }
+            if (this.verbose) {
+                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "ZIP redacted", "\n")
+            }
+            // no error handler needed, because it would not be a zip response in case of an error
+            return responseBuffer;
+        }
 
         return response.text ().then ((responseBody) => {
-            const responseHeaders = this.getResponseHeaders (response)
             const bodyText = this.onRestResponse (response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
             const json = this.parseJson (bodyText)
             if (this.enableLastResponseHeaders) {
@@ -678,7 +691,7 @@ module.exports = class Exchange {
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
         if (currencies) {
-            this.currencies = deepExtend (currencies, this.currencies)
+            this.currencies = deepExtend (this.currencies, currencies)
         } else {
             let baseCurrencies =
                 values.filter ((market) => 'base' in market)
@@ -706,7 +719,7 @@ module.exports = class Exchange {
                 groupedCurrencies[code].reduce ((previous, current) => // eslint-disable-line implicit-arrow-linebreak
                     ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0])) // eslint-disable-line implicit-arrow-linebreak
             const sortedCurrencies = sortBy (flatten (currencies), 'code')
-            this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
+            this.currencies = deepExtend (this.currencies, indexBy (sortedCurrencies, 'code'))
         }
         this.currencies_by_id = indexBy (this.currencies, 'id')
         this.codes = Object.keys (this.currencies).sort ()
@@ -1235,10 +1248,10 @@ module.exports = class Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseDepositAddresses (addresses, codes = undefined, indexed = true) {
+    parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {
-            const address = this.parseDepositAddress (addresses[i]);
+            const address = this.extend (this.parseDepositAddress (addresses[i]), params);
             result.push (address);
         }
         if (codes) {
@@ -1564,26 +1577,150 @@ module.exports = class Exchange {
     }
 
     reduceFeesByCurrency (fees, string = false) {
+        //
+        // this function takes a list of fee structures having the following format
+        //
+        //     string = true
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': '0.1' },
+        //         { 'currency': 'BTC', 'cost': '0.2'  },
+        //         { 'currency': 'BTC', 'cost': '0.2', 'rate': '0.00123' },
+        //         { 'currency': 'BTC', 'cost': '0.4', 'rate': '0.00123' },
+        //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
+        //         { 'currency': 'USDT', 'cost': '12.3456' },
+        //     ]
+        //
+        //     string = false
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': 0.1 },
+        //         { 'currency': 'BTC', 'cost': 0.2 },
+        //         { 'currency': 'BTC', 'cost': 0.2, 'rate': 0.00123 },
+        //         { 'currency': 'BTC', 'cost': 0.4, 'rate': 0.00123 },
+        //         { 'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456 },
+        //         { 'currency': 'USDT', 'cost': 12.3456 },
+        //     ]
+        //
+        // and returns a reduced fee list, where fees are summed per currency and rate (if any)
+        //
+        //     string = true
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': '0.3'  },
+        //         { 'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123' },
+        //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
+        //         { 'currency': 'USDT', 'cost': '12.3456' },
+        //     ]
+        //
+        //     string  = false
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': 0.3  },
+        //         { 'currency': 'BTC', 'cost': 0.6, 'rate': 0.00123 },
+        //         { 'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456 },
+        //         { 'currency': 'USDT', 'cost': 12.3456 },
+        //     ]
+        //
         const reduced = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
-            const feeCurrencyCode = this.safeValue (fee, 'currency');
+            const feeCurrencyCode = this.safeString (fee, 'currency');
             if (feeCurrencyCode !== undefined) {
-                if (feeCurrencyCode in reduced) {
+                const rate = this.safeString (fee, 'rate');
+                const cost = this.safeValue (fee, 'cost');
+                if (!(feeCurrencyCode in reduced)) {
+                    reduced[feeCurrencyCode] = {};
+                }
+                const rateKey = (rate === undefined) ? '' : rate;
+                if (rateKey in reduced[feeCurrencyCode]) {
                     if (string) {
-                        reduced[feeCurrencyCode]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode]['cost'], fee['cost']);
+                        reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                     } else {
-                        reduced[feeCurrencyCode]['cost'] = this.sum (reduced[feeCurrencyCode]['cost'], fee['cost']);
+                        reduced[feeCurrencyCode][rateKey]['cost'] = this.sum (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                     }
                 } else {
-                    reduced[feeCurrencyCode] = {
-                        'cost': string ? fee['cost'] : this.parseNumber (fee['cost']),
+                    reduced[feeCurrencyCode][rateKey] = {
                         'currency': feeCurrencyCode,
+                        'cost': string ? cost : this.parseNumber (cost),
                     };
+                    if (rate !== undefined) {
+                        reduced[feeCurrencyCode][rateKey]['rate'] = string ? rate : this.parseNumber (rate);
+                    }
                 }
             }
         }
-        return Object.values (reduced);
+        let result = [];
+        const feeValues = Object.values (reduced);
+        for (let i = 0; i < feeValues.length; i++) {
+            const reducedFeeValues = Object.values (feeValues[i]);
+            result = this.arrayConcat (result, reducedFeeValues);
+        }
+        return result;
+    }
+
+    safeTrade (trade, market = undefined) {
+        const amount = this.safeString (trade, 'amount');
+        const price = this.safeString (trade, 'price');
+        let cost = this.safeString (trade, 'cost');
+        if (cost === undefined) {
+            // contract trading
+            const contractSize = this.safeString (market, 'contractSize');
+            let multiplyPrice = price;
+            if (contractSize !== undefined) {
+                const inverse = this.safeValue (market, 'inverse', false);
+                if (inverse) {
+                    multiplyPrice = Precise.stringDiv ('1', price);
+                }
+                multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
+            }
+            cost = Precise.stringMul (multiplyPrice, amount);
+        }
+        const parseFee = this.safeValue (trade, 'fee') === undefined;
+        const parseFees = this.safeValue (trade, 'fees') === undefined;
+        const shouldParseFees = parseFee || parseFees;
+        const fees = this.safeValue (trade, 'fees', []);
+        if (shouldParseFees) {
+            const tradeFees = this.safeValue (trade, 'fees');
+            if (tradeFees !== undefined) {
+                for (let j = 0; j < tradeFees.length; j++) {
+                    const tradeFee = tradeFees[j];
+                    fees.push (this.extend ({}, tradeFee));
+                }
+            } else {
+                const tradeFee = this.safeValue (trade, 'fee');
+                if (tradeFee !== undefined) {
+                    fees.push (this.extend ({}, tradeFee));
+                }
+            }
+        }
+        const fee = this.safeValue (trade, 'fee');
+        if (shouldParseFees) {
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
+            const reducedLength = reducedFees.length;
+            for (let i = 0; i < reducedLength; i++) {
+                reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
+            }
+            if (!parseFee && (reducedLength === 0)) {
+                fee['cost'] = this.safeNumber (fee, 'cost');
+                reducedFees.push (fee);
+            }
+            if (parseFees) {
+                trade['fees'] = reducedFees;
+            }
+            if (parseFee && (reducedLength === 1)) {
+                trade['fee'] = reducedFees[0];
+            }
+            const tradeFee = this.safeValue (trade, 'fee');
+            if (tradeFee !== undefined) {
+                tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
+                trade['fee'] = tradeFee;
+            }
+        }
+        trade['amount'] = this.parseNumber (amount);
+        trade['price'] = this.parseNumber (price);
+        trade['cost'] = this.parseNumber (cost);
+        return trade;
     }
 
     safeOrder (order) {
@@ -1725,7 +1862,8 @@ module.exports = class Exchange {
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
         const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
-        const parseFee = this.safeValue (order, 'fee') === undefined;
+        const fee = this.safeValue (order, 'fee');
+        const parseFee = (fee === undefined);
         const parseFees = this.safeValue (order, 'fees') === undefined;
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeValue (order, 'fees', []);
@@ -1791,7 +1929,8 @@ module.exports = class Exchange {
                 reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
             }
             if (!parseFee && (reducedLength === 0)) {
-                reducedFees.push (order['fee']);
+                fee['cost'] = this.safeNumber (fee, 'cost');
+                reducedFees.push (fee);
             }
             if (parseFees) {
                 order['fees'] = reducedFees;
@@ -1827,11 +1966,22 @@ module.exports = class Exchange {
         // also ensure the cost field is calculated correctly
         const costPriceExists = (average !== undefined) || (price !== undefined);
         if (parseCost && (filled !== undefined) && costPriceExists) {
+            let multiplyPrice = undefined;
             if (average === undefined) {
-                cost = Precise.stringMul (price, filled);
+                multiplyPrice = price;
             } else {
-                cost = Precise.stringMul (average, filled);
+                multiplyPrice = average;
             }
+            // contract trading
+            const contractSize = this.safeString (market, 'contractSize');
+            if (contractSize !== undefined) {
+                const inverse = this.safeValue (market, 'inverse', false);
+                if (inverse) {
+                    multiplyPrice = Precise.stringDiv ('1', multiplyPrice);
+                }
+                multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
+            }
+            cost = Precise.stringMul (multiplyPrice, filled);
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
@@ -1912,5 +2062,18 @@ module.exports = class Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping')
         }
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        if (!this.has['fetchBorrowRates']) {
+            throw new NotSupported (this.id + 'fetchBorrowRate() is not supported yet')
+        }
+        const borrowRates = await this.fetchBorrowRates (params);
+        const rate = this.safeValue (borrowRates, code);
+        if (rate === undefined) {
+            throw new ExchangeError (this.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+        }
+        return rate;
     }
 }

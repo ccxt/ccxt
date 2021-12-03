@@ -25,6 +25,8 @@ module.exports = class hitbtc extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -215,7 +217,7 @@ module.exports = class hitbtc extends Exchange {
                 'PLA': 'PlayChip',
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
-                'STX': 'Stox',
+                'STX': 'STOX',
                 'TV': 'Tokenville',
                 'USD': 'USDT',
                 'XPNT': 'PNT',
@@ -1160,6 +1162,7 @@ module.exports = class hitbtc extends Exchange {
             'currency': currency['code'],
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

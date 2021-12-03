@@ -887,16 +887,16 @@ class xena(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'orderQty')
-        filled = self.safe_number(order, 'cumQty')
-        remaining = self.safe_number(order, 'leavesQty')
-        side = self.safe_string_lower(order, 'side')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'orderQty')
+        filled = self.safe_string(order, 'cumQty')
+        remaining = self.safe_string(order, 'leavesQty')
+        side = self.safe_string(order, 'side')
         if side == '1':
             side = 'buy'
-        elif side == '1':
+        elif side == '2':
             side = 'sell'
-        type = self.safe_string_lower(order, 'ordType')
+        type = self.safe_string(order, 'ordType')
         if type == '1':
             type = 'market'
         elif type == '2':
@@ -905,7 +905,7 @@ class xena(Exchange):
             type = 'stop'
         elif type == '4':
             type = 'stop-limit'
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -927,7 +927,7 @@ class xena(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -1269,6 +1269,7 @@ class xena(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

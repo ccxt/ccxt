@@ -167,7 +167,7 @@ class novadax extends Exchange {
         //
         //     {
         //         "code":"A10000",
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "amountPrecision":8,
         //                 "baseCurrency":"BTC",
@@ -175,8 +175,8 @@ class novadax extends Exchange {
         //                 "minOrderValue":"25",
         //                 "pricePrecision":2,
         //                 "quoteCurrency":"BRL",
-        //                 "$status":"ONLINE",
-        //                 "$symbol":"BTC_BRL",
+        //                 "status":"ONLINE",
+        //                 "symbol":"BTC_BRL",
         //                 "valuePrecision":2
         //             ),
         //         ),
@@ -245,8 +245,8 @@ class novadax extends Exchange {
         //         "low24h":"61156.32",
         //         "open24h":"64512.46",
         //         "quoteVolume24h":"10308157.95",
-        //         "$symbol":"BTC_BRL",
-        //         "$timestamp":1599091115090
+        //         "symbol":"BTC_BRL",
+        //         "timestamp":1599091115090
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
@@ -291,7 +291,7 @@ class novadax extends Exchange {
         //
         //     {
         //         "code":"A10000",
-        //         "$data":array(
+        //         "data":array(
         //             "ask":"61946.1",
         //             "baseVolume24h":"164.41930186",
         //             "bid":"61815",
@@ -300,7 +300,7 @@ class novadax extends Exchange {
         //             "low24h":"61156.32",
         //             "open24h":"64512.46",
         //             "quoteVolume24h":"10308157.95",
-        //             "$symbol":"BTC_BRL",
+        //             "symbol":"BTC_BRL",
         //             "timestamp":1599091115090
         //         ),
         //         "message":"Success"
@@ -316,7 +316,7 @@ class novadax extends Exchange {
         //
         //     {
         //         "code":"A10000",
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "ask":"61879.36",
         //                 "baseVolume24h":"164.40955092",
@@ -326,7 +326,7 @@ class novadax extends Exchange {
         //                 "low24h":"61156.32",
         //                 "open24h":"64624.19",
         //                 "quoteVolume24h":"10307493.92",
-        //                 "$symbol":"BTC_BRL",
+        //                 "symbol":"BTC_BRL",
         //                 "timestamp":1599091291083
         //             ),
         //         ),
@@ -355,7 +355,7 @@ class novadax extends Exchange {
         //
         //     {
         //         "code":"A10000",
-        //         "$data":array(
+        //         "data":array(
         //             "asks":[
         //                 ["0.037159","0.3741"],
         //                 ["0.037215","0.2706"],
@@ -366,7 +366,7 @@ class novadax extends Exchange {
         //                 ["0.036969","0.8101"],
         //                 ["0.036953","1.5226"],
         //             ],
-        //             "$timestamp":1599280414448
+        //             "timestamp":1599280414448
         //         ),
         //         "message":"Success"
         //     }
@@ -381,40 +381,40 @@ class novadax extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "$amount":"0.0632",
-        //         "$price":"0.037288",
-        //         "$side":"BUY",
-        //         "$timestamp":1599279694576
+        //         "amount":"0.0632",
+        //         "price":"0.037288",
+        //         "side":"BUY",
+        //         "timestamp":1599279694576
         //     }
         //
         // private fetchOrderTrades
         //
         //     {
-        //         "$id" => "608717046691139584",
-        //         "$orderId" => "608716957545402368",
-        //         "$symbol" => "BTC_BRL",
-        //         "$side" => "BUY",
-        //         "$amount" => "0.0988",
-        //         "$price" => "45514.76",
-        //         "$fee" => "0.0000988 BTC",
+        //         "id" => "608717046691139584",
+        //         "orderId" => "608716957545402368",
+        //         "symbol" => "BTC_BRL",
+        //         "side" => "BUY",
+        //         "amount" => "0.0988",
+        //         "price" => "45514.76",
+        //         "fee" => "0.0000988 BTC",
         //         "role" => "MAKER",
-        //         "$timestamp" => 1565171053345
+        //         "timestamp" => 1565171053345
         //     }
         //
         // private fetchMyTrades
         //
         //     {
-        //         "$id" => "608717046691139584",
-        //         "$orderId" => "608716957545402368",
-        //         "$symbol" => "BTC_BRL",
-        //         "$side" => "BUY",
-        //         "$amount" => "0.0988",
-        //         "$price" => "45514.76",
-        //         "$fee" => "0.0000988 BTC",
+        //         "id" => "608717046691139584",
+        //         "orderId" => "608716957545402368",
+        //         "symbol" => "BTC_BRL",
+        //         "side" => "BUY",
+        //         "amount" => "0.0988",
+        //         "price" => "45514.76",
+        //         "fee" => "0.0000988 BTC",
         //         "feeAmount" => "0.0000988",
         //         "feeCurrency" => "BTC",
         //         "role" => "MAKER",
-        //         "$timestamp" => 1565171053345
+        //         "timestamp" => 1565171053345
         //     }
         //
         $id = $this->safe_string($trade, 'id');
@@ -473,7 +473,7 @@ class novadax extends Exchange {
         //
         //     {
         //         "code":"A10000",
-        //         "$data":array(
+        //         "data":array(
         //             array("amount":"0.0632","price":"0.037288","side":"BUY","timestamp":1599279694576),
         //             array("amount":"0.0052","price":"0.03715","side":"SELL","timestamp":1599276606852),
         //             array("amount":"0.0058","price":"0.037188","side":"SELL","timestamp":1599275187812),
@@ -509,7 +509,7 @@ class novadax extends Exchange {
         //
         //     {
         //         "code" => "A10000",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "amount" => 8.25709100,
         //                 "closePrice" => 62553.20,
@@ -518,7 +518,7 @@ class novadax extends Exchange {
         //                 "lowPrice" => 62553.20,
         //                 "openPrice" => 62554.23,
         //                 "score" => 1602501480,
-        //                 "$symbol" => "BTC_BRL",
+        //                 "symbol" => "BTC_BRL",
         //                 "vol" => 516784.2504067500
         //             }
         //         ),
@@ -560,11 +560,11 @@ class novadax extends Exchange {
         $response = $this->privateGetAccountGetBalance ($params);
         //
         //     {
-        //         "$code" => "A10000",
-        //         "$data" => array(
+        //         "code" => "A10000",
+        //         "data" => array(
         //             {
         //                 "available" => "1.23",
-        //                 "$balance" => "0.23",
+        //                 "balance" => "0.23",
         //                 "currency" => "BTC",
         //                 "hold" => "1"
         //             }
@@ -600,7 +600,7 @@ class novadax extends Exchange {
             'symbol' => $market['id'],
             'side' => $uppercaseSide, // or SELL
             // 'amount' => $this->amount_to_precision($symbol, $amount),
-            // "$price" => "1234.5678", // required for LIMIT and STOP orders
+            // "price" => "1234.5678", // required for LIMIT and STOP orders
             // 'operator' => '' // for stop orders, can be found in order introduction
             // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice),
             // 'accountId' => '...', // subaccount id, optional
@@ -650,22 +650,22 @@ class novadax extends Exchange {
         //
         //     {
         //         "code" => "A10000",
-        //         "$data" => array(
-        //             "$amount" => "0.001",
+        //         "data" => array(
+        //             "amount" => "0.001",
         //             "averagePrice" => null,
         //             "filledAmount" => "0",
         //             "filledFee" => "0",
         //             "filledValue" => "0",
         //             "id" => "870613508008464384",
         //             "operator" => "GTE",
-        //             "$price" => "210000",
-        //             "$side" => "BUY",
+        //             "price" => "210000",
+        //             "side" => "BUY",
         //             "status" => "SUBMITTED",
-        //             "$stopPrice" => "211000",
-        //             "$symbol" => "BTC_BRL",
+        //             "stopPrice" => "211000",
+        //             "symbol" => "BTC_BRL",
         //             "timestamp" => 1627612035528,
-        //             "$type" => "STOP_LIMIT",
-        //             "$value" => "210"
+        //             "type" => "STOP_LIMIT",
+        //             "value" => "210"
         //         ),
         //         "message" => "Success"
         //     }
@@ -683,7 +683,7 @@ class novadax extends Exchange {
         //
         //     {
         //         "code" => "A10000",
-        //         "$data" => array(
+        //         "data" => array(
         //             "result" => true
         //         ),
         //         "message" => "Success"
@@ -702,9 +702,9 @@ class novadax extends Exchange {
         //
         //     {
         //         "code" => "A10000",
-        //         "$data" => array(
-        //             "$id" => "608695623247466496",
-        //             "$symbol" => "BTC_BRL",
+        //         "data" => array(
+        //             "id" => "608695623247466496",
+        //             "symbol" => "BTC_BRL",
         //             "type" => "MARKET",
         //             "side" => "SELL",
         //             "price" => null,
@@ -750,10 +750,10 @@ class novadax extends Exchange {
         //
         //     {
         //         "code" => "A10000",
-        //         "$data" => array(
+        //         "data" => array(
         //             array(
         //                 "id" => "608695678650028032",
-        //                 "$symbol" => "BTC_BRL",
+        //                 "symbol" => "BTC_BRL",
         //                 "type" => "MARKET",
         //                 "side" => "SELL",
         //                 "price" => null,
@@ -802,11 +802,11 @@ class novadax extends Exchange {
         //
         //     {
         //         "code" => "A10000",
-        //         "$data" => array(
+        //         "data" => array(
         //             array(
-        //                 "$id" => "608717046691139584",
+        //                 "id" => "608717046691139584",
         //                 "orderId" => "608716957545402368",
-        //                 "$symbol" => "BTC_BRL",
+        //                 "symbol" => "BTC_BRL",
         //                 "side" => "BUY",
         //                 "amount" => "0.0988",
         //                 "price" => "45514.76",
@@ -839,20 +839,20 @@ class novadax extends Exchange {
         // createOrder, fetchOrders, fetchOrder
         //
         //     {
-        //         "$amount" => "0.001",
+        //         "amount" => "0.001",
         //         "averagePrice" => null,
         //         "filledAmount" => "0",
         //         "filledFee" => "0",
         //         "filledValue" => "0",
-        //         "$id" => "870613508008464384",
+        //         "id" => "870613508008464384",
         //         "operator" => "GTE",
-        //         "$price" => "210000",
-        //         "$side" => "BUY",
-        //         "$status" => "SUBMITTED",
-        //         "$stopPrice" => "211000",
-        //         "$symbol" => "BTC_BRL",
-        //         "$timestamp" => 1627612035528,
-        //         "$type" => "STOP_LIMIT",
+        //         "price" => "210000",
+        //         "side" => "BUY",
+        //         "status" => "SUBMITTED",
+        //         "stopPrice" => "211000",
+        //         "symbol" => "BTC_BRL",
+        //         "timestamp" => 1627612035528,
+        //         "type" => "STOP_LIMIT",
         //         "value" => "210"
         //     }
         //
@@ -863,15 +863,15 @@ class novadax extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'id');
-        $amount = $this->safe_number($order, 'amount');
-        $price = $this->safe_number($order, 'price');
-        $cost = $this->safe_number_2($order, 'filledValue', 'value');
+        $amount = $this->safe_string($order, 'amount');
+        $price = $this->safe_string($order, 'price');
+        $cost = $this->safe_string_2($order, 'filledValue', 'value');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_integer($order, 'timestamp');
-        $average = $this->safe_number($order, 'averagePrice');
-        $filled = $this->safe_number($order, 'filledAmount');
+        $average = $this->safe_string($order, 'averagePrice');
+        $filled = $this->safe_string($order, 'filledAmount');
         $fee = null;
         $feeCost = $this->safe_number($order, 'filledFee');
         if ($feeCost !== null) {
@@ -883,7 +883,7 @@ class novadax extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -905,7 +905,7 @@ class novadax extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -923,7 +923,7 @@ class novadax extends Exchange {
         $response = $this->privatePostAccountWithdrawCoin (array_merge($request, $params));
         //
         //     {
-        //         "$code":"A10000",
+        //         "code":"A10000",
         //         "data" => "DR123",
         //         "message":"Success"
         //     }
@@ -936,7 +936,7 @@ class novadax extends Exchange {
         //
         //     {
         //         "code" => "A10000",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "subId" => "CA648856083527372800",
         //                 "state" => "Normal",
@@ -997,12 +997,12 @@ class novadax extends Exchange {
         $response = $this->privateGetWalletQueryDepositWithdraw (array_merge($request, $params));
         //
         //     {
-        //         "$code" => "A10000",
-        //         "$data" => array(
+        //         "code" => "A10000",
+        //         "data" => array(
         //             {
         //                 "id" => "DR562339304588709888",
         //                 "type" => "COIN_IN",
-        //                 "$currency" => "XLM",
+        //                 "currency" => "XLM",
         //                 "chain" => "XLM",
         //                 "address" => "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
         //                 "addressTag" => "1000009",
@@ -1041,7 +1041,7 @@ class novadax extends Exchange {
         // withdraw
         //
         //     {
-        //         "$code":"A10000",
+        //         "code":"A10000",
         //         "data" => "DR123",
         //         "message":"Success"
         //     }
@@ -1049,13 +1049,13 @@ class novadax extends Exchange {
         // fetchTransactions
         //
         //     {
-        //         "$id" => "DR562339304588709888",
-        //         "$type" => "COIN_IN",
-        //         "$currency" => "XLM",
+        //         "id" => "DR562339304588709888",
+        //         "type" => "COIN_IN",
+        //         "currency" => "XLM",
         //         "chain" => "XLM",
-        //         "$address" => "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        //         "address" => "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
         //         "addressTag" => "1000009",
-        //         "$amount" => 1.0,
+        //         "amount" => 1.0,
         //         "state" => "SUCCESS",
         //         "txHash" => "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
         //         "createdAt" => 1554113737000,
@@ -1126,11 +1126,11 @@ class novadax extends Exchange {
         //
         //     {
         //         "code" => "A10000",
-        //         "$data" => array(
+        //         "data" => array(
         //             array(
         //                 "id" => "608717046691139584",
         //                 "orderId" => "608716957545402368",
-        //                 "$symbol" => "BTC_BRL",
+        //                 "symbol" => "BTC_BRL",
         //                 "side" => "BUY",
         //                 "amount" => "0.0988",
         //                 "price" => "45514.76",
@@ -1143,7 +1143,7 @@ class novadax extends Exchange {
         //             {
         //                 "id" => "608717065729085441",
         //                 "orderId" => "608716957545402368",
-        //                 "$symbol" => "BTC_BRL",
+        //                 "symbol" => "BTC_BRL",
         //                 "side" => "BUY",
         //                 "amount" => "0.0242",
         //                 "price" => "45514.76",
@@ -1198,7 +1198,7 @@ class novadax extends Exchange {
             return;
         }
         //
-        //     array("$code":"A10003","data":array(),"$message":"Authentication failed, Invalid accessKey.")
+        //     array("code":"A10003","data":array(),"message":"Authentication failed, Invalid accessKey.")
         //
         $errorCode = $this->safe_string($response, 'code');
         if ($errorCode !== 'A10000') {

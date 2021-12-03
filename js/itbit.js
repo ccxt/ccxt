@@ -510,16 +510,16 @@ module.exports = class itbit extends Exchange {
         const type = this.safeString (order, 'type');
         const symbol = this.markets_by_id[order['instrument']]['symbol'];
         const timestamp = this.parse8601 (order['createdTime']);
-        const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber (order, 'amountFilled');
+        const amount = this.safeString (order, 'amount');
+        const filled = this.safeString (order, 'amountFilled');
         const fee = undefined;
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'volumeWeightedAveragePrice');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'volumeWeightedAveragePrice');
         const clientOrderId = this.safeString (order, 'clientOrderIdentifier');
         const id = this.safeString (order, 'id');
         const postOnlyString = this.safeString (order, 'postOnly');
         const postOnly = (postOnlyString === 'True');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -542,7 +542,7 @@ module.exports = class itbit extends Exchange {
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
             'trades': undefined,
-        });
+        }, market);
     }
 
     nonce () {

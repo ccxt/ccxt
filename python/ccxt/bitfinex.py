@@ -708,7 +708,51 @@ class bitfinex(Exchange):
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public) v1
+        #
+        #     {
+        #          "timestamp":1637258380,
+        #          "tid":894452833,
+        #          "price":"0.99941",
+        #          "amount":"261.38",
+        #          "exchange":"bitfinex",
+        #          "type":"sell"
+        #     }
+        #
+        #     {   "timestamp":1637258238,
+        #          "tid":894452800,
+        #          "price":"0.99958",
+        #          "amount":"261.90514",
+        #          "exchange":"bitfinex",
+        #          "type":"buy"
+        #     }
+        #
+        # fetchMyTrades(private) v1
+        #
+        #     {
+        #          "price":"0.99941",
+        #          "amount":"261.38",
+        #          "timestamp":"1637258380.0",
+        #          "type":"Sell",
+        #          "fee_currency":"UST",
+        #          "fee_amount":"-0.52245157",
+        #          "tid":894452833,
+        #          "order_id":78819731373
+        #     }
+        #
+        #     {
+        #         "price":"0.99958",
+        #         "amount":"261.90514",
+        #         "timestamp":"1637258238.0",
+        #         "type":"Buy",
+        #         "fee_currency":"UDC",
+        #         "fee_amount":"-0.52381028",
+        #         "tid":894452800,
+        #         "order_id":78819504838
+        #     }
+        #
         id = self.safe_string(trade, 'tid')
         timestamp = self.safe_timestamp(trade, 'timestamp')
         type = None
@@ -716,19 +760,16 @@ class bitfinex(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         if 'fee_amount' in trade:
-            feeCost = -self.safe_number(trade, 'fee_amount')
+            feeCostString = Precise.string_neg(self.safe_string(trade, 'fee_amount'))
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -738,11 +779,11 @@ class bitfinex(Exchange):
             'order': orderId,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=50, params={}):
         self.load_markets()
@@ -773,6 +814,8 @@ class bitfinex(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        postOnly = self.safe_value(params, 'postOnly', False)
+        params = self.omit(params, ['postOnly'])
         request = {
             'symbol': self.market_id(symbol),
             'side': side,
@@ -786,6 +829,8 @@ class bitfinex(Exchange):
             request['price'] = str(self.nonce())
         else:
             request['price'] = self.price_to_precision(symbol, price)
+        if postOnly:
+            request['is_postonly'] = True
         response = self.privatePostOrderNew(self.extend(request, params))
         return self.parse_order(response)
 
@@ -861,7 +906,7 @@ class bitfinex(Exchange):
             orderType = parts[1]
         timestamp = self.safe_timestamp(order, 'timestamp')
         id = self.safe_string(order, 'id')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -873,17 +918,17 @@ class bitfinex(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': self.safe_number(order, 'price'),
+            'price': self.safe_string(order, 'price'),
             'stopPrice': None,
-            'average': self.safe_number(order, 'avg_execution_price'),
-            'amount': self.safe_number(order, 'original_amount'),
-            'remaining': self.safe_number(order, 'remaining_amount'),
-            'filled': self.safe_number(order, 'executed_amount'),
+            'average': self.safe_string(order, 'avg_execution_price'),
+            'amount': self.safe_string(order, 'original_amount'),
+            'remaining': self.safe_string(order, 'remaining_amount'),
+            'filled': self.safe_string(order, 'executed_amount'),
             'status': status,
             'fee': None,
             'cost': None,
             'trades': None,
-        })
+        }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -994,6 +1039,7 @@ class bitfinex(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

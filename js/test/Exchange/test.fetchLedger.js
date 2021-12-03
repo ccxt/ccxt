@@ -2,15 +2,10 @@
 
 // ----------------------------------------------------------------------------
 
-const log = require ('ololog')
-    , chai = require ('chai')
-    , expect = chai.expect
-    , assert = chai.assert
+const assert = require ('assert')
     , testLedgerItem = require ('./test.ledgerItem')
 
-require ('ansicolor').nice
-
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, code) => {
 
@@ -20,7 +15,7 @@ module.exports = async (exchange, code) => {
 
         assert (items instanceof Array)
 
-        log ('fetched', items.length.toString ().green, 'ledger items')
+        console.log ('Fetched', items.length, 'ledger items')
 
         const now = Date.now ()
 
@@ -42,6 +37,6 @@ module.exports = async (exchange, code) => {
 
     } else {
 
-        log ('fetching ledger items not supported')
+        console.log ('Fetching ledger items not supported')
     }
 }

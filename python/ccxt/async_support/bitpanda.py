@@ -775,27 +775,25 @@ class bitpanda(Exchange):
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'time'))
         side = self.safe_string_lower_2(trade, 'side', 'taker_side')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = self.safe_number(trade, 'volume')
-        if (cost is None) and (amount is not None) and (price is not None):
-            cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        costString = self.safe_string(trade, 'volume')
         marketId = self.safe_string(trade, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        feeCost = self.safe_number(feeInfo, 'fee_amount')
+        feeCostString = self.safe_string(feeInfo, 'fee_amount')
         takerOrMaker = None
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRate = self.safe_number(feeInfo, 'fee_percentage')
+            feeRateString = self.safe_string(feeInfo, 'fee_percentage')
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': feeRate,
+                'rate': feeRateString,
             }
             takerOrMaker = self.safe_string_lower(feeInfo, 'fee_type')
-        return {
+        return self.safe_trade({
             'id': self.safe_string_2(trade, 'trade_id', 'sequence'),
             'order': self.safe_string(trade, 'order_id'),
             'timestamp': timestamp,
@@ -803,13 +801,13 @@ class bitpanda(Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -883,6 +881,7 @@ class bitpanda(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': depositAddress,
         }
 
@@ -1231,20 +1230,16 @@ class bitpanda(Exchange):
         status = self.parse_order_status(rawStatus)
         marketId = self.safe_string(rawOrder, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_number(rawOrder, 'price')
-        amount = self.safe_number(rawOrder, 'amount')
-        filledString = self.safe_string(rawOrder, 'filled_amount')
-        filled = self.parse_number(filledString)
+        price = self.safe_string(rawOrder, 'price')
+        amount = self.safe_string(rawOrder, 'amount')
+        filled = self.safe_string(rawOrder, 'filled_amount')
         side = self.safe_string_lower(rawOrder, 'side')
         type = self.safe_string_lower(rawOrder, 'type')
         timeInForce = self.parse_time_in_force(self.safe_string(rawOrder, 'time_in_force'))
         stopPrice = self.safe_number(rawOrder, 'trigger_price')
         postOnly = self.safe_value(rawOrder, 'is_post_only')
         rawTrades = self.safe_value(order, 'trades', [])
-        trades = self.parse_trades(rawTrades, market, None, None, {
-            'type': type,
-        })
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1265,8 +1260,8 @@ class bitpanda(Exchange):
             'remaining': None,
             'status': status,
             # 'fee': None,
-            'trades': trades,
-        })
+            'trades': rawTrades,
+        }, market)
 
     def parse_time_in_force(self, timeInForce):
         timeInForces = {

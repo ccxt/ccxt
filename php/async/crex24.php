@@ -145,13 +145,16 @@ class crex24 extends Exchange {
                 'BULL' => 'BuySell',
                 'CLC' => 'CaluraCoin',
                 'CREDIT' => 'TerraCredit',
+                'EGG' => 'NestEGG Coin',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND' => 'FUNDChains',
                 'GHOST' => 'GHOSTPRISM',
                 'GTC' => 'GastroCoin', // conflict with Gitcoin and Game.com
                 'IQ' => 'IQ.Cash',
+                'ONE' => 'One Hundred Coin',
                 'PUT' => 'PutinCoin',
                 'SBTC' => 'SBTCT', // SiamBitcoin
+                'SUPER' => 'SuperCoin',
                 'UNI' => 'Universe',
                 'YOYO' => 'YOYOW',
             ),
@@ -203,14 +206,14 @@ class crex24 extends Exchange {
         $response = yield $this->publicGetInstruments ($params);
         //
         //         array( array(
-        //             "$symbol" => "$PAC-BTC",
+        //             "symbol" => "$PAC-BTC",
         //             "baseCurrency" => "$PAC",
         //             "quoteCurrency" => "BTC",
         //             "feeCurrency" => "BTC",
-        //             "$feeSchedule" => "OriginalSchedule",
-        //             "$tickSize" => 0.00000001,
-        //             "$minPrice" => 0.00000001,
-        //             "$maxPrice" => 10000000000.0,
+        //             "feeSchedule" => "OriginalSchedule",
+        //             "tickSize" => 0.00000001,
+        //             "minPrice" => 0.00000001,
+        //             "maxPrice" => 10000000000.0,
         //             "volumeIncrement" => 0.00000001,
         //             "minVolume" => 1.0,
         //             "maxVolume" => 1000000000.0,
@@ -222,14 +225,14 @@ class crex24 extends Exchange {
         //             "state" => "delisted"
         //           ),
         //           array(
-        //             "$symbol" => "1INCH-USDT",
+        //             "symbol" => "1INCH-USDT",
         //             "baseCurrency" => "1INCH",
         //             "quoteCurrency" => "USDT",
         //             "feeCurrency" => "USDT",
-        //             "$feeSchedule" => "FeeSchedule10",
-        //             "$tickSize" => 0.0001,
-        //             "$minPrice" => 0.0001,
-        //             "$maxPrice" => 10000000000.0,
+        //             "feeSchedule" => "FeeSchedule10",
+        //             "tickSize" => 0.0001,
+        //             "minPrice" => 0.0001,
+        //             "maxPrice" => 10000000000.0,
         //             "volumeIncrement" => 0.00000001,
         //             "minVolume" => 0.01,
         //             "maxVolume" => 1000000000.0,
@@ -238,7 +241,7 @@ class crex24 extends Exchange {
         //             "supportedOrderTypes" => array(
         //               "limit"
         //             ),
-        //             "state" => "$active"
+        //             "state" => "active"
         //           ), )
         //
         $response2 = yield $this->publicGetTradingFeeSchedules ($params);
@@ -246,31 +249,31 @@ class crex24 extends Exchange {
         //     array(
         //         {
         //             "name" => "FeeSchedule05",
-        //             "$feeRates" => array(
+        //             "feeRates" => array(
         //                 array(
-        //                     "$volumeThreshold" => 0.0,
-        //                     "$maker" => 0.0005,
-        //                     "$taker" => 0.0005
+        //                     "volumeThreshold" => 0.0,
+        //                     "maker" => 0.0005,
+        //                     "taker" => 0.0005
         //                 ),
         //                 array(
-        //                     "$volumeThreshold" => 5.0,
-        //                     "$maker" => 0.0004,
-        //                     "$taker" => 0.0004
+        //                     "volumeThreshold" => 5.0,
+        //                     "maker" => 0.0004,
+        //                     "taker" => 0.0004
         //                 ),
         //                 array(
-        //                     "$volumeThreshold" => 15.0,
-        //                     "$maker" => 0.0003,
-        //                     "$taker" => 0.0003
+        //                     "volumeThreshold" => 15.0,
+        //                     "maker" => 0.0003,
+        //                     "taker" => 0.0003
         //                 ),
         //                 array(
-        //                     "$volumeThreshold" => 30.0,
-        //                     "$maker" => 0.0002,
-        //                     "$taker" => 0.0002
+        //                     "volumeThreshold" => 30.0,
+        //                     "maker" => 0.0002,
+        //                     "taker" => 0.0002
         //                 ),
         //                 array(
-        //                     "$volumeThreshold" => 50.0,
-        //                     "$maker" => 0.0001,
-        //                     "$taker" => 0.0001
+        //                     "volumeThreshold" => 50.0,
+        //                     "maker" => 0.0001,
+        //                     "taker" => 0.0001
         //                 }
         //             )
         //         ),
@@ -638,14 +641,14 @@ class crex24 extends Exchange {
         // private fetchMyTrades
         //
         //     {
-        //         "$id" => 3005866,
-        //         "$orderId" => 468533093,
-        //         "$timestamp" => "2018-06-02T16:26:27Z",
+        //         "id" => 3005866,
+        //         "orderId" => 468533093,
+        //         "timestamp" => "2018-06-02T16:26:27Z",
         //         "instrument" => "BCH-ETH",
-        //         "$side" => "buy",
-        //         "$price" => 1.78882,
+        //         "side" => "buy",
+        //         "price" => 1.78882,
         //         "volume" => 0.027,
-        //         "$fee" => 0.0000483,
+        //         "fee" => 0.0000483,
         //         "feeCurrency" => "ETH"
         //     }
         //
@@ -776,17 +779,17 @@ class crex24 extends Exchange {
         // createOrder
         //
         //     {
-        //         "$id" => 469594855,
-        //         "$timestamp" => "2018-06-08T16:59:44Z",
+        //         "id" => 469594855,
+        //         "timestamp" => "2018-06-08T16:59:44Z",
         //         "instrument" => "BTS-BTC",
-        //         "$side" => "buy",
-        //         "$type" => "limit",
-        //         "$status" => "submitting",
+        //         "side" => "buy",
+        //         "type" => "limit",
+        //         "status" => "submitting",
         //         "cancellationReason" => null,
-        //         "$timeInForce" => "GTC",
+        //         "timeInForce" => "GTC",
         //         "volume" => 4.0,
-        //         "$price" => 0.000025,
-        //         "$stopPrice" => null,
+        //         "price" => 0.000025,
+        //         "stopPrice" => null,
         //         "remainingVolume" => 4.0,
         //         "lastUpdate" => null,
         //         "parentOrderId" => null,
@@ -879,14 +882,14 @@ class crex24 extends Exchange {
         //         "id" => 469594855,
         //         "timestamp" => "2018-06-08T16:59:44Z",
         //         "instrument" => "BTS-BTC",
-        //         "$side" => "buy",
-        //         "$type" => "limit",
+        //         "side" => "buy",
+        //         "type" => "limit",
         //         "status" => "submitting",
         //         "cancellationReason" => null,
         //         "timeInForce" => "GTC",
         //         "volume" => 4.0,
-        //         "$price" => 0.000025,
-        //         "$stopPrice" => null,
+        //         "price" => 0.000025,
+        //         "stopPrice" => null,
         //         "remainingVolume" => 4.0,
         //         "lastUpdate" => null,
         //         "parentOrderId" => null,
@@ -905,7 +908,7 @@ class crex24 extends Exchange {
         //
         //     array(
         //         {
-        //           "$id" => 466747915,
+        //           "id" => 466747915,
         //           "timestamp" => "2018-05-26T06:43:49Z",
         //           "instrument" => "UNI-BTC",
         //           "side" => "sell",
@@ -952,7 +955,7 @@ class crex24 extends Exchange {
         //             "timestamp" => "2018-06-02T16:42:40Z",
         //             "instrument" => "BTC-EUR",
         //             "side" => "sell",
-        //             "type" => "$limit",
+        //             "type" => "limit",
         //             "status" => "submitting",
         //             "cancellationReason" => null,
         //             "timeInForce" => "GTC",
@@ -982,7 +985,7 @@ class crex24 extends Exchange {
         //           "timestamp" => "2018-05-26T06:43:49Z",
         //           "instrument" => "UNI-BTC",
         //           "side" => "sell",
-        //           "type" => "$limit",
+        //           "type" => "limit",
         //           "status" => "partiallyFilledActive",
         //           "cancellationReason" => null,
         //           "timeInForce" => "GTC",
@@ -1015,7 +1018,7 @@ class crex24 extends Exchange {
         //             "timestamp" => "2018-05-26T06:43:49Z",
         //             "instrument" => "UNI-BTC",
         //             "side" => "sell",
-        //             "type" => "$limit",
+        //             "type" => "limit",
         //             "status" => "partiallyFilledActive",
         //             "cancellationReason" => null,
         //             "timeInForce" => "GTC",
@@ -1032,7 +1035,7 @@ class crex24 extends Exchange {
         //             "timestamp" => "2018-05-26T06:45:29Z",
         //             "instrument" => "PRJ-BTC",
         //             "side" => "sell",
-        //             "type" => "$limit",
+        //             "type" => "limit",
         //             "status" => "partiallyFilledActive",
         //             "cancellationReason" => null,
         //             "timeInForce" => "GTC",
@@ -1072,7 +1075,7 @@ class crex24 extends Exchange {
         //             "timestamp" => "2018-06-02T16:42:40Z",
         //             "instrument" => "BTC-EUR",
         //             "side" => "sell",
-        //             "type" => "$limit",
+        //             "type" => "limit",
         //             "status" => "submitting",
         //             "cancellationReason" => null,
         //             "timeInForce" => "GTC",
@@ -1089,7 +1092,7 @@ class crex24 extends Exchange {
         //             "timestamp" => "2018-06-02T16:42:37Z",
         //             "instrument" => "BTG-BTC",
         //             "side" => "buy",
-        //             "type" => "$limit",
+        //             "type" => "limit",
         //             "status" => "unfilledActive",
         //             "cancellationReason" => null,
         //             "timeInForce" => "GTC",
@@ -1189,7 +1192,7 @@ class crex24 extends Exchange {
             $request['currency'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['from'] = $this->ymd($since, 'T');
+            $request['from'] = $this->ymdhms($since, 'T');
         }
         $response = yield $this->accountGetMoneyTransfers (array_merge($request, $params));
         //
@@ -1197,7 +1200,7 @@ class crex24 extends Exchange {
         //         array(
         //           "id" => 756446,
         //           "type" => "deposit",
-        //           "$currency" => "ETH",
+        //           "currency" => "ETH",
         //           "address" => "0x451d5a1b7519aa75164f440df78c74aac96023fe",
         //           "paymentId" => null,
         //           "amount" => 0.142,
@@ -1213,7 +1216,7 @@ class crex24 extends Exchange {
         //         array(
         //           "id" => 754618,
         //           "type" => "deposit",
-        //           "$currency" => "BTC",
+        //           "currency" => "BTC",
         //           "address" => "1IgNfmERVcier4IhfGEfutkLfu4AcmeiUC",
         //           "paymentId" => null,
         //           "amount" => 0.09,
@@ -1258,19 +1261,19 @@ class crex24 extends Exchange {
     public function parse_transaction($transaction, $currency = null) {
         //
         //     {
-        //         "$id" => 756446,
-        //         "$type" => "deposit",
-        //         "$currency" => "ETH",
-        //         "$address" => "0x451d5a1b7519aa75164f440df78c74aac96023fe",
+        //         "id" => 756446,
+        //         "type" => "deposit",
+        //         "currency" => "ETH",
+        //         "address" => "0x451d5a1b7519aa75164f440df78c74aac96023fe",
         //         "paymentId" => null,
-        //         "$amount" => 0.142,
-        //         "$fee" => null,
+        //         "amount" => 0.142,
+        //         "fee" => null,
         //         "txId" => "0x2b49098749840a9482c4894be94f94864b498a1306b6874687a5640cc9871918",
         //         "createdAt" => "2018-06-02T19:30:28Z",
         //         "processedAt" => "2018-06-02T21:10:41Z",
         //         "confirmationsRequired" => 12,
         //         "confirmationCount" => 12,
-        //         "$status" => "success",
+        //         "status" => "success",
         //         "errorDescription" => null,
         //     }
         //
@@ -1316,8 +1319,8 @@ class crex24 extends Exchange {
         $response = yield $this->accountGetDepositAddress (array_merge($request, $params));
         //
         //     {
-        //         "$currency" => "BTS",
-        //         "$address" => "crex24",
+        //         "currency" => "BTS",
+        //         "address" => "crex24",
         //         "paymentId" => "0fg4da4186741579"
         //     }
         //
@@ -1327,6 +1330,7 @@ class crex24 extends Exchange {
             'currency' => $code,
             'address' => $this->check_address($address),
             'tag' => $tag,
+            'network' => null,
             'info' => $response,
         );
     }

@@ -120,6 +120,7 @@ class coincheck(Exchange):
             'exceptions': {
                 'exact': {
                     'disabled API Key': AuthenticationError,  # {"success":false,"error":"disabled API Key"}'
+                    'invalid authentication': AuthenticationError,  # {"success":false,"error":"invalid authentication"}
                 },
                 'broad': {},
             },
@@ -174,13 +175,13 @@ class coincheck(Exchange):
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'order_type')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        amount = self.safe_number(order, 'pending_amount')
-        remaining = self.safe_number(order, 'pending_amount')
-        price = self.safe_number(order, 'rate')
+        amount = self.safe_string(order, 'pending_amount')
+        remaining = self.safe_string(order, 'pending_amount')
+        price = self.safe_string(order, 'rate')
         status = None
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -202,7 +203,7 @@ class coincheck(Exchange):
             'info': order,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -395,6 +396,7 @@ class coincheck(Exchange):
             return
         #
         #     {"success":false,"error":"disabled API Key"}'
+        #     {"success":false,"error":"invalid authentication"}
         #
         success = self.safe_value(response, 'success', True)
         if not success:

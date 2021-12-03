@@ -13,7 +13,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.precise import Precise
 
 
 class btcmarkets(Exchange):
@@ -588,19 +587,16 @@ class btcmarkets(Exchange):
         id = self.safe_string(trade, 'id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'orderId')
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         takerOrMaker = self.safe_string_lower(trade, 'liquidityType')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -609,12 +605,12 @@ class btcmarkets(Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -797,16 +793,16 @@ class btcmarkets(Exchange):
         elif side == 'Ask':
             side = 'sell'
         type = self.safe_string_lower(order, 'type')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
-        remaining = self.safe_number(order, 'openAmount')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        remaining = self.safe_string(order, 'openAmount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -828,7 +824,7 @@ class btcmarkets(Exchange):
             'status': status,
             'trades': None,
             'fee': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

@@ -147,7 +147,9 @@ class currencycom extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ACN' => 'Accenture',
                 'BNS' => 'Bank of Nova Scotia',
+                'CAR' => 'Avis Budget Group Inc',
                 'EDU' => 'New Oriental Education & Technology Group Inc',
                 'ETN' => 'Eaton',
                 'IQ' => 'iQIYI',
@@ -191,16 +193,16 @@ class currencycom extends Exchange {
         //         "exchangeFilters":array(),
         //         "symbols":[
         //             array(
-        //                 "$symbol":"EVK",
+        //                 "symbol":"EVK",
         //                 "name":"Evonik",
-        //                 "$status":"BREAK",
+        //                 "status":"BREAK",
         //                 "baseAsset":"EVK",
         //                 "baseAssetPrecision":3,
         //                 "quoteAsset":"EUR",
         //                 "quoteAssetId":"EUR",
         //                 "quotePrecision":3,
         //                 "orderTypes":["LIMIT","MARKET"],
-        //                 "$filters":array(
+        //                 "filters":array(
         //                     array("filterType":"LOT_SIZE","minQty":"1","maxQty":"27000","stepSize":"1"),
         //                     array("filterType":"MIN_NOTIONAL","minNotional":"23")
         //                 ),
@@ -211,19 +213,19 @@ class currencycom extends Exchange {
         //                 "tradingHours":"UTC; Mon 07:02 - 15:30; Tue 07:02 - 15:30; Wed 07:02 - 15:30; Thu 07:02 - 15:30; Fri 07:02 - 15:30",
         //                 "tickSize":0.005,
         //                 "tickValue":0.11125,
-        //                 "$exchangeFee":0.05
+        //                 "exchangeFee":0.05
         //             ),
         //             array(
-        //                 "$symbol":"BTC/USD_LEVERAGE",
+        //                 "symbol":"BTC/USD_LEVERAGE",
         //                 "name":"Bitcoin / USD",
-        //                 "$status":"TRADING",
+        //                 "status":"TRADING",
         //                 "baseAsset":"BTC",
         //                 "baseAssetPrecision":3,
         //                 "quoteAsset":"USD",
         //                 "quoteAssetId":"USD_LEVERAGE",
         //                 "quotePrecision":3,
         //                 "orderTypes":["LIMIT","MARKET","STOP"],
-        //                 "$filters":array(
+        //                 "filters":array(
         //                     array("filterType":"LOT_SIZE","minQty":"0.001","maxQty":"100","stepSize":"0.001"),
         //                     array("filterType":"MIN_NOTIONAL","minNotional":"13")
         //                 ),
@@ -237,8 +239,8 @@ class currencycom extends Exchange {
         //                 "tradingHours":"UTC; Mon - 21:00, 21:05 -; Tue - 21:00, 21:05 -; Wed - 21:00, 21:05 -; Thu - 21:00, 21:05 -; Fri - 21:00, 22:01 -; Sat - 21:00, 21:05 -; Sun - 20:00, 21:05 -",
         //                 "tickSize":0.05,
         //                 "tickValue":610.20875,
-        //                 "$makerFee":-0.025,
-        //                 "$takerFee":0.075
+        //                 "makerFee":-0.025,
+        //                 "takerFee":0.075
         //             ),
         //         ]
         //     }
@@ -364,7 +366,7 @@ class currencycom extends Exchange {
         //         "updateTime":1591056268,
         //         "balances":array(
         //             array(
-        //                 "$accountId":5470306579272968,
+        //                 "accountId":5470306579272968,
         //                 "collateralCurrency":true,
         //                 "asset":"ETH",
         //                 "free":0.0,
@@ -412,7 +414,7 @@ class currencycom extends Exchange {
         //         "canWithdraw":true,
         //         "canDeposit":true,
         //         "updateTime":1591056268,
-        //         "$balances":array(
+        //         "balances":array(
         //             array(
         //                 "accountId":5470306579272968,
         //                 "collateralCurrency":true,
@@ -501,7 +503,7 @@ class currencycom extends Exchange {
         // fetchTicker
         //
         //     {
-        //         "$symbol":"ETH/BTC",
+        //         "symbol":"ETH/BTC",
         //         "priceChange":"0.00030",
         //         "priceChangePercent":"1.21",
         //         "weightedAvgPrice":"0.02481",
@@ -522,7 +524,7 @@ class currencycom extends Exchange {
         // fetchTickers
         //
         //     {
-        //         "$symbol":"EVK",
+        //         "symbol":"EVK",
         //         "highPrice":"22.57",
         //         "lowPrice":"22.16",
         //         "volume":"1",
@@ -573,7 +575,7 @@ class currencycom extends Exchange {
         $response = $this->publicGetTicker24hr (array_merge($request, $params));
         //
         //     {
-        //         "$symbol":"ETH/BTC",
+        //         "symbol":"ETH/BTC",
         //         "priceChange":"0.00030",
         //         "priceChangePercent":"1.21",
         //         "weightedAvgPrice":"0.02481",
@@ -673,7 +675,7 @@ class currencycom extends Exchange {
         // createOrder fills (private)
         //
         //     {
-        //         "$price" => "9807.05",
+        //         "price" => "9807.05",
         //         "qty" => "0.01",
         //         "commission" => "0",
         //         "commissionAsset" => "dUSD"
@@ -682,10 +684,10 @@ class currencycom extends Exchange {
         // fetchMyTrades
         //
         //     {
-        //         "$symbol" => "BNBBTC",
-        //         "$id" => 28457,
-        //         "$orderId" => 100234,
-        //         "$price" => "4.00000100",
+        //         "symbol" => "BNBBTC",
+        //         "id" => 28457,
+        //         "orderId" => 100234,
+        //         "price" => "4.00000100",
         //         "qty" => "12.00000000",
         //         "commission" => "10.10000000",
         //         "commissionAsset" => "BNB",
@@ -784,20 +786,20 @@ class currencycom extends Exchange {
     public function parse_order($order, $market = null) {
         //
         //     {
-        //         "$symbol" => "BTC/USD",
+        //         "symbol" => "BTC/USD",
         //         "orderId" => "00000000-0000-0000-0000-0000000c0263",
         //         "clientOrderId" => "00000000-0000-0000-0000-0000000c0263",
         //         "transactTime" => 1589878206426,
-        //         "$price" => "9825.66210000",
+        //         "price" => "9825.66210000",
         //         "origQty" => "0.01",
         //         "executedQty" => "0.01",
-        //         "$status" => "FILLED",
-        //         "$timeInForce" => "FOK",
-        //         "$type" => "MARKET",
-        //         "$side" => "BUY",
-        //         "$fills" => array(
+        //         "status" => "FILLED",
+        //         "timeInForce" => "FOK",
+        //         "type" => "MARKET",
+        //         "side" => "BUY",
+        //         "fills" => array(
         //             {
-        //                 "$price" => "9807.05",
+        //                 "price" => "9807.05",
         //                 "qty" => "0.01",
         //                 "commission" => "0",
         //                 "commissionAsset" => "dUSD"
@@ -884,20 +886,20 @@ class currencycom extends Exchange {
         $response = $this->privatePostOrder (array_merge($request, $params));
         //
         //     {
-        //         "$symbol" => "BTC/USD",
+        //         "symbol" => "BTC/USD",
         //         "orderId" => "00000000-0000-0000-0000-0000000c0263",
         //         "clientOrderId" => "00000000-0000-0000-0000-0000000c0263",
         //         "transactTime" => 1589878206426,
-        //         "$price" => "9825.66210000",
+        //         "price" => "9825.66210000",
         //         "origQty" => "0.01",
         //         "executedQty" => "0.01",
         //         "status" => "FILLED",
         //         "timeInForce" => "FOK",
-        //         "$type" => "MARKET",
-        //         "$side" => "BUY",
+        //         "type" => "MARKET",
+        //         "side" => "BUY",
         //         "fills" => array(
         //             {
-        //                 "$price" => "9807.05",
+        //                 "price" => "9807.05",
         //                 "qty" => "0.01",
         //                 "commission" => "0",
         //                 "commissionAsset" => "dUSD"
@@ -945,7 +947,7 @@ class currencycom extends Exchange {
         $response = $this->privateDeleteOrder (array_merge($request, $params));
         //
         //     {
-        //         "$symbol":"ETH/USD",
+        //         "symbol":"ETH/USD",
         //         "orderId":"00000000-0000-0000-0000-00000024383b",
         //         "clientOrderId":"00000000-0000-0000-0000-00000024383b",
         //         "price":"150",
@@ -976,7 +978,7 @@ class currencycom extends Exchange {
         //
         //     array(
         //         {
-        //             "$symbol" => "BNBBTC",
+        //             "symbol" => "BNBBTC",
         //             "id" => 28457,
         //             "orderId" => 100234,
         //             "price" => "4.00000100",

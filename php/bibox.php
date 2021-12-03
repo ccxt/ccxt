@@ -19,13 +19,15 @@ class bibox extends Exchange {
             'name' => 'Bibox',
             'countries' => array( 'CN', 'US', 'KR' ),
             'version' => 'v1',
-            'hostname' => 'bibox365.com',
+            'hostname' => 'bibox.com',
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createMarketOrder' => null, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -158,9 +160,9 @@ class bibox extends Exchange {
         $response = $this->publicGetMdata (array_merge($request, $params));
         //
         //     {
-        //         "$result" => array(
+        //         "result" => array(
         //             {
-        //                 "$id":1,
+        //                 "id":1,
         //                 "pair":"BIX_BTC",
         //                 "pair_type":0,
         //                 "area_id":7,
@@ -356,18 +358,15 @@ class bibox extends Exchange {
         $feeRate = null; // todo => deduce from $market if $market is defined
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $this->parse_number(Precise::string_neg($feeCostString)),
+                'cost' => Precise::string_neg($feeCostString),
                 'currency' => $feeCurrency,
                 'rate' => $feeRate,
             );
         }
         $id = $this->safe_string($trade, 'id');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => null, // Bibox does not have it (documented) yet
@@ -377,11 +376,11 @@ class bibox extends Exchange {
             'type' => 'limit',
             'takerOrMaker' => null,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -445,7 +444,7 @@ class bibox extends Exchange {
         $response = $this->publicGetMdata (array_merge($request, $params));
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             array("time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"),
         //             array("time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"),
         //             array("time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"),
@@ -472,10 +471,10 @@ class bibox extends Exchange {
         // publicGetCdata
         //
         //     {
-        //         "$result":[
+        //         "result":[
         //             {
         //                 "symbol":"BTC",
-        //                 "$name":"BTC",
+        //                 "name":"BTC",
         //                 "valid_decimals":8,
         //                 "original_decimals":8,
         //                 "is_erc20":0,
@@ -485,7 +484,7 @@ class bibox extends Exchange {
         //                 "describe_summary":"[array(\"lang\":\"zh-cn\",\"text\":\"Bitcoin 比特币的概念最初由中本聪在2009年提出，是点对点的基于 SHA-256 算法的一种P2P形式的数字货币，点对点的传输意味着一个去中心化的支付系统。\"),array(\"lang\":\"en-ww\",\"text\":\"Bitcoin is a digital asset and a payment system invented by Satoshi Nakamoto who published a related paper in 2008 and released it as open-source software in 2009. The system featured as peer-to-peer; users can transact directly without an intermediary.\")]"
         //             }
         //         ],
-        //         "cmd":"$currencies"
+        //         "cmd":"currencies"
         //     }
         //
         $currencies = $this->safe_value($response, 'result');
@@ -533,18 +532,18 @@ class bibox extends Exchange {
         $response = $this->privatePostTransfer (array_merge($request, $params));
         //
         //     {
-        //         "$result":[
+        //         "result":[
         //             {
-        //                 "$result":[
+        //                 "result":[
         //                     {
         //                         "totalBalance":"14.60987476",
         //                         "balance":"14.60987476",
         //                         "freeze":"0.00000000",
-        //                         "$id":60,
+        //                         "id":60,
         //                         "symbol":"USDT",
         //                         "icon_url":"/appimg/USDT_icon.png",
         //                         "describe_url":"[array(\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"),array(\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\")]",
-        //                         "$name":"USDT",
+        //                         "name":"USDT",
         //                         "enable_withdraw":1,
         //                         "enable_deposit":1,
         //                         "enable_transfer":1,
@@ -631,16 +630,16 @@ class bibox extends Exchange {
         $response = $this->privatePostTransfer ($request);
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             {
-        //                 "$result":array(
+        //                 "result":array(
         //                     "total_btc":"0.00000298",
         //                     "total_cny":"0.99",
         //                     "total_usd":"0.16",
         //                     "assets_list":array(
-        //                         array("coin_symbol":"BTC","BTCValue":"0.00000252","CNYValue":"0.84","USDValue":"0.14","$balance":"0.00000252","freeze":"0.00000000"),
-        //                         array("coin_symbol":"LTC","BTCValue":"0.00000023","CNYValue":"0.07","USDValue":"0.01","$balance":"0.00006765","freeze":"0.00000000"),
-        //                         array("coin_symbol":"USDT","BTCValue":"0.00000023","CNYValue":"0.08","USDValue":"0.01","$balance":"0.01252100","freeze":"0.00000000")
+        //                         array("coin_symbol":"BTC","BTCValue":"0.00000252","CNYValue":"0.84","USDValue":"0.14","balance":"0.00000252","freeze":"0.00000000"),
+        //                         array("coin_symbol":"LTC","BTCValue":"0.00000023","CNYValue":"0.07","USDValue":"0.01","balance":"0.00006765","freeze":"0.00000000"),
+        //                         array("coin_symbol":"USDT","BTCValue":"0.00000023","CNYValue":"0.08","USDValue":"0.01","balance":"0.01252100","freeze":"0.00000000")
         //                     )
         //                 ),
         //                 "cmd":"transfer/assets"
@@ -934,7 +933,7 @@ class bibox extends Exchange {
         //         "result":array(
         //             {
         //                 "result":array(
-        //                     "$id":"100055558128036",
+        //                     "id":"100055558128036",
         //                     "createdAt" => 1512756997000,
         //                     "account_type":0,
         //                     "coin_symbol":"LTC",        // Trading Token
@@ -982,11 +981,11 @@ class bibox extends Exchange {
         $rawType = $this->safe_string($order, 'order_type');
         $type = ($rawType === '1') ? 'market' : 'limit';
         $timestamp = $this->safe_integer($order, 'createdAt');
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'deal_price');
-        $filled = $this->safe_number($order, 'deal_amount');
-        $amount = $this->safe_number($order, 'amount');
-        $cost = $this->safe_number_2($order, 'deal_money', 'money');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'deal_price');
+        $filled = $this->safe_string($order, 'deal_amount');
+        $amount = $this->safe_string($order, 'amount');
+        $cost = $this->safe_string_2($order, 'deal_money', 'money');
         $rawSide = $this->safe_string($order, 'order_side');
         $side = ($rawSide === '1') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -999,7 +998,7 @@ class bibox extends Exchange {
                 'currency' => null,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1021,7 +1020,7 @@ class bibox extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status($status) {
@@ -1245,6 +1244,7 @@ class bibox extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $response,
         );
     }

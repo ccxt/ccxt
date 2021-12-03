@@ -37,6 +37,8 @@ class hitbtc(Exchange):
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -227,7 +229,7 @@ class hitbtc(Exchange):
                 'PLA': 'PlayChip',
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
-                'STX': 'Stox',
+                'STX': 'STOX',
                 'TV': 'Tokenville',
                 'USD': 'USDT',
                 'XPNT': 'PNT',
@@ -1100,6 +1102,7 @@ class hitbtc(Exchange):
             'currency': currency['code'],
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

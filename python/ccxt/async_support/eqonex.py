@@ -949,6 +949,7 @@ class eqonex(Exchange):
             'currency': code,
             'address': address,
             'tag': None,
+            'network': None,
             'info': depositAddress,
         }
 
@@ -1247,16 +1248,16 @@ class eqonex(Exchange):
         lastTradeTimestamp = None
         priceString = self.safe_string(order, 'price')
         priceScale = self.safe_integer(order, 'price_scale')
-        price = self.parse_number(self.convert_from_scale(priceString, priceScale))
+        priceString = self.convert_from_scale(priceString, priceScale)
         amountString = self.safe_string(order, 'quantity')
         amountScale = self.safe_integer(order, 'quantity_scale')
-        amount = self.parse_number(self.convert_from_scale(amountString, amountScale))
+        amountString = self.convert_from_scale(amountString, amountScale)
         filledString = self.safe_string(order, 'cumQty')
         filledScale = self.safe_integer(order, 'cumQty_scale')
-        filled = self.parse_number(self.convert_from_scale(filledString, filledScale))
+        filledString = self.convert_from_scale(filledString, filledScale)
         remainingString = self.safe_string(order, 'leavesQty')
         remainingScale = self.safe_integer(order, 'leavesQty_scale')
-        remaining = self.parse_number(self.convert_from_scale(remainingString, remainingScale))
+        remainingString = self.convert_from_scale(remainingString, remainingScale)
         fee = None
         currencyId = self.safe_integer(order, 'feeInstrumentId')
         feeCurrencyCode = self.safe_currency_code(currencyId)
@@ -1276,7 +1277,7 @@ class eqonex(Exchange):
             timeInForce = None
         stopPriceScale = self.safe_integer(order, 'stopPx_scale', 0)
         stopPrice = self.parse_number(self.convert_from_scale(self.safe_string(order, 'stopPx'), stopPriceScale))
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1288,17 +1289,17 @@ class eqonex(Exchange):
             'timeInForce': timeInForce,
             'postOnly': None,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amount,
+            'amount': amountString,
             'cost': None,
             'average': None,
-            'filled': filled,
-            'remaining': remaining,
+            'filled': filledString,
+            'remaining': remainingString,
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def parse_order_status(self, status):
         statuses = {

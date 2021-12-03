@@ -151,13 +151,16 @@ class crex24(Exchange):
                 'BULL': 'BuySell',
                 'CLC': 'CaluraCoin',
                 'CREDIT': 'TerraCredit',
+                'EGG': 'NestEGG Coin',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
                 'GTC': 'GastroCoin',  # conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
+                'ONE': 'One Hundred Coin',
                 'PUT': 'PutinCoin',
                 'SBTC': 'SBTCT',  # SiamBitcoin
+                'SUPER': 'SuperCoin',
                 'UNI': 'Universe',
                 'YOYO': 'YOYOW',
             },
@@ -1138,7 +1141,7 @@ class crex24(Exchange):
             currency = self.currency(code)
             request['currency'] = currency['id']
         if since is not None:
-            request['from'] = self.ymd(since, 'T')
+            request['from'] = self.ymdhms(since, 'T')
         response = await self.accountGetMoneyTransfers(self.extend(request, params))
         #
         #     [
@@ -1270,6 +1273,7 @@ class crex24(Exchange):
             'currency': code,
             'address': self.check_address(address),
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

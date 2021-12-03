@@ -361,10 +361,10 @@ module.exports = class zaif extends Exchange {
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const marketId = this.safeString (order, 'currency_pair');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
         const id = this.safeString (order, 'id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -386,7 +386,7 @@ module.exports = class zaif extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

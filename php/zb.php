@@ -306,9 +306,9 @@ class zb extends Exchange {
         $response = $this->tradeGetGetFeeInfo ($params);
         //
         //     {
-        //         "$code":1000,
+        //         "code":1000,
         //         "message":"success",
-        //         "$result":{
+        //         "result":{
         //             "USDT":array(
         //                 array(
         //                     "chainName":"TRC20",
@@ -418,7 +418,7 @@ class zb extends Exchange {
         //     {
         //         "blockChain" => "btc",
         //         "isUseMemo" => false,
-        //         "$address" => "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
+        //         "address" => "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
         //         "canWithdraw" => true,
         //         "canDeposit" => true
         //     }
@@ -426,7 +426,7 @@ class zb extends Exchange {
         //         "blockChain" => "bts",
         //         "isUseMemo" => true,
         //         "account" => "btstest",
-        //         "$memo" => "123",
+        //         "memo" => "123",
         //         "canWithdraw" => true,
         //         "canDeposit" => true
         //     }
@@ -447,6 +447,7 @@ class zb extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $depositAddress,
         );
     }
@@ -457,10 +458,10 @@ class zb extends Exchange {
         //
         //     {
         //         "code" => 1000,
-        //         "$message" => {
+        //         "message" => {
         //             "des" => "success",
         //             "isSuc" => true,
-        //             "$datas" => array(
+        //             "datas" => array(
         //                 array(
         //                     "blockChain" => "btc",
         //                     "isUseMemo" => false,
@@ -494,11 +495,11 @@ class zb extends Exchange {
         $response = $this->privateGetGetUserAddress (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 1000,
-        //         "$message" => {
+        //         "code" => 1000,
+        //         "message" => {
         //             "des" => "success",
         //             "isSuc" => true,
-        //             "$datas" => {
+        //             "datas" => {
         //                 "key" => "0x0af7f36b8f09410f3df62c81e5846da673d4d9a9"
         //             }
         //         }
@@ -565,7 +566,7 @@ class zb extends Exchange {
         //
         //     {
         //         "date":"1624399623587",
-        //         "$ticker":{
+        //         "ticker":{
         //             "high":"33298.38",
         //             "vol":"56152.9012",
         //             "last":"32578.55",
@@ -589,7 +590,7 @@ class zb extends Exchange {
         //         "date":"1624399623587", // injected from outside
         //         "high":"33298.38",
         //         "vol":"56152.9012",
-        //         "$last":"32578.55",
+        //         "last":"32578.55",
         //         "low":"28808.19",
         //         "buy":"32572.68",
         //         "sell":"32615.37",
@@ -662,8 +663,8 @@ class zb extends Exchange {
         //
         //     {
         //         "date":1624537391,
-        //         "$amount":"0.0142",
-        //         "$price":"33936.42",
+        //         "amount":"0.0142",
+        //         "price":"33936.42",
         //         "trade_type":"ask",
         //         "type":"sell",
         //         "tid":1718869018
@@ -864,10 +865,10 @@ class zb extends Exchange {
         $timestamp = $this->safe_integer($order, 'trade_date');
         $marketId = $this->safe_string($order, 'currency');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $price = $this->safe_number($order, 'price');
-        $filled = $this->safe_number($order, 'trade_amount');
-        $amount = $this->safe_number($order, 'total_amount');
-        $cost = $this->safe_number($order, 'trade_money');
+        $price = $this->safe_string($order, 'price');
+        $filled = $this->safe_string($order, 'trade_amount');
+        $amount = $this->safe_string($order, 'total_amount');
+        $cost = $this->safe_string($order, 'trade_money');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'id');
         $feeCost = $this->safe_number($order, 'fees');
@@ -885,7 +886,7 @@ class zb extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -907,7 +908,7 @@ class zb extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status($status) {
@@ -936,19 +937,19 @@ class zb extends Exchange {
         // withdraw
         //
         //     {
-        //         "$code" => 1000,
+        //         "code" => 1000,
         //         "message" => "success",
-        //         "$id" => "withdrawalId"
+        //         "id" => "withdrawalId"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "$amount" => 0.01,
+        //         "amount" => 0.01,
         //         "fees" => 0.001,
-        //         "$id" => 2016042556231,
+        //         "id" => 2016042556231,
         //         "manageTime" => 1461579340000,
-        //         "$status" => 3,
+        //         "status" => 3,
         //         "submitTime" => 1461579288000,
         //         "toAddress" => "14fxEPirL9fyfw1i9EF439Pq6gQ5xijUmp",
         //     }
@@ -956,15 +957,15 @@ class zb extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "$address" => "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
-        //         "$amount" => "1.00000000",
-        //         "$confirmTimes" => 1,
-        //         "$currency" => "BTC",
+        //         "address" => "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
+        //         "amount" => "1.00000000",
+        //         "confirmTimes" => 1,
+        //         "currency" => "BTC",
         //         "description" => "Successfully Confirm",
         //         "hash" => "7ce842de187c379abafadd64a5fe66c5c61c8a21fb04edff9532234a1dae6xxx",
-        //         "$id" => 558,
+        //         "id" => 558,
         //         "itransfer" => 1,
-        //         "$status" => 2,
+        //         "status" => 2,
         //         "submit_time" => "2016-12-07 18:51:57",
         //     }
         //
@@ -1046,7 +1047,7 @@ class zb extends Exchange {
         $response = $this->privateGetWithdraw (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 1000,
+        //         "code" => 1000,
         //         "message" => "success",
         //         "id" => "withdrawalId"
         //     }
@@ -1078,11 +1079,11 @@ class zb extends Exchange {
         $response = $this->privateGetGetWithdrawRecord (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 1000,
-        //         "$message" => {
+        //         "code" => 1000,
+        //         "message" => {
         //             "des" => "success",
         //             "isSuc" => true,
-        //             "$datas" => {
+        //             "datas" => {
         //                 "list" => array(
         //                     array(
         //                         "amount" => 0.01,
@@ -1126,17 +1127,17 @@ class zb extends Exchange {
         $response = $this->privateGetGetChargeRecord (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 1000,
-        //         "$message" => {
+        //         "code" => 1000,
+        //         "message" => {
         //             "des" => "success",
         //             "isSuc" => true,
-        //             "$datas" => {
+        //             "datas" => {
         //                 "list" => array(
         //                     array(
         //                         "address" => "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
         //                         "amount" => "1.00000000",
         //                         "confirmTimes" => 1,
-        //                         "$currency" => "BTC",
+        //                         "currency" => "BTC",
         //                         "description" => "Successfully Confirm",
         //                         "hash" => "7ce842de187c379abafadd64a5fe66c5c61c8a21fb04edff9532234a1dae6xxx",
         //                         "id" => 558,
@@ -1204,7 +1205,7 @@ class zb extends Exchange {
                     throw new ExchangeError($feedback);
                 }
             }
-            // special case for array("$result":false,"$message":"服务端忙碌") (a "Busy Server" reply)
+            // special case for array("result":false,"message":"服务端忙碌") (a "Busy Server" reply)
             $result = $this->safe_value($response, 'result');
             if ($result !== null) {
                 if (!$result) {

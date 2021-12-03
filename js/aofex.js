@@ -135,7 +135,10 @@ module.exports = class aofex extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'AQT': 'AOFEX AQT',
                 'CPC': 'Consensus Planet Coin',
+                'HERO': 'Step Hero', // conflict with Metahero
+                'XBT': 'XBT', // conflict with BTC
             },
         });
     }
@@ -230,7 +233,7 @@ module.exports = class aofex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': market,
+                'info': this.extend (market, precision),
             });
         }
         return result;
@@ -548,15 +551,10 @@ module.exports = class aofex extends Exchange {
         const side = this.safeString (trade, 'direction');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'amount', 'number');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let cost = this.safeNumber (trade, 'total_price');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
-        const feeCost = this.safeNumber (trade, 'fee');
+        const costString = this.safeString (trade, 'total_price');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
                 if (side === 'buy') {
@@ -566,11 +564,11 @@ module.exports = class aofex extends Exchange {
                 }
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -580,11 +578,11 @@ module.exports = class aofex extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -700,43 +698,30 @@ module.exports = class aofex extends Exchange {
         const side = this.safeString (order, 'side');
         // const amount = this.safeNumber (order, 'number');
         // const price = this.safeNumber (order, 'price');
-        let cost = undefined;
         let price = undefined;
         let amount = undefined;
         let average = undefined;
-        const number = this.safeNumber (order, 'number');
-        const totalPrice = this.safeNumber (order, 'total_price');
+        const number = this.safeString (order, 'number');
+        // total_price is just the price times the amount
+        // but it doesn't tell us anything about the filled price
         if (type === 'limit') {
             amount = number;
-            price = this.safeNumber (order, 'price');
+            price = this.safeString (order, 'price');
         } else {
-            average = this.safeNumber (order, 'deal_price');
+            average = this.safeString (order, 'deal_price');
             if (side === 'buy') {
-                amount = this.safeNumber (order, 'deal_number');
+                amount = this.safeString (order, 'deal_number');
             } else {
                 amount = number;
             }
         }
         // all orders except new orders and canceled orders
         const rawTrades = this.safeValue (order, 'trades', []);
-        for (let i = 0; i < rawTrades.length; i++) {
-            rawTrades[i]['direction'] = side;
-        }
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'symbol': market['symbol'],
-            'order': id,
-            'type': type,
-        });
-        if (type === 'limit') {
-            cost = totalPrice;
-        } else if (side === 'buy') {
-            cost = number;
-        }
         let filled = undefined;
         if ((type === 'limit') && (orderStatus === '3')) {
             filled = amount;
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -751,14 +736,14 @@ module.exports = class aofex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
-            'trades': trades,
+            'trades': rawTrades,
             'fee': undefined,
-        });
+        }, market);
     }
 
     async fetchClosedOrder (id, symbol = undefined, params = {}) {
@@ -896,16 +881,7 @@ module.exports = class aofex extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const order = this.parseOrder (result, market);
-        const timestamp = this.milliseconds ();
-        return this.extend (order, {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'amount': amount,
-            'price': price,
-            'type': type,
-            'side': side,
-        });
+        return this.parseOrder (result, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

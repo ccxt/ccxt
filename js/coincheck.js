@@ -117,6 +117,7 @@ module.exports = class coincheck extends Exchange {
             'exceptions': {
                 'exact': {
                     'disabled API Key': AuthenticationError, // {"success":false,"error":"disabled API Key"}'
+                    'invalid authentication': AuthenticationError, // {"success":false,"error":"invalid authentication"}
                 },
                 'broad': {},
             },
@@ -178,13 +179,13 @@ module.exports = class coincheck extends Exchange {
         const id = this.safeString (order, 'id');
         const side = this.safeString (order, 'order_type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const amount = this.safeNumber (order, 'pending_amount');
-        const remaining = this.safeNumber (order, 'pending_amount');
-        const price = this.safeNumber (order, 'rate');
+        const amount = this.safeString (order, 'pending_amount');
+        const remaining = this.safeString (order, 'pending_amount');
+        const price = this.safeString (order, 'rate');
         const status = undefined;
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market, '_');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -206,7 +207,7 @@ module.exports = class coincheck extends Exchange {
             'info': order,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -425,6 +426,7 @@ module.exports = class coincheck extends Exchange {
         }
         //
         //     {"success":false,"error":"disabled API Key"}'
+        //     {"success":false,"error":"invalid authentication"}
         //
         const success = this.safeValue (response, 'success', true);
         if (!success) {

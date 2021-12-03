@@ -350,9 +350,6 @@ class btcturk(Exchange):
         order = self.safe_string(trade, 'orderId')
         priceString = self.safe_string(trade, 'price')
         amountString = Precise.string_abs(self.safe_string(trade, 'amount'))
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'pair')
         symbol = self.safe_symbol(marketId, market)
         side = self.safe_string_2(trade, 'side', 'orderType')
@@ -361,10 +358,10 @@ class btcturk(Exchange):
         if feeAmountString is not None:
             feeCurrency = self.safe_string(trade, 'denominatorSymbol')
             fee = {
-                'cost': self.parse_number(Precise.string_abs(feeAmountString)),
+                'cost': Precise.string_abs(feeAmountString),
                 'currency': self.safe_currency_code(feeCurrency),
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': order,
@@ -374,11 +371,11 @@ class btcturk(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -561,15 +558,10 @@ class btcturk(Exchange):
         #     }
         #
         id = self.safe_string(order, 'id')
-        priceString = self.safe_string(order, 'price')
-        precisePrice = Precise(priceString)
-        price = None
-        isZero = str(precisePrice) == '0'
-        if not isZero:
-            price = self.parse_number(precisePrice)
-        amountString = self.safe_string(order, 'quantity')
-        amount = self.parse_number(Precise.string_abs(amountString))
-        remaining = self.safe_number(order, 'leftAmount')
+        price = self.safe_string(order, 'price')
+        amountString = self.safe_string_2(order, 'amount', 'quantity')
+        amount = Precise.string_abs(amountString)
+        remaining = self.safe_string(order, 'leftAmount')
         marketId = self.safe_number(order, 'pairSymbol')
         symbol = self.safe_symbol(marketId, market)
         side = self.safe_string(order, 'type')
@@ -578,7 +570,7 @@ class btcturk(Exchange):
         timestamp = self.safe_integer_2(order, 'updateTime', 'datetime')
         rawStatus = self.safe_string(order, 'status')
         status = self.parse_order_status(rawStatus)
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'price': price,
@@ -595,7 +587,7 @@ class btcturk(Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'fee': None,
-        })
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

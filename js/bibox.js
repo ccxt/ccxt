@@ -15,13 +15,15 @@ module.exports = class bibox extends Exchange {
             'name': 'Bibox',
             'countries': [ 'CN', 'US', 'KR' ],
             'version': 'v1',
-            'hostname': 'bibox365.com',
+            'hostname': 'bibox.com',
             'has': {
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createMarketOrder': undefined, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -352,18 +354,15 @@ module.exports = class bibox extends Exchange {
         const feeRate = undefined; // todo: deduce from market if market is defined
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         if (feeCostString !== undefined) {
             fee = {
-                'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
+                'cost': Precise.stringNeg (feeCostString),
                 'currency': feeCurrency,
                 'rate': feeRate,
             };
         }
         const id = this.safeString (trade, 'id');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': undefined, // Bibox does not have it (documented) yet
@@ -373,11 +372,11 @@ module.exports = class bibox extends Exchange {
             'type': 'limit',
             'takerOrMaker': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -978,11 +977,11 @@ module.exports = class bibox extends Exchange {
         const rawType = this.safeString (order, 'order_type');
         const type = (rawType === '1') ? 'market' : 'limit';
         const timestamp = this.safeInteger (order, 'createdAt');
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'deal_price');
-        const filled = this.safeNumber (order, 'deal_amount');
-        const amount = this.safeNumber (order, 'amount');
-        const cost = this.safeNumber2 (order, 'deal_money', 'money');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'deal_price');
+        const filled = this.safeString (order, 'deal_amount');
+        const amount = this.safeString (order, 'amount');
+        const cost = this.safeString2 (order, 'deal_money', 'money');
         const rawSide = this.safeString (order, 'order_side');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -995,7 +994,7 @@ module.exports = class bibox extends Exchange {
                 'currency': undefined,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1017,7 +1016,7 @@ module.exports = class bibox extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrderStatus (status) {
@@ -1241,6 +1240,7 @@ module.exports = class bibox extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

@@ -29,7 +29,7 @@ class probit(Exchange):
             'id': 'probit',
             'name': 'ProBit',
             'countries': ['SC', 'KR'],  # Seychelles, South Korea
-            'rateLimit': 250,  # ms
+            'rateLimit': 50,  # ms
             'has': {
                 'cancelOrder': True,
                 'CORS': True,
@@ -85,36 +85,36 @@ class probit(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'market',
-                        'currency',
-                        'currency_with_platform',
-                        'time',
-                        'ticker',
-                        'order_book',
-                        'trade',
-                        'candle',
-                    ],
+                    'get': {
+                        'market': 1,
+                        'currency': 1,
+                        'currency_with_platform': 1,
+                        'time': 1,
+                        'ticker': 1,
+                        'order_book': 1,
+                        'trade': 1,
+                        'candle': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'new_order',
-                        'cancel_order',
-                        'withdrawal',
-                    ],
-                    'get': [
-                        'balance',
-                        'order',
-                        'open_order',
-                        'order_history',
-                        'trade_history',
-                        'deposit_address',
-                    ],
+                    'post': {
+                        'new_order': 2,
+                        'cancel_order': 1,
+                        'withdrawal': 2,
+                    },
+                    'get': {
+                        'balance': 1,
+                        'order': 1,
+                        'open_order': 1,
+                        'order_history': 1,
+                        'trade_history': 1,
+                        'deposit_address': 1,
+                    },
                 },
                 'accounts': {
-                    'post': [
-                        'token',
-                    ],
+                    'post': {
+                        'token': 1,
+                    },
                 },
             },
             'fees': {
@@ -179,9 +179,11 @@ class probit(Exchange):
                 'GOL': 'Goldofir',
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
+                'LBK': 'Legal Block',
                 'ORC': 'Oracle System',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
+                'SST': 'SocialSwap',
                 'TCT': 'Top Coin Token',
                 'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
@@ -875,21 +877,21 @@ class probit(Exchange):
         marketId = self.safe_string(order, 'market_id')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'time'))
-        price = self.safe_number(order, 'limit_price')
-        filled = self.safe_number(order, 'filled_quantity')
-        remaining = self.safe_number(order, 'open_quantity')
-        canceledAmount = self.safe_number(order, 'cancelled_quantity')
+        price = self.safe_string(order, 'limit_price')
+        filled = self.safe_string(order, 'filled_quantity')
+        remaining = self.safe_string(order, 'open_quantity')
+        canceledAmount = self.safe_string(order, 'cancelled_quantity')
         if canceledAmount is not None:
-            remaining = self.sum(remaining, canceledAmount)
-        amount = self.safe_number(order, 'quantity', self.sum(filled, remaining))
-        cost = self.safe_number_2(order, 'filled_cost', 'cost')
+            remaining = Precise.string_add(remaining, canceledAmount)
+        amount = self.safe_string(order, 'quantity', Precise.string_add(filled, remaining))
+        cost = self.safe_string_2(order, 'filled_cost', 'cost')
         if type == 'market':
             price = None
         clientOrderId = self.safe_string(order, 'client_order_id')
         if clientOrderId == '':
             clientOrderId = None
         timeInForce = self.safe_string_upper(order, 'time_in_force')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -910,7 +912,7 @@ class probit(Exchange):
             'cost': cost,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
@@ -1007,6 +1009,7 @@ class probit(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': depositAddress,
         }
 

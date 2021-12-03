@@ -35,6 +35,7 @@ class coinbasepro extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => null, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
+                'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -278,7 +279,7 @@ class coinbasepro extends Exchange {
         //
         //     array(
         //         {
-        //             "$id":"ZEC-BTC",
+        //             "id":"ZEC-BTC",
         //             "base_currency":"ZEC",
         //             "quote_currency":"BTC",
         //             "base_min_size":"0.01000000",
@@ -293,7 +294,7 @@ class coinbasepro extends Exchange {
         //             "limit_only":false,
         //             "cancel_only":false,
         //             "trading_disabled":false,
-        //             "$status":"online",
+        //             "status":"online",
         //             "status_message":""
         //         }
         //     )
@@ -440,8 +441,8 @@ class coinbasepro extends Exchange {
         //         "price":"0.997999",
         //         "size":"80.29769",
         //         "time":"2020-01-28T02:13:33.012523Z",
-        //         "$bid":"0.997094",
-        //         "$ask":"0.998",
+        //         "bid":"0.997094",
+        //         "ask":"0.998",
         //         "volume":"1903188.03750000"
         //     }
         //
@@ -457,7 +458,7 @@ class coinbasepro extends Exchange {
         $timestamp = $this->parse8601($this->safe_value($ticker, 'time'));
         $bid = $this->safe_number($ticker, 'bid');
         $ask = $this->safe_number($ticker, 'ask');
-        $last = $this->safe_number($ticker, 'price');
+        $last = $this->safe_number_2($ticker, 'price', 'last');
         $symbol = ($market === null) ? null : $market['symbol'];
         return array(
             'symbol' => $symbol,
@@ -706,20 +707,20 @@ class coinbasepro extends Exchange {
         // createOrder
         //
         //     {
-        //         "$id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
-        //         "$price" => "0.10000000",
+        //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "price" => "0.10000000",
         //         "size" => "0.01000000",
         //         "product_id" => "BTC-USD",
-        //         "$side" => "buy",
+        //         "side" => "buy",
         //         "stp" => "dc",
-        //         "$type" => "limit",
+        //         "type" => "limit",
         //         "time_in_force" => "GTC",
         //         "post_only" => false,
         //         "created_at" => "2016-12-08T20:02:28.53864Z",
         //         "fill_fees" => "0.0000000000000000",
         //         "filled_size" => "0.00000000",
         //         "executed_value" => "0.0000000000000000",
-        //         "$status" => "pending",
+        //         "status" => "pending",
         //         "settled" => false
         //     }
         //
@@ -727,10 +728,14 @@ class coinbasepro extends Exchange {
         $marketId = $this->safe_string($order, 'product_id');
         $market = $this->safe_market($marketId, $market, '-');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $price = $this->safe_number($order, 'price');
-        $filled = $this->safe_number($order, 'filled_size');
-        $amount = $this->safe_number($order, 'size', $filled);
-        $cost = $this->safe_number($order, 'executed_value');
+        $doneReason = $this->safe_string($order, 'done_reason');
+        if (($status === 'closed') && ($doneReason === 'canceled')) {
+            $status = 'canceled';
+        }
+        $price = $this->safe_string($order, 'price');
+        $filled = $this->safe_string($order, 'filled_size');
+        $amount = $this->safe_string($order, 'size', $filled);
+        $cost = $this->safe_string($order, 'executed_value');
         $feeCost = $this->safe_number($order, 'fill_fees');
         $fee = null;
         if ($feeCost !== null) {
@@ -751,7 +756,7 @@ class coinbasepro extends Exchange {
         $postOnly = $this->safe_value($order, 'post_only');
         $stopPrice = $this->safe_number($order, 'stop_price');
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -773,7 +778,7 @@ class coinbasepro extends Exchange {
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -861,18 +866,20 @@ class coinbasepro extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
         if ($clientOrderId !== null) {
             $request['client_oid'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
         }
         $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
         if ($stopPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-            $params = $this->omit($params, array( 'stopPrice', 'stop_price' ));
         }
         $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
         if ($timeInForce !== null) {
             $request['time_in_force'] = $timeInForce;
-            $params = $this->omit($params, array( 'timeInForce', 'time_in_force' ));
         }
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        if ($postOnly) {
+            $request['post_only'] = true;
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only' ));
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['size'] = $this->amount_to_precision($symbol, $amount);
@@ -895,12 +902,12 @@ class coinbasepro extends Exchange {
         //
         //     {
         //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
-        //         "$price" => "0.10000000",
+        //         "price" => "0.10000000",
         //         "size" => "0.01000000",
         //         "product_id" => "BTC-USD",
-        //         "$side" => "buy",
+        //         "side" => "buy",
         //         "stp" => "dc",
-        //         "$type" => "limit",
+        //         "type" => "limit",
         //         "time_in_force" => "GTC",
         //         "post_only" => false,
         //         "created_at" => "2016-12-08T20:02:28.53864Z",
@@ -1011,6 +1018,125 @@ class coinbasepro extends Exchange {
             'info' => $response,
             'id' => $response['id'],
         );
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            'transfer' => 'transfer', // Funds moved between portfolios
+            'match' => 'trade',       // Funds moved as a result of a trade
+            'fee' => 'fee',           // Fee as a result of a trade
+            'rebate' => 'rebate',     // Fee rebate
+            'conversion' => 'trade',  // Funds converted between fiat currency and a stablecoin
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //  {
+        //      $id => '12087495079',
+        //      $amount => '-0.0100000000000000',
+        //      balance => '0.0645419900000000',
+        //      created_at => '2021-10-28T17:14:32.593168Z',
+        //      $type => 'transfer',
+        //      $details => array(
+        //          from => '2f74edf7-1440-4586-86dc-ae58c5693691',
+        //          profile_transfer_id => '3ef093ad-2482-40d1-8ede-2f89cff5099e',
+        //          to => 'dda99503-4980-4b60-9549-0b770ee51336'
+        //      }
+        //  ),
+        //  {
+        //     $id => '11740725774',
+        //     $amount => '-1.7565669701255000',
+        //     balance => '0.0016490047745000',
+        //     created_at => '2021-10-22T03:47:34.764122Z',
+        //     $type => 'fee',
+        //     $details => {
+        //         order_id => 'ad06abf4-95ab-432a-a1d8-059ef572e296',
+        //         product_id => 'ETH-DAI',
+        //         trade_id => '1740617'
+        //     }
+        //  }
+        $id = $this->safe_string($item, 'id');
+        $amountString = $this->safe_string($item, 'amount');
+        $direction = null;
+        $afterString = $this->safe_string($item, 'balance');
+        $beforeString = Precise::string_sub($afterString, $amountString);
+        if (Precise::string_lt($amountString, '0')) {
+            $direction = 'out';
+            $amountString = Precise::string_abs($amountString);
+        } else {
+            $direction = 'in';
+        }
+        $amount = $this->parse_number($amountString);
+        $after = $this->parse_number($afterString);
+        $before = $this->parse_number($beforeString);
+        $timestamp = $this->parse8601($this->safe_value($item, 'created_at'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
+        $code = $this->safe_currency_code(null, $currency);
+        $details = $this->safe_value($item, 'details', array());
+        $account = null;
+        $referenceAccount = null;
+        $referenceId = null;
+        if ($type === 'transfer') {
+            $account = $this->safe_string($details, 'from');
+            $referenceAccount = $this->safe_string($details, 'to');
+            $referenceId = $this->safe_string($details, 'profile_transfer_id');
+        } else {
+            $referenceId = $this->safe_string($details, 'order_id');
+        }
+        $status = 'ok';
+        return array(
+            'id' => $id,
+            'currency' => $code,
+            'account' => $account,
+            'referenceAccount' => $referenceAccount,
+            'referenceId' => $referenceId,
+            'status' => $status,
+            'amount' => $amount,
+            'before' => $before,
+            'after' => $after,
+            'fee' => null,
+            'direction' => $direction,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'type' => $type,
+            'info' => $item,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code param');
+        }
+        yield $this->load_markets();
+        yield $this->load_accounts();
+        $currency = $this->currency($code);
+        $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
+        $account = $this->safe_value($accountsByCurrencyCode, $code);
+        if ($account === null) {
+            throw new ExchangeError($this->id . ' fetchLedger() could not find $account id for ' . $code);
+        }
+        $request = array(
+            'id' => $account['id'],
+            // 'start_date' => $this->iso8601($since),
+            // 'end_date' => $this->iso8601($this->milliseconds()),
+            // 'before' => 'cursor', // sets start cursor to before date
+            // 'after' => 'cursor', // sets end cursor to after date
+            // 'limit' => $limit, // default 100
+            // 'profile_id' => 'string'
+        );
+        if ($since !== null) {
+            $request['start_date'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
+        }
+        $response = yield $this->privateGetAccountsIdLedger (array_merge($request, $params));
+        for ($i = 0; $i < count($response); $i++) {
+            $response[$i]['currency'] = $code;
+        }
+        return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {

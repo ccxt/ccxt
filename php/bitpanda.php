@@ -263,7 +263,7 @@ class bitpanda extends Exchange {
         //
         //     array(
         //         {
-        //             "$code":"BEST",
+        //             "code":"BEST",
         //             "precision":8
         //         }
         //     )
@@ -372,13 +372,13 @@ class bitpanda extends Exchange {
         //             "fee_group_id":"default",
         //             "display_text":"The standard $fee plan.",
         //             "fee_tiers":array(
-        //                 array("$volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"),
-        //                 array("$volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"),
-        //                 array("$volume":"250.0","fee_group_id":"default","maker_fee":"0.09","taker_fee":"0.13"),
-        //                 array("$volume":"1000.0","fee_group_id":"default","maker_fee":"0.075","taker_fee":"0.1"),
-        //                 array("$volume":"5000.0","fee_group_id":"default","maker_fee":"0.06","taker_fee":"0.09"),
-        //                 array("$volume":"10000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.075"),
-        //                 array("$volume":"20000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.065")
+        //                 array("volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"),
+        //                 array("volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"),
+        //                 array("volume":"250.0","fee_group_id":"default","maker_fee":"0.09","taker_fee":"0.13"),
+        //                 array("volume":"1000.0","fee_group_id":"default","maker_fee":"0.075","taker_fee":"0.1"),
+        //                 array("volume":"5000.0","fee_group_id":"default","maker_fee":"0.06","taker_fee":"0.09"),
+        //                 array("volume":"10000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.075"),
+        //                 array("volume":"20000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.065")
         //             ),
         //             "fee_discount_rate":"25.0",
         //             "minimum_price_value":"0.12"
@@ -438,16 +438,16 @@ class bitpanda extends Exchange {
         //         "fee_discount_rate" => "25.0",
         //         "minimum_price_value" => "0.12",
         //         "fee_tiers" => array(
-        //             array( "$volume" => "0.0", "fee_group_id" => "default", "maker_fee" => "0.1", "taker_fee" => "0.1" ),
-        //             array( "$volume" => "100.0", "fee_group_id" => "default", "maker_fee" => "0.09", "taker_fee" => "0.1" ),
-        //             array( "$volume" => "250.0", "fee_group_id" => "default", "maker_fee" => "0.08", "taker_fee" => "0.1" ),
-        //             array( "$volume" => "1000.0", "fee_group_id" => "default", "maker_fee" => "0.07", "taker_fee" => "0.09" ),
-        //             array( "$volume" => "5000.0", "fee_group_id" => "default", "maker_fee" => "0.06", "taker_fee" => "0.08" ),
-        //             array( "$volume" => "10000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.07" ),
-        //             array( "$volume" => "20000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.06" ),
-        //             array( "$volume" => "50000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.05" )
+        //             array( "volume" => "0.0", "fee_group_id" => "default", "maker_fee" => "0.1", "taker_fee" => "0.1" ),
+        //             array( "volume" => "100.0", "fee_group_id" => "default", "maker_fee" => "0.09", "taker_fee" => "0.1" ),
+        //             array( "volume" => "250.0", "fee_group_id" => "default", "maker_fee" => "0.08", "taker_fee" => "0.1" ),
+        //             array( "volume" => "1000.0", "fee_group_id" => "default", "maker_fee" => "0.07", "taker_fee" => "0.09" ),
+        //             array( "volume" => "5000.0", "fee_group_id" => "default", "maker_fee" => "0.06", "taker_fee" => "0.08" ),
+        //             array( "volume" => "10000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.07" ),
+        //             array( "volume" => "20000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.06" ),
+        //             array( "volume" => "50000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.05" )
         //         ),
-        //         "active_fee_tier" => array( "$volume" => "0.0", "fee_group_id" => "default", "maker_fee" => "0.1", "taker_fee" => "0.1" )
+        //         "active_fee_tier" => array( "volume" => "0.0", "fee_group_id" => "default", "maker_fee" => "0.1", "taker_fee" => "0.1" )
         //     }
         //
         $activeFeeTier = $this->safe_value($response, 'active_fee_tier', array());
@@ -671,7 +671,7 @@ class bitpanda extends Exchange {
         //
         //     {
         //         "instrument_code":"BTC_EUR",
-        //         "$granularity":array("$unit":"HOURS","$period":1),
+        //         "granularity":array("unit":"HOURS","period":1),
         //         "high":"9252.65",
         //         "low":"9115.27",
         //         "open":"9250.0",
@@ -738,9 +738,9 @@ class bitpanda extends Exchange {
         $response = $this->publicGetCandlesticksInstrumentCode (array_merge($request, $params));
         //
         //     array(
-        //         array("instrument_code":"BTC_EUR","granularity":array("$unit":"HOURS","$period":1),"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123),
-        //         array("instrument_code":"BTC_EUR","granularity":array("$unit":"HOURS","$period":1),"high":"9162.49","low":"9040.0","open":"9132.53","close":"9083.69","total_amount":"26.19685","volume":"238553.7812365","time":"2020-05-08T23:59:59.999Z","last_sequence":461376),
-        //         array("instrument_code":"BTC_EUR","granularity":array("$unit":"HOURS","$period":1),"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521),
+        //         array("instrument_code":"BTC_EUR","granularity":array("unit":"HOURS","period":1),"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123),
+        //         array("instrument_code":"BTC_EUR","granularity":array("unit":"HOURS","period":1),"high":"9162.49","low":"9040.0","open":"9132.53","close":"9083.69","total_amount":"26.19685","volume":"238553.7812365","time":"2020-05-08T23:59:59.999Z","last_sequence":461376),
+        //         array("instrument_code":"BTC_EUR","granularity":array("unit":"HOURS","period":1),"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521),
         //     )
         //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -752,8 +752,8 @@ class bitpanda extends Exchange {
         //
         //     {
         //         "instrument_code":"BTC_EUR",
-        //         "$price":"8137.28",
-        //         "$amount":"0.22269",
+        //         "price":"8137.28",
+        //         "amount":"0.22269",
         //         "taker_side":"BUY",
         //         "volume":"1812.0908832",
         //         "time":"2020-07-10T14:44:32.299Z",
@@ -764,7 +764,7 @@ class bitpanda extends Exchange {
         // fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades (private)
         //
         //     {
-        //         "$fee" => array(
+        //         "fee" => array(
         //             "fee_amount" => "0.0014",
         //             "fee_currency" => "BTC",
         //             "fee_percentage" => "0.1",
@@ -772,14 +772,14 @@ class bitpanda extends Exchange {
         //             "fee_type" => "TAKER",
         //             "running_trading_volume" => "0.0"
         //         ),
-        //         "$trade" => {
+        //         "trade" => {
         //             "trade_id" => "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
         //             "order_id" => "36bb2437-7402-4794-bf26-4bdf03526439",
         //             "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
-        //             "$amount" => "1.4",
-        //             "$side" => "BUY",
+        //             "amount" => "1.4",
+        //             "side" => "BUY",
         //             "instrument_code" => "BTC_EUR",
-        //             "$price" => "7341.4",
+        //             "price" => "7341.4",
         //             "time" => "2019-09-27T15:05:32.564Z",
         //             "sequence" => 48670
         //         }
@@ -792,29 +792,26 @@ class bitpanda extends Exchange {
             $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         }
         $side = $this->safe_string_lower_2($trade, 'side', 'taker_side');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = $this->safe_number($trade, 'volume');
-        if (($cost === null) && ($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $costString = $this->safe_string($trade, 'volume');
         $marketId = $this->safe_string($trade, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $feeCost = $this->safe_number($feeInfo, 'fee_amount');
+        $feeCostString = $this->safe_string($feeInfo, 'fee_amount');
         $takerOrMaker = null;
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($feeInfo, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $feeRate = $this->safe_number($feeInfo, 'fee_percentage');
+            $feeRateString = $this->safe_string($feeInfo, 'fee_percentage');
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
-                'rate' => $feeRate,
+                'rate' => $feeRateString,
             );
             $takerOrMaker = $this->safe_string_lower($feeInfo, 'fee_type');
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $this->safe_string_2($trade, 'trade_id', 'sequence'),
             'order' => $this->safe_string($trade, 'order_id'),
             'timestamp' => $timestamp,
@@ -822,13 +819,13 @@ class bitpanda extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -869,7 +866,7 @@ class bitpanda extends Exchange {
         //
         //     {
         //         "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
-        //         "$balances":array(
+        //         "balances":array(
         //             {
         //                 "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
         //                 "currency_code":"BTC",
@@ -908,6 +905,7 @@ class bitpanda extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $depositAddress,
         );
     }
@@ -965,7 +963,7 @@ class bitpanda extends Exchange {
         if ($since !== null) {
             $to = $this->safe_string($params, 'to');
             if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a "$to" iso8601 string param with the $since argument is specified');
+                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a "to" iso8601 string param with the $since argument is specified');
             }
             $request['from'] = $this->iso8601($since);
         }
@@ -980,7 +978,7 @@ class bitpanda extends Exchange {
         //                 "type" => "CRYPTO",
         //                 "funds_source" => "INTERNAL",
         //                 "time" => "2020-04-22T09:57:47Z",
-        //                 "$currency" => "BTC",
+        //                 "currency" => "BTC",
         //                 "fee_amount" => "0.0",
         //                 "fee_currency" => "BTC"
         //             ),
@@ -988,7 +986,7 @@ class bitpanda extends Exchange {
         //                 "transaction_id" => "79793d00-2899-4a4d-95b7-73ae6b31384f",
         //                 "account_id" => "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
         //                 "time" => "2020-05-05T11:22:07.925Z",
-        //                 "$currency" => "EUR",
+        //                 "currency" => "EUR",
         //                 "funds_source" => "EXTERNAL",
         //                 "type" => "FIAT",
         //                 "amount" => "50.0",
@@ -1020,7 +1018,7 @@ class bitpanda extends Exchange {
         if ($since !== null) {
             $to = $this->safe_string($params, 'to');
             if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a "$to" iso8601 string param with the $since argument is specified');
+                throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a "to" iso8601 string param with the $since argument is specified');
             }
             $request['from'] = $this->iso8601($since);
         }
@@ -1031,7 +1029,7 @@ class bitpanda extends Exchange {
         //             array(
         //                 "account_id" => "e369ac80-4577-11e9-ae08-9bedc4790b84",
         //                 "amount" => "0.1",
-        //                 "$currency" => "BTC",
+        //                 "currency" => "BTC",
         //                 "fee_amount" => "0.00002",
         //                 "fee_currency" => "BTC",
         //                 "funds_source" => "EXTERNAL",
@@ -1043,7 +1041,7 @@ class bitpanda extends Exchange {
         //             {
         //                 "account_id" => "e369ac80-4577-11e9-ae08-9bedc4790b84",
         //                 "amount" => "0.1",
-        //                 "$currency" => "BTC",
+        //                 "currency" => "BTC",
         //                 "fee_amount" => "0.0",
         //                 "fee_currency" => "BTC",
         //                 "funds_source" => "INTERNAL",
@@ -1094,9 +1092,9 @@ class bitpanda extends Exchange {
         // crypto
         //
         //     {
-        //         "$amount" => "1234.5678",
+        //         "amount" => "1234.5678",
         //         "fee" => "1234.5678",
-        //         "$recipient" => "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        //         "recipient" => "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
         //         "destination_tag" => "",
         //         "transaction_id" => "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
         //     }
@@ -1118,10 +1116,10 @@ class bitpanda extends Exchange {
         //         "transaction_id" => "C2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
         //         "type" => "FIAT",
         //         "account_id" => "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        //         "$amount" => "1234.5678",
+        //         "amount" => "1234.5678",
         //         "time" => "2019-08-24T14:15:22Z",
         //         "funds_source" => "INTERNAL",
-        //         "$currency" => "BTC",
+        //         "currency" => "BTC",
         //         "fee_amount" => "1234.5678",
         //         "fee_currency" => "BTC",
         //         "blockchain_transaction_id" => "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
@@ -1134,8 +1132,8 @@ class bitpanda extends Exchange {
         //     crypto
         //
         //     {
-        //         "$amount" => "1234.5678",
-        //         "$fee" => "1234.5678",
+        //         "amount" => "1234.5678",
+        //         "fee" => "1234.5678",
         //         "recipient" => "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
         //         "destination_tag" => "",
         //         "transaction_id" => "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
@@ -1211,28 +1209,28 @@ class bitpanda extends Exchange {
         //         "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
         //         "instrument_code" => "BTC_EUR",
         //         "time" => "2019-08-01T08:00:44.026Z",
-        //         "$side" => "BUY",
-        //         "$price" => "5000",
-        //         "$amount" => "1",
+        //         "side" => "BUY",
+        //         "price" => "5000",
+        //         "amount" => "1",
         //         "filled_amount" => "0.5",
-        //         "$type" => "LIMIT",
+        //         "type" => "LIMIT",
         //         "time_in_force" => "GOOD_TILL_CANCELLED"
         //     }
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
-        //         "$order" => array(
+        //         "order" => array(
         //             "order_id" => "66756a10-3e86-48f4-9678-b634c4b135b2",
         //             "account_id" => "1eb2ad5d-55f1-40b5-bc92-7dc05869e905",
         //             "instrument_code" => "BTC_EUR",
-        //             "$amount" => "1234.5678",
+        //             "amount" => "1234.5678",
         //             "filled_amount" => "1234.5678",
-        //             "$side" => "BUY",
-        //             "$type" => "LIMIT",
-        //             "$status" => "OPEN",
+        //             "side" => "BUY",
+        //             "type" => "LIMIT",
+        //             "status" => "OPEN",
         //             "sequence" => 123456789,
-        //             "$price" => "1234.5678",
+        //             "price" => "1234.5678",
         //             "average_price" => "1234.5678",
         //             "reason" => "INSUFFICIENT_FUNDS",
         //             "time" => "2019-08-24T14:15:22Z",
@@ -1243,7 +1241,7 @@ class bitpanda extends Exchange {
         //             "time_triggered" => "2019-08-24T14:15:22Z",
         //             "trigger_price" => "1234.5678"
         //         ),
-        //         "$trades" => array(
+        //         "trades" => array(
         //             {
         //                 "fee" => array(
         //                     "fee_amount" => "0.0014",
@@ -1257,10 +1255,10 @@ class bitpanda extends Exchange {
         //                     "trade_id" => "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
         //                     "order_id" => "36bb2437-7402-4794-bf26-4bdf03526439",
         //                     "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
-        //                     "$amount" => "1.4",
-        //                     "$side" => "BUY",
+        //                     "amount" => "1.4",
+        //                     "side" => "BUY",
         //                     "instrument_code" => "BTC_EUR",
-        //                     "$price" => "7341.4",
+        //                     "price" => "7341.4",
         //                     "time" => "2019-09-27T15:05:32.564Z",
         //                     "sequence" => 48670
         //                 }
@@ -1276,20 +1274,16 @@ class bitpanda extends Exchange {
         $status = $this->parse_order_status($rawStatus);
         $marketId = $this->safe_string($rawOrder, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $price = $this->safe_number($rawOrder, 'price');
-        $amount = $this->safe_number($rawOrder, 'amount');
-        $filledString = $this->safe_string($rawOrder, 'filled_amount');
-        $filled = $this->parse_number($filledString);
+        $price = $this->safe_string($rawOrder, 'price');
+        $amount = $this->safe_string($rawOrder, 'amount');
+        $filled = $this->safe_string($rawOrder, 'filled_amount');
         $side = $this->safe_string_lower($rawOrder, 'side');
         $type = $this->safe_string_lower($rawOrder, 'type');
         $timeInForce = $this->parse_time_in_force($this->safe_string($rawOrder, 'time_in_force'));
         $stopPrice = $this->safe_number($rawOrder, 'trigger_price');
         $postOnly = $this->safe_value($rawOrder, 'is_post_only');
         $rawTrades = $this->safe_value($order, 'trades', array());
-        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-            'type' => $type,
-        ));
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -1310,8 +1304,8 @@ class bitpanda extends Exchange {
             'remaining' => null,
             'status' => $status,
             // 'fee' => null,
-            'trades' => $trades,
-        ));
+            'trades' => $rawTrades,
+        ), $market);
     }
 
     public function parse_time_in_force($timeInForce) {
@@ -1333,7 +1327,7 @@ class bitpanda extends Exchange {
             'type' => $uppercaseType, // LIMIT, MARKET, STOP
             'side' => strtoupper($side), // or SELL
             'amount' => $this->amount_to_precision($symbol, $amount),
-            // "$price" => "1234.5678", // required for LIMIT and STOP orders
+            // "price" => "1234.5678", // required for LIMIT and STOP orders
             // "client_id" => "d75fb03b-b599-49e9-b926-3f0b6d103206", // optional
             // "time_in_force" => "GOOD_TILL_CANCELLED", // limit orders only, GOOD_TILL_CANCELLED, GOOD_TILL_TIME, IMMEDIATE_OR_CANCELLED and FILL_OR_KILL
             // "expire_after" => "2020-07-02T19:40:13Z", // required for GOOD_TILL_TIME
@@ -1368,11 +1362,11 @@ class bitpanda extends Exchange {
         //         "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
         //         "instrument_code" => "BTC_EUR",
         //         "time" => "2019-08-01T08:00:44.026Z",
-        //         "$side" => "BUY",
-        //         "$price" => "5000",
-        //         "$amount" => "1",
+        //         "side" => "BUY",
+        //         "price" => "5000",
+        //         "amount" => "1",
         //         "filled_amount" => "0.5",
-        //         "$type" => "LIMIT",
+        //         "type" => "LIMIT",
         //         "time_in_force" => "GOOD_TILL_CANCELLED"
         //     }
         //
@@ -1498,7 +1492,7 @@ class bitpanda extends Exchange {
         if ($since !== null) {
             $to = $this->safe_string($params, 'to');
             if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a "$to" iso8601 string param with the $since argument is specified, max range is 100 days');
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a "to" iso8601 string param with the $since argument is specified, max range is 100 days');
             }
             $request['from'] = $this->iso8601($since);
         }
@@ -1662,7 +1656,7 @@ class bitpanda extends Exchange {
         if ($since !== null) {
             $to = $this->safe_string($params, 'to');
             if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a "$to" iso8601 string param with the $since argument is specified, max range is 100 days');
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a "to" iso8601 string param with the $since argument is specified, max range is 100 days');
             }
             $request['from'] = $this->iso8601($since);
         }

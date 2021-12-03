@@ -12,7 +12,6 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
-from ccxt.base.precise import Precise
 
 
 class buda(Exchange):
@@ -380,10 +379,7 @@ class buda(Exchange):
             amountString = self.safe_string(trade, 2)
             side = self.safe_string(trade, 3)
             id = self.safe_string(trade, 4)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        return {
+        return self.safe_trade({
             'id': id,
             'order': order,
             'info': trade,
@@ -393,11 +389,11 @@ class buda(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -528,26 +524,27 @@ class buda(Exchange):
         #
         id = self.safe_string(order, 'id')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
+        datetime = self.iso8601(timestamp)
         marketId = self.safe_string(order, 'market_id')
         symbol = self.safe_symbol(marketId, market, '-')
         type = self.safe_string(order, 'price_type')
         side = self.safe_string_lower(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         originalAmount = self.safe_value(order, 'original_amount', [])
-        amount = self.safe_number(originalAmount, 0)
+        amount = self.safe_string(originalAmount, 0)
         remainingAmount = self.safe_value(order, 'amount', [])
-        remaining = self.safe_number(remainingAmount, 0)
+        remaining = self.safe_string(remainingAmount, 0)
         tradedAmount = self.safe_value(order, 'traded_amount', [])
-        filled = self.safe_number(tradedAmount, 0)
+        filled = self.safe_string(tradedAmount, 0)
         totalExchanged = self.safe_value(order, 'totalExchanged', [])
-        cost = self.safe_number(totalExchanged, 0)
+        cost = self.safe_string(totalExchanged, 0)
         limitPrice = self.safe_value(order, 'limit', [])
-        price = self.safe_number(limitPrice, 0)
+        price = self.safe_string(limitPrice, 0)
         if price is None:
             if limitPrice is not None:
                 price = limitPrice
         paidFee = self.safe_value(order, 'paid_fee', [])
-        feeCost = self.safe_number(paidFee, 0)
+        feeCost = self.safe_string(paidFee, 0)
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(paidFee, 1)
@@ -556,11 +553,11 @@ class buda(Exchange):
                 'cost': feeCost,
                 'code': feeCurrencyCode,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
-            'datetime': self.iso8601(timestamp),
+            'datetime': datetime,
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
@@ -578,7 +575,7 @@ class buda(Exchange):
             'remaining': remaining,
             'trades': None,
             'fee': fee,
-        })
+        }, market)
 
     def is_fiat(self, code):
         fiats = {
@@ -614,6 +611,7 @@ class buda(Exchange):
             'currency': code,
             'address': address,
             'tag': None,
+            'network': None,
             'info': receiveAddresses,
         }
 

@@ -11,7 +11,6 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
-use \ccxt\Precise;
 
 class ascendex extends Exchange {
 
@@ -275,7 +274,7 @@ class ascendex extends Exchange {
                 'BOND' => 'BONDED',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
-                'BYN' => 'Beyond Finance',
+                'BYN' => 'BeyondFi',
             ),
         ));
     }
@@ -290,7 +289,7 @@ class ascendex extends Exchange {
         $assets = yield $this->v1PublicGetAssets ($params);
         //
         //     {
-        //         "$code":0,
+        //         "code":0,
         //         "data":array(
         //             array(
         //                 "assetCode" : "LTCBULL",
@@ -299,7 +298,7 @@ class ascendex extends Exchange {
         //                 "nativeScale" : 4,
         //                 "withdrawalFee" : "0.2",
         //                 "minWithdrawalAmt" : "1.0",
-        //                 "$status" : "Normal"
+        //                 "status" : "Normal"
         //             ),
         //         )
         //     }
@@ -307,7 +306,7 @@ class ascendex extends Exchange {
         $margin = yield $this->v1PublicGetMarginAssets ($params);
         //
         //     {
-        //         "$code":0,
+        //         "code":0,
         //         "data":array(
         //             {
         //                 "assetCode":"BTT",
@@ -327,7 +326,7 @@ class ascendex extends Exchange {
         $cash = yield $this->v1PublicGetCashAssets ($params);
         //
         //     {
-        //         "$code":0,
+        //         "code":0,
         //         "data":array(
         //             {
         //                 "assetCode":"LTCBULL",
@@ -393,10 +392,10 @@ class ascendex extends Exchange {
         //         "code":0,
         //         "data":array(
         //             array(
-        //                 "$symbol":"LBA/BTC",
+        //                 "symbol":"LBA/BTC",
         //                 "baseAsset":"LBA",
         //                 "quoteAsset":"BTC",
-        //                 "$status":"Normal",
+        //                 "status":"Normal",
         //                 "minNotional":"0.000625",
         //                 "maxNotional":"6.25",
         //                 "marginTradable":false,
@@ -414,7 +413,7 @@ class ascendex extends Exchange {
         //         "code":0,
         //         "data":array(
         //             {
-        //                 "$symbol":"QTUM/BTC",
+        //                 "symbol":"QTUM/BTC",
         //                 "domain":"BTC",
         //                 "tradingStartTime":1569506400000,
         //                 "collapseDecimals":"0.0001,0.000001,0.00000001",
@@ -443,7 +442,7 @@ class ascendex extends Exchange {
         //         "code":0,
         //         "data":array(
         //             {
-        //                 "$symbol":"BTC-PERP",
+        //                 "symbol":"BTC-PERP",
         //                 "tradingStartTime":1579701600000,
         //                 "collapseDecimals":"1,0.1,0.01",
         //                 "minQty":"0.000000001",
@@ -535,9 +534,9 @@ class ascendex extends Exchange {
             //
             //     {
             //         "code":0,
-            //         "$data":{
+            //         "data":{
             //             "email":"igor.kroitor@gmail.com",
-            //             "$accountGroup":8,
+            //             "accountGroup":8,
             //             "viewPermission":true,
             //             "tradePermission":true,
             //             "transferPermission":true,
@@ -614,7 +613,7 @@ class ascendex extends Exchange {
         // futures
         //
         //     {
-        //         "$code":0,
+        //         "code":0,
         //         "data":array(
         //             array("asset":"BTC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"9456.59"),
         //             array("asset":"ETH","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"235.95"),
@@ -652,10 +651,10 @@ class ascendex extends Exchange {
         //
         //     {
         //         "code":0,
-        //         "$data":{
+        //         "data":{
         //             "m":"depth-snapshot",
-        //             "$symbol":"BTC-PERP",
-        //             "$data":{
+        //             "symbol":"BTC-PERP",
+        //             "data":{
         //                 "ts":1590223998202,
         //                 "seqnum":115444921,
         //                 "asks":[
@@ -683,15 +682,15 @@ class ascendex extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
-        //         "$symbol":"QTUM/BTC",
-        //         "$open":"0.00016537",
-        //         "$close":"0.00019077",
+        //         "symbol":"QTUM/BTC",
+        //         "open":"0.00016537",
+        //         "close":"0.00019077",
         //         "high":"0.000192",
         //         "low":"0.00016537",
         //         "volume":"846.6",
-        //         "$ask":["0.00018698","26.2"],
-        //         "$bid":["0.00018408","503.7"],
-        //         "$type":"spot"
+        //         "ask":["0.00018698","26.2"],
+        //         "bid":["0.00018408","503.7"],
+        //         "type":"spot"
         //     }
         //
         $timestamp = null;
@@ -737,8 +736,8 @@ class ascendex extends Exchange {
         //
         //     {
         //         "code":0,
-        //         "$data":{
-        //             "$symbol":"BTC-PERP", // or "BTC/USDT"
+        //         "data":{
+        //             "symbol":"BTC-PERP", // or "BTC/USDT"
         //             "open":"9073",
         //             "close":"9185.75",
         //             "high":"9185.75",
@@ -765,7 +764,7 @@ class ascendex extends Exchange {
         //
         //     {
         //         "code":0,
-        //         "$data":[
+        //         "data":[
         //             {
         //                 "symbol":"QTUM/BTC",
         //                 "open":"0.00016537",
@@ -789,7 +788,7 @@ class ascendex extends Exchange {
         //     {
         //         "m":"bar",
         //         "s":"BTC/USDT",
-        //         "$data":{
+        //         "data":{
         //             "i":"1",
         //             "ts":1590228000000,
         //             "o":"9139.59",
@@ -838,11 +837,11 @@ class ascendex extends Exchange {
         //
         //     {
         //         "code":0,
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "m":"bar",
         //                 "s":"BTC/USDT",
-        //                 "$data":{
+        //                 "data":{
         //                     "i":"1",
         //                     "ts":1590228000000,
         //                     "o":"9139.59",
@@ -864,7 +863,7 @@ class ascendex extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "p":"9128.5", // $price
+        //         "p":"9128.5", // price
         //         "q":"0.0030", // quantity
         //         "ts":1590229002385, // $timestamp
         //         "bm":false, // if true, the buyer is the $market maker, we only use this field to "define the $side" of a public $trade
@@ -874,9 +873,6 @@ class ascendex extends Exchange {
         $timestamp = $this->safe_integer($trade, 'ts');
         $priceString = $this->safe_string_2($trade, 'price', 'p');
         $amountString = $this->safe_string($trade, 'q');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $buyerIsMaker = $this->safe_value($trade, 'bm', false);
         $makerOrTaker = $buyerIsMaker ? 'maker' : 'taker';
         $side = $buyerIsMaker ? 'buy' : 'sell';
@@ -884,7 +880,7 @@ class ascendex extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -894,11 +890,11 @@ class ascendex extends Exchange {
             'type' => null,
             'takerOrMaker' => $makerOrTaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -915,8 +911,8 @@ class ascendex extends Exchange {
         //     {
         //         "code":0,
         //         "data":{
-        //             "m":"$trades",
-        //             "$symbol":"BTC-PERP",
+        //             "m":"trades",
+        //             "symbol":"BTC-PERP",
         //             "data":array(
         //                 array("p":"9128.5","q":"0.0030","ts":1590229002385,"bm":false,"seqnum":180143985289898554),
         //                 array("p":"9129","q":"0.0030","ts":1590229002642,"bm":false,"seqnum":180143985289898587),
@@ -947,18 +943,18 @@ class ascendex extends Exchange {
         // createOrder
         //
         //     {
-        //         "$id" => "16e607e2b83a8bXHbAwwoqDo55c166fa",
+        //         "id" => "16e607e2b83a8bXHbAwwoqDo55c166fa",
         //         "orderId" => "16e85b4d9b9a8bXHbAwwoqDoc3d66830",
         //         "orderType" => "Market",
-        //         "$symbol" => "BTC/USDT",
-        //         "$timestamp" => 1573576916201
+        //         "symbol" => "BTC/USDT",
+        //         "timestamp" => 1573576916201
         //     }
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
-        //         "$symbol" =>       "BTC/USDT",
-        //         "$price" =>        "8131.22",
+        //         "symbol" =>       "BTC/USDT",
+        //         "price" =>        "8131.22",
         //         "orderQty" =>     "0.00082",
         //         "orderType" =>    "Market",
         //         "avgPx" =>        "7392.02",
@@ -969,9 +965,9 @@ class ascendex extends Exchange {
         //         "lastExecTime" => 1575953151764,
         //         "orderId" =>      "a16eee20b6750866943712zWEDdAjt3",
         //         "seqNum" =>       2623469,
-        //         "$side" =>         "Buy",
-        //         "$status" =>       "Filled",
-        //         "$stopPrice" =>    "",
+        //         "side" =>         "Buy",
+        //         "status" =>       "Filled",
+        //         "stopPrice" =>    "",
         //         "execInst" =>     "NULL_VAL"
         //     }
         //
@@ -988,13 +984,13 @@ class ascendex extends Exchange {
         //         "orderId" => "r170d21956dd5450276356bbtcpKa74",
         //         "orderQty" => "1.1499",
         //         "orderType" => "Limit",
-        //         "$price" => "4000",
+        //         "price" => "4000",
         //         "sendingTime" => 1584072841033,
         //         "seqNum" => 24105338,
-        //         "$side" => "Buy",
-        //         "$status" => "Canceled",
-        //         "$stopPrice" => "",
-        //         "$symbol" => "BTC-PERP"
+        //         "side" => "Buy",
+        //         "status" => "Canceled",
+        //         "stopPrice" => "",
+        //         "symbol" => "BTC-PERP"
         //     ),
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -1002,10 +998,10 @@ class ascendex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '/');
         $timestamp = $this->safe_integer_2($order, 'timestamp', 'sendingTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastExecTime');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'orderQty');
-        $average = $this->safe_number($order, 'avgPx');
-        $filled = $this->safe_number_2($order, 'cumFilledQty', 'cumQty');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'orderQty');
+        $average = $this->safe_string($order, 'avgPx');
+        $filled = $this->safe_string_2($order, 'cumFilledQty', 'cumQty');
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'id');
         if ($clientOrderId !== null) {
@@ -1026,10 +1022,10 @@ class ascendex extends Exchange {
             );
         }
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -1048,7 +1044,7 @@ class ascendex extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1069,7 +1065,7 @@ class ascendex extends Exchange {
             'symbol' => $market['id'],
             'time' => $this->milliseconds(),
             'orderQty' => $this->amount_to_precision($symbol, $amount),
-            'orderType' => $type, // "limit", "$market", "stop_market", "stop_limit"
+            'orderType' => $type, // "limit", "market", "stop_market", "stop_limit"
             'side' => $side, // "buy" or "sell"
             // 'orderPrice' => $this->price_to_precision($symbol, $price),
             // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice), // required for stop orders
@@ -1097,15 +1093,15 @@ class ascendex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => {
+        //         "data" => {
         //             "ac" => "MARGIN",
         //             "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
         //             "action" => "place-order",
-        //             "$info" => array(
+        //             "info" => array(
         //                 "id" => "16e607e2b83a8bXHbAwwoqDo55c166fa",
         //                 "orderId" => "16e85b4d9b9a8bXHbAwwoqDoc3d66830",
         //                 "orderType" => "Market",
-        //                 "$symbol" => "BTC/USDT",
+        //                 "symbol" => "BTC/USDT",
         //                 "timestamp" => 1573576916201
         //             ),
         //             "status" => "Ack"
@@ -1136,11 +1132,11 @@ class ascendex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$accountCategory" => "CASH",
+        //         "accountCategory" => "CASH",
         //         "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
-        //                 "$symbol" =>       "BTC/USDT",
+        //                 "symbol" =>       "BTC/USDT",
         //                 "price" =>        "8131.22",
         //                 "orderQty" =>     "0.00082",
         //                 "orderType" =>    "Market",
@@ -1188,7 +1184,7 @@ class ascendex extends Exchange {
         //         "ac" => "CASH",
         //         "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
         //         "code" => 0,
-        //         "$data" => array(
+        //         "data" => array(
         //             array(
         //                 "avgPx" => "0",         // Average filled price of the $order
         //                 "cumFee" => "0",       // cumulative fee paid for this $order
@@ -1204,7 +1200,7 @@ class ascendex extends Exchange {
         //                 "side" => "Buy",         // $order side
         //                 "status" => "New",       // $order status on matching engine
         //                 "stopPrice" => "",       // only available for stop $market and stop $limit $orders; otherwise empty
-        //                 "$symbol" => "BTC/USDT",
+        //                 "symbol" => "BTC/USDT",
         //                 "execInst" => "NULL_VAL" // execution instruction
         //             ),
         //         )
@@ -1275,11 +1271,11 @@ class ascendex extends Exchange {
         //         "code":0,
         //         "accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda",
         //         "ac":"CASH",
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "seqNum":15561826728,
         //                 "orderId":"a17294d305c0U6491137460bethu7kw9",
-        //                 "$symbol":"ETH/USDT",
+        //                 "symbol":"ETH/USDT",
         //                 "orderType":"Limit",
         //                 "lastExecTime":1591635618200,
         //                 "price":"200",
@@ -1301,8 +1297,8 @@ class ascendex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => {
-        //             "$data" => array(
+        //         "data" => {
+        //             "data" => array(
         //                 array(
         //                     "ac" => "FUTURES",
         //                     "accountId" => "testabcdefg",
@@ -1322,11 +1318,11 @@ class ascendex extends Exchange {
         //                     "side" => "Buy",
         //                     "status" => "Canceled",
         //                     "stopPrice" => "",
-        //                     "$symbol" => "BTC-PERP"
+        //                     "symbol" => "BTC-PERP"
         //                 ),
         //             ),
         //             "hasNext" => False,
-        //             "$limit" => 500,
+        //             "limit" => 500,
         //             "page" => 1,
         //             "pageSize" => 20
         //         }
@@ -1372,16 +1368,16 @@ class ascendex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => {
+        //         "data" => {
         //             "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
         //             "ac" => "CASH",
         //             "action" => "cancel-order",
         //             "status" => "Ack",
-        //             "$info" => {
-        //                 "$id" =>        "wv8QGquoeamhssvQBeHOHGQCGlcBjj23",
+        //             "info" => {
+        //                 "id" =>        "wv8QGquoeamhssvQBeHOHGQCGlcBjj23",
         //                 "orderId" =>   "16e6198afb4s8bXHbAwwoqDo2ebc19dc",
         //                 "orderType" => "", // could be empty
-        //                 "$symbol" =>    "ETH/USDT",
+        //                 "symbol" =>    "ETH/USDT",
         //                 "timestamp" =>  1573594877822
         //             }
         //         }
@@ -1424,7 +1420,7 @@ class ascendex extends Exchange {
         //                 "id" =>  "2bmYvi7lyTrneMzpcJcf2D7Pe9V1P9wy",
         //                 "orderId" => "",
         //                 "orderType" => "NULL_VAL",
-        //                 "$symbol" => "",
+        //                 "symbol" => "",
         //                 "timestamp" => 1574118495462
         //             ),
         //             "status" => "Ack"
@@ -1457,6 +1453,7 @@ class ascendex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null, // TODO => parse network
             'info' => $depositAddress,
         );
     }
@@ -1472,28 +1469,28 @@ class ascendex extends Exchange {
         $response = yield $this->v1PrivateGetWalletDepositAddress (array_merge($request, $params));
         //
         //     {
-        //         "$code":0,
-        //         "$data":{
+        //         "code":0,
+        //         "data":{
         //             "asset":"USDT",
         //             "assetName":"Tether",
-        //             "$address":array(
+        //             "address":array(
         //                 array(
-        //                     "$address":"1N22odLHXnLPCjC8kwBJPTayarr9RtPod6",
+        //                     "address":"1N22odLHXnLPCjC8kwBJPTayarr9RtPod6",
         //                     "destTag":"",
         //                     "tagType":"",
         //                     "tagId":"",
-        //                     "$chainName":"Omni",
+        //                     "chainName":"Omni",
         //                     "numConfirmations":3,
         //                     "withdrawalFee":4.7,
         //                     "nativeScale":4,
         //                     "tips":array()
         //                 ),
         //                 {
-        //                     "$address":"0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        //                     "address":"0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
         //                     "destTag":"",
         //                     "tagType":"",
         //                     "tagId":"",
-        //                     "$chainName":"ERC20",
+        //                     "chainName":"ERC20",
         //                     "numConfirmations":20,
         //                     "withdrawalFee":1.0,
         //                     "nativeScale":4,
@@ -1690,7 +1687,7 @@ class ascendex extends Exchange {
         return yield $this->v2PrivateAccountGroupPostFuturesLeverage (array_merge($request, $params));
     }
 
-    public function set_margin_mode($symbol, $marginType = '', $params = array ()) {
+    public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
         if ($marginType !== 'isolated' && $marginType !== 'crossed') {
             throw new BadRequest($this->id . ' setMarginMode() $marginType argument should be isolated or crossed');
         }
@@ -1775,8 +1772,8 @@ class ascendex extends Exchange {
         //
         //     array('code' => 6010, 'message' => 'Not enough balance.')
         //     array('code' => 60060, 'message' => 'The order is already filled or canceled.')
-        //     array("$code":2100,"$message":"ApiKeyFailure")
-        //     array("$code":300001,"$message":"Price is too low from market price.","$reason":"INVALID_PRICE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":array("symbol":"BTC/USDT"))
+        //     array("code":2100,"message":"ApiKeyFailure")
+        //     array("code":300001,"message":"Price is too low from market price.","reason":"INVALID_PRICE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":array("symbol":"BTC/USDT"))
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');

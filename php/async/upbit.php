@@ -188,11 +188,11 @@ class upbit extends Exchange {
         //             "identity_auth_verified" => true,
         //             "bank_account_verified" => true,
         //             "kakao_pay_auth_verified" => false,
-        //             "$locked" => false,
+        //             "locked" => false,
         //             "wallet_locked" => false
         //         ),
         //         "currency" => array(
-        //             "$code" => "BTC",
+        //             "code" => "BTC",
         //             "withdraw_fee" => "0.0005",
         //             "is_coin" => true,
         //             "wallet_state" => "working",
@@ -201,7 +201,7 @@ class upbit extends Exchange {
         //         "account" => array(
         //             "currency" => "BTC",
         //             "balance" => "10.0",
-        //             "$locked" => "0.0",
+        //             "locked" => "0.0",
         //             "avg_krw_buy_price" => "8042000",
         //             "modified" => false
         //         ),
@@ -284,7 +284,7 @@ class upbit extends Exchange {
         //            market => array(          $id =>   "KRW-BTC",
         //                             name =>   "BTC/KRW",
         //                      order_types => ["limit"],
-        //                      order_sides => ["$ask", "$bid"],
+        //                      order_sides => ["ask", "bid"],
         //                              $bid => array(   currency => "KRW",
         //                                     price_unit =>  null,
         //                                      min_total =>  1000  ),
@@ -292,7 +292,7 @@ class upbit extends Exchange {
         //                                     price_unit =>  null,
         //                                      min_total =>  1000  ),
         //                        max_total =>   "1000000000.0",
-        //                            $state =>   "$active"              ),
+        //                            $state =>   "active"              ),
         //       bid_account => array(          currency => "KRW",
         //                                balance => "0.0",
         //                                 locked => "0.0",
@@ -658,15 +658,15 @@ class upbit extends Exchange {
         // fetchOrder trades
         //
         //         {
-        //             "$market" => "KRW-BTC",
+        //             "market" => "KRW-BTC",
         //             "uuid" => "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        //             "$price" => "101000.0",
+        //             "price" => "101000.0",
         //             "volume" => "0.77368323",
         //             "funds" => "78142.00623",
         //             "ask_fee" => "117.213009345",
         //             "bid_fee" => "117.213009345",
         //             "created_at" => "2018-04-05T14:09:15+09:00",
-        //             "$side" => "bid",
+        //             "side" => "bid",
         //         }
         //
         $id = $this->safe_string_2($trade, 'sequential_id', 'uuid');
@@ -965,7 +965,7 @@ class upbit extends Exchange {
         //         array(
         //             "type" => "deposit",
         //             "uuid" => "94332e99-3a87-4a35-ad98-28b0c969f830",
-        //             "$currency" => "KRW",
+        //             "currency" => "KRW",
         //             "txid" => "9e37c537-6849-4c8b-a134-57313f5dfc5a",
         //             "state" => "ACCEPTED",
         //             "created_at" => "2017-12-08T15:38:02+09:00",
@@ -998,7 +998,7 @@ class upbit extends Exchange {
         //         array(
         //             "type" => "withdraw",
         //             "uuid" => "9f432943-54e0-40b7-825f-b6fec8b42b79",
-        //             "$currency" => "BTC",
+        //             "currency" => "BTC",
         //             "txid" => null,
         //             "state" => "processing",
         //             "created_at" => "2018-04-13T11:24:01+09:00",
@@ -1032,28 +1032,28 @@ class upbit extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "$type" => "deposit",
+        //         "type" => "deposit",
         //         "uuid" => "94332e99-3a87-4a35-ad98-28b0c969f830",
-        //         "$currency" => "KRW",
-        //         "$txid" => "9e37c537-6849-4c8b-a134-57313f5dfc5a",
+        //         "currency" => "KRW",
+        //         "txid" => "9e37c537-6849-4c8b-a134-57313f5dfc5a",
         //         "state" => "ACCEPTED",
         //         "created_at" => "2017-12-08T15:38:02+09:00",
         //         "done_at" => "2017-12-08T15:38:02+09:00",
-        //         "$amount" => "100000.0",
+        //         "amount" => "100000.0",
         //         "fee" => "0.0"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "$type" => "withdraw",
+        //         "type" => "withdraw",
         //         "uuid" => "9f432943-54e0-40b7-825f-b6fec8b42b79",
-        //         "$currency" => "BTC",
-        //         "$txid" => "cd81e9b45df8da29f936836e58c907a106057e454a45767a7b06fcb19b966bba",
+        //         "currency" => "BTC",
+        //         "txid" => "cd81e9b45df8da29f936836e58c907a106057e454a45767a7b06fcb19b966bba",
         //         "state" => "processing",
         //         "created_at" => "2018-04-13T11:24:01+09:00",
         //         "done_at" => null,
-        //         "$amount" => "0.01",
+        //         "amount" => "0.01",
         //         "fee" => "0.0",
         //         "krw_amount" => "80420.0"
         //     }
@@ -1106,11 +1106,11 @@ class upbit extends Exchange {
         //
         //     {
         //         "uuid" => "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        //         "$side" => "bid",
+        //         "side" => "bid",
         //         "ord_type" => "limit",
-        //         "$price" => "17417000.0",
+        //         "price" => "17417000.0",
         //         "state" => "done",
-        //         "$market" => "KRW-BTC",
+        //         "market" => "KRW-BTC",
         //         "created_at" => "2018-04-05T14:09:14+09:00",
         //         "volume" => "1.0",
         //         "remaining_volume" => "0.0",
@@ -1120,28 +1120,28 @@ class upbit extends Exchange {
         //         "locked" => "17341974.0",
         //         "executed_volume" => "1.0",
         //         "trades_count" => 2,
-        //         "$trades" => array(
+        //         "trades" => array(
         //             array(
-        //                 "$market" => "KRW-BTC",
+        //                 "market" => "KRW-BTC",
         //                 "uuid" => "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        //                 "$price" => "101000.0",
+        //                 "price" => "101000.0",
         //                 "volume" => "0.77368323",
         //                 "funds" => "78142.00623",
         //                 "ask_fee" => "117.213009345",
         //                 "bid_fee" => "117.213009345",
         //                 "created_at" => "2018-04-05T14:09:15+09:00",
-        //                 "$side" => "bid",
+        //                 "side" => "bid",
         //             ),
         //             array(
-        //                 "$market" => "KRW-BTC",
+        //                 "market" => "KRW-BTC",
         //                 "uuid" => "f73da467-c42f-407d-92fa-e10d86450a20",
-        //                 "$price" => "101000.0",
+        //                 "price" => "101000.0",
         //                 "volume" => "0.22631677",
         //                 "funds" => "22857.99377",
         //                 "ask_fee" => "34.286990655", // missing in $market orders
         //                 "bid_fee" => "34.286990655", // missing in $market orders
         //                 "created_at" => "2018-04-05T14:09:15+09:00", // missing in $market orders
-        //                 "$side" => "bid",
+        //                 "side" => "bid",
         //             ),
         //         ),
         //     }
@@ -1251,10 +1251,10 @@ class upbit extends Exchange {
         //         array(
         //             "uuid" => "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
         //             "side" => "bid",
-        //             "ord_type" => "$limit",
+        //             "ord_type" => "limit",
         //             "price" => "17417000.0",
-        //             "$state" => "done",
-        //             "$market" => "KRW-BTC",
+        //             "state" => "done",
+        //             "market" => "KRW-BTC",
         //             "created_at" => "2018-04-05T14:09:14+09:00",
         //             "volume" => "1.0",
         //             "remaining_volume" => "0.0",
@@ -1362,7 +1362,7 @@ class upbit extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
-        //         "$currency" => "BTC",
+        //         "currency" => "BTC",
         //         "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
         //         "secondary_address" => null
         //     }
@@ -1376,6 +1376,7 @@ class upbit extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $depositAddress,
         );
     }
@@ -1388,7 +1389,7 @@ class upbit extends Exchange {
         ), $params));
         //
         //     {
-        //         "$currency" => "BTC",
+        //         "currency" => "BTC",
         //         "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
         //         "secondary_address" => null
         //     }
@@ -1410,11 +1411,11 @@ class upbit extends Exchange {
         //
         //     {
         //         "success" : true,
-        //         "$message" : "Creating BTC deposit address."
+        //         "message" : "Creating BTC deposit address."
         //     }
         //
         //     {
-        //         "$currency" => "BTC",
+        //         "currency" => "BTC",
         //         "deposit_address" => "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
         //         "secondary_address" => null
         //     }
@@ -1450,12 +1451,12 @@ class upbit extends Exchange {
         //     {
         //         "type" => "withdraw",
         //         "uuid" => "9f432943-54e0-40b7-825f-b6fec8b42b79",
-        //         "$currency" => "BTC",
+        //         "currency" => "BTC",
         //         "txid" => "ebe6937b-130e-4066-8ac6-4b0e67f28adc",
         //         "state" => "processing",
         //         "created_at" => "2018-04-13T11:24:01+09:00",
         //         "done_at" => null,
-        //         "$amount" => "0.01",
+        //         "amount" => "0.01",
         //         "fee" => "0.0",
         //         "krw_amount" => "80420.0"
         //     }

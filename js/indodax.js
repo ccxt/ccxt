@@ -401,7 +401,7 @@ module.exports = class indodax extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
         let symbol = undefined;
         let cost = undefined;
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
         let amount = undefined;
         let remaining = undefined;
         if (market !== undefined) {
@@ -414,16 +414,16 @@ module.exports = class indodax extends Exchange {
             if ((market['baseId'] === 'idr') && ('remain_rp' in order)) {
                 baseId = 'rp';
             }
-            cost = this.safeNumber (order, 'order_' + quoteId);
+            cost = this.safeString (order, 'order_' + quoteId);
             if (!cost) {
-                amount = this.safeNumber (order, 'order_' + baseId);
-                remaining = this.safeNumber (order, 'remain_' + baseId);
+                amount = this.safeString (order, 'order_' + baseId);
+                remaining = this.safeString (order, 'remain_' + baseId);
             }
         }
         const timestamp = this.safeInteger (order, 'submit_time');
         const fee = undefined;
         const id = this.safeString (order, 'order_id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

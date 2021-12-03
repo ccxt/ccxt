@@ -296,14 +296,14 @@ class coinfalcon extends Exchange {
         //
         //     {
         //         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
-        //         "$market":"IOT-BTC"
-        //         "$price":"0.0000003"
+        //         "market":"IOT-BTC"
+        //         "price":"0.0000003"
         //         "size":"4.0"
         //         "size_filled":"3.0"
         //         "fee":"0.0075"
         //         "fee_currency_code":"iot"
         //         "funds":"0.0"
-        //         "$status":"canceled"
+        //         "status":"canceled"
         //         "order_type":"buy"
         //         "post_only":false
         //         "operation_type":"market_order"
@@ -313,9 +313,9 @@ class coinfalcon extends Exchange {
         $marketId = $this->safe_string($order, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'size');
-        $filled = $this->safe_number($order, 'size_filled');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'size');
+        $filled = $this->safe_string($order, 'size_filled');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'operation_type');
         if ($type !== null) {
@@ -324,7 +324,7 @@ class coinfalcon extends Exchange {
         }
         $side = $this->safe_string($order, 'order_type');
         $postOnly = $this->safe_value($order, 'post_only');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -346,7 +346,7 @@ class coinfalcon extends Exchange {
             'info' => $order,
             'lastTradeTimestamp' => null,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

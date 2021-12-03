@@ -325,16 +325,71 @@ module.exports = class bitso extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "book": "btc_usdt",
+        //          "created_at": "2021-11-24T12:14:53+0000",
+        //          "amount": "0.00026562",
+        //          "maker_side": "sell",
+        //          "price": "56471.55",
+        //          "tid": "52557338"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "book": "btc_usdt",
+        //          "created_at": "2021-11-24T12:31:03+0000",
+        //          "minor": "11.30356000",
+        //          "major": "-0.00020000",
+        //          "fees_amount": "0.01119052",
+        //          "fees_currency": "usdt",
+        //          "minor_currency": "usdt",
+        //          "major_currency": "btc",
+        //          "oid": "djTzMIWx2Vi3iMjl",
+        //          "tid": "52559051",
+        //          "price": "56517.80",
+        //          "side": "sell",
+        //          "maker_side": "buy"
+        //      }
+        //
+        // fetchOrderTrades (private)
+        //
+        //      {
+        //          "book": "btc_usdt",
+        //          "created_at": "2021-11-24T12:30:52+0000",
+        //          "minor": "-11.33047916",
+        //          "major": "0.00020020",
+        //          "fees_amount": "0.00000020",
+        //          "fees_currency": "btc",
+        //          "minor_currency": "usdt",
+        //          "major_currency": "btc",
+        //          "oid": "O0D2zcljjjQF5xlG",
+        //          "tid": "52559030",
+        //          "price": "56595.80",
+        //          "side": "buy",
+        //          "maker_side": "sell"
+        //      }
+        //
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const marketId = this.safeString (trade, 'book');
         const symbol = this.safeSymbol (marketId, market, '_');
         const side = this.safeString2 (trade, 'side', 'maker_side');
-        let amount = this.safeNumber2 (trade, 'amount', 'major');
+        const makerSide = this.safeString (trade, 'maker_side');
+        let takerOrMaker = undefined;
+        if (side === makerSide) {
+            takerOrMaker = 'maker';
+        } else {
+            takerOrMaker = 'taker';
+        }
+        let amount = this.safeString2 (trade, 'amount', 'major');
         if (amount !== undefined) {
-            amount = Math.abs (amount);
+            amount = Precise.stringAbs (amount);
         }
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fees_amount');
+        const feeCost = this.safeString (trade, 'fees_amount');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fees_currency');
             const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
@@ -343,14 +398,14 @@ module.exports = class bitso extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        let cost = this.safeNumber (trade, 'minor');
+        let cost = this.safeString (trade, 'minor');
         if (cost !== undefined) {
-            cost = Math.abs (cost);
+            cost = Precise.stringAbs (cost);
         }
-        const price = this.safeNumber (trade, 'price');
+        const price = this.safeString (trade, 'price');
         const orderId = this.safeString (trade, 'oid');
         const id = this.safeString (trade, 'tid');
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -359,12 +414,12 @@ module.exports = class bitso extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -448,11 +503,11 @@ module.exports = class bitso extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const orderType = this.safeString (order, 'type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'original_amount');
-        const remaining = this.safeNumber (order, 'unfilled_amount');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'original_amount');
+        const remaining = this.safeString (order, 'unfilled_amount');
         const clientOrderId = this.safeString (order, 'client_id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -474,7 +529,7 @@ module.exports = class bitso extends Exchange {
             'fee': undefined,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 25, params = {}) {
@@ -550,6 +605,7 @@ module.exports = class bitso extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

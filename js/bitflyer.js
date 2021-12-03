@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -237,6 +236,30 @@ module.exports = class bitflyer extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public) v1
+        //
+        //     {
+        //          "id":2278466664,
+        //          "side":"SELL",
+        //          "price":56810.7,
+        //          "size":0.08798,
+        //          "exec_date":"2021-11-19T11:46:39.323",
+        //          "buy_child_order_acceptance_id":"JRF20211119-114209-236525",
+        //          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
+        //      }
+        //
+        //      {
+        //          "id":2278463423,
+        //          "side":"BUY",
+        //          "price":56757.83,
+        //          "size":0.6003,"exec_date":"2021-11-19T11:28:00.523",
+        //          "buy_child_order_acceptance_id":"JRF20211119-112800-236526",
+        //          "sell_child_order_acceptance_id":"JRF20211119-112734-062017"
+        //      }
+        //
+        //
+        //
         let side = this.safeStringLower (trade, 'side');
         if (side !== undefined) {
             if (side.length < 1) {
@@ -256,15 +279,12 @@ module.exports = class bitflyer extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'exec_date'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -274,11 +294,11 @@ module.exports = class bitflyer extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -334,10 +354,10 @@ module.exports = class bitflyer extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (order, 'child_order_date'));
-        const amount = this.safeNumber (order, 'size');
-        const remaining = this.safeNumber (order, 'outstanding_size');
-        const filled = this.safeNumber (order, 'executed_size');
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'executed_size');
+        const remaining = this.safeString (order, 'outstanding_size');
         const status = this.parseOrderStatus (this.safeString (order, 'child_order_state'));
         const type = this.safeStringLower (order, 'child_order_type');
         const side = this.safeStringLower (order, 'side');
@@ -353,7 +373,7 @@ module.exports = class bitflyer extends Exchange {
             };
         }
         const id = this.safeString (order, 'child_order_acceptance_id');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
@@ -375,7 +395,7 @@ module.exports = class bitflyer extends Exchange {
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {

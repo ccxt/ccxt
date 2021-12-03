@@ -273,9 +273,9 @@ class independentreserve extends Exchange {
             $orderType = 'limit';
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'CreatedTimestampUtc'));
-        $amount = $this->safe_number_2($order, 'VolumeOrdered', 'Volume');
-        $filled = $this->safe_number($order, 'VolumeFilled');
-        $remaining = $this->safe_number($order, 'Outstanding');
+        $amount = $this->safe_string_2($order, 'VolumeOrdered', 'Volume');
+        $filled = $this->safe_string($order, 'VolumeFilled');
+        $remaining = $this->safe_string($order, 'Outstanding');
         $feeRate = $this->safe_number($order, 'FeePercent');
         $feeCost = null;
         if ($feeRate !== null && $filled !== null) {
@@ -288,10 +288,10 @@ class independentreserve extends Exchange {
         );
         $id = $this->safe_string($order, 'OrderGuid');
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
-        $cost = $this->safe_number($order, 'Value');
-        $average = $this->safe_number($order, 'AvgPrice');
-        $price = $this->safe_number($order, 'Price');
-        return $this->safe_order(array(
+        $cost = $this->safe_string($order, 'Value');
+        $average = $this->safe_string($order, 'AvgPrice');
+        $price = $this->safe_string($order, 'Price');
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -313,7 +313,7 @@ class independentreserve extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status($status) {

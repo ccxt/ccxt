@@ -976,14 +976,14 @@ module.exports = class vcc extends Exchange {
         const marketId = baseId + '_' + quoteId;
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const amount = this.safeNumber (order, 'quantity');
-        const filled = this.safeNumber (order, 'executed_quantity');
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'executed_quantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const cost = this.safeNumber (order, 'ceiling');
+        const cost = this.safeString (order, 'ceiling');
         const id = this.safeString (order, 'id');
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'executed_price');
-        const remaining = this.safeNumber (order, 'remaining');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'executed_price');
+        const remaining = this.safeString (order, 'remaining');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'trade_type');
         const fee = {
@@ -996,7 +996,7 @@ module.exports = class vcc extends Exchange {
             lastTradeTimestamp = updated;
         }
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': id,
             'timestamp': created,
@@ -1018,7 +1018,7 @@ module.exports = class vcc extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1238,6 +1238,7 @@ module.exports = class vcc extends Exchange {
             'currency': this.safeCurrencyCode (currencyId),
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': data,
         };
     }

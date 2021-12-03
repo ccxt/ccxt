@@ -971,6 +971,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
             'INSUFFICIENT': 'canceled',
+            'POSTONLY': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         };
@@ -992,10 +993,10 @@ module.exports = class bitfinex2 extends bitfinex {
         // https://github.com/ccxt/ccxt/issues/6686
         // const timestamp = this.safeTimestamp (order, 5);
         const timestamp = this.safeInteger (order, 5);
-        const remaining = Math.abs (this.safeNumber (order, 6));
-        const signedAmount = this.safeNumber (order, 7);
-        const amount = Math.abs (signedAmount);
-        const side = (signedAmount < 0) ? 'sell' : 'buy';
+        const remaining = Precise.stringAbs (this.safeString (order, 6));
+        const signedAmount = this.safeString (order, 7);
+        const amount = Precise.stringAbs (signedAmount);
+        const side = Precise.stringLt (signedAmount, '0') ? 'sell' : 'buy';
         const orderType = this.safeString (order, 8);
         const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
         let status = undefined;
@@ -1004,10 +1005,10 @@ module.exports = class bitfinex2 extends bitfinex {
             const parts = statusString.split (' @ ');
             status = this.parseOrderStatus (this.safeString (parts, 0));
         }
-        const price = this.safeNumber (order, 16);
-        const average = this.safeNumber (order, 17);
+        const price = this.safeString (order, 16);
+        const average = this.safeString (order, 17);
         const clientOrderId = this.safeString (order, 2);
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1029,7 +1030,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1037,12 +1038,29 @@ module.exports = class bitfinex2 extends bitfinex {
         const market = this.market (symbol);
         const orderTypes = this.safeValue (this.options, 'orderTypes', {});
         const orderType = this.safeStringUpper (orderTypes, type, type);
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        params = this.omit (params, [ 'postOnly' ]);
         amount = (side === 'sell') ? -amount : amount;
         const request = {
-            'symbol': market['id'],
+            // 'gid': 0123456789, // int32,  optional group id for the order
+            // 'cid': 0123456789, // int32 client order id
             'type': orderType,
+            'symbol': market['id'],
+            // 'price': this.numberToString (price),
             'amount': this.numberToString (amount),
+            // 'flags': 0, // int32, https://docs.bitfinex.com/v2/docs/flag-values
+            // 'lev': 10, // the value should be between 1 and 100 inclusive, optional, 10 by default
+            // 'price_trailing': this.numberToString (priceTrailing),
+            // 'price_aux_limit': this.numberToString (stopPrice),
+            // 'price_oco_stop': this.numberToString (ocoStopPrice),
+            // 'tif': '2020-01-01 10:45:23', // datetime for automatic order cancellation
+            // 'meta': {
+            //     'aff_code': 'AFF_CODE_HERE'
+            // },
         };
+        if (postOnly) {
+            request['flags'] = 4096;
+        }
         if ((orderType === 'LIMIT') || (orderType === 'EXCHANGE LIMIT')) {
             request['price'] = this.numberToString (price);
         } else if ((orderType === 'STOP') || (orderType === 'EXCHANGE STOP')) {
@@ -1315,6 +1333,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

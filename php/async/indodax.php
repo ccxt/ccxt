@@ -136,8 +136,8 @@ class indodax extends Exchange {
         //
         //     array(
         //         {
-        //             "$id" => "btcidr",
-        //             "$symbol" => "BTCIDR",
+        //             "id" => "btcidr",
+        //             "symbol" => "BTCIDR",
         //             "base_currency" => "idr",
         //             "traded_currency" => "btc",
         //             "traded_currency_unit" => "BTC",
@@ -282,12 +282,12 @@ class indodax extends Exchange {
         $response = yield $this->publicGetPairTicker (array_merge($request, $params));
         //
         //     {
-        //         "$ticker" => {
+        //         "ticker" => {
         //             "high":"0.01951",
         //             "low":"0.01877",
         //             "vol_eth":"39.38839319",
         //             "vol_btc":"0.75320886",
-        //             "$last":"0.01896",
+        //             "last":"0.01896",
         //             "buy":"0.01896",
         //             "sell":"0.019",
         //             "server_time":1565248908
@@ -378,7 +378,7 @@ class indodax extends Exchange {
         //     {
         //         "order_id" => "12345",
         //         "submit_time" => "1392228122",
-        //         "$price" => "8000000",
+        //         "price" => "8000000",
         //         "type" => "sell",
         //         "order_ltc" => "100000000",
         //         "remain_ltc" => "100000000"
@@ -390,10 +390,10 @@ class indodax extends Exchange {
         //     {
         //       "order_id" => "49326856",
         //       "type" => "sell",
-        //       "$price" => "1000000000",
+        //       "price" => "1000000000",
         //       "submit_time" => "1618314671",
         //       "finish_time" => "1618314671",
-        //       "$status" => "filled",
+        //       "status" => "filled",
         //       "order_xrp" => "30.45000000",
         //       "remain_xrp" => "0.00000000"
         //     }
@@ -404,7 +404,7 @@ class indodax extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status', 'open'));
         $symbol = null;
         $cost = null;
-        $price = $this->safe_number($order, 'price');
+        $price = $this->safe_string($order, 'price');
         $amount = null;
         $remaining = null;
         if ($market !== null) {
@@ -417,16 +417,16 @@ class indodax extends Exchange {
             if (($market['baseId'] === 'idr') && (is_array($order) && array_key_exists('remain_rp', $order))) {
                 $baseId = 'rp';
             }
-            $cost = $this->safe_number($order, 'order_' . $quoteId);
+            $cost = $this->safe_string($order, 'order_' . $quoteId);
             if (!$cost) {
-                $amount = $this->safe_number($order, 'order_' . $baseId);
-                $remaining = $this->safe_number($order, 'remain_' . $baseId);
+                $amount = $this->safe_string($order, 'order_' . $baseId);
+                $remaining = $this->safe_string($order, 'remain_' . $baseId);
             }
         }
         $timestamp = $this->safe_integer($order, 'submit_time');
         $fee = null;
         $id = $this->safe_string($order, 'order_id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -548,7 +548,7 @@ class indodax extends Exchange {
         }
         $side = $this->safe_value($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an extra "$side" param');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an extra "side" param');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

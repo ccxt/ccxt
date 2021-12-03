@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.58.90';
+$version = '1.62.87';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.58.90';
+    const VERSION = '1.62.87';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -86,6 +86,7 @@ class Exchange {
         'bitmart',
         'bitmex',
         'bitpanda',
+        'bitrue',
         'bitso',
         'bitstamp',
         'bitstamp1',
@@ -107,7 +108,6 @@ class Exchange {
         'coinbaseprime',
         'coinbasepro',
         'coincheck',
-        'coinegg',
         'coinex',
         'coinfalcon',
         'coinmarketcap',
@@ -124,9 +124,11 @@ class Exchange {
         'exmo',
         'flowbtc',
         'ftx',
+        'ftxus',
         'gateio',
         'gemini',
         'hitbtc',
+        'hitbtc3',
         'hollaex',
         'huobi',
         'huobijp',
@@ -139,6 +141,7 @@ class Exchange {
         'kucoin',
         'kuna',
         'latoken',
+        'latoken1',
         'lbank',
         'liquid',
         'luno',
@@ -353,6 +356,7 @@ class Exchange {
         'signMessage' => 'sign_message',
         'signMessageString' => 'sign_message_string',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
+        'safeTrade' => 'safe_trade',
         'safeOrder' => 'safe_order',
         'safeOrder2' => 'safe_order2',
         'parseNumber' => 'parse_number',
@@ -361,6 +365,7 @@ class Exchange {
         'parsePrecision' => 'parse_precision',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'getSupportedMapping' => 'get_supported_mapping',
+        'fetchBorrowRate' => 'fetch_borrow_rate',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -619,11 +624,13 @@ class Exchange {
     }
 
     public function filter_by($array, $key, $value = null) {
-        $grouped = static::group_by($array, $key);
-        if (is_array($grouped) && array_key_exists($value, $grouped)) {
-            return $grouped[$value];
+        $result = array();
+        foreach ($array as $element) {
+            if (isset($key, $element) && ($element[$key] == $value)) {
+                $result[] = $element[$key];
+            }
         }
-        return array();
+        return $result;
     }
 
     public static function group_by($array, $key) {
@@ -887,8 +894,17 @@ class Exchange {
         return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
     }
 
-    public static function ymd($timestamp, $infix = '-') {
-        return gmdate('Y' . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
+    public static function ymd($timestamp, $infix = '-', $fullYear = true) {
+        $yearFormat = $fullYear ? 'Y' : 'y';
+        return gmdate($yearFormat . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
+    }
+
+    public static function yymmdd($timestamp, $infix = '') {
+        return static::ymd($timestamp, $infix, false);
+    }
+
+    public static function yyyymmdd($timestamp, $infix = '-') {
+        return static::ymd($timestamp, $infix, true);
     }
 
     public static function ymdhms($timestamp, $infix = ' ') {
@@ -1133,6 +1149,8 @@ class Exchange {
             'createOrder' => true,
             'deposit' => false,
             'fetchBalance' => true,
+            'fetchBorrowRate' => false,
+            'fetchBorrowRates' => false,
             'fetchClosedOrders' => false,
             'fetchCurrencies' => false,
             'fetchDepositAddress' => false,
@@ -1168,6 +1186,7 @@ class Exchange {
         $this->precisionMode = DECIMAL_PLACES;
         $this->paddingMode = NO_PADDING;
         $this->number = 'floatval';
+        $this->handleContentTypeApplicationZip = false;
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp = 0;
@@ -1707,7 +1726,7 @@ class Exchange {
         $this->ids = array_keys($this->markets_by_id);
         sort($this->ids);
         if ($currencies) {
-            $this->currencies = array_replace_recursive($currencies, $this->currencies);
+            $this->currencies = array_replace_recursive($this->currencies, $currencies);
         } else {
             $base_currencies = array_map(function ($market) {
                 return array(
@@ -1740,7 +1759,7 @@ class Exchange {
             $this->base_currencies = static::index_by($base_currencies, 'code');
             $this->quote_currencies = static::index_by($quote_currencies, 'code');
             $currencies = array_merge($this->base_currencies, $this->quote_currencies);
-            $this->currencies = array_replace_recursive($currencies, $this->currencies);
+            $this->currencies = array_replace_recursive($this->currencies, $currencies);
         }
         $this->currencies_by_id = static::index_by(array_values($this->currencies), 'id');
         $this->codes = array_keys($this->currencies);
@@ -2034,10 +2053,10 @@ class Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_deposit_addresses($addresses, $codes = null, $indexed = true) {
+    public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array()){
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
+            $address = array_merge($this->parse_deposit_address($addresses[$i]), $params);
             $result[] = $address;
         }
         if ($codes) {
@@ -2983,26 +3002,150 @@ class Exchange {
     }
 
     public function reduce_fees_by_currency($fees, $string = false) {
+        //
+        // this function takes a list of $fee structures having the following format
+        //
+        //     $string = true
+        //
+        //     array(
+        //         array( 'currency' => 'BTC', 'cost' => '0.1' ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.2'  ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.2', 'rate' => '0.00123' ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.4', 'rate' => '0.00123' ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.5', 'rate' => '0.00456' ),
+        //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
+        //     )
+        //
+        //     $string = false
+        //
+        //     array(
+        //         array( 'currency' => 'BTC', 'cost' => 0.1 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.2 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.2, 'rate' => 0.00123 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.4, 'rate' => 0.00123 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.5, 'rate' => 0.00456 ),
+        //         array( 'currency' => 'USDT', 'cost' => 12.3456 ),
+        //     )
+        //
+        // and returns a $reduced $fee list, where $fees are summed per currency and $rate (if any)
+        //
+        //     $string = true
+        //
+        //     array(
+        //         array( 'currency' => 'BTC', 'cost' => '0.3'  ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.6', 'rate' => '0.00123' ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.5', 'rate' => '0.00456' ),
+        //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
+        //     )
+        //
+        //     $string  = false
+        //
+        //     array(
+        //         array( 'currency' => 'BTC', 'cost' => 0.3  ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.6, 'rate' => 0.00123 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.5, 'rate' => 0.00456 ),
+        //         array( 'currency' => 'USDT', 'cost' => 12.3456 ),
+        //     )
+        //
         $reduced = array();
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
-            $feeCurrencyCode = $this->safe_value($fee, 'currency');
+            $feeCurrencyCode = $this->safe_string($fee, 'currency');
             if ($feeCurrencyCode !== null) {
-                if (is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced)) {
+                $rate = $this->safe_string($fee, 'rate');
+                $cost = $this->safe_value($fee, 'cost');
+                if (!(is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced))) {
+                    $reduced[$feeCurrencyCode] = array();
+                }
+                $rateKey = ($rate === null) ? '' : $rate;
+                if (is_array($reduced[$feeCurrencyCode]) && array_key_exists($rateKey, $reduced[$feeCurrencyCode])) {
                     if ($string) {
-                        $reduced[$feeCurrencyCode]['cost'] = Precise::string_add($reduced[$feeCurrencyCode]['cost'], $fee['cost']);
+                        $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
                     } else {
-                        $reduced[$feeCurrencyCode]['cost'] = $this->sum($reduced[$feeCurrencyCode]['cost'], $fee['cost']);
+                        $reduced[$feeCurrencyCode][$rateKey]['cost'] = $this->sum($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
                     }
                 } else {
-                    $reduced[$feeCurrencyCode] = array(
-                        'cost' => $string ? $fee['cost'] : $this->parse_number($fee['cost']),
+                    $reduced[$feeCurrencyCode][$rateKey] = array(
                         'currency' => $feeCurrencyCode,
+                        'cost' => $string ? $cost : $this->parse_number($cost),
                     );
+                    if ($rate !== null) {
+                        $reduced[$feeCurrencyCode][$rateKey]['rate'] = $string ? $rate : $this->parse_number($rate);
+                    }
                 }
             }
         }
-        return is_array($reduced) ? array_values($reduced) : array();
+        $result = array();
+        $feeValues = is_array($reduced) ? array_values($reduced) : array();
+        for ($i = 0; $i < count($feeValues); $i++) {
+            $reducedFeeValues = is_array($feeValues[$i]) ? array_values($feeValues[$i]) : array();
+            $result = $this->array_concat($result, $reducedFeeValues);
+        }
+        return $result;
+    }
+
+    public function safe_trade($trade, $market = null) {
+        $amount = $this->safe_string($trade, 'amount');
+        $price = $this->safe_string($trade, 'price');
+        $cost = $this->safe_string($trade, 'cost');
+        if ($cost === null) {
+            // contract trading
+            $contractSize = $this->safe_string($market, 'contractSize');
+            $multiplyPrice = $price;
+            if ($contractSize !== null) {
+                $inverse = $this->safe_value($market, 'inverse', false);
+                if ($inverse) {
+                    $multiplyPrice = Precise::string_div('1', $price);
+                }
+                $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
+            }
+            $cost = Precise::string_mul($multiplyPrice, $amount);
+        }
+        $parseFee = $this->safe_value($trade, 'fee') === null;
+        $parseFees = $this->safe_value($trade, 'fees') === null;
+        $shouldParseFees = $parseFee || $parseFees;
+        $fees = $this->safe_value($trade, 'fees', array());
+        if ($shouldParseFees) {
+            $tradeFees = $this->safe_value($trade, 'fees');
+            if ($tradeFees !== null) {
+                for ($j = 0; $j < count($tradeFees); $j++) {
+                    $tradeFee = $tradeFees[$j];
+                    $fees[] = array_merge(array(), $tradeFee);
+                }
+            } else {
+                $tradeFee = $this->safe_value($trade, 'fee');
+                if ($tradeFee !== null) {
+                    $fees[] = array_merge(array(), $tradeFee);
+                }
+            }
+        }
+        $fee = $this->safe_value($trade, 'fee');
+        if ($shouldParseFees) {
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
+            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            for ($i = 0; $i < $reducedLength; $i++) {
+                $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
+            }
+            if (!$parseFee && ($reducedLength === 0)) {
+                $fee['cost'] = $this->safe_number($fee, 'cost');
+                $reducedFees[] = $fee;
+            }
+            if ($parseFees) {
+                $trade['fees'] = $reducedFees;
+            }
+            if ($parseFee && ($reducedLength === 1)) {
+                $trade['fee'] = $reducedFees[0];
+            }
+            $tradeFee = $this->safe_value($trade, 'fee');
+            if ($tradeFee !== null) {
+                $tradeFee['cost'] = $this->safe_number($tradeFee, 'cost');
+                $trade['fee'] = $tradeFee;
+            }
+        }
+        $trade['amount'] = $this->parse_number($amount);
+        $trade['price'] = $this->parse_number($price);
+        $trade['cost'] = $this->parse_number($cost);
+        return $trade;
     }
 
     public function safe_order($order) {
@@ -3144,7 +3287,8 @@ class Exchange {
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
         $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
-        $parseFee = $this->safe_value($order, 'fee') === null;
+        $fee = $this->safe_value($order, 'fee');
+        $parseFee = ($fee === null);
         $parseFees = $this->safe_value($order, 'fees') === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = $this->safe_value($order, 'fees', array());
@@ -3210,7 +3354,8 @@ class Exchange {
                 $reducedFees[$i]['cost'] = $this->parse_number($reducedFees[$i]['cost']);
             }
             if (!$parseFee && ($reducedLength === 0)) {
-                $reducedFees[] = $order['fee'];
+                $fee['cost'] = $this->safe_number($fee, 'cost');
+                $reducedFees[] = $fee;
             }
             if ($parseFees) {
                 $order['fees'] = $reducedFees;
@@ -3246,11 +3391,22 @@ class Exchange {
         // also ensure the $cost field is calculated correctly
         $costPriceExists = ($average !== null) || ($price !== null);
         if ($parseCost && ($filled !== null) && $costPriceExists) {
+            $multiplyPrice = null;
             if ($average === null) {
-                $cost = Precise::string_mul($price, $filled);
+                $multiplyPrice = $price;
             } else {
-                $cost = Precise::string_mul($average, $filled);
+                $multiplyPrice = $average;
             }
+            // contract trading
+            $contractSize = $this->safe_string($market, 'contractSize');
+            if ($contractSize !== null) {
+                $inverse = $this->safe_value($market, 'inverse', false);
+                if ($inverse) {
+                    $multiplyPrice = Precise::string_div('1', $multiplyPrice);
+                }
+                $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
+            }
+            $cost = Precise::string_mul($multiplyPrice, $filled);
         }
         // support for $market orders
         $orderType = $this->safe_value($order, 'type');
@@ -3260,7 +3416,7 @@ class Exchange {
         }
         // we have $trades with string values at this point so we will mutate them
         for ($i = 0; $i < count($trades); $i++) {
-            $entry =& $trades[$i];
+            $entry = &$trades[$i];
             $entry['amount'] = $this->safe_number($entry, 'amount');
             $entry['price'] = $this->safe_number($entry, 'price');
             $entry['cost'] = $this->safe_number($entry, 'cost');
@@ -3309,7 +3465,7 @@ class Exchange {
     }
 
     public function omit_zero($string_number) {
-        if ($string_number === null) {
+        if ($string_number === null || $string_number === '') {
             return null;
         }
         if (floatval($string_number) === 0.0) {
@@ -3336,10 +3492,23 @@ class Exchange {
         // Takes a key and a dictionary, and returns the dictionary's value for that key
         // :throws:
         //      NotSupported if the dictionary does not contain the key
-        if (in_array($key, $mapping)) {
+        if (array_key_exists($key, $mapping)) {
             return $mapping[$key];
         } else {
             throw new NotSupported ($this->id . ' ' . $key . ' does not have a value in mapping');
         }
+    }
+
+    public function fetch_borrow_rate($code, $params = array()) {
+        $this->load_markets();
+        if (!$this->has['fetchBorrowRates']) {
+            throw new NotSupported($this->id + 'fetchBorrowRate() is not supported yet');
+        }
+        $borrow_rates = $this->fetch_borrow_rates($params);
+        $rate = $this->safe_value($borrow_rates, $code);
+        if ($rate == null) {
+            throw new ExchangeError($this->id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + $code);
+        }
+        return $rate;
     }
 }

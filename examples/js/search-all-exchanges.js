@@ -112,7 +112,8 @@ const checkAgainst = strict ?
                         (market['baseId']  ? checkAgainst (market['baseId'],  argument) : false) ||
                         (market['quoteId'] ? checkAgainst (market['quoteId'], argument) : false) ||
                         checkAgainst (market['symbol'], argument) ||
-                        checkAgainst (market['id'].toString (), argument)
+                        checkAgainst (market['id'].toString (), argument) ||
+                        checkAgainst (market['type'], argument)
                     )
                 } catch (e) {
                     if (debug) {

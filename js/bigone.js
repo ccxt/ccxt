@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -445,9 +444,6 @@ module.exports = class bigone extends Exchange {
         const timestamp = this.parse8601 (this.safeString2 (trade, 'created_at', 'inserted_at'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'asset_pair_name');
         const symbol = this.safeSymbol (marketId, market, '-');
         let side = this.safeString (trade, 'side');
@@ -489,9 +485,9 @@ module.exports = class bigone extends Exchange {
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': this.parseNumber (cost),
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'info': trade,
         };
         let makerCurrencyCode = undefined;
@@ -523,8 +519,8 @@ module.exports = class bigone extends Exchange {
                 takerCurrencyCode = market['quote'];
             }
         }
-        const makerFeeCost = this.safeNumber (trade, 'maker_fee');
-        const takerFeeCost = this.safeNumber (trade, 'taker_fee');
+        const makerFeeCost = this.safeString (trade, 'maker_fee');
+        const takerFeeCost = this.safeString (trade, 'taker_fee');
         if (makerFeeCost !== undefined) {
             if (takerFeeCost !== undefined) {
                 result['fees'] = [
@@ -539,7 +535,7 @@ module.exports = class bigone extends Exchange {
         } else {
             result['fee'] = undefined;
         }
-        return result;
+        return this.safeTrade (result, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -693,9 +689,10 @@ module.exports = class bigone extends Exchange {
         const marketId = this.safeString (order, 'asset_pair_name');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber (order, 'filled_amount');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
+        const average = this.safeString (order, 'avg_deal_price');
+        const filled = this.safeString (order, 'filled_amount');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'side');
         if (side === 'BID') {
@@ -704,8 +701,7 @@ module.exports = class bigone extends Exchange {
             side = 'sell';
         }
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated_at'));
-        const average = this.safeNumber (order, 'avg_deal_price');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -727,7 +723,7 @@ module.exports = class bigone extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1021,6 +1017,7 @@ module.exports = class bigone extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

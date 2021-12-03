@@ -994,6 +994,7 @@ module.exports = class eqonex extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': depositAddress,
         };
     }
@@ -1305,18 +1306,18 @@ module.exports = class eqonex extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.toMilliseconds (this.safeString (order, 'timeStamp'));
         const lastTradeTimestamp = undefined;
-        const priceString = this.safeString (order, 'price');
+        let priceString = this.safeString (order, 'price');
         const priceScale = this.safeInteger (order, 'price_scale');
-        const price = this.parseNumber (this.convertFromScale (priceString, priceScale));
-        const amountString = this.safeString (order, 'quantity');
+        priceString = this.convertFromScale (priceString, priceScale);
+        let amountString = this.safeString (order, 'quantity');
         const amountScale = this.safeInteger (order, 'quantity_scale');
-        const amount = this.parseNumber (this.convertFromScale (amountString, amountScale));
-        const filledString = this.safeString (order, 'cumQty');
+        amountString = this.convertFromScale (amountString, amountScale);
+        let filledString = this.safeString (order, 'cumQty');
         const filledScale = this.safeInteger (order, 'cumQty_scale');
-        const filled = this.parseNumber (this.convertFromScale (filledString, filledScale));
-        const remainingString = this.safeString (order, 'leavesQty');
+        filledString = this.convertFromScale (filledString, filledScale);
+        let remainingString = this.safeString (order, 'leavesQty');
         const remainingScale = this.safeInteger (order, 'leavesQty_scale');
-        const remaining = this.parseNumber (this.convertFromScale (remainingString, remainingScale));
+        remainingString = this.convertFromScale (remainingString, remainingScale);
         let fee = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
         const feeCurrencyCode = this.safeCurrencyCode (currencyId);
@@ -1339,7 +1340,7 @@ module.exports = class eqonex extends Exchange {
         }
         const stopPriceScale = this.safeInteger (order, 'stopPx_scale', 0);
         const stopPrice = this.parseNumber (this.convertFromScale (this.safeString (order, 'stopPx'), stopPriceScale));
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1351,17 +1352,17 @@ module.exports = class eqonex extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amount,
+            'amount': amountString,
             'cost': undefined,
             'average': undefined,
-            'filled': filled,
-            'remaining': remaining,
+            'filled': filledString,
+            'remaining': remainingString,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrderStatus (status) {

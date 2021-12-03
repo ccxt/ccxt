@@ -28,6 +28,8 @@ class hitbtc extends Exchange {
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -218,7 +220,7 @@ class hitbtc extends Exchange {
                 'PLA' => 'PlayChip',
                 'PNT' => 'Penta',
                 'SBTC' => 'Super Bitcoin',
-                'STX' => 'Stox',
+                'STX' => 'STOX',
                 'TV' => 'Tokenville',
                 'USD' => 'USDT',
                 'XPNT' => 'PNT',
@@ -246,7 +248,7 @@ class hitbtc extends Exchange {
         //
         //     array(
         //         {
-        //             "$id":"BCNBTC",
+        //             "id":"BCNBTC",
         //             "baseCurrency":"BCN",
         //             "quoteCurrency":"BTC",
         //             "quantityIncrement":"100",
@@ -364,7 +366,7 @@ class hitbtc extends Exchange {
         //
         //     array(
         //         {
-        //             "$id":"XPNT",
+        //             "id":"XPNT",
         //             "fullName":"pToken",
         //             "crypto":true,
         //             "payinEnabled":true,
@@ -736,12 +738,12 @@ class hitbtc extends Exchange {
         //     }
         //
         //     {
-        //         "$id" => "4f351f4f-a8ee-4984-a468-189ed590ddbd",
+        //         "id" => "4f351f4f-a8ee-4984-a468-189ed590ddbd",
         //         "index" => 3112719565,
-        //         "$type" => "withdraw",
-        //         "$status" => "success",
-        //         "$currency" => "BCHOLD",
-        //         "$amount" => "0.02423133",
+        //         "type" => "withdraw",
+        //         "status" => "success",
+        //         "currency" => "BCHOLD",
+        //         "amount" => "0.02423133",
         //         "createdAt" => "2019-07-16T16:52:04.494Z",
         //         "updatedAt" => "2019-07-16T16:54:07.753Z"
         //     }
@@ -906,7 +908,7 @@ class hitbtc extends Exchange {
         //         $id => "66799540063",
         //         quantity => "1",
         //         $side => "sell",
-        //         $status => "$filled",
+        //         $status => "filled",
         //         $symbol => "XRPUSDT",
         //         $timeInForce => "FOK",
         //         tradesReport => array(
@@ -918,20 +920,20 @@ class hitbtc extends Exchange {
         //                 timestamp => "2018-10-25T16:41:44.780Z"
         //             }
         //         ),
-        //         $type => "$market",
+        //         $type => "market",
         //         updatedAt => "2018-10-25T16:41:44.780Z"
         //     }
         //
         //     {
-        //         "$id" => 119499457455,
-        //         "$clientOrderId" => "87baab109d58401b9202fa0749cb8288",
-        //         "$symbol" => "ETHUSD",
-        //         "$side" => "buy",
-        //         "$status" => "$filled",
-        //         "$type" => "$market",
-        //         "$timeInForce" => "FOK",
+        //         "id" => 119499457455,
+        //         "clientOrderId" => "87baab109d58401b9202fa0749cb8288",
+        //         "symbol" => "ETHUSD",
+        //         "side" => "buy",
+        //         "status" => "filled",
+        //         "type" => "market",
+        //         "timeInForce" => "FOK",
         //         "quantity" => "0.0007",
-        //         "$price" => "181.487",
+        //         "price" => "181.487",
         //         "avgPrice" => "164.989",
         //         "cumQuantity" => "0.0007",
         //         "createdAt" => "2019-04-17T13:27:38.062Z",
@@ -1081,7 +1083,7 @@ class hitbtc extends Exchange {
         //             "id" => 9535486,
         //             "clientOrderId" => "f8dbaab336d44d5ba3ff578098a68454",
         //             "orderId" => 816088377,
-        //             "$symbol" => "ETHBTC",
+        //             "symbol" => "ETHBTC",
         //             "side" => "sell",
         //             "quantity" => "0.061",
         //             "price" => "0.045487",
@@ -1092,7 +1094,7 @@ class hitbtc extends Exchange {
         //             "id" => 9535437,
         //             "clientOrderId" => "27b9bfc068b44194b1f453c7af511ed6",
         //             "orderId" => 816088021,
-        //             "$symbol" => "ETHBTC",
+        //             "symbol" => "ETHBTC",
         //             "side" => "buy",
         //             "quantity" => "0.038",
         //             "price" => "0.046000",
@@ -1121,7 +1123,7 @@ class hitbtc extends Exchange {
         if ($numOrders > 0) {
             return $this->parse_trades($response, $market, $since, $limit);
         }
-        throw new OrderNotFound($this->id . ' order ' . $id . ' not found, ' . $this->id . '.fetchOrderTrades() requires an exchange-specific order $id, you need to grab it from order["info"]["$id"]');
+        throw new OrderNotFound($this->id . ' order ' . $id . ' not found, ' . $this->id . '.fetchOrderTrades() requires an exchange-specific order $id, you need to grab it from order["info"]["id"]');
     }
 
     public function create_deposit_address($code, $params = array ()) {
@@ -1163,6 +1165,7 @@ class hitbtc extends Exchange {
             'currency' => $currency['code'],
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $response,
         );
     }
@@ -1253,16 +1256,16 @@ class hitbtc extends Exchange {
         }
         if ($code >= 400) {
             $feedback = $this->id . ' ' . $body;
-            // array("$code":504,"$message":"Gateway Timeout","description":"")
+            // array("code":504,"message":"Gateway Timeout","description":"")
             if (($code === 503) || ($code === 504)) {
                 throw new ExchangeNotAvailable($feedback);
             }
             // fallback to default error handler on rate limit errors
-            // array("$code":429,"$message":"Too many requests","description":"Too many requests")
+            // array("code":429,"message":"Too many requests","description":"Too many requests")
             if ($code === 429) {
                 return;
             }
-            // array("error":array("$code":20002,"$message":"Order not found","description":""))
+            // array("error":array("code":20002,"message":"Order not found","description":""))
             if ($body[0] === '{') {
                 if (is_array($response) && array_key_exists('error', $response)) {
                     $errorCode = $this->safe_string($response['error'], 'code');

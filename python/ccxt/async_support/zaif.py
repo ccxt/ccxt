@@ -348,10 +348,10 @@ class zaif(Exchange):
         timestamp = self.safe_timestamp(order, 'timestamp')
         marketId = self.safe_string(order, 'currency_pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amount')
         id = self.safe_string(order, 'id')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -373,7 +373,7 @@ class zaif(Exchange):
             'fee': None,
             'info': order,
             'average': None,
-        })
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

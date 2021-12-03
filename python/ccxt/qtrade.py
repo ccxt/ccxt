@@ -17,7 +17,6 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
-from ccxt.base.precise import Precise
 
 
 class qtrade(Exchange):
@@ -112,14 +111,18 @@ class qtrade(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'quote',
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.0025,
+                    'taker': 0.005,
                     'maker': 0.0,
                 },
                 'funding': {
                     'withdraw': {},
                 },
+            },
+            'commonCurrencies': {
+                'BTM': 'Bitmark',
             },
             'exceptions': {
                 'exact': {
@@ -624,16 +627,12 @@ class qtrade(Exchange):
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         side = self.safe_string(trade, 'side')
         marketId = self.safe_string(trade, 'market_string')
-        symbol = self.safe_symbol(marketId, market, '_')
-        cost = self.safe_number_2(trade, 'base_volume', 'base_amount')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string_2(trade, 'market_amount', 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        market = self.safe_market(marketId, market)
+        cost = self.safe_string_2(trade, 'base_volume', 'base_amount')
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string_2(trade, 'market_amount', 'amount')
         fee = None
-        feeCost = self.safe_number(trade, 'base_fee')
+        feeCost = self.safe_string(trade, 'base_fee')
         if feeCost is not None:
             feeCurrencyCode = None if (market is None) else market['quote']
             fee = {
@@ -643,12 +642,12 @@ class qtrade(Exchange):
         taker = self.safe_value(trade, 'taker', True)
         takerOrMaker = 'taker' if taker else 'maker'
         orderId = self.safe_string(trade, 'order_id')
-        result = {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': None,
             'side': side,
@@ -657,8 +656,7 @@ class qtrade(Exchange):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }
-        return result
+        }, market)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -999,6 +997,7 @@ class qtrade(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': depositAddress,
         }
 

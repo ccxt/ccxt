@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
-use \ccxt\Precise;
 
 class bithumb extends Exchange {
 
@@ -240,8 +239,8 @@ class bithumb extends Exchange {
         //
         //     {
         //         "status":"0000",
-        //         "$data":{
-        //             "$timestamp":"1587621553942",
+        //         "data":{
+        //             "timestamp":"1587621553942",
         //             "payment_currency":"KRW",
         //             "order_currency":"BTC",
         //             "bids":array(
@@ -318,7 +317,7 @@ class bithumb extends Exchange {
         //
         //     {
         //         "status":"0000",
-        //         "$data":{
+        //         "data":{
         //             "BTC":array(
         //                 "opening_price":"9045000",
         //                 "closing_price":"9132000",
@@ -369,7 +368,7 @@ class bithumb extends Exchange {
         //
         //     {
         //         "status":"0000",
-        //         "$data":{
+        //         "data":{
         //             "opening_price":"227100",
         //             "closing_price":"228400",
         //             "min_price":"222300",
@@ -451,9 +450,9 @@ class bithumb extends Exchange {
         //
         //     {
         //         "transaction_date":"2020-04-23 22:21:46",
-        //         "$type":"ask",
+        //         "type":"ask",
         //         "units_traded":"0.0125",
-        //         "$price":"8667000",
+        //         "price":"8667000",
         //         "total":"108337"
         //     }
         //
@@ -461,10 +460,10 @@ class bithumb extends Exchange {
         //
         //     {
         //         "transaction_date" => "1572497603902030",
-        //         "$price" => "8601000",
+        //         "price" => "8601000",
         //         "units" => "0.005",
         //         "fee_currency" => "KRW",
-        //         "$fee" => "107.51",
+        //         "fee" => "107.51",
         //         "total" => "43005"
         //     }
         //
@@ -498,23 +497,18 @@ class bithumb extends Exchange {
         }
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'units_traded', 'units');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'total');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $costString = $this->safe_string($trade, 'total');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -524,11 +518,11 @@ class bithumb extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -544,7 +538,7 @@ class bithumb extends Exchange {
         //
         //     {
         //         "status":"0000",
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "transaction_date":"2020-04-23 22:21:46",
         //                 "type":"ask",
@@ -604,7 +598,7 @@ class bithumb extends Exchange {
         //
         //     {
         //         "status" => "0000",
-        //         "$data" => {
+        //         "data" => {
         //             order_date => '1603161798539254',
         //             type => 'ask',
         //             order_status => 'Cancel',
@@ -648,7 +642,7 @@ class bithumb extends Exchange {
         //
         //     {
         //         "transaction_date" => "1572497603668315",
-        //         "$type" => "bid",
+        //         "type" => "bid",
         //         "order_status" => "Completed",
         //         "order_currency" => "BTC",
         //         "payment_currency" => "KRW",
@@ -659,7 +653,7 @@ class bithumb extends Exchange {
         //         "contract" => array(
         //             array(
         //                 "transaction_date" => "1572497603902030",
-        //                 "$price" => "8601000",
+        //                 "price" => "8601000",
         //                 "units" => "0.005",
         //                 "fee_currency" => "KRW",
         //                 "fee" => "107.51",
@@ -698,10 +692,10 @@ class bithumb extends Exchange {
         //         "payment_currency" => "KRW",
         //         "order_id" => "C0101000007408440032",
         //         "order_date" => "1571728739360570",
-        //         "$type" => "bid",
+        //         "type" => "bid",
         //         "units" => "5.0",
         //         "units_remaining" => "5.0",
-        //         "$price" => "501000",
+        //         "price" => "501000",
         //     }
         //
         $timestamp = $this->safe_integer_product($order, 'order_date', 0.001);
@@ -787,7 +781,7 @@ class bithumb extends Exchange {
         //
         //     {
         //         "status" => "0000",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "order_currency" => "BTC",
         //                 "payment_currency" => "KRW",
@@ -896,7 +890,7 @@ class bithumb extends Exchange {
         }
         if (is_array($response) && array_key_exists('status', $response)) {
             //
-            //     array("$status":"5100","$message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+            //     array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
             //
             $status = $this->safe_string($response, 'status');
             $message = $this->safe_string($response, 'message');

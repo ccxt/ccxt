@@ -128,20 +128,20 @@ class bitso extends Exchange {
         //                 "minimum_value":"5",
         //                 "maximum_value":"10000000",
         //                 "tick_size":"0.01",
-        //                 "$fees":array(
-        //                     "flat_rate":array("$maker":"0.500","$taker":"0.650"),
+        //                 "fees":array(
+        //                     "flat_rate":array("maker":"0.500","taker":"0.650"),
         //                     "structure":array(
-        //                         array("$volume":"1500000","$maker":"0.00500","$taker":"0.00650"),
-        //                         array("$volume":"2000000","$maker":"0.00490","$taker":"0.00637"),
-        //                         array("$volume":"5000000","$maker":"0.00480","$taker":"0.00624"),
-        //                         array("$volume":"7000000","$maker":"0.00440","$taker":"0.00572"),
-        //                         array("$volume":"10000000","$maker":"0.00420","$taker":"0.00546"),
-        //                         array("$volume":"15000000","$maker":"0.00400","$taker":"0.00520"),
-        //                         array("$volume":"35000000","$maker":"0.00370","$taker":"0.00481"),
-        //                         array("$volume":"50000000","$maker":"0.00300","$taker":"0.00390"),
-        //                         array("$volume":"150000000","$maker":"0.00200","$taker":"0.00260"),
-        //                         array("$volume":"250000000","$maker":"0.00100","$taker":"0.00130"),
-        //                         array("$volume":"9999999999","$maker":"0.00000","$taker":"0.00130"),
+        //                         array("volume":"1500000","maker":"0.00500","taker":"0.00650"),
+        //                         array("volume":"2000000","maker":"0.00490","taker":"0.00637"),
+        //                         array("volume":"5000000","maker":"0.00480","taker":"0.00624"),
+        //                         array("volume":"7000000","maker":"0.00440","taker":"0.00572"),
+        //                         array("volume":"10000000","maker":"0.00420","taker":"0.00546"),
+        //                         array("volume":"15000000","maker":"0.00400","taker":"0.00520"),
+        //                         array("volume":"35000000","maker":"0.00370","taker":"0.00481"),
+        //                         array("volume":"50000000","maker":"0.00300","taker":"0.00390"),
+        //                         array("volume":"150000000","maker":"0.00200","taker":"0.00260"),
+        //                         array("volume":"250000000","maker":"0.00100","taker":"0.00130"),
+        //                         array("volume":"9999999999","maker":"0.00000","taker":"0.00130"),
         //                     )
         //                 }
         //             ),
@@ -234,8 +234,8 @@ class bitso extends Exchange {
         //
         //     {
         //       "success" => true,
-        //       "$payload" => array(
-        //         "$balances" => array(
+        //       "payload" => array(
+        //         "balances" => array(
         //           array(
         //             "currency" => "bat",
         //             "available" => "0.00000000",
@@ -327,16 +327,71 @@ class bitso extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "book" => "btc_usdt",
+        //          "created_at" => "2021-11-24T12:14:53+0000",
+        //          "amount" => "0.00026562",
+        //          "maker_side" => "sell",
+        //          "price" => "56471.55",
+        //          "tid" => "52557338"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "book" => "btc_usdt",
+        //          "created_at" => "2021-11-24T12:31:03+0000",
+        //          "minor" => "11.30356000",
+        //          "major" => "-0.00020000",
+        //          "fees_amount" => "0.01119052",
+        //          "fees_currency" => "usdt",
+        //          "minor_currency" => "usdt",
+        //          "major_currency" => "btc",
+        //          "oid" => "djTzMIWx2Vi3iMjl",
+        //          "tid" => "52559051",
+        //          "price" => "56517.80",
+        //          "side" => "sell",
+        //          "maker_side" => "buy"
+        //      }
+        //
+        // fetchOrderTrades (private)
+        //
+        //      {
+        //          "book" => "btc_usdt",
+        //          "created_at" => "2021-11-24T12:30:52+0000",
+        //          "minor" => "-11.33047916",
+        //          "major" => "0.00020020",
+        //          "fees_amount" => "0.00000020",
+        //          "fees_currency" => "btc",
+        //          "minor_currency" => "usdt",
+        //          "major_currency" => "btc",
+        //          "oid" => "O0D2zcljjjQF5xlG",
+        //          "tid" => "52559030",
+        //          "price" => "56595.80",
+        //          "side" => "buy",
+        //          "maker_side" => "sell"
+        //      }
+        //
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $marketId = $this->safe_string($trade, 'book');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $side = $this->safe_string_2($trade, 'side', 'maker_side');
-        $amount = $this->safe_number_2($trade, 'amount', 'major');
+        $makerSide = $this->safe_string($trade, 'maker_side');
+        $takerOrMaker = null;
+        if ($side === $makerSide) {
+            $takerOrMaker = 'maker';
+        } else {
+            $takerOrMaker = 'taker';
+        }
+        $amount = $this->safe_string_2($trade, 'amount', 'major');
         if ($amount !== null) {
-            $amount = abs($amount);
+            $amount = Precise::string_abs($amount);
         }
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fees_amount');
+        $feeCost = $this->safe_string($trade, 'fees_amount');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fees_currency');
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
@@ -345,14 +400,14 @@ class bitso extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        $cost = $this->safe_number($trade, 'minor');
+        $cost = $this->safe_string($trade, 'minor');
         if ($cost !== null) {
-            $cost = abs($cost);
+            $cost = Precise::string_abs($cost);
         }
-        $price = $this->safe_number($trade, 'price');
+        $price = $this->safe_string($trade, 'price');
         $orderId = $this->safe_string($trade, 'oid');
         $id = $this->safe_string($trade, 'tid');
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -361,12 +416,12 @@ class bitso extends Exchange {
             'order' => $orderId,
             'type' => null,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -450,11 +505,11 @@ class bitso extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $orderType = $this->safe_string($order, 'type');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'original_amount');
-        $remaining = $this->safe_number($order, 'unfilled_amount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'original_amount');
+        $remaining = $this->safe_string($order, 'unfilled_amount');
         $clientOrderId = $this->safe_string($order, 'client_id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -476,7 +531,7 @@ class bitso extends Exchange {
             'fee' => null,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = 25, $params = array ()) {
@@ -552,6 +607,7 @@ class bitso extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $response,
         );
     }
@@ -619,7 +675,7 @@ class bitso extends Exchange {
         }
         if (is_array($response) && array_key_exists('success', $response)) {
             //
-            //     array("$success":false,"$error":array("$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"))
+            //     array("success":false,"error":array("code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"))
             //
             $success = $this->safe_value($response, 'success', false);
             if (gettype($success) === 'string') {

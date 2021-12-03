@@ -935,11 +935,11 @@ module.exports = class digifinex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber (order, 'executed_amount');
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'avg_price');
-        return this.safeOrder ({
+        const amount = this.safeString (order, 'amount');
+        const filled = this.safeString (order, 'executed_amount');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'avg_price');
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -961,7 +961,7 @@ module.exports = class digifinex extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1233,9 +1233,10 @@ module.exports = class digifinex extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         return {
             'info': depositAddress,
-            'code': code,
+            'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
         };
     }
 

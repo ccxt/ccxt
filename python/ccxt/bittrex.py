@@ -28,7 +28,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
-from ccxt.base.precise import Precise
 
 
 class bittrex(Exchange):
@@ -51,6 +50,8 @@ class bittrex(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -240,7 +241,9 @@ class bittrex(Exchange):
                 # 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
+                'BIFI': 'Bifrost Finance',
                 'MER': 'Mercury',  # conflict with Mercurial Finance
+                'PROS': 'Pros.Finance',
                 'REPV2': 'REP',
                 'TON': 'Tokamak Network',
             },
@@ -550,26 +553,25 @@ class bittrex(Exchange):
         #
         # public fetchTrades
         #
-        #     {
-        #         "id":"9c5589db-42fb-436c-b105-5e2edcb95673",
-        #         "executedAt":"2020-10-03T11:48:43.38Z",
-        #         "quantity":"0.17939626",
-        #         "rate":"0.03297952",
-        #         "takerSide":"BUY"
-        #     }
+        #      {
+        #          "id": "8a614d4e-e455-45b0-9aac-502b0aeb433f",
+        #          "executedAt": "2021-11-25T14:54:44.65Z",
+        #          "quantity": "30.00000000",
+        #          "rate": "1.72923112",
+        #          "takerSide": "SELL"
+        #      }
         #
         # private fetchOrderTrades
-        #
-        #     {
-        #         "id": "aaa3e9bd-5b86-4a21-8b3d-1275c1d30b8e",
-        #         "marketSymbol": "OMG-BTC",
-        #         "executedAt": "2020-10-02T16:00:30.3Z",
-        #         "quantity": "7.52710000",
-        #         "rate": "0.00034907",
-        #         "orderId": "3a3dbd33-3a30-4ae5-a41d-68d3c1ac537e",
-        #         "commission": "0.00000525",
-        #         "isTaker": False
-        #     }
+        #      {
+        #          "id": "8a614d4e-e455-45b0-9aac-502b0aeb433f",
+        #          "marketSymbol": "ADA-USDT",
+        #          "executedAt": "2021-11-25T14:54:44.65Z",
+        #          "quantity": "30.00000000",
+        #          "rate": "1.72923112",
+        #          "orderId": "6f7abf18-6901-4659-a48c-db0e88440ea4",
+        #          "commission": "0.38907700",
+        #          "isTaker":  True
+        #      }
         #
         timestamp = self.parse8601(self.safe_string(trade, 'executedAt'))
         id = self.safe_string(trade, 'id')
@@ -578,22 +580,19 @@ class bittrex(Exchange):
         market = self.safe_market(marketId, market, '-')
         priceString = self.safe_string(trade, 'rate')
         amountString = self.safe_string(trade, 'quantity')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         takerOrMaker = None
         isTaker = self.safe_value(trade, 'isTaker')
         if isTaker is not None:
             takerOrMaker = 'taker' if isTaker else 'maker'
         fee = None
-        feeCost = self.safe_number(trade, 'commission')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'commission')
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['quote'],
             }
         side = self.safe_string_lower(trade, 'takerSide')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -603,11 +602,11 @@ class bittrex(Exchange):
             'takerOrMaker': takerOrMaker,
             'type': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_time(self, params={}):
         response = self.publicGetPing(params)
@@ -671,7 +670,7 @@ class bittrex(Exchange):
         if since is not None:
             now = self.milliseconds()
             difference = abs(now - since)
-            sinceDate = self.ymd(since)
+            sinceDate = self.yyyymmdd(since)
             parts = sinceDate.split('-')
             sinceYear = self.safe_integer(parts, 0)
             sinceMonth = self.safe_integer(parts, 1)
@@ -1002,15 +1001,15 @@ class bittrex(Exchange):
             lastTradeTimestamp = self.parse8601(updatedAt)
         timestamp = self.parse8601(createdAt)
         type = self.safe_string_lower(order, 'type')
-        quantity = self.safe_number(order, 'quantity')
-        limit = self.safe_number(order, 'limit')
-        fillQuantity = self.safe_number(order, 'fillQuantity')
+        quantity = self.safe_string(order, 'quantity')
+        limit = self.safe_string(order, 'limit')
+        fillQuantity = self.safe_string(order, 'fillQuantity')
         commission = self.safe_number(order, 'commission')
-        proceeds = self.safe_number(order, 'proceeds')
+        proceeds = self.safe_string(order, 'proceeds')
         status = self.safe_string_lower(order, 'status')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         postOnly = (timeInForce == 'PO')
-        return self.safe_order({
+        return self.safe_order2({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
@@ -1035,7 +1034,7 @@ class bittrex(Exchange):
             },
             'info': order,
             'trades': None,
-        })
+        }, market)
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         if self.options['fetchClosedOrdersFilterBySince']:
@@ -1197,6 +1196,7 @@ class bittrex(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

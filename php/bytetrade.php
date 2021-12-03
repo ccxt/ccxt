@@ -145,44 +145,44 @@ class bytetrade extends Exchange {
             // that is because bytetrade is a DEX, supports people create coin with the same $name, but the $id($code) of coin is unique, so we should use the $id or $name and $id as the identity of coin.
             // For coin $name and symbol is same with CCXT, I use $name@$id as the key of commonCurrencies dict.
             // [{
-            //     "$name" => "CMT",      // $currency $name, non-unique
-            //     "$code" => "18",       // $currency $id, unique
+            //     "name" => "CMT",      // $currency $name, non-unique
+            //     "code" => "18",       // $currency $id, unique
             //     "type" => "crypto",
             //     "fullname" => "CyberMiles",
-            //     "$active" => true,
+            //     "active" => true,
             //     "chainType" => "ethereum",
             //     "basePrecision" => 18,
             //     "transferPrecision" => 10,
             //     "externalPrecision" => 18,
             //     "chainContractAddress" => "0xf85feea2fdd81d51177f6b8f35f0e6734ce45f5f",
-            //     "$limits" => {
-            //       "$deposit" => array(
+            //     "limits" => {
+            //       "deposit" => array(
             //         "min" => "0",
             //         "max" => "-1"
             //       ),
-            //       "$withdraw" => array(
+            //       "withdraw" => array(
             //         "min" => "0",
             //         "max" => "-1"
             //       }
             //     }
             //   ),
             //   {
-            //     "$name" => "CMT",
-            //     "$code" => "35",
+            //     "name" => "CMT",
+            //     "code" => "35",
             //     "type" => "crypto",
             //     "fullname" => "CyberMiles",
-            //     "$active" => true,
+            //     "active" => true,
             //     "chainType" => "cmt",
             //     "basePrecision" => 18,
             //     "transferPrecision" => 10,
             //     "externalPrecision" => 18,
             //     "chainContractAddress" => "0x0000000000000000000000000000000000000000",
-            //     "$limits" => {
-            //       "$deposit" => array(
+            //     "limits" => {
+            //       "deposit" => array(
             //         "min" => "1",
             //         "max" => "-1"
             //       ),
-            //       "$withdraw" => {
+            //       "withdraw" => {
             //         "min" => "10",
             //         "max" => "-1"
             //       }
@@ -332,11 +332,11 @@ class bytetrade extends Exchange {
         //
         //     array(
         //         {
-        //             "$symbol":"68719476706",
+        //             "symbol":"68719476706",
         //             "name":"ETH/BTC",
-        //             "$base":"2",
-        //             "$quote":"32",
-        //             "$timestamp":1575905991933,
+        //             "base":"2",
+        //             "quote":"32",
+        //             "timestamp":1575905991933,
         //             "datetime":"2019-12-09T15:39:51.933Z",
         //             "high":"0",
         //             "low":"0",
@@ -400,7 +400,7 @@ class bytetrade extends Exchange {
         //
         //     array(
         //         {
-        //             "$symbol":"68719476706",
+        //             "symbol":"68719476706",
         //             "name":"ETH/BTC",
         //             "base":"2",
         //             "quote":"32",
@@ -568,12 +568,12 @@ class bytetrade extends Exchange {
         $timestamp = $this->safe_integer($order, 'timestamp');
         $datetime = $this->safe_string($order, 'datetime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'filled');
-        $remaining = $this->safe_number($order, 'remaining');
-        $cost = $this->safe_number($order, 'cost');
-        $average = $this->safe_number($order, 'average');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string($order, 'filled');
+        $remaining = $this->safe_string($order, 'remaining');
+        $cost = $this->safe_string($order, 'cost');
+        $average = $this->safe_string($order, 'average');
         $id = $this->safe_string($order, 'id');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
@@ -587,7 +587,7 @@ class bytetrade extends Exchange {
             'cost' => $feeCost,
             'rate' => $feeRate,
         );
-        return array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -609,7 +609,7 @@ class bytetrade extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1135,7 +1135,7 @@ class bytetrade extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'chainType' => $chainType,
+            'network' => $chainType,
             'info' => $response,
         );
     }

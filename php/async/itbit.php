@@ -164,8 +164,8 @@ class itbit extends Exchange {
         // fetchMyTrades (private)
         //
         //     {
-        //         "$orderId" => "248ffda4-83a0-4033-a5bb-8929d523f59f",
-        //         "$timestamp" => "2015-05-11T14:48:01.9870000Z",
+        //         "orderId" => "248ffda4-83a0-4033-a5bb-8929d523f59f",
+        //         "timestamp" => "2015-05-11T14:48:01.9870000Z",
         //         "instrument" => "XBTUSD",
         //         "direction" => "buy",                      // buy or sell
         //         "currency1" => "XBT",                      // $base currency
@@ -175,8 +175,8 @@ class itbit extends Exchange {
         //         "rate" => "250.53000000",
         //         "commissionPaid" => "0.00000000",   // net $trade fee paid after using any available rebate balance
         //         "commissionCurrency" => "USD",
-        //         "$rebatesApplied" => "-0.000125265", // negative values represent $amount of rebate balance used for trades removing liquidity from order book; positive values represent $amount of rebate balance earned from trades adding liquidity to order book
-        //         "$rebateCurrency" => "USD",
+        //         "rebatesApplied" => "-0.000125265", // negative values represent $amount of rebate balance used for trades removing liquidity from order book; positive values represent $amount of rebate balance earned from trades adding liquidity to order book
+        //         "rebateCurrency" => "USD",
         //         "executionId" => "23132"
         //     }
         //
@@ -289,14 +289,14 @@ class itbit extends Exchange {
         //         walletName => 'Wallet',
         //         $status => 'completed' ),
         //
-        //     { "$time" => "2018-01-02T19:52:22.4176503",
+        //     { "time" => "2018-01-02T19:52:22.4176503",
         //     "amount" => "0.50000000",
-        //     "$status" => "completed",
-        //     "$txnHash" => "1b6fff67ed83cb9e9a38ca4976981fc047322bc088430508fe764a127d3ace95",
-        //     "$currency" => "XBT",
+        //     "status" => "completed",
+        //     "txnHash" => "1b6fff67ed83cb9e9a38ca4976981fc047322bc088430508fe764a127d3ace95",
+        //     "currency" => "XBT",
         //     "walletName" => "Wallet",
-        //     "$transactionType" => "Deposit",
-        //     "$destinationAddress" => "3AAWTH9et4e8o51YKp9qPpmujrNXKwHWNX"}
+        //     "transactionType" => "Deposit",
+        //     "destinationAddress" => "3AAWTH9et4e8o51YKp9qPpmujrNXKwHWNX"}
         $items = $response['fundingHistory'];
         $result = array();
         for ($i = 0; $i < count($items); $i++) {
@@ -491,15 +491,15 @@ class itbit extends Exchange {
     public function parse_order($order, $market = null) {
         //
         //     {
-        //         "$id" => "13d6af57-8b0b-41e5-af30-becf0bcc574d",
+        //         "id" => "13d6af57-8b0b-41e5-af30-becf0bcc574d",
         //         "walletId" => "7e037345-1288-4c39-12fe-d0f99a475a98",
-        //         "$side" => "buy",
+        //         "side" => "buy",
         //         "instrument" => "XBTUSD",
-        //         "$type" => "limit",
+        //         "type" => "limit",
         //         "currency" => "XBT",
-        //         "$amount" => "2.50000000",
+        //         "amount" => "2.50000000",
         //         "displayAmount" => "2.50000000",
-        //         "$price" => "650.00000000",
+        //         "price" => "650.00000000",
         //         "volumeWeightedAveragePrice" => "0.00000000",
         //         "amountFilled" => "0.00000000",
         //         "createdTime" => "2014-02-11T17:05:15Z",
@@ -507,23 +507,23 @@ class itbit extends Exchange {
         //         "funds" => null,
         //         "metadata" => array(),
         //         "clientOrderIdentifier" => null,
-        //         "$postOnly" => "False"
+        //         "postOnly" => "False"
         //     }
         //
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
         $symbol = $this->markets_by_id[$order['instrument']]['symbol'];
         $timestamp = $this->parse8601($order['createdTime']);
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'amountFilled');
+        $amount = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string($order, 'amountFilled');
         $fee = null;
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'volumeWeightedAveragePrice');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'volumeWeightedAveragePrice');
         $clientOrderId = $this->safe_string($order, 'clientOrderIdentifier');
         $id = $this->safe_string($order, 'id');
         $postOnlyString = $this->safe_string($order, 'postOnly');
         $postOnly = ($postOnlyString === 'True');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -546,7 +546,7 @@ class itbit extends Exchange {
             'fee' => $fee,
             // 'trades' => $this->parse_trades($order['trades'], $market),
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function nonce() {

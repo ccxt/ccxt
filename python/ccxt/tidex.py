@@ -521,6 +521,8 @@ class tidex(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
+        amountString = str(amount)
+        priceString = str(price)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -532,18 +534,18 @@ class tidex(Exchange):
         response = self.privatePostTrade(self.extend(request, params))
         id = None
         status = 'open'
-        filled = 0.0
-        remaining = amount
+        filledString = '0.0'
+        remainingString = amountString
         returnResult = self.safe_value(response, 'return')
         if returnResult is not None:
             id = self.safe_string(returnResult, 'order_id')
             if id == '0':
                 id = self.safe_string(returnResult, 'init_order_id')
                 status = 'closed'
-            filled = self.safe_number(returnResult, 'received', filled)
-            remaining = self.safe_number(returnResult, 'remains', amount)
+            filledString = self.safe_string(returnResult, 'received', filledString)
+            remainingString = self.safe_string(returnResult, 'remains', amountString)
         timestamp = self.milliseconds()
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -552,18 +554,18 @@ class tidex(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
+            'price': priceString,
             'cost': None,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
+            'amount': amountString,
+            'remaining': remainingString,
+            'filled': filledString,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
             'info': response,
             'clientOrderId': None,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -589,14 +591,14 @@ class tidex(Exchange):
         symbol = self.safe_symbol(marketId, market)
         remaining = None
         amount = None
-        price = self.safe_number(order, 'rate')
+        price = self.safe_string(order, 'rate')
         if 'start_amount' in order:
-            amount = self.safe_number(order, 'start_amount')
-            remaining = self.safe_number(order, 'amount')
+            amount = self.safe_string(order, 'start_amount')
+            remaining = self.safe_string(order, 'amount')
         else:
-            remaining = self.safe_number(order, 'amount')
+            remaining = self.safe_string(order, 'amount')
         fee = None
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -618,7 +620,7 @@ class tidex(Exchange):
             'fee': fee,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

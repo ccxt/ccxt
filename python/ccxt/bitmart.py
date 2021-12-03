@@ -259,7 +259,9 @@ class bitmart(Exchange):
                     '50021': BadRequest,  # 400, Invalid %s
                     '50022': ExchangeNotAvailable,  # 400, Service unavailable
                     '50023': BadSymbol,  # 400, This Symbol can't place order by api
+                    '50029': InvalidOrder,  # {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
                     '53000': AccountSuspended,  # 403, Your account is frozen due to security policies. Please contact customer service
+                    '53001': AccountSuspended,  # {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
                     '57001': BadRequest,  # 405, Method Not Allowed
                     '58001': BadRequest,  # 415, Unsupported Media Type
                     '59001': ExchangeError,  # 500, User account not found
@@ -306,6 +308,9 @@ class bitmart(Exchange):
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
                 'GDT': 'Gorilla Diamond',
+                '$HERO': 'Step Hero',
+                '$PAC': 'PAC',
+                'MIM': 'MIM Swarm',
                 'MVP': 'MVP Coin',
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
@@ -922,15 +927,15 @@ class bitmart(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # public fetchTrades spot
+        # public fetchTrades spot( amount = count * price )
         #
         #     {
-        #         "amount":"0.005703",
-        #         "order_time":1599652045394,
-        #         "price":"0.034029",
-        #         "count":"0.1676",
-        #         "type":"sell"
-        #     }
+        #          "amount": "818.94",
+        #          "order_time": "1637601839035",    # ETH/USDT
+        #          "price": "4221.99",
+        #          "count": "0.19397",
+        #          "type": "buy"
+        #      }
         #
         # public fetchTrades contract, private fetchMyTrades contract
         #
@@ -981,28 +986,26 @@ class bitmart(Exchange):
         execType = self.safe_string(trade, 'exec_type')
         if execType is not None:
             takerOrMaker = 'maker' if (execType == 'M') else 'taker'
-        price = self.safe_number_2(trade, 'price', 'deal_price')
-        price = self.safe_number(trade, 'price_avg', price)
-        amount = self.safe_number_2(trade, 'amount', 'deal_vol')
-        amount = self.safe_number(trade, 'size', amount)
-        cost = self.safe_number_2(trade, 'count', 'notional')
-        if (cost is None) and (price is not None) and (amount is not None):
-            cost = amount * price
+        priceString = self.safe_string_2(trade, 'price', 'deal_price')
+        priceString = self.safe_string(trade, 'price_avg', priceString)
+        amountString = self.safe_string_2(trade, 'count', 'deal_vol')
+        amountString = self.safe_string(trade, 'size', amountString)
+        costString = self.safe_string_2(trade, 'amount', 'notional')
         orderId = self.safe_integer(trade, 'order_id')
         marketId = self.safe_string_2(trade, 'contract_id', 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        feeCost = self.safe_number(trade, 'fees')
+        feeCostString = self.safe_string(trade, 'fees')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_coin_name')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             if (feeCurrencyCode is None) and (market is not None):
                 feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -1011,12 +1014,12 @@ class bitmart(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -1518,28 +1521,22 @@ class bitmart(Exchange):
         status = None
         if market is not None:
             status = self.parse_order_status_by_type(market['type'], self.safe_string(order, 'status'))
-        price = self.safe_number(order, 'price')
-        average = self.safe_number_2(order, 'price_avg', 'done_avg_price')
-        amount = self.safe_number_2(order, 'size', 'vol')
-        filled = self.safe_number_2(order, 'filled_size', 'done_vol')
-        side = self.safe_string(order, 'side')
+        amount = self.safe_string_2(order, 'size', 'vol')
+        filled = self.safe_string_2(order, 'filled_size', 'done_vol')
+        average = self.safe_string_2(order, 'price_avg', 'done_avg_price')
+        price = self.safe_string(order, 'price')
+        side = self.safe_string_2(order, 'way', 'side')
         # 1 = Open long
         # 2 = Close short
         # 3 = Close long
         # 4 = Open short
-        side = self.safe_string(order, 'way', side)
         category = self.safe_integer(order, 'category')
         type = self.safe_string(order, 'type')
         if category == 1:
             type = 'limit'
         elif category == 2:
             type = 'market'
-        if type == 'market':
-            if price == 0.0:
-                price = None
-            if average == 0.0:
-                average = None
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'info': order,
@@ -1561,7 +1558,7 @@ class bitmart(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     def parse_order_status_by_type(self, type, status):
         statusesByType = {
@@ -2018,6 +2015,7 @@ class bitmart(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,  # TODO: parse
             'info': response,
         }
 

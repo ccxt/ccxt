@@ -897,10 +897,10 @@ class delta(Exchange):
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'order_type')
         type = type.replace('_order', '')
-        price = self.safe_number(order, 'limit_price')
-        amount = self.safe_number(order, 'size')
-        remaining = self.safe_number(order, 'unfilled_size')
-        average = self.safe_number(order, 'average_fill_price')
+        price = self.safe_string(order, 'limit_price')
+        amount = self.safe_string(order, 'size')
+        remaining = self.safe_string(order, 'unfilled_size')
+        average = self.safe_string(order, 'average_fill_price')
         fee = None
         feeCost = self.safe_number(order, 'paid_commission')
         if feeCost is not None:
@@ -913,7 +913,7 @@ class delta(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -932,7 +932,7 @@ class delta(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -1357,6 +1357,7 @@ class delta(Exchange):
             'currency': code,
             'address': address,
             'tag': None,
+            'network': None,
             'info': response,
         }
 

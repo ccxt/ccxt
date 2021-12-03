@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.precise import Precise
 
 
 class bitflyer(Exchange):
@@ -230,6 +229,30 @@ class bitflyer(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public) v1
+        #
+        #     {
+        #          "id":2278466664,
+        #          "side":"SELL",
+        #          "price":56810.7,
+        #          "size":0.08798,
+        #          "exec_date":"2021-11-19T11:46:39.323",
+        #          "buy_child_order_acceptance_id":"JRF20211119-114209-236525",
+        #          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
+        #      }
+        #
+        #      {
+        #          "id":2278463423,
+        #          "side":"BUY",
+        #          "price":56757.83,
+        #          "size":0.6003,"exec_date":"2021-11-19T11:28:00.523",
+        #          "buy_child_order_acceptance_id":"JRF20211119-112800-236526",
+        #          "sell_child_order_acceptance_id":"JRF20211119-112734-062017"
+        #      }
+        #
+        #
+        #
         side = self.safe_string_lower(trade, 'side')
         if side is not None:
             if len(side) < 1:
@@ -244,14 +267,11 @@ class bitflyer(Exchange):
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'id')
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -261,11 +281,11 @@ class bitflyer(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -315,10 +335,10 @@ class bitflyer(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(self.safe_string(order, 'child_order_date'))
-        amount = self.safe_number(order, 'size')
-        remaining = self.safe_number(order, 'outstanding_size')
-        filled = self.safe_number(order, 'executed_size')
-        price = self.safe_number(order, 'price')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'size')
+        filled = self.safe_string(order, 'executed_size')
+        remaining = self.safe_string(order, 'outstanding_size')
         status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = self.safe_string_lower(order, 'child_order_type')
         side = self.safe_string_lower(order, 'side')
@@ -333,7 +353,7 @@ class bitflyer(Exchange):
                 'rate': None,
             }
         id = self.safe_string(order, 'child_order_acceptance_id')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'info': order,
@@ -355,7 +375,7 @@ class bitflyer(Exchange):
             'fee': fee,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
         if symbol is None:

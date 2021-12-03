@@ -141,24 +141,24 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"4677e56a42f0c29872f3a6e75f5d39d2f07c748c",
-        //         "$data":array(
+        //         "data":array(
         //             "timezone":"UTC",
         //             "serverTime":1605821914333,
         //             "symbols":array(
         //                 array(
-        //                     "$id":"btcvnd",
-        //                     "$symbol":"BTC\/VND",
+        //                     "id":"btcvnd",
+        //                     "symbol":"BTC\/VND",
         //                     "coin":"btc",
         //                     "currency":"vnd",
-        //                     "$baseId":1,
-        //                     "$quoteId":0,
-        //                     "$active":true,
+        //                     "baseId":1,
+        //                     "quoteId":0,
+        //                     "active":true,
         //                     "base_precision":"0.0000010000",
         //                     "quote_precision":"1.0000000000",
         //                     "minimum_quantity":"0.0000010000",
         //                     "minimum_amount":"250000.0000000000",
-        //                     "$precision":array("price":0,"amount":6,"cost":6),
-        //                     "$limits":array(
+        //                     "precision":array("price":0,"amount":6,"cost":6),
+        //                     "limits":array(
         //                         "amount":array("min":"0.0000010000"),
         //                         "price":array("min":"1.0000000000"),
         //                         "cost":array("min":"250000.0000000000"),
@@ -227,7 +227,7 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"2514c8012d94ea375018fc13e0b5d4d896e435df",
-        //         "$data":array(
+        //         "data":array(
         //             "BTC":array(
         //                 "name":"Bitcoin",
         //                 "unified_cryptoasset_id":1,
@@ -298,10 +298,10 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
-        //         "$data":array(
-        //             "vnd":array("$balance":0,"available_balance":0),
-        //             "btc":array("$balance":0,"available_balance":0),
-        //             "eth":array("$balance":0,"available_balance":0),
+        //         "data":array(
+        //             "vnd":array("balance":0,"available_balance":0),
+        //             "btc":array("balance":0,"available_balance":0),
+        //             "eth":array("balance":0,"available_balance":0),
         //         ),
         //     }
         //
@@ -397,7 +397,7 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"376cee43af26deabcd3762ab11a876b6e7a71e82",
-        //         "$data":{
+        //         "data":{
         //             "bids":[
         //                 ["413342637.0000000000","0.165089"],
         //                 ["413274576.0000000000","0.03"],
@@ -408,7 +408,7 @@ class vcc extends Exchange {
         //                 ["417248934.0000000000","0.030006"],
         //                 ["417458879.0000000000","0.1517"],
         //             ],
-        //             "$timestamp":"1605841619147"
+        //             "timestamp":"1605841619147"
         //         }
         //     }
         //
@@ -469,7 +469,7 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"fc521161aebe506178b8588cd2adb598eaf1018e",
-        //         "$data":{
+        //         "data":{
         //             "BTC_VND":array(
         //                 "base_id":1,
         //                 "quote_id":0,
@@ -502,7 +502,7 @@ class vcc extends Exchange {
         //
         //     {
         //         "trade_id":181509285,
-        //         "$price":"415933022.0000000000",
+        //         "price":"415933022.0000000000",
         //         "base_volume":"0.0022080000",
         //         "quote_volume":"918380.1125760000",
         //         "trade_timestamp":1605842150357,
@@ -513,14 +513,14 @@ class vcc extends Exchange {
         //
         //     {
         //         "trade_type":"sell",
-        //         "$fee":"0.0610578086",
-        //         "$id":1483372,
+        //         "fee":"0.0610578086",
+        //         "id":1483372,
         //         "created_at":1606581578368,
         //         "currency":"usdt",
         //         "coin":"btc",
-        //         "$price":"17667.1900000000",
+        //         "price":"17667.1900000000",
         //         "quantity":"0.0017280000",
-        //         "$amount":"30.5289043200",
+        //         "amount":"30.5289043200",
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'trade_timestamp', 'created_at');
@@ -583,7 +583,7 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"1f811b533143f739008a3e4ecaaab2ec82ea50d4",
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "trade_id":181509285,
         //                 "price":"415933022.0000000000",
@@ -622,16 +622,16 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"1fdfb0ec85b666871d62fe59d098d01839b05e97",
-        //         "$data":{
+        //         "data":{
         //             "current_page":1,
-        //             "$data":array(
+        //             "data":array(
         //                 {
         //                     "id":85391,
         //                     "user_id":253063,
         //                     "transaction_id":"0x885719cee5910ca509a223d208797510e80eb27a2f1d51a71bb4ccb82d538131",
         //                     "internal_transaction_id":null,
         //                     "temp_transaction_id":"2367",
-        //                     "$currency":"usdt",
+        //                     "currency":"usdt",
         //                     "amount":"30.0000000000",
         //                     "btc_amount":"0.0000000000",
         //                     "usdt_amount":"0.0000000000",
@@ -690,20 +690,20 @@ class vcc extends Exchange {
         // fetchTransactions, fetchDeposits, fetchWithdrawals
         //
         //     {
-        //         "$id":85391,
+        //         "id":85391,
         //         "user_id":253063,
         //         "transaction_id":"0x885719cee5910ca509a223d208797510e80eb27a2f1d51a71bb4ccb82d538131",
         //         "internal_transaction_id":null,
         //         "temp_transaction_id":"2367",
-        //         "$currency":"usdt",
-        //         "$amount":"30.0000000000",
+        //         "currency":"usdt",
+        //         "amount":"30.0000000000",
         //         "btc_amount":"0.0000000000",
         //         "usdt_amount":"0.0000000000",
-        //         "$fee":"0.0000000000",
+        //         "fee":"0.0000000000",
         //         "tx_cost":"0.0000000000",
         //         "confirmation":0,
         //         "deposit_code":null,
-        //         "$status":"success",
+        //         "status":"success",
         //         "bank_name":null,
         //         "foreign_bank_account":null,
         //         "foreign_bank_account_holder":null,
@@ -824,15 +824,15 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"213fc0d433f38307f736cae1cbda4cc310469b7a",
-        //         "$data":{
+        //         "data":{
         //             "coin":"btc",
         //             "currency":"usdt",
         //             "trade_type":"buy",
-        //             "$type":"ceiling_market",
-        //             "$ceiling":"30",
+        //             "type":"ceiling_market",
+        //             "ceiling":"30",
         //             "user_id":253063,
         //             "email":"igor.kroitor@gmail.com",
-        //             "$side":"buy",
+        //             "side":"buy",
         //             "quantity":"0.00172800",
         //             "status":"pending",
         //             "fee":0,
@@ -850,12 +850,12 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"d9b1159d2bcefa2388be156e32ddc7cc324400ee",
-        //         "$data":{
+        //         "data":{
         //             "id":41230,
         //             "trade_type":"sell",
-        //             "$type":"limit",
+        //             "type":"limit",
         //             "quantity":"1",
-        //             "$price":"14.99",
+        //             "price":"14.99",
         //             "currency":"usdt",
         //             "coin":"neo",
         //             "status":"pending",
@@ -893,14 +893,14 @@ class vcc extends Exchange {
         //
         //     {
         //         "dataVersion":"6d72fb82a9c613c8166581a887e1723ce5a937ff",
-        //         "$data":array(
-        //             "$data":array(
+        //         "data":array(
+        //             "data":array(
         //                 array(
         //                     "id":410,
         //                     "trade_type":"sell",
         //                     "currency":"usdt",
         //                     "coin":"neo",
-        //                     "$type":"limit",
+        //                     "type":"limit",
         //                     "quantity":"1.0000000000",
         //                     "price":"14.9900000000",
         //                     "executed_quantity":"0.0000000000",
@@ -938,37 +938,37 @@ class vcc extends Exchange {
         //         "coin":"btc",
         //         "currency":"usdt",
         //         "trade_type":"buy",
-        //         "$type":"ceiling_market",
+        //         "type":"ceiling_market",
         //         "ceiling":"30",
         //         "user_id":253063,
         //         "email":"igor.kroitor@gmail.com",
-        //         "$side":"buy",
+        //         "side":"buy",
         //         "quantity":"0.00172800",
-        //         "$status":"pending",
-        //         "$fee":0,
+        //         "status":"pending",
+        //         "fee":0,
         //         "created_at":1606571333035,
         //         "updated_at":1606571333035,
         //         "instrument_symbol":"BTCUSDT",
-        //         "$remaining":"0.00172800",
+        //         "remaining":"0.00172800",
         //         "fee_rate":"0.002",
-        //         "$id":88214435
+        //         "id":88214435
         //     }
         //
         // limit $order
         //
         //     {
-        //         "$id":41230,
+        //         "id":41230,
         //         "trade_type":"sell",
-        //         "$type":"limit",
+        //         "type":"limit",
         //         "quantity":"1",
-        //         "$price":"14.99",
+        //         "price":"14.99",
         //         "currency":"usdt",
         //         "coin":"neo",
-        //         "$status":"pending",
+        //         "status":"pending",
         //         "is_stop" => "1",
         //         "stop_price" => "13",
         //         "stop_condition" => "ge",
-        //         "$fee":0,
+        //         "fee":0,
         //         "created_at":1560244052168,
         //         "updated_at":1560244052168
         //     }
@@ -980,14 +980,14 @@ class vcc extends Exchange {
         $marketId = $baseId . '_' . $quoteId;
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $amount = $this->safe_number($order, 'quantity');
-        $filled = $this->safe_number($order, 'executed_quantity');
+        $amount = $this->safe_string($order, 'quantity');
+        $filled = $this->safe_string($order, 'executed_quantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $cost = $this->safe_number($order, 'ceiling');
+        $cost = $this->safe_string($order, 'ceiling');
         $id = $this->safe_string($order, 'id');
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'executed_price');
-        $remaining = $this->safe_number($order, 'remaining');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'executed_price');
+        $remaining = $this->safe_string($order, 'remaining');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'trade_type');
         $fee = array(
@@ -1000,7 +1000,7 @@ class vcc extends Exchange {
             $lastTradeTimestamp = $updated;
         }
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => $id,
             'timestamp' => $created,
@@ -1022,7 +1022,7 @@ class vcc extends Exchange {
             'fee' => $fee,
             'trades' => null,
             'info' => $order,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -1035,8 +1035,8 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"57448aa1fb8f227254e8e2e925b3ade8e1e5bbef",
-        //         "$data":{
-        //             "$id":88265741,
+        //         "data":{
+        //             "id":88265741,
         //             "user_id":253063,
         //             "email":"igor.kroitor@gmail.com",
         //             "updated_at":1606581578141,
@@ -1091,9 +1091,9 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"89aa11497f23fdd34cf9de9c55acfad863c78780",
-        //         "$data":array(
+        //         "data":array(
         //             "current_page":1,
-        //             "$data":array(
+        //             "data":array(
         //                 array(
         //                     "id":88489678,
         //                     "email":"igor.kroitor@gmail.com",
@@ -1101,7 +1101,7 @@ class vcc extends Exchange {
         //                     "created_at":1606628593567,
         //                     "coin":"btc",
         //                     "currency":"usdt",
-        //                     "type":"$limit",
+        //                     "type":"limit",
         //                     "trade_type":"buy",
         //                     "executed_price":"0.0000000000",
         //                     "price":"10000.0000000000",
@@ -1169,9 +1169,9 @@ class vcc extends Exchange {
         //     {
         //         "message":null,
         //         "dataVersion":"eb890af684cf84e20044e9a9771b96302e7b8dec",
-        //         "$data":array(
+        //         "data":array(
         //             "current_page":1,
-        //             "$data":array(
+        //             "data":array(
         //                 array(
         //                     "trade_type":"sell",
         //                     "fee":"0.0610578086",
@@ -1212,20 +1212,20 @@ class vcc extends Exchange {
         //
         //     {
         //         "dataVersion":"6d72fb82a9c613c8166581a887e1723ce5a937ff",
-        //         "$data":{
-        //             "$status" => "REQUESTED",
+        //         "data":{
+        //             "status" => "REQUESTED",
         //             "blockchain_address" => "",
-        //             "$currency" => "btc"
+        //             "currency" => "btc"
         //         }
         //     }
         //
         //     {
         //         "dataVersion":"6d72fb82a9c613c8166581a887e1723ce5a937ff",
-        //         "$data":{
-        //             "$status" => "PROVISIONED",
+        //         "data":{
+        //             "status" => "PROVISIONED",
         //             "blockchain_address" => "rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
         //             "blockchain_tag" => "920396135",
-        //             "$currency" => "xrp"
+        //             "currency" => "xrp"
         //         }
         //     }
         //
@@ -1242,6 +1242,7 @@ class vcc extends Exchange {
             'currency' => $this->safe_currency_code($currencyId),
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $data,
         );
     }
@@ -1276,11 +1277,11 @@ class vcc extends Exchange {
             return;
         }
         //
-        //     array("$message":"Insufficient balance.")
-        //     array("$message":"Unauthenticated.") // wrong api key
-        //     array("$message":"The given data was invalid.","errors":array("signature":["HMAC signature is invalid"]))
-        //     array("$code":504,"$message":"Gateway Timeout","description":"")
-        //     array("$code":429,"$message":"Too many requests","description":"Too many requests")
+        //     array("message":"Insufficient balance.")
+        //     array("message":"Unauthenticated.") // wrong api key
+        //     array("message":"The given data was invalid.","errors":array("signature":["HMAC signature is invalid"]))
+        //     array("code":504,"message":"Gateway Timeout","description":"")
+        //     array("code":429,"message":"Too many requests","description":"Too many requests")
         //
         $message = $this->safe_string($response, 'message');
         if ($message !== null) {

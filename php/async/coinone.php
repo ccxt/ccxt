@@ -242,22 +242,22 @@ class coinone extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "$timestamp" => "1416893212",
-        //         "$price" => "420000.0",
+        //         "timestamp" => "1416893212",
+        //         "price" => "420000.0",
         //         "qty" => "0.1",
-        //         "$is_ask" => "1"
+        //         "is_ask" => "1"
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "$timestamp" => "1416561032",
-        //         "$price" => "419000.0",
+        //         "timestamp" => "1416561032",
+        //         "price" => "419000.0",
         //         "type" => "bid",
         //         "qty" => "0.001",
-        //         "$feeRate" => "-0.0015",
-        //         "$fee" => "-0.0000015",
-        //         "$orderId" => "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
+        //         "feeRate" => "-0.0015",
+        //         "fee" => "-0.0000015",
+        //         "orderId" => "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
         //     }
         //
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
@@ -330,7 +330,7 @@ class coinone extends Exchange {
         //         "errorCode" => "0",
         //         "timestamp" => "1416895635",
         //         "currency" => "btc",
-        //         "$completeOrders" => array(
+        //         "completeOrders" => array(
         //             {
         //                 "timestamp" => "1416893212",
         //                 "price" => "420000.0",
@@ -382,7 +382,7 @@ class coinone extends Exchange {
         //         "result" => "success",
         //         "errorCode" => "0",
         //         "status" => "live",
-        //         "$info" => {
+        //         "info" => {
         //             "orderId" => "32FF744B-D501-423A-8BA1-05BB6BE7814A",
         //             "currency" => "BTC",
         //             "type" => "bid",
@@ -422,16 +422,16 @@ class coinone extends Exchange {
         // fetchOrder
         //
         //     {
-        //         "$status" => "live", // injected in fetchOrder
+        //         "status" => "live", // injected in fetchOrder
         //         "orderId" => "32FF744B-D501-423A-8BA1-05BB6BE7814A",
         //         "currency" => "BTC",
         //         "type" => "bid",
-        //         "$price" => "2922000.0",
+        //         "price" => "2922000.0",
         //         "qty" => "115.4950",
         //         "remainQty" => "45.4950",
         //         "feeRate" => "0.0003",
-        //         "$fee" => "0",
-        //         "$timestamp" => "1499340941"
+        //         "fee" => "0",
+        //         "timestamp" => "1499340941"
         //     }
         //
         // fetchOpenOrders
@@ -439,15 +439,15 @@ class coinone extends Exchange {
         //     {
         //         "index" => "0",
         //         "orderId" => "68665943-1eb5-4e4b-9d76-845fc54f5489",
-        //         "$timestamp" => "1449037367",
-        //         "$price" => "444000.0",
+        //         "timestamp" => "1449037367",
+        //         "price" => "444000.0",
         //         "qty" => "0.3456",
         //         "type" => "ask",
         //         "feeRate" => "-0.0015"
         //     }
         //
         $id = $this->safe_string($order, 'orderId');
-        $price = $this->safe_number($order, 'price');
+        $price = $this->safe_string($order, 'price');
         $timestamp = $this->safe_timestamp($order, 'timestamp');
         $side = $this->safe_string($order, 'type');
         if ($side === 'ask') {
@@ -455,13 +455,14 @@ class coinone extends Exchange {
         } else if ($side === 'bid') {
             $side = 'buy';
         }
-        $remaining = $this->safe_number($order, 'remainQty');
-        $amount = $this->safe_number($order, 'qty');
+        $remaining = $this->safe_string($order, 'remainQty');
+        $amount = $this->safe_string($order, 'qty');
         $status = $this->safe_string($order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if ($status === 'live') {
             if (($remaining !== null) && ($amount !== null)) {
-                if ($remaining < $amount) {
+                $isLessThan = Precise::string_lt($remaining, $amount);
+                if ($isLessThan) {
                     $status = 'canceled';
                 }
             }
@@ -495,7 +496,7 @@ class coinone extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -517,7 +518,7 @@ class coinone extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -536,7 +537,7 @@ class coinone extends Exchange {
         //     {
         //         "result" => "success",
         //         "errorCode" => "0",
-        //         "$limitOrders" => array(
+        //         "limitOrders" => array(
         //             {
         //                 "index" => "0",
         //                 "orderId" => "68665943-1eb5-4e4b-9d76-845fc54f5489",
@@ -570,7 +571,7 @@ class coinone extends Exchange {
         //     {
         //         "result" => "success",
         //         "errorCode" => "0",
-        //         "$completeOrders" => array(
+        //         "completeOrders" => array(
         //             {
         //                 "timestamp" => "1416561032",
         //                 "price" => "419000.0",
@@ -707,7 +708,7 @@ class coinone extends Exchange {
             $result = $response['result'];
             if ($result !== 'success') {
                 //
-                //    array(  "$errorCode" => "405",  "status" => "maintenance",  "$result" => "error")
+                //    array(  "errorCode" => "405",  "status" => "maintenance",  "result" => "error")
                 //
                 $errorCode = $this->safe_string($response, 'errorCode');
                 $feedback = $this->id . ' ' . $body;

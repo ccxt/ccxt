@@ -767,16 +767,15 @@ module.exports = class bitget extends Exchange {
         //
         // spot
         //
-        //     {
-        //         "base_currency":"btc",
-        //         "quote_currency":"usdt",
-        //         "symbol":"btc_usdt",
-        //         "tick_size":"2",
-        //         "size_increment":"4",
-        //         "status":"1",
-        //         "base_asset_precision":"8"
-        //     }
-        //
+        //      {
+        //          "symbol": "BTC_USDT",
+        //          "status": "online",
+        //          "base_currency": "BTC",
+        //          "quote_currency": "USDT",
+        //          "tick_size": "2",
+        //          "size_increment": "4",
+        //          "base_asset_precision": "4"
+        //      }
         //
         // swap
         //
@@ -822,7 +821,7 @@ module.exports = class bitget extends Exchange {
         const status = this.safeString (market, 'status');
         let active = undefined;
         if (status !== undefined) {
-            active = (status === '1');
+            active = (status === '1') || (status === 'online');
         }
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
         return this.extend (fees, {
@@ -1337,9 +1336,6 @@ module.exports = class bitget extends Exchange {
         const priceString = this.safeString (trade, 'price');
         let amountString = this.safeString2 (trade, 'filled_amount', 'order_qty');
         amountString = this.safeString2 (trade, 'size', 'amount', amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
@@ -1364,22 +1360,21 @@ module.exports = class bitget extends Exchange {
         } else {
             feeCostString = Precise.stringNeg (feeCostString);
         }
-        const feeCost = this.parseNumber (feeCostString);
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrency = (side === 'buy') ? base : quote;
             fee = {
                 // fee is either a positive number (invitation rebate)
                 // or a negative number (transaction fee deduction)
                 // therefore we need to invert the fee
                 // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             };
         }
         const orderId = this.safeString (trade, 'order_id');
         const id = this.safeString2 (trade, 'trade_id', 'id');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1389,11 +1384,11 @@ module.exports = class bitget extends Exchange {
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, limit = undefined, since = undefined, params = {}) {
@@ -1916,11 +1911,11 @@ module.exports = class bitget extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const amount = this.safeNumber2 (order, 'amount', 'size');
-        const filled = this.safeNumber2 (order, 'filled_amount', 'filled_qty');
-        const cost = this.safeNumber (order, 'filled_cash_amount');
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'price_avg');
+        const amount = this.safeString2 (order, 'amount', 'size');
+        const filled = this.safeString2 (order, 'filled_amount', 'filled_qty');
+        const cost = this.safeString (order, 'filled_cash_amount');
+        const price = this.safeString (order, 'price');
+        const average = this.safeString (order, 'price_avg');
         const status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         const feeCost = this.safeNumber2 (order, 'filled_fees', 'fee');
         let fee = undefined;
@@ -1932,7 +1927,7 @@ module.exports = class bitget extends Exchange {
             };
         }
         const clientOrderId = this.safeString (order, 'client_oid');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1954,7 +1949,7 @@ module.exports = class bitget extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -2612,15 +2607,15 @@ module.exports = class bitget extends Exchange {
             'symbol': market['id'],
             'method': 'matchresults',
             // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
-            // 'start_date': this.ymd (since),
-            // 'end_date': this.ymd (this.milliseconds ()),
+            // 'start_date': this.yyyymmdd (since),
+            // 'end_date': this.yyyymmdd (this.milliseconds ()),
             // 'size': 100,
             // 'direct': 'next',
         };
         if (since !== undefined) {
-            request['start_date'] = this.ymd (since);
+            request['start_date'] = this.yyyymmdd (since);
             const end = this.sum (since, 2 * 24 * 60 * 60 * 1000);
-            request['end_date'] = this.ymd (end);
+            request['end_date'] = this.yyyymmdd (end);
         }
         if (limit !== undefined) {
             request['size'] = limit; // default 100, max 100

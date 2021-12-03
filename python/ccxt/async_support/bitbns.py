@@ -455,12 +455,12 @@ class bitbns(Exchange):
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'time'))
-        price = self.safe_number(order, 'rate')
-        amount = self.safe_number_2(order, 'amount', 'btc')
-        filled = self.safe_number(order, 'filled')
-        remaining = self.safe_number(order, 'remaining')
-        average = self.safe_number(order, 'avg_cost')
-        cost = self.safe_number(order, 'cost')
+        price = self.safe_string(order, 'rate')
+        amount = self.safe_string_2(order, 'amount', 'btc')
+        filled = self.safe_string(order, 'filled')
+        remaining = self.safe_string(order, 'remaining')
+        average = self.safe_string(order, 'avg_cost')
+        cost = self.safe_string(order, 'cost')
         type = self.safe_string_lower(order, 'type')
         if type == '0':
             type = 'limit'
@@ -474,7 +474,7 @@ class bitbns(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -496,7 +496,7 @@ class bitbns(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit' and type != 'market':
@@ -655,24 +655,31 @@ class bitbns(Exchange):
         orderId = self.safe_string_2(trade, 'id', 'tradeId')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
         timestamp = self.safe_integer(trade, 'timestamp', timestamp)
-        amountString = self.safe_string_2(trade, 'amount', 'base_volume')
         priceString = self.safe_string_2(trade, 'rate', 'price')
-        price = self.parse_number(priceString)
-        factor = self.safe_string(trade, 'factor')
-        amountScaled = Precise.string_div(amountString, factor)
-        amount = self.parse_number(amountScaled)
-        cost = self.parse_number(Precise.string_mul(priceString, amountScaled))
-        symbol = market['symbol']
+        amountString = self.safe_string(trade, 'amount')
         side = self.safe_string_lower(trade, 'type')
+        if side is not None:
+            if side.find('buy') >= 0:
+                side = 'buy'
+            elif side.find('sell') >= 0:
+                side = 'sell'
+        factor = self.safe_string(trade, 'factor')
+        costString = None
+        if factor is not None:
+            amountString = Precise.string_div(amountString, factor)
+        else:
+            amountString = self.safe_string(trade, 'base_volume')
+            costString = self.safe_string(trade, 'quote_volume')
+        symbol = market['symbol']
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             feeCurrencyCode = market['quote']
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -682,11 +689,11 @@ class bitbns(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -920,6 +927,7 @@ class bitbns(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

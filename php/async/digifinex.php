@@ -202,14 +202,14 @@ class digifinex extends Exchange {
         $response = yield $this->publicGetCurrencies ($params);
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "deposit_status":1,
         //                 "min_deposit_amount":10,
         //                 "withdraw_fee_rate":0,
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":5,
-        //                 "$currency":"USDT",
+        //                 "currency":"USDT",
         //                 "withdraw_status":0,
         //                 "chain":"OMNI"
         //             ),
@@ -219,7 +219,7 @@ class digifinex extends Exchange {
         //                 "withdraw_fee_rate":0,
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":3,
-        //                 "$currency":"USDT",
+        //                 "currency":"USDT",
         //                 "withdraw_status":1,
         //                 "chain":"ERC20"
         //             ),
@@ -229,12 +229,12 @@ class digifinex extends Exchange {
         //                 "withdraw_fee_rate":0,
         //                 "min_withdraw_amount":0,
         //                 "min_withdraw_fee":0,
-        //                 "$currency":"DGF13",
+        //                 "currency":"DGF13",
         //                 "withdraw_status":0,
         //                 "chain":""
         //             ),
         //         ),
-        //         "$code":200
+        //         "code":200
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -295,9 +295,9 @@ class digifinex extends Exchange {
         //                 "quote_asset":"USDT",
         //                 "minimum_value":2,
         //                 "amount_precision":4,
-        //                 "$status":"TRADING",
+        //                 "status":"TRADING",
         //                 "minimum_amount":0.0001,
-        //                 "$symbol":"BTC_USDT",
+        //                 "symbol":"BTC_USDT",
         //                 "is_allow":1,
         //                 "zone":"MAIN",
         //                 "base_asset":"BTC",
@@ -377,7 +377,7 @@ class digifinex extends Exchange {
         //             array(
         //                 "volume_precision":4,
         //                 "price_precision":2,
-        //                 "$market":"btc_usdt",
+        //                 "market":"btc_usdt",
         //                 "min_amount":2,
         //                 "min_volume":0.0001
         //             ),
@@ -438,7 +438,7 @@ class digifinex extends Exchange {
         $response = yield $this->$method ($params);
         //
         //     {
-        //         "$code" => 0,
+        //         "code" => 0,
         //         "list" => array(
         //             {
         //                 "currency" => "BTC",
@@ -497,18 +497,18 @@ class digifinex extends Exchange {
         $response = yield $this->publicGetTicker ($params);
         //
         //    {
-        //        "$ticker" => [array(
+        //        "ticker" => [array(
         //            "vol" => 40717.4461,
         //            "change" => -1.91,
         //            "base_vol" => 392447999.65374,
         //            "sell" => 9592.23,
         //            "last" => 9592.22,
-        //            "$symbol" => "btc_usdt",
+        //            "symbol" => "btc_usdt",
         //            "low" => 9476.24,
         //            "buy" => 9592.03,
         //            "high" => 9793.87
         //        )],
-        //        "$date" => 1589874294,
+        //        "date" => 1589874294,
         //        "code" => 0
         //    }
         //
@@ -541,12 +541,12 @@ class digifinex extends Exchange {
         //            "base_vol" => 392447999.65374,
         //            "sell" => 9592.23,
         //            "last" => 9592.22,
-        //            "$symbol" => "btc_usdt",
+        //            "symbol" => "btc_usdt",
         //            "low" => 9476.24,
         //            "buy" => 9592.03,
         //            "high" => 9793.87
         //        )],
-        //        "$date" => 1589874294,
+        //        "date" => 1589874294,
         //        "code" => 0
         //    }
         //
@@ -562,8 +562,8 @@ class digifinex extends Exchange {
         // fetchTicker, fetchTickers
         //
         //     {
-        //         "$last":0.021957,
-        //         "$symbol" => "btc_usdt",
+        //         "last":0.021957,
+        //         "symbol" => "btc_usdt",
         //         "base_vol":2249.3521732227,
         //         "change":-0.6,
         //         "vol":102443.5111,
@@ -609,24 +609,24 @@ class digifinex extends Exchange {
         //
         //     {
         //         "date":1564520003,
-        //         "$id":1596149203,
-        //         "$amount":0.7073,
+        //         "id":1596149203,
+        //         "amount":0.7073,
         //         "type":"buy",
-        //         "$price":0.02193,
+        //         "price":0.02193,
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "$symbol" => "BTC_USDT",
+        //         "symbol" => "BTC_USDT",
         //         "order_id" => "6707cbdcda0edfaa7f4ab509e4cbf966",
-        //         "$id" => 28457,
-        //         "$price" => 0.1,
-        //         "$amount" => 0,
-        //         "$fee" => 0.096,
+        //         "id" => 28457,
+        //         "price" => 0.1,
+        //         "amount" => 0,
+        //         "fee" => 0.096,
         //         "fee_currency" => "USDT",
-        //         "$timestamp" => 1499865549,
-        //         "$side" => "buy",
+        //         "timestamp" => 1499865549,
+        //         "side" => "buy",
         //         "is_maker" => true
         //     }
         //
@@ -707,7 +707,7 @@ class digifinex extends Exchange {
         $response = yield $this->publicGetTrades (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "date":1564520003,
         //                 "id":1596149203,
@@ -777,7 +777,7 @@ class digifinex extends Exchange {
         //
         //     {
         //         "code":0,
-        //         "$data":[
+        //         "data":[
         //             [1556712900,2205.899,0.029967,0.02997,0.029871,0.029927],
         //             [1556713800,1912.9174,0.029992,0.030014,0.029955,0.02996],
         //             [1556714700,1556.4795,0.029974,0.030019,0.029969,0.02999],
@@ -907,17 +907,17 @@ class digifinex extends Exchange {
         // fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
-        //         "$symbol" => "BTC_USDT",
+        //         "symbol" => "BTC_USDT",
         //         "order_id" => "dd3164b333a4afa9d5730bb87f6db8b3",
         //         "created_date" => 1562303547,
         //         "finished_date" => 0,
-        //         "$price" => 0.1,
-        //         "$amount" => 1,
+        //         "price" => 0.1,
+        //         "amount" => 1,
         //         "cash_amount" => 1,
         //         "executed_amount" => 0,
         //         "avg_price" => 0,
-        //         "$status" => 1,
-        //         "$type" => "buy",
+        //         "status" => 1,
+        //         "type" => "buy",
         //         "kind" => "margin"
         //     }
         //
@@ -939,11 +939,11 @@ class digifinex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'executed_amount');
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'avg_price');
-        return $this->safe_order(array(
+        $amount = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string($order, 'executed_amount');
+        $price = $this->safe_string($order, 'price');
+        $average = $this->safe_string($order, 'avg_price');
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -965,7 +965,7 @@ class digifinex extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -985,9 +985,9 @@ class digifinex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
-        //                 "$symbol" => "BTC_USDT",
+        //                 "symbol" => "BTC_USDT",
         //                 "order_id" => "dd3164b333a4afa9d5730bb87f6db8b3",
         //                 "created_date" => 1562303547,
         //                 "finished_date" => 0,
@@ -1030,9 +1030,9 @@ class digifinex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
-        //                 "$symbol" => "BTC_USDT",
+        //                 "symbol" => "BTC_USDT",
         //                 "order_id" => "dd3164b333a4afa9d5730bb87f6db8b3",
         //                 "created_date" => 1562303547,
         //                 "finished_date" => 0,
@@ -1069,9 +1069,9 @@ class digifinex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
-        //                 "$symbol" => "BTC_USDT",
+        //                 "symbol" => "BTC_USDT",
         //                 "order_id" => "dd3164b333a4afa9d5730bb87f6db8b3",
         //                 "created_date" => 1562303547,
         //                 "finished_date" => 0,
@@ -1120,7 +1120,7 @@ class digifinex extends Exchange {
         //         "code" => 0,
         //         "list" => array(
         //             {
-        //                 "$symbol" => "BTC_USDT",
+        //                 "symbol" => "BTC_USDT",
         //                 "order_id" => "6707cbdcda0edfaa7f4ab509e4cbf966",
         //                 "id" => 28457,
         //                 "price" => 0.1,
@@ -1147,7 +1147,7 @@ class digifinex extends Exchange {
         //
         //     {
         //         "currency_mark" => "BTC",
-        //         "$type" => 100234,
+        //         "type" => 100234,
         //         "num" => 28457,
         //         "balance" => 0.1,
         //         "time" => 1546272000
@@ -1202,8 +1202,8 @@ class digifinex extends Exchange {
         $response = yield $this->privateGetMarketFinancelog (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 0,
-        //         "$data" => {
+        //         "code" => 0,
+        //         "data" => {
         //             "total" => 521,
         //             "finance" => array(
         //                 {
@@ -1226,8 +1226,8 @@ class digifinex extends Exchange {
         //
         //     {
         //         "addressTag":"",
-        //         "$address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
-        //         "$currency":"USDT",
+        //         "address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //         "currency":"USDT",
         //         "chain":"ERC20"
         //     }
         //
@@ -1237,9 +1237,10 @@ class digifinex extends Exchange {
         $code = $this->safe_currency_code($currencyId);
         return array(
             'info' => $depositAddress,
-            'code' => $code,
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
         );
     }
 
@@ -1252,15 +1253,15 @@ class digifinex extends Exchange {
         $response = yield $this->privateGetDepositAddress (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "addressTag":"",
-        //                 "$address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
-        //                 "$currency":"USDT",
+        //                 "address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //                 "currency":"USDT",
         //                 "chain":"ERC20"
         //             }
         //         ),
-        //         "$code":200
+        //         "code":200
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -1292,11 +1293,11 @@ class digifinex extends Exchange {
         $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 200,
-        //         "$data" => array(
+        //         "code" => 200,
+        //         "data" => array(
         //             array(
         //                 "id" => 1171,
-        //                 "$currency" => "xrp",
+        //                 "currency" => "xrp",
         //                 "hash" => "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
         //                 "chain" => "",
         //                 "amount" => 7.457467,
@@ -1340,21 +1341,21 @@ class digifinex extends Exchange {
         // withdraw
         //
         //     {
-        //         "$code" => 200,
+        //         "code" => 200,
         //         "withdraw_id" => 700
         //     }
         //
         // fetchDeposits, fetchWithdrawals
         //
         //     {
-        //         "$id" => 1171,
-        //         "$currency" => "xrp",
+        //         "id" => 1171,
+        //         "currency" => "xrp",
         //         "hash" => "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
         //         "chain" => "",
-        //         "$amount" => 7.457467,
-        //         "$address" => "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //         "amount" => 7.457467,
+        //         "address" => "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
         //         "memo" => "100040",
-        //         "$fee" => 0,
+        //         "fee" => 0,
         //         "state" => "safe",
         //         "created_date" => "2020-04-20 11:23:00",
         //         "finished_date" => "2020-04-20 13:23:00"
@@ -1418,7 +1419,7 @@ class digifinex extends Exchange {
         $response = yield $this->privatePostWithdrawNew (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 200,
+        //         "code" => 200,
         //         "withdraw_id" => 700
         //     }
         //

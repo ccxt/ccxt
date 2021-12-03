@@ -940,6 +940,7 @@ class bitfinex2(bitfinex):
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
             'INSUFFICIENT': 'canceled',
+            'POSTONLY': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         }
@@ -958,10 +959,10 @@ class bitfinex2(bitfinex):
         # https://github.com/ccxt/ccxt/issues/6686
         # timestamp = self.safe_timestamp(order, 5)
         timestamp = self.safe_integer(order, 5)
-        remaining = abs(self.safe_number(order, 6))
-        signedAmount = self.safe_number(order, 7)
-        amount = abs(signedAmount)
-        side = 'sell' if (signedAmount < 0) else 'buy'
+        remaining = Precise.string_abs(self.safe_string(order, 6))
+        signedAmount = self.safe_string(order, 7)
+        amount = Precise.string_abs(signedAmount)
+        side = 'sell' if Precise.string_lt(signedAmount, '0') else 'buy'
         orderType = self.safe_string(order, 8)
         type = self.safe_string(self.safe_value(self.options, 'exchangeTypes'), orderType)
         status = None
@@ -969,10 +970,10 @@ class bitfinex2(bitfinex):
         if statusString is not None:
             parts = statusString.split(' @ ')
             status = self.parse_order_status(self.safe_string(parts, 0))
-        price = self.safe_number(order, 16)
-        average = self.safe_number(order, 17)
+        price = self.safe_string(order, 16)
+        average = self.safe_string(order, 17)
         clientOrderId = self.safe_string(order, 2)
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -994,19 +995,35 @@ class bitfinex2(bitfinex):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         orderTypes = self.safe_value(self.options, 'orderTypes', {})
         orderType = self.safe_string_upper(orderTypes, type, type)
+        postOnly = self.safe_value(params, 'postOnly', False)
+        params = self.omit(params, ['postOnly'])
         amount = -amount if (side == 'sell') else amount
         request = {
-            'symbol': market['id'],
+            # 'gid': 0123456789,  # int32,  optional group id for the order
+            # 'cid': 0123456789,  # int32 client order id
             'type': orderType,
+            'symbol': market['id'],
+            # 'price': self.number_to_string(price),
             'amount': self.number_to_string(amount),
+            # 'flags': 0,  # int32, https://docs.bitfinex.com/v2/docs/flag-values
+            # 'lev': 10,  # the value should be between 1 and 100 inclusive, optional, 10 by default
+            # 'price_trailing': self.number_to_string(priceTrailing),
+            # 'price_aux_limit': self.number_to_string(stopPrice),
+            # 'price_oco_stop': self.number_to_string(ocoStopPrice),
+            # 'tif': '2020-01-01 10:45:23',  # datetime for automatic order cancellation
+            # 'meta': {
+            #     'aff_code': 'AFF_CODE_HERE'
+            # },
         }
+        if postOnly:
+            request['flags'] = 4096
         if (orderType == 'LIMIT') or (orderType == 'EXCHANGE LIMIT'):
             request['price'] = self.number_to_string(price)
         elif (orderType == 'STOP') or (orderType == 'EXCHANGE STOP'):
@@ -1251,6 +1268,7 @@ class bitfinex2(bitfinex):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

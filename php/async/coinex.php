@@ -441,7 +441,7 @@ class coinex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => [
+        //         "data" => [
         //             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
         //             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
         //             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
@@ -458,7 +458,7 @@ class coinex extends Exchange {
         $response = yield $this->privateGetBalanceInfo ($params);
         //
         //     {
-        //       "$code" => 0,
+        //       "code" => 0,
         //       "data" => {
         //         "BCH" => array(                     # BCH $account
         //           "available" => "13.60109",   # Available BCH
@@ -506,7 +506,7 @@ class coinex extends Exchange {
         // fetchOrder
         //
         //     {
-        //         "$amount" => "0.1",
+        //         "amount" => "0.1",
         //         "asset_fee" => "0.22736197736197736197",
         //         "avg_price" => "196.85000000000000000000",
         //         "create_time" => 1537270135,
@@ -518,20 +518,21 @@ class coinex extends Exchange {
         //         "id" => 1788259447,
         //         "left" => "0",
         //         "maker_fee_rate" => "0",
-        //         "$market" => "ETHUSDT",
+        //         "market" => "ETHUSDT",
         //         "order_type" => "limit",
-        //         "$price" => "170.00000000",
-        //         "$status" => "done",
+        //         "price" => "170.00000000",
+        //         "status" => "done",
         //         "taker_fee_rate" => "0.0005",
-        //         "$type" => "sell",
+        //         "type" => "sell",
         //     }
         //
         $timestamp = $this->safe_timestamp($order, 'create_time');
-        $price = $this->safe_number($order, 'price');
-        $cost = $this->safe_number($order, 'deal_money');
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'deal_amount');
-        $average = $this->safe_number($order, 'avg_price');
+        $price = $this->safe_string($order, 'price');
+        $cost = $this->safe_string($order, 'deal_money');
+        $amount = $this->safe_string($order, 'amount');
+        $filled = $this->safe_string($order, 'deal_amount');
+        $average = $this->safe_string($order, 'avg_price');
+        $remaining = $this->safe_string($order, 'left');
         $symbol = null;
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
@@ -543,11 +544,10 @@ class coinex extends Exchange {
                 $feeCurrency = $market['quote'];
             }
         }
-        $remaining = $this->safe_number($order, 'left');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'order_type');
         $side = $this->safe_string($order, 'type');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -572,7 +572,7 @@ class coinex extends Exchange {
                 'cost' => $this->safe_number($order, 'deal_fee'),
             ),
             'info' => $order,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -631,7 +631,7 @@ class coinex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => array(
+        //         "data" => array(
         //             "amount" => "0.1",
         //             "asset_fee" => "0.22736197736197736197",
         //             "avg_price" => "196.85000000000000000000",
@@ -641,10 +641,10 @@ class coinex extends Exchange {
         //             "deal_money" => "19.685",
         //             "fee_asset" => "CET",
         //             "fee_discount" => "0.5",
-        //             "$id" => 1788259447,
+        //             "id" => 1788259447,
         //             "left" => "0",
         //             "maker_fee_rate" => "0",
-        //             "$market" => "ETHUSDT",
+        //             "market" => "ETHUSDT",
         //             "order_type" => "limit",
         //             "price" => "170.00000000",
         //             "status" => "done",
@@ -724,10 +724,10 @@ class coinex extends Exchange {
         $response = yield $this->privatePostBalanceCoinWithdraw (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 0,
+        //         "code" => 0,
         //         "data" => array(
         //             "actual_amount" => "1.00000000",
-        //             "$amount" => "1.00000000",
+        //             "amount" => "1.00000000",
         //             "coin_address" => "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
         //             "coin_type" => "BCH",
         //             "coin_withdraw_id" => 206,
@@ -766,7 +766,7 @@ class coinex extends Exchange {
         //         "actual_amount" => "120.00000000",
         //         "actual_amount_display" => "120",
         //         "add_explorer" => "XXX",
-        //         "$amount" => "120.00000000",
+        //         "amount" => "120.00000000",
         //         "amount_display" => "120",
         //         "coin_address" => "XXXXXXXX",
         //         "coin_address_display" => "XXXXXXXX",
@@ -776,7 +776,7 @@ class coinex extends Exchange {
         //         "create_time" => 1539595701,
         //         "explorer" => "",
         //         "remark" => "",
-        //         "$status" => "finish",
+        //         "status" => "finish",
         //         "status_display" => "finish",
         //         "transfer_method" => "local",
         //         "tx_id" => "",
@@ -787,13 +787,13 @@ class coinex extends Exchange {
         //
         //     {
         //         "actual_amount" => "0.10000000",
-        //         "$amount" => "0.10000000",
+        //         "amount" => "0.10000000",
         //         "coin_address" => "15sr1VdyXQ6sVLqeJUJ1uPzLpmQtgUeBSB",
         //         "coin_type" => "BCH",
         //         "coin_withdraw_id" => 203,
         //         "confirmations" => 11,
         //         "create_time" => 1515806440,
-        //         "$status" => "finish",
+        //         "status" => "finish",
         //         "tx_fee" => "0",
         //         "tx_id" => "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
         //     }
@@ -862,12 +862,12 @@ class coinex extends Exchange {
         $response = yield $this->privateGetBalanceCoinWithdraw (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 0,
-        //         "$data" => array(
+        //         "code" => 0,
+        //         "data" => array(
         //             "has_next" => true,
         //             "curr_page" => 1,
         //             "count" => 10,
-        //             "$data" => array(
+        //             "data" => array(
         //                 array(
         //                     "coin_withdraw_id" => 203,
         //                     "create_time" => 1513933541,
@@ -919,8 +919,8 @@ class coinex extends Exchange {
         }
         $response = yield $this->privateGetBalanceCoinDeposit (array_merge($request, $params));
         //     {
-        //         "$code" => 0,
-        //         "$data" => array(
+        //         "code" => 0,
+        //         "data" => array(
         //             {
         //                 "actual_amount" => "4.65397682",
         //                 "actual_amount_display" => "4.65397682",

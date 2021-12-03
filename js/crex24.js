@@ -137,13 +137,16 @@ module.exports = class crex24 extends Exchange {
                 'BULL': 'BuySell',
                 'CLC': 'CaluraCoin',
                 'CREDIT': 'TerraCredit',
+                'EGG': 'NestEGG Coin',
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
                 'GTC': 'GastroCoin', // conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
+                'ONE': 'One Hundred Coin',
                 'PUT': 'PutinCoin',
                 'SBTC': 'SBTCT', // SiamBitcoin
+                'SUPER': 'SuperCoin',
                 'UNI': 'Universe',
                 'YOYO': 'YOYOW',
             },
@@ -1181,7 +1184,7 @@ module.exports = class crex24 extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            request['from'] = this.ymd (since, 'T');
+            request['from'] = this.ymdhms (since, 'T');
         }
         const response = await this.accountGetMoneyTransfers (this.extend (request, params));
         //
@@ -1319,6 +1322,7 @@ module.exports = class crex24 extends Exchange {
             'currency': code,
             'address': this.checkAddress (address),
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

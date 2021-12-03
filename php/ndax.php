@@ -1083,7 +1083,7 @@ class ndax extends Exchange {
         // createOrder
         //
         //     {
-        //         "$status":"Accepted",
+        //         "status":"Accepted",
         //         "errormsg":"",
         //         "OrderId" => 2543565231
         //     }
@@ -1776,6 +1776,7 @@ class ndax extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $depositAddress,
         );
     }
@@ -1855,7 +1856,7 @@ class ndax extends Exchange {
         //             "AssetId" => 0,
         //             "TemplateForm" => "array(\"TemplateType\" => \"TetherRPCWithdraw\",\"Comment\" => \"TestWithdraw\",\"ExternalAddress\" => \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\")",
         //             "TemplateFormType" => "TetherRPCWithdraw",
-        //             "$omsId" => 0,
+        //             "omsId" => 0,
         //             "TicketStatus" => 0,
         //             "TicketNumber" => 0,
         //             "WithdrawTransactionDetails" => "",

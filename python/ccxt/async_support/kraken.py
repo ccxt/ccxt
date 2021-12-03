@@ -30,7 +30,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
-from ccxt.base.precise import Precise
 
 
 class kraken(Exchange):
@@ -51,6 +50,8 @@ class kraken(Exchange):
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -182,6 +183,7 @@ class kraken(Exchange):
                     },
                 },
             },
+            'handleContentTypeApplicationZip': True,
             'api': {
                 'zendesk': {
                     'get': [
@@ -246,21 +248,115 @@ class kraken(Exchange):
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
                 'networks': {
-                    'ETH': 'Tether USD(ERC20)',
-                    'ERC20': 'Tether USD(ERC20)',
-                    'TRX': 'Tether USD(TRC20)',
-                    'TRC20': 'Tether USD(TRC20)',
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                },
+                'depositMethods': {
+                    '1INCH': '1inch(1INCH)',
+                    'AAVE': 'Aave',
+                    'ADA': 'ADA',
+                    'ALGO': 'Algorand',
+                    'ANKR': 'ANKR(ANKR)',
+                    'ANT': 'Aragon(ANT)',
+                    'ATOM': 'Cosmos',
+                    'AXS': 'Axie Infinity Shards(AXS)',
+                    'BADGER': 'Bager DAO(BADGER)',
+                    'BAL': 'Balancer(BAL)',
+                    'BAND': 'Band Protocol(BAND)',
+                    'BAT': 'BAT',
+                    'BCH': 'Bitcoin Cash',
+                    'BNC': 'Bifrost(BNC)',
+                    'BNT': 'Bancor(BNT)',
+                    'BTC': 'Bitcoin',
+                    'CHZ': 'Chiliz(CHZ)',
+                    'COMP': 'Compound(COMP)',
+                    'CQT': '\tCovalent Query Token(CQT)',
+                    'CRV': 'Curve DAO Token(CRV)',
+                    'CTSI': 'Cartesi(CTSI)',
+                    'DAI': 'Dai',
+                    'DASH': 'Dash',
+                    'DOGE': 'Dogecoin',
+                    'DOT': 'Polkadot',
+                    'DYDX': 'dYdX(DYDX)',
+                    'ENJ': 'Enjin Coin(ENJ)',
+                    'EOS': 'EOS',
+                    'ETC': 'Ether Classic(Hex)',
+                    'ETH': 'Ether(Hex)',
+                    'EWT': 'Energy Web Token',
+                    'FEE': 'Kraken Fee Credit',
+                    'FIL': 'Filecoin',
+                    'FLOW': 'Flow',
+                    'GHST': 'Aavegotchi(GHST)',
+                    'GNO': 'GNO',
+                    'GRT': 'GRT',
+                    'ICX': 'Icon',
+                    'INJ': 'Injective Protocol(INJ)',
+                    'KAR': 'Karura(KAR)',
+                    'KAVA': 'Kava',
+                    'KEEP': 'Keep Token(KEEP)',
+                    'KNC': 'Kyber Network(KNC)',
+                    'KSM': 'Kusama',
+                    'LINK': 'Link',
+                    'LPT': 'Livepeer Token(LPT)',
+                    'LRC': 'Loopring(LRC)',
+                    'LSK': 'Lisk',
+                    'LTC': 'Litecoin',
+                    'MANA': 'MANA',
+                    'MATIC': 'Polygon(MATIC)',
+                    'MINA': 'Mina',  # inspected from webui
+                    'MIR': 'Mirror Protocol(MIR)',
+                    'MKR': 'Maker(MKR)',
+                    'MLN': 'MLN',
+                    'MOVR': 'Moonriver(MOVR)',
+                    'NANO': 'NANO',
+                    'OCEAN': 'OCEAN',
+                    'OGN': 'Origin Protocol(OGN)',
+                    'OMG': 'OMG',
+                    'OXT': 'Orchid(OXT)',
+                    'OXY': 'Oxygen(OXY)',
+                    'PAXG': 'PAX(Gold)',
+                    'PERP': 'Perpetual Protocol(PERP)',
+                    'PHA': 'Phala(PHA)',
+                    'QTUM': 'QTUM',
+                    'RARI': 'Rarible(RARI)',
+                    'RAY': 'Raydium(RAY)',
+                    'REN': 'Ren Protocol(REN)',
+                    'REP': 'REPv2',
+                    'REPV1': 'REP',
+                    'SAND': 'The Sandbox(SAND)',
+                    'SC': 'Siacoin',
+                    'SDN': 'Shiden(SDN)',
+                    'SOL': 'Solana',  # their deposit method api doesn't work for SOL - was guessed
+                    'SNX': 'Synthetix  Network(SNX)',
+                    'SRM': 'Serum',  # inspected from webui
+                    'STORJ': 'Storj(STORJ)',
+                    'SUSHI': 'Sushiswap(SUSHI)',
+                    'TBTC': 'tBTC',
+                    'TRX': 'Tron',
+                    'UNI': 'UNI',
+                    'USDC': 'USDC',
+                    'USDT': 'Tether USD(ERC20)',
+                    'USDT-TRC20': 'Tether USD(TRC20)',
+                    'WAVES': 'Waves',
+                    'WBTC': 'Wrapped Bitcoin(WBTC)',
+                    'XLM': 'Stellar XLM',
+                    'XMR': 'Monero',
+                    'XRP': 'Ripple XRP',
+                    'XTZ': 'XTZ',
+                    'YFI': 'YFI',
+                    'ZEC': 'Zcash(Transparent)',
+                    'ZRX': '0x(ZRX)',
                 },
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
                 'EAPI:Invalid key': AuthenticationError,
-                'EFunding:Unknown withdraw key': ExchangeError,
+                'EFunding:Unknown withdraw key': InvalidAddress,  # {"error":["EFunding:Unknown withdraw key"]}
                 'EFunding:Invalid amount': InsufficientFunds,
                 'EService:Unavailable': ExchangeNotAvailable,
                 'EDatabase:Internal error': ExchangeNotAvailable,
                 'EService:Busy': ExchangeNotAvailable,
-                'EQuery:Unknown asset': ExchangeError,
+                'EQuery:Unknown asset': BadSymbol,  # {"error":["EQuery:Unknown asset"]}
                 'EAPI:Rate limit exceeded': DDoSProtection,
                 'EOrder:Rate limit exceeded': DDoSProtection,
                 'EGeneral:Internal error': ExchangeNotAvailable,
@@ -271,6 +367,8 @@ class kraken(Exchange):
                 'EGeneral:Invalid arguments': BadRequest,
                 'ESession:Invalid session': AuthenticationError,
                 'EAPI:Invalid nonce': InvalidNonce,
+                'EFunding:No funding method': BadRequest,  # {"error":"EFunding:No funding method"}
+                'EFunding:Unknown asset': BadSymbol,  # {"error":["EFunding:Unknown asset"]}
             },
         })
 
@@ -381,7 +479,7 @@ class kraken(Exchange):
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': math.pow(10, precision['amount']),
+                        'max': None,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),
@@ -401,12 +499,13 @@ class kraken(Exchange):
         return result
 
     def safe_currency(self, currencyId, currency=None):
-        if len(currencyId) > 3:
-            if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
-                if currencyId.find('.') > 0:
-                    return super(kraken, self).safe_currency(currencyId, currency)
-                else:
-                    currencyId = currencyId[1:]
+        if currencyId is not None:
+            if len(currencyId) > 3:
+                if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
+                    if currencyId.find('.') > 0:
+                        return super(kraken, self).safe_currency(currencyId, currency)
+                    else:
+                        currencyId = currencyId[1:]
         return super(kraken, self).safe_currency(currencyId, currency)
 
     def append_inactive_markets(self, result):
@@ -828,8 +927,8 @@ class kraken(Exchange):
         timestamp = None
         side = None
         type = None
-        priceString = None
-        amountString = None
+        price = None
+        amount = None
         id = None
         orderId = None
         fee = None
@@ -838,8 +937,8 @@ class kraken(Exchange):
             timestamp = self.safe_timestamp(trade, 2)
             side = 'sell' if (trade[3] == 's') else 'buy'
             type = 'limit' if (trade[4] == 'l') else 'market'
-            priceString = self.safe_string(trade, 0)
-            amountString = self.safe_string(trade, 1)
+            price = self.safe_string(trade, 0)
+            amount = self.safe_string(trade, 1)
             tradeLength = len(trade)
             if tradeLength > 6:
                 id = self.safe_string(trade, 6)  # artificially added as per  #1794
@@ -858,22 +957,20 @@ class kraken(Exchange):
             timestamp = self.safe_timestamp(trade, 'time')
             side = self.safe_string(trade, 'type')
             type = self.safe_string(trade, 'ordertype')
-            priceString = self.safe_string(trade, 'price')
-            amountString = self.safe_string(trade, 'vol')
+            price = self.safe_string(trade, 'price')
+            amount = self.safe_string(trade, 'vol')
             if 'fee' in trade:
                 currency = None
                 if market is not None:
                     currency = market['quote']
                 fee = {
-                    'cost': self.safe_number(trade, 'fee'),
+                    'cost': self.safe_string(trade, 'fee'),
                     'currency': currency,
                 }
         if market is not None:
             symbol = market['symbol']
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        return {
+        cost = self.safe_string(trade, 'cost')
+        return self.safe_trade({
             'id': id,
             'order': orderId,
             'info': trade,
@@ -887,7 +984,7 @@ class kraken(Exchange):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1435,15 +1532,6 @@ class kraken(Exchange):
         orders = self.safe_value(result, 'closed', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_deposit_methods(self, code, params={}):
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'asset': currency['id'],
-        }
-        response = await self.privatePostDepositMethods(self.extend(request, params))
-        return self.safe_value(response, 'result')
-
     def parse_transaction_status(self, status):
         # IFEX transaction states
         statuses = {
@@ -1594,45 +1682,104 @@ class kraken(Exchange):
         request = {
             'new': 'true',
         }
-        if (code == 'USDT') and ('network' in params):
-            networks = self.safe_value(self.options, 'networks', {})
-            network = self.safe_string_upper(params, 'network')
-            request['method'] = self.safe_string(networks, network, network)
-            params = self.omit(params, 'network')
-        response = await self.fetch_deposit_address(code, self.extend(request, params))
-        address = self.safe_string(response, 'address')
-        self.check_address(address)
-        return {
-            'currency': code,
-            'address': address,
-            'info': response,
-        }
+        return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_methods(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
         }
-        # USDT is the only currency with multiple networks on kraken, you may check
-        if (code == 'USDT') and ('network' in params):
-            networks = self.safe_value(self.options, 'networks', {})
-            network = self.safe_string_upper(params, 'network')
-            request['method'] = self.safe_string(networks, network, network)
-            params = self.omit(params, 'network')
-        response = await self.privatePostDepositAddresses(self.extend(request, params))  # overwrite methods
-        result = response['result']
-        numResults = len(result)
-        if numResults < 1:
-            raise InvalidAddress(self.id + ' privatePostDepositAddresses() returned no addresses')
-        address = self.safe_string(result[0], 'address')
-        tag = self.safe_string_2(result[0], 'tag', 'memo')
+        response = await self.privatePostDepositMethods(self.extend(request, params))
+        #
+        #     {
+        #         "error":[],
+        #         "result":[
+        #             {"method":"Ether(Hex)","limit":false,"gen-address":true}
+        #         ]
+        #     }
+        #
+        #     {
+        #         "error":[],
+        #         "result":[
+        #             {"method":"Tether USD(ERC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true},
+        #             {"method":"Tether USD(TRC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true}
+        #         ]
+        #     }
+        #
+        #     {
+        #         "error":[],
+        #         "result":[
+        #             {"method":"Bitcoin","limit":false,"fee":"0.0000000000","gen-address":true}
+        #         ]
+        #     }
+        #
+        return self.safe_value(response, 'result')
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        network = self.safe_string_upper(params, 'network')
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string(networks, network, network)  # support ETH > ERC20 aliases
+        params = self.omit(params, 'network')
+        if (code == 'USDT') and (network == 'TRC20'):
+            code = code + '-' + network
+        defaultDepositMethods = self.safe_value(self.options, 'depositMethods', {})
+        defaultDepositMethod = self.safe_string(defaultDepositMethods, code)
+        depositMethod = self.safe_string(params, 'method', defaultDepositMethod)
+        # if the user has specified an exchange-specific method in params
+        # we pass it as is, otherwise we take the 'network' unified param
+        if depositMethod is None:
+            depositMethods = await self.fetch_deposit_methods(code)
+            if network is not None:
+                # find best matching deposit method, or fallback to the first one
+                for i in range(0, len(depositMethods)):
+                    entry = self.safe_string(depositMethods[i], 'method')
+                    if entry.find(network) >= 0:
+                        depositMethod = entry
+                        break
+            # if depositMethod was not specified, fallback to the first available deposit method
+            if depositMethod is None:
+                firstDepositMethod = self.safe_value(depositMethods, 0, {})
+                depositMethod = self.safe_string(firstDepositMethod, 'method')
+        request = {
+            'asset': currency['id'],
+            'method': depositMethod,
+        }
+        response = await self.privatePostDepositAddresses(self.extend(request, params))
+        #
+        #     {
+        #         "error":[],
+        #         "result":[
+        #             {"address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3","expiretm":"0"}
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        firstResult = self.safe_value(result, 0, {})
+        if firstResult is None:
+            raise InvalidAddress(self.id + ' privatePostDepositAddresses() returned no addresses for ' + code)
+        return self.parse_deposit_address(firstResult, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
+        #         "expiretm":"0"
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        tag = self.safe_string(depositAddress, 'tag')
+        currency = self.safe_currency(None, currency)
+        code = currency['code']
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'info': response,
+            'network': None,
+            'info': depositAddress,
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):

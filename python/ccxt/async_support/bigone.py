@@ -14,7 +14,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
-from ccxt.base.precise import Precise
 
 
 class bigone(Exchange):
@@ -441,9 +440,6 @@ class bigone(Exchange):
         timestamp = self.parse8601(self.safe_string_2(trade, 'created_at', 'inserted_at'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'asset_pair_name')
         symbol = self.safe_symbol(marketId, market, '-')
         side = self.safe_string(trade, 'side')
@@ -480,9 +476,9 @@ class bigone(Exchange):
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': self.parse_number(cost),
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'info': trade,
         }
         makerCurrencyCode = None
@@ -509,8 +505,8 @@ class bigone(Exchange):
             elif takerSide == 'ASK':
                 makerCurrencyCode = market['base']
                 takerCurrencyCode = market['quote']
-        makerFeeCost = self.safe_number(trade, 'maker_fee')
-        takerFeeCost = self.safe_number(trade, 'taker_fee')
+        makerFeeCost = self.safe_string(trade, 'maker_fee')
+        takerFeeCost = self.safe_string(trade, 'taker_fee')
         if makerFeeCost is not None:
             if takerFeeCost is not None:
                 result['fees'] = [
@@ -523,7 +519,7 @@ class bigone(Exchange):
             result['fee'] = {'cost': takerFeeCost, 'currency': takerCurrencyCode}
         else:
             result['fee'] = None
-        return result
+        return self.safe_trade(result, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -669,9 +665,10 @@ class bigone(Exchange):
         marketId = self.safe_string(order, 'asset_pair_name')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'filled_amount')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        average = self.safe_string(order, 'avg_deal_price')
+        filled = self.safe_string(order, 'filled_amount')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         if side == 'BID':
@@ -679,8 +676,7 @@ class bigone(Exchange):
         else:
             side = 'sell'
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'updated_at'))
-        average = self.safe_number(order, 'avg_deal_price')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -702,7 +698,7 @@ class bigone(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -971,6 +967,7 @@ class bigone(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 

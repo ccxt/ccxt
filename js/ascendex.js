@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -270,7 +269,7 @@ module.exports = class ascendex extends Exchange {
                 'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
-                'BYN': 'Beyond Finance',
+                'BYN': 'BeyondFi',
             },
         });
     }
@@ -869,9 +868,6 @@ module.exports = class ascendex extends Exchange {
         const timestamp = this.safeInteger (trade, 'ts');
         const priceString = this.safeString2 (trade, 'price', 'p');
         const amountString = this.safeString (trade, 'q');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const buyerIsMaker = this.safeValue (trade, 'bm', false);
         const makerOrTaker = buyerIsMaker ? 'maker' : 'taker';
         const side = buyerIsMaker ? 'buy' : 'sell';
@@ -879,7 +875,7 @@ module.exports = class ascendex extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -889,11 +885,11 @@ module.exports = class ascendex extends Exchange {
             'type': undefined,
             'takerOrMaker': makerOrTaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -997,10 +993,10 @@ module.exports = class ascendex extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '/');
         const timestamp = this.safeInteger2 (order, 'timestamp', 'sendingTime');
         const lastTradeTimestamp = this.safeInteger (order, 'lastExecTime');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'orderQty');
-        const average = this.safeNumber (order, 'avgPx');
-        const filled = this.safeNumber2 (order, 'cumFilledQty', 'cumQty');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'orderQty');
+        const average = this.safeString (order, 'avgPx');
+        const filled = this.safeString2 (order, 'cumFilledQty', 'cumQty');
         const id = this.safeString (order, 'orderId');
         let clientOrderId = this.safeString (order, 'id');
         if (clientOrderId !== undefined) {
@@ -1021,10 +1017,10 @@ module.exports = class ascendex extends Exchange {
             };
         }
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1043,7 +1039,7 @@ module.exports = class ascendex extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1452,6 +1448,7 @@ module.exports = class ascendex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined, // TODO: parse network
             'info': depositAddress,
         };
     }
@@ -1685,7 +1682,7 @@ module.exports = class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (symbol, marginType = '', params = {}) {
+    async setMarginMode (marginType, symbol = undefined, params = {}) {
         if (marginType !== 'isolated' && marginType !== 'crossed') {
             throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or crossed');
         }

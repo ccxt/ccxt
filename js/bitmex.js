@@ -1250,10 +1250,10 @@ module.exports = class bitmex extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'orderQty');
-        const filled = this.safeNumber (order, 'cumQty', 0.0);
-        const average = this.safeNumber (order, 'avgPx');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'orderQty');
+        const filled = this.safeString (order, 'cumQty', 0.0);
+        const average = this.safeString (order, 'avgPx');
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
         const side = this.safeStringLower (order, 'side');
@@ -1262,7 +1262,7 @@ module.exports = class bitmex extends Exchange {
         const stopPrice = this.safeNumber (order, 'stopPx');
         const execInst = this.safeString (order, 'execInst');
         const postOnly = (execInst === 'ParticipateDoNotInitiate');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1284,7 +1284,7 @@ module.exports = class bitmex extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

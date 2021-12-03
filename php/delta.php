@@ -179,7 +179,7 @@ class delta extends Exchange {
         $response = $this->publicGetSettings ($params);
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             "server_time":1605472733766141,
         //             "deto_referral_mining_daily_reward":"25000",
         //             "deto_total_reward_pool":"100000000",
@@ -212,11 +212,11 @@ class delta extends Exchange {
         $response = $this->publicGetAssets ($params);
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             array(
         //                 "base_withdrawal_fee":"0.0005",
         //                 "deposit_status":"enabled",
-        //                 "$id":2,
+        //                 "id":2,
         //                 "interest_credit":true,
         //                 "interest_slabs":array(
         //                     array("limit":"0.1","rate":"0"),
@@ -230,7 +230,7 @@ class delta extends Exchange {
         //                 "min_withdrawal_amount":"0.001",
         //                 "minimum_precision":4,
         //                 "name":"Bitcoin",
-        //                 "$precision":8,
+        //                 "precision":8,
         //                 "sort_priority":1,
         //                 "symbol":"BTC",
         //                 "variable_withdrawal_fee":"0",
@@ -297,7 +297,7 @@ class delta extends Exchange {
         //             "limit":100,
         //             "total_count":81
         //         ),
-        //         "$result":[
+        //         "result":[
         //             array(
         //                 "annualized_funding":"5.475000000000000000",
         //                 "is_quanto":false,
@@ -310,8 +310,8 @@ class delta extends Exchange {
         //                     "tags":array()
         //                 ),
         //                 "basis_factor_max_limit":"0.15",
-        //                 "$symbol":"P-LINK-D-151120",
-        //                 "$id":1584,
+        //                 "symbol":"P-LINK-D-151120",
+        //                 "id":1584,
         //                 "default_leverage":"5.000000000000000000",
         //                 "maker_commission_rate":"0.0005",
         //                 "contract_unit_currency":"LINK",
@@ -343,7 +343,7 @@ class delta extends Exchange {
         //                 "underlying_asset":array(
         //                     // asset structure
         //                 ),
-        //                 "$state":"live",
+        //                 "state":"live",
         //                 "contract_value":"1",
         //                 "initial_margin":"2",
         //                 "impact_size":5000,
@@ -452,12 +452,12 @@ class delta extends Exchange {
         //         "high":16354,
         //         "low":15751.5,
         //         "mark_price":"15820.100867",
-        //         "$open":16140.5,
+        //         "open":16140.5,
         //         "product_id":139,
         //         "size":640552,
         //         "spot_price":"15827.050000000001",
-        //         "$symbol":"BTCUSDT",
-        //         "$timestamp":1605373550208262,
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":1605373550208262,
         //         "turnover":10298630.3735,
         //         "turnover_symbol":"USDT",
         //         "turnover_usd":10298630.3735,
@@ -505,7 +505,7 @@ class delta extends Exchange {
         $response = $this->publicGetTickersSymbol (array_merge($request, $params));
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             "close":15837.5,
         //             "high":16354,
         //             "low":15751.5,
@@ -514,7 +514,7 @@ class delta extends Exchange {
         //             "product_id":139,
         //             "size":640552,
         //             "spot_price":"15827.050000000001",
-        //             "$symbol":"BTCUSDT",
+        //             "symbol":"BTCUSDT",
         //             "timestamp":1605373550208262,
         //             "turnover":10298630.3735,
         //             "turnover_symbol":"USDT",
@@ -533,7 +533,7 @@ class delta extends Exchange {
         $response = $this->publicGetTickers ($params);
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             array(
         //                 "close":0.003966,
         //                 "high":0.004032,
@@ -543,7 +543,7 @@ class delta extends Exchange {
         //                 "product_id":1327,
         //                 "size":6242,
         //                 "spot_price":"0.0039555",
-        //                 "$symbol":"AAVEBTC",
+        //                 "symbol":"AAVEBTC",
         //                 "timestamp":1605374143864107,
         //                 "turnover":23.997904999999996,
         //                 "turnover_symbol":"BTC",
@@ -575,7 +575,7 @@ class delta extends Exchange {
         $response = $this->publicGetL2orderbookSymbol (array_merge($request, $params));
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             "buy":array(
         //                 array("price":"15814.0","size":912),
         //                 array("price":"15813.5","size":1279),
@@ -586,7 +586,7 @@ class delta extends Exchange {
         //                 array("price":"15815.0","size":982),
         //                 array("price":"15815.5","size":1328),
         //             ),
-        //             "$symbol":"BTCUSDT"
+        //             "symbol":"BTCUSDT"
         //         ),
         //         "success":true
         //     }
@@ -601,11 +601,11 @@ class delta extends Exchange {
         //
         //     {
         //         "buyer_role":"maker",
-        //         "$price":"15896.5",
+        //         "price":"15896.5",
         //         "seller_role":"taker",
         //         "size":241,
-        //         "$symbol":"BTCUSDT",
-        //         "$timestamp":1605376684714595
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":1605376684714595
         //     }
         //
         // private fetchMyTrades
@@ -614,7 +614,7 @@ class delta extends Exchange {
         //         "commission":"0.008335000000000000",
         //         "created_at":"2020-11-16T19:07:19Z",
         //         "fill_type":"normal",
-        //         "$id":"e7ff05c233a74245b72381f8dd91d1ce",
+        //         "id":"e7ff05c233a74245b72381f8dd91d1ce",
         //         "meta_data":array(
         //             "effective_commission_rate":"0.0005",
         //             "order_price":"16249",
@@ -624,22 +624,22 @@ class delta extends Exchange {
         //             "trading_fee_credits_used":"0"
         //         ),
         //         "order_id":"152999629",
-        //         "$price":"16669",
-        //         "$product":array(
+        //         "price":"16669",
+        //         "product":array(
         //             "contract_type":"perpetual_futures",
         //             "contract_unit_currency":"BTC",
         //             "contract_value":"0.001",
-        //             "$id":139,
+        //             "id":139,
         //             "notional_type":"vanilla",
-        //             "quoting_asset":array("minimum_precision":2,"precision":6,"$symbol":"USDT"),
-        //             "settling_asset":array("minimum_precision":2,"precision":6,"$symbol":"USDT"),
-        //             "$symbol":"BTCUSDT",
+        //             "quoting_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
+        //             "settling_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
+        //             "symbol":"BTCUSDT",
         //             "tick_size":"0.5",
-        //             "underlying_asset":array("minimum_precision":4,"precision":8,"$symbol":"BTC")
+        //             "underlying_asset":array("minimum_precision":4,"precision":8,"symbol":"BTC")
         //         ),
         //         "product_id":139,
         //         "role":"taker",
-        //         "$side":"sell",
+        //         "side":"sell",
         //         "size":1
         //     }
         //
@@ -707,13 +707,13 @@ class delta extends Exchange {
         $response = $this->publicGetTradesSymbol (array_merge($request, $params));
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             {
         //                 "buyer_role":"maker",
         //                 "price":"15896.5",
         //                 "seller_role":"taker",
         //                 "size":241,
-        //                 "$symbol":"BTCUSDT",
+        //                 "symbol":"BTCUSDT",
         //                 "timestamp":1605376684714595
         //             }
         //         ),
@@ -767,7 +767,7 @@ class delta extends Exchange {
         //
         //     {
         //         "success":true,
-        //         "$result":array(
+        //         "result":array(
         //             array("time":1605393120,"open":15989,"high":15989,"low":15987.5,"close":15987.5,"volume":565),
         //             array("time":1605393180,"open":15966,"high":15966,"low":15959,"close":15959,"volume":24),
         //             array("time":1605393300,"open":15973,"high":15973,"low":15973,"close":15973,"volume":1288),
@@ -783,11 +783,11 @@ class delta extends Exchange {
         $response = $this->privateGetWalletBalances ($params);
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             array(
         //                 "asset_id":1,
         //                 "available_balance":"0",
-        //                 "$balance":"0",
+        //                 "balance":"0",
         //                 "commission":"0",
         //                 "id":154883,
         //                 "interest_credit":"0",
@@ -827,7 +827,7 @@ class delta extends Exchange {
         $response = $this->privateGetPositions (array_merge($request, $params));
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             "entry_price":null,
         //             "size":0,
         //             "timestamp":1605454074268079
@@ -845,7 +845,7 @@ class delta extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => array(
+        //         "result" => array(
         //             {
         //                 "user_id" => 0,
         //                 "size" => 0,
@@ -890,14 +890,14 @@ class delta extends Exchange {
         //         "close_on_trigger":"false",
         //         "commission":"0",
         //         "created_at":"2020-11-16T02:38:26Z",
-        //         "$id":152870626,
+        //         "id":152870626,
         //         "limit_price":"10000",
         //         "meta_data":array("source":"api"),
         //         "order_type":"limit_order",
         //         "paid_commission":"0",
         //         "product_id":139,
         //         "reduce_only":false,
-        //         "$side":"buy",
+        //         "side":"buy",
         //         "size":0,
         //         "state":"open",
         //         "stop_order_type":null,
@@ -920,10 +920,10 @@ class delta extends Exchange {
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'order_type');
         $type = str_replace('_order', '', $type);
-        $price = $this->safe_number($order, 'limit_price');
-        $amount = $this->safe_number($order, 'size');
-        $remaining = $this->safe_number($order, 'unfilled_size');
-        $average = $this->safe_number($order, 'average_fill_price');
+        $price = $this->safe_string($order, 'limit_price');
+        $amount = $this->safe_string($order, 'size');
+        $remaining = $this->safe_string($order, 'unfilled_size');
+        $average = $this->safe_string($order, 'average_fill_price');
         $fee = null;
         $feeCost = $this->safe_number($order, 'paid_commission');
         if ($feeCost !== null) {
@@ -938,7 +938,7 @@ class delta extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -957,7 +957,7 @@ class delta extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -986,7 +986,7 @@ class delta extends Exchange {
         $response = $this->privatePostOrders (array_merge($request, $params));
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             "average_fill_price":null,
         //             "bracket_order":null,
         //             "bracket_stop_loss_limit_price":null,
@@ -1006,7 +1006,7 @@ class delta extends Exchange {
         //             "paid_commission":"0",
         //             "product_id":139,
         //             "reduce_only":false,
-        //             "$side":"buy",
+        //             "side":"buy",
         //             "size":0,
         //             "state":"open",
         //             "stop_order_type":null,
@@ -1043,11 +1043,11 @@ class delta extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => {
-        //             "$id" => "ashb1212",
+        //         "result" => {
+        //             "id" => "ashb1212",
         //             "product_id" => 27,
         //             "limit_price" => "9200",
-        //             "$side" => "buy",
+        //             "side" => "buy",
         //             "size" => 100,
         //             "unfilled_size" => 50,
         //             "user_id" => 1,
@@ -1074,7 +1074,7 @@ class delta extends Exchange {
         $response = $this->privateDeleteOrders (array_merge($request, $params));
         //
         //     {
-        //         "$result":array(
+        //         "result":array(
         //             "average_fill_price":null,
         //             "bracket_order":null,
         //             "bracket_stop_loss_limit_price":null,
@@ -1087,7 +1087,7 @@ class delta extends Exchange {
         //             "close_on_trigger":"false",
         //             "commission":"0",
         //             "created_at":"2020-11-16T02:38:26Z",
-        //             "$id":152870626,
+        //             "id":152870626,
         //             "limit_price":"10000",
         //             "meta_data":array("source":"api"),
         //             "order_type":"limit_order",
@@ -1168,7 +1168,7 @@ class delta extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => array(
+        //         "result" => array(
         //             {
         //                 "id" => "ashb1212",
         //                 "product_id" => 27,
@@ -1220,10 +1220,10 @@ class delta extends Exchange {
         //         "meta":array(
         //             "after":null,
         //             "before":null,
-        //             "$limit":10,
+        //             "limit":10,
         //             "total_count":2
         //         ),
-        //         "$result":array(
+        //         "result":array(
         //             {
         //                 "commission":"0.008335000000000000",
         //                 "created_at":"2020-11-16T19:07:19Z",
@@ -1245,11 +1245,11 @@ class delta extends Exchange {
         //                     "contract_value":"0.001",
         //                     "id":139,
         //                     "notional_type":"vanilla",
-        //                     "quoting_asset":array("minimum_precision":2,"precision":6,"$symbol":"USDT"),
-        //                     "settling_asset":array("minimum_precision":2,"precision":6,"$symbol":"USDT"),
-        //                     "$symbol":"BTCUSDT",
+        //                     "quoting_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
+        //                     "settling_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
+        //                     "symbol":"BTCUSDT",
         //                     "tick_size":"0.5",
-        //                     "underlying_asset":array("minimum_precision":4,"precision":8,"$symbol":"BTC")
+        //                     "underlying_asset":array("minimum_precision":4,"precision":8,"symbol":"BTC")
         //                 ),
         //                 "product_id":139,
         //                 "role":"taker",
@@ -1284,8 +1284,8 @@ class delta extends Exchange {
         $response = $this->privateGetWalletTransactions (array_merge($request, $params));
         //
         //     {
-        //         "meta":array("after":null,"before":null,"$limit":10,"total_count":1),
-        //         "$result":array(
+        //         "meta":array("after":null,"before":null,"limit":10,"total_count":1),
+        //         "result":array(
         //             {
         //                 "amount":"29.889184",
         //                 "asset_id":5,
@@ -1326,7 +1326,7 @@ class delta extends Exchange {
     public function parse_ledger_entry($item, $currency = null) {
         //
         //     {
-        //         "$amount":"29.889184",
+        //         "amount":"29.889184",
         //         "asset_id":5,
         //         "balance":"29.889184",
         //         "created_at":"2020-11-15T21:25:01Z",
@@ -1390,10 +1390,10 @@ class delta extends Exchange {
         //
         //     {
         //         "success":true,
-        //         "$result":{
+        //         "result":{
         //             "id":19628,
         //             "user_id":22142,
-        //             "$address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
+        //             "address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
         //             "status":"active",
         //             "updated_at":"2020-11-15T20:25:53.000Z",
         //             "created_at":"2020-11-15T20:25:53.000Z",
@@ -1409,6 +1409,7 @@ class delta extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => null,
+            'network' => null,
             'info' => $response,
         );
     }
@@ -1451,7 +1452,7 @@ class delta extends Exchange {
             return;
         }
         //
-        // array("$error":array("$code":"insufficient_margin","context":array("available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000")),"success":false)
+        // array("error":array("code":"insufficient_margin","context":array("available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000")),"success":false)
         //
         $error = $this->safe_value($response, 'error', array());
         $errorCode = $this->safe_string($error, 'code');

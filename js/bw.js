@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { RateLimitExceeded, BadSymbol, OrderNotFound, ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -474,9 +473,6 @@ module.exports = class bw extends Exchange {
         const timestamp = this.safeTimestamp (trade, 2);
         const priceString = this.safeString (trade, 5);
         const amountString = this.safeString (trade, 6);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 1);
         let symbol = undefined;
         if (marketId !== undefined) {
@@ -495,7 +491,7 @@ module.exports = class bw extends Exchange {
         }
         const sideString = this.safeString (trade, 4);
         const side = (sideString === 'ask') ? 'sell' : 'buy';
-        return {
+        return this.safeTrade ({
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -504,12 +500,12 @@ module.exports = class bw extends Exchange {
             'type': 'limit',
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -725,13 +721,13 @@ module.exports = class bw extends Exchange {
         } else if (side === '1') {
             side = 'buy';
         }
-        const amount = this.safeNumber (order, 'amount');
-        const price = this.safeNumber (order, 'price');
-        const filled = this.safeNumber (order, 'completeAmount');
-        const remaining = this.safeNumber2 (order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
-        const cost = this.safeNumber (order, 'totalMoney');
+        const amount = this.safeString (order, 'amount');
+        const price = this.safeString (order, 'price');
+        const filled = this.safeString (order, 'completeAmount');
+        const remaining = this.safeString2 (order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
+        const cost = this.safeString (order, 'totalMoney');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': this.safeString (order, 'entrustId'),
             'clientOrderId': undefined,
@@ -753,7 +749,7 @@ module.exports = class bw extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -996,6 +992,7 @@ module.exports = class bw extends Exchange {
             'currency': code,
             'address': this.checkAddress (address),
             'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }

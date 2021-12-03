@@ -15,7 +15,7 @@ module.exports = class probit extends Exchange {
             'id': 'probit',
             'name': 'ProBit',
             'countries': [ 'SC', 'KR' ], // Seychelles, South Korea
-            'rateLimit': 250, // ms
+            'rateLimit': 50, // ms
             'has': {
                 'cancelOrder': true,
                 'CORS': true,
@@ -71,36 +71,36 @@ module.exports = class probit extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'market',
-                        'currency',
-                        'currency_with_platform',
-                        'time',
-                        'ticker',
-                        'order_book',
-                        'trade',
-                        'candle',
-                    ],
+                    'get': {
+                        'market': 1,
+                        'currency': 1,
+                        'currency_with_platform': 1,
+                        'time': 1,
+                        'ticker': 1,
+                        'order_book': 1,
+                        'trade': 1,
+                        'candle': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'new_order',
-                        'cancel_order',
-                        'withdrawal',
-                    ],
-                    'get': [
-                        'balance',
-                        'order',
-                        'open_order',
-                        'order_history',
-                        'trade_history',
-                        'deposit_address',
-                    ],
+                    'post': {
+                        'new_order': 2,
+                        'cancel_order': 1,
+                        'withdrawal': 2,
+                    },
+                    'get': {
+                        'balance': 1,
+                        'order': 1,
+                        'open_order': 1,
+                        'order_history': 1,
+                        'trade_history': 1,
+                        'deposit_address': 1,
+                    },
                 },
                 'accounts': {
-                    'post': [
-                        'token',
-                    ],
+                    'post': {
+                        'token': 1,
+                    },
                 },
             },
             'fees': {
@@ -165,9 +165,11 @@ module.exports = class probit extends Exchange {
                 'GOL': 'Goldofir',
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
+                'LBK': 'Legal Block',
                 'ORC': 'Oracle System',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
+                'SST': 'SocialSwap',
                 'TCT': 'Top Coin Token',
                 'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
@@ -908,15 +910,15 @@ module.exports = class probit extends Exchange {
         const marketId = this.safeString (order, 'market_id');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
-        let price = this.safeNumber (order, 'limit_price');
-        const filled = this.safeNumber (order, 'filled_quantity');
-        let remaining = this.safeNumber (order, 'open_quantity');
-        const canceledAmount = this.safeNumber (order, 'cancelled_quantity');
+        let price = this.safeString (order, 'limit_price');
+        const filled = this.safeString (order, 'filled_quantity');
+        let remaining = this.safeString (order, 'open_quantity');
+        const canceledAmount = this.safeString (order, 'cancelled_quantity');
         if (canceledAmount !== undefined) {
-            remaining = this.sum (remaining, canceledAmount);
+            remaining = Precise.stringAdd (remaining, canceledAmount);
         }
-        const amount = this.safeNumber (order, 'quantity', this.sum (filled, remaining));
-        const cost = this.safeNumber2 (order, 'filled_cost', 'cost');
+        const amount = this.safeString (order, 'quantity', Precise.stringAdd (filled, remaining));
+        const cost = this.safeString2 (order, 'filled_cost', 'cost');
         if (type === 'market') {
             price = undefined;
         }
@@ -925,7 +927,7 @@ module.exports = class probit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -946,7 +948,7 @@ module.exports = class probit extends Exchange {
             'cost': cost,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     costToPrecision (symbol, cost) {
@@ -1055,6 +1057,7 @@ module.exports = class probit extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': depositAddress,
         };
     }

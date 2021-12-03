@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -336,10 +335,10 @@ module.exports = class bitbay extends Exchange {
         const marketId = this.safeString (order, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (order, 'time');
-        const amount = this.safeNumber (order, 'startAmount');
-        const remaining = this.safeNumber (order, 'currentAmount');
+        const amount = this.safeString (order, 'startAmount');
+        const remaining = this.safeString (order, 'currentAmount');
         const postOnly = this.safeValue (order, 'postOnly');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'info': order,
@@ -352,7 +351,7 @@ module.exports = class bitbay extends Exchange {
             'timeInForce': undefined,
             'postOnly': postOnly,
             'side': this.safeStringLower (order, 'offerType'),
-            'price': this.safeNumber (order, 'rate'),
+            'price': this.safeString (order, 'rate'),
             'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -361,7 +360,7 @@ module.exports = class bitbay extends Exchange {
             'average': undefined,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -927,19 +926,16 @@ module.exports = class bitbay extends Exchange {
         }
         const priceString = this.safeString2 (trade, 'rate', 'r');
         const amountString = this.safeString2 (trade, 'amount', 'a');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        const feeCost = this.safeNumber (trade, 'commissionValue');
+        const feeCostString = this.safeString (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCcy = (side === 'buy') ? market['base'] : market['quote'];
+        if (feeCostString !== undefined) {
+            const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
-                'currency': feeCcy,
-                'cost': feeCost,
+                'currency': feeCurrency,
+                'cost': feeCostString,
             };
         }
         const order = this.safeString (trade, 'offerId');
@@ -948,7 +944,7 @@ module.exports = class bitbay extends Exchange {
         if (order !== undefined) {
             type = order ? 'limit' : 'market';
         }
-        return {
+        return this.safeTrade ({
             'id': this.safeString (trade, 'id'),
             'order': order,
             'timestamp': timestamp,
@@ -956,13 +952,13 @@ module.exports = class bitbay extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

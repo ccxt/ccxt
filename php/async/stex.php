@@ -258,12 +258,12 @@ class stex extends Exchange {
         //         "success":true,
         //         "data":array(
         //             array(
-        //                 "$id":1,
-        //                 "$code":"BTC",
+        //                 "id":1,
+        //                 "code":"BTC",
         //                 "name":"Bitcoin",
-        //                 "$active":true,
+        //                 "active":true,
         //                 "delisted":false,
-        //                 "$precision":8,
+        //                 "precision":8,
         //                 "minimum_tx_confirmations":1,
         //                 "minimum_withdrawal_amount":"0.00200000",
         //                 "minimum_deposit_amount":"0.00000000",
@@ -331,7 +331,7 @@ class stex extends Exchange {
         //         "success":true,
         //         "data":array(
         //             {
-        //                 "$id":935,
+        //                 "id":935,
         //                 "currency_id":662,
         //                 "currency_code":"ABET",
         //                 "currency_name":"Altbet",
@@ -343,12 +343,12 @@ class stex extends Exchange {
         //                 "min_sell_price":"0.00000001",
         //                 "buy_fee_percent":"0.20000000",
         //                 "sell_fee_percent":"0.20000000",
-        //                 "$active":true,
+        //                 "active":true,
         //                 "delisted":false,
         //                 "pair_message":"",
         //                 "currency_precision":8,
         //                 "market_precision":8,
-        //                 "$symbol":"ABET_BTC",
+        //                 "symbol":"ABET_BTC",
         //                 "group_name":"BTC",
         //                 "group_id":1
         //             }
@@ -429,7 +429,7 @@ class stex extends Exchange {
         //             "market_code" => "BTC",
         //             "currency_name" => "Ethereum",
         //             "market_name" => "Bitcoin",
-        //             "$symbol" => "ETH_BTC",
+        //             "symbol" => "ETH_BTC",
         //             "group_name" => "BTC",
         //             "group_id" => 1,
         //             "ask" => "0.02069998",
@@ -470,7 +470,7 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => {
+        //         "data" => {
         //             "server_datetime" => array(
         //                 "date" => "2019-01-22 15:13:34.233796",
         //                 "timezone_type" => 3,
@@ -528,13 +528,13 @@ class stex extends Exchange {
         //         "market_code" => "BTC",
         //         "currency_name" => "Ethereum",
         //         "market_name" => "Bitcoin",
-        //         "$symbol" => "ETH_BTC",
+        //         "symbol" => "ETH_BTC",
         //         "group_name" => "BTC",
         //         "group_id" => 1,
         //         "ask" => "0.02069998",
         //         "bid" => "0.02028622",
-        //         "$last" => "0.02049224",
-        //         "$open" => "0.02059605",
+        //         "last" => "0.02049224",
+        //         "open" => "0.02059605",
         //         "low" => "0.01977744",
         //         "high" => "0.02097005",
         //         "volume" => "480.43248971",
@@ -556,7 +556,7 @@ class stex extends Exchange {
         //             "BRL" => 30472,
         //             "RUB" => 460718
         //         ),
-        //         "$timestamp" => 1574698235601
+        //         "timestamp" => 1574698235601
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
@@ -690,7 +690,7 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => array(
+        //         "data" => array(
         //             array(
         //                 "time" => 1566086400000,
         //                 "close" => 0.01895,
@@ -711,23 +711,23 @@ class stex extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "$id" => 35989317,
-        //         "$price" => "0.02033813",
-        //         "$amount" => "3.60000000",
+        //         "id" => 35989317,
+        //         "price" => "0.02033813",
+        //         "amount" => "3.60000000",
         //         "type" => "BUY",
-        //         "$timestamp" => "1574713503"
+        //         "timestamp" => "1574713503"
         //     }
         //
         // private fetchMyTrades, fetchClosedOrder, fetchOrderTrades
         //
         //     {
-        //         "$id" => 658745,
+        //         "id" => 658745,
         //         "buy_order_id" => 6587453,
         //         "sell_order_id" => 6587459,
-        //         "$price" => 0.012285,
-        //         "$amount" => 6.35,
+        //         "price" => 0.012285,
+        //         "amount" => 6.35,
         //         "trade_type" => "SELL",
-        //         "$timestamp" => "1538737692"
+        //         "timestamp" => "1538737692"
         //     }
         //
         $id = $this->safe_string($trade, 'id');
@@ -813,7 +813,7 @@ class stex extends Exchange {
         //                 "currency_code" => "ORM",
         //                 "currency_name" => "Orium",
         //                 "currency_type_id" => 5,
-        //                 "$balance" => "0",
+        //                 "balance" => "0",
         //                 "frozen_balance" => "0",
         //                 "bonus_balance" => "0",
         //                 "total_balance" => "0",
@@ -829,7 +829,7 @@ class stex extends Exchange {
         //                 "currency_code" => "USDT",
         //                 "currency_name" => "TetherUSD",
         //                 "currency_type_id" => 23,
-        //                 "$balance" => "0",
+        //                 "balance" => "0",
         //                 "frozen_balance" => "0",
         //                 "bonus_balance" => "0",
         //                 "total_balance" => "0",
@@ -876,37 +876,37 @@ class stex extends Exchange {
         // createOrder, fetchOpenOrders, fetchClosedOrders, cancelOrder, fetchOrder, fetchClosedOrder
         //
         //     {
-        //         "$id" => 828680665,
+        //         "id" => 828680665,
         //         "currency_pair_id" => 1,
         //         "currency_pair_name" => "NXT_BTC",
-        //         "$price" => "0.011384",
+        //         "price" => "0.011384",
         //         "trigger_price" => 0.011385,
         //         "initial_amount" => "13.942",
         //         "processed_amount" => "3.724", // missing in fetchClosedOrder
-        //         "$type" => "SELL",
+        //         "type" => "SELL",
         //         "original_type" => "STOP_LIMIT_SELL",
         //         "created" => "2019-01-17 10:14:48",
-        //         "$timestamp" => "1547720088",
-        //         "$status" => "PARTIAL"
+        //         "timestamp" => "1547720088",
+        //         "status" => "PARTIAL"
         //         // fetchClosedOrder only
-        //         "$trades" => array(
+        //         "trades" => array(
         //             {
-        //                 "$id" => 658745,
+        //                 "id" => 658745,
         //                 "buy_order_id" => 658745,
         //                 "sell_order_id" => 828680665,
-        //                 "$price" => 0.012285,
-        //                 "$amount" => 6.35,
+        //                 "price" => 0.012285,
+        //                 "amount" => 6.35,
         //                 "trade_type" => "SELL",
-        //                 "$timestamp" => "1538737692"
+        //                 "timestamp" => "1538737692"
         //             }
         //         ),
         //         // fetchClosedOrder only
-        //         "$fees" => array(
+        //         "fees" => array(
         //             {
-        //                 "$id" => 1234567,
+        //                 "id" => 1234567,
         //                 "currency_id" => 1,
-        //                 "$amount" => 0.00025,
-        //                 "$timestamp" => "1548149238"
+        //                 "amount" => 0.00025,
+        //                 "timestamp" => "1548149238"
         //             }
         //         )
         //     }
@@ -1016,15 +1016,15 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => {
+        //         "data" => {
         //             "id" => 828680665,
         //             "currency_pair_id" => 1,
         //             "currency_pair_name" => "NXT_BTC",
-        //             "$price" => "0.011384",
+        //             "price" => "0.011384",
         //             "trigger_price" => 0.011385,
         //             "initial_amount" => "13.942",
         //             "processed_amount" => "3.724",
-        //             "$type" => "SELL",
+        //             "type" => "SELL",
         //             "original_type" => "STOP_LIMIT_SELL",
         //             "created" => "2019-01-17 10:14:48",
         //             "timestamp" => "1547720088",
@@ -1045,8 +1045,8 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => {
-        //             "$id" => 828680665,
+        //         "data" => {
+        //             "id" => 828680665,
         //             "currency_pair_id" => 1,
         //             "currency_pair_name" => "NXT_BTC",
         //             "price" => "0.011384",
@@ -1078,8 +1078,8 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => {
-        //             "$id" => 5478965,
+        //         "data" => {
+        //             "id" => 5478965,
         //             "currency_pair_id" => 1,
         //             "currency_pair_name" => "NXT_BTC",
         //             "price" => "0.00013800",
@@ -1090,7 +1090,7 @@ class stex extends Exchange {
         //             "status" => "FINISHED",
         //             "trades" => array(
         //                 {
-        //                     "$id" => 658745,
+        //                     "id" => 658745,
         //                     "buy_order_id" => 6587453,
         //                     "sell_order_id" => 6587459,
         //                     "price" => 0.012285,
@@ -1101,7 +1101,7 @@ class stex extends Exchange {
         //             ),
         //             "fees" => array(
         //                 {
-        //                     "$id" => 1234567,
+        //                     "id" => 1234567,
         //                     "currency_id" => 1,
         //                     "amount" => 0.00025,
         //                     "timestamp" => "1548149238"
@@ -1143,7 +1143,7 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "id" => 828680665,
         //                 "currency_pair_id" => 1,
@@ -1174,10 +1174,10 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => {
+        //         "data" => {
         //             "put_into_processing_queue" => array(
         //                 {
-        //                     "$id" => 828680665,
+        //                     "id" => 828680665,
         //                     "currency_pair_id" => 1,
         //                     "currency_pair_name" => "NXT_BTC",
         //                     "price" => "0.011384",
@@ -1193,7 +1193,7 @@ class stex extends Exchange {
         //             ),
         //             "not_put_into_processing_queue" => array(
         //                 {
-        //                     "$id" => 828680665,
+        //                     "id" => 828680665,
         //                     "currency_pair_id" => 1,
         //                     "currency_pair_name" => "NXT_BTC",
         //                     "price" => "0.011384",
@@ -1308,18 +1308,18 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => {
+        //         "data" => {
         //             "id" => 45875,
         //             "currency_id" => 1,
         //             "delisted" => false,
         //             "disabled" => false,
         //             "disable_deposits" => false,
-        //             "$code" => "BTC",
+        //             "code" => "BTC",
         //             "balance" => "0.198752",
         //             "frozen_balance" => "1.5784",
         //             "bonus_balance" => "0.000",
         //             "deposit_address" => array(
-        //                 "$address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                 "address_name" => "Address",
         //                 "additional_address_parameter" => "qwertyuiopasdfghjkl",
         //                 "additional_address_parameter_name" => "Destination Tag",
@@ -1330,7 +1330,7 @@ class stex extends Exchange {
         //                 ),
         //             "multi_deposit_addresses" => array(
         //                 {
-        //                     "$address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                     "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                     "address_name" => "Address",
         //                     "additional_address_parameter" => "qwertyuiopasdfghjkl",
         //                     "additional_address_parameter_name" => "Destination Tag",
@@ -1390,18 +1390,18 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => {
+        //         "data" => {
         //             "id" => 45875,
         //             "currency_id" => 1,
         //             "delisted" => false,
         //             "disabled" => false,
         //             "disable_deposits" => false,
-        //             "$code" => "BTC",
-        //             "$balance" => "0.198752",
+        //             "code" => "BTC",
+        //             "balance" => "0.198752",
         //             "frozen_balance" => "1.5784",
         //             "bonus_balance" => "0.000",
         //             "deposit_address" => array(
-        //                 "$address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                 "address_name" => "Address",
         //                 "additional_address_parameter" => "qwertyuiopasdfghjkl",
         //                 "additional_address_parameter_name" => "Destination Tag",
@@ -1412,7 +1412,7 @@ class stex extends Exchange {
         //             ),
         //             "multi_deposit_addresses" => array(
         //                 {
-        //                     "$address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                     "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                     "address_name" => "Address",
         //                     "additional_address_parameter" => "qwertyuiopasdfghjkl",
         //                     "additional_address_parameter_name" => "Destination Tag",
@@ -1447,6 +1447,7 @@ class stex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
             'info' => $response,
         );
     }
@@ -1500,44 +1501,44 @@ class stex extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "$id" => 123654789,
+        //         "id" => 123654789,
         //         "currency_id" => 1,
         //         "currency_code" => "BTC",
         //         "deposit_fee_currency_id" => 1,
         //         "deposit_fee_currency_code" => "BTC",
-        //         "$amount" => 0.25,
-        //         "$fee" => 0.00025,
-        //         "$txid" => "qwertyuhgfdsasdfgh",
+        //         "amount" => 0.25,
+        //         "fee" => 0.00025,
+        //         "txid" => "qwertyuhgfdsasdfgh",
         //         "protocol_id" => 0,
         //         "deposit_status_id" => 1,
-        //         "$status" => "PROCESSING",
+        //         "status" => "PROCESSING",
         //         "status_color" => "#BC3D51",
         //         "created_at" => "2018-11-28 12:32:08",
-        //         "$timestamp" => "1543409389",
+        //         "timestamp" => "1543409389",
         //         "confirmations" => "1 of 2"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "$id" => 65899,
-        //         "$amount" => "0.00600000",
+        //         "id" => 65899,
+        //         "amount" => "0.00600000",
         //         "currency_id" => 1,
         //         "currency_code" => "BTC",
-        //         "$fee" => "0.00400000",
+        //         "fee" => "0.00400000",
         //         "fee_currency_id" => 1,
         //         "fee_currency_code" => "BTC",
         //         "withdrawal_status_id" => 1,
-        //         "$status" => "Not Confirmed",
+        //         "status" => "Not Confirmed",
         //         "status_color" => "#BC3D51",
         //         "created_at" => "2019-01-21 09:36:05",
         //         "created_ts" => "1548063365",
         //         "updated_at" => "2019-01-21 09:36:05",
         //         "updated_ts" => "1548063365",
-        //         "$txid" => null,
+        //         "txid" => null,
         //         "protocol_id" => 0,
         //         "withdrawal_address" => {
-        //             "$address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //             "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //             "address_name" => "Address",
         //             "additional_address_parameter" => "qwertyuiopasdfghjkl",
         //             "additional_address_parameter_name" => "Destination Tag",
@@ -1732,9 +1733,9 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => {
+        //         "data" => {
         //             "id" => 65899,
-        //             "$amount" => "0.00600000",
+        //             "amount" => "0.00600000",
         //             "currency_id" => 1,
         //             "currency_code" => "BTC",
         //             "fee" => "0.00400000",
@@ -1750,7 +1751,7 @@ class stex extends Exchange {
         //             "txid" => null,
         //             "protocol_id" => 0,
         //             "withdrawal_address" => {
-        //                 "$address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
+        //                 "address" => "0X12WERTYUIIJHGFVBNMJHGDFGHJ765SDFGHJ",
         //                 "address_name" => "Address",
         //                 "additional_address_parameter" => "qwertyuiopasdfghjkl",
         //                 "additional_address_parameter_name" => "Destination Tag",
@@ -1772,10 +1773,10 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
-        //                 "$id" => 1,
-        //                 "$code" => "BTC",
+        //                 "id" => 1,
+        //                 "code" => "BTC",
         //                 "name" => "Bitcoin",
         //                 "active" => true,
         //                 "delisted" => false,
@@ -1829,9 +1830,9 @@ class stex extends Exchange {
             return; // fallback to default error handler
         }
         //
-        //     array("$success":false,"$message":"Wrong parameters","errors":array("candleType":["Invalid Candle Type!"]))
-        //     array("$success":false,"$message":"Wrong parameters","errors":array("time":["timeStart or timeEnd is less then 1"]))
-        //     array("$success":false,"$message":"Not enough  ETH")
+        //     array("success":false,"message":"Wrong parameters","errors":array("candleType":["Invalid Candle Type!"]))
+        //     array("success":false,"message":"Wrong parameters","errors":array("time":["timeStart or timeEnd is less then 1"]))
+        //     array("success":false,"message":"Not enough  ETH")
         //
         $success = $this->safe_value($response, 'success', false);
         if (!$success) {
