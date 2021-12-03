@@ -57,7 +57,7 @@ module.exports = class idex extends Exchange {
                 },
                 'logo': 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api': {
-                    'MATIC': 'https://api-matic.idex.io', 
+                    'MATIC': 'https://api-matic.idex.io',
                 },
                 'www': 'https://idex.io',
                 'doc': [
