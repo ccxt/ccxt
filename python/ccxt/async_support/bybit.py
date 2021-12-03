@@ -781,7 +781,7 @@ class bybit(Exchange):
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
             self.safe_number(ohlcv, 'close'),
-            self.safe_number_2(ohlcv, 'turnover', 'volume'),
+            self.safe_number_2(ohlcv, 'volume', 'turnover'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
