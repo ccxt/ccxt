@@ -2554,7 +2554,7 @@ module.exports = class ftx extends Exchange {
         this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
-            request['start_time'] = Precise.stringDiv (since, '1000');
+            request['start_time'] = Precise.stringDiv (since.toString (), '1000');
         }
         const response = await this.privateGetSpotMarginBorrowHistory (this.extend (request, params));
         //
@@ -2576,7 +2576,7 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const payment = result[i];
             interestHistory.push ({
-                'symbol': undefined,
+                'account': undefined,
                 'currency': this.safeString (payment, 'coin'),
                 'interest': this.safeNumber (payment, 'cost'),
                 'interestRate': this.safeNumber (payment, 'rate'),
