@@ -146,13 +146,6 @@ module.exports = class kucoinfutures extends kucoin {
             },
             'exceptions': {
                 'exact': {
-                    // 'order not exist': OrderNotFound,
-                    // 'order not exist.': OrderNotFound, // duplicated error temporarily
-                    // 'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                    // 'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                    // 'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
-                    // 'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
-                    // 'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
                     '400': BadRequest, // Bad Request -- Invalid request format
                     '401': AuthenticationError, // Unauthorized -- Invalid API Key
                     '403': NotSupported, // Forbidden -- The request is forbidden
@@ -166,6 +159,7 @@ module.exports = class kucoinfutures extends kucoin {
                     '200004': InsufficientFunds,
                     '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
                     '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
+                    '300003': InsufficientFunds,
                     '400001': AuthenticationError, // Any of KC-API-KEY, KC-API-SIGN, KC-API-TIMESTAMP, KC-API-PASSPHRASE is missing in your request header.
                     '400002': InvalidNonce, // KC-API-TIMESTAMP Invalid -- Time differs from server time by more than 5 seconds
                     '400003': AuthenticationError, // KC-API-KEY not exists
@@ -178,10 +172,6 @@ module.exports = class kucoinfutures extends kucoin {
                     '411100': AccountSuspended, // User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                 },
-                // 'broad': {
-                //     'Exceeded the access frequency': RateLimitExceeded,
-                //     'require more permission': PermissionDenied,
-                // },
             },
             'fees': {
                 'trading': {
@@ -928,6 +918,7 @@ module.exports = class kucoinfutures extends kucoin {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
+        // TODO: Give notification of an error if no orderId in response
         return {
             'id': this.safeString (data, 'orderId'),
             'clientOrderId': clientOrderId,
