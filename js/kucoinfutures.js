@@ -460,7 +460,7 @@ module.exports = class kucoinfutures extends kucoin {
         //
         const data = this.safeValue (response, 'data', []);
         since = this.safeString (since);
-        return this.parseOHLCVs (data, market, timeframe, Precise.stringDiv (since, '1000'), limit);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
