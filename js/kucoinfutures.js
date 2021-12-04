@@ -596,6 +596,34 @@ module.exports = class kucoinfutures extends kucoin {
         throw new BadRequest (this.id + ' only can only fetch the L2 order book')
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPublicGetTicker (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "sequence": 1638444978558,
+        //            "symbol": "ETHUSDTM",
+        //            "side": "sell",
+        //            "size": 4,
+        //            "price": "4229.35",
+        //            "bestBidSize": 2160,
+        //            "bestBidPrice": "4229.0",
+        //            "bestAskPrice": "4229.05",
+        //            "tradeId": "61aaa8b777a0c43055fe4851",
+        //            "ts": 1638574296209786785,
+        //            "bestAskSize": 36,
+        //        }
+        //    }
+        //
+        return this.parseTicker (response['data'], market);
+    }
+
     parseTicker (ticker, market = undefined) {
         //
         //     {
@@ -615,16 +643,9 @@ module.exports = class kucoinfutures extends kucoin {
         //          }
         //     }
         //
-        // let percentage = this.safeNumber (ticker, 'changeRate');
-        // if (percentage !== undefined) {
-        //     percentage = percentage * 100;
-        // }
         const last = this.safeNumber (ticker, 'price');
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
-        // const baseVolume = this.safeNumber (ticker, 'vol');
-        // const quoteVolume = this.safeNumber (ticker, 'volValue');
-        // const vwap = this.vwap (baseVolume, quoteVolume);
         const timestamp = Precise.stringDiv (this.safeString (ticker, 'ts'), '1000000');
         return this.safeTicker ({
             'symbol': market['symbol'],

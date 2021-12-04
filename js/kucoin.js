@@ -874,11 +874,7 @@ module.exports = class kucoin extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = this.getSupportedMapping (this.id, {
-            'kucoin': 'publicGetMarketStats',
-            'kucoinfutures': 'futuresPublicGetTicker',
-        });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetMarketStats (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
