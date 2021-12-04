@@ -650,170 +650,212 @@ module.exports = class kucoinfutures extends kucoin {
         // @param params (dict): Additional parameters to send to the API
         // @param return: Data for the history of the accounts funding payments for futures contracts
         //
-        if (this.isFuturesMethod ('fetchFundingHistory', params)) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
-            }
-            await this.loadMarkets ();
-            const market = this.market (symbol);
-            const request = {
-                'symbol': market['id'],
-            };
-            if (since !== undefined) {
-                request['startAt'] = since;
-            }
-            if (limit !== undefined) {
-                request['maxCount'] = limit;
-            }
-            const method = 'futuresPrivateGetFundingHistory';
-            const response = await this[method] (this.extend (request, params));
-            //
-            //    {
-            //        "data": {
-            //            "dataList": [
-            //                {
-            //                    "id": 36275152660006,                // id
-            //                    "symbol": "XBTUSDM",                 // Symbol
-            //                    "timePoint": 1557918000000,          // Time point (milisecond)
-            //                    "fundingRate": 0.000013,             // Funding rate
-            //                    "markPrice": 8058.27,                // Mark price
-            //                    "positionQty": 10,                   // Position size
-            //                    "positionCost": -0.001241,           // Position value at settlement period
-            //                    "funding": -0.00000464,              // Settled funding fees. A positive number means that the user received the funding fee, and vice versa.
-            //                    "settleCurrency": "XBT"              // Settlement currency
-            //                },
-            //            ]
-            //        }
-            //    }
-            //
-            const data = this.safeValue (response, 'data');
-            const dataList = this.safeValue (data, 'dataList');
-            const fees = [];
-            for (let i = 0; i < dataList.length; i++) {
-                const timestamp = this.safeInteger (dataList[i], 'timePoint');
-                fees.push ({
-                    'info': dataList[i],
-                    'symbol': this.safeSymbol (dataList[i], 'symbol'),
-                    'code': this.safeCurrencyCode (dataList[i], 'settleCurrency'),
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                    'id': this.safeNumber (dataList[i], 'id'),
-                    'amount': this.safeNumber (dataList[i], 'funding'),
-                    'fundingRate': this.safeNumber (dataList[i], 'fundingRate'),
-                    'markPrice': this.safeNumber (dataList[i], 'markPrice'),
-                    'positionQty': this.safeNumber (dataList[i], 'positionQty'),
-                    'positionCost': this.safeNumber (dataList[i], 'positionCost'),
-                });
-            }
-            return fees;
-        } else {
-            throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
-    }
-
-    async fetchFundingFee (code, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        const market = this.market (symbol);
         const request = {
-            'currency': currency['id'],
+            'symbol': market['id'],
         };
-        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
-        const data = response['data'];
-        const withdrawFees = {};
-        withdrawFees[code] = this.safeNumber (data, 'withdrawMinFee');
-        return {
-            'info': response,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        };
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['maxCount'] = limit;
+        }
+        const response = await this.futuresPrivateGetFundingHistory (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "dataList": [
+        //                {
+        //                    "id": 239471298749817,
+        //                    "symbol": "ETHUSDTM",
+        //                    "timePoint": 1638532800000,
+        //                    "fundingRate": 0.000100,
+        //                    "markPrice": 4612.8300000000,
+        //                    "positionQty": 12,
+        //                    "positionCost": 553.5396000000,
+        //                    "funding": -0.0553539600,
+        //                    "settleCurrency": "USDT"
+        //                },
+        //                ...
+        //            ],
+        //            "hasMore": true
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const dataList = this.safeValue (data, 'dataList');
+        const fees = [];
+        for (let i = 0; i < dataList.length; i++) {
+            const listItem = dataList[i];
+            const timestamp = this.safeInteger (listItem, 'timePoint');
+            fees.push ({
+                'info': listItem,
+                'symbol': symbol,
+                'code': this.safeCurrencyCode (this.safeString (listItem, 'settleCurrency')),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': this.safeNumber (listItem, 'id'),
+                'amount': this.safeNumber (listItem, 'funding'),
+                'fundingRate': this.safeNumber (listItem, 'fundingRate'),
+                'markPrice': this.safeNumber (listItem, 'markPrice'),
+                'positionQty': this.safeNumber (listItem, 'positionQty'),
+                'positionCost': this.safeNumber (listItem, 'positionCost'),
+            });
+        }
+        return fees;
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
         const response = await this.futuresPrivateGetPositions (params);
         //
-        //     {
-        //         code: '200000',
-        //         data: [
-        //             {
-        //                 id: '605a9772a229ab0006408258',
-        //                 symbol: 'XBTUSDTM',
-        //                 autoDeposit: false,
-        //                 maintMarginReq: 0.005,
-        //                 riskLimit: 200,
-        //                 realLeverage: 0,
-        //                 crossMode: false,
-        //                 delevPercentage: 0,
-        //                 currentTimestamp: 1616549746099,
-        //                 currentQty: 0,
-        //                 currentCost: 0,
-        //                 currentComm: 0,
-        //                 unrealisedCost: 0,
-        //                 realisedGrossCost: 0,
-        //                 realisedCost: 0,
-        //                 isOpen: false,
-        //                 markPrice: 54371.92,
-        //                 markValue: 0,
-        //                 posCost: 0,
-        //                 posCross: 0,
-        //                 posInit: 0,
-        //                 posComm: 0,
-        //                 posLoss: 0,
-        //                 posMargin: 0,
-        //                 posMaint: 0,
-        //                 maintMargin: 0,
-        //                 realisedGrossPnl: 0,
-        //                 realisedPnl: 0,
-        //                 unrealisedPnl: 0,
-        //                 unrealisedPnlPcnt: 0,
-        //                 unrealisedRoePcnt: 0,
-        //                 avgEntryPrice: 0,
-        //                 liquidationPrice: 0,
-        //                 bankruptPrice: 0,
-        //                 settleCurrency: 'USDT',
-        //                 isInverse: false
-        //             },
-        //             {
-        //                 id: '605a9772026ac900066550df',
-        //                 symbol: 'XBTUSDM',
-        //                 autoDeposit: false,
-        //                 maintMarginReq: 0.005,
-        //                 riskLimit: 200,
-        //                 realLeverage: 0,
-        //                 crossMode: false,
-        //                 delevPercentage: 0,
-        //                 currentTimestamp: 1616549746110,
-        //                 currentQty: 0,
-        //                 currentCost: 0,
-        //                 currentComm: 0,
-        //                 unrealisedCost: 0,
-        //                 realisedGrossCost: 0,
-        //                 realisedCost: 0,
-        //                 isOpen: false,
-        //                 markPrice: 54354.76,
-        //                 markValue: 0,
-        //                 posCost: 0,
-        //                 posCross: 0,
-        //                 posInit: 0,
-        //                 posComm: 0,
-        //                 posLoss: 0,
-        //                 posMargin: 0,
-        //                 posMaint: 0,
-        //                 maintMargin: 0,
-        //                 realisedGrossPnl: 0,
-        //                 realisedPnl: 0,
-        //                 unrealisedPnl: 0,
-        //                 unrealisedPnlPcnt: 0,
-        //                 unrealisedRoePcnt: 0,
-        //                 avgEntryPrice: 0,
-        //                 liquidationPrice: 0,
-        //                 bankruptPrice: 0,
-        //                 settleCurrency: 'XBT',
-        //                 isInverse: true
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "id": "615ba79f83a3410001cde321",
+        //                "symbol": "ETHUSDTM",
+        //                "autoDeposit": false,
+        //                "maintMarginReq": 0.005,
+        //                "riskLimit": 1000000,
+        //                "realLeverage": 18.61,
+        //                "crossMode": false,
+        //                "delevPercentage": 0.86,
+        //                "openingTimestamp": 1638563515618,
+        //                "currentTimestamp": 1638576872774,
+        //                "currentQty": 2,
+        //                "currentCost": 83.64200000,
+        //                "currentComm": 0.05018520,
+        //                "unrealisedCost": 83.64200000,
+        //                "realisedGrossCost": 0.00000000,
+        //                "realisedCost": 0.05018520,
+        //                "isOpen": true,
+        //                "markPrice": 4225.01,
+        //                "markValue": 84.50020000,
+        //                "posCost": 83.64200000,
+        //                "posCross": 0.0000000000,
+        //                "posInit": 3.63660870,
+        //                "posComm": 0.05236717,
+        //                "posLoss": 0.00000000,
+        //                "posMargin": 3.68897586,
+        //                "posMaint": 0.50637594,
+        //                "maintMargin": 4.54717586,
+        //                "realisedGrossPnl": 0.00000000,
+        //                "realisedPnl": -0.05018520,
+        //                "unrealisedPnl": 0.85820000,
+        //                "unrealisedPnlPcnt": 0.0103,
+        //                "unrealisedRoePcnt": 0.2360,
+        //                "avgEntryPrice": 4182.10,
+        //                "liquidationPrice": 4023.00,
+        //                "bankruptPrice": 4000.25,
+        //                "settleCurrency": "USDT",
+        //                "isInverse": false
+        //            }
+        //        ]
+        //    }
         //
-        return this.safeValue (response, 'data', response);
+        return this.parsePositions (this.safeValue (response, 'data'));
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "id": "615ba79f83a3410001cde321",         // Position ID
+        //                "symbol": "ETHUSDTM",                     // Symbol
+        //                "autoDeposit": false,                     // Auto deposit margin or not
+        //                "maintMarginReq": 0.005,                  // Maintenance margin requirement
+        //                "riskLimit": 1000000,                     // Risk limit
+        //                "realLeverage": 25.92,                    // Leverage of the order
+        //                "crossMode": false,                       // Cross mode or not
+        //                "delevPercentage": 0.76,                  // ADL ranking percentile
+        //                "openingTimestamp": 1638578546031,        // Open time
+        //                "currentTimestamp": 1638578563580,        // Current timestamp
+        //                "currentQty": 2,                          // Current postion quantity
+        //                "currentCost": 83.787,                    // Current postion value
+        //                "currentComm": 0.0167574,                 // Current commission
+        //                "unrealisedCost": 83.787,                 // Unrealised value
+        //                "realisedGrossCost": 0.0,                 // Accumulated realised gross profit value
+        //                "realisedCost": 0.0167574,                // Current realised position value
+        //                "isOpen": true,                           // Opened position or not
+        //                "markPrice": 4183.38,                     // Mark price
+        //                "markValue": 83.6676,                     // Mark value
+        //                "posCost": 83.787,                        // Position value
+        //                "posCross": 0.0,                          // added margin
+        //                "posInit": 3.35148,                       // Leverage margin
+        //                "posComm": 0.05228309,                    // Bankruptcy cost
+        //                "posLoss": 0.0,                           // Funding fees paid out
+        //                "posMargin": 3.40376309,                  // Position margin
+        //                "posMaint": 0.50707892,                   // Maintenance margin
+        //                "maintMargin": 3.28436309,                // Position margin
+        //                "realisedGrossPnl": 0.0,                  // Accumulated realised gross profit value
+        //                "realisedPnl": -0.0167574,                // Realised profit and loss
+        //                "unrealisedPnl": -0.1194,                 // Unrealised profit and loss
+        //                "unrealisedPnlPcnt": -0.0014,             // Profit-loss ratio of the position
+        //                "unrealisedRoePcnt": -0.0356,             // Rate of return on investment
+        //                "avgEntryPrice": 4189.35,                 // Average entry price
+        //                "liquidationPrice": 4044.55,              // Liquidation price
+        //                "bankruptPrice": 4021.75,                 // Bankruptcy price
+        //                "settleCurrency": "USDT",                 // Currency used to clear and settle the trades
+        //                "isInverse": false
+        //            }
+        //        ]
+        //    }
+        //
+        const symbol = this.safeString (position, 'symbol');
+        market = this.safeMarket (symbol, market);
+        const timestamp = this.safeNumber (position, 'currentTimestamp');
+        const size = this.safeString (position, 'currentQty');
+        let side = undefined;
+        if (size > 0) {
+            side = 'buy';
+        } else if (size < 0) {
+            side = 'sell';
+        }
+        const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
+        const initialMargin = this.safeString (position, 'posMargin');
+        const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
+        const leverage = Precise.stringDiv ('1', initialMarginPercentage);  // TODO: Not quite right
+        // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
+        const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
+            'maintenanceMargin': this.safeNumber (position, 'maintMargin'),
+            'maintenanceMarginPercentage': this.safeString (position, 'maintMarginReq'),
+            'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
+            'notional': this.parseNumber (notional),
+            'leverage': this.parseNumber (leverage),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (Precise.stringAbs (size)),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            //     realisedPnl: position['realised_pnl'],
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'collateral': this.safeNumber (position, 'posInit'),
+            'marginType': undefined,
+            'side': side,
+            'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
