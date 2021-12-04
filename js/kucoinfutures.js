@@ -1266,19 +1266,20 @@ module.exports = class kucoinfutures extends kucoin {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetTradeHistory (this.extend (request, params));
+        const response = await this.futuresPublicGetTradeHistory (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
         //        "data": {
-        //            "sequence": 102,                                  //Sequence number
-        //            "tradeId": "5cbd7377a6ffab0c7ba98b26",      //Transaction ID
-        //            "takerOrderId": "5cbd7377a6ffab0c7ba98b27", //Taker order ID
-        //            "makerOrderId": "5cbd7377a6ffab0c7ba98b28", //Maker order ID
-        //            "price": "7000.0",                          //Filled price
-        //            "size": 1,                                //Filled quantity
-        //            "side": "buy",                              //Side-taker                "ts": //1545904567062140823                   //Filled time - nanosecond
-        //            }
+        //            "sequence": 102,                              // Sequence number
+        //            "tradeId": "5cbd7377a6ffab0c7ba98b26",        // Transaction ID
+        //            "takerOrderId": "5cbd7377a6ffab0c7ba98b27",   // Taker order ID
+        //            "makerOrderId": "5cbd7377a6ffab0c7ba98b28",   // Maker order ID
+        //            "price": "7000.0",                            // Filled price
+        //            "size": 1,                                    // Filled quantity
+        //            "side": "buy",                                // Side-taker
+        //            "ts": //1545904567062140823                   // Filled time - nanosecond
+        //        }
         //    }
         //
         const trades = this.safeValue (response, 'data', []);
