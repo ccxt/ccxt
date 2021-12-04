@@ -118,7 +118,7 @@ module.exports = class kucoinfutures extends kucoin {
                         'orders',
                         'stopOrders',
                         'recentDoneOrders',
-                        'orders/{order-id}', // ?clientOid={client-order-id} // get order by orderId
+                        'orders/{orderId}', // ?clientOid={client-order-id} // get order by orderId
                         'orders/byClientOid', // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
                         'fills',
                         'recentFills',
@@ -138,7 +138,7 @@ module.exports = class kucoinfutures extends kucoin {
                     'delete': [
                         'withdrawals/{withdrawalId}',
                         'cancel/transfer-out',
-                        'orders/{order-id}',
+                        'orders/{orderId}',
                         'orders',
                         'stopOrders',
                     ],
@@ -918,7 +918,6 @@ module.exports = class kucoinfutures extends kucoin {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
-        // TODO: Give notification of an error if no orderId in response
         return {
             'id': this.safeString (data, 'orderId'),
             'clientOrderId': clientOrderId,
