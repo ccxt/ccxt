@@ -1284,5 +1284,13 @@ module.exports = class kucoinfutures extends kucoin {
         const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
-    // inherited methods from class Kucoin include: fetchClosedOrders, fetchOpenOrders, nonce, loadTimeDifference, sign, handleErrors, fetchDeposits, withdraw, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchTicker, fetchStatus, parseTrade, parseLedgerEntryTyp, parseLedgerEntr, fetchLedger
+
+    async fetchFundingFee (code, params = {}) {
+        throw new BadRequest (this.id + ' has no method fetchFundingFee');
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new BadRequest (this.id + ' has no method fetchLedger');
+    }
+    // inherited methods from class Kucoin include: fetchClosedOrders, fetchOpenOrders, nonce, loadTimeDifference, sign, handleErrors, fetchDeposits, withdraw, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchTicker, fetchStatus, parseTrade,
 };
