@@ -36,7 +36,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFee': false,
+                'fetchFundingFee': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': false,
@@ -691,6 +691,23 @@ module.exports = class kucoin extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchFundingFee (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
+        const data = response['data'];
+        const withdrawFees = {};
+        withdrawFees[code] = this.safeNumber (data, 'withdrawMinFee');
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
     }
 
     isFuturesMethod (methodName, params) {
