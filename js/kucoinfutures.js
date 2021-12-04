@@ -242,12 +242,12 @@ module.exports = class kucoinfutures extends kucoin {
                     },
                 },
                 'networks': {
-                    'ETH': 'eth',
+                    // 'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
-                    'TRC20': 'trx',
-                    'KCC': 'kcc',
-                    'TERRA': 'luna',
+                    // 'TRX': 'trx',
+                    // 'TRC20': 'trx',
+                    // 'KCC': 'kcc',
+                    // 'TERRA': 'luna',
                 },
             },
         });
@@ -401,7 +401,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'linear': inverse !== true,
                 'inverse': inverse,
                 'expiry': this.safeValue (market, 'expireDate'),
-                'contractSize': undefined,
+                'contractSize': undefined, // TODO
                 'limits': limits,
                 'info': market,
                 // Fee is in %, so divide by 100
@@ -413,6 +413,7 @@ module.exports = class kucoinfutures extends kucoin {
 
     async fetchCurrencies (params = {}) {
         // TODO: Emulate?
+        return undefined;
     }
 
     async fetchTime (params = {}) {
@@ -563,7 +564,7 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
-        throw new BadRequest (this.id + ' only can only fetch the L2 order book')
+        throw new BadRequest (this.id + ' only can only fetch the L2 order book');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1004,7 +1005,7 @@ module.exports = class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        // ? Give a waring if limit supplied allerting that limit isn't used 
+        // ? Give a waring if limit supplied allerting that limit isn't used
         const response = await this.futuresPrivateGetOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'data', {});
         const orders = this.safeValue (responseData, 'items', []);
@@ -1166,7 +1167,7 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
-        if ((fromAccount !== 'spot' && fromAccount !== 'trade' && fromAccount !== 'trading') || (toAccount !== 'futures' && toAccount !== 'contract')) {
+        if ((toAccount !== 'spot' && toAccount !== 'trade' && toAccount !== 'trading') || (fromAccount !== 'futures' && fromAccount !== 'contract')) {
             throw new BadRequest (this.id + ' only supports transfers from contract(futures) account to trade(spot) account');
         }
         this.transferOut (code, amount, params);
@@ -1175,12 +1176,12 @@ module.exports = class kucoinfutures extends kucoin {
     async transferOut (code, amount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const currencyId = currency['id'];
         const request = {
-            'currency': currencyId, // Currency,including XBT,USDT
+            'currency': this.safeString (currency, 'id'), // Currency,including XBT,USDT
+            'amount': amount,
         };
         // transfer from usdm futures wallet to spot wallet
-        const response = await this.privateFuturesTransferOut (this.extend (request, params));
+        const response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -1192,7 +1193,7 @@ module.exports = class kucoinfutures extends kucoin {
         const data = this.safeValue (response, 'data');
         return {
             'info': response,
-            'id': data['applyId'],
+            'id': this.safeString (data, 'applyId'),
             'timestamp': undefined,
             'datetime': undefined,
             'currency': code,
@@ -1293,5 +1294,4 @@ module.exports = class kucoinfutures extends kucoin {
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         throw new BadRequest (this.id + ' has no method fetchLedger');
     }
-    // inherited methods from class Kucoin include: fetchClosedOrders, fetchOpenOrders, nonce, loadTimeDifference, sign, handleErrors, fetchDeposits, withdraw, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchTicker, fetchStatus, parseTrade,
 };
