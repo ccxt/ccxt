@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const kucoin = require ('./kucoin.js');
 
@@ -254,36 +254,7 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchAccounts (params = {}) {
-        const response = await this.privateGetAccounts (params);
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "accountEquity": 99.8999305281, //Account equity = marginBalance + Unrealised PNL 
-        //            "unrealisedPNL": 0, //Unrealised profit and lossavailableBalance - unrealisedPNL
-        //            "positionMargin": 0, //Position margin
-        //            "orderMargin": 0, //Order margin
-        //            "frozenFunds": 0, //Frozen funds for withdrawal and out-transfer
-        //            "availableBalance": 99.8999305281, //Available balance"currency": "XBT" //currency code
-        //        }
-        //    }
-        //
-        const data = this.safeValue (response, 'data');
-        const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const account = data[i];
-            const accountId = this.safeString (account, 'id');
-            const currencyId = this.safeString (account, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const type = this.safeString (account, 'type');  // main or trade
-            result.push ({
-                'id': accountId,
-                'type': type,
-                'currency': code,
-                'info': account,
-            });
-        }
-        return result;
+        throw new BadRequest (this.id + ' has no method fetchAccounts');
     }
 
     async fetchMarkets (params = {}) {
