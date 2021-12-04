@@ -281,6 +281,8 @@ class binance(Exchange):
                         'account/apiRestrictions': 1,
                         # subaccounts
                         'managed-subaccount/asset': 1,
+                        # c2c / p2p
+                        'c2c/orderMatch/listUserOrderHistory': 1,
                     },
                     'post': {
                         'asset/dust': 1,
