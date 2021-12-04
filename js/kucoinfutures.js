@@ -496,7 +496,7 @@ module.exports = class kucoinfutures extends kucoin {
         const request = {
             'currency': currencyId, // Currency,including XBT,USDT
         };
-        const response = await this.futuresPrivateGetDepositAddresses (this.extend (request, params));
+        const response = await this.futuresPrivateGetDepositAddress (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -508,7 +508,6 @@ module.exports = class kucoinfutures extends kucoin {
         //
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'memo');
         if (currencyId !== 'NIM') {
             // contains spaces
             this.checkAddress (address);
@@ -517,8 +516,8 @@ module.exports = class kucoinfutures extends kucoin {
             'info': response,
             'currency': currencyId,
             'address': address,
-            'tag': tag,
-            'network': undefined,
+            'tag': this.safeString (data, 'memo'),
+            'network': this.safeString (data, 'chain'),
         };
     }
 
