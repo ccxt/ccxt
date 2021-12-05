@@ -54,12 +54,7 @@ class gateio extends \ccxt\async\gateio {
         } else if ($limit !== 1 && $limit !== 5 && $limit !== 10 && $limit !== 20 && $limit !== 30) {
             throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 1, 5, 10, 20, or 30');
         }
-        $interval = $this->safe_string($params, 'interval', '0.00000001');
-        $floatInterval = floatval($interval);
-        $precision = -1 * log10 ($floatInterval);
-        if (($precision < 0) || ($precision > 8) || (fmod($precision, 1) !== 0.0)) {
-            throw new ExchangeError($this->id . ' invalid interval');
-        }
+        $interval = $this->safe_string($params, 'interval', '100ms');
         $parameters = array( $uppercaseId, $limit, $interval );
         $subscriptions = $this->safe_value($options, 'subscriptions', array());
         $subscriptions[$symbol] = $parameters;

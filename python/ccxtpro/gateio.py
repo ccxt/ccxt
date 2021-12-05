@@ -7,7 +7,6 @@ from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -53,11 +52,7 @@ class gateio(Exchange, ccxt.gateio):
             limit = defaultLimit
         elif limit != 1 and limit != 5 and limit != 10 and limit != 20 and limit != 30:
             raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 1, 5, 10, 20, or 30')
-        interval = self.safe_string(params, 'interval', '0.00000001')
-        floatInterval = float(interval)
-        precision = -1 * math.log10(floatInterval)
-        if (precision < 0) or (precision > 8) or (precision % 1 != 0.0):
-            raise ExchangeError(self.id + ' invalid interval')
+        interval = self.safe_string(params, 'interval', '100ms')
         parameters = [uppercaseId, limit, interval]
         subscriptions = self.safe_value(options, 'subscriptions', {})
         subscriptions[symbol] = parameters
