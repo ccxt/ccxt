@@ -3268,6 +3268,8 @@ As with all other unified methods for fetching historical data, the `fetchMyTrad
 
 To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
 
+In many cases a `symbol` argument is required by the exchanges' APIs, therefore you have to loop over all symbols to get all your trades. If the `symbol` is missing and the exchange requires it then CCXT will throw an `ArgumentsRequired` exception to signal the requirement to the user. And then the `symbol` has to be specified. One of the approaches is to filter the relevant symbols from the list of all symbols by looking at non-zero balances as well as transactions (withdrawals and deposits). Also, the exchanges will have a limit on how far back in time you can go.
+
 In most cases users are **required to use at least some type of [pagination](#pagination)** in order to get the expected results consistently.
 
 ```JavaScript
