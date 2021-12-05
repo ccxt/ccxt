@@ -16,7 +16,6 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -774,7 +773,6 @@ class huobi(Exchange):
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders',  # 'spot_private_get_v1_order_history'  # https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': True,
                 'language': 'en-US',
                 'broker': {
@@ -1978,19 +1976,10 @@ class huobi(Exchange):
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        method = self.safe_string(self.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1')
-        return await getattr(self, method)(symbol, since, limit, params)
-
-    async def fetch_open_orders_v1(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrdersV1() requires a symbol argument')
-        return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
-
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         return await self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    async def fetch_open_orders_v2(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
         market = None
