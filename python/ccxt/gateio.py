@@ -2704,6 +2704,130 @@ class gateio(Exchange):
         #
         return response
 
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         value: "12.475572",
+        #         leverage: "0",
+        #         mode: "single",
+        #         realised_point: "0",
+        #         contract: "BTC_USDT",
+        #         entry_price: "62422.6",
+        #         mark_price: "62377.86",
+        #         history_point: "0",
+        #         realised_pnl: "-0.00624226",
+        #         close_order:  null,
+        #         size: "2",
+        #         cross_leverage_limit: "25",
+        #         pending_orders: "0",
+        #         adl_ranking: "5",
+        #         maintenance_rate: "0.005",
+        #         unrealised_pnl: "-0.008948",
+        #         user: "663337",
+        #         leverage_max: "100",
+        #         history_pnl: "14.98868396636",
+        #         risk_limit: "1000000",
+        #         margin: "0.740721495056",
+        #         last_close_pnl: "-0.041996015",
+        #         liq_price: "59058.58"
+        #     }
+        #
+        contract = self.safe_value(position, 'contract')
+        market = self.safe_market(contract, market)
+        now = self.milliseconds()
+        size = self.safe_string(position, 'size')
+        side = None
+        if size > 0:
+            side = 'buy'
+        elif size < 0:
+            side = 'sell'
+        maintenanceRate = self.safe_string(position, 'maintenance_rate')
+        notional = self.safe_string(position, 'value')
+        initialMargin = self.safe_string(position, 'margin')
+        # marginRatio = Precise.string_div(maintenanceRate, collateral)
+        unrealisedPnl = self.safe_string(position, 'unrealised_pnl')
+        return {
+            'info': position,
+            'symbol': self.safe_string(market, 'symbol'),
+            'timestamp': now,
+            'datetime': self.iso8601(now),
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMargin, notional)),
+            'maintenanceMargin': self.parse_number(Precise.string_mul(maintenanceRate, notional)),
+            'maintenanceMarginPercentage': self.parse_number(maintenanceRate),
+            'entryPrice': self.safe_number(position, 'entry_price'),
+            'notional': self.parse_number(notional),
+            'leverage': self.safe_number(position, 'leverage'),
+            'unrealizedPnl': self.parse_number(unrealisedPnl),
+            'contracts': self.parse_number(size),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            #     realisedPnl: position['realised_pnl'],
+            'marginRatio': None,
+            'liquidationPrice': self.safe_number(position, 'liq_price'),
+            'markPrice': self.safe_number(position, 'mark_price'),
+            'collateral': None,
+            'marginType': None,
+            'side': side,
+            'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
+        }
+
+    def parse_positions(self, positions):
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i]))
+        return result
+
+    def fetch_positions(self, symbols=None, params={}):
+        # :param symbols: Not used by Gateio
+        # :param params:
+        #    settle: The currency that derivative contracts are settled in
+        #    Other exchange specific params
+        #
+        self.load_markets()
+        defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType', 'swap')
+        type = self.safe_string(params, 'type', defaultType)
+        method = self.get_supported_mapping(type, {
+            'swap': 'privateFuturesGetSettlePositions',
+            'futures': 'privateDeliveryGetSettlePositions',
+        })
+        defaultSettle = type == 'usdt' if 'swap' else 'btc'
+        settle = self.safe_string(params, 'settle', defaultSettle)
+        request = {
+            'settle': settle,
+        }
+        response = getattr(self, method)(request)
+        #
+        #     [
+        #         {
+        #             value: "12.475572",
+        #             leverage: "0",
+        #             mode: "single",
+        #             realised_point: "0",
+        #             contract: "BTC_USDT",
+        #             entry_price: "62422.6",
+        #             mark_price: "62377.86",
+        #             history_point: "0",
+        #             realised_pnl: "-0.00624226",
+        #             close_order:  null,
+        #             size: "2",
+        #             cross_leverage_limit: "25",
+        #             pending_orders: "0",
+        #             adl_ranking: "5",
+        #             maintenance_rate: "0.005",
+        #             unrealised_pnl: "-0.008948",
+        #             user: "6693577",
+        #             leverage_max: "100",
+        #             history_pnl: "14.98868396636",
+        #             risk_limit: "1000000",
+        #             margin: "0.740721495056",
+        #             last_close_pnl: "-0.041996015",
+        #             liq_price: "59058.58"
+        #         }
+        #     ]
+        #
+        result = self.parse_positions(response)
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, futures, delivery
