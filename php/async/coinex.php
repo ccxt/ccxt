@@ -569,7 +569,7 @@ class coinex extends Exchange {
             'trades' => null,
             'fee' => array(
                 'currency' => $feeCurrency,
-                'cost' => $this->safe_number($order, 'deal_fee'),
+                'cost' => $this->safe_string($order, 'deal_fee'),
             ),
             'info' => $order,
         ), $market);
@@ -615,6 +615,25 @@ class coinex extends Exchange {
         $response = yield $this->privateDeleteOrderPending (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data, $market);
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancellAllOrders() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $marketId = $market['id'];
+        $accountId = $this->safe_string($params, 'id', '0');
+        $request = array(
+            'account_id' => $accountId, // main account ID => 0, margin account ID => See < Inquire Margin Account Market Info >, future account ID => See < Inquire Future Account Market Info >
+            'market' => $marketId,
+        );
+        $response = yield $this->privateDeleteOrderPending (array_merge($request, $params));
+        //
+        // array("code" => 0, "data" => null, "message" => "Success")
+        //
+        return $response;
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -994,7 +1013,7 @@ class coinex extends Exchange {
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
         $message = $this->safe_string($response, 'message');
-        if (($code !== '0') || ($data === null) || (($message !== 'Success') && ($message !== 'Succeeded') && ($message !== 'Ok') && !$data)) {
+        if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && ($message !== 'Ok') && !$data)) {
             $responseCodes = array(
                 // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
                 '23' => '\\ccxt\\PermissionDenied', // IP Prohibited

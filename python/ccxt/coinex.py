@@ -552,7 +552,7 @@ class coinex(Exchange):
             'trades': None,
             'fee': {
                 'currency': feeCurrency,
-                'cost': self.safe_number(order, 'deal_fee'),
+                'cost': self.safe_string(order, 'deal_fee'),
             },
             'info': order,
         }, market)
@@ -592,6 +592,23 @@ class coinex(Exchange):
         response = self.privateDeleteOrderPending(self.extend(request, params))
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancellAllOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        marketId = market['id']
+        accountId = self.safe_string(params, 'id', '0')
+        request = {
+            'account_id': accountId,  # main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
+            'market': marketId,
+        }
+        response = self.privateDeleteOrderPending(self.extend(request, params))
+        #
+        # {"code": 0, "data": null, "message": "Success"}
+        #
+        return response
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -936,7 +953,7 @@ class coinex(Exchange):
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
-        if (code != '0') or (data is None) or ((message != 'Success') and (message != 'Succeeded') and (message != 'Ok') and not data):
+        if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message != 'Ok') and not data):
             responseCodes = {
                 # https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
                 '23': PermissionDenied,  # IP Prohibited
