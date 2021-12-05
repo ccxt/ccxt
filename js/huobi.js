@@ -750,7 +750,6 @@ module.exports = class huobi extends Exchange {
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': true,
                 'language': 'en-US',
                 'broker': {
@@ -2047,23 +2046,11 @@ module.exports = class huobi extends Exchange {
         return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.safeString (this.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
-        return await this[method] (symbol, since, limit, params);
-    }
-
-    async fetchOpenOrdersV1 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrdersV1() requires a symbol argument');
-        }
-        return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled', symbol, since, limit, params);
-    }
-
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrdersV2 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
