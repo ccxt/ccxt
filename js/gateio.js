@@ -2826,6 +2826,135 @@ module.exports = class gateio extends Exchange {
         return response;
     }
 
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         value: "12.475572",
+        //         leverage: "0",
+        //         mode: "single",
+        //         realised_point: "0",
+        //         contract: "BTC_USDT",
+        //         entry_price: "62422.6",
+        //         mark_price: "62377.86",
+        //         history_point: "0",
+        //         realised_pnl: "-0.00624226",
+        //         close_order:  null,
+        //         size: "2",
+        //         cross_leverage_limit: "25",
+        //         pending_orders: "0",
+        //         adl_ranking: "5",
+        //         maintenance_rate: "0.005",
+        //         unrealised_pnl: "-0.008948",
+        //         user: "663337",
+        //         leverage_max: "100",
+        //         history_pnl: "14.98868396636",
+        //         risk_limit: "1000000",
+        //         margin: "0.740721495056",
+        //         last_close_pnl: "-0.041996015",
+        //         liq_price: "59058.58"
+        //     }
+        //
+        const contract = this.safeValue (position, 'contract');
+        market = this.safeMarket (contract, market);
+        const now = this.milliseconds ();
+        const size = this.safeString (position, 'size');
+        let side = undefined;
+        if (size > 0) {
+            side = 'buy';
+        } else if (size < 0) {
+            side = 'sell';
+        }
+        const maintenanceRate = this.safeString (position, 'maintenance_rate');
+        const notional = this.safeString (position, 'value');
+        const initialMargin = this.safeString (position, 'margin');
+        // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
+        const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMargin, notional)),
+            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
+            'entryPrice': this.safeNumber (position, 'entry_price'),
+            'notional': this.parseNumber (notional),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            //     realisedPnl: position['realised_pnl'],
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liq_price'),
+            'markPrice': this.safeNumber (position, 'mark_price'),
+            'collateral': undefined,
+            'marginType': undefined,
+            'side': side,
+            'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
+        };
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        // :param symbols: Not used by Gateio
+        // :param params:
+        //    settle: The currency that derivative contracts are settled in
+        //    Other exchange specific params
+        //
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'swap');
+        const type = this.safeString (params, 'type', defaultType);
+        const method = this.getSupportedMapping (type, {
+            'swap': 'privateFuturesGetSettlePositions',
+            'futures': 'privateDeliveryGetSettlePositions',
+        });
+        const defaultSettle = type === 'swap' ? 'usdt' : 'btc';
+        const settle = this.safeString (params, 'settle', defaultSettle);
+        const request = {
+            'settle': settle,
+        };
+        const response = await this[method] (request);
+        //
+        //     [
+        //         {
+        //             value: "12.475572",
+        //             leverage: "0",
+        //             mode: "single",
+        //             realised_point: "0",
+        //             contract: "BTC_USDT",
+        //             entry_price: "62422.6",
+        //             mark_price: "62377.86",
+        //             history_point: "0",
+        //             realised_pnl: "-0.00624226",
+        //             close_order:  null,
+        //             size: "2",
+        //             cross_leverage_limit: "25",
+        //             pending_orders: "0",
+        //             adl_ranking: "5",
+        //             maintenance_rate: "0.005",
+        //             unrealised_pnl: "-0.008948",
+        //             user: "6693577",
+        //             leverage_max: "100",
+        //             history_pnl: "14.98868396636",
+        //             risk_limit: "1000000",
+        //             margin: "0.740721495056",
+        //             last_close_pnl: "-0.041996015",
+        //             liq_price: "59058.58"
+        //         }
+        //     ]
+        //
+        const result = this.parsePositions (response);
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, futures, delivery
