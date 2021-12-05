@@ -571,34 +571,56 @@ class cdax extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     {
-        //         "amount" => 0.010411000000000000,
-        //         "trade-$id" => 102090736910,
-        //         "ts" => 1583497692182,
-        //         "id" => 10500517034273194594947,
-        //         "price" => 9096.050000000000000000,
-        //         "direction" => "sell"
-        //     }
+        //      {
+        //          "id" => "112522757755423628681413936",
+        //          "ts" => "1638457111917",
+        //          "trade-$id" => "100454385963",
+        //          "amount" => "13.7962",
+        //          "price" => "1.697867",
+        //          "direction" => "buy"
+        //      }
         //
         // fetchMyTrades (private)
         //
-        //     array(
-        //          'symbol' => 'swftcbtc',
-        //          'fee-currency' => 'swftc',
-        //          'filled-fees' => '0',
-        //          'source' => 'spot-api',
-        //          'id' => 83789509854000,
-        //          'type' => 'buy-limit',
-        //          'order-id' => 83711103204909,
-        //          'filled-points' => '0.005826843283532154',
-        //          'fee-deduct-currency' => 'ht',
-        //          'filled-amount' => '45941.53',
-        //          'price' => '0.0000001401',
-        //          'created-at' => 1597933260729,
-        //          'match-id' => 100087455560,
-        //          'role' => 'maker',
-        //          'trade-id' => 100050305348
-        //     ),
+        //      array(
+        //          "symbol" => "adausdt",
+        //          "fee-currency" => "usdt",
+        //          "source" => "spot-api",
+        //          "order-$id" => "423628498050504",
+        //          "created-at" => "1638455779233",
+        //          "role" => "taker",
+        //          "price" => "1.672487",
+        //          "match-$id" => "112521868633",
+        //          "trade-$id" => "100454375614",
+        //          "filled-amount" => "6.8",
+        //          "filled-fees" => "0.0227458232",
+        //          "filled-points" => "0.0",
+        //          "fee-deduct-currency" => "",
+        //          "fee-deduct-state" => "done",
+        //          "id" => "422419583501532",
+        //          "type" => "sell-$market"
+        //      ),
+        //
+        // fetchOrderTrades (private)
+        //
+        //      {
+        //          "symbol" => "adausdt",
+        //          "fee-currency" => "usdt",
+        //          "source" => "spot-api",
+        //          "match-$id" => "112521868633",
+        //          "trade-$id" => "100454375614",
+        //          "role" => "taker",
+        //          "order-$id" => "423628498050504",
+        //          "price" => "1.672487",
+        //          "created-at" => "1638455779233",
+        //          "filled-amount" => "6.8",
+        //          "filled-fees" => "0.0227458232",
+        //          "filled-points" => "0.0",
+        //          "fee-deduct-currency" => "",
+        //          "fee-deduct-state" => "done",
+        //          "id" => "422419583501532",
+        //          "type" => "sell-$market"
+        //      }
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -614,28 +636,25 @@ class cdax extends Exchange {
         $takerOrMaker = $this->safe_string($trade, 'role');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'filled-amount', 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'filled-fees');
+        $feeCostString = $this->safe_string($trade, 'filled-fees');
         $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
-        $filledPoints = $this->safe_number($trade, 'filled-points');
+        $filledPoints = $this->safe_string($trade, 'filled-points');
         if ($filledPoints !== null) {
-            if (($feeCost === null) || ($feeCost === 0.0)) {
-                $feeCost = $filledPoints;
+            if (($feeCostString === null) || ($feeCostString === '0.0')) {
+                $feeCostString = $filledPoints;
                 $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-deduct-currency'));
             }
         }
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrency,
             );
         }
         $tradeId = $this->safe_string_2($trade, 'trade-id', 'tradeId');
         $id = $this->safe_string($trade, 'id', $tradeId);
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'order' => $order,
@@ -645,11 +664,11 @@ class cdax extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1103,15 +1122,15 @@ class cdax extends Exchange {
         $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
         $price = $this->safe_string($order, 'price');
         $cost = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        $feeCost = $this->safe_number_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled fees
+        $feeCostString = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled fees
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrency = null;
             if ($market !== null) {
                 $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
             }
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrency,
             );
         }

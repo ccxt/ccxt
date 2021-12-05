@@ -939,43 +939,40 @@ class bybit(Exchange):
         #
         # fetchTrades(public)
         #
-        #     {
-        #         id: 43785688,
-        #         symbol: 'BTCUSD',
-        #         price: 7786,
-        #         qty: 67,
-        #         side: 'Sell',
-        #         time: '2020-03-11T19:18:30.123Z'
-        #     }
+        #      {
+        #          "id": "44275042152",
+        #          "symbol": "AAVEUSDT",
+        #          "price": "256.35",
+        #          "qty": "0.1",
+        #          "side": "Buy",
+        #          "time": "2021-11-30T12:46:14.000Z",
+        #          "trade_time_ms": "1638276374312"
+        #      }
         #
         # fetchMyTrades, fetchOrderTrades(private)
         #
-        #     {
-        #         "closed_size": 0,
-        #         "cross_seq": 277136382,
-        #         "exec_fee": "0.0000001",
-        #         "exec_id": "256e5ef8-abfe-5772-971b-f944e15e0d68",
-        #         "exec_price": "8178.5",
-        #         "exec_qty": 1,
-        #         # the docs say the exec_time field is "abandoned" now
-        #         # the user should use "trade_time_ms"
-        #         "exec_time": "1571676941.70682",
-        #         "exec_type": "Trade",  #Exec Type Enum
-        #         "exec_value": "0.00012227",
-        #         "fee_rate": "0.00075",
-        #         "last_liquidity_ind": "RemovedLiquidity",  #Liquidity Enum
-        #         "leaves_qty": 0,
-        #         "nth_fill": 2,
-        #         "order_id": "7ad50cb1-9ad0-4f74-804b-d82a516e1029",
-        #         "order_link_id": "",
-        #         "order_price": "8178",
-        #         "order_qty": 1,
-        #         "order_type": "Market",  #Order Type Enum
-        #         "side": "Buy",  #Side Enum
-        #         "symbol": "BTCUSD",  #Symbol Enum
-        #         "user_id": 1,
-        #         "trade_time_ms": 1577480599000
-        #     }
+        #      {
+        #          "order_id": "b020b4bc-6fe2-45b5-adbc-dd07794f9746",
+        #          "order_link_id": "",
+        #          "side": "Buy",
+        #          "symbol": "AAVEUSDT",
+        #          "exec_id": "09abe8f0-aea6-514e-942b-7da8cb935120",
+        #          "price": "269.3",
+        #          "order_price": "269.3",
+        #          "order_qty": "0.1",
+        #          "order_type": "Market",
+        #          "fee_rate": "0.00075",
+        #          "exec_price": "256.35",
+        #          "exec_type": "Trade",
+        #          "exec_qty": "0.1",
+        #          "exec_fee": "0.01922625",
+        #          "exec_value": "25.635",
+        #          "leaves_qty": "0",
+        #          "closed_size": "0",
+        #          "last_liquidity_ind": "RemovedLiquidity",
+        #          "trade_time": "1638276374",
+        #          "trade_time_ms": "1638276374312"
+        #      }
         #
         id = self.safe_string_2(trade, 'id', 'exec_id')
         marketId = self.safe_string(trade, 'symbol')
@@ -983,27 +980,23 @@ class bybit(Exchange):
         symbol = market['symbol']
         amountString = self.safe_string_2(trade, 'qty', 'exec_qty')
         priceString = self.safe_string_2(trade, 'exec_price', 'price')
-        cost = self.safe_number(trade, 'exec_value')
-        amount = self.parse_number(amountString)
-        price = self.parse_number(priceString)
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        costString = self.safe_string(trade, 'exec_value')
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         if timestamp is None:
             timestamp = self.safe_integer(trade, 'trade_time_ms')
         side = self.safe_string_lower(trade, 'side')
         lastLiquidityInd = self.safe_string(trade, 'last_liquidity_ind')
         takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
-        feeCost = self.safe_number(trade, 'exec_fee')
+        feeCostString = self.safe_string(trade, 'exec_fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyCode = market['base'] if market['inverse'] else market['quote']
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': self.safe_number(trade, 'fee_rate'),
+                'rate': self.safe_string(trade, 'fee_rate'),
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -1013,11 +1006,11 @@ class bybit(Exchange):
             'type': self.safe_string_lower(trade, 'order_type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -1102,6 +1095,7 @@ class bybit(Exchange):
         return self.parse_order_book(result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size')
 
     def fetch_balance(self, params={}):
+        # note: any funds in the 'spot' account will not be returned or visible from self endpoint
         self.load_markets()
         request = {}
         coin = self.safe_string(params, 'coin')
@@ -1302,12 +1296,11 @@ class bybit(Exchange):
             lastTradeTimestamp = None
         status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
-        feeCostString = self.safe_string(order, 'cum_exec_fee')
-        feeCost = self.parse_number(Precise.string_abs(feeCostString))
+        feeCostString = Precise.string_abs(self.safe_string(order, 'cum_exec_fee'))
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'order_link_id')
@@ -1929,6 +1922,8 @@ class bybit(Exchange):
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         request = {
             # 'order_id': 'f185806b-b801-40ff-adec-52289370ed62',  # if not provided will return user's trading records
@@ -1938,16 +1933,12 @@ class bybit(Exchange):
             # 'limit' 20,  # max 50
         }
         market = None
-        if symbol is None:
-            orderId = self.safe_string(params, 'order_id')
-            if orderId is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument or an order_id param')
-            else:
-                request['order_id'] = orderId
-                params = self.omit(params, 'order_id')
-        else:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+        orderId = self.safe_string(params, 'order_id')
+        if orderId is not None:
+            request['order_id'] = orderId
+            params = self.omit(params, 'order_id')
+        market = self.market(symbol)
+        request['symbol'] = market['id']
         if since is not None:
             request['start_time'] = since
         if limit is not None:

@@ -11,7 +11,6 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\NullResponse;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
-use \ccxt\Precise;
 
 class cex extends Exchange {
 
@@ -513,20 +512,28 @@ class cex extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "type" => "sell",
+        //          "date" => "1638401878",
+        //          "amount" => "0.401000",
+        //          "price" => "249",
+        //          "tid" => "11922"
+        //      }
+        //
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -536,11 +543,11 @@ class cex extends Exchange {
             'side' => $side,
             'order' => null,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

@@ -65,8 +65,8 @@ class bytetrade extends Exchange {
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg',
                 'api' => array(
-                    'market' => 'https://api-v2.byte-trade.com',
-                    'public' => 'https://api-v2.byte-trade.com',
+                    'market' => 'https://api-v2.bttcdn.com',
+                    'public' => 'https://api-v2.bttcdn.com',
                 ),
                 'www' => 'https://www.byte-trade.com',
                 'doc' => 'https://docs.byte-trade.com/#description',

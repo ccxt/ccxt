@@ -952,43 +952,40 @@ class bybit extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     {
-        //         $id => 43785688,
-        //         $symbol => 'BTCUSD',
-        //         $price => 7786,
-        //         qty => 67,
-        //         $side => 'Sell',
-        //         time => '2020-03-11T19:18:30.123Z'
-        //     }
+        //      {
+        //          "id" => "44275042152",
+        //          "symbol" => "AAVEUSDT",
+        //          "price" => "256.35",
+        //          "qty" => "0.1",
+        //          "side" => "Buy",
+        //          "time" => "2021-11-30T12:46:14.000Z",
+        //          "trade_time_ms" => "1638276374312"
+        //      }
         //
         // fetchMyTrades, fetchOrderTrades (private)
         //
-        //     {
-        //         "closed_size" => 0,
-        //         "cross_seq" => 277136382,
-        //         "exec_fee" => "0.0000001",
-        //         "exec_id" => "256e5ef8-abfe-5772-971b-f944e15e0d68",
-        //         "exec_price" => "8178.5",
-        //         "exec_qty" => 1,
-        //         // the docs say the exec_time field is "abandoned" now
-        //         // the user should use "trade_time_ms"
-        //         "exec_time" => "1571676941.70682",
-        //         "exec_type" => "Trade", //Exec Type Enum
-        //         "exec_value" => "0.00012227",
-        //         "fee_rate" => "0.00075",
-        //         "last_liquidity_ind" => "RemovedLiquidity", //Liquidity Enum
-        //         "leaves_qty" => 0,
-        //         "nth_fill" => 2,
-        //         "order_id" => "7ad50cb1-9ad0-4f74-804b-d82a516e1029",
-        //         "order_link_id" => "",
-        //         "order_price" => "8178",
-        //         "order_qty" => 1,
-        //         "order_type" => "Market", //Order Type Enum
-        //         "side" => "Buy", //Side Enum
-        //         "symbol" => "BTCUSD", //Symbol Enum
-        //         "user_id" => 1,
-        //         "trade_time_ms" => 1577480599000
-        //     }
+        //      {
+        //          "order_id" => "b020b4bc-6fe2-45b5-adbc-dd07794f9746",
+        //          "order_link_id" => "",
+        //          "side" => "Buy",
+        //          "symbol" => "AAVEUSDT",
+        //          "exec_id" => "09abe8f0-aea6-514e-942b-7da8cb935120",
+        //          "price" => "269.3",
+        //          "order_price" => "269.3",
+        //          "order_qty" => "0.1",
+        //          "order_type" => "Market",
+        //          "fee_rate" => "0.00075",
+        //          "exec_price" => "256.35",
+        //          "exec_type" => "Trade",
+        //          "exec_qty" => "0.1",
+        //          "exec_fee" => "0.01922625",
+        //          "exec_value" => "25.635",
+        //          "leaves_qty" => "0",
+        //          "closed_size" => "0",
+        //          "last_liquidity_ind" => "RemovedLiquidity",
+        //          "trade_time" => "1638276374",
+        //          "trade_time_ms" => "1638276374312"
+        //      }
         //
         $id = $this->safe_string_2($trade, 'id', 'exec_id');
         $marketId = $this->safe_string($trade, 'symbol');
@@ -996,12 +993,7 @@ class bybit extends Exchange {
         $symbol = $market['symbol'];
         $amountString = $this->safe_string_2($trade, 'qty', 'exec_qty');
         $priceString = $this->safe_string_2($trade, 'exec_price', 'price');
-        $cost = $this->safe_number($trade, 'exec_value');
-        $amount = $this->parse_number($amountString);
-        $price = $this->parse_number($priceString);
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $costString = $this->safe_string($trade, 'exec_value');
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($trade, 'trade_time_ms');
@@ -1009,17 +1001,17 @@ class bybit extends Exchange {
         $side = $this->safe_string_lower($trade, 'side');
         $lastLiquidityInd = $this->safe_string($trade, 'last_liquidity_ind');
         $takerOrMaker = ($lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
-        $feeCost = $this->safe_number($trade, 'exec_fee');
+        $feeCostString = $this->safe_string($trade, 'exec_fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['quote'];
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
-                'rate' => $this->safe_number($trade, 'fee_rate'),
+                'rate' => $this->safe_string($trade, 'fee_rate'),
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1029,11 +1021,11 @@ class bybit extends Exchange {
             'type' => $this->safe_string_lower($trade, 'order_type'),
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1125,6 +1117,7 @@ class bybit extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        // note => any funds in the 'spot' $account will not be returned or visible from this endpoint
         yield $this->load_markets();
         $request = array();
         $coin = $this->safe_string($params, 'coin');
@@ -1333,12 +1326,11 @@ class bybit extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string_2($order, 'order_status', 'stop_order_status'));
         $side = $this->safe_string_lower($order, 'side');
-        $feeCostString = $this->safe_string($order, 'cum_exec_fee');
-        $feeCost = $this->parse_number(Precise::string_abs($feeCostString));
+        $feeCostString = Precise::string_abs($this->safe_string($order, 'cum_exec_fee'));
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrency,
             );
         }
@@ -2020,6 +2012,9 @@ class bybit extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
         yield $this->load_markets();
         $request = array(
             // 'order_id' => 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
@@ -2029,18 +2024,13 @@ class bybit extends Exchange {
             // 'limit' 20, // max 50
         );
         $market = null;
-        if ($symbol === null) {
-            $orderId = $this->safe_string($params, 'order_id');
-            if ($orderId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument or an order_id param');
-            } else {
-                $request['order_id'] = $orderId;
-                $params = $this->omit($params, 'order_id');
-            }
-        } else {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+        $orderId = $this->safe_string($params, 'order_id');
+        if ($orderId !== null) {
+            $request['order_id'] = $orderId;
+            $params = $this->omit($params, 'order_id');
         }
+        $market = $this->market($symbol);
+        $request['symbol'] = $market['id'];
         if ($since !== null) {
             $request['start_time'] = $since;
         }
