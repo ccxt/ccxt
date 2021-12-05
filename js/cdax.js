@@ -1102,11 +1102,11 @@ module.exports = class cdax extends Exchange {
         let side = undefined;
         let type = undefined;
         let status = undefined;
-        let orderType = undefined;
-        if ('type' in order) {
-            orderType = order['type'].split ('-');
-            side = orderType[0];
-            type = orderType[1];
+        const orderType = this.safeString (order, 'type');
+        if (orderType !== undefined) {
+            const parts = orderType.split ('-');
+            side = this.safeString (parts, 0);
+            type = this.safeString (parts, 1);
             status = this.parseOrderStatus (this.safeString (order, 'state'));
         }
         const marketId = this.safeString (order, 'symbol');
@@ -1118,11 +1118,8 @@ module.exports = class cdax extends Exchange {
         const priceString = this.safeString (order, 'price');
         const costString = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         let amountString = this.safeString (order, 'amount');
-        if (side && type) {
-            orderType = orderType.join ('-');
-            if (orderType === 'buy-market') {
-                amountString = undefined;
-            }
+        if (orderType === 'buy-market') {
+            amountString = undefined;
         }
         const feeCostString = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
