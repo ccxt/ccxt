@@ -1101,17 +1101,16 @@ module.exports = class cdax extends Exchange {
         const id = this.safeString (order, 'id');
         let side = undefined;
         let type = undefined;
-        let status = undefined;
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const orderType = this.safeString (order, 'type');
         if (orderType !== undefined) {
             const parts = orderType.split ('-');
             side = this.safeString (parts, 0);
             type = this.safeString (parts, 1);
-            status = this.parseOrderStatus (this.safeString (order, 'state'));
         }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'created-at');
         const clientOrderId = this.safeString (order, 'client-order-id');
         const filledString = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
