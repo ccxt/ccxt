@@ -50,12 +50,7 @@ module.exports = class gateio extends ccxt.gateio {
         } else if (limit !== 1 && limit !== 5 && limit !== 10 && limit !== 20 && limit !== 30) {
             throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 1, 5, 10, 20, or 30');
         }
-        const interval = this.safeString (params, 'interval', '0.00000001');
-        const floatInterval = parseFloat (interval);
-        const precision = -1 * Math.log10 (floatInterval);
-        if ((precision < 0) || (precision > 8) || (precision % 1 !== 0.0)) {
-            throw new ExchangeError (this.id + ' invalid interval');
-        }
+        const interval = this.safeString (params, 'interval', '100ms');
         const parameters = [ uppercaseId, limit, interval ];
         const subscriptions = this.safeValue (options, 'subscriptions', {});
         subscriptions[symbol] = parameters;
