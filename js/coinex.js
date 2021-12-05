@@ -566,7 +566,7 @@ module.exports = class coinex extends Exchange {
             'trades': undefined,
             'fee': {
                 'currency': feeCurrency,
-                'cost': this.safeNumber (order, 'deal_fee'),
+                'cost': this.safeString (order, 'deal_fee'),
             },
             'info': order,
         }, market);
@@ -612,6 +612,25 @@ module.exports = class coinex extends Exchange {
         const response = await this.privateDeleteOrderPending (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancellAllOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const accountId = this.safeString (params, 'id', '0');
+        const request = {
+            'account_id': accountId, // main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
+            'market': marketId,
+        };
+        const response = await this.privateDeleteOrderPending (this.extend (request, params));
+        //
+        // {"code": 0, "data": null, "message": "Success"}
+        //
+        return response;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -991,7 +1010,7 @@ module.exports = class coinex extends Exchange {
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') || (data === undefined) || ((message !== 'Success') && (message !== 'Succeeded') && (message !== 'Ok') && !data)) {
+        if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message !== 'Ok') && !data)) {
             const responseCodes = {
                 // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
                 '23': PermissionDenied, // IP Prohibited
