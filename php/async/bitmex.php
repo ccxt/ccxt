@@ -1140,12 +1140,12 @@ class bitmex extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $priceString = $this->safe_string_2($trade, 'avgPx', 'price');
         $amountString = $this->safe_string_2($trade, 'size', 'lastQty');
+        $execCost = $this->safe_string($trade, 'execCost');
+        $costString = Precise::string_div(Precise::string_abs($execCost), '1e8');
         $id = $this->safe_string($trade, 'trdMatchID');
         $order = $this->safe_string($trade, 'orderID');
         $side = $this->safe_string_lower($trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
-        $costString = $this->safe_string($trade, 'execCost');
-        $costString = Precise::string_div(Precise::string_abs($costString), '1e8');
         $fee = null;
         $feeCostString = Precise::string_div($this->safe_string($trade, 'execComm'), '1e8');
         if ($feeCostString !== null) {
@@ -1153,9 +1153,9 @@ class bitmex extends Exchange {
             $feeCurrencyCode = $this->safe_currency_code($currencyId);
             $feeRateString = $this->safe_string($trade, 'commission');
             $fee = array(
-                'cost' => $this->parse_number($feeCostString),
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
-                'rate' => $this->parse_number($feeRateString),
+                'rate' => $feeRateString,
             );
         }
         // Trade or Funding
@@ -1167,7 +1167,7 @@ class bitmex extends Exchange {
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $type = $this->safe_string_lower($trade, 'ordType');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1177,11 +1177,11 @@ class bitmex extends Exchange {
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $this->parse_number($priceString),
-            'cost' => $this->parse_number($costString),
-            'amount' => $this->parse_number($amountString),
+            'price' => $priceString,
+            'cost' => $costString,
+            'amount' => $amountString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function parse_order_status($status) {
