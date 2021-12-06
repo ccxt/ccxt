@@ -468,42 +468,61 @@ module.exports = class coinex extends Exchange {
             const response = await this.privateGetMarginAccount (this.extend (request, params));
             //
             //      {
-            //              code:    0,
-            //              data: {
-            //                  "account_id":    126,
-            //                  "leverage":    3,
-            //                  "market_type":   "AAVEUSDT",
-            //                  "sell_asset_type":   "AAVE",
-            //                  "buy_asset_type":   "USDT",
-            //                  "balance": {
-            //                      "sell_type": "0",
-            //                      "buy_type": "0"
-            //                              },
-            //                  "frozen": {
-            //                      "sell_type": "0",
-            //                      "buy_type": "0"
-            //                              },
-            //                  "loan": {
-            //                      "sell_type": "0",
-            //                      "buy_type": "0"
-            //                              },
-            //                  "interest": {
-            //                      "sell_type": "0",
-            //                      "buy_type": "0"
-            //                              },
-            //                  "can_transfer": {
-            //                      "sell_type": "0",
-            //                      "buy_type": "0"
-            //                              },
-            //                  "warn_rate":   "",
-            //                  "liquidation_price":   ""
+            //          "code":    0,
+            //           "data": {
+            //              "account_id":    126,
+            //              "leverage":    3,
+            //              "market_type":   "AAVEUSDT",
+            //              "sell_asset_type":   "AAVE",
+            //              "buy_asset_type":   "USDT",
+            //              "balance": {
+            //                  "sell_type": "0.3",     // borrowed
+            //                  "buy_type": "30"
             //                  },
-            //           message:   "Success"
+            //              "frozen": {
+            //                  "sell_type": "0",
+            //                  "buy_type": "0"
+            //                  },
+            //              "loan": {
+            //                  "sell_type": "0.3", // loan
+            //                  "buy_type": "0"
+            //                  },
+            //              "interest": {
+            //                  "sell_type": "0.0000125",
+            //                  "buy_type": "0"
+            //                  },
+            //              "can_transfer": {
+            //                  "sell_type": "0.02500646",
+            //                  "buy_type": "4.28635738"
+            //                  },
+            //              "warn_rate":   "",
+            //              "liquidation_price":   ""
+            //              },
+            //          "message": "Success"
             //      }
             //
-            return {
-                'info': response['data'],
-            };
+            const result = { 'info': response };
+            const data = this.safeValue (response, 'data', {});
+            const free = data['can_transfer'];
+            const total = data['balance'];
+            //
+            const sellAccount = this.account ();
+            const sellCurrencyId = this.safeString (data, 'sell_asset_type');
+            const sellCurrencyCode = this.safeCurrencyCode (sellCurrencyId);
+            sellAccount['free'] = free['sell_type'];
+            sellAccount['total'] = total['sell_type'];
+            sellAccount['used'] = undefined;
+            result[sellCurrencyCode] = sellAccount;
+            //
+            const buyAccount = this.account ();
+            const buyCurrencyId = this.safeString (data, 'buy_asset_type');
+            const buyCurrencyCode = this.safeCurrencyCode (buyCurrencyId);
+            buyAccount['free'] = free['buy_type'];
+            buyAccount['total'] = total['buy_type'];
+            buyAccount['used'] = undefined;
+            result[buyCurrencyCode] = buyAccount;
+            //
+            return this.parseBalance (result);
         }
         const response = await this.privateGetBalanceInfo (params);
         //
