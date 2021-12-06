@@ -1749,6 +1749,15 @@ module.exports = class huobi extends Exchange {
         return response['data'];
     }
 
+    async fetchAccountIdByType (type, params = {}) {
+        const accounts = await this.loadAccounts ();
+        const accountId = this.safeValue (params, 'account-id');
+        const indexedAccounts = this.indexBy (accounts, 'type');
+        const defaultAccount = this.safeValue (accounts, 0, {});
+        const account = this.safeValue (indexedAccounts, type, defaultAccount);
+        return this.safeString (account, 'id', accountId);
+    }
+
     async fetchCurrencies (params = {}) {
         const response = await this.spotPublicGetV2ReferenceCurrencies ();
         //     {
@@ -1879,7 +1888,8 @@ module.exports = class huobi extends Exchange {
         const swap = (type === 'swap');
         if (spot) {
             await this.loadAccounts ();
-            request['account-id'] = this.accounts[0]['id'];
+            const accountId = await this.fetchAccountIdByType (type, params);
+            request['account-id'] = accountId;
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
         } else if (future) {
             method = 'contractPrivatePostApiV1ContractAccountInfo';
@@ -2058,6 +2068,7 @@ module.exports = class huobi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        // todo replace with fetchAccountIdByType
         let accountId = this.safeString (params, 'account-id');
         if (accountId === undefined) {
             // pick the first account
@@ -2206,9 +2217,10 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
+        const accountId = await this.fetchAccountIdByType (type);
         const request = {
             // spot -----------------------------------------------------------
-            'account-id': this.accounts[0]['id'],
+            'account-id': accountId,
             'symbol': market['id'],
             'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount': this.amountToPrecision (symbol, amount), // for buy market orders it's the order cost
