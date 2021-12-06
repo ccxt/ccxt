@@ -467,7 +467,7 @@ module.exports = class kucoinfutures extends kucoin {
         //    ]
         //
         return [
-            Precise.stringDiv (this.safeString (ohlcv, 0), '1000'),
+            this.safeNumber (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
@@ -812,7 +812,7 @@ module.exports = class kucoinfutures extends kucoin {
         const timestamp = this.safeNumber (position, 'currentTimestamp');
         const size = this.safeString (position, 'currentQty');
         let side = undefined;
-        if (size > 0) {
+        if (Precise.stringGt (size, 0)) {
             side = 'buy';
         } else if (size < 0) {
             side = 'sell';
@@ -865,9 +865,9 @@ module.exports = class kucoinfutures extends kucoin {
         }
         const stop = this.safeString (params, 'stop');
         const stopPrice = this.safeNumber (params, 'stopPrice');
-        if (stop) {
+        if (stopPrice) {
             const stopPriceType = this.safeString (params, 'stopPriceType');
-            if (!stopPriceType || !stopPrice || !stop) {
+            if (!stopPriceType || !stop) {
                 throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPriceType, params.stopPrice, and params.stop for stoploss orders');
             }
         }
@@ -917,12 +917,11 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = this.milliseconds ();
         return {
             'id': this.safeString (data, 'orderId'),
             'clientOrderId': clientOrderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
