@@ -1746,6 +1746,15 @@ module.exports = class huobi extends Exchange {
     async fetchAccounts (params = {}) {
         await this.loadMarkets ();
         const response = await this.spotPrivateGetV1AccountAccounts (params);
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {"id":5202591,"type":"point","subtype":"","state":"working"},
+        //             {"id":1528640,"type":"spot","subtype":"","state":"working"},
+        //         ]
+        //     }
+        //
         return response['data'];
     }
 
