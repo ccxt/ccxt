@@ -96,6 +96,7 @@ setup(
         ],
         'doc': [
             'Sphinx==4.0',
+            'mistune==0.8.4'  # needed for m2r2
             'm2r2==0.2.7',
             'sphinx-rtd-theme==0.5.2',
             'readthedocs-sphinx-search==0.1.0',
