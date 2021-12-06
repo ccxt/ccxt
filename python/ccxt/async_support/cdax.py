@@ -1050,21 +1050,23 @@ class cdax(Exchange):
         id = self.safe_string(order, 'id')
         side = None
         type = None
-        status = None
-        if 'type' in order:
-            orderType = order['type'].split('-')
-            side = orderType[0]
-            type = orderType[1]
-            status = self.parse_order_status(self.safe_string(order, 'state'))
+        status = self.parse_order_status(self.safe_string(order, 'state'))
+        orderType = self.safe_string(order, 'type')
+        if orderType is not None:
+            parts = orderType.split('-')
+            side = self.safe_string(parts, 0)
+            type = self.safe_string(parts, 1)
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer(order, 'created-at')
         clientOrderId = self.safe_string(order, 'client-order-id')
-        amount = self.safe_string(order, 'amount')
-        filled = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
-        price = self.safe_string(order, 'price')
-        cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
+        filledString = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
+        priceString = self.safe_string(order, 'price')
+        costString = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
+        amountString = self.safe_string(order, 'amount')
+        if orderType == 'buy-market':
+            amountString = None
         feeCostString = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
         fee = None
         if feeCostString is not None:
@@ -1087,12 +1089,12 @@ class cdax(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': None,
             'average': None,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
+            'cost': costString,
+            'amount': amountString,
+            'filled': filledString,
             'remaining': None,
             'status': status,
             'fee': fee,

@@ -1076,13 +1076,13 @@ class cdax extends Exchange {
         //     {                  $id =>  13997833014,
         //                    $symbol => "ethbtc",
         //              'account-id' =>  3398321,
-        //                    $amount => "0.045000000000000000",
-        //                     $price => "0.034014000000000000",
+        //                    amount => "0.045000000000000000",
+        //                     price => "0.034014000000000000",
         //              'created-at' =>  1545836976871,
         //                      $type => "sell-limit",
-        //            'field-amount' => "0.045000000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
+        //            'field-amount' => "0.045000000000000000", // they have fixed it for filled-amount
+        //       'field-cash-amount' => "0.001530630000000000", // they have fixed it for filled-cash-amount
+        //              'field-fees' => "0.000003061260000000", // they have fixed it for filled-fees
         //             'finished-at' =>  1545837948214,
         //                    source => "spot-api",
         //                     state => "filled",
@@ -1091,13 +1091,13 @@ class cdax extends Exchange {
         //     {                  $id =>  20395337822,
         //                    $symbol => "ethbtc",
         //              'account-id' =>  5685075,
-        //                    $amount => "0.001000000000000000",
-        //                     $price => "0.0",
+        //                    amount => "0.001000000000000000",
+        //                     price => "0.0",
         //              'created-at' =>  1545831584023,
         //                      $type => "buy-$market",
-        //            'field-amount' => "0.029100000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
+        //            'field-amount' => "0.029100000000000000", // they have fixed it for filled-amount
+        //       'field-cash-amount' => "0.000999788700000000", // they have fixed it for filled-cash-amount
+        //              'field-fees' => "0.000058200000000000", // they have fixed it for filled-fees
         //             'finished-at' =>  1545831584181,
         //                    source => "spot-api",
         //                     state => "filled",
@@ -1106,23 +1106,26 @@ class cdax extends Exchange {
         $id = $this->safe_string($order, 'id');
         $side = null;
         $type = null;
-        $status = null;
-        if (is_array($order) && array_key_exists('type', $order)) {
-            $orderType = explode('-', $order['type']);
-            $side = $orderType[0];
-            $type = $orderType[1];
-            $status = $this->parse_order_status($this->safe_string($order, 'state'));
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
+        $orderType = $this->safe_string($order, 'type');
+        if ($orderType !== null) {
+            $parts = explode('-', $orderType);
+            $side = $this->safe_string($parts, 0);
+            $type = $this->safe_string($parts, 1);
         }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'created-at');
         $clientOrderId = $this->safe_string($order, 'client-$order-id');
-        $amount = $this->safe_string($order, 'amount');
-        $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
-        $price = $this->safe_string($order, 'price');
-        $cost = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        $feeCostString = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled fees
+        $filledString = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
+        $priceString = $this->safe_string($order, 'price');
+        $costString = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
+        $amountString = $this->safe_string($order, 'amount');
+        if ($orderType === 'buy-market') {
+            $amountString = null;
+        }
+        $feeCostString = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         $fee = null;
         if ($feeCostString !== null) {
             $feeCurrency = null;
@@ -1146,12 +1149,12 @@ class cdax extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
             'stopPrice' => null,
             'average' => null,
-            'cost' => $cost,
-            'amount' => $amount,
-            'filled' => $filled,
+            'cost' => $costString,
+            'amount' => $amountString,
+            'filled' => $filledString,
             'remaining' => null,
             'status' => $status,
             'fee' => $fee,
