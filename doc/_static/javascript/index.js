@@ -28,6 +28,7 @@ window.addEventListener ('load', function () {
     });
     // limit faq to just one question per link
     const $faq = $('a.reference.internal[href="#frequently asked questions"]');
+    $faq.empty ()
     let $faqlinks = $faq.siblings ().children ().children ();
     if ($faqlinks.length === 0) {
         $faqlinks = $('a.reference.internal[href^="FAQ.html#"]')
