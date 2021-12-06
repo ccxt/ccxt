@@ -1752,7 +1752,25 @@ class huobi extends Exchange {
     public function fetch_accounts($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->spotPrivateGetV1AccountAccounts ($params);
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             array("id":5202591,"type":"point","subtype":"","state":"working"),
+        //             array("id":1528640,"type":"spot","subtype":"","state":"working"),
+        //         )
+        //     }
+        //
         return $response['data'];
+    }
+
+    public function fetch_account_id_by_type($type, $params = array ()) {
+        $accounts = yield $this->load_accounts();
+        $accountId = $this->safe_value($params, 'account-id');
+        $indexedAccounts = $this->index_by($accounts, 'type');
+        $defaultAccount = $this->safe_value($accounts, 0, array());
+        $account = $this->safe_value($indexedAccounts, $type, $defaultAccount);
+        return $this->safe_string($account, 'id', $accountId);
     }
 
     public function fetch_currencies($params = array ()) {
@@ -1885,7 +1903,8 @@ class huobi extends Exchange {
         $swap = ($type === 'swap');
         if ($spot) {
             yield $this->load_accounts();
-            $request['account-id'] = $this->accounts[0]['id'];
+            $accountId = yield $this->fetch_account_id_by_type($type, $params);
+            $request['account-id'] = $accountId;
             $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
         } else if ($future) {
             $method = 'contractPrivatePostApiV1ContractAccountInfo';
@@ -2064,6 +2083,7 @@ class huobi extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
+        // todo replace with fetchAccountIdByType
         $accountId = $this->safe_string($params, 'account-id');
         if ($accountId === null) {
             // pick the first $account
@@ -2212,9 +2232,10 @@ class huobi extends Exchange {
         yield $this->load_markets();
         yield $this->load_accounts();
         $market = $this->market($symbol);
+        $accountId = yield $this->fetch_account_id_by_type($type);
         $request = array(
             // spot -----------------------------------------------------------
-            'account-id' => $this->accounts[0]['id'],
+            'account-id' => $accountId,
             'symbol' => $market['id'],
             'type' => $side . '-' . $type, // buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount' => $this->amount_to_precision($symbol, $amount), // for buy $market orders it's the order cost

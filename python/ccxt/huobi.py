@@ -1698,7 +1698,24 @@ class huobi(Exchange):
     def fetch_accounts(self, params={}):
         self.load_markets()
         response = self.spotPrivateGetV1AccountAccounts(params)
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":[
+        #             {"id":5202591,"type":"point","subtype":"","state":"working"},
+        #             {"id":1528640,"type":"spot","subtype":"","state":"working"},
+        #         ]
+        #     }
+        #
         return response['data']
+
+    def fetch_account_id_by_type(self, type, params={}):
+        accounts = self.load_accounts()
+        accountId = self.safe_value(params, 'account-id')
+        indexedAccounts = self.index_by(accounts, 'type')
+        defaultAccount = self.safe_value(accounts, 0, {})
+        account = self.safe_value(indexedAccounts, type, defaultAccount)
+        return self.safe_string(account, 'id', accountId)
 
     def fetch_currencies(self, params={}):
         response = self.spotPublicGetV2ReferenceCurrencies()
@@ -1824,7 +1841,8 @@ class huobi(Exchange):
         swap = (type == 'swap')
         if spot:
             self.load_accounts()
-            request['account-id'] = self.accounts[0]['id']
+            accountId = self.fetch_account_id_by_type(type, params)
+            request['account-id'] = accountId
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
         elif future:
             method = 'contractPrivatePostApiV1ContractAccountInfo'
@@ -1986,6 +2004,7 @@ class huobi(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        # todo replace with fetchAccountIdByType
         accountId = self.safe_string(params, 'account-id')
         if accountId is None:
             # pick the first account
@@ -2123,9 +2142,10 @@ class huobi(Exchange):
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
+        accountId = self.fetch_account_id_by_type(type)
         request = {
             # spot -----------------------------------------------------------
-            'account-id': self.accounts[0]['id'],
+            'account-id': accountId,
             'symbol': market['id'],
             'type': side + '-' + type,  # buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             # 'amount': self.amount_to_precision(symbol, amount),  # for buy market orders it's the order cost
