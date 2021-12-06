@@ -102,7 +102,7 @@ Full list of exchanges available in CCXT via REST: [Supported Cryptocurrency Exc
 - contributions, pull requests and feedback appreciated
 ```
 
-### Prerequisites
+## Prerequisites
 
 The best way to understand CCXT Pro is to make sure you grasp the entire CCXT Manual and practice standard CCXT first. CCXT Pro borrows from CCXT. The two libraries share a lot of commonalities, including:
 
