@@ -26,7 +26,6 @@ async function main () {
                 const datetime = exchange.iso8601(now)
                 console.log(datetime, i, e.constructor.name, e.message)
                 await exchange.sleep(10000)
-
             } else {
                 console.log(e.constructor.name, e.message)
                 throw e
