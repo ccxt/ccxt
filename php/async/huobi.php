@@ -2235,7 +2235,7 @@ class huobi extends Exchange {
         yield $this->load_markets();
         yield $this->load_accounts();
         $market = $this->market($symbol);
-        $accountId = yield $this->fetch_account_id_by_type($type);
+        $accountId = yield $this->fetch_account_id_by_type($market['type']);
         $request = array(
             // spot -----------------------------------------------------------
             'account-id' => $accountId,

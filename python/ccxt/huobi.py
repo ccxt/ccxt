@@ -2144,7 +2144,7 @@ class huobi(Exchange):
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
-        accountId = self.fetch_account_id_by_type(type)
+        accountId = self.fetch_account_id_by_type(market['type'])
         request = {
             # spot -----------------------------------------------------------
             'account-id': accountId,
