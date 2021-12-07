@@ -1712,10 +1712,12 @@ class huobi(Exchange):
     async def fetch_account_id_by_type(self, type, params={}):
         accounts = await self.load_accounts()
         accountId = self.safe_value(params, 'account-id')
+        if accountId is not None:
+            return accountId
         indexedAccounts = self.index_by(accounts, 'type')
         defaultAccount = self.safe_value(accounts, 0, {})
         account = self.safe_value(indexedAccounts, type, defaultAccount)
-        return self.safe_string(account, 'id', accountId)
+        return self.safe_string(account, 'id')
 
     async def fetch_currencies(self, params={}):
         response = await self.spotPublicGetV2ReferenceCurrencies()

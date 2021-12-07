@@ -1767,10 +1767,13 @@ class huobi extends Exchange {
     public function fetch_account_id_by_type($type, $params = array ()) {
         $accounts = yield $this->load_accounts();
         $accountId = $this->safe_value($params, 'account-id');
+        if ($accountId !== null) {
+            return $accountId;
+        }
         $indexedAccounts = $this->index_by($accounts, 'type');
         $defaultAccount = $this->safe_value($accounts, 0, array());
         $account = $this->safe_value($indexedAccounts, $type, $defaultAccount);
-        return $this->safe_string($account, 'id', $accountId);
+        return $this->safe_string($account, 'id');
     }
 
     public function fetch_currencies($params = array ()) {
