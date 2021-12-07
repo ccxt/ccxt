@@ -1007,7 +1007,7 @@ module.exports = class liquid extends Exchange {
             }
         }
         const networks = this.safeValue (this.options, 'networks', {});
-        let paramsCwArray = this.safeValue (params, 'crypto_withdrawal',{});  
+        let paramsCwArray = this.safeValue (params, 'crypto_withdrawal', {});  
         let network = this.safeStringUpper (paramsCwArray, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
