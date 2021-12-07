@@ -15,7 +15,7 @@ module.exports = class kucoinfutures extends kucoin {
             'name': 'Kucoin Futures',
             'countries': [ 'SC' ],
             'rateLimit': 334,
-            'version': 'v2',
+            'version': 'v1',
             'certified': false,
             // 'pro': false,
             'comment': 'Platform 2.0',
@@ -249,10 +249,6 @@ module.exports = class kucoinfutures extends kucoin {
                 // endpoint versions
                 'versions': {
                     'futuresPrivate': {
-                        'GET': {
-                            'account-overview': 'v1',
-                            'positions': 'v1',
-                        },
                         'POST': {
                             'transfer-out': 'v2',
                         },
