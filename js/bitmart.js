@@ -688,8 +688,8 @@ module.exports = class bitmart extends Exchange {
         if (percentage === undefined) {
             percentage = this.safeNumber (ticker, 'price_change_percent_24h');
         }
-        const baseVolume = this.safeNumber2 (ticker, 'base_volume_24h', 'base_coin_volume');
-        let quoteVolume = this.safeNumber2 (ticker, 'quote_volume_24h', 'quote_coin_volume');
+        const baseVolume = this.safeNumber2 (ticker, 'base_coin_volume', 'base_volume_24h');
+        let quoteVolume = this.safeNumber2 (ticker, 'quote_coin_volume', 'quote_volume_24h');
         quoteVolume = this.safeNumber (ticker, 'volume_24h', quoteVolume);
         const open = this.safeNumber2 (ticker, 'open_24h', 'open');
         let average = undefined;
