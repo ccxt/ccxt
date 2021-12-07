@@ -2229,7 +2229,7 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const accountId = await this.fetchAccountIdByType (type);
+        const accountId = await this.fetchAccountIdByType (market['type']);
         const request = {
             // spot -----------------------------------------------------------
             'account-id': accountId,
