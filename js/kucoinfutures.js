@@ -226,6 +226,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'WAX': 'WAXP',
                 'TRY': 'Trias',
                 'VAI': 'VAIOT',
+                'XBT': 'BTC',
             },
             'timeframes': {
                 '1m': 1,
