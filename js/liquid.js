@@ -990,11 +990,11 @@ module.exports = class liquid extends Exchange {
             'crypto_withdrawal': {
                 'currency': currency['id'],
                 'address': address,
-                'amount': amount
+                'amount': amount,
                 // 'payment_id': tag, // for XRP only
                 // 'memo_type': 'text', // 'text', 'id' or 'hash', for XLM only
                 // 'memo_value': tag, // for XLM only
-            }
+            },
         };
         if (tag !== undefined) {
             if (code === 'XRP') {
