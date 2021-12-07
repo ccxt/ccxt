@@ -261,12 +261,9 @@ module.exports = class kucoinfutures extends kucoin {
                     },
                 },
                 'networks': {
-                    // 'ETH': 'eth',
+                    'OMNI': 'omni',
                     'ERC20': 'eth',
-                    // 'TRX': 'trx',
-                    // 'TRC20': 'trx',
-                    // 'KCC': 'kcc',
-                    // 'TERRA': 'luna',
+                    'TRC20': 'trx',
                 },
             },
         });
