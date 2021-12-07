@@ -987,10 +987,10 @@ module.exports = class liquid extends Exchange {
         const currency = this.currency (code);
         const request = {
             // 'auth_code': '', // optional 2fa code
-            'crypto_withdrawal' : {
+            'crypto_withdrawal': {
                 'currency': currency['id'],
                 'address': address,
-                'amount': amount,
+                'amount': amount
                 // 'payment_id': tag, // for XRP only
                 // 'memo_type': 'text', // 'text', 'id' or 'hash', for XLM only
                 // 'memo_value': tag, // for XLM only
