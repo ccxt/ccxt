@@ -1761,10 +1761,13 @@ module.exports = class huobi extends Exchange {
     async fetchAccountIdByType (type, params = {}) {
         const accounts = await this.loadAccounts ();
         const accountId = this.safeValue (params, 'account-id');
+        if (accountId !== undefined) {
+            return accountId;
+        }
         const indexedAccounts = this.indexBy (accounts, 'type');
         const defaultAccount = this.safeValue (accounts, 0, {});
         const account = this.safeValue (indexedAccounts, type, defaultAccount);
-        return this.safeString (account, 'id', accountId);
+        return this.safeString (account, 'id');
     }
 
     async fetchCurrencies (params = {}) {
