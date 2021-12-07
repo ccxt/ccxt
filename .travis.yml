@@ -33,7 +33,7 @@ script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run force-build
 - cd python
-# - tox -e doc
+- tox -e doc
 - cd ..
 - npm run test-base
 - bash -c 'node run-tests --js --python-async --php-async 5' 2>&1

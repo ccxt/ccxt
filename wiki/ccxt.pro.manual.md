@@ -48,7 +48,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
     +=============================================================+
 ```
 
-# Exchanges
+## Exchanges
 
 The CCXT Pro library currently supports the following 35 cryptocurrency exchange markets and WebSocket trading APIs:
 
@@ -94,7 +94,7 @@ This is the list of exchanges in CCXT Pro with support for WebSockets APIs. This
 
 Full list of exchanges available in CCXT via REST: [Supported Cryptocurrency Exchange Markets](https://github.com/ccxt/ccxt/#supported-cryptocurrency-exchange-markets).
 
-# Usage
+## Usage
 
 ```diff
 - this part of the doc is under heavy development right now
