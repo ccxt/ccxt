@@ -723,11 +723,13 @@ class gemini extends Exchange {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $nonce = $this->nonce();
+        $amountString = $this->amount_to_precision($symbol, $amount);
+        $priceString = $this->price_to_precision($symbol, $price);
         $request = array(
             'client_order_id' => (string) $nonce,
             'symbol' => $this->market_id($symbol),
-            'amount' => (string) $amount,
-            'price' => (string) $price,
+            'amount' => $amountString,
+            'price' => $priceString,
             'side' => $side,
             'type' => 'exchange limit', // gemini allows limit orders only
         );
