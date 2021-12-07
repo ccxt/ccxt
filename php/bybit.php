@@ -780,7 +780,7 @@ class bybit extends Exchange {
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
             $this->safe_number($ohlcv, 'close'),
-            $this->safe_number_2($ohlcv, 'turnover', 'volume'),
+            $this->safe_number_2($ohlcv, 'volume', 'turnover'),
         );
     }
 
