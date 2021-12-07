@@ -429,11 +429,6 @@ module.exports = class kucoinfutures extends kucoin {
         return result;
     }
 
-    async fetchCurrencies (params = {}) {
-        // TODO: Emulate?
-        return undefined;
-    }
-
     async fetchTime (params = {}) {
         const response = await this.futuresPublicGetTimestamp (params);
         //
