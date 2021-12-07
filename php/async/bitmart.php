@@ -693,8 +693,8 @@ class bitmart extends Exchange {
         if ($percentage === null) {
             $percentage = $this->safe_number($ticker, 'price_change_percent_24h');
         }
-        $baseVolume = $this->safe_number_2($ticker, 'base_volume_24h', 'base_coin_volume');
-        $quoteVolume = $this->safe_number_2($ticker, 'quote_volume_24h', 'quote_coin_volume');
+        $baseVolume = $this->safe_number_2($ticker, 'base_coin_volume', 'base_volume_24h');
+        $quoteVolume = $this->safe_number_2($ticker, 'quote_coin_volume', 'quote_volume_24h');
         $quoteVolume = $this->safe_number($ticker, 'volume_24h', $quoteVolume);
         $open = $this->safe_number_2($ticker, 'open_24h', 'open');
         $average = null;
