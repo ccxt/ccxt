@@ -1525,7 +1525,11 @@ module.exports = class wavesexchange extends Exchange {
                 result[code] = this.account ();
             }
             const amount = this.safeString (reservedBalance, currencyId);
-            result[code]['used'] = this.currencyFromPrecision (code, amount);
+            if (code in this.currencies) {
+                result[code]['used'] = this.currencyFromPrecision (code, amount);
+            } else {
+                result[code]['used'] = amount;
+            }
         }
         const wavesRequest = {
             'address': wavesAddress,
