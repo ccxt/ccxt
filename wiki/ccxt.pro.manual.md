@@ -1,6 +1,6 @@
 # Manual
 
-The CCXT Pro stack is built upon [CCXT](https://ccxt.trade) and extends the core CCXT classes, using:
+The CCXT Pro stack is built upon [CCXT](https://ccxt.com) and extends the core CCXT classes, using:
 
 - JavaScript prototype-level mixins
 - Python multiple inheritance

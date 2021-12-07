@@ -28,7 +28,7 @@ with open(package_json, encoding='utf-8') as f:
     package = json.load(f)
 
 project_urls = {
-    'Homepage': 'https://ccxt.trade',
+    'Homepage': 'https://ccxt.com',
     'Documentation': 'https://docs.ccxt.com/en/latest/manual.html',
     'Discord': 'https://discord.gg/dhzSKYU',
     'Twitter': 'https://twitter.com/ccxt_official',
