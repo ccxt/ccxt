@@ -1013,8 +1013,8 @@ module.exports = class liquid extends Exchange {
             request['crypto_withdrawal']['network'] = network;
             params = this.omit (params, 'network');
         }
-        request = this.extend (request['crypto_withdrawal'], params);
-        const response = await this.privatePostCryptoWithdrawals (this.extend (request, params));
+        request['crypto_withdrawal'] = this.extend (request['crypto_withdrawal'], params);
+        const response = await this.privatePostCryptoWithdrawals (request);
         //
         //     {
         //         "id": 1353,
