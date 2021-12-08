@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -736,7 +736,7 @@ module.exports = class huobi extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'defaultType': 'spot', // spot, future, swap
+                'defaultType': 'swap', // spot, future, swap
                 'defaultSubType': 'inverse', // inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
@@ -3017,5 +3017,55 @@ module.exports = class huobi extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Gets a history of funding rates with their timestamps
+        //  (param) symbol: Future currency pair (e.g. "BTC-PERP")
+        //  (param) limit: Not used by ftx
+        //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) params: Object containing more params for the request
+        //             - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  return: [{symbol, fundingRate, timestamp}]
+        //
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol parameter');
+        } else {
+            const market = this.market (symbol);
+            request['contract_code'] = market['id'];
+        }
+        const response = await this.contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
+        //
+        //     {
+        //        "success": true,
+        //        "result": [
+        //          {
+        //            "future": "BTC-PERP",
+        //            "rate": 0.0025,
+        //            "time": "2019-06-02T08:00:00+00:00"
+        //          }
+        //        ]
+        //      }
+        //
+        const result = this.safeValue (response, 'result');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'future');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.parse8601 (this.safeString (result[i], 'time'));
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 };
