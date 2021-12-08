@@ -365,9 +365,9 @@ module.exports = class coinfalcon extends Exchange {
         const marketId = this.safeString (order, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'size');
-        const filled = this.safeString (order, 'size_filled');
+        const priceString = this.safeString (order, 'price');
+        const amountString = this.safeString (order, 'size');
+        const filledString = this.safeString (order, 'size_filled');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'operation_type');
         if (type !== undefined) {
@@ -387,11 +387,11 @@ module.exports = class coinfalcon extends Exchange {
             'timeInForce': undefined,
             'postOnly': postOnly,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': undefined,
             'cost': undefined,
-            'amount': amount,
-            'filled': filled,
+            'amount': amountString,
+            'filled': filledString,
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
