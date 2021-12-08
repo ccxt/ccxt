@@ -2570,7 +2570,8 @@ class binance(Exchange):
             market = self.market(symbol)
             request['symbol'] = market['id']
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
-            type = self.safe_string(params, 'type', defaultType)
+            marketType = market['type'] if ('type' in market) else defaultType
+            type = self.safe_string(params, 'type', marketType)
             query = self.omit(params, 'type')
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
             symbols = self.symbols

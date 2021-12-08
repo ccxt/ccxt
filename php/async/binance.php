@@ -2670,7 +2670,8 @@ class binance extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $defaultType);
+            $marketType = (is_array($market) && array_key_exists('type', $market)) ? $market['type'] : $defaultType;
+            $type = $this->safe_string($params, 'type', $marketType);
             $query = $this->omit($params, 'type');
         } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
