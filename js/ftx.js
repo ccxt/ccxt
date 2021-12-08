@@ -2101,6 +2101,10 @@ module.exports = class ftx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/api/' + this.implodeParams (path, params);
+        const chosenSubaccount = this.safeString (params, 'FTX-SUBACCOUNT', undefined);
+        if (chosenSubaccount !== undefined) {
+            params = this.omit (params, 'FTX-SUBACCOUNT');
+        }
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + request;
@@ -2130,6 +2134,9 @@ module.exports = class ftx extends Exchange {
             headers[keyField] = this.apiKey;
             headers[tsField] = timestamp;
             headers[signField] = signature;
+            if (chosenSubaccount !== undefined) {
+                headers['FTX-SUBACCOUNT'] = chosenSubaccount;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
