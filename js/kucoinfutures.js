@@ -29,7 +29,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': undefined,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
                 'fetchFundingFee': false,
@@ -244,8 +244,8 @@ module.exports = class kucoinfutures extends kucoin {
                 '1w': 10080,
             },
             'options': {
-                // 'version': 'v2',
-                // 'symbolSeparator': '-',
+                'version': 'v1',
+                'symbolSeparator': '-',
                 'defaultType': 'swap',
                 'marginTypes': {},
                 // endpoint versions
