@@ -489,7 +489,7 @@ module.exports = class kucoinfutures extends kucoin {
         //    ]
         //
         return [
-            this.safeNumber (ohlcv, 0),
+            this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
