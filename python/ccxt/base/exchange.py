@@ -2650,4 +2650,7 @@ class Exchange(object):
 
     def get_type(self, method_name, params={}):
         default_type = self.safe_string_2(self.options, method_name, 'defaultType', 'spot')
-        return self.safe_string(params, 'type', default_type)
+        type = self.safe_string(params, 'type', default_type)
+        if 'type' in params:
+            del params['type']
+        return type
