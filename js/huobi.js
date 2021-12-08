@@ -3040,28 +3040,39 @@ module.exports = class huobi extends Exchange {
         }
         const response = await this.contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
         //
-        //     {
-        //        "success": true,
-        //        "result": [
-        //          {
-        //            "future": "BTC-PERP",
-        //            "rate": 0.0025,
-        //            "time": "2019-06-02T08:00:00+00:00"
-        //          }
-        //        ]
-        //      }
+        // {
+        //     "status": "ok",
+        //     "data": {
+        //         "total_page": 62,
+        //         "current_page": 1,
+        //         "total_size": 1237,
+        //         "data": [
+        //             {
+        //                 "avg_premium_index": "-0.000208064395065541",
+        //                 "funding_rate": "0.000100000000000000",
+        //                 "realized_rate": "0.000100000000000000",
+        //                 "funding_time": "1638921600000",
+        //                 "contract_code": "BTC-USDT",
+        //                 "symbol": "BTC",
+        //                 "fee_asset": "USDT"
+        //             },
+        //         ]
+        //     },
+        //     "ts": 1638939294277
+        // }
         //
-        const result = this.safeValue (response, 'result');
+        const data = this.safeValue (response, 'data');
+        const result = this.safeValue (data, 'data');
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
-            const marketId = this.safeString (entry, 'future');
+            const marketId = this.safeString (entry, 'contract_code');
             const symbol = this.safeSymbol (marketId);
-            const timestamp = this.parse8601 (this.safeString (result[i], 'time'));
+            const timestamp = this.safeString (entry, 'funding_time');
             rates.push ({
                 'info': entry,
                 'symbol': symbol,
-                'fundingRate': this.safeNumber (entry, 'rate'),
+                'fundingRate': this.safeNumber (entry, 'funding_rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
             });
