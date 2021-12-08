@@ -2647,3 +2647,7 @@ class Exchange(object):
         if rate is None:
             raise ExchangeError(self.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
+
+    def get_type(self, method_name, params={}):
+        default_type = self.safe_string_2(self.options, method_name, 'defaultType', 'spot')
+        return self.safe_string(params, 'type', default_type)

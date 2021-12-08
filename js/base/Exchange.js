@@ -2076,4 +2076,9 @@ module.exports = class Exchange {
         }
         return rate;
     }
+
+    getType (methodName, params = {}) {
+        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'spot');
+        return this.safeString (params, 'type', defaultType);
+    }
 }

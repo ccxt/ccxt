@@ -3511,4 +3511,9 @@ class Exchange {
         }
         return $rate;
     }
+
+    public function get_type($method_name, $params = array()) {
+        $default_type = $this->safe_string_2($this->options, $method_name, 'defaultType', 'spot');
+        return $this->safe_string($params, 'type', $default_type);
+    }
 }
