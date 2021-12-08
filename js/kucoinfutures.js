@@ -14,7 +14,7 @@ module.exports = class kucoinfutures extends kucoin {
             'id': 'kucoinfutures',
             'name': 'Kucoin Futures',
             'countries': [ 'SC' ],
-            'rateLimit': 334,
+            'rateLimit': 75,
             'version': 'v1',
             'certified': false,
             // 'pro': false,
@@ -84,65 +84,65 @@ module.exports = class kucoinfutures extends kucoin {
             },
             'api': {
                 'futuresPublic': {
-                    'get': [
-                        'contracts/active',
-                        'contracts/{symbol}',
-                        'ticker',
-                        'level2/snapshot',
-                        'level2/depth{limit}',
-                        'level2/message/query',
-                        'level3/message/query', // deprecated，level3/snapshot is suggested
-                        'level3/snapshot', // v2
-                        'trade/history',
-                        'interest/query',
-                        'index/query',
-                        'mark-price/{symbol}/current',
-                        'premium/query',
-                        'funding-rate/{symbol}/current',
-                        'timestamp',
-                        'status',
-                        'kline/query',
-                    ],
-                    'post': [
-                        'bullet-public',
-                    ],
+                    'get': {
+                        'contracts/active': 1,
+                        'contracts/{symbol}': 1,
+                        'ticker': 1,
+                        'level2/snapshot': 1.33,
+                        'level2/depth{limit}': 1,
+                        'level2/message/query': 1,
+                        'level3/message/query': 1, // deprecated，level3/snapshot is suggested
+                        'level3/snapshot': 1, // v2
+                        'trade/history': 1,
+                        'interest/query': 1,
+                        'index/query': 1,
+                        'mark-price/{symbol}/current': 1,
+                        'premium/query': 1,
+                        'funding-rate/{symbol}/current': 1,
+                        'timestamp': 1,
+                        'status': 1,
+                        'kline/query': 1,
+                    },
+                    'post': {
+                        'bullet-public': 1,
+                    },
                 },
                 'futuresPrivate': {
-                    'get': [
-                        'account-overview',
-                        'transaction-history',
-                        'deposit-address',
-                        'deposit-list',
-                        'withdrawals/quotas',
-                        'withdrawal-list',
-                        'transfer-list',
-                        'orders',
-                        'stopOrders',
-                        'recentDoneOrders',
-                        'orders/{orderId}', // ?clientOid={client-order-id} // get order by orderId
-                        'orders/byClientOid', // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
-                        'fills',
-                        'recentFills',
-                        'openOrderStatistics',
-                        'position',
-                        'positions',
-                        'funding-history',
-                    ],
-                    'post': [
-                        'withdrawals',
-                        'transfer-out', // v2
-                        'orders',
-                        'position/margin/auto-deposit-status',
-                        'position/margin/deposit-margin',
-                        'bullet-private',
-                    ],
-                    'delete': [
-                        'withdrawals/{withdrawalId}',
-                        'cancel/transfer-out',
-                        'orders/{orderId}',
-                        'orders',
-                        'stopOrders',
-                    ],
+                    'get': {
+                        'account-overview': 1.33,
+                        'transaction-history': 4.44,
+                        'deposit-address': 1,
+                        'deposit-list': 1,
+                        'withdrawals/quotas': 1,
+                        'withdrawal-list': 1,
+                        'transfer-list': 1,
+                        'orders': 1.33,
+                        'stopOrders': 1,
+                        'recentDoneOrders': 1,
+                        'orders/{orderId}': 1, // ?clientOid={client-order-id} // get order by orderId
+                        'orders/byClientOid': 1, // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
+                        'fills': 4.44,
+                        'recentFills': 4.44,
+                        'openOrderStatistics': 1,
+                        'position': 1,
+                        'positions': 4.44,
+                        'funding-history': 4.44,
+                    },
+                    'post': {
+                        'withdrawals': 1,
+                        'transfer-out': 1, // v2
+                        'orders': 1.33,
+                        'position/margin/auto-deposit-status': 1,
+                        'position/margin/deposit-margin': 1,
+                        'bullet-private': 1,
+                    },
+                    'delete': {
+                        'withdrawals/{withdrawalId}': 1,
+                        'cancel/transfer-out': 1,
+                        'orders/{order-id}': 1,
+                        'orders': 4.44,
+                        'stopOrders': 1,
+                    },
                 },
             },
             'exceptions': {
