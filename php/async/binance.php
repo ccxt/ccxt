@@ -189,6 +189,7 @@ class binance extends Exchange {
                         'capital/deposit/subAddress' => 1,
                         'capital/deposit/subHisrec' => 1,
                         'capital/withdraw/history' => 1,
+                        'convert/tradeFlow' => 1,
                         'account/status' => 1,
                         'account/apiTradingStatus' => 1,
                         'account/apiRestrictions/ipRestriction' => 1,
