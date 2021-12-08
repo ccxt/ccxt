@@ -3034,8 +3034,9 @@ module.exports = class huobi extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol parameter');
         } else {
-            const market = this.market (symbol);
-            request['contract_code'] = market['id'];
+            // const market = this.market (symbol);
+            // request['contract_code'] = market['id'];
+            request['contract_code'] = symbol;
         }
         const response = await this.contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
         //
