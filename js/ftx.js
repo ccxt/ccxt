@@ -2101,6 +2101,13 @@ module.exports = class ftx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/api/' + this.implodeParams (path, params);
+        const signOptions = this.safeValue (this.options, 'sign', {});
+        const headerPrefix = this.safeString (signOptions, this.hostname, 'FTX');
+        const subaccountField = headerPrefix + '-SUBACCOUNT';
+        const chosenSubaccount = this.safeString (params, subaccountField, undefined);
+        if (chosenSubaccount !== undefined) {
+            params = this.omit (params, subaccountField);
+        }
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + request;
@@ -2122,14 +2129,12 @@ module.exports = class ftx extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            const options = this.safeValue (this.options, 'sign', {});
-            const headerPrefix = this.safeString (options, this.hostname, 'FTX');
-            const keyField = headerPrefix + '-KEY';
-            const tsField = headerPrefix + '-TS';
-            const signField = headerPrefix + '-SIGN';
-            headers[keyField] = this.apiKey;
-            headers[tsField] = timestamp;
-            headers[signField] = signature;
+            headers[headerPrefix + '-KEY'] = this.apiKey;
+            headers[headerPrefix + '-TS'] = timestamp;
+            headers[headerPrefix + '-SIGN'] = signature;
+            if (chosenSubaccount !== undefined) {
+                headers[subaccountField] = chosenSubaccount;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
