@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.63.11';
+$version = '1.63.10';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.63.11';
+    const VERSION = '1.63.10';
 
     public static $loop;
     public static $kernel;
@@ -122,7 +122,7 @@ class Exchange extends \ccxt\Exchange {
         $url = $this->proxy . $url;
 
         if ($this->verbose) {
-            print_r(array('Request:', $method, $url, $headers, $body));
+            print_r(array('fetch:', $this->id, $method, $url, 'Request:', $verbose_headers, 'Body:', $body));
         }
 
         $this->lastRestRequestTimestamp = $this->milliseconds();

@@ -553,7 +553,7 @@ module.exports = class Exchange {
         headers = this.setHeaders (headers)
 
         if (this.verbose) {
-            this.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n")
+            this.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\nBody:\n", body, "\n")
         }
 
         return this.executeRestRequest (url, method, headers, body)
