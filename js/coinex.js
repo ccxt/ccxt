@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -345,7 +344,35 @@ module.exports = class coinex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        // this method parses both public and private trades
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id":  2611511379,
+        //          "type": "buy",
+        //          "price": "192.63",
+        //          "amount": "0.02266931",
+        //          "date":  1638990110,
+        //          "date_ms":  1638990110518
+        //      },
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "id": 2611520950,
+        //          "order_id": 63286573298,
+        //          "account_id": 0,
+        //          "create_time": 1638990636,
+        //          "type": "sell",
+        //          "role": "taker",
+        //          "price": "192.29",
+        //          "amount": "0.098",
+        //          "fee": "0.03768884",
+        //          "fee_asset": "USDT",
+        //          "market": "AAVEUSDT",
+        //          "deal_money": "18.84442"
+        //      }
+        //
         let timestamp = this.safeTimestamp (trade, 'create_time');
         if (timestamp === undefined) {
             timestamp = this.safeInteger (trade, 'date_ms');
@@ -354,27 +381,22 @@ module.exports = class coinex extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market);
-        let cost = this.safeNumber (trade, 'deal_money');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
+        const costString = this.safeString (trade, 'deal_money');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_asset');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
         const takerOrMaker = this.safeString (trade, 'role');
         const side = this.safeString (trade, 'type');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -384,11 +406,11 @@ module.exports = class coinex extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -398,6 +420,22 @@ module.exports = class coinex extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetMarketDeals (this.extend (request, params));
+        //
+        //      {
+        //          "code":    0,
+        //          "data": [
+        //              {
+        //                  "id":  2611511379,
+        //                  "type": "buy",
+        //                  "price": "192.63",
+        //                  "amount": "0.02266931",
+        //                  "date":  1638990110,
+        //                  "date_ms":  1638990110518
+        //                  },
+        //              ],
+        //          "message": "OK"
+        //      }
+        //
         return this.parseTrades (response['data'], market, since, limit);
     }
 
@@ -718,6 +756,33 @@ module.exports = class coinex extends Exchange {
             request['market'] = market['id'];
         }
         const response = await this.privateGetOrderUserDeals (this.extend (request, params));
+        //
+        //      {
+        //          "code": 0,
+        //          "data": {
+        //              "data": [
+        //                  {
+        //                      "id": 2611520950,
+        //                      "order_id": 63286573298,
+        //                      "account_id": 0,
+        //                      "create_time": 1638990636,
+        //                      "type": "sell",
+        //                      "role": "taker",
+        //                      "price": "192.29",
+        //                      "amount": "0.098",
+        //                      "fee": "0.03768884",
+        //                      "fee_asset": "USDT",
+        //                      "market": "AAVEUSDT",
+        //                      "deal_money": "18.84442"
+        //                          },
+        //                      ],
+        //              "curr_page": 1,
+        //              "has_next": false,
+        //              "count": 3
+        //              },
+        //          "message": "Success"
+        //      }
+        //
         const data = this.safeValue (response, 'data');
         const trades = this.safeValue (data, 'data', []);
         return this.parseTrades (trades, market, since, limit);
