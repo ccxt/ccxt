@@ -499,7 +499,7 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async createDepositAddress (code, params = {}) {
-        throw new BadRequest (this.id + ' has no method fetchAccounts');
+        throw new BadRequest (this.id + ' has no method createDepositAddress');
     }
 
     async fetchDepositAddress (code, params = {}) {
