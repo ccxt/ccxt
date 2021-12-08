@@ -675,6 +675,7 @@ module.exports = class kucoinfutures extends kucoin {
             request['startAt'] = since;
         }
         if (limit !== undefined) {
+            //* Since is ignored if limit is defined
             request['maxCount'] = limit;
         }
         const response = await this.futuresPrivateGetFundingHistory (this.extend (request, params));
@@ -834,9 +835,9 @@ module.exports = class kucoinfutures extends kucoin {
         const timestamp = this.safeNumber (position, 'currentTimestamp');
         const size = this.safeString (position, 'currentQty');
         let side = undefined;
-        if (Precise.stringGt (size, 0)) {
+        if (Precise.stringGt (size, '0')) {
             side = 'buy';
-        } else if (size < 0) {
+        } else if (Precise.stringLt (size, '0')) {
             side = 'sell';
         }
         const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
