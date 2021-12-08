@@ -154,7 +154,9 @@ const exchanges = {
     'xena':                    require ('./js/xena.js'),
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),    
+    'zb':                      require ('./js/zb.js'),
+    'chaoex':                  require ('./js/chaoex.js'),
+    'midex':                   require ('./js/midex.js'),
 }
 
 //-----------------------------------------------------------------------------
