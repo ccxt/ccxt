@@ -736,7 +736,7 @@ module.exports = class huobi extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'defaultType': 'swap', // spot, future, swap
+                'defaultType': 'spot', // spot, future, swap
                 'defaultSubType': 'inverse', // inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
@@ -3022,21 +3022,20 @@ module.exports = class huobi extends Exchange {
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         //
         // Gets a history of funding rates with their timestamps
-        //  (param) symbol: Future currency pair (e.g. "BTC-PERP")
-        //  (param) limit: Not used by ftx
-        //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
+        //  (param) symbol: Future currency pair
+        //  (param) limit: not used by huobi
+        //  (param) since: not used by huobi
         //  (param) params: Object containing more params for the request
-        //             - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  return: [{symbol, fundingRate, timestamp}]
+        //  return: [{symbol, fundingRate, timestamp, dateTime}]
         //
         await this.loadMarkets ();
         const request = {};
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol parameter');
         } else {
-            // const market = this.market (symbol);
-            // request['contract_code'] = market['id'];
-            request['contract_code'] = symbol;
+            const market = this.market (symbol);
+            request['contract_code'] = market['id'];
+            // request['contract_code'] = symbol;
         }
         const response = await this.contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
         //
