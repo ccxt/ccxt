@@ -3035,7 +3035,6 @@ module.exports = class huobi extends Exchange {
         } else {
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
-            // request['contract_code'] = symbol;
         }
         const response = await this.contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
         //
