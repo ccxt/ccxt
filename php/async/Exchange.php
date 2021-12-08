@@ -122,7 +122,7 @@ class Exchange extends \ccxt\Exchange {
         $url = $this->proxy . $url;
 
         if ($this->verbose) {
-            print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $verbose_headers, 'RequestBody:', $body));
+            print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
         }
 
         $this->lastRestRequestTimestamp = $this->milliseconds();
