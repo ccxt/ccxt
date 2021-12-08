@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d182cf08f7a0818be60498ee2be10a14",
+    "content-hash": "a73f297f54d93300e52f54402757c9c2",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.63.1",
+            "version": "1.63.19",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "5017e129a2426b1611dd39c75fef1ccf4a285d38"
+                "reference": "504009e9df5e26bac5c01fb4446d3ab0bd278262"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/5017e129a2426b1611dd39c75fef1ccf4a285d38",
-                "reference": "5017e129a2426b1611dd39c75fef1ccf4a285d38",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/504009e9df5e26bac5c01fb4446d3ab0bd278262",
+                "reference": "504009e9df5e26bac5c01fb4446d3ab0bd278262",
                 "shasum": ""
             },
             "require": {
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.63.1"
+                "source": "https://github.com/ccxt/ccxt/tree/1.63.19"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-12-06T02:06:55+00:00"
+            "time": "2021-12-08T04:30:20+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -1233,16 +1233,16 @@
         },
         {
             "name": "react/promise-timer",
-            "version": "v1.7.0",
+            "version": "v1.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/promise-timer.git",
-                "reference": "607dd79990e32fcb402cb0a176b4a4be12f97e7c"
+                "reference": "0bbbcc79589e5bfdddba68a287f1cb805581a479"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/promise-timer/zipball/607dd79990e32fcb402cb0a176b4a4be12f97e7c",
-                "reference": "607dd79990e32fcb402cb0a176b4a4be12f97e7c",
+                "url": "https://api.github.com/repos/reactphp/promise-timer/zipball/0bbbcc79589e5bfdddba68a287f1cb805581a479",
+                "reference": "0bbbcc79589e5bfdddba68a287f1cb805581a479",
                 "shasum": ""
             },
             "require": {
@@ -1300,7 +1300,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/promise-timer/issues",
-                "source": "https://github.com/reactphp/promise-timer/tree/v1.7.0"
+                "source": "https://github.com/reactphp/promise-timer/tree/v1.8.0"
             },
             "funding": [
                 {
@@ -1312,7 +1312,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-07-11T13:08:51+00:00"
+            "time": "2021-12-06T11:08:48+00:00"
         },
         {
             "name": "react/socket",
