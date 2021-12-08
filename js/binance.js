@@ -2663,7 +2663,8 @@ module.exports = class binance extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (params, 'type', defaultType);
+            const marketType = ('type' in market) ? market['type'] : defaultType;
+            type = this.safeString (params, 'type', marketType);
             query = this.omit (params, 'type');
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
             const symbols = this.symbols;
