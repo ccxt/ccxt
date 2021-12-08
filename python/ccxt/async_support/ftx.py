@@ -2023,6 +2023,12 @@ class ftx(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api/' + self.implode_params(path, params)
+        signOptions = self.safe_value(self.options, 'sign', {})
+        headerPrefix = self.safe_string(signOptions, self.hostname, 'FTX')
+        subaccountField = headerPrefix + '-SUBACCOUNT'
+        chosenSubaccount = self.safe_string_2(params, subaccountField, 'subaccount')
+        if chosenSubaccount is not None:
+            params = self.omit(params, [subaccountField, 'subaccount'])
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + request
@@ -2041,14 +2047,11 @@ class ftx(Exchange):
                 auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            options = self.safe_value(self.options, 'sign', {})
-            headerPrefix = self.safe_string(options, self.hostname, 'FTX')
-            keyField = headerPrefix + '-KEY'
-            tsField = headerPrefix + '-TS'
-            signField = headerPrefix + '-SIGN'
-            headers[keyField] = self.apiKey
-            headers[tsField] = timestamp
-            headers[signField] = signature
+            headers[headerPrefix + '-KEY'] = self.apiKey
+            headers[headerPrefix + '-TS'] = timestamp
+            headers[headerPrefix + '-SIGN'] = signature
+            if chosenSubaccount is not None:
+                headers[subaccountField] = chosenSubaccount
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
