@@ -2104,7 +2104,7 @@ module.exports = class ftx extends Exchange {
         const signOptions = this.safeValue (this.options, 'sign', {});
         const headerPrefix = this.safeString (signOptions, this.hostname, 'FTX');
         const subaccountField = headerPrefix + '-SUBACCOUNT';
-        const chosenSubaccount = this.safeString (params, subaccountField, undefined);
+        const chosenSubaccount = this.safeString (params, subaccountField);
         if (chosenSubaccount !== undefined) {
             params = this.omit (params, subaccountField);
         }
