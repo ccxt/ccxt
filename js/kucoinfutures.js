@@ -1181,7 +1181,7 @@ module.exports = class kucoinfutures extends kucoin {
         if ((toAccount !== 'spot' && toAccount !== 'trade' && toAccount !== 'trading') || (fromAccount !== 'futures' && fromAccount !== 'contract')) {
             throw new BadRequest (this.id + ' only supports transfers from contract(futures) account to trade(spot) account');
         }
-        this.transferOut (code, amount, params);
+        return this.transferOut (code, amount, params);
     }
 
     async transferOut (code, amount, params = {}) {
@@ -1202,16 +1202,17 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
+        const timestamp = this.safeString (data, 'updatedAt');
         return {
             'info': response,
             'id': this.safeString (data, 'applyId'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
             'fromAccount': 'futures',
             'toAccount': 'spot',
-            'status': undefined,
+            'status': this.safeString (data, 'status'),
         };
     }
 
