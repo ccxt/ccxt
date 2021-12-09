@@ -17,6 +17,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -71,6 +72,7 @@ class okex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchWithdrawals': True,
                 'transfer': True,
                 'withdraw': True,
@@ -1391,6 +1393,64 @@ class okex(Exchange):
             account['used'] = self.safe_string(balance, 'frozenBal')
             result[code] = account
         return self.parse_balance(result)
+
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "category":"1",
+        #         "delivery":"",
+        #         "exercise":"",
+        #         "instType":"SPOT",
+        #         "level":"Lv1",
+        #         "maker":"-0.0008",
+        #         "taker":"-0.001",
+        #         "ts":"1639043138472"
+        #     }
+        #
+        return {
+            'info': fee,
+            'symbol': self.safe_symbol(None, market),
+            'maker': self.safe_number(fee, 'maker'),
+            'taker': self.safe_number(fee, 'taker'),
+        }
+
+    async def fetch_trading_fee(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instType': market['type'].upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
+            # 'instId': market['id'],  # only applicable to SPOT/MARGIN
+            # 'uly': market['id'],  # only applicable to FUTURES/SWAP/OPTION
+            # 'category': '1',  # 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
+        }
+        if market['spot']:
+            request['instId'] = market['id']
+        elif market['swap'] or market['futures'] or market['option']:
+            request['uly'] = market['baseId'] + '-' + market['quoteId']
+        else:
+            raise NotSupported(self.id + ' fetchTradingFee supports spot, swap, futures or option markets only')
+        response = await self.privateGetAccountTradeFee(self.extend(request, params))
+        #
+        #     {
+        #         "code":"0",
+        #         "data":[
+        #             {
+        #                 "category":"1",
+        #                 "delivery":"",
+        #                 "exercise":"",
+        #                 "instType":"SPOT",
+        #                 "level":"Lv1",
+        #                 "maker":"-0.0008",
+        #                 "taker":"-0.001",
+        #                 "ts":"1639043138472"
+        #             }
+        #         ],
+        #         "msg":""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0, {})
+        return self.parse_trading_fee(first, market)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
