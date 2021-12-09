@@ -36,6 +36,7 @@ module.exports = class huobi extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
@@ -55,6 +56,7 @@ module.exports = class huobi extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
+                'parseFundingRate': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -3091,44 +3093,39 @@ module.exports = class huobi extends Exchange {
 
     parseFundingRate (fundingRate, market = undefined) {
         //
-        // perp
-        //     {
-        //       "volume": "71294.7636",
-        //       "nextFundingRate": "0.000033",
-        //       "nextFundingTime": "2021-10-14T20:00:00+00:00",
-        //       "openInterest": "47142.994"
-        //     }
+        // {
+        //      "status": "ok",
+        //      "data": {
+        //         "estimated_rate": "0.000100000000000000",
+        //         "funding_rate": "0.000100000000000000",
+        //         "contract_code": "BCH-USD",
+        //         "symbol": "BCH",
+        //         "fee_asset": "BCH",
+        //         "funding_time": "1639094400000",
+        //         "next_funding_time": "1639123200000"
+        //     },
+        //     "ts": 1639085854775
+        // }
         //
-        // delivery
-        //     {
-        //       "volume": "4998.727",
-        //       "predictedExpirationPrice": "3798.820141757",
-        //       "openInterest": "48307.96"
-        //     }
-        //
-        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
-        const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
-        const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
-        let previousFundingTimestamp = undefined;
-        if (nextFundingRateTimestamp !== undefined) {
-            previousFundingTimestamp = nextFundingRateTimestamp - 3600000;
-        }
-        const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
+        const previousFundingRate = this.safeNumber (fundingRate, 'funding_rate');
+        const nextFundingRate = this.safeNumber (fundingRate, 'estimated_rate');
+        const previousFundingTimestamp = this.safeInteger (fundingRate, 'funding_time');
+        const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
         return {
             'info': fundingRate,
             'symbol': market['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
-            'interestRate': this.parseNumber ('0'),
-            'estimatedSettlePrice': estimatedSettlePrice,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'previousFundingRate': undefined,
+            'previousFundingRate': previousFundingRate,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
-            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'nextFundingTimestamp': nextFundingTimestamp,
             'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
-            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
         };
     }
 
