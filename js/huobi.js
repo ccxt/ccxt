@@ -56,7 +56,6 @@ module.exports = class huobi extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
-                'parseFundingRate': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -3107,20 +3106,21 @@ module.exports = class huobi extends Exchange {
         //     "ts": 1639085854775
         // }
         //
-        const previousFundingRate = this.safeNumber (fundingRate, 'funding_rate');
         const nextFundingRate = this.safeNumber (fundingRate, 'estimated_rate');
         const previousFundingTimestamp = this.safeInteger (fundingRate, 'funding_time');
         const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
+        const marketId = this.safeString (fundingRate, 'contract_code');
+        const symbol = this.safeSymbol (marketId, market);
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'previousFundingRate': previousFundingRate,
+            'previousFundingRate': this.safeNumber (fundingRate, 'funding_rate'),
             'nextFundingRate': nextFundingRate,
             'previousFundingTimestamp': previousFundingTimestamp,
             'nextFundingTimestamp': nextFundingTimestamp,
