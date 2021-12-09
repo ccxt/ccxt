@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 use \ccxt\Precise;
 
 class okex extends Exchange {
@@ -56,6 +57,7 @@ class okex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
                 'fetchWithdrawals' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -1434,6 +1436,67 @@ class okex extends Exchange {
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     {
+        //         "category":"1",
+        //         "delivery":"",
+        //         "exercise":"",
+        //         "instType":"SPOT",
+        //         "level":"Lv1",
+        //         "maker":"-0.0008",
+        //         "taker":"-0.001",
+        //         "ts":"1639043138472"
+        //     }
+        //
+        return array(
+            'info' => $fee,
+            'symbol' => $this->safe_symbol(null, $market),
+            'maker' => $this->safe_number($fee, 'maker'),
+            'taker' => $this->safe_number($fee, 'taker'),
+        );
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instType' => strtoupper($market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'instId' => $market['id'], // only applicable to SPOT/MARGIN
+            // 'uly' => $market['id'], // only applicable to FUTURES/SWAP/OPTION
+            // 'category' => '1', // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
+        );
+        if ($market['spot']) {
+            $request['instId'] = $market['id'];
+        } else if ($market['swap'] || $market['futures'] || $market['option']) {
+            $request['uly'] = $market['baseId'] . '-' . $market['quoteId'];
+        } else {
+            throw new NotSupported($this->id . ' fetchTradingFee supports spot, swap, futures or option markets only');
+        }
+        $response = yield $this->privateGetAccountTradeFee (array_merge($request, $params));
+        //
+        //     {
+        //         "code":"0",
+        //         "data":array(
+        //             {
+        //                 "category":"1",
+        //                 "delivery":"",
+        //                 "exercise":"",
+        //                 "instType":"SPOT",
+        //                 "level":"Lv1",
+        //                 "maker":"-0.0008",
+        //                 "taker":"-0.001",
+        //                 "ts":"1639043138472"
+        //             }
+        //         ),
+        //         "msg":""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $first = $this->safe_value($data, 0, array());
+        return $this->parse_trading_fee($first, $market);
     }
 
     public function fetch_balance($params = array ()) {
