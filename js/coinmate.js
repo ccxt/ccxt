@@ -606,12 +606,12 @@ module.exports = class coinmate extends Exchange {
         const id = this.safeString (order, 'id');
         const timestamp = this.safeInteger (order, 'timestamp');
         const side = this.safeStringLower (order, 'type');
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'originalAmount');
-        const remaining = this.safeString2 (order, 'remainingAmount', 'amount');
+        const priceString = this.safeString (order, 'price');
+        const amountString = this.safeString (order, 'originalAmount');
+        const remainingString = this.safeString2 (order, 'remainingAmount', 'amount');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
-        const average = this.safeString (order, 'avgPrice');
+        const averageString = this.safeString (order, 'avgPrice');
         const marketId = this.safeString (order, 'currencyPair');
         const symbol = this.safeSymbol (marketId, market, '_');
         const clientOrderId = this.safeString (order, 'clientOrderId');
@@ -627,13 +627,13 @@ module.exports = class coinmate extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amount,
+            'amount': amountString,
             'cost': undefined,
-            'average': average,
+            'average': averageString,
             'filled': undefined,
-            'remaining': remaining,
+            'remaining': remainingString,
             'status': status,
             'trades': undefined,
             'info': order,
