@@ -1056,12 +1056,9 @@ module.exports = class kucoinfutures extends kucoin {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires parameter id or params.clientOid');
             }
             request['clientOid'] = clientOrderId;
-            method = 'futuresPrivateGetOrdersByClientOrderClientOid';
+            method = 'futuresPrivateGetOrdersByClientOid';
             params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         } else {
-            if (id === undefined) {
-                throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
-            }
             request['orderId'] = id;
         }
         const response = await this[method] (this.extend (request, params));
