@@ -818,6 +818,7 @@ module.exports = class huobi extends Exchange {
         //
         const marketId = this.safeString (fee, 'symbol');
         return {
+            'info': fee,
             'symbol': this.safeSymbol (marketId, market),
             'maker': this.safeNumber (fee, 'actualMakerRate'),
             'taker': this.safeNumber (fee, 'actualTakerRate'),
