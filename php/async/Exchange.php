@@ -198,7 +198,7 @@ class Exchange extends \ccxt\Exchange {
             return $this->markets;
         }
         $currencies = null;
-        if ($this->has['fetchCurrencies']) {
+        if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = yield $this->fetch_currencies ();
         }
         $markets = yield $this->fetch_markets ($params);

@@ -77,7 +77,7 @@ module.exports = class Exchange {
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRates': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchCurrencies': undefined,
+                'fetchCurrencies': 'emulated',
                 'fetchDepositAddress': undefined,
                 'fetchDeposits': undefined,
                 'fetchFundingFees': undefined,
@@ -734,7 +734,8 @@ module.exports = class Exchange {
             return this.markets
         }
         let currencies = undefined
-        if (this.has.fetchCurrencies) {
+        // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated') 
+        if (this.has.fetchCurrencies === true) {
             currencies = await this.fetchCurrencies ()
         }
         const markets = await this.fetchMarkets (params)
