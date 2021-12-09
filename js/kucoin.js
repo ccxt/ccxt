@@ -1630,7 +1630,8 @@ module.exports = class kucoin extends Exchange {
         }
         let cost = this.safeNumber2 (trade, 'funds', 'dealValue');
         if (cost === undefined) {
-            if (this.id === 'kucoinfutures') {
+            const [type, _] = this.getType ('parseTrade');
+            if (type === 'futures' || type === 'swap') {
                 market = this.safeMarket (symbol, market);
                 const contractSize = this.safeString (market, 'contractSize');
                 const contractCost = Precise.stringMul (priceString, amountString);
