@@ -954,6 +954,26 @@ class hitbtc3 extends Exchange {
         return $result[$symbol];
     }
 
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     {
+        //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
+        //         "take_rate":"0.0009",
+        //         "make_rate":"0.0009"
+        //     }
+        //
+        $taker = $this->safe_number($fee, 'take_rate');
+        $maker = $this->safe_number($fee, 'make_rate');
+        $marketId = $this->safe_string($fee, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'taker' => $taker,
+            'maker' => $maker,
+        );
+    }
+
     public function fetch_trading_fee($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -961,33 +981,32 @@ class hitbtc3 extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->privateGetSpotFeeSymbol (array_merge($request, $params));
-        //  array("take_rate":"0.0009","make_rate":"0.0009")
-        $taker = $this->safe_number($response, 'take_rate');
-        $maker = $this->safe_number($response, 'make_rate');
-        return array(
-            'info' => $response,
-            'symbol' => $symbol,
-            'taker' => $taker,
-            'maker' => $maker,
-        );
+        //
+        //     {
+        //         "take_rate":"0.0009",
+        //         "make_rate":"0.0009"
+        //     }
+        //
+        return $this->parse_trading_fee($response, $market);
     }
 
     public function fetch_trading_fees($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetSpotFee ($params);
-        // [array("symbol":"ARVUSDT","take_rate":"0.0009","make_rate":"0.0009")]
+        //
+        //     array(
+        //         {
+        //             "symbol":"ARVUSDT",
+        //             "take_rate":"0.0009",
+        //             "make_rate":"0.0009"
+        //         }
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $symbol = $this->safe_symbol($this->safe_string($entry, 'symbol'));
-            $taker = $this->safe_number($entry, 'take_rate');
-            $maker = $this->safe_number($entry, 'make_rate');
-            $result[$symbol] = array(
-                'info' => $entry,
-                'symbol' => $symbol,
-                'taker' => $taker,
-                'maker' => $maker,
-            );
+            $fee = $this->parse_trading_fee($response[$i]);
+            $symbol = $fee['symbol'];
+            $result[$symbol] = $fee;
         }
         return $result;
     }

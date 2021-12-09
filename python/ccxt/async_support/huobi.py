@@ -870,7 +870,7 @@ class huobi(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0, {})
-        return self.parse_trading_fee(first)
+        return self.parse_trading_fee(first, market)
 
     async def fetch_trading_limits(self, symbols=None, params={}):
         # self method should not be called directly, use loadTradingLimits() instead

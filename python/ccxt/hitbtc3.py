@@ -915,6 +915,25 @@ class hitbtc3(Exchange):
         result = self.fetch_order_books([symbol], limit, params)
         return result[symbol]
 
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "symbol":"ARVUSDT",  # returned from fetchTradingFees only
+        #         "take_rate":"0.0009",
+        #         "make_rate":"0.0009"
+        #     }
+        #
+        taker = self.safe_number(fee, 'take_rate')
+        maker = self.safe_number(fee, 'make_rate')
+        marketId = self.safe_string(fee, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'taker': taker,
+            'maker': maker,
+        }
+
     def fetch_trading_fee(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -922,32 +941,31 @@ class hitbtc3(Exchange):
             'symbol': market['id'],
         }
         response = self.privateGetSpotFeeSymbol(self.extend(request, params))
-        #  {"take_rate":"0.0009","make_rate":"0.0009"}
-        taker = self.safe_number(response, 'take_rate')
-        maker = self.safe_number(response, 'make_rate')
-        return {
-            'info': response,
-            'symbol': symbol,
-            'taker': taker,
-            'maker': maker,
-        }
+        #
+        #     {
+        #         "take_rate":"0.0009",
+        #         "make_rate":"0.0009"
+        #     }
+        #
+        return self.parse_trading_fee(response, market)
 
     def fetch_trading_fees(self, symbols=None, params={}):
         self.load_markets()
         response = self.privateGetSpotFee(params)
-        # [{"symbol":"ARVUSDT","take_rate":"0.0009","make_rate":"0.0009"}]
+        #
+        #     [
+        #         {
+        #             "symbol":"ARVUSDT",
+        #             "take_rate":"0.0009",
+        #             "make_rate":"0.0009"
+        #         }
+        #     ]
+        #
         result = {}
         for i in range(0, len(response)):
-            entry = response[i]
-            symbol = self.safe_symbol(self.safe_string(entry, 'symbol'))
-            taker = self.safe_number(entry, 'take_rate')
-            maker = self.safe_number(entry, 'make_rate')
-            result[symbol] = {
-                'info': entry,
-                'symbol': symbol,
-                'taker': taker,
-                'maker': maker,
-            }
+            fee = self.parse_trading_fee(response[i])
+            symbol = fee['symbol']
+            result[symbol] = fee
         return result
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

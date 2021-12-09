@@ -857,7 +857,7 @@ class huobi extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0, array());
-        return $this->parse_trading_fee($first);
+        return $this->parse_trading_fee($first, $market);
     }
 
     public function fetch_trading_limits($symbols = null, $params = array ()) {
