@@ -330,7 +330,9 @@ module.exports = class bitrue extends Exchange {
     
     async fetchStatus (params = {}) {
         const response = await this.v1PublicGetPing (params);
-        const formattedStatus = (JSON.stringify(response) === '{}') ? 'ok' : 'maintenance';
+        const keys = Object.keys (response);
+        const keysLength = keys.length;
+        const formattedStatus = keysLength ? 'maintenance' : 'ok';
         this.status = this.extend (this.status, {
             'status': formattedStatus,
             'updated': this.milliseconds (),
