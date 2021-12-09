@@ -2031,7 +2031,7 @@ Since the rate limiter belongs to the exchange instance, destroying the exchange
 
    // DO NOT DO THIS!
 
-   function tick () {
+   async function tick () {
        const exchange = new ccxt.binance ({ enableRateLimit: true })
        const response = await exchange.fetchOrderBook ('BTC/USDT')
        // ... some processing here ...
@@ -2474,7 +2474,7 @@ Methods For Markets And Currencies
        bitfinex.markets['BTC/USD']['id']             // symbol → id (get id by symbol)
        bitfinex.markets_by_id['XRPBTC']['symbol']    // id → symbol (get symbol by id)
 
-   })
+   }) ()
 
 .. code-block:: Python
 
@@ -4506,7 +4506,7 @@ The first is the default and if you specify the ``price`` along with the ``amoun
        const order = await exchange.createOrder (symbol, 'market', 'buy', amount, price)
 
        console.log (order)
-   })
+   }) ()
 
 The second alternative is useful in cases when the user wants to calculate and specify the resulting total cost of the order himself. That can be done by setting the ``createMarketBuyOrderRequiresPrice`` option to ``false`` to switch it off:
 
@@ -4536,7 +4536,7 @@ The second alternative is useful in cases when the user wants to calculate and s
        cost = amount * price // ← instead of the amount cost goes ↓ here
        const order = await exchange.createMarketBuyOrder (symbol, cost)
        console.log (order)
-   })
+   }) ()
 
 More about it:
 
