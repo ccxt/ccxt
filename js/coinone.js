@@ -441,7 +441,7 @@ module.exports = class coinone extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'orderId');
-        const price = this.safeString (order, 'price');
+        const priceString = this.safeString (order, 'price');
         const timestamp = this.safeTimestamp (order, 'timestamp');
         let side = this.safeString (order, 'type');
         if (side === 'ask') {
@@ -449,13 +449,13 @@ module.exports = class coinone extends Exchange {
         } else if (side === 'bid') {
             side = 'buy';
         }
-        const remaining = this.safeString (order, 'remainQty');
-        const amount = this.safeString (order, 'qty');
+        const remainingString = this.safeString (order, 'remainQty');
+        const amountString = this.safeString (order, 'qty');
         let status = this.safeString (order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'live') {
-            if ((remaining !== undefined) && (amount !== undefined)) {
-                const isLessThan = Precise.stringLt (remaining, amount);
+            if ((remainingString !== undefined) && (amountString !== undefined)) {
+                const isLessThan = Precise.stringLt (remainingString, amountString);
                 if (isLessThan) {
                     status = 'canceled';
                 }
@@ -481,12 +481,12 @@ module.exports = class coinone extends Exchange {
             quote = market['quote'];
         }
         let fee = undefined;
-        const feeCost = this.safeNumber (order, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (order, 'fee');
+        if (feeCostString !== undefined) {
             const feeCurrencyCode = (side === 'sell') ? quote : base;
             fee = {
-                'cost': feeCost,
-                'rate': this.safeNumber (order, 'feeRate'),
+                'cost': feeCostString,
+                'rate': this.safeString (order, 'feeRate'),
                 'currency': feeCurrencyCode,
             };
         }
@@ -502,13 +502,13 @@ module.exports = class coinone extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': undefined,
             'cost': undefined,
             'average': undefined,
-            'amount': amount,
+            'amount': amountString,
             'filled': undefined,
-            'remaining': remaining,
+            'remaining': remainingString,
             'status': status,
             'fee': fee,
             'trades': undefined,
