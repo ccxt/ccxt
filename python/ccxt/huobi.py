@@ -16,12 +16,14 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -59,6 +61,7 @@ class huobi(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -2863,3 +2866,67 @@ class huobi(Exchange):
                 message = self.safe_string(response, 'err-msg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        #
+        # Gets a history of funding rates with their timestamps
+        #  (param) symbol: Future currency pair
+        #  (param) limit: not used by huobi
+        #  (param) since: not used by huobi
+        #  (param) params: Object containing more params for the request
+        #  return: [{symbol, fundingRate, timestamp, dateTime}]
+        #
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'contract_code': market['id'],
+        }
+        method = None
+        if market['inverse']:
+            method = 'contractPublicGetSwapApiV1SwapHistoricalFundingRate'
+        elif market['linear']:
+            method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate'
+        else:
+            raise NotSupported(self.id + ' fetchFundingRateHistory() supports inverse and linear swaps only')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # {
+        #     "status": "ok",
+        #     "data": {
+        #         "total_page": 62,
+        #         "current_page": 1,
+        #         "total_size": 1237,
+        #         "data": [
+        #             {
+        #                 "avg_premium_index": "-0.000208064395065541",
+        #                 "funding_rate": "0.000100000000000000",
+        #                 "realized_rate": "0.000100000000000000",
+        #                 "funding_time": "1638921600000",
+        #                 "contract_code": "BTC-USDT",
+        #                 "symbol": "BTC",
+        #                 "fee_asset": "USDT"
+        #             },
+        #         ]
+        #     },
+        #     "ts": 1638939294277
+        # }
+        #
+        data = self.safe_value(response, 'data')
+        result = self.safe_value(data, 'data')
+        rates = []
+        for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'contract_code')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_string(entry, 'funding_time')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)

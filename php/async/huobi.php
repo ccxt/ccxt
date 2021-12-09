@@ -7,10 +7,12 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 use \ccxt\NetworkError;
 use \ccxt\Precise;
 
@@ -42,6 +44,7 @@ class huobi extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -3023,5 +3026,73 @@ class huobi extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        //
+        // Gets a history of funding $rates with their timestamps
+        //  (param) $symbol => Future currency pair
+        //  (param) $limit => not used by huobi
+        //  (param) $since => not used by huobi
+        //  (param) $params => Object containing more $params for the $request
+        //  return => [array($symbol, fundingRate, $timestamp, dateTime)]
+        //
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'contract_code' => $market['id'],
+        );
+        $method = null;
+        if ($market['inverse']) {
+            $method = 'contractPublicGetSwapApiV1SwapHistoricalFundingRate';
+        } else if ($market['linear']) {
+            $method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate';
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingRateHistory() supports inverse and linear swaps only');
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // {
+        //     "status" => "ok",
+        //     "data" => array(
+        //         "total_page" => 62,
+        //         "current_page" => 1,
+        //         "total_size" => 1237,
+        //         "data" => array(
+        //             array(
+        //                 "avg_premium_index" => "-0.000208064395065541",
+        //                 "funding_rate" => "0.000100000000000000",
+        //                 "realized_rate" => "0.000100000000000000",
+        //                 "funding_time" => "1638921600000",
+        //                 "contract_code" => "BTC-USDT",
+        //                 "symbol" => "BTC",
+        //                 "fee_asset" => "USDT"
+        //             ),
+        //         )
+        //     ),
+        //     "ts" => 1638939294277
+        // }
+        //
+        $data = $this->safe_value($response, 'data');
+        $result = $this->safe_value($data, 'data');
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $entry = $result[$i];
+            $marketId = $this->safe_string($entry, 'contract_code');
+            $symbol = $this->safe_symbol($marketId);
+            $timestamp = $this->safe_string($entry, 'funding_time');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($entry, 'funding_rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 }
