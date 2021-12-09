@@ -156,11 +156,13 @@ module.exports = class kucoinfutures extends kucoin {
                     '429': RateLimitExceeded, // Too Many Requests -- Access limit breached
                     '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
+                    '100001': InvalidOrder,     // {"code":"100001","msg":"Unavailable to enable both \"postOnly\" and \"hidden\""} 
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '200004': InsufficientFunds,
                     '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
                     '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                     '300003': InsufficientFunds,
+                    '300012': InvalidOrder,
                     '400001': AuthenticationError, // Any of KC-API-KEY, KC-API-SIGN, KC-API-TIMESTAMP, KC-API-PASSPHRASE is missing in your request header.
                     '400002': InvalidNonce, // KC-API-TIMESTAMP Invalid -- Time differs from server time by more than 5 seconds
                     '400003': AuthenticationError, // KC-API-KEY not exists
@@ -874,7 +876,6 @@ module.exports = class kucoinfutures extends kucoin {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const uppercaseType = type.toUpperCase ();
         const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
@@ -886,19 +887,13 @@ module.exports = class kucoinfutures extends kucoin {
         if (amount < 1) {
             throw new InvalidOrder ('Minimum contract order size using ' + this.id + ' is 1');
         }
-        const stop = this.safeString (params, 'stop');
-        const stopPrice = this.safeNumber (params, 'stopPrice');
-        if (stopPrice) {
-            const stopPriceType = this.safeString (params, 'stopPriceType');
-            if (!stopPriceType || !stop) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPriceType, params.stopPrice, and params.stop for stoploss orders');
-            }
-        }
+        const preciseAmount = parseInt (this.amountToPrecision (symbol, amount));
         const request = {
             'clientOid': clientOrderId,
             'side': side,
             'symbol': market['id'],
             'type': type, // limit or market
+            'size': preciseAmount,
             // 'remark': '', // optional remark for the order, length cannot exceed 100 utf8 characters
             // 'tradeType': 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
             // limit orders ---------------------------------------------------
@@ -909,7 +904,6 @@ module.exports = class kucoinfutures extends kucoin {
             // 'iceberg': false, // Only a portion of the order is displayed in the order book
             // 'visibleSize': this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order
             // market orders --------------------------------------------------
-            // 'size': this.amountToPrecision (symbol, amount), // Amount in base currency
             // 'funds': this.costToPrecision (symbol, cost), // Amount of quote currency to use
             // stop orders ----------------------------------------------------
             // 'stop': 'loss', // loss or entry, the default is loss, requires stopPrice
@@ -923,13 +917,40 @@ module.exports = class kucoinfutures extends kucoin {
             // closeOrder // (boolean) A mark to close the position. Set to false by default. It will close all the positions when closeOrder is true.
             // forceHold // (boolean) A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
         };
-        let amountString = this.amountToPrecision (symbol, amount);
-        request['size'] = this.amountToPrecision (symbol, amount);
-        if (uppercaseType === 'LIMIT') {
-            amountString = this.amountToPrecision (symbol, amount);
-            request['size'] = parseInt (amountString);
-            request['price'] = this.priceToPrecision (symbol, price);
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stopPrice) {
+            request['stop'] = side.toUpperCase () === 'BUY' ? 'down' : 'up';
+            const stopPriceType = this.safeString (params, 'stopPriceType');
+            if (!stopPriceType) {
+                throw new ArgumentsRequired (this.id + ' trigger orders require params.stopPriceType to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
+            }
         }
+        const uppercaseType = type.toUpperCase ();
+        let timeInForce = this.safeString (params, 'timeInForce');
+        if (uppercaseType === 'LIMIT') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' limit orders require the price argument');
+            } else {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (timeInForce !== undefined) {
+                timeInForce = timeInForce.toUpperCase ();
+                request['timeInForce'] = timeInForce;
+            }
+        }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        const hidden = this.safeValue (params, 'hidden');
+        if (postOnly && hidden !== undefined) {
+            throw new BadRequest (this.id + ' createOrder cannot contain both params.postOnly and params.hidden');
+        }
+        const iceberg = this.safeValue (params, 'iceberg');
+        if (iceberg) {
+            const visibleSize = this.safeValue (params, 'visibleSize');
+            if (visibleSize === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires params.visibleSize for iceberg orders');
+            }
+        }
+        params = this.omit (params, 'timeInForce'); // Time in force only valid for limit orders, exchange error when gtc for market orders
         const response = await this.futuresPrivatePostOrders (this.extend (request, params));
         //
         //    {
@@ -950,7 +971,7 @@ module.exports = class kucoinfutures extends kucoin {
             'type': type,
             'side': side,
             'price': price,
-            'amount': this.parseNumber (amountString),
+            'amount': preciseAmount,
             'cost': undefined,
             'average': undefined,
             'filled': undefined,
@@ -958,8 +979,8 @@ module.exports = class kucoinfutures extends kucoin {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
-            'timeInForce': this.safeString (params, 'timeInForce'),
-            'postOnly': this.safeString (params, 'postOnly'),
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'stopPrice': stopPrice,
             'info': data,
         };
