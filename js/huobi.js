@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -3037,9 +3037,13 @@ module.exports = class huobi extends Exchange {
         const request = {
             'contract_code': market['id'],
         };
-        let method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate';
+        let method = undefined;
         if (market['inverse']) {
             method = 'contractPublicGetSwapApiV1SwapHistoricalFundingRate';
+        } else if (market['linear']) {
+            method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate';
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
         }
         const response = await this[method] (this.extend (request, params));
         //
