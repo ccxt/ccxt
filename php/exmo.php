@@ -39,7 +39,6 @@ class exmo extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,

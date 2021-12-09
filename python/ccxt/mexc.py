@@ -1361,7 +1361,7 @@ class mexc(Exchange):
         updated = self.parse8601(self.safe_string(transaction, 'update_time'))
         currencyId = self.safe_string(transaction, 'currency')
         network = None
-        if currencyId.find('-') >= 0:
+        if (currencyId is not None) and (currencyId.find('-') >= 0):
             parts = currencyId.split('-')
             currencyId = self.safe_string(parts, 0)
             networkId = self.safe_string(parts, 1)
