@@ -21,7 +21,6 @@ module.exports = class indodax extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': undefined,
                 'fetchOpenOrders': true,
