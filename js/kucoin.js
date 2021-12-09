@@ -426,11 +426,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     async loadTimeDifference (params = {}) {
-        const method = this.getSupportedMapping (this.id, {
-            'kucoin': 'publicGetTimestamp',
-            'kucoinfutures': 'futuresPublicGetTimestamp',
-        });
-        const response = await this[method] (params);
+        const response = await this.publicGetTimestamp (params);
         const after = this.milliseconds ();
         const kucoinTime = this.safeInteger (response, 'data');
         this.options['timeDifference'] = parseInt (after - kucoinTime);
@@ -450,11 +446,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const method = this.getSupportedMapping (this.id, {
-            'kucoin': 'publicGetStatus',
-            'kucoinfutures': 'futuresPublicGetStatus',
-        });
-        const response = await this[method] (params);
+        const response = await this.publicGetStatus (params);
         //
         //     {
         //         "code":"200000",
@@ -1601,6 +1593,16 @@ module.exports = class kucoin extends Exchange {
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
+        let timestamp = this.safeInteger (trade, 'time');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp / 1000000);
+        } else {
+            timestamp = this.safeInteger (trade, 'createdAt');
+            // if it's a historical v1 trade, the exchange returns timestamp in seconds
+            if (('dealValue' in trade) && (timestamp !== undefined)) {
+                timestamp = timestamp * 1000;
+            }
+        }
         const priceString = this.safeString2 (trade, 'price', 'dealPrice');
         const amountString = this.safeString2 (trade, 'size', 'amount');
         const price = this.parseNumber (priceString);
@@ -1637,18 +1639,6 @@ module.exports = class kucoin extends Exchange {
                 }
             } else {
                 cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-            }
-        }
-        let timestamp = this.safeInteger (trade, 'time');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
-        } else {
-            timestamp = this.safeInteger (trade, 'createdAt');
-            // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if (('dealValue' in trade) && (timestamp !== undefined)) {
-                timestamp = timestamp * 1000;
-            } else if (timestamp === undefined) {
-                timestamp = this.milliseconds ();
             }
         }
         return {
@@ -1836,13 +1826,10 @@ module.exports = class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = this.getSupportedMapping (this.id, {
-            'kucoin': 'privateGetDeposits',
-            'kucoinfutures': 'futuresPrivateGetDepositList',
-        });
+        let method = 'privateGetDeposits';
         if (since !== undefined) {
             // if since is earlier than 2019-02-18T00:00:00Z
-            if (since < 1550448000000 && this.id === 'kucoin') {
+            if (since < 1550448000000) {
                 request['startAt'] = parseInt (since / 1000);
                 method = 'privateGetHistDeposits';
             } else {
@@ -1903,13 +1890,10 @@ module.exports = class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = this.getSupportedMapping (this.id, {
-            'kucoin': 'privateGetWithdrawals',
-            'kucoinfutures': 'futuresPrivateGetWithdrawalList',
-        });
+        let method = 'privateGetWithdrawals';
         if (since !== undefined) {
             // if since is earlier than 2019-02-18T00:00:00Z
-            if (since < 1550448000000 && this.id === 'kucoin') {
+            if (since < 1550448000000) {
                 request['startAt'] = parseInt (since / 1000);
                 method = 'privateGetHistWithdrawals';
             } else {

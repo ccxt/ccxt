@@ -156,7 +156,7 @@ module.exports = class kucoinfutures extends kucoin {
                     '429': RateLimitExceeded, // Too Many Requests -- Access limit breached
                     '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
-                    '100001': InvalidOrder,     // {"code":"100001","msg":"Unavailable to enable both \"postOnly\" and \"hidden\""} 
+                    '100001': InvalidOrder,     // {"code":"100001","msg":"Unavailable to enable both \"postOnly\" and \"hidden\""}
                     '100004': BadRequest,       // {"code":"100004","msg":"Order is in not cancelable state"}
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '200004': InsufficientFunds,
@@ -275,6 +275,37 @@ module.exports = class kucoinfutures extends kucoin {
 
     async fetchAccounts (params = {}) {
         throw new BadRequest (this.id + ' has no method fetchAccounts');
+    }
+
+    async loadTimeDifference (params = {}) {
+        const response = await this.futuresPublicGetTimestamp (params);
+        const after = this.milliseconds ();
+        const kucoinTime = this.safeInteger (response, 'data');
+        this.options['timeDifference'] = parseInt (after - kucoinTime);
+        return this.options['timeDifference'];
+    }
+
+    async fetchStatus (params = {}) {
+        const response = await this.futuresPublicGetStatus (params);
+        //
+        //     {
+        //         "code":"200000",
+        //         "data":{
+        //             "msg":"",
+        //             "status":"open"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        let status = this.safeValue (data, 'status');
+        if (status !== undefined) {
+            status = (status === 'open') ? 'ok' : 'maintenance';
+            this.status = this.extend (this.status, {
+                'status': status,
+                'updated': this.milliseconds (),
+            });
+        }
+        return this.status;
     }
 
     async fetchMarkets (params = {}) {
@@ -678,7 +709,7 @@ module.exports = class kucoinfutures extends kucoin {
             request['startAt'] = since;
         }
         if (limit !== undefined) {
-            //* Since is ignored if limit is defined
+            // * Since is ignored if limit is defined
             request['maxCount'] = limit;
         }
         const response = await this.futuresPrivateGetFundingHistory (this.extend (request, params));
@@ -1316,6 +1347,98 @@ module.exports = class kucoinfutures extends kucoin {
         //
         const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        const response = await this.futuresPrivateGetDepositList (this.extend (request, params));
+        //
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             "currentPage": 1,
+        //             "pageSize": 5,
+        //             "totalNum": 2,
+        //             "totalPage": 1,
+        //             "items": [
+        //                 {
+        //                     "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        //                     "memo": "5c247c8a03aa677cea2a251d",
+        //                     "amount": 1,
+        //                     "fee": 0.0001,
+        //                     "currency": "KCS",
+        //                     "isInner": false,
+        //                     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
+        //                     "status": "SUCCESS",
+        //                     "createdAt": 1544178843000,
+        //                     "updatedAt": 1544178891000
+        //                     "remark":"foobar"
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const responseData = response['data']['items'];
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        const response = await this.futuresPrivateGetWithdrawalList (this.extend (request, params));
+        //
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             "currentPage": 1,
+        //             "pageSize": 5,
+        //             "totalNum": 2,
+        //             "totalPage": 1,
+        //             "items": [
+        //                 {
+        //                     "id": "5c2dc64e03aa675aa263f1ac",
+        //                     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
+        //                     "memo": "",
+        //                     "currency": "ETH",
+        //                     "amount": 1.0000000,
+        //                     "fee": 0.0100000,
+        //                     "walletTxId": "3e2414d82acce78d38be7fe9",
+        //                     "isInner": false,
+        //                     "status": "FAILURE",
+        //                     "createdAt": 1546503758000,
+        //                     "updatedAt": 1546504603000
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const responseData = response['data']['items'];
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async fetchFundingFee (code, params = {}) {
