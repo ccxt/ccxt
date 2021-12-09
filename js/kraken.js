@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded } = require ('./base/errors');
+const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -344,6 +344,7 @@ module.exports = class kraken extends Exchange {
                 'EAPI:Invalid nonce': InvalidNonce,
                 'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
                 'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
+                'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
             },
         });
     }
