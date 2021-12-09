@@ -50,7 +50,7 @@ class bitrue extends Exchange {
                 'fetchOrders' => false,
                 'fetchPositions' => false,
                 'fetchPremiumIndexOHLCV' => false,
-                'fetchStatus' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -329,6 +329,18 @@ class bitrue extends Exchange {
 
     public function nonce() {
         return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
+    public function fetch_status($params = array ()) {
+        $response = $this->v1PublicGetPing ($params);
+        $keys = is_array($response) ? array_keys($response) : array();
+        $keysLength = is_array($keys) ? count($keys) : 0;
+        $formattedStatus = $keysLength ? 'maintenance' : 'ok';
+        $this->status = array_merge($this->status, array(
+            'status' => $formattedStatus,
+            'updated' => $this->milliseconds(),
+        ));
+        return $this->status;
     }
 
     public function fetch_time($params = array ()) {
