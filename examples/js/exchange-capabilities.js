@@ -12,7 +12,7 @@ const ccxt        = require ('../../ccxt.js')
 
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
-const isWindows = process.platform == 'win32' //fix for windows, as it doesn't show darkred-VS-red well enough
+const isWindows = process.platform == 'win32' // fix for windows, as it doesn't show darkred-VS-red well enough
 
 ;(async function test () {
     let total = 0
