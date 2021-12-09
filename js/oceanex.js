@@ -31,7 +31,6 @@ module.exports = class oceanex extends Exchange {
                 'fetchAllTradingFees': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': undefined,
                 'fetchFundingFees': undefined,
                 'fetchMarkets': true,
                 'fetchOpenOrders': true,
