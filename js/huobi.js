@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -36,6 +36,7 @@ module.exports = class huobi extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -3017,5 +3018,73 @@ module.exports = class huobi extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Gets a history of funding rates with their timestamps
+        //  (param) symbol: Future currency pair
+        //  (param) limit: not used by huobi
+        //  (param) since: not used by huobi
+        //  (param) params: Object containing more params for the request
+        //  return: [{symbol, fundingRate, timestamp, dateTime}]
+        //
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'contract_code': market['id'],
+        };
+        let method = undefined;
+        if (market['inverse']) {
+            method = 'contractPublicGetSwapApiV1SwapHistoricalFundingRate';
+        } else if (market['linear']) {
+            method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate';
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // {
+        //     "status": "ok",
+        //     "data": {
+        //         "total_page": 62,
+        //         "current_page": 1,
+        //         "total_size": 1237,
+        //         "data": [
+        //             {
+        //                 "avg_premium_index": "-0.000208064395065541",
+        //                 "funding_rate": "0.000100000000000000",
+        //                 "realized_rate": "0.000100000000000000",
+        //                 "funding_time": "1638921600000",
+        //                 "contract_code": "BTC-USDT",
+        //                 "symbol": "BTC",
+        //                 "fee_asset": "USDT"
+        //             },
+        //         ]
+        //     },
+        //     "ts": 1638939294277
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = this.safeValue (data, 'data');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'contract_code');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.safeString (entry, 'funding_time');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 };
