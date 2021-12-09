@@ -351,6 +351,27 @@ class aofex extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     {
+        //         "category":"1",
+        //         "delivery":"",
+        //         "exercise":"",
+        //         "instType":"SPOT",
+        //         "level":"Lv1",
+        //         "maker":"-0.0008",
+        //         "taker":"-0.001",
+        //         "ts":"1639043138472"
+        //     }
+        //
+        return array(
+            'info' => $fee,
+            'symbol' => $this->safe_symbol(null, $market),
+            'maker' => $this->safe_number($fee, 'fromFee'),
+            'taker' => $this->safe_number($fee, 'toFee'),
+        );
+    }
+
     public function fetch_trading_fee($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -368,12 +389,7 @@ class aofex extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return array(
-            'info' => $response,
-            'symbol' => $symbol,
-            'maker' => $this->safe_number($result, 'fromFee'),
-            'taker' => $this->safe_number($result, 'toFee'),
-        );
+        return $this->parse_trading_fee($result, $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

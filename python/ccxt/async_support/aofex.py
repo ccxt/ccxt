@@ -351,6 +351,26 @@ class aofex(Exchange):
             result[code] = account
         return self.parse_balance(result)
 
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "category":"1",
+        #         "delivery":"",
+        #         "exercise":"",
+        #         "instType":"SPOT",
+        #         "level":"Lv1",
+        #         "maker":"-0.0008",
+        #         "taker":"-0.001",
+        #         "ts":"1639043138472"
+        #     }
+        #
+        return {
+            'info': fee,
+            'symbol': self.safe_symbol(None, market),
+            'maker': self.safe_number(fee, 'fromFee'),
+            'taker': self.safe_number(fee, 'toFee'),
+        }
+
     async def fetch_trading_fee(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -368,12 +388,7 @@ class aofex(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return {
-            'info': response,
-            'symbol': symbol,
-            'maker': self.safe_number(result, 'fromFee'),
-            'taker': self.safe_number(result, 'toFee'),
-        }
+        return self.parse_trading_fee(result, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
