@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -217,16 +216,11 @@ module.exports = class coinspot extends Exchange {
         //
         const priceString = this.safeString (trade, 'rate');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let cost = this.safeNumber (trade, 'total');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
+        const costString = this.safeNumber (trade, 'total');
         const timestamp = this.safeInteger (trade, 'solddate');
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market, '/');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': undefined,
             'symbol': symbol,
@@ -236,11 +230,11 @@ module.exports = class coinspot extends Exchange {
             'type': undefined,
             'side': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
