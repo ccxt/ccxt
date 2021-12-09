@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.63.28';
+$version = '1.63.30';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.63.28';
+    const VERSION = '1.63.30';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1590,7 +1590,7 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            print_r(array('Request:', $method, $url, $verbose_headers, $body));
+            print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $verbose_headers, 'RequestBody:', $body));
         }
 
         // we probably only need to set it once on startup
@@ -1676,7 +1676,7 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            print_r(array('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result));
+            print_r(array('fetch Response:', $this->id, $method, $url, $http_status_code, $curl_error, 'ResponseHeaders:', $response_headers, 'ResponseBody:', $result));
         }
 
         if ($result === false) {

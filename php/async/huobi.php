@@ -826,6 +826,7 @@ class huobi extends Exchange {
         //
         $marketId = $this->safe_string($fee, 'symbol');
         return array(
+            'info' => $fee,
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $this->safe_number($fee, 'actualMakerRate'),
             'taker' => $this->safe_number($fee, 'actualTakerRate'),

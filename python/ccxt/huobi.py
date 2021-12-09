@@ -840,6 +840,7 @@ class huobi(Exchange):
         #
         marketId = self.safe_string(fee, 'symbol')
         return {
+            'info': fee,
             'symbol': self.safe_symbol(marketId, market),
             'maker': self.safe_number(fee, 'actualMakerRate'),
             'taker': self.safe_number(fee, 'actualTakerRate'),
