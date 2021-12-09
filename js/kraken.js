@@ -45,7 +45,6 @@ module.exports = class kraken extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'setMarginMode': false, // Kraken only supports cross margin
