@@ -1418,7 +1418,7 @@ module.exports = class mexc extends Exchange {
         const updated = this.parse8601 (this.safeString (transaction, 'update_time'));
         let currencyId = this.safeString (transaction, 'currency');
         let network = undefined;
-        if (currencyId.indexOf ('-') >= 0) {
+        if ((currencyId !== undefined) && (currencyId.indexOf ('-') >= 0)) {
             const parts = currencyId.split ('-');
             currencyId = this.safeString (parts, 0);
             const networkId = this.safeString (parts, 1);
