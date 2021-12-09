@@ -139,7 +139,7 @@ module.exports = class kucoinfutures extends kucoin {
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
                         'cancel/transfer-out': 1,
-                        'orders/{order-id}': 1,
+                        'orders/{orderId}': 1,
                         'orders': 4.44,
                         'stopOrders': 1,
                     },
@@ -157,6 +157,7 @@ module.exports = class kucoinfutures extends kucoin {
                     '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
                     '100001': InvalidOrder,     // {"code":"100001","msg":"Unavailable to enable both \"postOnly\" and \"hidden\""} 
+                    '100004': BadRequest,       // {"code":"100004","msg":"Order is in not cancelable state"}
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '200004': InsufficientFunds,
                     '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
