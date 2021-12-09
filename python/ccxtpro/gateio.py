@@ -251,7 +251,7 @@ class gateio(Exchange, ccxt.gateio):
         uppercaseId = marketId.upper()
         requestId = self.nonce()
         url = self.urls['api']['ws']
-        interval = self.timeframes[timeframe]
+        interval = self.parse_timeframe(timeframe)
         subscribeMessage = {
             'id': requestId,
             'method': 'kline.subscribe',

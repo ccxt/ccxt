@@ -266,7 +266,7 @@ class gateio extends \ccxt\async\gateio {
         $uppercaseId = strtoupper($marketId);
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
-        $interval = $this->timeframes[$timeframe];
+        $interval = $this->parse_timeframe($timeframe);
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'kline.subscribe',
