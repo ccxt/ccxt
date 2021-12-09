@@ -1467,7 +1467,7 @@ module.exports = class okex extends Exchange {
         } else if (market['swap'] || market['futures'] || market['option']) {
             request['uly'] = market['baseId'] + '-' + market['quoteId'];
         } else {
-            throw new NotSupported (this.id + ' fetchTradingFee supports spot, swap, futures or option markets only')
+            throw new NotSupported (this.id + ' fetchTradingFee supports spot, swap, futures or option markets only');
         }
         const response = await this.privateGetAccountTradeFee (this.extend (request, params));
         //
