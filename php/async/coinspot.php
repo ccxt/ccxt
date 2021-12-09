@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
 
 class coinspot extends Exchange {
 
@@ -221,16 +220,11 @@ class coinspot extends Exchange {
         //
         $priceString = $this->safe_string($trade, 'rate');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'total');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $costString = $this->safe_number($trade, 'total');
         $timestamp = $this->safe_integer($trade, 'solddate');
         $marketId = $this->safe_string($trade, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '/');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
             'symbol' => $symbol,
@@ -240,11 +234,11 @@ class coinspot extends Exchange {
             'type' => null,
             'side' => null,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
