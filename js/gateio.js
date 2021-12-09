@@ -262,7 +262,7 @@ module.exports = class gateio extends ccxt.gateio {
         const uppercaseId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.parseTimeframe (timeframe);
         const subscribeMessage = {
             'id': requestId,
             'method': 'kline.subscribe',
