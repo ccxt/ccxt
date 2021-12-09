@@ -327,7 +327,7 @@ module.exports = class bitrue extends Exchange {
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
-    
+
     async fetchStatus (params = {}) {
         const response = await this.v1PublicGetPing (params);
         const keys = Object.keys (response);
