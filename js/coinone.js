@@ -24,7 +24,6 @@ module.exports = class coinone extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': undefined, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
-                'fetchCurrencies': undefined,
                 'fetchDepositAddresses': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
