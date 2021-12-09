@@ -996,7 +996,6 @@ module.exports = class hitbtc3 extends Exchange {
         //
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const entry = ;
             const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
             result[symbol] = fee;
