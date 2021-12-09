@@ -2080,7 +2080,7 @@ module.exports = class Exchange {
     getType (methodName, params = {}) {
         const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        delete params['type'];
-        return type;
+        this.omit (params, 'type');
+        return [ type, params ];
     }
 }

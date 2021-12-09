@@ -3515,9 +3515,7 @@ class Exchange {
     public function get_type($method_name, $params = array()) {
         $default_type = $this->safe_string_2($this->options, $method_name, 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $default_type);
-        if (in_array('type', $params)) {
-            unset($params['type']);
-        }
-        return $type;
+        $this->omit($params, $type);
+        return array($type, $params);
     }
 }
