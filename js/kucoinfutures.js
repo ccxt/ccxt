@@ -1034,12 +1034,11 @@ module.exports = class kucoinfutures extends kucoin {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = this.marketId ('symbol');
+            request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        // ? Give a waring if limit supplied allerting that limit isn't used
         const response = await this.futuresPrivateGetOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'data', {});
         const orders = this.safeValue (responseData, 'items', []);
