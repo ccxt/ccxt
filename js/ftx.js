@@ -365,6 +365,14 @@ module.exports = class ftx extends Exchange {
         });
     }
 
+    amountToPrecision (symbol, amount) {
+        return super.amountToPrecision (this.getCorrectSymbol (symbol), amount);
+    }
+
+    costToPrecision (symbol, cost) {
+        return super.costToPrecision (this.getCorrectSymbol (symbol), cost);
+    }
+
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCoins (params);
         const currencies = this.safeValue (response, 'result', []);
@@ -526,6 +534,46 @@ module.exports = class ftx extends Exchange {
             });
         }
         return result;
+    }
+
+    getCorrectSymbol (symbol) {
+        if (this.markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        if (symbol in this.oldSymbolMappings) {
+            return this.oldSymbolMappings[symbol];
+        } else {
+            return symbol;
+        }
+    }
+
+    getCorrectSymbols (symbols) {
+        if (this.markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        const newSymbols = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            if (symbol in this.oldSymbolMappings) {
+                newSymbols.push (this.oldSymbolMappings[symbol]);
+            } else {
+                newSymbols.push (symbol);
+            }
+        }
+        return newSymbols;
+    }
+
+    market (symbol) {
+        return super.market (this.getCorrectSymbol (symbol));
+    }
+
+    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
+        return super.loadTradingLimits (this.getCorrectSymbols (symbols), reload, params);
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        symbol = this.getCorrectSymbol (symbol);
+        return super.calculateFee (symbol, type, side, amount, price, takerOrMaker, params);
     }
 
     parseTicker (ticker, market = undefined) {
