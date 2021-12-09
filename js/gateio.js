@@ -33,18 +33,6 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
             },
-            'timeframes_for_ws': {
-                '10s': 10,
-                '1m': 60,
-                '5m': 300,
-                '15m': 900,
-                '30m': 1800,
-                '1h': 3600,
-                '4h': 14400,
-                '8h': 28800,
-                '1d': 86400,
-                '7d': 604800,
-            },
         });
     }
 
@@ -274,7 +262,7 @@ module.exports = class gateio extends ccxt.gateio {
         const uppercaseId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
-        const interval = this.timeframes_for_ws[timeframe];
+        const interval = this.parseTimeframe (timeframe);
         const subscribeMessage = {
             'id': requestId,
             'method': 'kline.subscribe',
