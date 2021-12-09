@@ -3018,4 +3018,77 @@ module.exports = class huobi extends Exchange {
             }
         }
     }
+
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        // perp
+        //     {
+        //       "volume": "71294.7636",
+        //       "nextFundingRate": "0.000033",
+        //       "nextFundingTime": "2021-10-14T20:00:00+00:00",
+        //       "openInterest": "47142.994"
+        //     }
+        //
+        // delivery
+        //     {
+        //       "volume": "4998.727",
+        //       "predictedExpirationPrice": "3798.820141757",
+        //       "openInterest": "48307.96"
+        //     }
+        //
+        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
+        const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
+        const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
+        let previousFundingTimestamp = undefined;
+        if (nextFundingRateTimestamp !== undefined) {
+            previousFundingTimestamp = nextFundingRateTimestamp - 3600000;
+        }
+        const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
+        return {
+            'info': fundingRate,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': estimatedSettlePrice,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': undefined,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
+        if (market['inverse']) {
+            method = 'contractPublicGetSwapApiV1SwapFundingRate';
+        }
+        const request = {
+            'contract_code': market['id'],
+        };
+        const response = await this[method] (this.extend (request, params));
+        //
+        // {
+        //     "status": "ok",
+        //     "data": {
+        //         "estimated_rate": "0.000100000000000000",
+        //         "funding_rate": "0.000100000000000000",
+        //         "contract_code": "BTC-USDT",
+        //         "symbol": "BTC",
+        //         "fee_asset": "USDT",
+        //         "funding_time": "1603699200000",
+        //         "next_funding_time": "1603728000000"
+        //     },
+        //     "ts": 1603696494714
+        // }
+        //
+        const result = this.safeValue (response, 'data', {});
+        return this.parseFundingRate (result, market);
+    }
 };
