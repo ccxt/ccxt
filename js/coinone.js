@@ -276,27 +276,24 @@ module.exports = class coinone extends Exchange {
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderId = this.safeString (trade, 'orderId');
-        let feeCost = this.safeNumber (trade, 'fee');
+        let feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
-            let feeRate = this.safeNumber (trade, 'feeRate');
-            feeRate = Math.abs (feeRate);
+        if (feeCostString !== undefined) {
+            feeCostString = Precise.stringAbs (feeCostString);
+            let feeRateString = this.safeString (trade, 'feeRate');
+            feeRateString = Precise.stringAbs (feeRateString);
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
                 feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': feeRate,
+                'rate': feeRateString,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
@@ -306,11 +303,11 @@ module.exports = class coinone extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
