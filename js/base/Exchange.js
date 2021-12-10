@@ -2077,7 +2077,7 @@ module.exports = class Exchange {
         return rate;
     }
 
-    handleDefaultTypeAndParams (methodName, params = {}, market = undefined) {
+    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
         const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'spot');
         const marketType = (market === undefined) ? defaultType : market['type'];
         const type = this.safeString (params, 'type', defaultType);
