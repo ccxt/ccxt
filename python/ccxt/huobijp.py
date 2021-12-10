@@ -46,7 +46,7 @@ class huobijp(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': False,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
