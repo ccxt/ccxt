@@ -2076,4 +2076,12 @@ module.exports = class Exchange {
         }
         return rate;
     }
+
+    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
+        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'spot');
+        const marketType = (market === undefined) ? defaultType : market['type'];
+        const type = this.safeString (params, 'type', marketType);
+        params = this.omit (params, 'type');
+        return [ type, params ];
+    }
 }
