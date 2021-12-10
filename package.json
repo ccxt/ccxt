@@ -47,7 +47,10 @@
     "copy-python-license": "node build/copy LICENSE.txt python/LICENSE.txt",
     "copy-python-keys": "node build/copy keys.json python/keys.json",
     "copy-python-readme": "node build/copy README.md python/README.md",
-    "postinstall": "node postinstall"
+    "postinstall": "node postinstall",
+    "clijs": "node ./examples/js/cli.js",
+    "clipy": "python3 ./examples/py/cli.py",
+    "cliphp": "php ./examples/php/cli.php"
   },
   "types": "./ccxt.d.ts",
   "dependencies": {},
