@@ -3512,13 +3512,11 @@ class Exchange {
         return $rate;
     }
 
-    public function get_type($method_name, $params = array(), $market=null) {
+    public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
         $default_type = $this->safe_string_2($this->options, $method_name, 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $default_type);
+        $market_type = isset($market) ? market['type'] : $default_type;
+        $type = $this->safe_string($params, 'type', $market_type);
         $this->omit($params, $type);
-        if (isset($market)){
-            return array($market['type'], $params);
-        }
         return array($type, $params);
     }
 }
