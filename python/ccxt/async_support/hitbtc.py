@@ -232,6 +232,7 @@ class hitbtc(Exchange):
                 'STX': 'STOX',
                 'TV': 'Tokenville',
                 'USD': 'USDT',
+                'XMT': 'MTL',
                 'XPNT': 'PNT',
             },
             'exceptions': {
