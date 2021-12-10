@@ -42,6 +42,7 @@ class oceanex(Exchange):
                 'fetchCurrencies': None,
                 'fetchFundingFees': None,
                 'fetchMarkets': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -55,15 +56,18 @@ class oceanex(Exchange):
                 'fetchTradingLimits': None,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '4h': '4h',
-                '12h': '12h',
-                '1d': '1d',
-                '1w': '1w',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '4h': '240',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1440',
+                '3d': '4320',
+                '1w': '10080',
             },
             'api': {
                 'public': {
@@ -76,6 +80,9 @@ class oceanex(Exchange):
                         'fees/trading',
                         'trades',
                         'timestamp',
+                    ],
+                    'post': [
+                        'k',
                     ],
                 },
                 'private': {
@@ -508,6 +515,39 @@ class oceanex(Exchange):
             parsedOrders = self.parse_orders(orders, market, since, limit, {'status': status})
             result = self.array_concat(result, parsedOrders)
         return result
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        # [
+        #    1559232000,
+        #    8889.22,
+        #    9028.52,
+        #    8889.22,
+        #    9028.52
+        #    0.3121
+        # ]
+        return [
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'period': self.timeframes[timeframe],
+        }
+        if since is not None:
+            request['timestamp'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicPostK(self.extend(request, params))
+        ohlcvs = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_order(self, order, market=None):
         #

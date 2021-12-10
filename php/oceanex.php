@@ -38,6 +38,7 @@ class oceanex extends Exchange {
                 'fetchCurrencies' => null,
                 'fetchFundingFees' => null,
                 'fetchMarkets' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -51,15 +52,18 @@ class oceanex extends Exchange {
                 'fetchTradingLimits' => null,
             ),
             'timeframes' => array(
-                '1m' => '1m',
-                '5m' => '5m',
-                '15m' => '15m',
-                '30m' => '30m',
-                '1h' => '1h',
-                '4h' => '4h',
-                '12h' => '12h',
-                '1d' => '1d',
-                '1w' => '1w',
+                '1m' => '1',
+                '5m' => '5',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '2h' => '120',
+                '4h' => '240',
+                '6h' => '360',
+                '12h' => '720',
+                '1d' => '1440',
+                '3d' => '4320',
+                '1w' => '10080',
             ),
             'api' => array(
                 'public' => array(
@@ -72,6 +76,9 @@ class oceanex extends Exchange {
                         'fees/trading',
                         'trades',
                         'timestamp',
+                    ),
+                    'post' => array(
+                        'k',
                     ),
                 ),
                 'private' => array(
@@ -542,6 +549,43 @@ class oceanex extends Exchange {
             $result = $this->array_concat($result, $parsedOrders);
         }
         return $result;
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        // array(
+        //    1559232000,
+        //    8889.22,
+        //    9028.52,
+        //    8889.22,
+        //    9028.52
+        //    0.3121
+        // )
+        return array(
+            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
+        );
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'period' => $this->timeframes[$timeframe],
+        );
+        if ($since !== null) {
+            $request['timestamp'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicPostK (array_merge($request, $params));
+        $ohlcvs = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_order($order, $market = null) {
