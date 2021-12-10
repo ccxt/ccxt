@@ -544,8 +544,8 @@ class coinex extends Exchange {
         //
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data', array());
-        $free = $data['can_transfer'];
-        $total = $data['balance'];
+        $free = $this->safe_value($data, 'can_transfer', array());
+        $total = $this->safe_value($data, 'balance', array());
         //
         $sellAccount = $this->account();
         $sellCurrencyId = $this->safe_string($data, 'sell_asset_type');

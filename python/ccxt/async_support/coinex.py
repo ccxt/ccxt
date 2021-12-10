@@ -532,8 +532,8 @@ class coinex(Exchange):
         #
         result = {'info': response}
         data = self.safe_value(response, 'data', {})
-        free = data['can_transfer']
-        total = data['balance']
+        free = self.safe_value(data, 'can_transfer', {})
+        total = self.safe_value(data, 'balance', {})
         #
         sellAccount = self.account()
         sellCurrencyId = self.safe_string(data, 'sell_asset_type')
