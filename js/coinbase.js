@@ -733,26 +733,26 @@ module.exports = class coinbase extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         return {
-            'symbol': ticker.symbol,
-            'timestamp': ticker.timestamp,
-            'datetime': this.iso8601 (ticker.timestamp),
-            'bid': ticker.bid,
-            'ask': ticker.ask,
-            'last': ticker.last,
+            'symbol': ticker['symbol'],
+            'timestamp': ticker['timestamp'],
+            'datetime': this.iso8601 (ticker['timestamp']),
+            'bid': ticker['bid'],
+            'ask': ticker['ask'],
+            'last': ticker['last'],
             'high': undefined,
             'low': undefined,
             'bidVolume': undefined,
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': ticker.last,
+            'close': ticker['last'],
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'info': ticker.info,
+            'info': ticker['info'],
         };
     }
 
