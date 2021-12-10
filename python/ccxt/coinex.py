@@ -480,7 +480,78 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_balance(self, params={}):
+    def fetch_margin_balance(self, params={}):
+        self.load_markets()
+        symbol = self.safe_string(params, 'symbol')
+        marketId = self.safe_string(params, 'market')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            marketId = market['id']
+        elif marketId is None:
+            raise ArgumentsRequired(self.id + ' fetching a margin account requires a market parameter or a symbol parameter')
+        params = self.omit(params, ['symbol', 'market'])
+        request = {
+            'market': marketId,
+        }
+        response = self.privateGetMarginAccount(self.extend(request, params))
+        #
+        #      {
+        #          "code":    0,
+        #           "data": {
+        #              "account_id":    126,
+        #              "leverage":    3,
+        #              "market_type":   "AAVEUSDT",
+        #              "sell_asset_type":   "AAVE",
+        #              "buy_asset_type":   "USDT",
+        #              "balance": {
+        #                  "sell_type": "0.3",     # borrowed
+        #                  "buy_type": "30"
+        #                  },
+        #              "frozen": {
+        #                  "sell_type": "0",
+        #                  "buy_type": "0"
+        #                  },
+        #              "loan": {
+        #                  "sell_type": "0.3",  # loan
+        #                  "buy_type": "0"
+        #                  },
+        #              "interest": {
+        #                  "sell_type": "0.0000125",
+        #                  "buy_type": "0"
+        #                  },
+        #              "can_transfer": {
+        #                  "sell_type": "0.02500646",
+        #                  "buy_type": "4.28635738"
+        #                  },
+        #              "warn_rate":   "",
+        #              "liquidation_price":   ""
+        #              },
+        #          "message": "Success"
+        #      }
+        #
+        result = {'info': response}
+        data = self.safe_value(response, 'data', {})
+        free = data['can_transfer']
+        total = data['balance']
+        #
+        sellAccount = self.account()
+        sellCurrencyId = self.safe_string(data, 'sell_asset_type')
+        sellCurrencyCode = self.safe_currency_code(sellCurrencyId)
+        sellAccount['free'] = self.safe_string(free, 'sell_type')
+        sellAccount['total'] = self.safe_string(total, 'sell_type')
+        result[sellCurrencyCode] = sellAccount
+        #
+        buyAccount = self.account()
+        buyCurrencyId = self.safe_string(data, 'buy_asset_type')
+        buyCurrencyCode = self.safe_currency_code(buyCurrencyId)
+        buyAccount['free'] = self.safe_string(free, 'buy_type')
+        buyAccount['total'] = self.safe_string(total, 'buy_type')
+        result[buyCurrencyCode] = buyAccount
+        #
+        return self.parse_balance(result)
+
+    def fetch_spot_balance(self, params={}):
         self.load_markets()
         response = self.privateGetBalanceInfo(params)
         #
@@ -515,6 +586,14 @@ class coinex(Exchange):
             account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
         return self.parse_balance(result)
+
+    def fetch_balance(self, params={}):
+        accountType = self.safe_string(params, 'type', 'main')
+        params = self.omit(params, 'type')
+        if accountType == 'margin':
+            return self.fetch_margin_balance(params)
+        else:
+            return self.fetch_spot_balance(params)
 
     def parse_order_status(self, status):
         statuses = {

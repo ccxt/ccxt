@@ -491,7 +491,80 @@ class coinex extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_margin_balance($params = array ()) {
+        $this->load_markets();
+        $symbol = $this->safe_string($params, 'symbol');
+        $marketId = $this->safe_string($params, 'market');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+        } else if ($marketId === null) {
+            throw new ArgumentsRequired($this->id . ' fetching a margin account requires a $market parameter or a $symbol parameter');
+        }
+        $params = $this->omit($params, array( 'symbol', 'market' ));
+        $request = array(
+            'market' => $marketId,
+        );
+        $response = $this->privateGetMarginAccount (array_merge($request, $params));
+        //
+        //      {
+        //          "code" =>    0,
+        //           "data" => array(
+        //              "account_id" =>    126,
+        //              "leverage" =>    3,
+        //              "market_type" =>   "AAVEUSDT",
+        //              "sell_asset_type" =>   "AAVE",
+        //              "buy_asset_type" =>   "USDT",
+        //              "balance" => array(
+        //                  "sell_type" => "0.3",     // borrowed
+        //                  "buy_type" => "30"
+        //                  ),
+        //              "frozen" => array(
+        //                  "sell_type" => "0",
+        //                  "buy_type" => "0"
+        //                  ),
+        //              "loan" => array(
+        //                  "sell_type" => "0.3", // loan
+        //                  "buy_type" => "0"
+        //                  ),
+        //              "interest" => array(
+        //                  "sell_type" => "0.0000125",
+        //                  "buy_type" => "0"
+        //                  ),
+        //              "can_transfer" => array(
+        //                  "sell_type" => "0.02500646",
+        //                  "buy_type" => "4.28635738"
+        //                  ),
+        //              "warn_rate" =>   "",
+        //              "liquidation_price" =>   ""
+        //              ),
+        //          "message" => "Success"
+        //      }
+        //
+        $result = array( 'info' => $response );
+        $data = $this->safe_value($response, 'data', array());
+        $free = $data['can_transfer'];
+        $total = $data['balance'];
+        //
+        $sellAccount = $this->account();
+        $sellCurrencyId = $this->safe_string($data, 'sell_asset_type');
+        $sellCurrencyCode = $this->safe_currency_code($sellCurrencyId);
+        $sellAccount['free'] = $this->safe_string($free, 'sell_type');
+        $sellAccount['total'] = $this->safe_string($total, 'sell_type');
+        $result[$sellCurrencyCode] = $sellAccount;
+        //
+        $buyAccount = $this->account();
+        $buyCurrencyId = $this->safe_string($data, 'buy_asset_type');
+        $buyCurrencyCode = $this->safe_currency_code($buyCurrencyId);
+        $buyAccount['free'] = $this->safe_string($free, 'buy_type');
+        $buyAccount['total'] = $this->safe_string($total, 'buy_type');
+        $result[$buyCurrencyCode] = $buyAccount;
+        //
+        return $this->parse_balance($result);
+    }
+
+    public function fetch_spot_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalanceInfo ($params);
         //
@@ -527,6 +600,16 @@ class coinex extends Exchange {
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $accountType = $this->safe_string($params, 'type', 'main');
+        $params = $this->omit($params, 'type');
+        if ($accountType === 'margin') {
+            return $this->fetch_margin_balance($params);
+        } else {
+            return $this->fetch_spot_balance($params);
+        }
     }
 
     public function parse_order_status($status) {
