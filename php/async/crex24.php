@@ -14,7 +14,6 @@ use \ccxt\OrderNotFound;
 use \ccxt\DDoSProtection;
 use \ccxt\ExchangeNotAvailable;
 use \ccxt\RequestTimeout;
-use \ccxt\Precise;
 
 class crex24 extends Exchange {
 
@@ -633,7 +632,7 @@ class crex24 extends Exchange {
         //
         // public fetchTrades
         //
-        //       {     $price =>  0.03105,
+        //       {     price =>  0.03105,
         //            volume =>  0.11,
         //              $side => "sell",
         //         $timestamp => "2018-10-31T04:19:35Z" }  ]
@@ -655,9 +654,6 @@ class crex24 extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'volume');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'orderId');
@@ -666,15 +662,15 @@ class crex24 extends Exchange {
         $fee = null;
         $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
         $feeCode = $this->safe_currency_code($feeCurrencyId);
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCode,
             );
         }
         $takerOrMaker = null;
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -684,11 +680,11 @@ class crex24 extends Exchange {
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'cost' => $cost,
-            'amount' => $amount,
+            'price' => $priceString,
+            'cost' => null,
+            'amount' => $amountString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
