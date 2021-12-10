@@ -541,8 +541,8 @@ module.exports = class coinex extends Exchange {
         //
         const result = { 'info': response };
         const data = this.safeValue (response, 'data', {});
-        const free = data['can_transfer'];
-        const total = data['balance'];
+        const free = this.safeValue (data, 'can_transfer', {});
+        const total = this.safeValue (data, 'balance', {});
         //
         const sellAccount = this.account ();
         const sellCurrencyId = this.safeString (data, 'sell_asset_type');
