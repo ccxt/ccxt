@@ -308,6 +308,7 @@ class bitmart(Exchange):
             'commonCurrencies': {
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
+                'FOX': 'Fox Finance',
                 'GDT': 'Gorilla Diamond',
                 '$HERO': 'Step Hero',
                 '$PAC': 'PAC',
