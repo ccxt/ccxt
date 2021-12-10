@@ -435,7 +435,7 @@ module.exports = class bitmart extends Exchange {
             const pricePrecision = this.safeInteger (market, 'price_max_precision');
             const precision = {
                 'amount': this.safeNumber (market, 'base_min_size'),
-                'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 12)),
+                'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 14)),
             };
             const minBuyCost = this.safeNumber (market, 'min_buy_amount');
             const minSellCost = this.safeNumber (market, 'min_sell_amount');
