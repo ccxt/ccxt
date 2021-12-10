@@ -27,6 +27,7 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -70,7 +71,6 @@ class kraken(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'setMarginMode': False,  # Kraken only supports cross margin
@@ -369,6 +369,7 @@ class kraken(Exchange):
                 'EAPI:Invalid nonce': InvalidNonce,
                 'EFunding:No funding method': BadRequest,  # {"error":"EFunding:No funding method"}
                 'EFunding:Unknown asset': BadSymbol,  # {"error":["EFunding:Unknown asset"]}
+                'EService:Market in post_only mode': OnMaintenance,  # {"error":["EService:Market in post_only mode"]}
             },
         })
 

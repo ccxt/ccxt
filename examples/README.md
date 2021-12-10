@@ -150,6 +150,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Never Pay Fees Again: Mimic Market Buys with Limit Chase Orders in Python](https://nukewhales.com/p/limitchase.html) – A tutorial on how to automate your maker fees.
 
+[Step-By-Step Guide to Installing Python and CCXT Library](https://www.youtube.com/watch?v=bmKAtBfGk50) – A step-by-step video guide to installing Python and CCXT library which are used by many tools and bots running on MT4 and MT5 platforms on Windows.
+
 [비트코인 해외 거래소 API - 바이낸스 CCXT설치](https://www.youtube.com/watch?v=7dMGbjwZwlU) – Using CCXT to trade with Binance API, a video overview of CCXT in Korean.
 
 [ccxt_라이브러리](https://www.youtube.com/watch?v=ifkJ5FtMpKY) – A quick short demo of CCXT on YouTube.

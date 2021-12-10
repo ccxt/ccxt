@@ -2031,7 +2031,7 @@ Since the rate limiter belongs to the exchange instance, destroying the exchange
 
    // DO NOT DO THIS!
 
-   function tick () {
+   async function tick () {
        const exchange = new ccxt.binance ({ enableRateLimit: true })
        const response = await exchange.fetchOrderBook ('BTC/USDT')
        // ... some processing here ...
@@ -2474,7 +2474,7 @@ Methods For Markets And Currencies
        bitfinex.markets['BTC/USD']['id']             // symbol → id (get id by symbol)
        bitfinex.markets_by_id['XRPBTC']['symbol']    // id → symbol (get symbol by id)
 
-   })
+   }) ()
 
 .. code-block:: Python
 
@@ -4506,7 +4506,7 @@ The first is the default and if you specify the ``price`` along with the ``amoun
        const order = await exchange.createOrder (symbol, 'market', 'buy', amount, price)
 
        console.log (order)
-   })
+   }) ()
 
 The second alternative is useful in cases when the user wants to calculate and specify the resulting total cost of the order himself. That can be done by setting the ``createMarketBuyOrderRequiresPrice`` option to ``false`` to switch it off:
 
@@ -4536,7 +4536,7 @@ The second alternative is useful in cases when the user wants to calculate and s
        cost = amount * price // ← instead of the amount cost goes ↓ here
        const order = await exchange.createMarketBuyOrder (symbol, cost)
        console.log (order)
-   })
+   }) ()
 
 More about it:
 
@@ -4816,6 +4816,8 @@ Most of unified methods will return either a single object or a plain array (a l
 As with all other unified methods for fetching historical data, the ``fetchMyTrades`` method accepts a ``since`` argument for :ref:`date-based pagination <date based pagination>`. Just like with all other unified methods throughout the CCXT library, the ``since`` argument for ``fetchMyTrades`` must be an **integer timestamp in milliseconds**.
 
 To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
+
+In many cases a ``symbol`` argument is required by the exchanges' APIs, therefore you have to loop over all symbols to get all your trades. If the ``symbol`` is missing and the exchange requires it then CCXT will throw an ``ArgumentsRequired`` exception to signal the requirement to the user. And then the ``symbol`` has to be specified. One of the approaches is to filter the relevant symbols from the list of all symbols by looking at non-zero balances as well as transactions (withdrawals and deposits). Also, the exchanges will have a limit on how far back in time you can go.
 
 In most cases users are **required to use at least some type of :ref:`pagination <pagination>` in order to get the expected results consistently.
 

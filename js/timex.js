@@ -802,6 +802,23 @@ module.exports = class timex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "fee": 0.0075,
+        //         "market": "ETHBTC"
+        //     }
+        //
+        const marketId = this.safeString (fee, 'market');
+        const rate = this.safeNumber (fee, 'fee');
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': rate,
+            'taker': rate,
+        };
+    }
+
     async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -818,11 +835,7 @@ module.exports = class timex extends Exchange {
         //     ]
         //
         const result = this.safeValue (response, 0, {});
-        return {
-            'info': response,
-            'maker': this.safeNumber (result, 'fee'),
-            'taker': undefined,
-        };
+        return this.parseTradingFee (result, market);
     }
 
     parseMarket (market) {

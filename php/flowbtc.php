@@ -247,7 +247,7 @@ class flowbtc extends Exchange {
             );
             return $this->privatePostCancelOrder (array_merge($request, $params));
         }
-        throw new ExchangeError($this->id . ' cancelOrder() requires an `ins` $symbol parameter for cancelling an order');
+        throw new ExchangeError($this->id . ' cancelOrder() requires an `ins` parameter for cancelling an order');
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

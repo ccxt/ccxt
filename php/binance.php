@@ -188,6 +188,7 @@ class binance extends Exchange {
                         'capital/deposit/subAddress' => 1,
                         'capital/deposit/subHisrec' => 1,
                         'capital/withdraw/history' => 1,
+                        'convert/tradeFlow' => 1,
                         'account/status' => 1,
                         'account/apiTradingStatus' => 1,
                         'account/apiRestrictions/ipRestriction' => 1,
@@ -269,6 +270,8 @@ class binance extends Exchange {
                         'account/apiRestrictions' => 1,
                         // subaccounts
                         'managed-subaccount/asset' => 1,
+                        // c2c / p2p
+                        'c2c/orderMatch/listUserOrderHistory' => 1,
                     ),
                     'post' => array(
                         'asset/dust' => 1,
@@ -2667,7 +2670,8 @@ class binance extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $defaultType);
+            $marketType = (is_array($market) && array_key_exists('type', $market)) ? $market['type'] : $defaultType;
+            $type = $this->safe_string($params, 'type', $marketType);
             $query = $this->omit($params, 'type');
         } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;

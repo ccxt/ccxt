@@ -778,7 +778,7 @@ module.exports = class bybit extends Exchange {
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
             this.safeNumber (ohlcv, 'close'),
-            this.safeNumber2 (ohlcv, 'turnover', 'volume'),
+            this.safeNumber2 (ohlcv, 'volume', 'turnover'),
         ];
     }
 

@@ -33,7 +33,6 @@ module.exports = class luno extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
                 'fetchTradingFees': true,
             },
             'urls': {

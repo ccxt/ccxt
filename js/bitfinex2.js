@@ -337,6 +337,14 @@ module.exports = class bitfinex2 extends bitfinex {
         return 'f' + code;
     }
 
+    getCurrencyName (code) {
+        // temporary fix for transpiler recognition, even though this is in parent class
+        if (code in this.options['currencyNames']) {
+            return this.options['currencyNames'][code];
+        }
+        throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
+    }
+
     async fetchStatus (params = {}) {
         //
         //    [1] // operative

@@ -698,8 +698,8 @@ class bitmart(Exchange):
             percentage *= 100
         if percentage is None:
             percentage = self.safe_number(ticker, 'price_change_percent_24h')
-        baseVolume = self.safe_number_2(ticker, 'base_volume_24h', 'base_coin_volume')
-        quoteVolume = self.safe_number_2(ticker, 'quote_volume_24h', 'quote_coin_volume')
+        baseVolume = self.safe_number_2(ticker, 'base_coin_volume', 'base_volume_24h')
+        quoteVolume = self.safe_number_2(ticker, 'quote_coin_volume', 'quote_volume_24h')
         quoteVolume = self.safe_number(ticker, 'volume_24h', quoteVolume)
         open = self.safe_number_2(ticker, 'open_24h', 'open')
         average = None

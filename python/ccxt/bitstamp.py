@@ -217,6 +217,16 @@ class bitstamp(Exchange):
                         'ada_address/',
                         'slp_withdrawal/',
                         'slp_address/',
+                        'ftm_withdrawal/',
+                        'ftm_address/',
+                        'perp_withdrawal/',
+                        'perp_address/',
+                        'dydx_withdrawal/',
+                        'dydx_address/',
+                        'gala_withdrawal/',
+                        'gala_address/',
+                        'shib_withdrawal/',
+                        'shib_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -822,45 +832,39 @@ class bitstamp(Exchange):
 
     def fetch_trading_fee(self, symbol, params={}):
         self.load_markets()
-        request = {}
-        method = 'privatePostBalance'
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['pair'] = market['id']
-            method += 'Pair'
-        balance = getattr(self, method)(self.extend(request, params))
-        return {
-            'info': balance,
-            'symbol': symbol,
-            'maker': balance['fee'],
-            'taker': balance['fee'],
-        }
-
-    def parse_trading_fee(self, balances, symbol):
         market = self.market(symbol)
-        feeString = self.safe_string(balances, market['id'] + '_fee')
+        request = {
+            'pair': market['id'],
+        }
+        response = self.privatePostBalancePair(self.extend(request, params))
+        return self.parse_trading_fee(response, market)
+
+    def parse_trading_fee(self, fee, market=None):
+        market = self.safe_market(None, market)
+        feeString = self.safe_string(fee, market['id'] + '_fee')
         dividedFeeString = Precise.string_div(feeString, '100')
         tradeFee = self.parse_number(dividedFeeString)
         return {
-            'symbol': symbol,
+            'info': fee,
+            'symbol': market['symbol'],
             'maker': tradeFee,
             'taker': tradeFee,
         }
 
-    def parse_trading_fees(self, balance):
-        result = {'info': balance}
-        markets = list(self.markets.keys())
-        for i in range(0, len(markets)):
-            symbol = markets[i]
-            fee = self.parse_trading_fee(balance, symbol)
+    def parse_trading_fees(self, fees):
+        result = {'info': fees}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            fee = self.parse_trading_fee(fees, market)
             result[symbol] = fee
         return result
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
-        balance = self.privatePostBalance(params)
-        return self.parse_trading_fees(balance)
+        response = self.privatePostBalance(params)
+        return self.parse_trading_fees(response)
 
     def parse_funding_fees(self, balance):
         withdraw = {}

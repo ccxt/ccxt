@@ -23,6 +23,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -60,6 +61,8 @@ class huobi(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -774,7 +777,6 @@ class huobi(Exchange):
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders',  # 'spot_private_get_v1_order_history'  # https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': True,
                 'language': 'en-US',
                 'broker': {
@@ -839,6 +841,7 @@ class huobi(Exchange):
         #
         marketId = self.safe_string(fee, 'symbol')
         return {
+            'info': fee,
             'symbol': self.safe_symbol(marketId, market),
             'maker': self.safe_number(fee, 'actualMakerRate'),
             'taker': self.safe_number(fee, 'actualTakerRate'),
@@ -868,7 +871,7 @@ class huobi(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0, {})
-        return self.parse_trading_fee(first)
+        return self.parse_trading_fee(first, market)
 
     def fetch_trading_limits(self, symbols=None, params={}):
         # self method should not be called directly, use loadTradingLimits() instead
@@ -1700,7 +1703,26 @@ class huobi(Exchange):
     def fetch_accounts(self, params={}):
         self.load_markets()
         response = self.spotPrivateGetV1AccountAccounts(params)
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":[
+        #             {"id":5202591,"type":"point","subtype":"","state":"working"},
+        #             {"id":1528640,"type":"spot","subtype":"","state":"working"},
+        #         ]
+        #     }
+        #
         return response['data']
+
+    def fetch_account_id_by_type(self, type, params={}):
+        accounts = self.load_accounts()
+        accountId = self.safe_value(params, 'account-id')
+        if accountId is not None:
+            return accountId
+        indexedAccounts = self.index_by(accounts, 'type')
+        defaultAccount = self.safe_value(accounts, 0, {})
+        account = self.safe_value(indexedAccounts, type, defaultAccount)
+        return self.safe_string(account, 'id')
 
     def fetch_currencies(self, params={}):
         response = self.spotPublicGetV2ReferenceCurrencies()
@@ -1826,7 +1848,8 @@ class huobi(Exchange):
         swap = (type == 'swap')
         if spot:
             self.load_accounts()
-            request['account-id'] = self.accounts[0]['id']
+            accountId = self.fetch_account_id_by_type(type, params)
+            request['account-id'] = accountId
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
         elif future:
             method = 'contractPrivatePostApiV1ContractAccountInfo'
@@ -1978,25 +2001,17 @@ class huobi(Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        method = self.safe_string(self.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1')
-        return getattr(self, method)(symbol, since, limit, params)
-
-    def fetch_open_orders_v1(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrdersV1() requires a symbol argument')
-        return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
-
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    def fetch_open_orders_v2(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        # todo replace with fetchAccountIdByType
         accountId = self.safe_string(params, 'account-id')
         if accountId is None:
             # pick the first account
@@ -2134,9 +2149,10 @@ class huobi(Exchange):
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
+        accountId = self.fetch_account_id_by_type(market['type'])
         request = {
             # spot -----------------------------------------------------------
-            'account-id': self.accounts[0]['id'],
+            'account-id': accountId,
             'symbol': market['id'],
             'type': side + '-' + type,  # buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             # 'amount': self.amount_to_precision(symbol, amount),  # for buy market orders it's the order cost
@@ -2852,3 +2868,137 @@ class huobi(Exchange):
                 message = self.safe_string(response, 'err-msg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        #
+        # Gets a history of funding rates with their timestamps
+        #  (param) symbol: Future currency pair
+        #  (param) limit: not used by huobi
+        #  (param) since: not used by huobi
+        #  (param) params: Object containing more params for the request
+        #  return: [{symbol, fundingRate, timestamp, dateTime}]
+        #
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'contract_code': market['id'],
+        }
+        method = None
+        if market['inverse']:
+            method = 'contractPublicGetSwapApiV1SwapHistoricalFundingRate'
+        elif market['linear']:
+            method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate'
+        else:
+            raise NotSupported(self.id + ' fetchFundingRateHistory() supports inverse and linear swaps only')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # {
+        #     "status": "ok",
+        #     "data": {
+        #         "total_page": 62,
+        #         "current_page": 1,
+        #         "total_size": 1237,
+        #         "data": [
+        #             {
+        #                 "avg_premium_index": "-0.000208064395065541",
+        #                 "funding_rate": "0.000100000000000000",
+        #                 "realized_rate": "0.000100000000000000",
+        #                 "funding_time": "1638921600000",
+        #                 "contract_code": "BTC-USDT",
+        #                 "symbol": "BTC",
+        #                 "fee_asset": "USDT"
+        #             },
+        #         ]
+        #     },
+        #     "ts": 1638939294277
+        # }
+        #
+        data = self.safe_value(response, 'data')
+        result = self.safe_value(data, 'data')
+        rates = []
+        for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'contract_code')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_string(entry, 'funding_time')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_funding_rate(self, fundingRate, market=None):
+        #
+        # {
+        #      "status": "ok",
+        #      "data": {
+        #         "estimated_rate": "0.000100000000000000",
+        #         "funding_rate": "0.000100000000000000",
+        #         "contract_code": "BCH-USD",
+        #         "symbol": "BCH",
+        #         "fee_asset": "BCH",
+        #         "funding_time": "1639094400000",
+        #         "next_funding_time": "1639123200000"
+        #     },
+        #     "ts": 1639085854775
+        # }
+        #
+        nextFundingRate = self.safe_number(fundingRate, 'estimated_rate')
+        previousFundingTimestamp = self.safe_integer(fundingRate, 'funding_time')
+        nextFundingTimestamp = self.safe_integer(fundingRate, 'next_funding_time')
+        marketId = self.safe_string(fundingRate, 'contract_code')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'previousFundingRate': self.safe_number(fundingRate, 'funding_rate'),
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+        }
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        method = None
+        if market['inverse']:
+            method = 'contractPublicGetSwapApiV1SwapFundingRate'
+        elif market['linear']:
+            method = 'contractPublicGetLinearSwapApiV1SwapFundingRate'
+        else:
+            raise NotSupported(self.id + ' fetchFundingRateHistory() supports inverse and linear swaps only')
+        request = {
+            'contract_code': market['id'],
+        }
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # {
+        #     "status": "ok",
+        #     "data": {
+        #         "estimated_rate": "0.000100000000000000",
+        #         "funding_rate": "0.000100000000000000",
+        #         "contract_code": "BTC-USDT",
+        #         "symbol": "BTC",
+        #         "fee_asset": "USDT",
+        #         "funding_time": "1603699200000",
+        #         "next_funding_time": "1603728000000"
+        #     },
+        #     "ts": 1603696494714
+        # }
+        #
+        result = self.safe_value(response, 'data', {})
+        return self.parse_funding_rate(result, market)

@@ -55,7 +55,6 @@ class kraken extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'setMarginMode' => false, // Kraken only supports cross margin
@@ -354,6 +353,7 @@ class kraken extends Exchange {
                 'EAPI:Invalid nonce' => '\\ccxt\\InvalidNonce',
                 'EFunding:No funding method' => '\\ccxt\\BadRequest', // array("error":"EFunding:No funding method")
                 'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
+                'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
             ),
         ));
     }

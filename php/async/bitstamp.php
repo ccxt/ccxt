@@ -201,6 +201,16 @@ class bitstamp extends Exchange {
                         'ada_address/',
                         'slp_withdrawal/',
                         'slp_address/',
+                        'ftm_withdrawal/',
+                        'ftm_address/',
+                        'perp_withdrawal/',
+                        'perp_address/',
+                        'dydx_withdrawal/',
+                        'dydx_address/',
+                        'gala_withdrawal/',
+                        'gala_address/',
+                        'shib_withdrawal/',
+                        'shib_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -855,41 +865,34 @@ class bitstamp extends Exchange {
 
     public function fetch_trading_fee($symbol, $params = array ()) {
         yield $this->load_markets();
-        $request = array();
-        $method = 'privatePostBalance';
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['pair'] = $market['id'];
-            $method .= 'Pair';
-        }
-        $balance = yield $this->$method (array_merge($request, $params));
-        return array(
-            'info' => $balance,
-            'symbol' => $symbol,
-            'maker' => $balance['fee'],
-            'taker' => $balance['fee'],
+        $market = $this->market($symbol);
+        $request = array(
+            'pair' => $market['id'],
         );
+        $response = yield $this->privatePostBalancePair (array_merge($request, $params));
+        return $this->parse_trading_fee($response, $market);
     }
 
-    public function parse_trading_fee($balances, $symbol) {
-        $market = $this->market($symbol);
-        $feeString = $this->safe_string($balances, $market['id'] . '_fee');
+    public function parse_trading_fee($fee, $market = null) {
+        $market = $this->safe_market(null, $market);
+        $feeString = $this->safe_string($fee, $market['id'] . '_fee');
         $dividedFeeString = Precise::string_div($feeString, '100');
         $tradeFee = $this->parse_number($dividedFeeString);
         return array(
-            'symbol' => $symbol,
+            'info' => $fee,
+            'symbol' => $market['symbol'],
             'maker' => $tradeFee,
             'taker' => $tradeFee,
         );
     }
 
-    public function parse_trading_fees($balance) {
-        $result = array( 'info' => $balance );
-        $markets = is_array($this->markets) ? array_keys($this->markets) : array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $symbol = $markets[$i];
-            $fee = $this->parse_trading_fee($balance, $symbol);
+    public function parse_trading_fees($fees) {
+        $result = array( 'info' => $fees );
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $fee = $this->parse_trading_fee($fees, $market);
             $result[$symbol] = $fee;
         }
         return $result;
@@ -897,8 +900,8 @@ class bitstamp extends Exchange {
 
     public function fetch_trading_fees($params = array ()) {
         yield $this->load_markets();
-        $balance = yield $this->privatePostBalance ($params);
-        return $this->parse_trading_fees($balance);
+        $response = yield $this->privatePostBalance ($params);
+        return $this->parse_trading_fees($response);
     }
 
     public function parse_funding_fees($balance) {

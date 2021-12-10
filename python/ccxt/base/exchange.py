@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.62.89'
+__version__ = '1.63.45'
 
 # -----------------------------------------------------------------------------
 
@@ -574,7 +574,7 @@ class Exchange(object):
         url = self.proxy + url
 
         if self.verbose:
-            self.log("\nRequest:", method, url, request_headers, body)
+            self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         request_body = body
@@ -612,7 +612,7 @@ class Exchange(object):
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
-                self.log("\nResponse:", method, url, http_status_code, headers, http_response)
+                self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
             response.raise_for_status()
 
@@ -2647,3 +2647,10 @@ class Exchange(object):
         if rate is None:
             raise ExchangeError(self.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
+
+    def handle_market_type_and_params(self, method_name, market=None, params={}):
+        default_type = self.safe_string_2(self.options, method_name, 'defaultType', 'spot')
+        market_type = default_type if market is None else market['type']
+        type = self.safe_string(params, 'type', market_type)
+        params = self.omit(params, 'type')
+        return [type, params]

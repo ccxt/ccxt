@@ -193,26 +193,49 @@ class coinfalcon extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
+        //          "price":"4050.06","size":"0.0044",
+        //          "market_name":"ETH-USDT",
+        //          "side":"sell",
+        //          "created_at":"2021-12-07T17:47:36.811000Z"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //              "id" => "0718d520-c796-4061-a16b-915cd13f20c6",
+        //              "price" => "0.00000358",
+        //              "size" => "50.0",
+        //              "market_name" => "DOGE-BTC",
+        //              "order_id" => "ff2616d8-58d4-40fd-87ae-937c73eb6f1c",
+        //              "side" => "buy",
+        //              "fee' => "0.00000036",
+        //              "fee_currency_code" => "btc",
+        //              "liquidity" => "T",
+        //              "created_at" => "2021-12-08T18:26:33.840000Z"
+        //      }
+        //
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = $market['symbol'];
         $tradeId = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'order_id');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyCode = $this->safe_string($trade, 'fee_currency_code');
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $this->safe_currency_code($feeCurrencyCode),
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -222,11 +245,11 @@ class coinfalcon extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -245,6 +268,24 @@ class coinfalcon extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privateGetUserTrades (array_merge($request, $params));
+        //
+        //      {
+        //          "data" => array(
+        //              array(
+        //                  "id" => "0718d520-c796-4061-a16b-915cd13f20c6",
+        //                  "price" => "0.00000358",
+        //                  "size" => "50.0",
+        //                  "market_name" => "DOGE-BTC",
+        //                  "order_id" => "ff2616d8-58d4-40fd-87ae-937c73eb6f1c",
+        //                  "side" => "buy",
+        //                  "fee' => "0.00000036",
+        //                  "fee_currency_code" => "btc",
+        //                  "liquidity" => "T",
+        //                  "created_at" => "2021-12-08T18:26:33.840000Z"
+        //              ),
+        //          )
+        //      }
+        //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
@@ -259,6 +300,19 @@ class coinfalcon extends Exchange {
             $request['since'] = $this->iso8601($since);
         }
         $response = $this->publicGetMarketsMarketTrades (array_merge($request, $params));
+        //
+        //      {
+        //          "data":array(
+        //              array(
+        //                  "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
+        //                  "price":"4050.06","size":"0.0044",
+        //                  "market_name":"ETH-USDT",
+        //                  "side":"sell",
+        //                  "created_at":"2021-12-07T17:47:36.811000Z"
+        //              ),
+        //          )
+        //      }
+        //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
@@ -313,9 +367,9 @@ class coinfalcon extends Exchange {
         $marketId = $this->safe_string($order, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $price = $this->safe_string($order, 'price');
-        $amount = $this->safe_string($order, 'size');
-        $filled = $this->safe_string($order, 'size_filled');
+        $priceString = $this->safe_string($order, 'price');
+        $amountString = $this->safe_string($order, 'size');
+        $filledString = $this->safe_string($order, 'size_filled');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'operation_type');
         if ($type !== null) {
@@ -335,11 +389,11 @@ class coinfalcon extends Exchange {
             'timeInForce' => null,
             'postOnly' => $postOnly,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
             'stopPrice' => null,
             'cost' => null,
-            'amount' => $amount,
-            'filled' => $filled,
+            'amount' => $amountString,
+            'filled' => $filledString,
             'remaining' => null,
             'trades' => null,
             'fee' => null,

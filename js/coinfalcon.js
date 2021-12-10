@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -192,26 +191,49 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
+        //          "price":"4050.06","size":"0.0044",
+        //          "market_name":"ETH-USDT",
+        //          "side":"sell",
+        //          "created_at":"2021-12-07T17:47:36.811000Z"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //              "id": "0718d520-c796-4061-a16b-915cd13f20c6",
+        //              "price": "0.00000358",
+        //              "size": "50.0",
+        //              "market_name": "DOGE-BTC",
+        //              "order_id": "ff2616d8-58d4-40fd-87ae-937c73eb6f1c",
+        //              "side": "buy",
+        //              "fee': "0.00000036",
+        //              "fee_currency_code": "btc",
+        //              "liquidity": "T",
+        //              "created_at": "2021-12-08T18:26:33.840000Z"
+        //      }
+        //
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const symbol = market['symbol'];
         const tradeId = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'order_id');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             const feeCurrencyCode = this.safeString (trade, 'fee_currency_code');
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': this.safeCurrencyCode (feeCurrencyCode),
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -221,11 +243,11 @@ module.exports = class coinfalcon extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -244,6 +266,24 @@ module.exports = class coinfalcon extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetUserTrades (this.extend (request, params));
+        //
+        //      {
+        //          "data": [
+        //              {
+        //                  "id": "0718d520-c796-4061-a16b-915cd13f20c6",
+        //                  "price": "0.00000358",
+        //                  "size": "50.0",
+        //                  "market_name": "DOGE-BTC",
+        //                  "order_id": "ff2616d8-58d4-40fd-87ae-937c73eb6f1c",
+        //                  "side": "buy",
+        //                  "fee': "0.00000036",
+        //                  "fee_currency_code": "btc",
+        //                  "liquidity": "T",
+        //                  "created_at": "2021-12-08T18:26:33.840000Z"
+        //              },
+        //          ]
+        //      }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
@@ -258,6 +298,19 @@ module.exports = class coinfalcon extends Exchange {
             request['since'] = this.iso8601 (since);
         }
         const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
+        //
+        //      {
+        //          "data":[
+        //              {
+        //                  "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
+        //                  "price":"4050.06","size":"0.0044",
+        //                  "market_name":"ETH-USDT",
+        //                  "side":"sell",
+        //                  "created_at":"2021-12-07T17:47:36.811000Z"
+        //              },
+        //          ]
+        //      }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
@@ -312,9 +365,9 @@ module.exports = class coinfalcon extends Exchange {
         const marketId = this.safeString (order, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'size');
-        const filled = this.safeString (order, 'size_filled');
+        const priceString = this.safeString (order, 'price');
+        const amountString = this.safeString (order, 'size');
+        const filledString = this.safeString (order, 'size_filled');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'operation_type');
         if (type !== undefined) {
@@ -334,11 +387,11 @@ module.exports = class coinfalcon extends Exchange {
             'timeInForce': undefined,
             'postOnly': postOnly,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': undefined,
             'cost': undefined,
-            'amount': amount,
-            'filled': filled,
+            'amount': amountString,
+            'filled': filledString,
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,

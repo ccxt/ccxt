@@ -12,6 +12,7 @@ use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 use \ccxt\NetworkError;
 
 class huobi extends Exchange {
@@ -42,6 +43,8 @@ class huobi extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -756,7 +759,6 @@ class huobi extends Exchange {
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod' => 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice' => true,
                 'language' => 'en-US',
                 'broker' => array(
@@ -824,6 +826,7 @@ class huobi extends Exchange {
         //
         $marketId = $this->safe_string($fee, 'symbol');
         return array(
+            'info' => $fee,
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $this->safe_number($fee, 'actualMakerRate'),
             'taker' => $this->safe_number($fee, 'actualTakerRate'),
@@ -854,7 +857,7 @@ class huobi extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0, array());
-        return $this->parse_trading_fee($first);
+        return $this->parse_trading_fee($first, $market);
     }
 
     public function fetch_trading_limits($symbols = null, $params = array ()) {
@@ -1753,7 +1756,28 @@ class huobi extends Exchange {
     public function fetch_accounts($params = array ()) {
         $this->load_markets();
         $response = $this->spotPrivateGetV1AccountAccounts ($params);
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             array("id":5202591,"type":"point","subtype":"","state":"working"),
+        //             array("id":1528640,"type":"spot","subtype":"","state":"working"),
+        //         )
+        //     }
+        //
         return $response['data'];
+    }
+
+    public function fetch_account_id_by_type($type, $params = array ()) {
+        $accounts = $this->load_accounts();
+        $accountId = $this->safe_value($params, 'account-id');
+        if ($accountId !== null) {
+            return $accountId;
+        }
+        $indexedAccounts = $this->index_by($accounts, 'type');
+        $defaultAccount = $this->safe_value($accounts, 0, array());
+        $account = $this->safe_value($indexedAccounts, $type, $defaultAccount);
+        return $this->safe_string($account, 'id');
     }
 
     public function fetch_currencies($params = array ()) {
@@ -1886,7 +1910,8 @@ class huobi extends Exchange {
         $swap = ($type === 'swap');
         if ($spot) {
             $this->load_accounts();
-            $request['account-id'] = $this->accounts[0]['id'];
+            $accountId = $this->fetch_account_id_by_type($type, $params);
+            $request['account-id'] = $accountId;
             $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
         } else if ($future) {
             $method = 'contractPrivatePostApiV1ContractAccountInfo';
@@ -2053,23 +2078,11 @@ class huobi extends Exchange {
         return $this->fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $method = $this->safe_string($this->options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
-        return $this->$method ($symbol, $since, $limit, $params);
-    }
-
-    public function fetch_open_orders_v1($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrdersV1() requires a $symbol argument');
-        }
-        return $this->fetch_orders_by_states('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params);
-    }
-
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders_v2($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -2077,6 +2090,7 @@ class huobi extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
+        // todo replace with fetchAccountIdByType
         $accountId = $this->safe_string($params, 'account-id');
         if ($accountId === null) {
             // pick the first $account
@@ -2225,9 +2239,10 @@ class huobi extends Exchange {
         $this->load_markets();
         $this->load_accounts();
         $market = $this->market($symbol);
+        $accountId = $this->fetch_account_id_by_type($market['type']);
         $request = array(
             // spot -----------------------------------------------------------
-            'account-id' => $this->accounts[0]['id'],
+            'account-id' => $accountId,
             'symbol' => $market['id'],
             'type' => $side . '-' . $type, // buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount' => $this->amount_to_precision($symbol, $amount), // for buy $market orders it's the order cost
@@ -3012,5 +3027,146 @@ class huobi extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        //
+        // Gets a history of funding $rates with their timestamps
+        //  (param) $symbol => Future currency pair
+        //  (param) $limit => not used by huobi
+        //  (param) $since => not used by huobi
+        //  (param) $params => Object containing more $params for the $request
+        //  return => [array($symbol, fundingRate, $timestamp, dateTime)]
+        //
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'contract_code' => $market['id'],
+        );
+        $method = null;
+        if ($market['inverse']) {
+            $method = 'contractPublicGetSwapApiV1SwapHistoricalFundingRate';
+        } else if ($market['linear']) {
+            $method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate';
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingRateHistory() supports inverse and linear swaps only');
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // {
+        //     "status" => "ok",
+        //     "data" => array(
+        //         "total_page" => 62,
+        //         "current_page" => 1,
+        //         "total_size" => 1237,
+        //         "data" => array(
+        //             array(
+        //                 "avg_premium_index" => "-0.000208064395065541",
+        //                 "funding_rate" => "0.000100000000000000",
+        //                 "realized_rate" => "0.000100000000000000",
+        //                 "funding_time" => "1638921600000",
+        //                 "contract_code" => "BTC-USDT",
+        //                 "symbol" => "BTC",
+        //                 "fee_asset" => "USDT"
+        //             ),
+        //         )
+        //     ),
+        //     "ts" => 1638939294277
+        // }
+        //
+        $data = $this->safe_value($response, 'data');
+        $result = $this->safe_value($data, 'data');
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $entry = $result[$i];
+            $marketId = $this->safe_string($entry, 'contract_code');
+            $symbol = $this->safe_symbol($marketId);
+            $timestamp = $this->safe_string($entry, 'funding_time');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($entry, 'funding_rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        // {
+        //      "status" => "ok",
+        //      "data" => array(
+        //         "estimated_rate" => "0.000100000000000000",
+        //         "funding_rate" => "0.000100000000000000",
+        //         "contract_code" => "BCH-USD",
+        //         "symbol" => "BCH",
+        //         "fee_asset" => "BCH",
+        //         "funding_time" => "1639094400000",
+        //         "next_funding_time" => "1639123200000"
+        //     ),
+        //     "ts" => 1639085854775
+        // }
+        //
+        $nextFundingRate = $this->safe_number($fundingRate, 'estimated_rate');
+        $previousFundingTimestamp = $this->safe_integer($fundingRate, 'funding_time');
+        $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
+        $marketId = $this->safe_string($fundingRate, 'contract_code');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'previousFundingRate' => $this->safe_number($fundingRate, 'funding_rate'),
+            'nextFundingRate' => $nextFundingRate,
+            'previousFundingTimestamp' => $previousFundingTimestamp,
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $method = null;
+        if ($market['inverse']) {
+            $method = 'contractPublicGetSwapApiV1SwapFundingRate';
+        } else if ($market['linear']) {
+            $method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingRateHistory() supports inverse and linear swaps only');
+        }
+        $request = array(
+            'contract_code' => $market['id'],
+        );
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // {
+        //     "status" => "ok",
+        //     "data" => array(
+        //         "estimated_rate" => "0.000100000000000000",
+        //         "funding_rate" => "0.000100000000000000",
+        //         "contract_code" => "BTC-USDT",
+        //         "symbol" => "BTC",
+        //         "fee_asset" => "USDT",
+        //         "funding_time" => "1603699200000",
+        //         "next_funding_time" => "1603728000000"
+        //     ),
+        //     "ts" => 1603696494714
+        // }
+        //
+        $result = $this->safe_value($response, 'data', array());
+        return $this->parse_funding_rate($result, $market);
     }
 }

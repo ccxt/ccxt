@@ -2104,6 +2104,13 @@ class ftx extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->implode_params($path, $params);
+        $signOptions = $this->safe_value($this->options, 'sign', array());
+        $headerPrefix = $this->safe_string($signOptions, $this->hostname, 'FTX');
+        $subaccountField = $headerPrefix . '-SUBACCOUNT';
+        $chosenSubaccount = $this->safe_string_2($params, $subaccountField, 'subaccount');
+        if ($chosenSubaccount !== null) {
+            $params = $this->omit($params, array( $subaccountField, 'subaccount' ));
+        }
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . $request;
@@ -2125,14 +2132,12 @@ class ftx extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $options = $this->safe_value($this->options, 'sign', array());
-            $headerPrefix = $this->safe_string($options, $this->hostname, 'FTX');
-            $keyField = $headerPrefix . '-KEY';
-            $tsField = $headerPrefix . '-TS';
-            $signField = $headerPrefix . '-SIGN';
-            $headers[$keyField] = $this->apiKey;
-            $headers[$tsField] = $timestamp;
-            $headers[$signField] = $signature;
+            $headers[$headerPrefix . '-KEY'] = $this->apiKey;
+            $headers[$headerPrefix . '-TS'] = $timestamp;
+            $headers[$headerPrefix . '-SIGN'] = $signature;
+            if ($chosenSubaccount !== null) {
+                $headers[$subaccountField] = $chosenSubaccount;
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

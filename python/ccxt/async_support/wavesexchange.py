@@ -1447,7 +1447,10 @@ class wavesexchange(Exchange):
             if not (code in result):
                 result[code] = self.account()
             amount = self.safe_string(reservedBalance, currencyId)
-            result[code]['used'] = self.currency_from_precision(code, amount)
+            if code in self.currencies:
+                result[code]['used'] = self.currency_from_precision(code, amount)
+            else:
+                result[code]['used'] = amount
         wavesRequest = {
             'address': wavesAddress,
         }

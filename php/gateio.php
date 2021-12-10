@@ -2611,7 +2611,7 @@ class gateio extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol parameter');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2829,6 +2829,135 @@ class gateio extends Exchange {
         //     }
         //
         return $response;
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         value => "12.475572",
+        //         leverage => "0",
+        //         mode => "single",
+        //         realised_point => "0",
+        //         $contract => "BTC_USDT",
+        //         entry_price => "62422.6",
+        //         mark_price => "62377.86",
+        //         history_point => "0",
+        //         realised_pnl => "-0.00624226",
+        //         close_order =>  null,
+        //         $size => "2",
+        //         cross_leverage_limit => "25",
+        //         pending_orders => "0",
+        //         adl_ranking => "5",
+        //         maintenance_rate => "0.005",
+        //         unrealised_pnl => "-0.008948",
+        //         user => "663337",
+        //         leverage_max => "100",
+        //         history_pnl => "14.98868396636",
+        //         risk_limit => "1000000",
+        //         margin => "0.740721495056",
+        //         last_close_pnl => "-0.041996015",
+        //         liq_price => "59058.58"
+        //     }
+        //
+        $contract = $this->safe_value($position, 'contract');
+        $market = $this->safe_market($contract, $market);
+        $now = $this->milliseconds();
+        $size = $this->safe_string($position, 'size');
+        $side = null;
+        if ($size > 0) {
+            $side = 'buy';
+        } else if ($size < 0) {
+            $side = 'sell';
+        }
+        $maintenanceRate = $this->safe_string($position, 'maintenance_rate');
+        $notional = $this->safe_string($position, 'value');
+        $initialMargin = $this->safe_string($position, 'margin');
+        // $marginRatio = Precise::string_div($maintenanceRate, collateral);
+        $unrealisedPnl = $this->safe_string($position, 'unrealised_pnl');
+        return array(
+            'info' => $position,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'timestamp' => $now,
+            'datetime' => $this->iso8601($now),
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMargin, $notional)),
+            'maintenanceMargin' => $this->parse_number(Precise::string_mul($maintenanceRate, $notional)),
+            'maintenanceMarginPercentage' => $this->parse_number($maintenanceRate),
+            'entryPrice' => $this->safe_number($position, 'entry_price'),
+            'notional' => $this->parse_number($notional),
+            'leverage' => $this->safe_number($position, 'leverage'),
+            'unrealizedPnl' => $this->parse_number($unrealisedPnl),
+            'contracts' => $this->parse_number($size),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            //     realisedPnl => $position['realised_pnl'],
+            'marginRatio' => null,
+            'liquidationPrice' => $this->safe_number($position, 'liq_price'),
+            'markPrice' => $this->safe_number($position, 'mark_price'),
+            'collateral' => null,
+            'marginType' => null,
+            'side' => $side,
+            'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
+        );
+    }
+
+    public function parse_positions($positions) {
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $result[] = $this->parse_position($positions[$i]);
+        }
+        return $result;
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        // :param $symbols => Not used by Gateio
+        // :param $params:
+        //    $settle => The currency that derivative contracts are settled in
+        //    Other exchange specific $params
+        //
+        $this->load_markets();
+        $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType', 'swap');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $method = $this->get_supported_mapping($type, array(
+            'swap' => 'privateFuturesGetSettlePositions',
+            'futures' => 'privateDeliveryGetSettlePositions',
+        ));
+        $defaultSettle = $type === 'swap' ? 'usdt' : 'btc';
+        $settle = $this->safe_string($params, 'settle', $defaultSettle);
+        $request = array(
+            'settle' => $settle,
+        );
+        $response = $this->$method ($request);
+        //
+        //     array(
+        //         {
+        //             value => "12.475572",
+        //             leverage => "0",
+        //             mode => "single",
+        //             realised_point => "0",
+        //             contract => "BTC_USDT",
+        //             entry_price => "62422.6",
+        //             mark_price => "62377.86",
+        //             history_point => "0",
+        //             realised_pnl => "-0.00624226",
+        //             close_order =>  null,
+        //             size => "2",
+        //             cross_leverage_limit => "25",
+        //             pending_orders => "0",
+        //             adl_ranking => "5",
+        //             maintenance_rate => "0.005",
+        //             unrealised_pnl => "-0.008948",
+        //             user => "6693577",
+        //             leverage_max => "100",
+        //             history_pnl => "14.98868396636",
+        //             risk_limit => "1000000",
+        //             margin => "0.740721495056",
+        //             last_close_pnl => "-0.041996015",
+        //             liq_price => "59058.58"
+        //         }
+        //     )
+        //
+        $result = $this->parse_positions($response);
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {

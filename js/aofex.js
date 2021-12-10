@@ -348,6 +348,27 @@ module.exports = class aofex extends Exchange {
         return this.parseBalance (result);
     }
 
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "category":"1",
+        //         "delivery":"",
+        //         "exercise":"",
+        //         "instType":"SPOT",
+        //         "level":"Lv1",
+        //         "maker":"-0.0008",
+        //         "taker":"-0.001",
+        //         "ts":"1639043138472"
+        //     }
+        //
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (undefined, market),
+            'maker': this.safeNumber (fee, 'fromFee'),
+            'taker': this.safeNumber (fee, 'toFee'),
+        };
+    }
+
     async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -365,12 +386,7 @@ module.exports = class aofex extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return {
-            'info': response,
-            'symbol': symbol,
-            'maker': this.safeNumber (result, 'fromFee'),
-            'taker': this.safeNumber (result, 'toFee'),
-        };
+        return this.parseTradingFee (result, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

@@ -1530,7 +1530,11 @@ class wavesexchange extends Exchange {
                 $result[$code] = $this->account();
             }
             $amount = $this->safe_string($reservedBalance, $currencyId);
-            $result[$code]['used'] = $this->currency_from_precision($code, $amount);
+            if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
+                $result[$code]['used'] = $this->currency_from_precision($code, $amount);
+            } else {
+                $result[$code]['used'] = $amount;
+            }
         }
         $wavesRequest = array(
             'address' => $wavesAddress,

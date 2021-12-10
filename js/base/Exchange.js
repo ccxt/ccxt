@@ -553,7 +553,7 @@ module.exports = class Exchange {
         headers = this.setHeaders (headers)
 
         if (this.verbose) {
-            this.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n")
+            this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
 
         return this.executeRestRequest (url, method, headers, body)
@@ -646,7 +646,7 @@ module.exports = class Exchange {
                 this.last_http_response = responseBuffer
             }
             if (this.verbose) {
-                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "ZIP redacted", "\n")
+                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "ZIP redacted", "\n")
             }
             // no error handler needed, because it would not be a zip response in case of an error
             return responseBuffer;
@@ -665,7 +665,7 @@ module.exports = class Exchange {
                 this.last_json_response = json
             }
             if (this.verbose) {
-                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
+                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "\nResponseBody:\n", responseBody, "\n")
             }
             this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
             this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
@@ -2075,5 +2075,13 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code);
         }
         return rate;
+    }
+
+    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
+        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'spot');
+        const marketType = (market === undefined) ? defaultType : market['type'];
+        const type = this.safeString (params, 'type', marketType);
+        params = this.omit (params, 'type');
+        return [ type, params ];
     }
 }

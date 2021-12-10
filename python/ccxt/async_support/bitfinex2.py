@@ -350,6 +350,12 @@ class bitfinex2(bitfinex):
     def get_currency_id(self, code):
         return 'f' + code
 
+    def get_currency_name(self, code):
+        # temporary fix for transpiler recognition, even though self is in parent class
+        if code in self.options['currencyNames']:
+            return self.options['currencyNames'][code]
+        raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
+
     async def fetch_status(self, params={}):
         #
         #    [1]  # operative
@@ -1233,7 +1239,7 @@ class bitfinex2(bitfinex):
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
-        name = self.getCurrencyName(code)
+        name = self.get_currency_name(code)
         request = {
             'method': name,
             'wallet': 'exchange',  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
@@ -1450,7 +1456,7 @@ class bitfinex2(bitfinex):
         await self.load_markets()
         currency = self.currency(code)
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
-        name = self.getCurrencyName(code)
+        name = self.get_currency_name(code)
         request = {
             'method': name,
             'wallet': 'exchange',  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively

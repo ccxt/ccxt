@@ -64,7 +64,7 @@ class bitrue(Exchange):
                 'fetchOrders': False,
                 'fetchPositions': False,
                 'fetchPremiumIndexOHLCV': False,
-                'fetchStatus': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -339,6 +339,17 @@ class bitrue(Exchange):
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
+
+    async def fetch_status(self, params={}):
+        response = await self.v1PublicGetPing(params)
+        keys = list(response.keys())
+        keysLength = len(keys)
+        formattedStatus = 'maintenance' if keysLength else 'ok'
+        self.status = self.extend(self.status, {
+            'status': formattedStatus,
+            'updated': self.milliseconds(),
+        })
+        return self.status
 
     async def fetch_time(self, params={}):
         response = await self.v1PublicGetTime(params)

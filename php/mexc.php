@@ -1423,7 +1423,7 @@ class mexc extends Exchange {
         $updated = $this->parse8601($this->safe_string($transaction, 'update_time'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $network = null;
-        if (mb_strpos($currencyId, '-') !== false) {
+        if (($currencyId !== null) && (mb_strpos($currencyId, '-') !== false)) {
             $parts = explode('-', $currencyId);
             $currencyId = $this->safe_string($parts, 0);
             $networkId = $this->safe_string($parts, 1);

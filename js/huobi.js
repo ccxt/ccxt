@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -36,6 +36,8 @@ module.exports = class huobi extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -750,7 +752,6 @@ module.exports = class huobi extends Exchange {
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': true,
                 'language': 'en-US',
                 'broker': {
@@ -818,6 +819,7 @@ module.exports = class huobi extends Exchange {
         //
         const marketId = this.safeString (fee, 'symbol');
         return {
+            'info': fee,
             'symbol': this.safeSymbol (marketId, market),
             'maker': this.safeNumber (fee, 'actualMakerRate'),
             'taker': this.safeNumber (fee, 'actualTakerRate'),
@@ -848,7 +850,7 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0, {});
-        return this.parseTradingFee (first);
+        return this.parseTradingFee (first, market);
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
@@ -1747,7 +1749,28 @@ module.exports = class huobi extends Exchange {
     async fetchAccounts (params = {}) {
         await this.loadMarkets ();
         const response = await this.spotPrivateGetV1AccountAccounts (params);
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {"id":5202591,"type":"point","subtype":"","state":"working"},
+        //             {"id":1528640,"type":"spot","subtype":"","state":"working"},
+        //         ]
+        //     }
+        //
         return response['data'];
+    }
+
+    async fetchAccountIdByType (type, params = {}) {
+        const accounts = await this.loadAccounts ();
+        const accountId = this.safeValue (params, 'account-id');
+        if (accountId !== undefined) {
+            return accountId;
+        }
+        const indexedAccounts = this.indexBy (accounts, 'type');
+        const defaultAccount = this.safeValue (accounts, 0, {});
+        const account = this.safeValue (indexedAccounts, type, defaultAccount);
+        return this.safeString (account, 'id');
     }
 
     async fetchCurrencies (params = {}) {
@@ -1880,7 +1903,8 @@ module.exports = class huobi extends Exchange {
         const swap = (type === 'swap');
         if (spot) {
             await this.loadAccounts ();
-            request['account-id'] = this.accounts[0]['id'];
+            const accountId = await this.fetchAccountIdByType (type, params);
+            request['account-id'] = accountId;
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
         } else if (future) {
             method = 'contractPrivatePostApiV1ContractAccountInfo';
@@ -2047,23 +2071,11 @@ module.exports = class huobi extends Exchange {
         return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.safeString (this.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
-        return await this[method] (symbol, since, limit, params);
-    }
-
-    async fetchOpenOrdersV1 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrdersV1() requires a symbol argument');
-        }
-        return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled', symbol, since, limit, params);
-    }
-
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrdersV2 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2071,6 +2083,7 @@ module.exports = class huobi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        // todo replace with fetchAccountIdByType
         let accountId = this.safeString (params, 'account-id');
         if (accountId === undefined) {
             // pick the first account
@@ -2219,9 +2232,10 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
+        const accountId = await this.fetchAccountIdByType (market['type']);
         const request = {
             // spot -----------------------------------------------------------
-            'account-id': this.accounts[0]['id'],
+            'account-id': accountId,
             'symbol': market['id'],
             'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount': this.amountToPrecision (symbol, amount), // for buy market orders it's the order cost
@@ -3006,5 +3020,146 @@ module.exports = class huobi extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Gets a history of funding rates with their timestamps
+        //  (param) symbol: Future currency pair
+        //  (param) limit: not used by huobi
+        //  (param) since: not used by huobi
+        //  (param) params: Object containing more params for the request
+        //  return: [{symbol, fundingRate, timestamp, dateTime}]
+        //
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'contract_code': market['id'],
+        };
+        let method = undefined;
+        if (market['inverse']) {
+            method = 'contractPublicGetSwapApiV1SwapHistoricalFundingRate';
+        } else if (market['linear']) {
+            method = 'contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate';
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // {
+        //     "status": "ok",
+        //     "data": {
+        //         "total_page": 62,
+        //         "current_page": 1,
+        //         "total_size": 1237,
+        //         "data": [
+        //             {
+        //                 "avg_premium_index": "-0.000208064395065541",
+        //                 "funding_rate": "0.000100000000000000",
+        //                 "realized_rate": "0.000100000000000000",
+        //                 "funding_time": "1638921600000",
+        //                 "contract_code": "BTC-USDT",
+        //                 "symbol": "BTC",
+        //                 "fee_asset": "USDT"
+        //             },
+        //         ]
+        //     },
+        //     "ts": 1638939294277
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = this.safeValue (data, 'data');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'contract_code');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.safeString (entry, 'funding_time');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        // {
+        //      "status": "ok",
+        //      "data": {
+        //         "estimated_rate": "0.000100000000000000",
+        //         "funding_rate": "0.000100000000000000",
+        //         "contract_code": "BCH-USD",
+        //         "symbol": "BCH",
+        //         "fee_asset": "BCH",
+        //         "funding_time": "1639094400000",
+        //         "next_funding_time": "1639123200000"
+        //     },
+        //     "ts": 1639085854775
+        // }
+        //
+        const nextFundingRate = this.safeNumber (fundingRate, 'estimated_rate');
+        const previousFundingTimestamp = this.safeInteger (fundingRate, 'funding_time');
+        const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
+        const marketId = this.safeString (fundingRate, 'contract_code');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': this.safeNumber (fundingRate, 'funding_rate'),
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let method = undefined;
+        if (market['inverse']) {
+            method = 'contractPublicGetSwapApiV1SwapFundingRate';
+        } else if (market['linear']) {
+            method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
+        }
+        const request = {
+            'contract_code': market['id'],
+        };
+        const response = await this[method] (this.extend (request, params));
+        //
+        // {
+        //     "status": "ok",
+        //     "data": {
+        //         "estimated_rate": "0.000100000000000000",
+        //         "funding_rate": "0.000100000000000000",
+        //         "contract_code": "BTC-USDT",
+        //         "symbol": "BTC",
+        //         "fee_asset": "USDT",
+        //         "funding_time": "1603699200000",
+        //         "next_funding_time": "1603728000000"
+        //     },
+        //     "ts": 1603696494714
+        // }
+        //
+        const result = this.safeValue (response, 'data', {});
+        return this.parseFundingRate (result, market);
     }
 };

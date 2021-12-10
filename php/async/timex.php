@@ -809,6 +809,23 @@ class timex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     {
+        //         "fee" => 0.0075,
+        //         "market" => "ETHBTC"
+        //     }
+        //
+        $marketId = $this->safe_string($fee, 'market');
+        $rate = $this->safe_number($fee, 'fee');
+        return array(
+            'info' => $fee,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'maker' => $rate,
+            'taker' => $rate,
+        );
+    }
+
     public function fetch_trading_fee($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -825,11 +842,7 @@ class timex extends Exchange {
         //     )
         //
         $result = $this->safe_value($response, 0, array());
-        return array(
-            'info' => $response,
-            'maker' => $this->safe_number($result, 'fee'),
-            'taker' => null,
-        );
+        return $this->parse_trading_fee($result, $market);
     }
 
     public function parse_market($market) {

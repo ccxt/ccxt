@@ -28,7 +28,7 @@ with open(package_json, encoding='utf-8') as f:
     package = json.load(f)
 
 project_urls = {
-    'Homepage': 'https://ccxt.trade',
+    'Homepage': 'https://ccxt.com',
     'Documentation': 'https://docs.ccxt.com/en/latest/manual.html',
     'Discord': 'https://discord.gg/dhzSKYU',
     'Twitter': 'https://twitter.com/ccxt_official',
@@ -96,6 +96,7 @@ setup(
         ],
         'doc': [
             'Sphinx==4.0',
+            'mistune==0.8.4',  # needed for m2r2
             'm2r2==0.2.7',
             'sphinx-rtd-theme==0.5.2',
             'readthedocs-sphinx-search==0.1.0',

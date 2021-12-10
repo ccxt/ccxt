@@ -342,6 +342,14 @@ class bitfinex2 extends bitfinex {
         return 'f' . $code;
     }
 
+    public function get_currency_name($code) {
+        // temporary fix for transpiler recognition, even though this is in parent class
+        if (is_array($this->options['currencyNames']) && array_key_exists($code, $this->options['currencyNames'])) {
+            return $this->options['currencyNames'][$code];
+        }
+        throw new NotSupported($this->id . ' ' . $code . ' not supported for withdrawal');
+    }
+
     public function fetch_status($params = array ()) {
         //
         //    [1] // operative
@@ -1303,7 +1311,7 @@ class bitfinex2 extends bitfinex {
     public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
-        $name = $this->getCurrencyName ($code);
+        $name = $this->get_currency_name($code);
         $request = array(
             'method' => $name,
             'wallet' => 'exchange', // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
@@ -1534,7 +1542,7 @@ class bitfinex2 extends bitfinex {
         $this->load_markets();
         $currency = $this->currency($code);
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
-        $name = $this->getCurrencyName ($code);
+        $name = $this->get_currency_name($code);
         $request = array(
             'method' => $name,
             'wallet' => 'exchange', // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively

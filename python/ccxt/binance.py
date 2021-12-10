@@ -200,6 +200,7 @@ class binance(Exchange):
                         'capital/deposit/subAddress': 1,
                         'capital/deposit/subHisrec': 1,
                         'capital/withdraw/history': 1,
+                        'convert/tradeFlow': 1,
                         'account/status': 1,
                         'account/apiTradingStatus': 1,
                         'account/apiRestrictions/ipRestriction': 1,
@@ -281,6 +282,8 @@ class binance(Exchange):
                         'account/apiRestrictions': 1,
                         # subaccounts
                         'managed-subaccount/asset': 1,
+                        # c2c / p2p
+                        'c2c/orderMatch/listUserOrderHistory': 1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -2568,7 +2571,8 @@ class binance(Exchange):
             market = self.market(symbol)
             request['symbol'] = market['id']
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
-            type = self.safe_string(params, 'type', defaultType)
+            marketType = market['type'] if ('type' in market) else defaultType
+            type = self.safe_string(params, 'type', marketType)
             query = self.omit(params, 'type')
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
             symbols = self.symbols

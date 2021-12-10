@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -51,6 +51,7 @@ module.exports = class okex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -1429,6 +1430,67 @@ module.exports = class okex extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "category":"1",
+        //         "delivery":"",
+        //         "exercise":"",
+        //         "instType":"SPOT",
+        //         "level":"Lv1",
+        //         "maker":"-0.0008",
+        //         "taker":"-0.001",
+        //         "ts":"1639043138472"
+        //     }
+        //
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (undefined, market),
+            'maker': this.safeNumber (fee, 'maker'),
+            'taker': this.safeNumber (fee, 'taker'),
+        };
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instType': market['type'].toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'instId': market['id'], // only applicable to SPOT/MARGIN
+            // 'uly': market['id'], // only applicable to FUTURES/SWAP/OPTION
+            // 'category': '1', // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
+        };
+        if (market['spot']) {
+            request['instId'] = market['id'];
+        } else if (market['swap'] || market['futures'] || market['option']) {
+            request['uly'] = market['baseId'] + '-' + market['quoteId'];
+        } else {
+            throw new NotSupported (this.id + ' fetchTradingFee supports spot, swap, futures or option markets only');
+        }
+        const response = await this.privateGetAccountTradeFee (this.extend (request, params));
+        //
+        //     {
+        //         "code":"0",
+        //         "data":[
+        //             {
+        //                 "category":"1",
+        //                 "delivery":"",
+        //                 "exercise":"",
+        //                 "instType":"SPOT",
+        //                 "level":"Lv1",
+        //                 "maker":"-0.0008",
+        //                 "taker":"-0.001",
+        //                 "ts":"1639043138472"
+        //             }
+        //         ],
+        //         "msg":""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
+        return this.parseTradingFee (first, market);
     }
 
     async fetchBalance (params = {}) {

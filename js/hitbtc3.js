@@ -946,6 +946,26 @@ module.exports = class hitbtc3 extends Exchange {
         return result[symbol];
     }
 
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
+        //         "take_rate":"0.0009",
+        //         "make_rate":"0.0009"
+        //     }
+        //
+        const taker = this.safeNumber (fee, 'take_rate');
+        const maker = this.safeNumber (fee, 'make_rate');
+        const marketId = this.safeString (fee, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'taker': taker,
+            'maker': maker,
+        };
+    }
+
     async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -953,33 +973,32 @@ module.exports = class hitbtc3 extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.privateGetSpotFeeSymbol (this.extend (request, params));
-        //  {"take_rate":"0.0009","make_rate":"0.0009"}
-        const taker = this.safeNumber (response, 'take_rate');
-        const maker = this.safeNumber (response, 'make_rate');
-        return {
-            'info': response,
-            'symbol': symbol,
-            'taker': taker,
-            'maker': maker,
-        };
+        //
+        //     {
+        //         "take_rate":"0.0009",
+        //         "make_rate":"0.0009"
+        //     }
+        //
+        return this.parseTradingFee (response, market);
     }
 
     async fetchTradingFees (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetSpotFee (params);
-        // [{"symbol":"ARVUSDT","take_rate":"0.0009","make_rate":"0.0009"}]
+        //
+        //     [
+        //         {
+        //             "symbol":"ARVUSDT",
+        //             "take_rate":"0.0009",
+        //             "make_rate":"0.0009"
+        //         }
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const symbol = this.safeSymbol (this.safeString (entry, 'symbol'));
-            const taker = this.safeNumber (entry, 'take_rate');
-            const maker = this.safeNumber (entry, 'make_rate');
-            result[symbol] = {
-                'info': entry,
-                'symbol': symbol,
-                'taker': taker,
-                'maker': maker,
-            };
+            const fee = this.parseTradingFee (response[i]);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
         }
         return result;
     }

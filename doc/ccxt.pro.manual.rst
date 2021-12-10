@@ -2,7 +2,7 @@
 Manual
 ======
 
-The CCXT Pro stack is built upon `CCXT <https://ccxt.trade>`__ and extends the core CCXT classes, using:
+The CCXT Pro stack is built upon `CCXT <https://ccxt.com>`__ and extends the core CCXT classes, using:
 
 
  * JavaScript prototype-level mixins
@@ -52,7 +52,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
        +=============================================================+
 
 Exchanges
-=========
+---------
 
 The CCXT Pro library currently supports the following 35 cryptocurrency exchange markets and WebSocket trading APIs:
 
@@ -636,7 +636,7 @@ This is the list of exchanges in CCXT Pro with support for WebSockets APIs. This
 Full list of exchanges available in CCXT via REST: `Supported Cryptocurrency Exchange Markets <https://github.com/ccxt/ccxt/#supported-cryptocurrency-exchange-markets>`__.
 
 Usage
-=====
+-----
 
 .. code-block:: diff
 

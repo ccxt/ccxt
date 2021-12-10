@@ -182,6 +182,7 @@ module.exports = class binance extends Exchange {
                         'capital/deposit/subAddress': 1,
                         'capital/deposit/subHisrec': 1,
                         'capital/withdraw/history': 1,
+                        'convert/tradeFlow': 1,
                         'account/status': 1,
                         'account/apiTradingStatus': 1,
                         'account/apiRestrictions/ipRestriction': 1,
@@ -263,6 +264,8 @@ module.exports = class binance extends Exchange {
                         'account/apiRestrictions': 1,
                         // subaccounts
                         'managed-subaccount/asset': 1,
+                        // c2c / p2p
+                        'c2c/orderMatch/listUserOrderHistory': 1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -2661,7 +2664,8 @@ module.exports = class binance extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (params, 'type', defaultType);
+            const marketType = ('type' in market) ? market['type'] : defaultType;
+            type = this.safeString (params, 'type', marketType);
             query = this.omit (params, 'type');
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
             const symbols = this.symbols;

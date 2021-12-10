@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
-use \ccxt\Precise;
 
 class coinex extends Exchange {
 
@@ -348,7 +347,35 @@ class coinex extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
-        // this method parses both public and private trades
+        //
+        // fetchTrades (public)
+        //
+        //      array(
+        //          "id" =>  2611511379,
+        //          "type" => "buy",
+        //          "price" => "192.63",
+        //          "amount" => "0.02266931",
+        //          "date" =>  1638990110,
+        //          "date_ms" =>  1638990110518
+        //      ),
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "id" => 2611520950,
+        //          "order_id" => 63286573298,
+        //          "account_id" => 0,
+        //          "create_time" => 1638990636,
+        //          "type" => "sell",
+        //          "role" => "taker",
+        //          "price" => "192.29",
+        //          "amount" => "0.098",
+        //          "fee" => "0.03768884",
+        //          "fee_asset" => "USDT",
+        //          "market" => "AAVEUSDT",
+        //          "deal_money" => "18.84442"
+        //      }
+        //
         $timestamp = $this->safe_timestamp($trade, 'create_time');
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($trade, 'date_ms');
@@ -357,27 +384,22 @@ class coinex extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
         $marketId = $this->safe_string($trade, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
-        $cost = $this->safe_number($trade, 'deal_money');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_asset');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
         $side = $this->safe_string($trade, 'type');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -387,11 +409,11 @@ class coinex extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -401,6 +423,22 @@ class coinex extends Exchange {
             'market' => $market['id'],
         );
         $response = yield $this->publicGetMarketDeals (array_merge($request, $params));
+        //
+        //      {
+        //          "code" =>    0,
+        //          "data" => array(
+        //              array(
+        //                  "id" =>  2611511379,
+        //                  "type" => "buy",
+        //                  "price" => "192.63",
+        //                  "amount" => "0.02266931",
+        //                  "date" =>  1638990110,
+        //                  "date_ms" =>  1638990110518
+        //                  ),
+        //              ),
+        //          "message" => "OK"
+        //      }
+        //
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
@@ -527,12 +565,12 @@ class coinex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($order, 'create_time');
-        $price = $this->safe_string($order, 'price');
-        $cost = $this->safe_string($order, 'deal_money');
-        $amount = $this->safe_string($order, 'amount');
-        $filled = $this->safe_string($order, 'deal_amount');
-        $average = $this->safe_string($order, 'avg_price');
-        $remaining = $this->safe_string($order, 'left');
+        $priceString = $this->safe_string($order, 'price');
+        $costString = $this->safe_string($order, 'deal_money');
+        $amountString = $this->safe_string($order, 'amount');
+        $filledString = $this->safe_string($order, 'deal_amount');
+        $averageString = $this->safe_string($order, 'avg_price');
+        $remainingString = $this->safe_string($order, 'left');
         $symbol = null;
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
@@ -559,17 +597,17 @@ class coinex extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
             'stopPrice' => null,
-            'cost' => $cost,
-            'average' => $average,
-            'amount' => $amount,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'cost' => $costString,
+            'average' => $averageString,
+            'amount' => $amountString,
+            'filled' => $filledString,
+            'remaining' => $remainingString,
             'trades' => null,
             'fee' => array(
                 'currency' => $feeCurrency,
-                'cost' => $this->safe_number($order, 'deal_fee'),
+                'cost' => $this->safe_string($order, 'deal_fee'),
             ),
             'info' => $order,
         ), $market);
@@ -615,6 +653,25 @@ class coinex extends Exchange {
         $response = yield $this->privateDeleteOrderPending (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data, $market);
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancellAllOrders() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $marketId = $market['id'];
+        $accountId = $this->safe_string($params, 'id', '0');
+        $request = array(
+            'account_id' => $accountId, // main account ID => 0, margin account ID => See < Inquire Margin Account Market Info >, future account ID => See < Inquire Future Account Market Info >
+            'market' => $marketId,
+        );
+        $response = yield $this->privateDeleteOrderPending (array_merge($request, $params));
+        //
+        // array("code" => 0, "data" => null, "message" => "Success")
+        //
+        return $response;
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -702,6 +759,33 @@ class coinex extends Exchange {
             $request['market'] = $market['id'];
         }
         $response = yield $this->privateGetOrderUserDeals (array_merge($request, $params));
+        //
+        //      {
+        //          "code" => 0,
+        //          "data" => array(
+        //              "data" => array(
+        //                  array(
+        //                      "id" => 2611520950,
+        //                      "order_id" => 63286573298,
+        //                      "account_id" => 0,
+        //                      "create_time" => 1638990636,
+        //                      "type" => "sell",
+        //                      "role" => "taker",
+        //                      "price" => "192.29",
+        //                      "amount" => "0.098",
+        //                      "fee" => "0.03768884",
+        //                      "fee_asset" => "USDT",
+        //                      "market" => "AAVEUSDT",
+        //                      "deal_money" => "18.84442"
+        //                          ),
+        //                      ),
+        //              "curr_page" => 1,
+        //              "has_next" => false,
+        //              "count" => 3
+        //              ),
+        //          "message" => "Success"
+        //      }
+        //
         $data = $this->safe_value($response, 'data');
         $trades = $this->safe_value($data, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
@@ -994,7 +1078,7 @@ class coinex extends Exchange {
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
         $message = $this->safe_string($response, 'message');
-        if (($code !== '0') || ($data === null) || (($message !== 'Success') && ($message !== 'Succeeded') && ($message !== 'Ok') && !$data)) {
+        if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && ($message !== 'Ok') && !$data)) {
             $responseCodes = array(
                 // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
                 '23' => '\\ccxt\\PermissionDenied', // IP Prohibited

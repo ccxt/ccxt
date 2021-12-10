@@ -992,31 +992,34 @@ class liquid extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             // 'auth_code' => '', // optional 2fa $code
-            'currency' => $currency['id'],
-            'address' => $address,
-            'amount' => $amount,
-            // 'payment_id' => $tag, // for XRP only
-            // 'memo_type' => 'text', // 'text', 'id' or 'hash', for XLM only
-            // 'memo_value' => $tag, // for XLM only
+            'crypto_withdrawal' => array(
+                'currency' => $currency['id'],
+                'address' => $address,
+                'amount' => $amount,
+                // 'payment_id' => $tag, // for XRP only
+                // 'memo_type' => 'text', // 'text', 'id' or 'hash', for XLM only
+                // 'memo_value' => $tag, // for XLM only
+            ),
         );
         if ($tag !== null) {
             if ($code === 'XRP') {
-                $request['payment_id'] = $tag;
+                $request['crypto_withdrawal']['payment_id'] = $tag;
             } else if ($code === 'XLM') {
-                $request['memo_type'] = 'text'; // overrideable via $params
-                $request['memo_value'] = $tag;
+                $request['crypto_withdrawal']['memo_type'] = 'text'; // overrideable via $params
+                $request['crypto_withdrawal']['memo_value'] = $tag;
             } else {
                 throw new NotSupported($this->id . ' withdraw() only supports a $tag along the $address for XRP or XLM');
             }
         }
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $paramsCwArray = $this->safe_value($params, 'crypto_withdrawal', array());
+        $network = $this->safe_string_upper($paramsCwArray, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
-            $request['network'] = $network;
-            $params = $this->omit($params, 'network');
+            $request['crypto_withdrawal']['network'] = $network;
+            $params['crypto_withdrawal'] = $this->omit($params['crypto_withdrawal'], 'network');
         }
-        $response = yield $this->privatePostCryptoWithdrawals (array_merge($request, $params));
+        $response = yield $this->privatePostCryptoWithdrawals ($this->deep_extend($request, $params));
         //
         //     {
         //         "id" => 1353,

@@ -196,6 +196,16 @@ module.exports = class bitstamp extends Exchange {
                         'ada_address/',
                         'slp_withdrawal/',
                         'slp_address/',
+                        'ftm_withdrawal/',
+                        'ftm_address/',
+                        'perp_withdrawal/',
+                        'perp_address/',
+                        'dydx_withdrawal/',
+                        'dydx_address/',
+                        'gala_withdrawal/',
+                        'gala_address/',
+                        'shib_withdrawal/',
+                        'shib_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -850,41 +860,34 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        let method = 'privatePostBalance';
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['pair'] = market['id'];
-            method += 'Pair';
-        }
-        const balance = await this[method] (this.extend (request, params));
-        return {
-            'info': balance,
-            'symbol': symbol,
-            'maker': balance['fee'],
-            'taker': balance['fee'],
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
         };
+        const response = await this.privatePostBalancePair (this.extend (request, params));
+        return this.parseTradingFee (response, market);
     }
 
-    parseTradingFee (balances, symbol) {
-        const market = this.market (symbol);
-        const feeString = this.safeString (balances, market['id'] + '_fee');
+    parseTradingFee (fee, market = undefined) {
+        market = this.safeMarket (undefined, market);
+        const feeString = this.safeString (fee, market['id'] + '_fee');
         const dividedFeeString = Precise.stringDiv (feeString, '100');
         const tradeFee = this.parseNumber (dividedFeeString);
         return {
-            'symbol': symbol,
+            'info': fee,
+            'symbol': market['symbol'],
             'maker': tradeFee,
             'taker': tradeFee,
         };
     }
 
-    parseTradingFees (balance) {
-        const result = { 'info': balance };
-        const markets = Object.keys (this.markets);
-        for (let i = 0; i < markets.length; i++) {
-            const symbol = markets[i];
-            const fee = this.parseTradingFee (balance, symbol);
+    parseTradingFees (fees) {
+        const result = { 'info': fees };
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const fee = this.parseTradingFee (fees, market);
             result[symbol] = fee;
         }
         return result;
@@ -892,8 +895,8 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance (params);
-        return this.parseTradingFees (balance);
+        const response = await this.privatePostBalance (params);
+        return this.parseTradingFees (response);
     }
 
     parseFundingFees (balance) {
