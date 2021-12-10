@@ -43,6 +43,7 @@ class huobi extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
@@ -856,7 +857,7 @@ class huobi extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0, array());
-        return $this->parse_trading_fee($first);
+        return $this->parse_trading_fee($first, $market);
     }
 
     public function fetch_trading_limits($symbols = null, $params = array ()) {
@@ -3094,5 +3095,78 @@ class huobi extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        // {
+        //      "status" => "ok",
+        //      "data" => array(
+        //         "estimated_rate" => "0.000100000000000000",
+        //         "funding_rate" => "0.000100000000000000",
+        //         "contract_code" => "BCH-USD",
+        //         "symbol" => "BCH",
+        //         "fee_asset" => "BCH",
+        //         "funding_time" => "1639094400000",
+        //         "next_funding_time" => "1639123200000"
+        //     ),
+        //     "ts" => 1639085854775
+        // }
+        //
+        $nextFundingRate = $this->safe_number($fundingRate, 'estimated_rate');
+        $previousFundingTimestamp = $this->safe_integer($fundingRate, 'funding_time');
+        $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
+        $marketId = $this->safe_string($fundingRate, 'contract_code');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'previousFundingRate' => $this->safe_number($fundingRate, 'funding_rate'),
+            'nextFundingRate' => $nextFundingRate,
+            'previousFundingTimestamp' => $previousFundingTimestamp,
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $method = null;
+        if ($market['inverse']) {
+            $method = 'contractPublicGetSwapApiV1SwapFundingRate';
+        } else if ($market['linear']) {
+            $method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingRateHistory() supports inverse and linear swaps only');
+        }
+        $request = array(
+            'contract_code' => $market['id'],
+        );
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // {
+        //     "status" => "ok",
+        //     "data" => array(
+        //         "estimated_rate" => "0.000100000000000000",
+        //         "funding_rate" => "0.000100000000000000",
+        //         "contract_code" => "BTC-USDT",
+        //         "symbol" => "BTC",
+        //         "fee_asset" => "USDT",
+        //         "funding_time" => "1603699200000",
+        //         "next_funding_time" => "1603728000000"
+        //     ),
+        //     "ts" => 1603696494714
+        // }
+        //
+        $result = $this->safe_value($response, 'data', array());
+        return $this->parse_funding_rate($result, $market);
     }
 }

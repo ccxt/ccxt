@@ -36,6 +36,7 @@ module.exports = class huobi extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
@@ -3087,5 +3088,78 @@ module.exports = class huobi extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        // {
+        //      "status": "ok",
+        //      "data": {
+        //         "estimated_rate": "0.000100000000000000",
+        //         "funding_rate": "0.000100000000000000",
+        //         "contract_code": "BCH-USD",
+        //         "symbol": "BCH",
+        //         "fee_asset": "BCH",
+        //         "funding_time": "1639094400000",
+        //         "next_funding_time": "1639123200000"
+        //     },
+        //     "ts": 1639085854775
+        // }
+        //
+        const nextFundingRate = this.safeNumber (fundingRate, 'estimated_rate');
+        const previousFundingTimestamp = this.safeInteger (fundingRate, 'funding_time');
+        const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
+        const marketId = this.safeString (fundingRate, 'contract_code');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': this.safeNumber (fundingRate, 'funding_rate'),
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let method = undefined;
+        if (market['inverse']) {
+            method = 'contractPublicGetSwapApiV1SwapFundingRate';
+        } else if (market['linear']) {
+            method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
+        }
+        const request = {
+            'contract_code': market['id'],
+        };
+        const response = await this[method] (this.extend (request, params));
+        //
+        // {
+        //     "status": "ok",
+        //     "data": {
+        //         "estimated_rate": "0.000100000000000000",
+        //         "funding_rate": "0.000100000000000000",
+        //         "contract_code": "BTC-USDT",
+        //         "symbol": "BTC",
+        //         "fee_asset": "USDT",
+        //         "funding_time": "1603699200000",
+        //         "next_funding_time": "1603728000000"
+        //     },
+        //     "ts": 1603696494714
+        // }
+        //
+        const result = this.safeValue (response, 'data', {});
+        return this.parseFundingRate (result, market);
     }
 };

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.63.39'
+__version__ = '1.63.44'
 
 # -----------------------------------------------------------------------------
 
@@ -2647,3 +2647,10 @@ class Exchange(object):
         if rate is None:
             raise ExchangeError(self.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
+
+    def handle_market_type_and_params(self, method_name, market=None, params={}):
+        default_type = self.safe_string_2(self.options, method_name, 'defaultType', 'spot')
+        market_type = default_type if market is None else market['type']
+        type = self.safe_string(params, 'type', market_type)
+        params = self.omit(params, 'type')
+        return [type, params]

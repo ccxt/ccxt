@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.63.39';
+$version = '1.63.44';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.63.39';
+    const VERSION = '1.63.44';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -366,6 +366,7 @@ class Exchange {
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
+        'handleMarketTypeAndParams' => 'handle_market_type_and_params',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -3510,5 +3511,13 @@ class Exchange {
             throw new ExchangeError($this->id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + $code);
         }
         return $rate;
+    }
+
+    public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
+        $default_type = $this->safe_string_2($this->options, $method_name, 'defaultType', 'spot');
+        $market_type = isset($market) ? market['type'] : $default_type;
+        $type = $this->safe_string($params, 'type', $market_type);
+        $params = $this->omit($params, $type);
+        return array($type, $params);
     }
 }
