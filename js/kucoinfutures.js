@@ -384,10 +384,7 @@ module.exports = class kucoinfutures extends kucoin {
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
-            let expireDate = this.safeNumber (market, 'expireDate');
-            if (expireDate) {
-                expireDate = expireDate.toString ();
-            }
+            const expireDate = this.safeString (market, 'expireDate');
             const futures = expireDate ? true : false;
             const swap = !futures;
             const base = this.safeString (market, 'baseCurrency');
@@ -396,7 +393,7 @@ module.exports = class kucoinfutures extends kucoin {
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
             if (futures) {
-                symbol = base + '/' + quote + '-' + expireDate + ':' + settle;
+                symbol = base + '/' + quote + ':' + settle + '-' + expireDate;
                 type = 'futures';
             }
             const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
@@ -445,14 +442,14 @@ module.exports = class kucoinfutures extends kucoin {
                 'futures': futures,
                 'option': false,
                 'active': true,
-                'maker': undefined,
-                'taker': undefined,
+                'maker': this.safeNumber (market, 'makerFeeRate'),
+                'taker': this.safeNumber (market, 'takerFeeRate'),
                 'precision': precision,
                 'contract': swap,
                 'linear': inverse !== true,
                 'inverse': inverse,
-                'expiry': this.safeValue (market, 'expireDate'),
-                'contractSize': undefined, // TODO
+                'expiry': this.parseNumber (expireDate),
+                'contractSize': this.parseNumber (Precise.stringAbs (this.safeString (market, 'multiplier'))),
                 'limits': limits,
                 'info': market,
                 // Fee is in %, so divide by 100
