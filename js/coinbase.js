@@ -49,7 +49,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchOrders': undefined,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': undefined,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': undefined,
                 'fetchTransactions': undefined,
@@ -670,6 +670,39 @@ module.exports = class coinbase extends Exchange {
         return result;
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const timestamp = this.seconds ();
+        const request = {
+            'currency': this.safeValue (params, 'currency', 'USD'),
+        };
+        const response = await this.publicGetExchangeRates (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const rates = this.safeValue (data, 'rates', {});
+        const result = {};
+        const coinKeys = Object.keys (rates);
+        for (let i = 0; i < coinKeys.length; i++) {
+            const coinName = coinKeys[i];
+            const value = rates[coinName]; // already in string, no need for safeNumber
+            const symbol = coinName + '/' + request['currency'];
+            const ticker = {
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'bid': undefined,
+                'ask': undefined,
+                'last': value,
+                'info': {
+                    'buy': undefined,
+                    'sell': undefined,
+                    'spot': undefined,
+                },
+            };
+            const market = undefined;
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const timestamp = this.seconds ();
@@ -683,31 +716,43 @@ module.exports = class coinbase extends Exchange {
         const ask = this.safeNumber (buy['data'], 'amount');
         const bid = this.safeNumber (sell['data'], 'amount');
         const last = this.safeNumber (spot['data'], 'amount');
-        return {
+        const ticker = {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'bid': bid,
             'ask': ask,
             'last': last,
+            'info': {
+                'buy': buy,
+                'sell': sell,
+                'spot': spot,
+            },
+        };
+        return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        return {
+            'symbol': ticker.symbol,
+            'timestamp': ticker.timestamp,
+            'datetime': this.iso8601 (ticker.timestamp),
+            'bid': ticker.bid,
+            'ask': ticker.ask,
+            'last': ticker.last,
             'high': undefined,
             'low': undefined,
             'bidVolume': undefined,
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': last,
+            'close': ticker.last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'info': {
-                'buy': buy,
-                'sell': sell,
-                'spot': spot,
-            },
+            'info': ticker.info,
         };
     }
 
