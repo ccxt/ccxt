@@ -2648,10 +2648,9 @@ class Exchange(object):
             raise ExchangeError(self.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
 
-    def get_type(self, method_name, params={}, market=None):
+    def handle_market_type_and_params(self, method_name, market=None, params={}):
         default_type = self.safe_string_2(self.options, method_name, 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', default_type)
+        market_type = default_type if market is None else market['type']
+        type = self.safe_string(params, 'type', market_type)
         self.omit(params, 'type')
-        if market:
-            return [market['type'], params]
         return [type, params]
