@@ -61,6 +61,7 @@ class huobi(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
@@ -2931,3 +2932,73 @@ class huobi(Exchange):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_funding_rate(self, fundingRate, market=None):
+        #
+        # {
+        #      "status": "ok",
+        #      "data": {
+        #         "estimated_rate": "0.000100000000000000",
+        #         "funding_rate": "0.000100000000000000",
+        #         "contract_code": "BCH-USD",
+        #         "symbol": "BCH",
+        #         "fee_asset": "BCH",
+        #         "funding_time": "1639094400000",
+        #         "next_funding_time": "1639123200000"
+        #     },
+        #     "ts": 1639085854775
+        # }
+        #
+        nextFundingRate = self.safe_number(fundingRate, 'estimated_rate')
+        previousFundingTimestamp = self.safe_integer(fundingRate, 'funding_time')
+        nextFundingTimestamp = self.safe_integer(fundingRate, 'next_funding_time')
+        marketId = self.safe_string(fundingRate, 'contract_code')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'previousFundingRate': self.safe_number(fundingRate, 'funding_rate'),
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+        }
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        method = None
+        if market['inverse']:
+            method = 'contractPublicGetSwapApiV1SwapFundingRate'
+        elif market['linear']:
+            method = 'contractPublicGetLinearSwapApiV1SwapFundingRate'
+        else:
+            raise NotSupported(self.id + ' fetchFundingRateHistory() supports inverse and linear swaps only')
+        request = {
+            'contract_code': market['id'],
+        }
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # {
+        #     "status": "ok",
+        #     "data": {
+        #         "estimated_rate": "0.000100000000000000",
+        #         "funding_rate": "0.000100000000000000",
+        #         "contract_code": "BTC-USDT",
+        #         "symbol": "BTC",
+        #         "fee_asset": "USDT",
+        #         "funding_time": "1603699200000",
+        #         "next_funding_time": "1603728000000"
+        #     },
+        #     "ts": 1603696494714
+        # }
+        #
+        result = self.safe_value(response, 'data', {})
+        return self.parse_funding_rate(result, market)
