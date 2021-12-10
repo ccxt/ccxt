@@ -3132,9 +3132,13 @@ module.exports = class huobi extends Exchange {
     async fetchFundingRate (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
+        let method = undefined;
         if (market['inverse']) {
             method = 'contractPublicGetSwapApiV1SwapFundingRate';
+        } else if (market['linear']) {
+            method = 'contractPublicGetLinearSwapApiV1SwapFundingRate';
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
         }
         const request = {
             'contract_code': market['id'],
