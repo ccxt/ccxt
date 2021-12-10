@@ -489,13 +489,17 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMarginBalance (params = {}) {
-        const symbol = this.safeString (params, 'market');
-        params = this.omit (params, 'market');
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetching a margin account requires a market parameter');
+        await this.loadMarkets ();
+        const symbol = this.safeString (params, 'symbol');
+        let marketId = this.safeString (params, 'market');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            marketId = market['id'];
+        } else if (marketId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetching a margin account requires a market parameter or a symbol parameter');
         }
-        const market = this.market (symbol);
-        const marketId = market['id'];
+        params = this.omit (params, [ 'symbol', 'market' ]);
         const request = {
             'market': marketId,
         };
