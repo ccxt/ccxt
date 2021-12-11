@@ -33,6 +33,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
+                'fetchOrder': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -658,6 +659,16 @@ module.exports = class whitebit extends Exchange {
         return this.status;
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderId': id,
+            'market': market['id'],
+        };
+        return await this.privatePostV4OrderCancel (this.extend (request, params));
+    }
+
     async fetchBalance (params = {}) {
         //
         // Request
@@ -696,6 +707,128 @@ module.exports = class whitebit extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ticker': currency['id'],
+        };
+        let method = 'mainAccountAddress';
+        if (this.isFiat (code)) {
+            method = 'mainAccountFiatDepositUrl';
+            if (!('provider' in params)) {
+                throw new ExchangeError ('Fetch deposit address for ' + code + ' requires provider param');
+            }
+            // const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+            // const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
+            // const networks = this.safeValue (this.options, 'networks', {});
+            // let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+            // network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+            // if (network !== undefined) {
+            //     request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+            //     params = this.omit (params, 'network');
+            // }
+        }
+        const response = await this.methods[method] (this.extend (request, params));
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //         "data":{
+        //             "currency":"USDT-TRC20",
+        //             "chain":"USDT-TRC20",
+        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
+        //             "address_memo":""
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'address');
+        const tag = this.safeString (data, 'address_memo');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': undefined, // TODO: parse
+            'info': response,
+        };
+    }
+
+    parseOrder (order, market = undefined) {
+        // {
+        //       "time": 1593342324.613711,      // Timestamp of executed order
+        //       "fee": "0.00000419198",         // fee that you pay
+        //       "price": "0.00000701",          // price
+        //       "amount": "598",                // amount in stock
+        //       "id": 149156519,                // trade id
+        //       "dealOrderId": 3134995325,      // completed order Id
+        //       "clientOrderId": "customId11",  // custom order id; "clientOrderId": "" - if not specified.
+        //       "role": 2,                      // Role - 1 - maker, 2 - taker
+        //       "deal": "0.00419198"            // amount in money
+        //   }
+        //
+        // }
+        const side = (this.safeValue (order, 'role') === 1) ? 'sell' : 'buy';
+        const status = 'closed';
+        const timestamp = this.safeTimestamp (order, 'time');
+        const id = this.safeString (order, 'id');
+        return this.safeOrder2 ({
+            'info': order,
+            'id': id,
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': this.safeString (order, 'price'),
+            'stopPrice': undefined,
+            'average': this.safeString (order, 'avg_execution_price'),
+            'amount': this.safeString (order, 'deal'),
+            'filled': this.safeString (order, 'deal'),
+            'status': status,
+            'fee': this.safeString (order, 'fee'),
+            'cost': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': parseInt (id),
+        };
+        const response = await this.privateV4PostTradeAccountOrder (this.extend (request, params));
+        // {
+        //     "records": [
+        //         {
+        //             "time": 1593342324.613711,      // Timestamp of executed order
+        //             "fee": "0.00000419198",         // fee that you pay
+        //             "price": "0.00000701",          // price
+        //             "amount": "598",                // amount in stock
+        //             "id": 149156519,                // trade id
+        //             "dealOrderId": 3134995325,      // completed order Id
+        //             "clientOrderId": "customId11",  // custom order id; "clientOrderId": "" - if not specified.
+        //             "role": 2,                      // Role - 1 - maker, 2 - taker
+        //             "deal": "0.00419198"            // amount in money
+        //         }
+        //     ],
+        //     "offset": 0,
+        //     "limit": 100
+        // }
+        let data = this.safeValue (response, 'records', {});
+        if (data.length) {
+            data = this.safeValue (data, 'records', {});
+        }
+        return this.parseOrder (response);
+    }
+
+    isFiat (code) {
+        return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
     sign (path, api = 'publicV1', method = 'GET', params = {}, headers = undefined, body = undefined) {
