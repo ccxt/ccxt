@@ -667,7 +667,6 @@ module.exports = class whitebit extends Exchange {
         //  }
         //
         await this.loadMarkets ();
-        console.log ('Fetchbalance:' + this.privateV4PostTradeAccountBalance);
         const response = await this.privateV4PostTradeAccountBalance (params);
         //
         // Response
@@ -685,16 +684,15 @@ module.exports = class whitebit extends Exchange {
         //     "...": {...}
         // }
         //
-        const data = this.safeValue (response, 'data');
-        const balances = this.safeValue (data, 'accounts');
-        const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeValue (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
+        const balanceKeys = Object.keys (response);
+        const result = { };
+        for (let i = 0; i < balanceKeys.length; i++) {
+            const id = balanceKeys[i];
+            const balance = response[id];
+            const code = this.safeCurrencyCode (id);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'locked');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -712,7 +710,6 @@ module.exports = class whitebit extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.stringToBinary (this.secret);
-            const auth = this.apiKey + nonce;
             const baseUrl = this.urls['api']['web'];
             const request = '/' + url.replace (baseUrl, '');
             body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
@@ -728,24 +725,24 @@ module.exports = class whitebit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-        }
-        if (code === 404) {
-            throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
-        }
-        if (response !== undefined) {
-            const success = this.safeValue (response, 'success');
-            if (!success) {
-                const feedback = this.id + ' ' + body;
-                const status = this.safeString (response, 'status');
-                if (typeof status === 'string') {
-                    this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
-                }
-                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-                throw new ExchangeError (feedback);
-            }
-        }
-    }
+    // handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    //     if ((code === 418) || (code === 429)) {
+    //         throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+    //     }
+    //     if (code === 404) {
+    //         throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
+    //     }
+    //     if (response !== undefined) {
+    //         const success = this.safeValue (response, 'success');
+    //         if (!success) {
+    //             const feedback = this.id + ' ' + body;
+    //             const status = this.safeString (response, 'status');
+    //             if (typeof status === 'string') {
+    //                 this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+    //             }
+    //             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+    //             throw new ExchangeError (feedback);
+    //         }
+    //     }
+    // }
 };
