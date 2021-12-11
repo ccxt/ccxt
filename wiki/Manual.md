@@ -787,7 +787,7 @@ Examples:
 
 1. `(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 4)`
 
-  In the first example the **amount** of any order placed on the market **must satisfy both conditions**:
+  In this example the **amount** of any order placed on the market **must satisfy both conditions**:
 
   - The *amount value* should be >= 0.05:
     ```diff
@@ -802,7 +802,7 @@ Examples:
 
 2. `(market['limits']['price']['min'] == 0.019) && (market['precision']['price'] == 5)`
 
-  In the second example the **price** of any order placed on the market **must satisfy both conditions**:
+  In this example the **price** of any order placed on the market **must satisfy both conditions**:
 
   - The *price value* should be >= 0.019:
     ```diff
@@ -817,6 +817,8 @@ Examples:
 
 3. `(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)`
 
+  In this example **both conditions must be satisfied**:
+  
   - The *amount value* should be greater than or equal to 50:
     ```diff
     + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
