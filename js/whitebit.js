@@ -11,6 +11,7 @@ const Precise = require ('./base/Precise');
 module.exports = class whitebit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
+
             'id': 'whitebit',
             'name': 'WhiteBit',
             'version': 'v2',
@@ -94,6 +95,46 @@ module.exports = class whitebit extends Exchange {
                         'depth/{market}',
                         'trades/{market}',
                     ],
+                },
+                'privateV1': {
+                    'post': [
+                        'account/balance',
+                        'order/new',
+                        'order/cancel',
+                        'orders',
+                        'account/order_history',
+                        'account/executed_history',
+                        'account/executed_history/all',
+                        'account/order',
+                    ],
+                },
+                'privateV4': {
+                    'post': [
+                        'main-account/address',
+                        'main-account/balance',
+                        'main-account/create-new-address',
+                        'main-account/codes',
+                        'main-account/codes/apply',
+                        'main-account/codes/my',
+                        'main-account/codes/history',
+                        'main-account/fiat-deposit-url',
+                        'main-account/history',
+                        'main-account/withdraw',
+                        'main-account/withdraw-pay',
+                        'trade-account/balance',
+                        'trade-account/executed-history',
+                        'trade-account/order',
+                        'trade-account/order/history',
+                        'order/new',
+                        'order/market',
+                        'order/stock_market',
+                        'order/stop_limit',
+                        'order/stop_market',
+                        'order/cancel',
+                        'orders',
+
+                    ],
+
                 },
             },
             'fees': {
