@@ -773,7 +773,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
 - `active`. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
-- `precision`. Precision accepted in values by exchanges upon referencing this currency (The value inside this property depend on the [`exchange.precisionMode`](#exchangePrecisionMode))
+- `precision`. Precision accepted in values by exchanges upon referencing this currency (The value inside this property depend on the [`exchange.precisionMode`](#precision-mode))
 - `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
 
 ## Precision And Limits
@@ -855,7 +855,8 @@ Supported rounding modes are:
 
 The decimal precision counting mode is available in the `exchange.precisionMode` property.
 
-#### Exchange PrecisionMode
+##### Precision Mode
+
 Supported precision modes in `exchange['precisionMode']` are:
 
 - `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
