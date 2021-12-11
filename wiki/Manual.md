@@ -671,9 +671,9 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 
 - use a proxy (this is less responsive, though)
 - ask the exchange support to add you to a whitelist
-- run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
 - try an alternative IP within a different geographic region
 - run your software in a distributed network of servers
+- run your software in close proximity to the exchange (can be one from the following: same country | same city | same datacenter | same server rack | same server)
 - ...
 
 # Markets
@@ -685,9 +685,8 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - [Symbols And Market Ids](#symbols-and-market-ids)
 - [Market Cache Force Reload](#market-cache-force-reload)
 
-Each exchange is a place for trading some kinds of valuables. Sometimes they are called with various different terms like instruments, symbols, trading pairs, currencies, tokens, stocks, commodities, contracts, etc, but they all mean the same – a trading pair, a symbol or a financial instrument.
-
-In terms of the ccxt library, every exchange offers multiple markets within itself. The set of markets differs from exchange to exchange opening possibilities for cross-exchange and cross-market arbitrage. A market is usually a pair of traded crypto/fiat currencies.
+Each exchange is a place for trading some kinds of valuables. Each exchange supports numerous individual financial entity/instruments (might be called with various different terms, like: "currency", "coin", "token", "stock", "commodity", event itself "crypto", "fiat" or etc) and a market is where one financial instrument can be traded against another financial instrument (might be mentioned with different terms, like: "symbol", "trading pair", "market", "contract" or etc).
+In terms of the ccxt library, every exchange offers multiple markets within itself. The set of markets differs from exchange to exchange opening possibilities for cross-exchange and cross-market arbitrage.
 
 ## Market Structure
 
