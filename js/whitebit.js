@@ -768,11 +768,12 @@ module.exports = class whitebit extends Exchange {
         //       "dealOrderId": 3134995325,      // completed order Id
         //       "clientOrderId": "customId11",  // custom order id; "clientOrderId": "" - if not specified.
         //       "role": 2,                      // Role - 1 - maker, 2 - taker
+        //       "side": 'buy
         //       "deal": "0.00419198"            // amount in money
         //   }
         //
         // }
-        const side = (this.safeValue (order, 'role') === 1) ? 'sell' : 'buy';
+        const side = this.safeValue (order, 'side');
         const status = 'closed';
         const timestamp = this.safeTimestamp (order, 'time');
         const id = this.safeString (order, 'id');
@@ -787,7 +788,6 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
-            'average': this.safeString (order, 'avg_execution_price'),
             'amount': this.safeString (order, 'deal'),
             'filled': this.safeString (order, 'deal'),
             'status': status,
@@ -803,6 +803,7 @@ module.exports = class whitebit extends Exchange {
             'orderId': parseInt (id),
         };
         const response = await this.privateV4PostTradeAccountOrder (this.extend (request, params));
+        // const x = await this.privateV4PostTradeAccountExecutedHistory (this.extend (request, params));
         // {
         //     "records": [
         //         {
