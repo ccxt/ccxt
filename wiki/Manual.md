@@ -773,10 +773,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
 - `active`. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
-- `precision`. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the `exchange.precisionMode`.
-    - If `exchange.precisionMode` is `DECIMAL_PLACES` then the `currency['precision']` designates the number of decimal digits after the dot.
-    - If `exchange.precisionMode` is `SIGNIFICANT_DIGITS` then the `currency['precision']` designates the number of non-zero digits after the dot.
-    - When `exchange.precisionMode` is `TICK_SIZE` then the `currency['precision']` designates the smallest possible float fractions.
+- `precision`. Precision accepted in values by exchanges upon referencing this currency (The value inside this property depend on the [`exchange.precisionMode`](#precision-mode))
 - `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
 
 ## Precision And Limits
@@ -858,16 +855,24 @@ Supported rounding modes are:
 
 The decimal precision counting mode is available in the `exchange.precisionMode` property.
 
-Supported precision modes are:
+##### Precision Mode
 
-- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in `market['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
-- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
-- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` and `ftx` use this mode, for example). In this mode, the numbers in `market['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
+Supported precision modes in `exchange['precisionMode']` are:
+
+- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
+- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market_or_currency['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
+- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` and `ftx` use this mode, for example). In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
+
+##### Padding Mode
 
 Supported padding modes are:
 
 - `NO_PADDING` – default for most cases
 - `PAD_WITH_ZERO` – appends zero characters up to precision
+
+##### Formatting To Precision
+
+Most of the time the user does not have to take care of precision formatting, since CCXT will handle that for the user when the user places orders or sends withdrawal requests, if the user follows the rules as described on [Precision And Limits](#precision-and-limits). However, in some cases precision-formatting details may be important, so the following methods may be useful in the userland.
 
 The exchange base class contains the `decimalToPrecision` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
 
