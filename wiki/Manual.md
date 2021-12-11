@@ -716,7 +716,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `code`. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
 - `name`. A human-readable name of the currency (can be a mix of uppercase & lowercase characters).
 - `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
-- `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible. However, read more below about the meaning of [active status](#active-status).
+- `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible. However, read more below about the meaning of [`active` status](#active-status).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency (The value inside this property depend on the [`exchange.precisionMode`](#precision-mode))
 - `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
@@ -762,7 +762,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `quote`. A unified uppercase string code of quoted fiat or crypto currency.
 - `baseId`. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
 - `quoteId`. An exchange-specific id of the quote currency, not unified.
-- `active`. A boolean indicating whether or not trading this market is currently possible. However, read more below about the meaning of [active status](#active-status).
+- `active`. A boolean indicating whether or not trading this market is currently possible. However, read more below about the meaning of [`active` status](#active-status).
 - `maker`. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market.
 - `taker`. Float, 0.002 = 0.2%. Taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
 - `percentage`. A boolean true/false value indicating whether `taker` and `maker` are multipliers or fixed flat amounts.
@@ -772,7 +772,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
 
 ## Active status
- The `active` flag is typically used in `currency` & `market` objects. However, from different exchanges, the status might have different meaning. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints might return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload). (Note: `false` value for this property doesn't always guarantee that all of them (trading/withdrawal/deposit) are disabled on the exchange. Samewide, neither `true` value guarantees that all of them (trading/withdrawal/deposit) are enabled on that exchange. For exact answer, you might need to look into specific exchange's implementation of the mentioned `active` property inside `fetchMarkets` method).
+ The `active` flag is typically used in `currency` & `market` objects. However, from different exchanges, the status might have different meaning. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints might return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload). (Note: `false` value for this property doesn't always guarantee that all of them (trading/withdrawal/deposit) are disabled on the exchange. Likewise, neither `true` value guarantees that all of them (trading/withdrawal/deposit) are enabled on that exchange. For exact answer, you might need to look into specific exchange's implementation of the mentioned `active` property inside `fetchMarkets` method).
  
 **WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
 
