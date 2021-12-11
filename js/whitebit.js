@@ -711,17 +711,18 @@ module.exports = class whitebit extends Exchange {
         if (api === 'privateV4') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const secret = this.base64ToBinary (this.secret);
+            const secret = this.stringToBinary (this.secret);
             const auth = this.apiKey + nonce;
             const baseUrl = this.urls['api']['web'];
             const request = '/' + url.replace (baseUrl, '');
-            body = this.json (this.extend ({ 'nonce': nonce, 'request': request }, params));
+            body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64 (body);
+            const signature = this.hmac (payload, secret, 'sha512');
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
-                'X-TXC-SIGNATURE': this.hmac (this.encode (auth), secret, 'sha512', 'base64'),
+                'X-TXC-SIGNATURE': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
