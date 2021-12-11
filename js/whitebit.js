@@ -5,13 +5,14 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
 const Precise = require ('./base/Precise');
-
+const { secret, key } = require ('./api_keys');
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-
+            'apiKey': key,
+            'secret': secret,
             'id': 'whitebit',
             'name': 'WhiteBit',
             'version': 'v2',
@@ -26,7 +27,7 @@ module.exports = class whitebit extends Exchange {
                 'createOrder': undefined,
                 'deposit': undefined,
                 'editOrder': undefined,
-                'fetchBalance': undefined,
+                'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
@@ -61,6 +62,7 @@ module.exports = class whitebit extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
                 'api': {
                     'web': 'https://whitebit.com/',
+                    'privateV4': 'https://whitebit.com/api/v4',
                     'publicV2': 'https://whitebit.com/api/v2/public',
                     'publicV1': 'https://whitebit.com/api/v1/public',
                 },
@@ -656,11 +658,71 @@ module.exports = class whitebit extends Exchange {
         return this.status;
     }
 
+    async fetchBalance (params = {}) {
+        //
+        // Request
+        //  {
+        //     "request": "{{request}}",
+        //     "nonce": "{{nonce}}"
+        //  }
+        //
+        await this.loadMarkets ();
+        console.log ('Fetchbalance:' + this.privateV4PostTradeAccountBalance);
+        const response = await this.privateV4PostTradeAccountBalance (params);
+        //
+        // Response
+        // {
+        //     "...": {...},
+        //     "BTC": {
+        //         "available": "0.123",      // Available balance of currency for trading
+        //         "freeze": "1"              // Balance of currency that is currently in active orders
+        //     },
+        //     "...": {...},
+        //     "XMR": {
+        //         "available": "3013",
+        //         "freeze": "100"
+        //     },
+        //     "...": {...}
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        const balances = this.safeValue (data, 'accounts');
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeValue (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
     sign (path, api = 'publicV1', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        if (Object.keys (query).length) {
-            url += '?' + this.urlencode (query);
+        if (api === 'publicV1') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        }
+        if (api === 'privateV4') {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ().toString ();
+            const secret = this.base64ToBinary (this.secret);
+            const auth = this.apiKey + nonce;
+            const baseUrl = this.urls['api']['web'];
+            const request = '/' + url.replace (baseUrl, '');
+            body = this.json (this.extend ({ 'nonce': nonce, 'request': request }, params));
+            const payload = this.stringToBase64 (body);
+            headers = {
+                'Content-Type': 'application/json',
+                'X-TXC-APIKEY': this.apiKey,
+                'X-TXC-PAYLOAD': payload,
+                'X-TXC-SIGNATURE': this.hmac (this.encode (auth), secret, 'sha512', 'base64'),
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
