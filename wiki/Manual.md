@@ -767,7 +767,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `quote`. A unified uppercase string code of quoted fiat or crypto currency.
 - `baseId`. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
 - `quoteId`. An exchange-specific id of the quote currency, not unified.
-- `active`. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and [reload market cache periodically, as explained below](#market-cache-force-reload).
+- `active`. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and [reload market cache periodically, as explained below](#market-cache-force-reload). *The `active` flag is not yet supported and/or implemented by all markets.*
 - `maker`. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market.
 - `taker`. Float, 0.002 = 0.2%. Taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
 - `percentage`. A boolean true/false value indicating whether `taker` and `maker` are multipliers or fixed flat amounts.
@@ -830,7 +830,7 @@ Examples:
     - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
     ```
 
-*The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The `active` flag is not yet supported and/or implemented by all markets.*
+*The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders.*
 
 #### Notes On Precision And Limits
 
