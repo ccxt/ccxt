@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const { secret, key } = require ('./api_keys');
 //  ---------------------------------------------------------------------------
@@ -153,7 +153,8 @@ module.exports = class whitebit extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null}
+                    '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
+                    '422': InvalidOrder, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
                     'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
@@ -859,24 +860,24 @@ module.exports = class whitebit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    // handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-    //     if ((code === 418) || (code === 429)) {
-    //         throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-    //     }
-    //     if (code === 404) {
-    //         throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
-    //     }
-    //     if (response !== undefined) {
-    //         const success = this.safeValue (response, 'success');
-    //         if (!success) {
-    //             const feedback = this.id + ' ' + body;
-    //             const status = this.safeString (response, 'status');
-    //             if (typeof status === 'string') {
-    //                 this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
-    //             }
-    //             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-    //             throw new ExchangeError (feedback);
-    //         }
-    //     }
-    // }
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if ((code === 418) || (code === 429)) {
+            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+        }
+        if (code === 404) {
+            throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
+        }
+        if (response !== undefined) {
+            const success = this.safeValue (response, 'success');
+            if (!success) {
+                const feedback = this.id + ' ' + body;
+                const status = this.safeString (response, 'status');
+                if (typeof status === 'string') {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+                }
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+                throw new ExchangeError (feedback);
+            }
+        }
+    }
 };
