@@ -673,7 +673,7 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - ask the exchange support to add you to a whitelist
 - try an alternative IP within a different geographic region
 - run your software in a distributed network of servers
-- run your software in close proximity to the exchange (can be one from the following: same country | same city | same datacenter | same server rack | same server)
+- run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
 - ...
 
 # Markets
