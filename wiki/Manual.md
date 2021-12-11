@@ -435,7 +435,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `timeout`: A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). You should always set it to a reasonable value, hanging forever with no timeout is not your option, for sure.
 
-- `rateLimit`: A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is disabled by default and is turned on by setting the `enableRateLimit` property to true.
+- `rateLimit`: A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is enabled by default and can be turned off by setting the `enableRateLimit` property to false.
 
 - `enableRateLimit`: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is `true` (enabled) by default. **The user is required to implement own [rate limiting](#rate-limit) or leave the built-in rate limiter enabled to avoid being banned from the exchange**.
 
@@ -516,10 +516,10 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
 
     The meaning of each flag showing availability of this or that method is:
 
-    - a value of `undefined` / `None` / `null` means the method is not unified in the ccxt library yet or the method isn't natively available from the exchange API
-    - boolean `false` means the method isn't natively available from the exchange API
-    - boolean `true` means the method is natively available from the exchange API and unified in the ccxt library
-    - an `'emulated'` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
+    - a value of `undefined` / `None` / `null` means the method is not currently implemented in ccxt (either ccxt has not unified it yet or the method isn't natively available from the exchange API)
+    - boolean `false` specifically means that the endpoint isn't natively available from the exchange API
+    - boolean `true` means the endpoint is natively available from the exchange API and unified in the ccxt library
+    - `'emulated'` string means the endpoint isn't natively available from the exchange API but reconstructed (as much as possible) by the ccxt library from other available true-methods
 
 ## Rate Limit
 
@@ -621,7 +621,7 @@ while (true) {
 }
 ```
 
-Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets pver and over as explained in the [Loading Markets](https://docs.ccxt.com/en/latest/manual.html#loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets over and over as explained in the [Loading Markets](https://docs.ccxt.com/en/latest/manual.html#loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
 
 ```JavaScript
 // DO NOT DO THIS!
@@ -673,7 +673,7 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - ask the exchange support to add you to a whitelist
 - try an alternative IP within a different geographic region
 - run your software in a distributed network of servers
-- run your software in close proximity to the exchange (can be one from the following: same country | same city | same datacenter | same server rack | same server)
+- run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
 - ...
 
 # Markets
@@ -786,7 +786,7 @@ Examples:
 
 1. `(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 4)`
 
-  In the first example the **amount** of any order placed on the market **must satisfy both conditions**:
+  In this example the **amount** of any order placed on the market **must satisfy both conditions**:
 
   - The *amount value* should be >= 0.05:
     ```diff
@@ -801,7 +801,7 @@ Examples:
 
 2. `(market['limits']['price']['min'] == 0.019) && (market['precision']['price'] == 5)`
 
-  In the second example the **price** of any order placed on the market **must satisfy both conditions**:
+  In this example the **price** of any order placed on the market **must satisfy both conditions**:
 
   - The *price value* should be >= 0.019:
     ```diff
@@ -816,6 +816,8 @@ Examples:
 
 3. `(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)`
 
+  In this example **both conditions must be satisfied**:
+  
   - The *amount value* should be greater than or equal to 50:
     ```diff
     + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
