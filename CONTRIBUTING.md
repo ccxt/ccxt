@@ -937,7 +937,7 @@ We also welcome financial contributions in full transparency on our [open collec
 
 Thank you to all the people who have already contributed to ccxt!
 
-<a href="graphs/contributors"><img src="https://opencollective.com/ccxt/contributors.svg?width=890" /></a>
+<a href="https://github.com/ccxt/ccxt/graphs/contributors"><img src="https://opencollective.com/ccxt/contributors.svg?width=890" /></a>
 
 ### Backers
 
