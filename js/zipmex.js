@@ -22,15 +22,6 @@ module.exports = class zipmex extends ndax {
                     'private': 'https://apws.zipmex.com:8443/AP',
                     // 'ws': 'wss://apws.zipmex.com/WSGateway'
                 },
-
-                'api': {
-                    'web': 'https://www.binance.us',
-                    'sapi': 'https://api.binance.us/sapi/v1',
-                    'wapi': 'https://api.binance.us/wapi/v3',
-                    'public': 'https://api.binance.us/api/v1',
-                    'private': 'https://api.binance.us/api/v3',
-                    'v1': 'https://api.binance.us/api/v1',
-                },
                 'www': 'https://zipmex.com/',
                 'referral': 'https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN',
                 'fees': 'https://zipmex.com/fee-schedule',
