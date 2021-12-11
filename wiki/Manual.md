@@ -678,8 +678,8 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 
 # Markets
 
-- [Market Structure](#market-structure)
 - [Currency Structure](#currency-structure)
+- [Market Structure](#market-structure)
 - [Precision And Limits](#precision-and-limits)
 - [Loading Markets](#loading-markets)
 - [Symbols And Market Ids](#symbols-and-market-ids)
@@ -688,6 +688,38 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 Each exchange is a place for trading some kinds of valuables. The exchanges may use differing terms to call them: _"a currency"_, _"an asset"_, _"a coin"_, _"a token"_, _"stock"_, _"commodity"_, _"crypto"_, "fiat", etc. A place for trading one asset for another is usually called _"a market"_, _"a symbol"_, _"a trading pair"_, _"a contract"_, etc. 
 
 In terms of the ccxt library, every exchange offers multiple **markets** within itself. Each market is defined by two or more **currencies**. The set of markets differs from exchange to exchange opening possibilities for cross-exchange and cross-market arbitrage.
+
+## Currency Structure
+
+```JavaScript
+{
+    'id':       'btc',       // string literal for referencing within an exchange
+    'code':     'BTC',       // uppercase unified string literal code the currency
+    'name':     'Bitcoin',   // string, human-readable name, if specified
+    'active':    true,       // boolean, currency status (tradeable and withdrawable)
+    'fee':       0.123,      // withdrawal fee, flat
+    'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+    'limits': {              // value limits when placing orders on this market
+        'amount': {
+            'min': 0.01,     // order amount should be > min
+            'max': 1000,     // order amount should be < max
+        },
+        'withdraw': { ... }, // withdrawal limits
+    },
+    'info': { ... }, // the original unparsed currency info from the exchange
+}
+```
+
+Each currency is an associative array (aka dictionary) with the following keys:
+
+- `id`. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
+- `code`. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
+- `name`. A human-readable name of the currency (can be a mix of uppercase & lowercase characters).
+- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
+- `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints might return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload). [Note: `false` value for this property doesn't always guarantee that all of them (trading/withdrawal/deposit) are disabled on the exchange. Samewide, neither `true` value guarantees that all of them (trading/withdrawal/deposit) are enabled on that exchange. For exact answer, you might need to look into specific exchange's implementation of the mentioned `active` property inside `fetchMarkets` method]
+- `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+- `precision`. Precision accepted in values by exchanges upon referencing this currency (The value inside this property depend on the [`exchange.precisionMode`](#precision-mode))
+- `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
 
 ## Market Structure
 
@@ -736,45 +768,10 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `percentage`. A boolean true/false value indicating whether `taker` and `maker` are multipliers or fixed flat amounts.
 - `tierBased`. A boolean true/false value indicating whether the fee depends on your trading tier (usually, your traded volume over a period of time).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
-- `precision`. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the `exchange.precisionMode`.
-    - If `exchange.precisionMode` is `DECIMAL_PLACES` then the `market['precision']` designates the number of decimal digits after the dot.
-    - If `exchange.precisionMode` is `SIGNIFICANT_DIGITS` then the `market['precision']` designates the number of non-zero digits after the dot.
-    - When `exchange.precisionMode` is `TICK_SIZE` then the `market['precision']` designates the smallest possible float fractions.
+- `precision`. Precision accepted in order values by exchanges upon order placement for price, amount and cost. (The value inside this property depend on the [`exchange.precisionMode`](#precision-mode)).
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
 
 **WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
-
-## Currency Structure
-
-```JavaScript
-{
-    'id':       'btc',       // string literal for referencing within an exchange
-    'code':     'BTC',       // uppercase unified string literal code the currency
-    'name':     'Bitcoin',   // string, human-readable name, if specified
-    'active':    true,       // boolean, currency status (tradeable and withdrawable)
-    'fee':       0.123,      // withdrawal fee, flat
-    'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
-    'limits': {              // value limits when placing orders on this market
-        'amount': {
-            'min': 0.01,     // order amount should be > min
-            'max': 1000,     // order amount should be < max
-        },
-        'withdraw': { ... }, // withdrawal limits
-    },
-    'info': { ... }, // the original unparsed currency info from the exchange
-}
-```
-
-Each currency is an associative array (aka dictionary) with the following keys:
-
-- `id`. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
-- `code`. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
-- `name`. Self-explaining.
-- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
-- `active`. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload).
-- `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
-- `precision`. Precision accepted in values by exchanges upon referencing this currency (The value inside this property depend on the [`exchange.precisionMode`](#precision-mode))
-- `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
 
 ## Precision And Limits
 
