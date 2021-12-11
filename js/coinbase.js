@@ -683,7 +683,8 @@ module.exports = class coinbase extends Exchange {
         const coinKeys = Object.keys (rates);
         for (let i = 0; i < coinKeys.length; i++) {
             const coinName = coinKeys[i];
-            const symbol = coinName + '/' + request['currency'];
+            const delimiter = '/';
+            const symbol = this.safeSymbol (coinName + delimiter + request['currency'], undefined, delimiter);
             const ticker = {
                 'symbol': symbol,
                 'timestamp': timestamp,
@@ -691,7 +692,7 @@ module.exports = class coinbase extends Exchange {
                 'value': rates[coinName],
                 'fetchtickers': true,
             };
-            const market = undefined;
+            const market = this.safeMarket (symbol, undefined, delimiter);
             result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
@@ -708,7 +709,7 @@ module.exports = class coinbase extends Exchange {
         const sell = await this.publicGetPricesSymbolSell (request);
         const spot = await this.publicGetPricesSymbolSpot (request);
         const ticker = {
-            'symbol': request['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'buy': buy,
             'sell': sell,
@@ -718,16 +719,17 @@ module.exports = class coinbase extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let ask = undefined, bid = undefined, last, info = {};
-
+        let ask = undefined;
+        let bid = undefined;
+        let last = undefined;
+        const info = {};
         if ('fetchtickers' in ticker) {
-            let coinName = this.safeString (ticker, 'name');
+            const coinName = this.safeString (ticker, 'name');
             const stringValue = this.safeString (ticker, 'value');
             const invertedStringValue = Precise.stringDiv ('1', stringValue); // as in returned values, USD(or the requested currency) is a base currency
             last = this.parseNumber (invertedStringValue);
             info[coinName] = stringValue;
-        }
-        else{
+        } else {
             const buy = this.safeValue (ticker, 'buy');
             const sell = this.safeValue (ticker, 'sell');
             const spot = this.safeValue (ticker, 'spot');
@@ -738,7 +740,6 @@ module.exports = class coinbase extends Exchange {
             info['sell'] = sell;
             info['spot'] = spot;
         }
-
         return this.safeTicker ({
             'symbol': ticker['symbol'],
             'timestamp': ticker['timestamp'],
