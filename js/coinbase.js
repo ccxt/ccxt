@@ -672,7 +672,7 @@ module.exports = class coinbase extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const timestamp = this.seconds ();
+        const timestamp = this.milliseconds ();
         const request = {
             'currency': this.safeValue (params, 'currency', 'USD'),
         };
@@ -683,19 +683,13 @@ module.exports = class coinbase extends Exchange {
         const coinKeys = Object.keys (rates);
         for (let i = 0; i < coinKeys.length; i++) {
             const coinName = coinKeys[i];
-            const value = rates[coinName]; // already in string, no need for safeNumber
             const symbol = coinName + '/' + request['currency'];
             const ticker = {
                 'symbol': symbol,
                 'timestamp': timestamp,
-                'bid': undefined,
-                'ask': undefined,
-                'last': value,
-                'info': {
-                    'buy': undefined,
-                    'sell': undefined,
-                    'spot': undefined,
-                },
+                'name': coinName,
+                'value': rates[coinName],
+                'fetchtickers': true,
             };
             const market = undefined;
             result[symbol] = this.parseTicker (ticker, market);
@@ -705,7 +699,7 @@ module.exports = class coinbase extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const timestamp = this.seconds ();
+        const timestamp = this.milliseconds ();
         const market = this.market (symbol);
         const request = this.extend ({
             'symbol': market['id'],
@@ -713,47 +707,60 @@ module.exports = class coinbase extends Exchange {
         const buy = await this.publicGetPricesSymbolBuy (request);
         const sell = await this.publicGetPricesSymbolSell (request);
         const spot = await this.publicGetPricesSymbolSpot (request);
-        const ask = this.safeNumber (buy['data'], 'amount');
-        const bid = this.safeNumber (sell['data'], 'amount');
-        const last = this.safeNumber (spot['data'], 'amount');
         const ticker = {
-            'symbol': symbol,
+            'symbol': request['symbol'],
             'timestamp': timestamp,
-            'bid': bid,
-            'ask': ask,
-            'last': last,
-            'info': {
-                'buy': buy,
-                'sell': sell,
-                'spot': spot,
-            },
+            'buy': buy,
+            'sell': sell,
+            'spot': spot,
         };
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
-        return {
+        let ask = undefined, bid = undefined, last, info = {};
+
+        if ('fetchtickers' in ticker) {
+            let coinName = this.safeString (ticker, 'name');
+            const stringValue = this.safeString (ticker, 'value');
+            const invertedStringValue = Precise.stringDiv ('1', stringValue); // as in returned values, USD(or the requested currency) is a base currency
+            last = this.parseNumber (invertedStringValue);
+            info[coinName] = stringValue;
+        }
+        else{
+            const buy = this.safeValue (ticker, 'buy');
+            const sell = this.safeValue (ticker, 'sell');
+            const spot = this.safeValue (ticker, 'spot');
+            ask = this.safeNumber (buy['data'], 'amount');
+            bid = this.safeNumber (sell['data'], 'amount');
+            last = this.safeNumber (spot['data'], 'amount');
+            info['buy'] = buy;
+            info['sell'] = sell;
+            info['spot'] = spot;
+        }
+
+        return this.safeTicker ({
             'symbol': ticker['symbol'],
             'timestamp': ticker['timestamp'],
             'datetime': this.iso8601 (ticker['timestamp']),
-            'bid': ticker['bid'],
-            'ask': ticker['ask'],
-            'last': ticker['last'],
+            'bid': bid,
+            'ask': ask,
+            'last': last,
             'high': undefined,
             'low': undefined,
             'bidVolume': undefined,
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': ticker['last'],
+            'close': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'info': ticker['info'],
-        };
+            'info': info,
+        });
     }
 
     async fetchBalance (params = {}) {
