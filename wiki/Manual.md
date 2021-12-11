@@ -853,7 +853,10 @@ Supported rounding modes are:
 - `ROUND` – will round the last decimal digits to precision
 - `TRUNCATE`– will cut off the digits after certain precision
 
-The decimal precision counting mode is available in the `exchange.precisionMode` property. <a id="exchangePrecisionMode"></a> Supported precision modes are:
+The decimal precision counting mode is available in the `exchange.precisionMode` property.
+
+#### Exchange PrecisionMode
+Supported precision modes in `exchange['precisionMode']` are:
 
 - `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
 - `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market_or_currency['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
