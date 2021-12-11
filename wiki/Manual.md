@@ -516,10 +516,10 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
 
     The meaning of each flag showing availability of this or that method is:
 
-    - a value of `undefined` / `None` / `null` means the method is not unified in the ccxt library yet or the method isn't natively available from the exchange API
-    - boolean `false` means the method isn't natively available from the exchange API
-    - boolean `true` means the method is natively available from the exchange API and unified in the ccxt library
-    - an `'emulated'` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
+    - a value of `undefined` / `None` / `null` means the method is not currently implemented in ccxt ( the reason may not be clear currently: either ccxt has not unified it yet or the method isn't natively available from the exchange API ).
+    - boolean `false` specifically means that the endpoint isn't natively available from the exchange API
+    - boolean `true` means the endpoint is natively available from the exchange API and unified in the ccxt library
+    - string `'emulated'` means the endpoint isn't natively available from the exchange API but reconstructed (as much as it was possible) by the ccxt library from other available true-methods
 
 ## Rate Limit
 
@@ -621,7 +621,7 @@ while (true) {
 }
 ```
 
-Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets pver and over as explained in the [Loading Markets](https://docs.ccxt.com/en/latest/manual.html#loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets over and over as explained in the [Loading Markets](https://docs.ccxt.com/en/latest/manual.html#loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
 
 ```JavaScript
 // DO NOT DO THIS!
