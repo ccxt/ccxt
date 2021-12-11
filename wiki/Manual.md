@@ -435,7 +435,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `timeout`: A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). You should always set it to a reasonable value, hanging forever with no timeout is not your option, for sure.
 
-- `rateLimit`: A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is enabled by default and can be turned off by setting the `enableRateLimit` property to false.
+- `rateLimit`: A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is disabled by default and is turned on by setting the `enableRateLimit` property to true.
 
 - `enableRateLimit`: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is `true` (enabled) by default. **The user is required to implement own [rate limiting](#rate-limit) or leave the built-in rate limiter enabled to avoid being banned from the exchange**.
 
@@ -516,10 +516,10 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
 
     The meaning of each flag showing availability of this or that method is:
 
-    - a value of `undefined` / `None` / `null` means the method is not currently implemented in ccxt (either ccxt has not unified it yet or the method isn't natively available from the exchange API)
-    - boolean `false` specifically means that the endpoint isn't natively available from the exchange API
-    - boolean `true` means the endpoint is natively available from the exchange API and unified in the ccxt library
-    - `'emulated'` string means the endpoint isn't natively available from the exchange API but reconstructed (as much as possible) by the ccxt library from other available true-methods
+    - a value of `undefined` / `None` / `null` means the method is not unified in the ccxt library yet or the method isn't natively available from the exchange API
+    - boolean `false` means the method isn't natively available from the exchange API
+    - boolean `true` means the method is natively available from the exchange API and unified in the ccxt library
+    - an `'emulated'` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
 
 ## Rate Limit
 
@@ -621,7 +621,7 @@ while (true) {
 }
 ```
 
-Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets over and over as explained in the [Loading Markets](https://docs.ccxt.com/en/latest/manual.html#loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets pver and over as explained in the [Loading Markets](https://docs.ccxt.com/en/latest/manual.html#loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
 
 ```JavaScript
 // DO NOT DO THIS!
@@ -676,10 +676,10 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - run your software in a distributed network of servers
 - ...
 
-# Markets
+# <a id="markets">Instruments & Markets</a>
 
-- [Market Structure](#market-structure)
 - [Currency Structure](#currency-structure)
+- [Market Structure](#market-structure)
 - [Precision And Limits](#precision-and-limits)
 - [Loading Markets](#loading-markets)
 - [Symbols And Market Ids](#symbols-and-market-ids)
@@ -688,6 +688,43 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 Each exchange is a place for trading some kinds of valuables. Sometimes they are called with various different terms like instruments, symbols, trading pairs, currencies, tokens, stocks, commodities, contracts, etc, but they all mean the same – a trading pair, a symbol or a financial instrument.
 
 In terms of the ccxt library, every exchange offers multiple markets within itself. The set of markets differs from exchange to exchange opening possibilities for cross-exchange and cross-market arbitrage. A market is usually a pair of traded crypto/fiat currencies.
+
+
+## Currency Structure
+
+```JavaScript
+{
+    'id':       'btc',       // string literal for referencing within an exchange
+    'code':     'BTC',       // uppercase unified string literal code the currency
+    'name':     'Bitcoin',   // string, human-readable name, if specified
+    'active':    true,       // boolean, currency status (tradeable and withdrawable)
+    'fee':       0.123,      // withdrawal fee, flat
+    'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+    'limits': {              // value limits when placing orders on this market
+        'amount': {
+            'min': 0.01,     // order amount should be > min
+            'max': 1000,     // order amount should be < max
+        },
+        'withdraw': { ... }, // withdrawal limits
+    },
+    'info': { ... }, // the original unparsed currency info from the exchange
+}
+```
+
+Each currency is an associative array (aka dictionary) with the following keys:
+
+- `id`. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
+- `code`. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
+- `name`. a human-readable name of the currency (can be a mix of uppercase & lowercase characters).
+- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
+- `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints might return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload).
+- `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+- `precision`. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the `exchange.precisionMode`.
+    - If `exchange.precisionMode` is `DECIMAL_PLACES` then the `currency['precision']` designates the number of decimal digits after the dot.
+    - If `exchange.precisionMode` is `SIGNIFICANT_DIGITS` then the `currency['precision']` designates the number of non-zero digits after the dot.
+    - When `exchange.precisionMode` is `TICK_SIZE` then the `currency['precision']` designates the smallest possible float fractions.
+- `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
+
 
 ## Market Structure
 
@@ -743,41 +780,6 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
 
 **WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
-
-## Currency Structure
-
-```JavaScript
-{
-    'id':       'btc',       // string literal for referencing within an exchange
-    'code':     'BTC',       // uppercase unified string literal code the currency
-    'name':     'Bitcoin',   // string, human-readable name, if specified
-    'active':    true,       // boolean, currency status (tradeable and withdrawable)
-    'fee':       0.123,      // withdrawal fee, flat
-    'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
-    'limits': {              // value limits when placing orders on this market
-        'amount': {
-            'min': 0.01,     // order amount should be > min
-            'max': 1000,     // order amount should be < max
-        },
-        'withdraw': { ... }, // withdrawal limits
-    },
-    'info': { ... }, // the original unparsed currency info from the exchange
-}
-```
-
-Each currency is an associative array (aka dictionary) with the following keys:
-
-- `id`. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
-- `code`. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
-- `name`. Self-explaining.
-- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
-- `active`. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload).
-- `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
-- `precision`. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the `exchange.precisionMode`.
-    - If `exchange.precisionMode` is `DECIMAL_PLACES` then the `currency['precision']` designates the number of decimal digits after the dot.
-    - If `exchange.precisionMode` is `SIGNIFICANT_DIGITS` then the `currency['precision']` designates the number of non-zero digits after the dot.
-    - When `exchange.precisionMode` is `TICK_SIZE` then the `currency['precision']` designates the smallest possible float fractions.
-- `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
 
 ## Precision And Limits
 
