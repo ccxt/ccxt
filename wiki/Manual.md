@@ -685,8 +685,9 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - [Symbols And Market Ids](#symbols-and-market-ids)
 - [Market Cache Force Reload](#market-cache-force-reload)
 
-Each exchange is a place for trading some kinds of valuables. Each exchange supports numerous individual financial entity/instruments (might be called with various different terms, like: "currency", "coin", "token", "stock", "commodity", event itself "crypto", "fiat" or etc) and a market is where one financial instrument can be traded against another financial instrument (might be mentioned with different terms, like: "symbol", "trading pair", "market", "contract" or etc).
-In terms of the ccxt library, every exchange offers multiple markets within itself. The set of markets differs from exchange to exchange opening possibilities for cross-exchange and cross-market arbitrage.
+Each exchange is a place for trading some kinds of valuables. The exchanges may use differing terms to call them: _"a currency"_, _"an asset"_, _"a coin"_, _"a token"_, _"stock"_, _"commodity"_, _"crypto"_, "fiat", etc. A place for trading one asset for another is usually called _"a market"_, _"a symbol"_, _"a trading pair"_, _"a contract"_, etc. 
+
+In terms of the ccxt library, every exchange offers multiple **markets** within itself. Each market is defined by two or more **currencies**. The set of markets differs from exchange to exchange opening possibilities for cross-exchange and cross-market arbitrage.
 
 ## Market Structure
 
