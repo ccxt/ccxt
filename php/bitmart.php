@@ -440,7 +440,7 @@ class bitmart extends Exchange {
             $pricePrecision = $this->safe_integer($market, 'price_max_precision');
             $precision = array(
                 'amount' => $this->safe_number($market, 'base_min_size'),
-                'price' => $this->parse_number($this->decimal_to_precision(pow(10, -$pricePrecision), ROUND, 12)),
+                'price' => $this->parse_number($this->decimal_to_precision(pow(10, -$pricePrecision), ROUND, 14)),
             );
             $minBuyCost = $this->safe_number($market, 'min_buy_amount');
             $minSellCost = $this->safe_number($market, 'min_sell_amount');
