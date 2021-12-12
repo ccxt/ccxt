@@ -1153,7 +1153,7 @@ class Exchange {
             'fetchBorrowRate' => false,
             'fetchBorrowRates' => false,
             'fetchClosedOrders' => false,
-            'fetchCurrencies' => false,
+            'fetchCurrencies' => 'emulated',
             'fetchDepositAddress' => false,
             'fetchDeposits' => false,
             'fetchFundingFees' => false,
@@ -1776,7 +1776,7 @@ class Exchange {
             return $this->markets;
         }
         $currencies = null;
-        if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies']) {
+        if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = $this->fetch_currencies();
         }
         $markets = $this->fetch_markets($params);
