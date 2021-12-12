@@ -682,8 +682,23 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'amount': parseFloat (this.amountToPrecision (symbol, amount)),
         };
+        function getActivationPrice () {
+            const activationPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
+            if (activationPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a activationPrice or stopPrice parameter for the ' + type + ' order type');
+            }
+            return activationPrice;
+        }
         if (type === 'market') {
+            // this is not conventional
+            // for this order type, the amount in the stock currency to buy/sell
+            // example: amount = 50 in 'BTC-USDT' means
+            // I want to buy BTC for 50 USDT
             method = 'privateV4OrderMarket';
+        }
+        if (type === 'stockMarket') {
+            // this is the standard "market" order
+            method = 'privateV4OrderStockMarket';
         }
         if (type === 'limit') {
             method = 'privateV4OrderNew';
@@ -692,24 +707,29 @@ module.exports = class whitebit extends Exchange {
         if (type === 'stoplimit') {
             method = 'privateV4OrderStopLimit';
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
-            const activationPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
-            if (activationPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a activationPrice or stopPrice parameter for the ' + type + ' order type');
-            }
+            const activationPrice = getActivationPrice ();
+            request['activation_price'] = this.priceToPrecision (symbol, activationPrice);
+        }
+        if (type === 'stopMarket') {
+            // the same as above but for limit orders
+            // the amount is in stock currency to buy/sell
+            method = 'privateV4OrderStopMarket';
+            const activationPrice = getActivationPrice ();
             request['activation_price'] = this.priceToPrecision (symbol, activationPrice);
         }
         if (method === undefined) {
             throw new ArgumentsRequired (this.id + 'Invalid type:  createOrder() requires one of the following order types: market, stockMarket, limit, stopLimit or stopMarket');
         }
-        return await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'orderId': id,
             'market': market['id'],
+            'orderId': id,
         };
         return await this.privatePostV4OrderCancel (this.extend (request, params));
     }
@@ -756,18 +776,94 @@ module.exports = class whitebit extends Exchange {
         let method = 'mainAccountAddress';
         if (this.isFiat (code)) {
             method = 'mainAccountFiatDepositUrl';
-            if (!('provider' in params)) {
-                throw new ExchangeError ('Fetch deposit address for ' + code + ' requires provider param');
+            if (provider === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
             }
-            // const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            // const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            // const networks = this.safeValue (this.options, 'networks', {});
-            // let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            // network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-            // if (network !== undefined) {
-            //     request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-            //     params = this.omit (params, 'network');
-            // }
+            request['provider'] = provider;
+            const amount = this.safeNumber2 (params, 'amount');
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an amount when the ticker is fiat');
+            }
+            request['amount'] = amount;
+            const uniqueId = this.safeValue (params, 'uniqueId');
+            if (uniqueId === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
+            }
+            const provider = this.safeValue (params, 'provider');
+        }
+        const response = await this[method] (this.extend (request, params));
+        // Response for fiat
+        // {
+        //     "url": "https://someaddress.com"                  // address for deposit
+        // }
+        // Response for crypo
+        // {
+        //     "account": {
+        //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",        // deposit address
+        //         "memo": "48565488244493"                                                      // memo if currency requires memo
+        //     },
+        //     "required": {
+        //         "fixedFee": "0",                                                              // fixed deposit fee
+        //         "flexFee": {                                                                  // flexible fee - is fee that use percent rate
+        //             "maxFee": "0",                                                            // maximum fixed fee that you will pay
+        //             "minFee": "0",                                                            // minimum fixed fee that you will pay
+        //             "percent": "0"                                                            // percent of deposit that you will pay
+        //         },
+        //         "maxAmount": "0",                                                             // max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange 
+        //         "minAmount": "1"                                                              // min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange 
+        //     }
+        // }
+        let memo = undefined;
+        let address = this.safeValue(response, 'url');
+        if (address == undefined) {
+            const addressField = this.safeValue(response, 'account');
+            address = this.safeValue(addressField, 'address');
+            memo = this.safeValue(addressField, 'memo');
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': memo,
+            'network': this.safeValue(params, 'network'),
+            'info': response,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ticker': currency['id'],
+        };
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an amount');
+        }
+        request['amount'] = amount; // to precision?
+        const uniqueId = this.safeValue (params, 'uniqueId');
+        if (uniqueId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId');
+        }
+        request['uniqueId'] = uniqueId;
+        let method = 'mainAccountAddress';
+        if (this.isFiat (code)) {
+            method = 'mainAccountFiatDepositUrl';
+            const provider = this.safeValue (params, 'provider');
+            if (provider === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
+            }
+            request['provider'] = provider;
+        } else {
+            const address = this.safeValue (params, 'address');
+            if (address === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an address');
+            }
+            request['address'] = address;
+            const memo = this.safeValue (params, 'memo');
+            if (memo === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an memo for this ticker');
+            }
+            request['memo'] = memo;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -797,6 +893,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // For fetched orders
         // {
         //       "time": 1593342324.613711,      // Timestamp of executed order
         //       "fee": "0.00000419198",         // fee that you pay
@@ -811,10 +908,38 @@ module.exports = class whitebit extends Exchange {
         //   }
         //
         // }
+        // For created orders
+        // {
+        //     "orderId": 4180284841,             // order id
+        //     "clientOrderId": "order1987111",   // custom client order id; "clientOrderId": "" - if not specified.
+        //     "market": "BTC_USDT",              // deal market
+        //     "side": "buy",                     // order side
+        //     "type": "stop limit",              // order type
+        //     "timestamp": 1595792396.165973,    // current timestamp
+        //     "dealMoney": "0",                  // if order finished - amount in money currency that finished
+        //     "dealStock": "0",                  // if order finished - amount in stock currency that finished
+        //     "amount": "0.001",                 // amount
+        //     "takerFee": "0.001",               // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //     "makerFee": "0.001",               // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //     "left": "0.001",                   // if order not finished - rest of amount that must be finished
+        //     "dealFee": "0",                    // fee in money that you pay if order is finished
+        //     "price": "40000",                  // price
+        //     "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
+        // }
+        //
+        // fetched orders/trades
         const side = this.safeValue (order, 'side');
+        const amount = this.safeValue (order, 'amount');
+        const clientOrderId = this.safeValue (order, 'clientOrderId');
+        const price = this.safeValue (order, 'price');
+        // createdOrder
+        const orderId = this.safeValue (order, 'orderId');
+        const type = this.safeValue (order, 'type');
+        const takerFee = this.safeValue (order, 'takerFee');
+        const makerFee = this.safeValue (order, 'makerFee');
         const status = 'closed';
         const timestamp = this.safeTimestamp (order, 'time');
-        const id = this.safeString (order, 'id');
+        const id = this.safeString (order, 'dealOrderId');
         return this.safeOrder2 ({
             'info': order,
             'id': id,
