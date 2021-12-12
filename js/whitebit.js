@@ -732,7 +732,7 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
             'orderId': id,
         };
-        return await this.privatePostV4OrderCancel (this.extend (request, params));
+        return await this.privateV4PostOrderCancel (this.extend (request, params));
     }
 
     async fetchBalance (params = {}) {
