@@ -31,7 +31,7 @@ module.exports = class huobijp extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
@@ -848,112 +848,90 @@ module.exports = class huobijp extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.v2PublicGetReferenceCurrencies ();
+        const request = {
+            'language': this.options['language'],
+        };
+        const response = await this.publicGetSettingsCurrencys (this.extend (request, params));
+        //
         //     {
-        //       "code": 200,
-        //       "data": [
-        //         {
-        //           "currency": "sxp",
-        //           "assetType": "1",
-        //           "chains": [
+        //         "status":"ok",
+        //         "data":[
         //             {
-        //               "chain": "sxp",
-        //               "displayName": "ERC20",
-        //               "baseChain": "ETH",
-        //               "baseChainProtocol": "ERC20",
-        //               "isDynamic": true,
-        //               "numOfConfirmations": "12",
-        //               "numOfFastConfirmations": "12",
-        //               "depositStatus": "allowed",
-        //               "minDepositAmt": "0.23",
-        //               "withdrawStatus": "allowed",
-        //               "minWithdrawAmt": "0.23",
-        //               "withdrawPrecision": "8",
-        //               "maxWithdrawAmt": "227000.000000000000000000",
-        //               "withdrawQuotaPerDay": "227000.000000000000000000",
-        //               "withdrawQuotaPerYear": null,
-        //               "withdrawQuotaTotal": null,
-        //               "withdrawFeeType": "fixed",
-        //               "transactFeeWithdraw": "11.1653",
-        //               "addrWithTag": false,
-        //               "addrDepositTag": false
+        //                 "currency-addr-with-tag":false,
+        //                 "fast-confirms":12,
+        //                 "safe-confirms":12,
+        //                 "currency-type":"eth",
+        //                 "quote-currency":true,
+        //                 "withdraw-enable-timestamp":1609430400000,
+        //                 "deposit-enable-timestamp":1609430400000,
+        //                 "currency-partition":"all",
+        //                 "support-sites":["OTC","INSTITUTION","MINEPOOL"],
+        //                 "withdraw-precision":6,
+        //                 "visible-assets-timestamp":1508839200000,
+        //                 "deposit-min-amount":"1",
+        //                 "withdraw-min-amount":"10",
+        //                 "show-precision":"8",
+        //                 "tags":"",
+        //                 "weight":23,
+        //                 "full-name":"Tether USDT",
+        //                 "otc-enable":1,
+        //                 "visible":true,
+        //                 "white-enabled":false,
+        //                 "country-disabled":false,
+        //                 "deposit-enabled":true,
+        //                 "withdraw-enabled":true,
+        //                 "name":"usdt",
+        //                 "state":"online",
+        //                 "display-name":"USDT",
+        //                 "suspend-withdraw-desc":null,
+        //                 "withdraw-desc":"Minimum withdrawal amount: 10 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        //                 "suspend-deposit-desc":null,
+        //                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. !>_<!Minimum deposit amount: 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        //                 "suspend-visible-desc":null
         //             }
-        //           ],
-        //           "instStatus": "normal"
-        //         }
-        //       ]
+        //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const currencies = this.safeValue (response, 'data');
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const chains = this.safeValue (entry, 'chains', []);
-            const networks = {};
-            const instStatus = this.safeString (entry, 'instStatus');
-            const currencyActive = instStatus === 'normal';
-            let fee = undefined;
-            let precision = undefined;
-            let minWithdraw = undefined;
-            let maxWithdraw = undefined;
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString (chain, 'chain');
-                let baseChainProtocol = this.safeString (chain, 'baseChainProtocol');
-                const huobiToken = 'h' + currencyId;
-                if (baseChainProtocol === undefined) {
-                    if (huobiToken === networkId) {
-                        baseChainProtocol = 'ERC20';
-                    } else {
-                        baseChainProtocol = this.safeString (chain, 'displayName');
-                    }
-                }
-                const network = this.safeNetwork (baseChainProtocol);
-                minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
-                maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
-                const withdraw = this.safeString (chain, 'withdrawStatus');
-                const deposit = this.safeString (chain, 'depositStatus');
-                const active = (withdraw === 'allowed') && (deposit === 'allowed');
-                precision = this.safeInteger (chain, 'withdrawPrecision');
-                fee = this.safeNumber (chain, 'transactFeeWithdraw');
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'limits': {
-                        'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
-                        },
-                    },
-                    'active': active,
-                    'fee': fee,
-                    'precision': precision,
-                };
-            }
-            const networksKeys = Object.keys (networks);
-            const networkLength = networksKeys.length;
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeValue (currency, 'name');
+            const precision = this.safeInteger (currency, 'withdraw-precision');
+            const code = this.safeCurrencyCode (id);
+            const depositEnabled = this.safeValue (currency, 'deposit-enabled');
+            const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
+            const countryDisabled = this.safeValue (currency, 'country-disabled');
+            const visible = this.safeValue (currency, 'visible', false);
+            const state = this.safeString (currency, 'state');
+            const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
+            const name = this.safeString (currency, 'display-name');
             result[code] = {
-                'info': entry,
+                'id': id,
                 'code': code,
-                'id': currencyId,
-                'active': currencyActive,
-                'fee': (networkLength <= 1) ? fee : undefined,
-                'name': undefined,
+                'type': 'crypto',
+                // 'payin': currency['deposit-enabled'],
+                // 'payout': currency['withdraw-enabled'],
+                // 'transfer': undefined,
+                'name': name,
+                'active': active,
+                'fee': undefined, // todo need to fetch from fee endpoint
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'deposit-min-amount'),
+                        'max': Math.pow (10, precision),
                     },
                     'withdraw': {
-                        'min': (networkLength <= 1) ? minWithdraw : undefined,
-                        'max': (networkLength <= 1) ? maxWithdraw : undefined,
+                        'min': this.safeNumber (currency, 'withdraw-min-amount'),
+                        'max': Math.pow (10, precision),
                     },
                 },
-                'precision': (networkLength <= 1) ? precision : undefined,
-                'networks': networks,
+                'info': currency,
             };
         }
         return result;
