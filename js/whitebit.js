@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const { secret, key } = require ('./api_keys');
 //  ---------------------------------------------------------------------------
@@ -24,7 +24,7 @@ module.exports = class whitebit extends Exchange {
                 'createDepositAddress': undefined,
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
-                'createOrder': undefined,
+                'createOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
                 'fetchBalance': true,
@@ -39,7 +39,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
-                'privateAPI': undefined,
+                'privateAPI': true,
                 'publicAPI': true,
             },
             'timeframes': {
@@ -670,6 +670,38 @@ module.exports = class whitebit extends Exchange {
             'updated': this.milliseconds (),
         });
         return this.status;
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // types: market, stockMarket, limit, stopLimit, stopMarket
+        let method = undefined;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'side': side,
+            'amount': parseFloat (this.amountToPrecision (symbol, amount)),
+        };
+        if (type === 'market') {
+            method = 'privateV4OrderMarket';
+        }
+        if (type === 'limit') {
+            method = 'privateV4OrderNew';
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+        }
+        if (type === 'stoplimit') {
+            method = 'privateV4OrderStopLimit';
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            const activationPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
+            if (activationPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a activationPrice or stopPrice parameter for the ' + type + ' order type');
+            }
+            request['activation_price'] = this.priceToPrecision (symbol, activationPrice);
+        }
+        if (method === undefined) {
+            throw new ArgumentsRequired (this.id + 'Invalid type:  createOrder() requires one of the following order types: market, stockMarket, limit, stopLimit or stopMarket');
+        }
+        return await this[method] (this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
