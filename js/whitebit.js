@@ -34,6 +34,8 @@ module.exports = class whitebit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchOrder': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -844,14 +846,15 @@ module.exports = class whitebit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId');
         }
         request['uniqueId'] = uniqueId;
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
         if (this.isFiat (code)) {
             const provider = this.safeValue (params, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
             }
             request['provider'] = provider;
-        } else {
-            // check if it is memo
         }
         const response = await this.privateV4PostMainAccountWithdraw (this.extend (request, params));
         //
@@ -963,8 +966,14 @@ module.exports = class whitebit extends Exchange {
         return this.parseOrder (response);
     }
 
-    isFiat (code) {
-        return code === 'USD' || code === 'EUR' || code === 'GBP';
+    isFiat (currency) {
+        const fiatCurrencies = {
+            'USD': true,
+            'EUR': true,
+            'RUB': true,
+            'UAH': true,
+        };
+        return this.safeValue (fiatCurrencies, currency, false);
     }
 
     sign (path, api = 'publicV1', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1001,7 +1010,7 @@ module.exports = class whitebit extends Exchange {
         if (code === 404) {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
         }
-        if (url.includes ('public') && response !== undefined) {
+        if (url.indexOf ('public') && response !== undefined) {
             const success = this.safeValue (response, 'success');
             if (!success) {
                 const feedback = this.id + ' ' + body;
