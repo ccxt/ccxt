@@ -52,8 +52,7 @@ module.exports = class idex extends Exchange {
             },
             'urls': {
                 'test': {
-                    'public': 'https://api-sandbox-matic.idex.io',
-                    'private': 'https://api-sandbox-matic.idex.io',
+                    'MATIC': 'https://api-sandbox-matic.idex.io',
                 },
                 'logo': 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api': {
