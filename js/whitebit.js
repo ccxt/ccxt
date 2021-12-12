@@ -774,9 +774,9 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'ticker': currency['id'],
         };
-        let method = 'mainAccountAddress';
+        let method = 'privateV4PostMainAccountAddress';
         if (this.isFiat (code)) {
-            method = 'mainAccountFiatDepositUrl';
+            method = 'privateV4PostMainAccountFiatDepositUrl';
             const provider = this.safeNumber2 (params, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
@@ -853,7 +853,7 @@ module.exports = class whitebit extends Exchange {
         } else {
             // check if it is memo
         }
-        const response = await this.privatePostV4MainAccountWithdraw (this.extend (request, params));
+        const response = await this.privateV4PostMainAccountWithdraw (this.extend (request, params));
         //
         // [
         //   empty array - has success status - go to deposit/withdraw history and check you request status by uniqueId
