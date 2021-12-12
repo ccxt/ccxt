@@ -66,6 +66,7 @@ module.exports = class whitebit extends Exchange {
                     'privateV4': 'https://whitebit.com/api/v4',
                     'publicV2': 'https://whitebit.com/api/v2/public',
                     'publicV1': 'https://whitebit.com/api/v1/public',
+                    'publicV4': 'https://whitebit.com/api/v4/public',
                 },
                 'www': 'https://www.whitebit.com',
                 'doc': 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
@@ -97,6 +98,17 @@ module.exports = class whitebit extends Exchange {
                         'fee',
                         'depth/{market}',
                         'trades/{market}',
+                    ],
+                },
+                'publicV4': {
+                    'get': [
+                        'assets',
+                        'ticker',
+                        'trades/{market}',
+                        'fee',
+                        'assets',
+                        'time',
+                        'ping',
                     ],
                 },
                 'privateV1': {
@@ -671,13 +683,6 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        //
-        // Request
-        //  {
-        //     "request": "{{request}}",
-        //     "nonce": "{{nonce}}"
-        //  }
-        //
         await this.loadMarkets ();
         const response = await this.privateV4PostTradeAccountBalance (params);
         //
@@ -732,7 +737,7 @@ module.exports = class whitebit extends Exchange {
             //     params = this.omit (params, 'network');
             // }
         }
-        const response = await this.methods[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
@@ -804,7 +809,6 @@ module.exports = class whitebit extends Exchange {
             'orderId': parseInt (id),
         };
         const response = await this.privateV4PostTradeAccountOrder (this.extend (request, params));
-        // const x = await this.privateV4PostTradeAccountExecutedHistory (this.extend (request, params));
         // {
         //     "records": [
         //         {
@@ -867,7 +871,7 @@ module.exports = class whitebit extends Exchange {
         if (code === 404) {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
         }
-        if (response !== undefined) {
+        if (url.includes ('public') && response !== undefined) {
             const success = this.safeValue (response, 'success');
             if (!success) {
                 const feedback = this.id + ' ' + body;
