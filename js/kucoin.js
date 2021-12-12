@@ -1630,7 +1630,8 @@ module.exports = class kucoin extends Exchange {
         }
         let cost = this.safeNumber2 (trade, 'funds', 'dealValue');
         if (cost === undefined) {
-            const [type, _] = this.getType ('parseTrade');
+            const defaultType = this.safeString2 (this.options, 'parseTrade', 'defaultType', 'spot');
+            const type = (market === undefined) ? defaultType : market['type'];
             if (type === 'futures' || type === 'swap') {
                 market = this.market (symbol);
                 const contractSize = this.safeString (market, 'contractSize');
