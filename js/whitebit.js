@@ -41,6 +41,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchTradingFees': true,
                 'privateAPI': true,
                 'publicAPI': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -776,6 +777,7 @@ module.exports = class whitebit extends Exchange {
         let method = 'mainAccountAddress';
         if (this.isFiat (code)) {
             method = 'mainAccountFiatDepositUrl';
+            const provider = this.safeNumber2 (params, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
             }
@@ -789,7 +791,6 @@ module.exports = class whitebit extends Exchange {
             if (uniqueId === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
-            const provider = this.safeValue (params, 'provider');
         }
         const response = await this[method] (this.extend (request, params));
         // Response for fiat
@@ -809,85 +810,57 @@ module.exports = class whitebit extends Exchange {
         //             "minFee": "0",                                                            // minimum fixed fee that you will pay
         //             "percent": "0"                                                            // percent of deposit that you will pay
         //         },
-        //         "maxAmount": "0",                                                             // max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange 
-        //         "minAmount": "1"                                                              // min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange 
+        //         "maxAmount": "0",                                                             // max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange
+        //         "minAmount": "1"                                                              // min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange
         //     }
         // }
         let memo = undefined;
-        let address = this.safeValue(response, 'url');
-        if (address == undefined) {
-            const addressField = this.safeValue(response, 'account');
-            address = this.safeValue(addressField, 'address');
-            memo = this.safeValue(addressField, 'memo');
+        let address = this.safeValue (response, 'url');
+        if (address === undefined) {
+            const addressField = this.safeValue (response, 'account');
+            address = this.safeValue (addressField, 'address');
+            memo = this.safeValue (addressField, 'memo');
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': memo,
-            'network': this.safeValue(params, 'network'),
+            'network': this.safeValue (params, 'network'),
             'info': response,
         };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        const currency = this.currency (code); // check if it has canDeposit
         const request = {
             'ticker': currency['id'],
+            'amount': amount,
+            'address': address,
         };
-        if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an amount');
-        }
-        request['amount'] = amount; // to precision?
         const uniqueId = this.safeValue (params, 'uniqueId');
         if (uniqueId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId');
         }
         request['uniqueId'] = uniqueId;
-        let method = 'mainAccountAddress';
         if (this.isFiat (code)) {
-            method = 'mainAccountFiatDepositUrl';
             const provider = this.safeValue (params, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
             }
             request['provider'] = provider;
         } else {
-            const address = this.safeValue (params, 'address');
-            if (address === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an address');
-            }
-            request['address'] = address;
-            const memo = this.safeValue (params, 'memo');
-            if (memo === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an memo for this ticker');
-            }
-            request['memo'] = memo;
+            // check if it is memo
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privatePostV4MainAccountWithdraw (this.extend (request, params));
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        //         "data":{
-        //             "currency":"USDT-TRC20",
-        //             "chain":"USDT-TRC20",
-        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
-        //             "address_memo":""
-        //         }
-        //     }
+        // [
+        //   empty array - has success status - go to deposit/withdraw history and check you request status by uniqueId
+        // ]
         //
-        const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'address_memo');
-        this.checkAddress (address);
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'network': undefined, // TODO: parse
+            'id': uniqueId,
             'info': response,
         };
     }
