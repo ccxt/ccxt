@@ -39,7 +39,6 @@ class oceanex(Exchange):
                 'fetchAllTradingFees': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': None,
                 'fetchFundingFees': None,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
