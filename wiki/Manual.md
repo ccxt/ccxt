@@ -773,9 +773,11 @@ Each market is an associative array (aka dictionary) with the following keys:
 
 ## Active status
 
-The `active` flag is typically used in `currency` & `market` objects. However, from different exchanges, the status might have different meaning. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints might return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload). (Note: `false` value for this property doesn't always guarantee that all of them (trading/withdrawal/deposit) are disabled on the exchange. Likewise, neither `true` value guarantees that all of them (trading/withdrawal/deposit) are enabled on that exchange. For exact answer, you might need to look into specific exchange's implementation of the mentioned `active` property inside `fetchMarkets` method). Also, this flag is not yet supported and/or implemented by all markets.
+The `active` flag is typically used in [`currencies`](#currency-structure) and [`markets`](#market-structure). The exchanges might put a slightly different meaning into it. If a currency is inactive, most of the time all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated information. The user should check if the currency is `active` and [reload markets periodically](#market-cache-force-reload). 
+
+Note: the `false` value for the `active` property doesn't always guarantee that all of the possible features like trading, withdrawing or depositing are disabled on the exchange. Likewise, neither the `true` value guarantees that all those features are enabled on the exchange. Check the underlying exchanges' documentation and the code in CCXT for the exact meaning of the `active` flag for this or that exchange. This flag is not yet supported or implemented by all markets and may be missing.
  
-**WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
+**WARNING! The information about the fee is experimental, unstable and may be partial or not available at all.**
 
 ## Precision And Limits
 
