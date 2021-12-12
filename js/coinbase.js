@@ -672,78 +672,94 @@ module.exports = class coinbase extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const timestamp = this.milliseconds ();
         const request = {
-            'currency': this.safeValue (params, 'currency', 'USD'),
+            // 'currency': 'USD',
         };
         const response = await this.publicGetExchangeRates (this.extend (request, params));
+        //
+        //     {
+        //         "data":{
+        //             "currency":"USD",
+        //             "rates":{
+        //                 "AED":"3.6731",
+        //                 "AFN":"103.163942",
+        //                 "ALL":"106.973038",
+        //             }
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
         const rates = this.safeValue (data, 'rates', {});
+        const quoteId = this.safeString (data, 'currency');
         const result = {};
-        const coinKeys = Object.keys (rates);
-        for (let i = 0; i < coinKeys.length; i++) {
-            const coinName = coinKeys[i];
-            const delimiter = '/';
-            const symbol = this.safeSymbol (coinName + delimiter + request['currency'], undefined, delimiter);
-            const ticker = {
-                'symbol': symbol,
-                'timestamp': timestamp,
-                'name': coinName,
-                'value': rates[coinName],
-                'fetchtickers': true,
-            };
-            const market = this.safeMarket (symbol, undefined, delimiter);
-            result[symbol] = this.parseTicker (ticker, market);
+        const baseIds = Object.keys (rates);
+        const delimiter = '-';
+        for (let i = 0; i < baseIds.length; i++) {
+            const baseId = baseIds[i];
+            const marketId = baseId + delimiter + quoteId;
+            const market = this.safeMarket (marketId, undefined, delimiter);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (rates[baseId], market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const timestamp = this.milliseconds ();
         const market = this.market (symbol);
         const request = this.extend ({
             'symbol': market['id'],
         }, params);
-        const buy = await this.publicGetPricesSymbolBuy (request);
-        const sell = await this.publicGetPricesSymbolSell (request);
         const spot = await this.publicGetPricesSymbolSpot (request);
-        const ticker = {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'buy': buy,
-            'sell': sell,
-            'spot': spot,
-        };
-        return this.parseTicker (ticker, market);
+        //
+        //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        //
+        const buy = await this.publicGetPricesSymbolBuy (request);
+        //
+        //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        //
+        const sell = await this.publicGetPricesSymbolSell (request);
+        //
+        //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        //
+        return this.parseTicker ([ spot, buy, sell ], market);
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     [
+        //         "48691.23", // spot
+        //         "48691.23", // buy
+        //         "48691.23",  // sell
+        //     ]
+        //
+        // fetchTickers
+        //
+        //     "48691.23"
+        //
+        const symbol = this.safeSymbol (undefined, market);
         let ask = undefined;
         let bid = undefined;
         let last = undefined;
-        const info = {};
-        if ('fetchtickers' in ticker) {
-            const coinName = this.safeString (ticker, 'name');
-            const stringValue = this.safeString (ticker, 'value');
-            const invertedStringValue = Precise.stringDiv ('1', stringValue); // as in returned values, USD(or the requested currency) is a base currency
-            last = this.parseNumber (invertedStringValue);
-            info[coinName] = stringValue;
+        const timestamp = this.milliseconds ();
+        if (typeof ticker === 'string') {
+            const inverted = Precise.stringDiv ('1', ticker); // the currency requested, USD or other, is the base currency
+            last = this.parseNumber (inverted);
         } else {
-            const buy = this.safeValue (ticker, 'buy');
-            const sell = this.safeValue (ticker, 'sell');
-            const spot = this.safeValue (ticker, 'spot');
-            ask = this.safeNumber (buy['data'], 'amount');
-            bid = this.safeNumber (sell['data'], 'amount');
-            last = this.safeNumber (spot['data'], 'amount');
-            info['buy'] = buy;
-            info['sell'] = sell;
-            info['spot'] = spot;
+            const [ spot, buy, sell ] = ticker;
+            const spotData = this.safeValue (spot, 'data', {});
+            const buyData = this.safeValue (buy, 'data', {});
+            const sellData = this.safeValue (sell, 'data', {});
+            last = this.safeNumber (spotData, 'amount');
+            bid = this.safeNumber (buyData, 'amount');
+            ask = this.safeNumber (sellData, 'amount');
         }
         return this.safeTicker ({
-            'symbol': ticker['symbol'],
-            'timestamp': ticker['timestamp'],
-            'datetime': this.iso8601 (ticker['timestamp']),
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'bid': bid,
             'ask': ask,
             'last': last,
@@ -760,7 +776,7 @@ module.exports = class coinbase extends Exchange {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'info': info,
+            'info': ticker,
         });
     }
 
