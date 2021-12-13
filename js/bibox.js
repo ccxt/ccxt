@@ -39,7 +39,6 @@ module.exports = class bibox extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'publicAPI': undefined,
                 'withdraw': true,
             },
             'timeframes': {
