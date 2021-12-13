@@ -652,7 +652,7 @@ module.exports = class ftx extends Exchange {
                 const base = this.safeCurrencyCode (this.safeString (ticker, 'baseCurrency'));
                 const quote = this.safeCurrencyCode (this.safeString (ticker, 'quoteCurrency'));
                 if ((base !== undefined) && (quote !== undefined)) {
-                    symbol = base + '/' + quote;
+                    symbol = this.getCorrectSymbol (base + '/' + quote);
                 }
             }
         }
@@ -819,6 +819,7 @@ module.exports = class ftx extends Exchange {
     getMarketParams (symbol, key, params = {}) {
         let market = undefined;
         let marketId = undefined;
+        symbol = this.getCorrectSymbol (symbol);
         if (symbol in this.markets) {
             market = this.market (symbol);
             marketId = market['id'];
@@ -850,6 +851,7 @@ module.exports = class ftx extends Exchange {
         }
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
+            symbol = this.getCorrectSymbol (symbol);
             if (symbol in this.markets) {
                 request['market_name'] = market['baseId'];
             }
@@ -994,7 +996,7 @@ module.exports = class ftx extends Exchange {
             const base = this.safeCurrencyCode (this.safeString (trade, 'baseCurrency'));
             const quote = this.safeCurrencyCode (this.safeString (trade, 'quoteCurrency'));
             if ((base !== undefined) && (quote !== undefined)) {
-                symbol = base + '/' + quote;
+                symbol = this.getCorrectSymbol (base + '/' + quote);
             } else {
                 symbol = marketId;
             }
