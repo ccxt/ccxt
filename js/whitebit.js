@@ -940,41 +940,6 @@ module.exports = class whitebit extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code); // check if it has canDeposit
-        const request = {
-            'ticker': currency['id'],
-            'amount': amount,
-            'address': address,
-        };
-        const uniqueId = this.safeValue (params, 'uniqueId');
-        if (uniqueId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId');
-        }
-        request['uniqueId'] = uniqueId;
-        if (tag !== undefined) {
-            request['memo'] = tag;
-        }
-        if (this.isFiat (code)) {
-            const provider = this.safeValue (params, 'provider');
-            if (provider === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
-            }
-            request['provider'] = provider;
-        }
-        const response = await this.privateV4PostMainAccountWithdraw (this.extend (request, params));
-        //
-        // [
-        //   empty array - has success status - go to deposit/withdraw history and check you request status by uniqueId
-        // ]
-        //
-        return {
-            'id': uniqueId,
-            'info': response,
-        };
-    }
-
     parseOrder (order, market = undefined) {
         // For created orders / open Orders
         // {
@@ -1005,9 +970,10 @@ module.exports = class whitebit extends Exchange {
         //      "deal": "0.70407996",          // amount in money
         //      "fee": "0.00070407996"         // paid fee
         // },
-        const marketId = this.safeString (order, 'instrument_code');
+        const marketId = this.safeString (order, 'market');
         const symbol = this.safeSymbol (marketId, market, '_');
         const side = this.safeValue (order, 'side');
+        const filled = this.safeValue (order, 'dealStock');
         const amount = this.safeValue (order, 'amount');
         const clientOrderId = this.safeValue (order, 'clientOrderId');
         const price = this.safeValue (order, 'price');
@@ -1016,16 +982,15 @@ module.exports = class whitebit extends Exchange {
         const type = this.safeValue (order, 'type');
         const unifiedType = this.getUnifiedOrderType (type);
         const fee = this.safeValue (order, 'dealFee');
-        const timestamp = this.safeTimestamp (order, 'time');
-        // check maker or taker in role
-        // get unified order type
+        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const lastTimestamp = this.safeTimestamp (order, 'time');
         return this.safeOrder2 ({
             'info': order,
             'id': orderId,
             'symbol': symbol,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTimestamp,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
@@ -1033,7 +998,7 @@ module.exports = class whitebit extends Exchange {
             'type': unifiedType,
             'stopPrice': activationPrice,
             'amount': amount,
-            'filled': undefined,
+            'filled': filled,
             'fee': fee,
             'cost': undefined,
             'trades': undefined,
@@ -1075,6 +1040,41 @@ module.exports = class whitebit extends Exchange {
             data = this.safeValue (data, 'records', {});
         }
         return this.parseTrades (response);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code); // check if it has canDeposit
+        const request = {
+            'ticker': currency['id'],
+            'amount': amount,
+            'address': address,
+        };
+        const uniqueId = this.safeValue (params, 'uniqueId');
+        if (uniqueId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId');
+        }
+        request['uniqueId'] = uniqueId;
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        if (this.isFiat (code)) {
+            const provider = this.safeValue (params, 'provider');
+            if (provider === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
+            }
+            request['provider'] = provider;
+        }
+        const response = await this.privateV4PostMainAccountWithdraw (this.extend (request, params));
+        //
+        // [
+        //   empty array - has success status - go to deposit/withdraw history and check you request status by uniqueId
+        // ]
+        //
+        return {
+            'id': uniqueId,
+            'info': response,
+        };
     }
 
     getUnifiedOrderType (type) {
