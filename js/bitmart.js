@@ -40,7 +40,6 @@ module.exports = class bitmart extends Exchange {
                 'fetchOrders': true,
                 'fetchOrdersByStatus': true,
                 'fetchOrderTrades': true,
-                'fetchSpotMarkets': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,

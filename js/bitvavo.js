@@ -26,7 +26,6 @@ module.exports = class bitvavo extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
-                'fetchCurrenciesFromCache': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,

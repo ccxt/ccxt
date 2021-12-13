@@ -20,7 +20,6 @@ module.exports = class hitbtc extends Exchange {
             'pro': true,
             'has': {
                 'cancelOrder': true,
-                'convertCurrencyNetwork': true,
                 'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,

@@ -32,7 +32,6 @@ module.exports = class bitstamp extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
-                'fetchMarketsFromCache': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,

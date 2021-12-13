@@ -33,7 +33,6 @@ module.exports = class coinbase extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
-                'fetchCurrenciesFromCache': true,
                 'fetchDepositAddress': undefined,
                 'fetchDeposits': true,
                 'fetchIndexOHLCV': false,
@@ -55,10 +54,8 @@ module.exports = class coinbase extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransactionsWithMethod': true,
                 'fetchWithdrawals': true,
                 'findAccountId': true,
-                'prepareAccountRequestWithCurrencyCode': true,
                 'withdraw': undefined,
             },
             'urls': {
