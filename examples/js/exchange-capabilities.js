@@ -26,8 +26,20 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
 
         let result = {};
 
-        let exchangeDefinedMethods = Object.getOwnPropertyNames (ccxt[exchange.id].prototype);
-
+        let exchangeDefinedMethods = [];
+        let exchangeClassName = exchange.id;
+        while (exchangeClassName !== 'Exchange') {
+            let protoType = ccxt[exchangeClassName];
+            if (protoType){
+                let methodNamesArray = Object.getOwnPropertyNames (protoType.prototype);
+                exchangeDefinedMethods = exchangeDefinedMethods.concat( methodNamesArray);
+                exchangeClassName = Object.getPrototypeOf( (new protoType()).constructor).name;
+            }
+            else{
+                break;
+            }
+        }
+        
         let apiBasics = [
             'publicAPI',
             'privateAPI',
