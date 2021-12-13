@@ -1,7 +1,7 @@
 "use strict";
 
 /*  ------------------------------------------------------------------------ */
-// node ./examples/js/exchange-capabilities.js --csv
+// node ./examples/js/exchange-capabilities.js --csv --auto
 
 const isCsvStyle  = process.argv.includes ('--csv')
 const delimiter   = isCsvStyle ? ',' : '|'
@@ -20,10 +20,13 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
     let inexistentApi = 0
     let implemented = 0
     let emulated = 0
+ 
 
     const table = asTable (ccxt.exchanges.map (id => new ccxt[id]()).map (exchange => {
 
         let result = {};
+
+        let exchangeDefinedMethods = Object.getOwnPropertyNames (ccxt[exchange.id].prototype);
 
         let apiBasics = [
             'publicAPI',
@@ -115,7 +118,7 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
             } else if ( capHas === 'emulated') { // if explicitly set to 'emulated' under 'has' params
                 coloredString = exchange.id.yellow
                 emulated += 1
-            } else if ( (isApiBasics && capHas) || ( !isApiBasics && capType === 'function') ) { // if neither 'false' nor 'emulated', and if neither method exists
+            } else if ( (isApiBasics && capHas) || ( !isApiBasics && capType === 'function' && exchangeDefinedMethods.includes(methodName) ) ) { // if neither 'false' nor 'emulated', and if  method exists
                 coloredString = exchange.id.green
                 implemented += 1
             } else {
