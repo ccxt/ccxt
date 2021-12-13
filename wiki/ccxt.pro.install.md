@@ -249,4 +249,4 @@ cd path/to/your/project
 - - https://ccxt.pro/orders
 - If the above things work, that means something is wrong with your GitHub authentication config on your local machine.
 Make sure you use the correct account for it, and your subscription has not expired (you should receive emails to your primary GitHub email if it does).
-- If none of above helps, open an issue: httpshttps://github.com/ccxt/ccxt/issues
+- If none of above helps, open an issue: https://github.com/ccxt/ccxt/issues
