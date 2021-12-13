@@ -709,7 +709,7 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'market': market['id'],
             'side': side,
-            'amount': parseFloat (this.amountToPrecision (symbol, amount)),
+            'amount': this.numberToString (this.amountToPrecision (symbol, amount)),
         };
         function getActivationPrice () {
             const activationPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
@@ -718,12 +718,13 @@ module.exports = class whitebit extends Exchange {
             }
             return activationPrice;
         }
+        const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
         if (type === 'market') {
-            method = 'privateV4OrderStockMarket';
+            method = 'privateV4PostOrderStockMarket';
         }
         if (type === 'limit') {
-            method = 'privateV4OrderStopMarket';
-            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            method = 'privateV4PostOrderNew';
+            request['price'] = convertedPrice;
         }
         const customType = this.safeValue (params, 'type');
         if (customType === 'market') {
@@ -731,24 +732,24 @@ module.exports = class whitebit extends Exchange {
             // for this order type, the amount in the stock currency to buy/sell
             // example: amount = 50 in 'BTC-USDT' means
             // I want to buy BTC for 50 USDT
-            method = 'privateV4OrderMarket';
+            method = 'privateV4PostOrderMarket';
         }
         if (customType === 'stockMarket') {
             // this is the standard "market" order
-            method = 'privateV4OrderStockMarket';
+            method = 'privateV4PostOrderStockMarket';
         }
         if (customType === 'stoplimit') {
-            method = 'privateV4OrderStopLimit';
-            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            method = 'privateV4OPostOrderStopLimit';
+            request['price'] = convertedPrice;
             const activationPrice = getActivationPrice ();
-            request['activation_price'] = this.priceToPrecision (symbol, activationPrice);
+            request['activation_price'] = this.numberToString (this.priceToPrecision (symbol, activationPrice));
         }
         if (customType === 'stopMarket') {
             // the same as above but for limit orders
             // the amount is in stock currency to buy/sell
-            method = 'privateV4OrderStopMarket';
+            method = 'privateV4PostOrderStopMarket';
             const activationPrice = getActivationPrice ();
-            request['activation_price'] = this.priceToPrecision (symbol, activationPrice);
+            request['activation_price'] = this.numberToString (this.priceToPrecision (symbol, activationPrice));
         }
         if (method === undefined) {
             throw new ArgumentsRequired (this.id + 'Invalid type:  createOrder() requires one of the following order types: market, stockMarket, limit, stopLimit or stopMarket');
@@ -877,6 +878,119 @@ module.exports = class whitebit extends Exchange {
         return this.parseOrders (closedOrdersParsed, market, since, limit);
     }
 
+    parseOrder (order, market = undefined) {
+        // For created orders / open Orders
+        // {
+        //     "orderId": 4180284841,             // order id
+        //     "clientOrderId": "order1987111",   // custom client order id; "clientOrderId": "" - if not specified.
+        //     "market": "BTC_USDT",              // deal market
+        //     "side": "buy",                     // order side
+        //     "type": "stop limit",              // order type
+        //     "timestamp": 1595792396.165973,    // current timestamp
+        //     "dealMoney": "0",                  // if order finished - amount in money currency that finished
+        //     "dealStock": "0",                  // if order finished - amount in stock currency that finished
+        //     "amount": "0.001",                 // amount
+        //     "takerFee": "0.001",               // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //     "makerFee": "0.001",               // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //     "left": "0.001",                   // if order not finished - rest of amount that must be finished
+        //     "dealFee": "0",                    // fee in money that you pay if order is finished
+        //     "price": "40000",                  // price
+        //     "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
+        // }
+        // For Closed Orders
+        // {
+        //      "id": 160305483,               // orderID
+        //      "time": 1594667731.724403,     // Timestamp of the executed order
+        //      "side": "sell",                // Order side "sell" / "buy"
+        //      "role": 2,                     // Role - 1 - maker, 2 - taker
+        //      "amount": "0.000076",          // amount in stock
+        //      "price": "9264.21",            // price
+        //      "deal": "0.70407996",          // amount in money
+        //      "fee": "0.00070407996"         // paid fee
+        // },
+        const marketId = this.safeString (order, 'market');
+        const symbol = this.safeSymbol (marketId, market, '_');
+        const side = this.safeValue (order, 'side');
+        const filled = this.safeValue (order, 'dealStock');
+        const amount = this.safeValue (order, 'amount');
+        const clientOrderId = this.safeValue (order, 'clientOrderId');
+        const price = this.safeValue (order, 'price');
+        const activationPrice = this.safeValue (order, 'activation_price');
+        const orderId = this.safeValue (order, 'orderId');
+        const type = this.safeValue (order, 'type');
+        const unifiedType = this.getUnifiedOrderType (type);
+        const dealFee = this.safeValue (order, 'dealFee');
+        let fee = undefined;
+        if (dealFee !== undefined) {
+            let feeCurrencyCode = undefined;
+            if (market !== undefined) {
+                feeCurrencyCode = market['quote'];
+            }
+            fee = {
+                'cost': this.parseNumber (dealFee),
+                'currency': feeCurrencyCode,
+            };
+        }
+        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const lastTimestamp = this.safeTimestamp (order, 'time');
+        return this.safeOrder2 ({
+            'info': order,
+            'id': orderId,
+            'symbol': symbol,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTimestamp,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'type': unifiedType,
+            'stopPrice': activationPrice,
+            'amount': amount,
+            'filled': filled,
+            'fee': fee,
+            'cost': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': parseInt (id),
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50, max 100
+        }
+        const response = await this.privateV4PostTradeAccountOrder (this.extend (request, params));
+        // {
+        //     "records": [
+        //         {
+        //             "time": 1593342324.613711,      // Timestamp of executed order
+        //             "fee": "0.00000419198",         // fee that you pay
+        //             "price": "0.00000701",          // price
+        //             "amount": "598",                // amount in stock
+        //             "id": 149156519,                // trade id
+        //             "dealOrderId": 3134995325,      // completed order Id
+        //             "clientOrderId": "customId11",  // custom order id; "clientOrderId": "" - if not specified.
+        //             "role": 2,                      // Role - 1 - maker, 2 - taker
+        //             "deal": "0.00419198"            // amount in money
+        //         }
+        //     ],
+        //     "offset": 0,
+        //     "limit": 100
+        // }
+        let data = this.safeValue (response, 'records', {});
+        if (data.length) {
+            data = this.safeValue (data, 'records', {});
+        }
+        return this.parseTrades (response);
+    }
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -940,114 +1054,12 @@ module.exports = class whitebit extends Exchange {
         };
     }
 
-    parseOrder (order, market = undefined) {
-        // For created orders / open Orders
-        // {
-        //     "orderId": 4180284841,             // order id
-        //     "clientOrderId": "order1987111",   // custom client order id; "clientOrderId": "" - if not specified.
-        //     "market": "BTC_USDT",              // deal market
-        //     "side": "buy",                     // order side
-        //     "type": "stop limit",              // order type
-        //     "timestamp": 1595792396.165973,    // current timestamp
-        //     "dealMoney": "0",                  // if order finished - amount in money currency that finished
-        //     "dealStock": "0",                  // if order finished - amount in stock currency that finished
-        //     "amount": "0.001",                 // amount
-        //     "takerFee": "0.001",               // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        //     "makerFee": "0.001",               // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        //     "left": "0.001",                   // if order not finished - rest of amount that must be finished
-        //     "dealFee": "0",                    // fee in money that you pay if order is finished
-        //     "price": "40000",                  // price
-        //     "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
-        // }
-        // For Closed Orders
-        // {
-        //      "id": 160305483,               // orderID
-        //      "time": 1594667731.724403,     // Timestamp of the executed order
-        //      "side": "sell",                // Order side "sell" / "buy"
-        //      "role": 2,                     // Role - 1 - maker, 2 - taker
-        //      "amount": "0.000076",          // amount in stock
-        //      "price": "9264.21",            // price
-        //      "deal": "0.70407996",          // amount in money
-        //      "fee": "0.00070407996"         // paid fee
-        // },
-        const marketId = this.safeString (order, 'market');
-        const symbol = this.safeSymbol (marketId, market, '_');
-        const side = this.safeValue (order, 'side');
-        const filled = this.safeValue (order, 'dealStock');
-        const amount = this.safeValue (order, 'amount');
-        const clientOrderId = this.safeValue (order, 'clientOrderId');
-        const price = this.safeValue (order, 'price');
-        const activationPrice = this.safeValue (order, 'activation_price');
-        const orderId = this.safeValue (order, 'orderId');
-        const type = this.safeValue (order, 'type');
-        const unifiedType = this.getUnifiedOrderType (type);
-        const fee = this.safeValue (order, 'dealFee');
-        const timestamp = this.safeTimestamp (order, 'timestamp');
-        const lastTimestamp = this.safeTimestamp (order, 'time');
-        return this.safeOrder2 ({
-            'info': order,
-            'id': orderId,
-            'symbol': symbol,
-            'clientOrderId': clientOrderId,
-            'timestamp': timestamp,
-            'lastTradeTimestamp': lastTimestamp,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'type': unifiedType,
-            'stopPrice': activationPrice,
-            'amount': amount,
-            'filled': filled,
-            'fee': fee,
-            'cost': undefined,
-            'trades': undefined,
-        }, market);
-    }
-
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'orderId': parseInt (id),
-        };
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['market'] = market['id'];
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 50, max 100
-        }
-        const response = await this.privateV4PostTradeAccountOrder (this.extend (request, params));
-        // {
-        //     "records": [
-        //         {
-        //             "time": 1593342324.613711,      // Timestamp of executed order
-        //             "fee": "0.00000419198",         // fee that you pay
-        //             "price": "0.00000701",          // price
-        //             "amount": "598",                // amount in stock
-        //             "id": 149156519,                // trade id
-        //             "dealOrderId": 3134995325,      // completed order Id
-        //             "clientOrderId": "customId11",  // custom order id; "clientOrderId": "" - if not specified.
-        //             "role": 2,                      // Role - 1 - maker, 2 - taker
-        //             "deal": "0.00419198"            // amount in money
-        //         }
-        //     ],
-        //     "offset": 0,
-        //     "limit": 100
-        // }
-        let data = this.safeValue (response, 'records', {});
-        if (data.length) {
-            data = this.safeValue (data, 'records', {});
-        }
-        return this.parseTrades (response);
-    }
-
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code); // check if it has canDeposit
         const request = {
             'ticker': currency['id'],
-            'amount': amount,
+            'amount': this.numberToString (amount),
             'address': address,
         };
         const uniqueId = this.safeValue (params, 'uniqueId');
@@ -1115,13 +1127,16 @@ module.exports = class whitebit extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return;
+        }
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
         if (code === 404) {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
         }
-        if (url.indexOf ('public') && response !== undefined) {
+        if (url.indexOf ('public') >= 0 && response !== undefined) {
             const success = this.safeValue (response, 'success');
             if (!success) {
                 const feedback = this.id + ' ' + body;
