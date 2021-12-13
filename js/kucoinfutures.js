@@ -503,7 +503,6 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data', []);
-        since = this.safeString (since);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
