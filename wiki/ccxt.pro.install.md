@@ -239,9 +239,9 @@ cd path/to/your/project
 ```
 
 
-## If you can't install ccxt-pro
+## Troubleshooting CCXT Pro Installation
 
-- Please check your GitHub credentials when installing it (install instructions are here: https://github.com/ccxt/ccxt/wiki/ccxt.pro.install#javascript)
+- Please check your GitHub credentials when installing it (install instructions above)
 - Check if you can access this link: https://github.com/kroitor/ccxt.pro
 - Also, check if you can git-clone it using your GitHub account.
 - Check if your account still has access here:
@@ -249,4 +249,4 @@ cd path/to/your/project
 - - https://ccxt.pro/orders
 - If the above things work, that means something is wrong with your GitHub authentication config on your local machine.
 Make sure you use the correct account for it, and your subscription has not expired (you should receive emails to your primary GitHub email if it does).
-- If none of above helps, open an issue.
+- If none of above helps, open an issue: httpshttps://github.com/ccxt/ccxt/issues
