@@ -33,7 +33,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
-                'fetchOrder': true,
+                'fetchOrderTrades': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchStatus': true,
@@ -165,6 +165,11 @@ module.exports = class whitebit extends Exchange {
             },
             'options': {
                 'fetchTradesMethod': 'fetchTradesV1',
+                'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
+                'orderTypes': {
+                    'market': 'stockMarket',
+                    'limit': 'stopMarket',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -563,14 +568,30 @@ module.exports = class whitebit extends Exchange {
         //         "isBuyerMaker":false
         //     }
         //
+        // orderTrades (privateV4)
+        //       {
+        //          "time": 1593342324.613711,      // Timestamp of executed order
+        //          "fee": "0.00000419198",         // fee that you pay
+        //          "price": "0.00000701",          // price
+        //          "amount": "598",                // amount in stock
+        //          "id": 149156519,                // trade id
+        //          "dealOrderId": 3134995325,      // completed order Id
+        //          "clientOrderId": "customId11",  // custom order id; "clientOrderId": "" - if not specified.
+        //          "role": 2,                      // Role - 1 - maker, 2 - taker
+        //          "deal": "0.00419198"            // amount in money
+        //       }
         let timestamp = this.safeValue (trade, 'time');
         if (typeof timestamp === 'string') {
             timestamp = this.parse8601 (timestamp);
         } else {
             timestamp = parseInt (timestamp * 1000);
         }
+        const orderId = this.safeString (trade, 'dealOrderId');
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString2 (trade, 'amount', 'volume');
+        let amountString = this.safeString2 (trade, 'deal');
+        if (amountString === undefined) {
+            amountString = this.safeString2 (trade, 'amount', 'volume');
+        }
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
@@ -578,11 +599,18 @@ module.exports = class whitebit extends Exchange {
         let side = this.safeString (trade, 'type');
         if (side === undefined) {
             const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
-            side = isBuyerMaker ? 'buy' : 'sell';
+            if (side !== undefined) {
+                side = isBuyerMaker ? 'buy' : 'sell';
+            }
         }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+        }
+        const role = this.safeNumber (trade, 'role');
+        let takerOrMaker = undefined;
+        if (role !== undefined) {
+            takerOrMaker = (role === 1) ? 'maker' : 'taker';
         }
         return {
             'info': trade,
@@ -590,9 +618,9 @@ module.exports = class whitebit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
@@ -697,23 +725,24 @@ module.exports = class whitebit extends Exchange {
             // for this order type, the amount in the stock currency to buy/sell
             // example: amount = 50 in 'BTC-USDT' means
             // I want to buy BTC for 50 USDT
-            method = 'privateV4OrderMarket';
-        }
-        if (type === 'stockMarket') {
-            // this is the standard "market" order
             method = 'privateV4OrderStockMarket';
         }
         if (type === 'limit') {
-            method = 'privateV4OrderNew';
+            method = 'privateV4OrderStopMarket';
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
-        if (type === 'stoplimit') {
+        const customType = this.safeValue (params, 'type');
+        if (customType === 'stockMarket') {
+            // this is the standard "market" order
+            method = 'privateV4OrderMarket';
+        }
+        if (customType === 'stoplimit') {
             method = 'privateV4OrderStopLimit';
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             const activationPrice = getActivationPrice ();
             request['activation_price'] = this.priceToPrecision (symbol, activationPrice);
         }
-        if (type === 'stopMarket') {
+        if (customType === 'stopMarket') {
             // the same as above but for limit orders
             // the amount is in stock currency to buy/sell
             method = 'privateV4OrderStopMarket';
@@ -869,21 +898,6 @@ module.exports = class whitebit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // For fetched orders
-        // {
-        //       "time": 1593342324.613711,      // Timestamp of executed order
-        //       "fee": "0.00000419198",         // fee that you pay
-        //       "price": "0.00000701",          // price
-        //       "amount": "598",                // amount in stock
-        //       "id": 149156519,                // trade id
-        //       "dealOrderId": 3134995325,      // completed order Id
-        //       "clientOrderId": "customId11",  // custom order id; "clientOrderId": "" - if not specified.
-        //       "role": 2,                      // Role - 1 - maker, 2 - taker
-        //       "side": 'buy
-        //       "deal": "0.00419198"            // amount in money
-        //   }
-        //
-        // }
         // For created orders
         // {
         //     "orderId": 4180284841,             // order id
@@ -903,44 +917,50 @@ module.exports = class whitebit extends Exchange {
         //     "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
         // }
         //
-        // fetched orders/trades
+        const marketId = this.safeString (order, 'instrument_code');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const side = this.safeValue (order, 'side');
         const amount = this.safeValue (order, 'amount');
         const clientOrderId = this.safeValue (order, 'clientOrderId');
         const price = this.safeValue (order, 'price');
-        // createdOrder
+        const activationPrice = this.safeValue (order, 'activation_price');
         const orderId = this.safeValue (order, 'orderId');
         const type = this.safeValue (order, 'type');
-        const takerFee = this.safeValue (order, 'takerFee');
-        const makerFee = this.safeValue (order, 'makerFee');
-        const status = 'closed';
+        const fee = this.safeValue (order, 'dealFee');
         const timestamp = this.safeTimestamp (order, 'time');
-        const id = this.safeString (order, 'dealOrderId');
         return this.safeOrder2 ({
             'info': order,
-            'id': id,
-            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'id': orderId,
+            'symbol': symbol,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeString (order, 'price'),
-            'stopPrice': undefined,
-            'amount': this.safeString (order, 'deal'),
-            'filled': this.safeString (order, 'deal'),
-            'status': status,
-            'fee': this.safeString (order, 'fee'),
+            'price': price,
+            'type': type,
+            'stopPrice': activationPrice,
+            'amount': amount,
+            'filled': undefined,
+            'fee': fee,
             'cost': undefined,
             'trades': undefined,
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'orderId': parseInt (id),
         };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50, max 100
+        }
         const response = await this.privateV4PostTradeAccountOrder (this.extend (request, params));
         // {
         //     "records": [
@@ -963,17 +983,12 @@ module.exports = class whitebit extends Exchange {
         if (data.length) {
             data = this.safeValue (data, 'records', {});
         }
-        return this.parseOrder (response);
+        return this.parseTrades (response);
     }
 
     isFiat (currency) {
-        const fiatCurrencies = {
-            'USD': true,
-            'EUR': true,
-            'RUB': true,
-            'UAH': true,
-        };
-        return this.safeValue (fiatCurrencies, currency, false);
+        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
+        return this.inArray (currency, fiatCurrencies);
     }
 
     sign (path, api = 'publicV1', method = 'GET', params = {}, headers = undefined, body = undefined) {
