@@ -603,7 +603,7 @@ module.exports = class kucoinfutures extends kucoin {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = parseInt (Precise.stringDiv (this.safeString (data, 'ts'), '1000000'));
+        const timestamp = parseInt (this.safeInteger (data, 'ts') / 1000000);
         const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
