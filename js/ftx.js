@@ -505,16 +505,20 @@ module.exports = class ftx extends Exchange {
             const name = this.safeString (market, 'name');
             const symbol = this.getSymbol (base, quote, name, contract);
             const splitName = name.split ('-');
-            const expiry = this.safeInteger (splitName, 1);
             const settleId = contract ? 'USD' : undefined;
             const spot = !contract;
             const margin = !contract;
             const swap = this.safeString (splitName, 1) === 'PERP';
-            const futures = isFuture && !swap;
+            let futures = false;
             const option = false;
             let type = 'spot';
-            if (contract) {
-                type = swap ? 'swap' : 'futures';
+            let expiry = undefined;
+            if (swap) {
+                type = 'swap';
+            } else if (contract) {
+                type = 'futures';
+                expiry = this.safeString (splitName, 1);
+                futures = true;
             }
             // check if a market is a spot or future market
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
