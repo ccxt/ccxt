@@ -41,6 +41,7 @@
     "check-js-syntax": "node -e \"console.log(process.cwd())\" && eslint --version && eslint \"js/*.js\"",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-php-syntax": "php -f php/test/syntax.php",
+    "capabilities": "node ./examples/js/exchange-capabilities.js",
     "browserify": "browserify ./ccxt.browser.js > ./dist/ccxt.browser.js",
     "copy-python-files": "npm run copy-python-package && npm run copy-python-license && npm run copy-python-keys && npm run copy-python-readme",
     "copy-python-package": "node build/copy package.json python/package.json",
