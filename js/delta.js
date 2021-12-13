@@ -920,8 +920,8 @@ module.exports = class delta extends Exchange {
         const remaining = this.safeString (order, 'unfilled_size');
         const average = this.safeString (order, 'average_fill_price');
         let fee = undefined;
-        const feeCost = this.safeNumber (order, 'paid_commission');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (order, 'paid_commission');
+        if (feeCostString !== undefined) {
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
                 const settlingAsset = this.safeValue (market['info'], 'settling_asset', {});
@@ -929,7 +929,7 @@ module.exports = class delta extends Exchange {
                 feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
