@@ -1,7 +1,7 @@
 "use strict";
 
 /*  ------------------------------------------------------------------------ */
-// node ./examples/js/exchange-capabilities.js --csv --auto
+// node ./examples/js/exchange-capabilities.js --csv
 
 const isCsvStyle  = process.argv.includes ('--csv')
 const delimiter   = isCsvStyle ? ',' : '|'
