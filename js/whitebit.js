@@ -718,28 +718,25 @@ module.exports = class whitebit extends Exchange {
             }
             return activationPrice;
         }
-        const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
         if (type === 'market') {
-            method = 'privateV4PostOrderStockMarket';
+            // for this order type, the amount in the stock currency to buy/sell
+            // example: amount = 50 in 'BTC-USDT' means I want to buy BTC for 50 USDT
+            // If I want to sell the amount should be 0.01
+            method = 'privateV4PostOrderMarket';
         }
         if (type === 'limit') {
             method = 'privateV4PostOrderNew';
+            const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
             request['price'] = convertedPrice;
         }
         const customType = this.safeValue (params, 'type');
-        if (customType === 'market') {
-            // this is not conventional
-            // for this order type, the amount in the stock currency to buy/sell
-            // example: amount = 50 in 'BTC-USDT' means
-            // I want to buy BTC for 50 USDT
-            method = 'privateV4PostOrderMarket';
-        }
         if (customType === 'stockMarket') {
             // this is the standard "market" order
             method = 'privateV4PostOrderStockMarket';
         }
         if (customType === 'stoplimit') {
             method = 'privateV4OPostOrderStopLimit';
+            const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
             request['price'] = convertedPrice;
             const activationPrice = getActivationPrice ();
             request['activation_price'] = this.numberToString (this.priceToPrecision (symbol, activationPrice));
@@ -838,14 +835,16 @@ module.exports = class whitebit extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-        };
+        const request = {};
+        const market = undefined;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['market'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 50 max 100
         }
-        const response = await this.privateV4PostTradeAccount (this.extend (request, params));
+        const response = await this.privateV4PostTradeAccountExecutedHistory (this.extend (request, params));
         //
         // {
         //     "BTC_USDT": [
@@ -916,7 +915,10 @@ module.exports = class whitebit extends Exchange {
         const clientOrderId = this.safeValue (order, 'clientOrderId');
         const price = this.safeValue (order, 'price');
         const activationPrice = this.safeValue (order, 'activation_price');
-        const orderId = this.safeValue (order, 'orderId');
+        let orderId = this.safeValue (order, 'orderId');
+        if (orderId === undefined) {
+            orderId = this.safeValue (order, 'id');
+        }
         const type = this.safeValue (order, 'type');
         const unifiedType = this.getUnifiedOrderType (type);
         const dealFee = this.safeValue (order, 'dealFee');
