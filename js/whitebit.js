@@ -704,7 +704,6 @@ module.exports = class whitebit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // types: market, stockMarket, limit, stopLimit, stopMarket
         let method = undefined;
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -721,10 +720,6 @@ module.exports = class whitebit extends Exchange {
             return activationPrice;
         }
         if (type === 'market') {
-            // this is not conventional
-            // for this order type, the amount in the stock currency to buy/sell
-            // example: amount = 50 in 'BTC-USDT' means
-            // I want to buy BTC for 50 USDT
             method = 'privateV4OrderStockMarket';
         }
         if (type === 'limit') {
@@ -732,9 +727,16 @@ module.exports = class whitebit extends Exchange {
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const customType = this.safeValue (params, 'type');
+        if (customType === 'market') {
+            // this is not conventional
+            // for this order type, the amount in the stock currency to buy/sell
+            // example: amount = 50 in 'BTC-USDT' means
+            // I want to buy BTC for 50 USDT
+            method = 'privateV4OrderMarket';
+        }
         if (customType === 'stockMarket') {
             // this is the standard "market" order
-            method = 'privateV4OrderMarket';
+            method = 'privateV4OrderStockMarket';
         }
         if (customType === 'stoplimit') {
             method = 'privateV4OrderStopLimit';
@@ -926,6 +928,7 @@ module.exports = class whitebit extends Exchange {
         const activationPrice = this.safeValue (order, 'activation_price');
         const orderId = this.safeValue (order, 'orderId');
         const type = this.safeValue (order, 'type');
+        const unifiedType = this.getUnifiedOrderType (type);
         const fee = this.safeValue (order, 'dealFee');
         const timestamp = this.safeTimestamp (order, 'time');
         return this.safeOrder2 ({
@@ -939,7 +942,7 @@ module.exports = class whitebit extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'type': type,
+            'type': unifiedType,
             'stopPrice': activationPrice,
             'amount': amount,
             'filled': undefined,
@@ -984,6 +987,11 @@ module.exports = class whitebit extends Exchange {
             data = this.safeValue (data, 'records', {});
         }
         return this.parseTrades (response);
+    }
+
+    getUnifiedOrderType (type) {
+        const types = this.safeValue (this.options, 'orderTypes', {});
+        return this.safeValue (types, type);
     }
 
     isFiat (currency) {
