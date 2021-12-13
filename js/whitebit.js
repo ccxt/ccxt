@@ -801,6 +801,48 @@ module.exports = class whitebit extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50 max 100
+        }
+        const response = await this.privateV4PostTradeAccount (this.extend (request, params));
+        //
+        // {
+        //     "BTC_USDT": [
+        //         {
+        //             "id": 160305483,               // orderID
+        //             "clientOrderId": "customId11", // custom order id; "clientOrderId": "" - if not specified.
+        //             "time": 1594667731.724403,     // Timestamp of the executed order
+        //             "side": "sell",                // Order side "sell" / "buy"
+        //             "role": 2,                     // Role - 1 - maker, 2 - taker
+        //             "amount": "0.000076",          // amount in stock
+        //             "price": "9264.21",            // price
+        //             "deal": "0.70407996",          // amount in money
+        //             "fee": "0.00070407996"         // paid fee
+        //         },
+        //     ],
+        // }
+        //
+        // Parsing: flattening orders and injecting the market
+        const keys = Object.keys (response);
+        const closedOrdersParsed = [];
+        for (let i = 0; i < keys.length; i++) {
+            const marketKey = keys[i];
+            const orders = response[marketKey];
+            for (let j = 0; j < orders.length; j++) {
+                const order = orders[j];
+                order['market'] = marketKey;
+                closedOrdersParsed.push (order);
+            }
+        }
+        return this.parseOrders (closedOrdersParsed, market, since, limit);
+    }
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -918,6 +960,17 @@ module.exports = class whitebit extends Exchange {
         //     "price": "40000",                  // price
         //     "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
         // }
+        // For Closed Orders
+        // {
+        //      "id": 160305483,               // orderID
+        //      "time": 1594667731.724403,     // Timestamp of the executed order
+        //      "side": "sell",                // Order side "sell" / "buy"
+        //      "role": 2,                     // Role - 1 - maker, 2 - taker
+        //      "amount": "0.000076",          // amount in stock
+        //      "price": "9264.21",            // price
+        //      "deal": "0.70407996",          // amount in money
+        //      "fee": "0.00070407996"         // paid fee
+        // },
         //
         const marketId = this.safeString (order, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
@@ -931,6 +984,8 @@ module.exports = class whitebit extends Exchange {
         const unifiedType = this.getUnifiedOrderType (type);
         const fee = this.safeValue (order, 'dealFee');
         const timestamp = this.safeTimestamp (order, 'time');
+        // check maker or taker in role
+        // get unified order type
         return this.safeOrder2 ({
             'info': order,
             'id': orderId,
