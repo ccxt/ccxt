@@ -34,9 +34,8 @@ module.exports = class whitebit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
-                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchStatus': true,
+                'fetchOpenOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -801,6 +800,41 @@ module.exports = class whitebit extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50 max 100
+        }
+        const response = await this.privateV4PostOrders (this.extend (request, params));
+        // [
+        //     {
+        //         "orderId": 3686033640,            // unexecuted order ID
+        //         "clientOrderId": "customId11",    // custom order id; "clientOrderId": "" - if not specified.
+        //         "market": "BTC_USDT",             // currency market
+        //         "side": "buy",                    // order side
+        //         "type": "limit",                  // unexecuted order type
+        //         "timestamp": 1594605801.49815,    // current timestamp of unexecuted order
+        //         "dealMoney": "0",                 // executed amount in money
+        //         "dealStock": "0",                 // executed amount in stock
+        //         "amount": "2.241379",             // active order amount
+        //         "takerFee": "0.001",              // taker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //         "makerFee": "0.001",              // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //         "left": "2.241379",               // unexecuted amount in stock
+        //         "dealFee": "0",                   // executed fee by deal
+        //         "price": "40000"                  // unexecuted order price
+        //     },
+        //     {...}
+        // ]
+        return this.parseOrders (response, market, since, limit);
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -942,7 +976,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // For created orders
+        // For created orders / open Orders
         // {
         //     "orderId": 4180284841,             // order id
         //     "clientOrderId": "order1987111",   // custom client order id; "clientOrderId": "" - if not specified.
@@ -971,7 +1005,6 @@ module.exports = class whitebit extends Exchange {
         //      "deal": "0.70407996",          // amount in money
         //      "fee": "0.00070407996"         // paid fee
         // },
-        //
         const marketId = this.safeString (order, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
         const side = this.safeValue (order, 'side');
