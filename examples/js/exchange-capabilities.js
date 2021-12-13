@@ -1,7 +1,7 @@
 "use strict";
 
 /*  ------------------------------------------------------------------------ */
-// node ./examples/js/exchange-capabilities.js --csv
+// node ./examples/js/exchange-capabilities.js --csv --auto
 
 const isCsvStyle  = process.argv.includes ('--csv')
 const delimiter   = isCsvStyle ? ',' : '|'
@@ -25,10 +25,12 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
 
         let result = {};
 
-        [
+        let apiBasics = [
             'publicAPI',
             'privateAPI',
-            'CORS',
+            'CORS'
+        ];
+        apiBasics.concat([
             'fetchCurrencies',
             'fetchFundingFees',
             'fetchFundingRate',
@@ -40,6 +42,7 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
             'fetchOHLCV',
             'fetchOrderBook',
             'fetchOrderBooks',
+            'fetchBidsAsks',
             'fetchStatus',
             'fetchTicker',
             'fetchTickers',
@@ -51,6 +54,7 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
             'cancelOrders',
             'createDepositAddress',
             'createOrder',
+            'createReduceOnlyOrder',
             'deposit',
             'editOrder',
             'fetchAccounts',
@@ -83,34 +87,43 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
             'fetchTradingFees',
             'fetchTransactions',
             'fetchTransfers',
+            'fetchMyDustTrades',
             'fetchWithdrawal',
             'fetchWithdrawals',
+            'futuresTransfer',
+            'loadTimeDifference',
+            'addMargin',
+            'reduceMargin',
             'setLeverage',
             'setMarginMode',
+            'setPositionMode',
             'signIn',
             'transfer',
             'withdraw',
-        ].forEach (key => {
+        ]).forEach (methodName => {
 
             total += 1
 
-            let capability = exchange.has[key]
+            let isApiBasics=apiBasics.includes(methodName)
+            let capType = typeof exchange[methodName]
+            let capHas  = exchange.has[methodName]
+            let coloredString = '';
 
-            if (capability === undefined) {
-                capability = isWindows ? exchange.id.red : exchange.id.red.dim
-                notImplemented += 1
-            } else if (capability === false) {
-                capability = isWindows ? exchange.id.lightMagenta : exchange.id.red 
+            if ( capHas === false && capType !== 'function' ) { // if explicitly set to 'false' under 'has' params (to exclude mistake, we check if it's undefined too)
+                coloredString = isWindows ? exchange.id.red : exchange.id.red.dim
                 inexistentApi += 1
-            } else if (capability.toString () === 'emulated') {
-                capability = exchange.id.yellow
+            } else if ( capHas === 'emulated') { // if explicitly set to 'emulated' under 'has' params
+                coloredString = exchange.id.yellow
                 emulated += 1
-            } else {
-                capability = exchange.id.green
+            } else if ( (isApiBasics && capHas) || ( !isApiBasics && capType === 'function') ) { // if neither 'false' nor 'emulated', and if neither method exists
+                coloredString = exchange.id.green
                 implemented += 1
+            } else {
+                coloredString = isWindows ? exchange.id.lightMagenta : exchange.id.red 
+                notImplemented += 1
             }
 
-            result[key] = capability
+            result[methodName] = coloredString
         })
 
         return result
