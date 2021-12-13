@@ -365,14 +365,6 @@ module.exports = class ftx extends Exchange {
         });
     }
 
-    amountToPrecision (symbol, amount) {
-        return super.amountToPrecision (this.getCorrectSymbol (symbol), amount);
-    }
-
-    costToPrecision (symbol, cost) {
-        return super.costToPrecision (this.getCorrectSymbol (symbol), cost);
-    }
-
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCoins (params);
         const currencies = this.safeValue (response, 'result', []);
@@ -409,6 +401,23 @@ module.exports = class ftx extends Exchange {
             };
         }
         return result;
+    }
+
+    getSymbol (base, quote, id, isContract) {
+        if (isContract) {
+            const splitName = id.split ('-');
+            const perp = this.safeString (splitName, 1);
+            if (perp === 'PERP') {
+                return base + '/' + quote + ':USD';
+            } else {
+                const arrayLength = splitName.length;
+                const index = arrayLength - 1;
+                const expiry = splitName[index];
+                return base + '/' + quote + ':USD-' + expiry;
+            }
+        } else {
+            return base + '/' + quote;
+        }
     }
 
     async fetchMarkets (params = {}) {
@@ -484,7 +493,6 @@ module.exports = class ftx extends Exchange {
         //
         const result = [];
         const markets = this.safeValue (response, 'result', []);
-        this.oldSymbolMappings = {};
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
@@ -492,38 +500,22 @@ module.exports = class ftx extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrency', 'USD');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const contract = this.safeString (market, 'type') === 'future';
-            let symbol = base + '/' + quote;
-            let expiry = undefined;
+            const isFuture = this.safeString (market, 'type') === 'future';
+            const contract = isFuture;
+            const name = this.safeString (market, 'name');
+            const symbol = this.getSymbol (base, quote, name, contract);
+            const splitName = name.split ('-');
+            const expiry = this.safeInteger (splitName, 1);
             const settleId = contract ? 'USD' : undefined;
-            let type = 'spot';
-            let spot = false;
-            let margin = false;
-            let swap = false;
-            let futures = false;
+            const spot = !contract;
+            const margin = !contract;
+            const swap = this.safeString (splitName, 1) === 'PERP';
+            const futures = isFuture && !swap;
             const option = false;
-            let name = symbol;
+            let type = 'spot';
             if (contract) {
-                name = this.safeString (market, 'name');
-                const splitName = name.split ('-');
-                const perp = this.safeString (splitName, 1);
-                if (perp === 'PERP') {
-                    symbol = base + '/' + quote + ':' + settleId;
-                    type = 'swap';
-                    swap = true;
-                } else {
-                    const arrayLength = splitName.length;
-                    const index = arrayLength - 1;
-                    expiry = splitName[index];
-                    symbol = base + '/' + quote + ':' + settleId + '-' + expiry;
-                    type = 'futures';
-                    futures = true;
-                }
-            } else {
-                spot = true;
-                margin = true;  // TODO: double check
+                type = swap ? 'swap' : 'futures';
             }
-            this.oldSymbolMappings[name] = symbol;
             // check if a market is a spot or future market
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
             const priceIncrement = this.safeNumber (market, 'priceIncrement');
@@ -580,46 +572,6 @@ module.exports = class ftx extends Exchange {
         return result;
     }
 
-    getCorrectSymbol (symbol) {
-        if (this.markets === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
-        if (symbol in this.oldSymbolMappings) {
-            return this.oldSymbolMappings[symbol];
-        } else {
-            return symbol;
-        }
-    }
-
-    getCorrectSymbols (symbols) {
-        if (this.markets === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
-        const newSymbols = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            if (symbol in this.oldSymbolMappings) {
-                newSymbols.push (this.oldSymbolMappings[symbol]);
-            } else {
-                newSymbols.push (symbol);
-            }
-        }
-        return newSymbols;
-    }
-
-    market (symbol) {
-        return super.market (this.getCorrectSymbol (symbol));
-    }
-
-    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
-        return super.loadTradingLimits (this.getCorrectSymbols (symbols), reload, params);
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        symbol = this.getCorrectSymbol (symbol);
-        return super.calculateFee (symbol, type, side, amount, price, takerOrMaker, params);
-    }
-
     parseTicker (ticker, market = undefined) {
         //
         //     {
@@ -654,7 +606,7 @@ module.exports = class ftx extends Exchange {
                 const base = this.safeCurrencyCode (this.safeString (ticker, 'baseCurrency'));
                 const quote = this.safeCurrencyCode (this.safeString (ticker, 'quoteCurrency'));
                 if ((base !== undefined) && (quote !== undefined)) {
-                    symbol = this.getCorrectSymbol (base + '/' + quote);
+                    symbol = base + '/' + quote;
                 }
             }
         }
@@ -756,7 +708,7 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const tickers = this.safeValue (response, 'result', []);
-        return this.parseTickers (tickers, this.getCorrectSymbols (symbols));
+        return this.parseTickers (tickers, symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -787,7 +739,7 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOrderBook (result, market['id']);
+        return this.parseOrderBook (result, symbol);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -813,7 +765,6 @@ module.exports = class ftx extends Exchange {
     }
 
     getMarketId (symbol, key, params = {}) {
-        symbol = this.getCorrectSymbol (symbol);
         const parts = this.getMarketParams (symbol, key, params);
         return this.safeString (parts, 1, symbol);
     }
@@ -821,7 +772,6 @@ module.exports = class ftx extends Exchange {
     getMarketParams (symbol, key, params = {}) {
         let market = undefined;
         let marketId = undefined;
-        symbol = this.getCorrectSymbol (symbol);
         if (symbol in this.markets) {
             market = this.market (symbol);
             marketId = market['id'];
@@ -853,7 +803,6 @@ module.exports = class ftx extends Exchange {
         }
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
-            symbol = this.getCorrectSymbol (symbol);
             if (symbol in this.markets) {
                 request['market_name'] = market['baseId'];
             }
@@ -990,6 +939,7 @@ module.exports = class ftx extends Exchange {
         const id = this.safeString (trade, 'id');
         const takerOrMaker = this.safeString (trade, 'liquidity');
         const marketId = this.safeString (trade, 'market');
+        const future = this.safeString (trade, 'future');
         let symbol = undefined;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
@@ -998,7 +948,7 @@ module.exports = class ftx extends Exchange {
             const base = this.safeCurrencyCode (this.safeString (trade, 'baseCurrency'));
             const quote = this.safeCurrencyCode (this.safeString (trade, 'quoteCurrency'));
             if ((base !== undefined) && (quote !== undefined)) {
-                symbol = this.getCorrectSymbol (base + '/' + quote);
+                symbol = this.getSymbol (base, quote, marketId, future);
             } else {
                 symbol = marketId;
             }
@@ -1916,7 +1866,7 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < result.length; i++) {
             results.push (this.parsePosition (result[i]));
         }
-        return this.filterByArray (results, 'symbol', this.getCorrectSymbols (symbols), false);
+        return this.filterByArray (results, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
