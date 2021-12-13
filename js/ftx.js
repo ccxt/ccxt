@@ -512,7 +512,9 @@ module.exports = class ftx extends Exchange {
                     type = 'swap';
                     swap = true;
                 } else {
-                    expiry = splitName[splitName.length - 1];
+                    const arrayLength = splitName.length;
+                    const index = arrayLength - 1;
+                    expiry = splitName[index];
                     symbol = base + '/' + quote + ':' + settleId + '-' + expiry;
                     type = 'futures';
                     futures = true;
