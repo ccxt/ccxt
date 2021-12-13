@@ -327,6 +327,7 @@ module.exports = class phemex extends Exchange {
         if (value === undefined) {
             return value;
         }
+        // eslint-disable-next-line no-useless-escape
         value = value.replace (/\,/g, '');
         const parts = value.split (' ');
         return this.safeNumber (parts, 0);
