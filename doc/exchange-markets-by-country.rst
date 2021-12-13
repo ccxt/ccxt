@@ -727,6 +727,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://techbureau-api-document.readthedocs.io/ja/latest/index.html
           :alt: API Version 1
      
+   * - Lithuania
+     - .. image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
+          :target: https://exmo.me/?ref=131685
+          :alt: exmo
+     
+     - exmo
+     - `EXMO <https://exmo.me/?ref=131685>`__
+     - .. image:: https://img.shields.io/badge/1.1-lightgray
+          :target: https://exmo.me/en/api_doc?ref=131685
+          :alt: API Version 1.1
+     
    * - Luxembourg
      - .. image:: https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg
           :target: https://oceanex.pro/signup?referral=VE24QX
@@ -902,17 +913,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://cex.io/cex-api
           :alt: API Version *
-     
-   * - Russia
-     - .. image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
-          :target: https://exmo.me/?ref=131685
-          :alt: exmo
-     
-     - exmo
-     - `EXMO <https://exmo.me/?ref=131685>`__
-     - .. image:: https://img.shields.io/badge/1.1-lightgray
-          :target: https://exmo.me/en/api_doc?ref=131685
-          :alt: API Version 1.1
      
    * - Russia
      - .. image:: https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg
@@ -1166,17 +1166,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C
           :alt: API Version 1
-     
-   * - Spain
-     - .. image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
-          :target: https://exmo.me/?ref=131685
-          :alt: exmo
-     
-     - exmo
-     - `EXMO <https://exmo.me/?ref=131685>`__
-     - .. image:: https://img.shields.io/badge/1.1-lightgray
-          :target: https://exmo.me/en/api_doc?ref=131685
-          :alt: API Version 1.1
      
    * - St. Vincent & Grenadines
      - .. image:: https://user-images.githubusercontent.com/1294454/99450025-3be60a00-2931-11eb-9302-f4fd8d8589aa.jpg
