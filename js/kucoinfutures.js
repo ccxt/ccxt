@@ -575,10 +575,14 @@ module.exports = class kucoinfutures extends kucoin {
         const request = {
             'symbol': market['id'],
         };
-        if ((limit === 20) || (limit === 100)) {
-            request['limit'] = limit;
+        if (limit !== undefined) {
+            if ((limit === 20) || (limit === 100)) {
+                request['limit'] = limit;
+            } else {
+                throw new BadRequest (this.id + ' fetchOrderBook limit argument must be 20 or 100');
+            }
         } else {
-            throw new BadRequest (this.id + ' fetchOrderBook limit argument must be 20 or 100');
+            request['limit'] = 20;
         }
         const response = await this.futuresPublicGetLevel2DepthLimit (this.extend (request, params));
         //
