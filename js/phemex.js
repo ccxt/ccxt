@@ -327,7 +327,7 @@ module.exports = class phemex extends Exchange {
         if (value === undefined) {
             return value;
         }
-        value = value.replace(/\u002C/g, '');
+        value = value.replace (/\u002C/g, '');
         const parts = value.split (' ');
         return this.safeNumber (parts, 0);
     }
