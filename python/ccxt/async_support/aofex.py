@@ -35,7 +35,6 @@ class aofex(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': None,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,

@@ -35,7 +35,6 @@ class oceanex extends Exchange {
                 'fetchAllTradingFees' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => null,
                 'fetchFundingFees' => null,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,

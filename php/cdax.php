@@ -35,7 +35,7 @@ class cdax extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => false,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
@@ -803,112 +803,90 @@ class cdax extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        $response = $this->v2PublicGetReferenceCurrencies ();
+        $request = array(
+            'language' => $this->options['language'],
+        );
+        $response = $this->publicGetSettingsCurrencys (array_merge($request, $params));
+        //
         //     {
-        //       "code" => 200,
-        //       "data" => array(
-        //         {
-        //           "currency" => "sxp",
-        //           "assetType" => "1",
-        //           "chains" => array(
+        //         "status":"ok",
+        //         "data":[
         //             {
-        //               "chain" => "sxp",
-        //               "displayName" => "ERC20",
-        //               "baseChain" => "ETH",
-        //               "baseChainProtocol" => "ERC20",
-        //               "isDynamic" => true,
-        //               "numOfConfirmations" => "12",
-        //               "numOfFastConfirmations" => "12",
-        //               "depositStatus" => "allowed",
-        //               "minDepositAmt" => "0.23",
-        //               "withdrawStatus" => "allowed",
-        //               "minWithdrawAmt" => "0.23",
-        //               "withdrawPrecision" => "8",
-        //               "maxWithdrawAmt" => "227000.000000000000000000",
-        //               "withdrawQuotaPerDay" => "227000.000000000000000000",
-        //               "withdrawQuotaPerYear" => null,
-        //               "withdrawQuotaTotal" => null,
-        //               "withdrawFeeType" => "fixed",
-        //               "transactFeeWithdraw" => "11.1653",
-        //               "addrWithTag" => false,
-        //               "addrDepositTag" => false
+        //                 "currency-addr-with-tag":false,
+        //                 "fast-confirms":12,
+        //                 "safe-confirms":12,
+        //                 "currency-type":"eth",
+        //                 "quote-$currency":true,
+        //                 "withdraw-enable-timestamp":1609430400000,
+        //                 "deposit-enable-timestamp":1609430400000,
+        //                 "currency-partition":"all",
+        //                 "support-sites":["OTC","INSTITUTION","MINEPOOL"],
+        //                 "withdraw-$precision":6,
+        //                 "visible-assets-timestamp":1508839200000,
+        //                 "deposit-min-amount":"1",
+        //                 "withdraw-min-amount":"10",
+        //                 "show-$precision":"8",
+        //                 "tags":"",
+        //                 "weight":23,
+        //                 "full-$name":"Tether USDT",
+        //                 "otc-enable":1,
+        //                 "visible":true,
+        //                 "white-enabled":false,
+        //                 "country-disabled":false,
+        //                 "deposit-enabled":true,
+        //                 "withdraw-enabled":true,
+        //                 "name":"usdt",
+        //                 "state":"online",
+        //                 "display-$name":"USDT",
+        //                 "suspend-withdraw-desc":null,
+        //                 "withdraw-desc":"Minimum withdrawal amount => 10 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal $request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        //                 "suspend-deposit-desc":null,
+        //                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. !>_<!Minimum deposit amount => 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        //                 "suspend-$visible-desc":null
         //             }
-        //           ),
-        //           "instStatus" => "normal"
-        //         }
-        //       )
+        //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $currencies = $this->safe_value($response, 'data');
         $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $currencyId = $this->safe_string($entry, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $chains = $this->safe_value($entry, 'chains', array());
-            $networks = array();
-            $instStatus = $this->safe_string($entry, 'instStatus');
-            $currencyActive = $instStatus === 'normal';
-            $fee = null;
-            $precision = null;
-            $minWithdraw = null;
-            $maxWithdraw = null;
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'chain');
-                $baseChainProtocol = $this->safe_string($chain, 'baseChainProtocol');
-                $huobiToken = 'h' . $currencyId;
-                if ($baseChainProtocol === null) {
-                    if ($huobiToken === $networkId) {
-                        $baseChainProtocol = 'ERC20';
-                    } else {
-                        $baseChainProtocol = $this->safe_string($chain, 'displayName');
-                    }
-                }
-                $network = $this->safe_network($baseChainProtocol);
-                $minWithdraw = $this->safe_number($chain, 'minWithdrawAmt');
-                $maxWithdraw = $this->safe_number($chain, 'maxWithdrawAmt');
-                $withdraw = $this->safe_string($chain, 'withdrawStatus');
-                $deposit = $this->safe_string($chain, 'depositStatus');
-                $active = ($withdraw === 'allowed') && ($deposit === 'allowed');
-                $precision = $this->safe_integer($chain, 'withdrawPrecision');
-                $fee = $this->safe_number($chain, 'transactFeeWithdraw');
-                $networks[$network] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $network,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $minWithdraw,
-                            'max' => $maxWithdraw,
-                        ),
-                    ),
-                    'active' => $active,
-                    'fee' => $fee,
-                    'precision' => $precision,
-                );
-            }
-            $networksKeys = is_array($networks) ? array_keys($networks) : array();
-            $networkLength = is_array($networksKeys) ? count($networksKeys) : 0;
+        for ($i = 0; $i < count($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $this->safe_value($currency, 'name');
+            $precision = $this->safe_integer($currency, 'withdraw-precision');
+            $code = $this->safe_currency_code($id);
+            $depositEnabled = $this->safe_value($currency, 'deposit-enabled');
+            $withdrawEnabled = $this->safe_value($currency, 'withdraw-enabled');
+            $countryDisabled = $this->safe_value($currency, 'country-disabled');
+            $visible = $this->safe_value($currency, 'visible', false);
+            $state = $this->safe_string($currency, 'state');
+            $active = $visible && $depositEnabled && $withdrawEnabled && ($state === 'online') && !$countryDisabled;
+            $name = $this->safe_string($currency, 'display-name');
             $result[$code] = array(
-                'info' => $entry,
+                'id' => $id,
                 'code' => $code,
-                'id' => $currencyId,
-                'active' => $currencyActive,
-                'fee' => ($networkLength <= 1) ? $fee : null,
-                'name' => null,
+                'type' => 'crypto',
+                // 'payin' => $currency['deposit-enabled'],
+                // 'payout' => $currency['withdraw-enabled'],
+                // 'transfer' => null,
+                'name' => $name,
+                'active' => $active,
+                'fee' => null, // todo need to fetch from fee endpoint
+                'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($currency, 'deposit-min-amount'),
+                        'max' => pow(10, $precision),
                     ),
                     'withdraw' => array(
-                        'min' => ($networkLength <= 1) ? $minWithdraw : null,
-                        'max' => ($networkLength <= 1) ? $maxWithdraw : null,
+                        'min' => $this->safe_number($currency, 'withdraw-min-amount'),
+                        'max' => pow(10, $precision),
                     ),
                 ),
-                'precision' => ($networkLength <= 1) ? $precision : null,
-                'networks' => $networks,
+                'info' => $currency,
             );
         }
         return $result;

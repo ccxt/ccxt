@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.63.50'
+__version__ = '1.63.65'
 
 # -----------------------------------------------------------------------------
 
@@ -265,7 +265,7 @@ class Exchange(object):
         'fetchBorrowRate': False,
         'fetchBorrowRates': False,
         'fetchClosedOrders': False,
-        'fetchCurrencies': False,
+        'fetchCurrencies': 'emulated',
         'fetchDepositAddress': False,
         'fetchDeposits': False,
         'fetchL2OrderBook': True,
@@ -1420,7 +1420,7 @@ class Exchange(object):
                     return self.set_markets(self.markets)
                 return self.markets
         currencies = None
-        if self.has['fetchCurrencies']:
+        if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
         markets = self.fetch_markets(params)
         return self.set_markets(markets, currencies)

@@ -160,6 +160,7 @@ class currencycom(Exchange):
                 'CAR': 'Avis Budget Group Inc',
                 'EDU': 'New Oriental Education & Technology Group Inc',
                 'ETN': 'Eaton',
+                'FOX': 'Fox Corporation',
                 'IQ': 'iQIYI',
                 'PLAY': "Dave & Buster's Entertainment",
             },

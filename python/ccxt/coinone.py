@@ -31,7 +31,6 @@ class coinone(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': None,  # the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
-                'fetchCurrencies': None,
                 'fetchDepositAddresses': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,

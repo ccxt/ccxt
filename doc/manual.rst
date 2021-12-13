@@ -1815,7 +1815,7 @@ Below is a detailed description of each of the base exchange properties:
   ``timeout``\ : A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). You should always set it to a reasonable value, hanging forever with no timeout is not your option, for sure.
 
  * 
-  ``rateLimit``\ : A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is disabled by default and is turned on by setting the ``enableRateLimit`` property to true.
+  ``rateLimit``\ : A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is enabled by default and can be turned off by setting the ``enableRateLimit`` property to false.
 
  * 
   ``enableRateLimit``\ : A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is ``true`` (enabled) by default. **The user is required to implement own :ref:`rate limiting <rate limit>` or leave the built-in rate limiter enabled to avoid being banned from the exchange**.
@@ -1917,10 +1917,10 @@ Exchange Metadata
     The meaning of each flag showing availability of this or that method is:
 
 
-  * a value of ``undefined`` / ``None`` / ``null`` means the method is not unified in the ccxt library yet or the method isn't natively available from the exchange API
-  * boolean ``false`` means the method isn't natively available from the exchange API
-  * boolean ``true`` means the method is natively available from the exchange API and unified in the ccxt library
-  * an ``'emulated'`` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
+  * a value of ``undefined`` / ``None`` / ``null`` means the method is not currently implemented in ccxt (either ccxt has not unified it yet or the method isn't natively available from the exchange API)
+  * boolean ``false`` specifically means that the endpoint isn't natively available from the exchange API
+  * boolean ``true`` means the endpoint is natively available from the exchange API and unified in the ccxt library
+  * ``'emulated'`` string means the endpoint isn't natively available from the exchange API but reconstructed (as much as possible) by the ccxt library from other available true-methods
 
 Rate Limit
 ----------
@@ -2025,7 +2025,7 @@ Reuse the exchange instance as much as possible as shown below:
        console.log (result)
    }
 
-Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets pver and over as explained in the `Loading Markets <https://docs.ccxt.com/en/latest/manual.html#loading-markets>`__ section. Abusing the markets endpoint will eventually break the rate limiter as well.
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets over and over as explained in the `Loading Markets <https://docs.ccxt.com/en/latest/manual.html#loading-markets>`__ section. Abusing the markets endpoint will eventually break the rate limiter as well.
 
 .. code-block:: JavaScript
 
@@ -2079,9 +2079,9 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 
  * use a proxy (this is less responsive, though)
  * ask the exchange support to add you to a whitelist
- * run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
  * try an alternative IP within a different geographic region
  * run your software in a distributed network of servers
+ * run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
  * ...
 
 Markets
@@ -2089,9 +2089,43 @@ Markets
 
 
 
-Each exchange is a place for trading some kinds of valuables. Sometimes they are called with various different terms like instruments, symbols, trading pairs, currencies, tokens, stocks, commodities, contracts, etc, but they all mean the same – a trading pair, a symbol or a financial instrument.
+Each exchange is a place for trading some kinds of valuables. The exchanges may use differing terms to call them: *"a currency"*\ , *"an asset"*\ , *"a coin"*\ , *"a token"*\ , *"stock"*\ , *"commodity"*\ , *"crypto"*\ , "fiat", etc. A place for trading one asset for another is usually called *"a market"*\ , *"a symbol"*\ , *"a trading pair"*\ , *"a contract"*\ , etc. 
 
-In terms of the ccxt library, every exchange offers multiple markets within itself. The set of markets differs from exchange to exchange opening possibilities for cross-exchange and cross-market arbitrage. A market is usually a pair of traded crypto/fiat currencies.
+In terms of the ccxt library, every exchange offers multiple **markets** within itself. Each market is defined by two or more **currencies**. The set of markets differs from exchange to exchange opening possibilities for cross-exchange and cross-market arbitrage.
+
+Currency Structure
+------------------
+
+.. code-block:: JavaScript
+
+   {
+       'id':       'btc',       // string literal for referencing within an exchange
+       'code':     'BTC',       // uppercase unified string literal code the currency
+       'name':     'Bitcoin',   // string, human-readable name, if specified
+       'active':    true,       // boolean, currency status (tradeable and withdrawable)
+       'fee':       0.123,      // withdrawal fee, flat
+       'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+       'limits': {              // value limits when placing orders on this market
+           'amount': {
+               'min': 0.01,     // order amount should be > min
+               'max': 1000,     // order amount should be < max
+           },
+           'withdraw': { ... }, // withdrawal limits
+       },
+       'info': { ... }, // the original unparsed currency info from the exchange
+   }
+
+Each currency is an associative array (aka dictionary) with the following keys:
+
+
+ * ``id``. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
+ * ``code``. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
+ * ``name``. A human-readable name of the currency (can be a mix of uppercase & lowercase characters).
+ * ``fee``. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the ``fee`` can be ``undefined/None/null`` or missing.
+ * ``active``. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: :ref:`\ ``active`` status <active status>`.
+ * ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+ * ``precision``. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on :ref:`\ ``exchange.precisionMode`` <precision mode>`.
+ * ``limits``. The minimums and maximums for amounts (volumes) and withdrawals.
 
 Market Structure
 ----------------
@@ -2136,60 +2170,23 @@ Each market is an associative array (aka dictionary) with the following keys:
  * ``quote``. A unified uppercase string code of quoted fiat or crypto currency.
  * ``baseId``. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
  * ``quoteId``. An exchange-specific id of the quote currency, not unified.
- * ``active``. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and :ref:`reload market cache periodically, as explained below <market cache force reload>`.
+ * ``active``. A boolean indicating whether or not trading this market is currently possible, more about it here: :ref:`\ ``active`` status <active status>`.
  * ``maker``. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market.
  * ``taker``. Float, 0.002 = 0.2%. Taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
  * ``percentage``. A boolean true/false value indicating whether ``taker`` and ``maker`` are multipliers or fixed flat amounts.
  * ``tierBased``. A boolean true/false value indicating whether the fee depends on your trading tier (usually, your traded volume over a period of time).
  * ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
- * ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the ``exchange.precisionMode``.
-
-  * If ``exchange.precisionMode`` is ``DECIMAL_PLACES`` then the ``market['precision']`` designates the number of decimal digits after the dot.
-  * If ``exchange.precisionMode`` is ``SIGNIFICANT_DIGITS`` then the ``market['precision']`` designates the number of non-zero digits after the dot.
-  * When ``exchange.precisionMode`` is ``TICK_SIZE`` then the ``market['precision']`` designates the smallest possible float fractions.
-
+ * ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. (The value inside this property depend on the :ref:`\ ``exchange.precisionMode`` <precision mode>`\ ).
  * ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
 
- **WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
+Active status
+-------------
 
-Currency Structure
-------------------
+The ``active`` flag is typically used in :ref:`\ ``currencies`` <currency structure>` and :ref:`\ ``markets`` <market structure>`. The exchanges might put a slightly different meaning into it. If a currency is inactive, most of the time all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated information. The user should check if the currency is ``active`` and :ref:`reload markets periodically <market cache force reload>`. 
 
-.. code-block:: JavaScript
+Note: the ``false`` value for the ``active`` property doesn't always guarantee that all of the possible features like trading, withdrawing or depositing are disabled on the exchange. Likewise, neither the ``true`` value guarantees that all those features are enabled on the exchange. Check the underlying exchanges' documentation and the code in CCXT for the exact meaning of the ``active`` flag for this or that exchange. This flag is not yet supported or implemented by all markets and may be missing.
 
-   {
-       'id':       'btc',       // string literal for referencing within an exchange
-       'code':     'BTC',       // uppercase unified string literal code the currency
-       'name':     'Bitcoin',   // string, human-readable name, if specified
-       'active':    true,       // boolean, currency status (tradeable and withdrawable)
-       'fee':       0.123,      // withdrawal fee, flat
-       'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
-       'limits': {              // value limits when placing orders on this market
-           'amount': {
-               'min': 0.01,     // order amount should be > min
-               'max': 1000,     // order amount should be < max
-           },
-           'withdraw': { ... }, // withdrawal limits
-       },
-       'info': { ... }, // the original unparsed currency info from the exchange
-   }
-
-Each currency is an associative array (aka dictionary) with the following keys:
-
-
- * ``id``. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
- * ``code``. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
- * ``name``. Self-explaining.
- * ``fee``. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the ``fee`` can be ``undefined/None/null`` or missing.
- * ``active``. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and :ref:`reload markets periodically, as explained below <market cache force reload>`.
- * ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
- * ``precision``. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the ``exchange.precisionMode``.
-
-  * If ``exchange.precisionMode`` is ``DECIMAL_PLACES`` then the ``currency['precision']`` designates the number of decimal digits after the dot.
-  * If ``exchange.precisionMode`` is ``SIGNIFICANT_DIGITS`` then the ``currency['precision']`` designates the number of non-zero digits after the dot.
-  * When ``exchange.precisionMode`` is ``TICK_SIZE`` then the ``currency['precision']`` designates the smallest possible float fractions.
-
- * ``limits``. The minimums and maximums for amounts (volumes) and withdrawals.
+ **WARNING! The information about the fee is experimental, unstable and may be partial or not available at all.**
 
 Precision And Limits
 --------------------
@@ -2203,7 +2200,7 @@ Examples:
 
    ``(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 4)``
 
-   In the first example the **amount** of any order placed on the market **must satisfy both conditions**\ :
+   In this example the **amount** of any order placed on the market **must satisfy both conditions**\ :
 
 
    * The *amount value* should be >= 0.05:
@@ -2222,7 +2219,7 @@ Examples:
 
    ``(market['limits']['price']['min'] == 0.019) && (market['precision']['price'] == 5)``
 
-   In the second example the **price** of any order placed on the market **must satisfy both conditions**\ :
+   In this example the **price** of any order placed on the market **must satisfy both conditions**\ :
 
 
    * The *price value* should be >= 0.019:
@@ -2241,6 +2238,8 @@ Examples:
 
    ``(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)``
 
+   In this example **both conditions must be satisfied**\ :
+
 
    * The *amount value* should be greater than or equal to 50:
      .. code-block:: diff
@@ -2254,7 +2253,7 @@ Examples:
         + good: 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
         - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
 
- *The ``precision`` and ``limits`` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The ``active`` flag is not yet supported and/or implemented by all markets.*
+ *The ``precision`` and ``limits`` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders.*
 
 Notes On Precision And Limits
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2286,18 +2285,29 @@ Supported rounding modes are:
 
 The decimal precision counting mode is available in the ``exchange.precisionMode`` property.
 
-Supported precision modes are:
+Precision Mode
+""""""""""""""
+
+Supported precision modes in ``exchange['precisionMode']`` are:
 
 
- * ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in ``market['precision']`` designate the number of decimal digits after the dot for further rounding or truncation.
- * ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (\ ``bitfinex`` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in ``market['precision']`` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
- * ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (\ ``bitmex`` and ``ftx`` use this mode, for example). In this mode, the numbers in ``market['precision']`` designate the minimal precision fractions (floats) for rounding or truncating.
+ * ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in ``market_or_currency['precision']`` designate the number of decimal digits after the dot for further rounding or truncation.
+ * ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (\ ``bitfinex`` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in ``market_or_currency['precision']`` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
+ * ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (\ ``bitmex`` and ``ftx`` use this mode, for example). In this mode, the numbers in ``market_or_currency['precision']`` designate the minimal precision fractions (floats) for rounding or truncating.
+
+Padding Mode
+""""""""""""
 
 Supported padding modes are:
 
 
  * ``NO_PADDING`` – default for most cases
  * ``PAD_WITH_ZERO`` – appends zero characters up to precision
+
+Formatting To Precision
+"""""""""""""""""""""""
+
+Most of the time the user does not have to take care of precision formatting, since CCXT will handle that for the user when the user places orders or sends withdrawal requests, if the user follows the rules as described on :ref:`Precision And Limits <precision and limits>`. However, in some cases precision-formatting details may be important, so the following methods may be useful in the userland.
 
 The exchange base class contains the ``decimalToPrecision`` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
 
@@ -2430,11 +2440,13 @@ The user can also bypass the cache and call unified methods for fetching that in
 Symbols And Market Ids
 ----------------------
 
+A currency code is a code of three to five letters, like ``BTC``\ , ``ETH``\ , ``USD``\ , ``GBP``\ , ``CNY``\ , ``JPY``\ , ``DOGE``\ , ``RUB``\ , ``ZEC``\ , ``XRP``\ , ``XMR``\ , etc. Some exchanges have exotic currencies with longer codes.
+
+A symbol is usually an uppercase string literal name of a pair of traded currencies with a slash in between. The first currency before the slash is usually called *base currency*\ , and the one after the slash is called *quote currency*. Examples of a symbol are: ``BTC/USD``\ , ``DOGE/LTC``\ , ``ETH/EUR``\ , ``DASH/XRP``\ , ``BTC/CNY``\ , ``ZEC/XMR``\ , ``ETH/JPY``.
+
 Market ids are used during the REST request-response process to reference trading pairs within exchanges. The set of market ids is unique per exchange and cannot be used across exchanges. For example, the BTC/USD pair/market may have different ids on various popular exchanges, like ``btcusd``\ , ``BTCUSD``\ , ``XBTUSD``\ , ``btc/usd``\ , ``42`` (numeric id), ``BTC/USD``\ , ``Btc/Usd``\ , ``tBTCUSD``\ , ``XXBTZUSD``. You don't need to remember or use market ids, they are there for internal HTTP request-response purposes inside exchange implementations.
 
 The ccxt library abstracts uncommon market ids to symbols, standardized to a common format. Symbols aren't the same as market ids. Every market is referenced by a corresponding symbol. Symbols are common across exchanges which makes them suitable for arbitrage and many other things.
-
-A symbol is usually an uppercase string literal name for a pair of traded currencies with a slash in between. A currency is a code of three or four uppercase letters, like ``BTC``\ , ``ETH``\ , ``USD``\ , ``GBP``\ , ``CNY``\ , ``LTC``\ , ``JPY``\ , ``DOGE``\ , ``RUB``\ , ``ZEC``\ , ``XRP``\ , ``XMR``\ , etc. Some exchanges have exotic currencies with longer names. The first currency before the slash is usually called *base currency*\ , and the one after the slash is called *quote currency*.  Examples of a symbol are: ``BTC/USD``\ , ``DOGE/LTC``\ , ``ETH/EUR``\ , ``DASH/XRP``\ , ``BTC/CNY``\ , ``ZEC/XMR``\ , ``ETH/JPY``.
 
 Sometimes the user might notice a symbol like ``'XBTM18'`` or ``'.XRPUSDM20180101'`` or some other *"exotic/rare symbols"*. The symbol is **not required** to have a slash or to be a pair of currencies. The string in the symbol really depends on the type of the market (whether it is a spot market or a futures market, a darkpool market or an expired market, etc). Attempting to parse the symbol string is highly discouraged, one should not rely on the symbol format, it is recommended to use market properties instead.
 
