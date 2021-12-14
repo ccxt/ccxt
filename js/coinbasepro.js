@@ -41,6 +41,7 @@ module.exports = class coinbasepro extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
@@ -90,6 +91,7 @@ module.exports = class coinbasepro extends Exchange {
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
+                        'products/spark-lines', // experimental
                     ],
                 },
                 'private': {
@@ -429,55 +431,95 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        //
-        // publicGetProductsIdTicker
-        //
-        //     {
-        //         "trade_id":843439,
-        //         "price":"0.997999",
-        //         "size":"80.29769",
-        //         "time":"2020-01-28T02:13:33.012523Z",
-        //         "bid":"0.997094",
-        //         "ask":"0.998",
-        //         "volume":"1903188.03750000"
-        //     }
-        //
-        // publicGetProductsIdStats
-        //
-        //     {
-        //         "open": "34.19000000",
-        //         "high": "95.70000000",
-        //         "low": "7.06000000",
-        //         "volume": "2.41000000"
-        //     }
-        //
-        const timestamp = this.parse8601 (this.safeValue (ticker, 'time'));
-        const bid = this.safeNumber (ticker, 'bid');
-        const ask = this.safeNumber (ticker, 'ask');
-        const last = this.safeNumber2 (ticker, 'price', 'last');
+        let timestamp = undefined;
+        let bid = undefined;
+        let ask = undefined;
+        let last = undefined;
+        let high = undefined;
+        let low = undefined;
+        let open = undefined;
+        let volume = undefined;
+        let info = undefined;
         const symbol = (market === undefined) ? undefined : market['symbol'];
-        return {
+        if (typeof ticker === 'number') {
+            timestamp = this.milliseconds ();
+            last = ticker;
+            info = { 'symbol': ticker };
+        } else {
+            timestamp = this.parse8601 (this.safeValue (ticker, 'time'));
+            bid = this.safeNumber (ticker, 'bid');
+            ask = this.safeNumber (ticker, 'ask');
+            high = this.safeNumber (ticker, 'high');
+            low = this.safeNumber (ticker, 'low');
+            open = this.safeNumber (ticker, 'open');
+            last = this.safeNumber2 (ticker, 'price', 'last');
+            volume = this.safeNumber (ticker, 'volume');
+            info = ticker;
+        }
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': high,
+            'low': low,
             'bid': bid,
             'bidVolume': undefined,
             'ask': ask,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': volume,
             'quoteVolume': undefined,
-            'info': ticker,
-        };
+            'info': info,
+        });
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        // only publicGetSparkLines available atm
+        const method = this.safeString (this.options, 'fetchTickersMethod', 'publicGetProductsSparkLines');
+        const response = await this[method] (this.extend (request, params));
+        // array order : t-l-h-o-c
+        //  {
+        //      YYY-USD: [
+        //          [
+        //              1639472400,
+        //              4.26,
+        //              4.38,
+        //              4.35,
+        //              4.27
+        //          ],
+        //          [
+        //              1639468800,
+        //              4.31,
+        //              4.45,
+        //              4.35,
+        //              4.35
+        //          ]
+        //      ZZZ-USD : [
+        //          [
+        //              1639472400,
+        //              ...
+        const result = {};
+        const marketIds = Object.keys (response);
+        const delimiter = '-';
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const entry = this.safeValue (response, marketId, []);
+            const lastRow = this.safeValue (entry, 0, []);
+            const lastPrice = this.safeValue (lastRow, 4);
+            const market = this.safeMarket (marketId, undefined, delimiter);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (lastPrice, market);
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
