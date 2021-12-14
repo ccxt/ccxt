@@ -2100,11 +2100,14 @@ module.exports = class mexc extends Exchange {
         //
         // Gets a history of funding rates with their timestamps
         //  (param) symbol: Future currency pair
-        //  (param) limit: not used by mexc
+        //  (param) limit: mexc limit is default
         //  (param) since: not used by mexc
         //  (param) params: Object containing more params for the request
         //  return: [{symbol, fundingRate, timestamp, dateTime}]
         //
+        if (limit === undefined) {
+            limit = 20;  // page_size default is 20
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
