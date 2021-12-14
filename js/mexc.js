@@ -2113,6 +2113,9 @@ module.exports = class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
         const response = await this.contractPublicGetFundingRateHistory (this.extend (request, params));
         //
         // {
