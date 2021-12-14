@@ -579,7 +579,7 @@ module.exports = class whitebit extends Exchange {
         }
         const orderId = this.safeString (trade, 'dealOrderId');
         const priceString = this.safeString (trade, 'price');
-        let amountString = this.safeString2 (trade, 'deal');
+        let amountString = this.safeString (trade, 'deal');
         if (amountString === undefined) {
             amountString = this.safeString2 (trade, 'amount', 'volume');
         }
@@ -703,13 +703,6 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'amount': this.numberToString (this.amountToPrecision (symbol, amount)),
         };
-        function getActivationPrice () {
-            const activationPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
-            if (activationPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a activationPrice or stopPrice parameter for the ' + type + ' order type');
-            }
-            return activationPrice;
-        }
         if (type === 'market') {
             // for this order type, the amount in the stock currency to buy/sell
             // example: amount = 50 in 'BTC-USDT' means I want to buy BTC for 50 USDT
@@ -728,18 +721,21 @@ module.exports = class whitebit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder() only accepts "buy" side for this order type');
             }
         }
-        if (customType === 'stoplimit') {
-            method = 'privateV4OPostOrderStopLimit';
-            const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
-            request['price'] = convertedPrice;
-            const activationPrice = getActivationPrice ();
-            request['activation_price'] = this.numberToString (this.priceToPrecision (symbol, activationPrice));
-        }
-        if (customType === 'stopMarket') {
-            // the same as above but for limit orders
-            // the amount is in stock currency to buy/sell
-            method = 'privateV4PostOrderStopMarket';
-            const activationPrice = getActivationPrice ();
+        if (customType === 'stopLimit' || customType === 'stopMarket') {
+            if (customType === 'stoplimit') {
+                method = 'privateV4OPostOrderStopLimit';
+                const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
+                request['price'] = convertedPrice;
+            }
+            if (customType === 'stopMarket') {
+                // the same as above but for limit orders
+                // the amount is in stock currency to buy/sell
+                method = 'privateV4PostOrderStopMarket';
+            }
+            const activationPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
+            if (activationPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a activationPrice or stopPrice parameter for the ' + customType + ' order type');
+            }
             request['activation_price'] = this.numberToString (this.priceToPrecision (symbol, activationPrice));
         }
         if (method === undefined) {
@@ -891,19 +887,26 @@ module.exports = class whitebit extends Exchange {
         //     "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
         // }
         // For Closed Orders
-        // {
-        //      "id": 160305483,               // orderID
-        //      "time": 1594667731.724403,     // Timestamp of the executed order
-        //      "side": "sell",                // Order side "sell" / "buy"
-        //      "role": 2,                     // Role - 1 - maker, 2 - taker
-        //      "amount": "0.000076",          // amount in stock
-        //      "price": "9264.21",            // price
-        //      "deal": "0.70407996",          // amount in money
-        //      "fee": "0.00070407996"         // paid fee
-        // },
+        //
+        //     {
+        //         "market": "BTC_USDT"             // artificial field
+        //         "amount": "0.0009",               // amount of trade
+        //         "price": "40000",                 // price
+        //         "type": "limit",                  // order type
+        //         "id": 4986126152,                 // order id
+        //         "clientOrderId": "customId11",    // custom order identifier; "clientOrderId": "" - if not specified.
+        //         "side": "sell",                   // order side
+        //         "ctime": 1597486960.311311,       // timestamp of order creation
+        //         "takerFee": "0.001",              // maker fee ratio. If the number less than 0.0001 - its rounded to zero
+        //         "ftime": 1597486960.311332,       // executed order timestamp
+        //         "makerFee": "0.001",              // maker fee ratio. If the number less than 0.0001 - its rounded to zero
+        //         "dealFee": "0.041258268",         // paid fee if order is finished
+        //         "dealStock": "0.0009",            // amount in stock currency that finished
+        //         "dealMoney": "41.258268"          // amount in money currency that finished
+        //     },
         const marketId = this.safeString (order, 'market');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const side = this.safeValue (order, 'side');
+        const side = this.safeString (order, 'side');
         const filled = this.safeValue (order, 'dealStock');
         const amount = this.safeValue (order, 'amount');
         const clientOrderId = this.safeValue (order, 'clientOrderId');
@@ -926,8 +929,8 @@ module.exports = class whitebit extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const timestamp = this.safeTimestamp (order, 'timestamp');
-        const lastTimestamp = this.safeTimestamp (order, 'time');
+        const timestamp = this.safeTimestamp (order, 'ctime', 'timestamp');
+        const lastTimestamp = this.safeTimestamp (order, 'ftime');
         return this.safeOrder2 ({
             'info': order,
             'id': orderId,
@@ -1121,9 +1124,8 @@ module.exports = class whitebit extends Exchange {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
         }
         if (response !== undefined) {
-            const success = this.safeValue (response, 'success');
             const status = this.safeValue (response, 'status');
-            if (success === false || (status !== undefined && status !== '200')) {
+            if ((status !== undefined && status !== '200')) {
                 const feedback = this.id + ' ' + body;
                 const status = this.safeString (response, 'status');
                 if (typeof status === 'string') {
