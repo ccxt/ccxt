@@ -668,6 +668,20 @@ class Exchange {
         return $arrayOfArrays;
     }
 
+    public static function sort_by_2($arrayOfArrays, $key1, $key2, $descending = false) {
+        $descending = $descending ? -1 : 1;
+        usort($arrayOfArrays, function ($a, $b) use ($key1, $key2, $descending) {
+            if ($a[$key1] == $b[$key1]) {
+                if ($a[$key2] == $b[$key2]) {
+                    return 0;
+                }
+                return $a[$key2] < $b[$key2] ? -$descending : $descending;
+            }
+            return $a[$key] < $b[$key] ? -$descending : $descending;
+        });
+        return $arrayOfArrays;
+    }
+
     public static function flatten($array) {
         return array_reduce($array, function ($acc, $item) {
             return array_merge($acc, is_array($item) ? static::flatten($item) : array($item));
