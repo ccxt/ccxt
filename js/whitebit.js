@@ -12,6 +12,8 @@ module.exports = class whitebit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'whitebit',
             'name': 'WhiteBit',
+            'apiKey': '53bfad4c4e1faaf74801e9e0966ea604',
+            'secret': 'eac690990db98f0536c14603dffa4480',
             'version': 'v2',
             'countries': [ 'EE' ],
             'rateLimit': 500,
@@ -159,6 +161,7 @@ module.exports = class whitebit extends Exchange {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchTradesMethod': 'fetchTradesV1',
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
             },
@@ -603,7 +606,7 @@ module.exports = class whitebit extends Exchange {
         if (role !== undefined) {
             takerOrMaker = (role === 1) ? 'maker' : 'taker';
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -617,7 +620,7 @@ module.exports = class whitebit extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-        };
+        });
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -704,10 +707,24 @@ module.exports = class whitebit extends Exchange {
             'amount': this.numberToString (this.amountToPrecision (symbol, amount)),
         };
         if (type === 'market') {
-            // for this order type, the amount in the stock currency to buy/sell
-            // example: amount = 50 in 'BTC-USDT' means I want to buy BTC for 50 USDT
-            // If I want to sell the amount should be 0.01
             method = 'privateV4PostOrderMarket';
+            if (side === 'buy') {
+                let cost = this.safeNumber (params, 'cost');
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        if (cost === undefined) {
+                            cost = amount * price;
+                        }
+                    } else if (cost === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
+                    }
+                } else {
+                    cost = (cost === undefined) ? amount : cost;
+                }
+                const costToPrecision = this.costToPrecision (symbol, cost);
+                request['amount'] = this.numberToString (costToPrecision);
+            }
         }
         if (type === 'limit') {
             method = 'privateV4PostOrderNew';
