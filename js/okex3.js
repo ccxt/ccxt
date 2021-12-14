@@ -987,7 +987,7 @@ module.exports = class okex3 extends Exchange {
         // if you attempt to access it without authentication
         if (!this.checkRequiredCredentials (false)) {
             if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
-                throw new ExchangeError (this.id + ' fetchCurrencies() WARNING: fetching currencies without authorization is not allowed on this exchange. Set ' + this.id + '.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
+                throw new ExchangeError (this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
             }
             return undefined;
         } else {
