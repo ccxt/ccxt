@@ -915,7 +915,6 @@ class Exchange(object):
     def sort_by_2(array, key1, key2, descending=False):
         return sorted(array, key=lambda k: (k[key1] if k[key1] is not None else "", k[key2] if k[key2] is not None else ""), reverse=descending)
 
-
     @staticmethod
     def array_concat(a, b):
         return a + b
