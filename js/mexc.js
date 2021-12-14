@@ -2100,7 +2100,7 @@ module.exports = class mexc extends Exchange {
         //
         // Gets a history of funding rates with their timestamps
         //  (param) symbol: Future currency pair
-        //  (param) limit: mexc limit is default
+        //  (param) limit: mexc limit is page_size default 20
         //  (param) since: not used by mexc
         //  (param) params: Object containing more params for the request
         //  return: [{symbol, fundingRate, timestamp, dateTime}]
@@ -2112,6 +2112,8 @@ module.exports = class mexc extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            // 'page_size': limit, // optional
+            // 'page_num': 1, // optional
         };
         if (limit !== undefined) {
             request['page_size'] = limit;
