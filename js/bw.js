@@ -51,8 +51,6 @@ module.exports = class bw extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
-                'privateAPI': undefined,
-                'publicAPI': undefined,
                 'withdraw': undefined,
             },
             'timeframes': {
