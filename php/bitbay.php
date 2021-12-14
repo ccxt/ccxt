@@ -14,7 +14,7 @@ class bitbay extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'bitbay',
             'name' => 'BitBay',
-            'countries' => array( 'MT', 'EU' ), // Malta
+            'countries' => array( 'EE' ), // Estonia
             'rateLimit' => 1000,
             'has' => array(
                 'cancelOrder' => true,

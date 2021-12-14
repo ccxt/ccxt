@@ -13,7 +13,7 @@ class bl3p extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'bl3p',
             'name' => 'BL3P',
-            'countries' => array( 'NL', 'EU' ), // Netherlands, EU
+            'countries' => array( 'NL' ), // Netherlands
             'rateLimit' => 1000,
             'version' => '1',
             'comment' => 'An exchange market by BitonicNL',
