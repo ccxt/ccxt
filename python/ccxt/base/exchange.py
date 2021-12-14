@@ -909,7 +909,11 @@ class Exchange(object):
 
     @staticmethod
     def sort_by(array, key, descending=False):
-        return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
+        return sorted(array, key=lambda k: k.get(key, ""), reverse=descending)
+
+    @staticmethod
+    def sort_by_2(array, key1, key2, descending=False):
+        return sorted(array, key=lambda k: (k.get(key1, ""), k.get(key2, "")), reverse=descending)
 
     @staticmethod
     def array_concat(a, b):
