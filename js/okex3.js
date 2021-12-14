@@ -687,7 +687,7 @@ module.exports = class okex3 extends Exchange {
                     'rate': 'public',
                     '{instrument_id}/constituents': 'public',
                 },
-                'warnOnFetchCurrenciesWithoutAuthorization': true,
+                'warnOnFetchCurrenciesWithoutAuthorization': false,
             },
             'commonCurrencies': {
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
