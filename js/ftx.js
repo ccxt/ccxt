@@ -14,11 +14,11 @@ module.exports = class ftx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ftx',
             'name': 'FTX',
-            'countries': [ 'HK' ],
+            'countries': [ 'BS' ], // Bahamas
             'rateLimit': 100,
             'certified': true,
             'pro': true,
-            'hostname': 'ftx.com', // or ftx.us
+            'hostname': 'ftx.com', // not to confuse with ftx.us (different exchanges)
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
