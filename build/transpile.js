@@ -88,6 +88,7 @@ class Transpiler {
             [ /\.getVersionString\s/g, '.get_version_string'],
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
+            [ /\.sortBy2\s/g, '.sort_by_2'],
             [ /\.filterBy\s/g, '.filter_by'],
             [ /\.groupBy\s/g, '.group_by'],
             [ /\.marketIds\s/g, '.market_ids'],
