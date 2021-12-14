@@ -594,7 +594,6 @@ class Transpiler {
             'math': 'math',
             'json.loads': 'json',
             'sys': 'sys',
-            'numbers': 'numbers',
         }
 
         const baseClasses = {
@@ -615,6 +614,10 @@ class Transpiler {
             const regex = new RegExp ("[^\\'a-zA-Z]" + library + "[^\\'a-zA-Z]")
             if (bodyAsString.match (regex))
                 libraries.push ('import ' + pythonStandardLibraries[library])
+        }
+
+        if (body.indexOf ('numbers')) {
+            libraries.push ('import numbers')
         }
 
         const errorImports = []
