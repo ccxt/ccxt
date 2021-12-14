@@ -209,7 +209,7 @@ class Transpiler {
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
-            [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ],
+            // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
             [ /assert\s*\((.+)\);/g, 'assert $1'],
             [ /Precise\.stringAdd\s/g, 'Precise.string_add' ],
             [ /Precise\.stringMul\s/g, 'Precise.string_mul' ],
@@ -440,7 +440,7 @@ class Transpiler {
             [ / \+\= (?!\d)/g, ' .= ' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.replaceAll\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
+            // [ /([^\s\(]+(?:\s*\(.+\))?)\.replaceAll\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ], // still not a part of the standard in Node.js 13
             [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
             [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
             [ /([^\s\(]+).slice \(([^\)\:,]+)\)/g, 'mb_substr($1, $2)' ],
