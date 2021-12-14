@@ -441,10 +441,11 @@ module.exports = class coinbasepro extends Exchange {
         let volume = undefined;
         let info = undefined;
         const symbol = (market === undefined) ? undefined : market['symbol'];
-        if (typeof ticker === 'number') {
+        if ( Array.isArray (ticker)) {
+            const lastRow = this.safeValue (ticker, 0, []);
+            last = this.safeNumber (lastRow, 4);
             timestamp = this.milliseconds ();
-            last = ticker;
-            info = { 'symbol': ticker };
+            info = { 'symbol': last };
         } else {
             timestamp = this.parse8601 (this.safeValue (ticker, 'time'));
             bid = this.safeNumber (ticker, 'bid');
@@ -513,11 +514,9 @@ module.exports = class coinbasepro extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const entry = this.safeValue (response, marketId, []);
-            const lastRow = this.safeValue (entry, 0, []);
-            const lastPrice = this.safeValue (lastRow, 4);
             const market = this.safeMarket (marketId, undefined, delimiter);
             const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (lastPrice, market);
+            result[symbol] = this.parseTicker (entry, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
