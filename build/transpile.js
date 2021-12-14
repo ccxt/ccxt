@@ -616,7 +616,7 @@ class Transpiler {
                 libraries.push ('import ' + pythonStandardLibraries[library])
         }
 
-        if (body.indexOf ('numbers')) {
+        if (body.indexOf ('numbers') >= 0) {
             libraries.push ('import numbers')
         }
 
