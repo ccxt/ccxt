@@ -5,14 +5,11 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 const Precise = require ('./base/Precise');
-const { secret, key } = require ('./api_keys');
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'apiKey': key,
-            'secret': secret,
             'id': 'whitebit',
             'name': 'WhiteBit',
             'version': 'v2',
@@ -29,12 +26,12 @@ module.exports = class whitebit extends Exchange {
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
-                'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -65,6 +62,7 @@ module.exports = class whitebit extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
                 'api': {
                     'web': 'https://whitebit.com/',
+                    'privateV1': 'https://whitebit.com/api/v1',
                     'privateV4': 'https://whitebit.com/api/v4',
                     'publicV2': 'https://whitebit.com/api/v2/public',
                     'publicV1': 'https://whitebit.com/api/v1/public',
@@ -727,8 +725,10 @@ module.exports = class whitebit extends Exchange {
         }
         const customType = this.safeValue (params, 'type');
         if (customType === 'stockMarket') {
-            // this is the standard "market" order
             method = 'privateV4PostOrderStockMarket';
+            if (side === 'sell') {
+                throw new ArgumentsRequired (this.id + ' createOrder() only accepts "buy" side for this order type');
+            }
         }
         if (customType === 'stoplimit') {
             method = 'privateV4OPostOrderStopLimit';
@@ -840,7 +840,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50 max 100
         }
-        const response = await this.privateV4PostTradeAccountExecutedHistory (this.extend (request, params));
+        const response = await this.privateV4PostTradeAccountOrderHistory (this.extend (request, params));
         //
         // {
         //     "BTC_USDT": [
@@ -981,11 +981,8 @@ module.exports = class whitebit extends Exchange {
         //     "offset": 0,
         //     "limit": 100
         // }
-        let data = this.safeValue (response, 'records', {});
-        if (data.length) {
-            data = this.safeValue (data, 'records', {});
-        }
-        return this.parseTrades (response);
+        const data = this.safeValue (response, 'records', []);
+        return this.parseTrades (data);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1119,18 +1116,16 @@ module.exports = class whitebit extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
-            return;
-        }
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
         if (code === 404) {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
         }
-        if (url.indexOf ('public') >= 0 && response !== undefined) {
+        if (response !== undefined) {
             const success = this.safeValue (response, 'success');
-            if (!success) {
+            const status = this.safeValue (response, 'status');
+            if (success === false || (status !== undefined && status !== '200')) {
                 const feedback = this.id + ' ' + body;
                 const status = this.safeString (response, 'status');
                 if (typeof status === 'string') {
