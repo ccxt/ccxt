@@ -165,10 +165,6 @@ module.exports = class whitebit extends Exchange {
             'options': {
                 'fetchTradesMethod': 'fetchTradesV1',
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
-                'orderTypes': {
-                    'market': 'stockMarket',
-                    'limit': 'stopMarket',
-                },
             },
             'exceptions': {
                 'exact': {
@@ -920,7 +916,6 @@ module.exports = class whitebit extends Exchange {
             orderId = this.safeValue (order, 'id');
         }
         const type = this.safeValue (order, 'type');
-        const unifiedType = this.getUnifiedOrderType (type);
         const dealFee = this.safeValue (order, 'dealFee');
         let fee = undefined;
         if (dealFee !== undefined) {
@@ -946,7 +941,7 @@ module.exports = class whitebit extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'type': unifiedType,
+            'type': type,
             'stopPrice': activationPrice,
             'amount': amount,
             'filled': filled,
@@ -1089,11 +1084,6 @@ module.exports = class whitebit extends Exchange {
             'id': uniqueId,
             'info': response,
         };
-    }
-
-    getUnifiedOrderType (type) {
-        const types = this.safeValue (this.options, 'orderTypes', {});
-        return this.safeValue (types, type);
     }
 
     isFiat (currency) {
