@@ -594,6 +594,7 @@ class Transpiler {
             'math': 'math',
             'json.loads': 'json',
             'sys': 'sys',
+            'numbers': 'numbers',
         }
 
         const baseClasses = {
