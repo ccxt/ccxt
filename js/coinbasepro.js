@@ -441,7 +441,7 @@ module.exports = class coinbasepro extends Exchange {
         let volume = undefined;
         let info = undefined;
         const symbol = (market === undefined) ? undefined : market['symbol'];
-        if ( Array.isArray (ticker)) {
+        if (Array.isArray (ticker)) {
             const lastRow = this.safeValue (ticker, 0, []);
             last = this.safeNumber (lastRow, 4);
             timestamp = this.milliseconds ();
