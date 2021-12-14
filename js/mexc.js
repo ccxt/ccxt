@@ -42,6 +42,7 @@ module.exports = class mexc extends Exchange {
                 'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWIthdrawals': true,
@@ -626,9 +627,6 @@ module.exports = class mexc extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        if (type !== 'swap') {
-            throw new NotSupported (this.id + ' fetchTickers() is supported for swap markets only');
-        }
         const response = await this.contractPublicGetTicker (query);
         //
         //     {
