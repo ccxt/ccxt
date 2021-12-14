@@ -2106,7 +2106,7 @@ module.exports = class mexc extends Exchange {
         //  return: [{symbol, fundingRate, timestamp, dateTime}]
         //
         if (limit === undefined) {
-            limit = mexc.default;  // page_size default is 20
+            limit = 20;  // page_size default is 20
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
