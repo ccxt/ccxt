@@ -931,10 +931,10 @@ module.exports = class digifinex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const amount = this.safeString (order, 'amount');
-        const filled = this.safeString (order, 'executed_amount');
-        const price = this.safeString (order, 'price');
-        const average = this.safeString (order, 'avg_price');
+        const amountString = this.safeString (order, 'amount');
+        const filledString = this.safeString (order, 'executed_amount');
+        const priceString = this.safeString (order, 'price');
+        const averageString = this.safeString (order, 'avg_price');
         return this.safeOrder2 ({
             'info': order,
             'id': id,
@@ -947,13 +947,13 @@ module.exports = class digifinex extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': undefined,
-            'amount': amount,
-            'filled': filled,
+            'amount': amountString,
+            'filled': filledString,
             'remaining': undefined,
             'cost': undefined,
-            'average': average,
+            'average': averageString,
             'status': status,
             'fee': undefined,
             'trades': undefined,
