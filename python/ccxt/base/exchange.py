@@ -1426,7 +1426,7 @@ class Exchange(object):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
-        markets = self.fetch_markets(params)
+        markets = self.fetch_markets(params, currencies)
         return self.set_markets(markets, currencies)
 
     def load_accounts(self, reload=False, params={}):
@@ -1447,7 +1447,7 @@ class Exchange(object):
         self.loaded_fees = self.deep_extend(self.loaded_fees, self.fetch_fees())
         return self.loaded_fees
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}, currencies=None):
         # markets are returned as a list
         # currencies are returned as a dict
         # this is for historical reasons
