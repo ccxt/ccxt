@@ -361,7 +361,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchMarkets (params = {}) {
-        // todo drop v1 in favor of v2 configs
+        // todo drop v1 in favor of v2 configs  ( temp-reference for v2update: https://pastebin.com/raw/S8CmqSHQ )
         // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         const v2response = await this.publicGetConfPubListPairFutures (params);
         const v1response = await this.v1GetSymbolsDetails (params);
@@ -1491,7 +1491,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let method = 'privatePostAuthRMovementsHist';
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
+            request['currency'] = currency['code'];
             method = 'privatePostAuthRMovementsCurrencyHist';
         }
         if (since !== undefined) {
