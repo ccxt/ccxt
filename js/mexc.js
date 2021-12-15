@@ -484,42 +484,46 @@ module.exports = class mexc extends Exchange {
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCoin');
             const quoteId = this.safeString (market, 'quoteCoin');
+            const settleId = this.safeString (market, 'settleCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = id;
-            const precision = {
-                'price': this.safeNumber (market, 'priceUnit'),
-                'amount': this.safeNumber (market, 'volUnit'),
-            };
-            const taker = this.safeNumber (market, 'takerFeeRate');
-            const maker = this.safeNumber (market, 'makerFeeRate');
+            const settle = this.safeCurrencyCode (settleId);
             const state = this.safeString (market, 'state');
-            const active = (state === '0');
-            const type = 'swap';
-            const swap = true;
-            const spot = false;
-            const contractSize = this.safeString (market, 'contractSize');
-            const linear = true;
-            const inverse = false;
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'info': market,
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote + ':' + settle,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'type': type,
-                'swap': swap,
-                'spot': spot,
-                'contractSize': contractSize,
-                'linear': linear,
-                'inverse': inverse,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'precision': precision,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'futures': false,
+                'option': false,
+                'derivative': true,
+                'contract': true,
+                'linear': true,
+                'inverse': false,
+                'taker': this.safeNumber (market, 'takerFeeRate'),
+                'maker': this.safeNumber (market, 'makerFeeRate'),
+                'contractSize': this.safeString (market, 'contractSize'),
+                'active': (state === '0'),
+                'expiry': this.safeInteger (market, 'expire_time'),
+                'fees': this.safeValue (this.fees, 'trading'),
+                'precision': {
+                    'price': this.safeNumber (market, 'priceUnit'),
+                    'amount': this.safeNumber (market, 'volUnit'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': this.safeNumber (market, 'minLeverage'),
+                        'max': this.safeNumber (market, 'maxLeverage'),
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minVol'),
                         'max': this.safeNumber (market, 'maxVol'),
@@ -533,7 +537,7 @@ module.exports = class mexc extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }
