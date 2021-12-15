@@ -15,7 +15,7 @@ module.exports = class zipmex extends ndax {
             'certified': false,
             'pro': true,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg',
                 'test': undefined,
                 'api': {
                     'public': 'https://apws.zipmex.com:8443/AP',
