@@ -125,7 +125,7 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
             let coloredString = '';
 
             if ( capHas === false && capType !== 'function' ) { // if explicitly set to 'false' under 'has' params (to exclude mistake, we check if it's undefined too)
-                coloredString = isWindows ? exchange.id.red : exchange.id.red.dim
+                coloredString = isWindows ? exchange.id.lightMagenta : exchange.id.red 
                 inexistentApi += 1
             } else if ( capHas === 'emulated') { // if explicitly set to 'emulated' under 'has' params
                 coloredString = exchange.id.yellow
@@ -134,7 +134,7 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
                 coloredString = exchange.id.green
                 implemented += 1
             } else {
-                coloredString = isWindows ? exchange.id.lightMagenta : exchange.id.red 
+                coloredString = isWindows ? exchange.id.red : exchange.id.red.dim
                 notImplemented += 1
             }
 
