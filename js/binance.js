@@ -43,7 +43,6 @@ module.exports = class binance extends Exchange {
                 'fetchIsolatedPositions': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
-                'fetchMyDustTrades': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,

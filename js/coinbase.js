@@ -55,7 +55,6 @@ module.exports = class coinbase extends Exchange {
                 'fetchTrades': undefined,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
-                'findAccountId': true,
                 'withdraw': undefined,
             },
             'urls': {
