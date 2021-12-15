@@ -340,10 +340,6 @@ module.exports = class ftx extends Exchange {
                 'cancelOrder': {
                     'method': 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
                 },
-                'expiry': {
-                    'BOLSONARO2022': '20241005',
-                    'TRUMP2024': '20241105',
-                },
                 'fetchOpenOrders': {
                     'method': 'privateGetOrders', // privateGetConditionalOrders
                 },
@@ -478,43 +474,82 @@ module.exports = class ftx extends Exchange {
         //         volumeUsd24h: "2892083192.6099"
         //     }
         //
+        const allFuturesResponse = await this.publicGetFutures ();
+        //
+        //    {
+        //        success: true,
+        //        result: [
+        //            {
+        //                name: "1INCH-PERP",
+        //                underlying: "1INCH",
+        //                description: "1INCH Token Perpetual Futures",
+        //                type: "perpetual",
+        //                expiry: null,
+        //                perpetual: true,
+        //                expired: false,
+        //                enabled: true,
+        //                postOnly: false,
+        //                priceIncrement: "0.0001",
+        //                sizeIncrement: "1.0",
+        //                last: "2.5556",
+        //                bid: "2.5555",
+        //                ask: "2.5563",
+        //                index: "2.5612449804010833",
+        //                mark: "2.5587",
+        //                imfFactor: "0.0005",
+        //                lowerBound: "2.4315",
+        //                upperBound: "2.6893",
+        //                underlyingDescription: "1INCH Token",
+        //                expiryDescription: "Perpetual",
+        //                moveStart: null,
+        //                marginPrice: "2.5587",
+        //                positionLimitWeight: "20.0",
+        //                group: "perpetual",
+        //                change1h: "0.00799716356760164",
+        //                change24h: "0.004909276569004792",
+        //                changeBod: "0.008394419484511705",
+        //                volumeUsd24h: "17834492.0818",
+        //                volume: "7224898.0",
+        //                openInterest: "5597917.0",
+        //                openInterestUsd: "14323390.2279",
+        //            },
+        //            ...
+        //        ],
+        //    }
+        //
         const result = [];
         const markets = this.safeValue (response, 'result', []);
+        const allFutures = this.safeValue (allFuturesResponse, 'result');
+        const allFuturesDict = {};
+        for (let i = 0; i < allFutures.length; i++) {
+            const futureDict = allFutures[i];
+            const id = this.safeString (futureDict, 'name');
+            allFuturesDict[id] = futureDict;
+        }
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
+            const future = this.safeValue (allFuturesDict, id);
             const baseId = this.safeString2 (market, 'baseCurrency', 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency', 'USD');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const isFuture = this.safeString (market, 'type') === 'future';
-            const contract = isFuture;
-            const name = this.safeString (market, 'name');
-            let symbol = base + '/' + quote;
-            const splitName = name.split ('-');
+            const contract = this.safeString (market, 'type') === 'future';
             const settleId = contract ? 'USD' : undefined;
             const spot = !contract;
             const margin = !contract;
-            const swap = (this.safeString (splitName, 1) === 'PERP');
+            const swap = (this.safeString (future, 'perpetual') === 'true');
             const option = false;
-            let futures = false;
+            const isFuture = contract && !swap;
+            const expiry = this.safeString (future, 'expiry');
             let type = 'spot';
-            let expiry = undefined;
+            let symbol = base + '/' + quote;
             if (swap) {
                 type = 'swap';
                 symbol = base + '/' + quote + ':' + settleId;
             } else if (contract) {
                 type = 'futures';
-                const expiryDates = this.safeValue (this.options, 'expiry');
-                if (id in expiryDates) {
-                    expiry = expiryDates[id];
-                } else {
-                    const arrayLength = splitName.length;
-                    const index = arrayLength - 1;
-                    expiry = this.safeValue (splitName, index);
-                }
                 symbol = base + '/' + quote + ':' + settleId + '-' + expiry;
-                futures = true;
             }
             // check if a market is a spot or future market
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
@@ -531,8 +566,7 @@ module.exports = class ftx extends Exchange {
                 'spot': spot,
                 'margin': margin,
                 'swap': swap,
-                'future': futures, // Deprecated, please use 'futures'
-                'futures': futures,
+                'future': isFuture,
                 'option': option,
                 'active': this.safeValue (market, 'enabled'),
                 'derivative': contract,
