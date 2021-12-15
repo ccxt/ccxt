@@ -473,7 +473,6 @@ module.exports = class coinbasepro extends Exchange {
         let low = undefined;
         let open = undefined;
         let volume = undefined;
-        let info = undefined;
         const symbol = (market === undefined) ? undefined : market['symbol'];
         if (Array.isArray (ticker)) {
             last = this.safeNumber (ticker, 4);
