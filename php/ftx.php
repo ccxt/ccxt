@@ -17,7 +17,7 @@ class ftx extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'ftx',
             'name' => 'FTX',
-            'countries' => array( 'HK' ),
+            'countries' => array( 'BS' ), // Bahamas
             'rateLimit' => 100,
             'certified' => true,
             'pro' => true,
