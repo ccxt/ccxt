@@ -549,7 +549,7 @@ module.exports = class gateio extends Exchange {
         if (swap || futures || option) {
             const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
-                const settle = settlementCurrencies[c];
+                const settle = this.safeCurrencyCode (settlementCurrencies[c]);
                 query['settle'] = settle;
                 response = await this[method] (query);
                 //  Perpetual swap
@@ -671,17 +671,18 @@ module.exports = class gateio extends Exchange {
                     result.push ({
                         'info': market,
                         'id': id,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                        'settleId': this.safeSymbol (settle),
+                        'symbol': symbol,
                         'base': base,
                         'quote': quote,
-                        'symbol': symbol,
+                        'settle': settle,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                        'settleId': settle,
                         'type': type,
                         'spot': spot,
                         'margin': margin,
-                        'futures': futures,
                         'swap': swap,
+                        'futures': futures,
                         'option': option,
                         'derivative': true,
                         'contract': true,
@@ -691,6 +692,9 @@ module.exports = class gateio extends Exchange {
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                         'contractSize': this.safeString (market, 'quanto_multiplier'),
+                        'active': true,
+                        'expiry': this.safeInteger (market, 'expire_time'),
+                        'fees': this.safeValue (this.fees, feeIndex, {}),
                         'precision': {
                             'amount': this.parseNumber ('1'),
                             'price': pricePrecision,
@@ -708,9 +712,11 @@ module.exports = class gateio extends Exchange {
                                 'min': minPrice,
                                 'max': maxPrice,
                             },
+                            'cost': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
                         },
-                        'expiry': this.safeInteger (market, 'expire_time'),
-                        'fees': this.safeValue (this.fees, feeIndex, {}),
                     });
                 }
             }
