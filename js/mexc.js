@@ -46,7 +46,7 @@ module.exports = class mexc extends Exchange {
                 'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
-                'fetchTickers': true,
+                // 'fetchTickers': true,    // is true, but causes test to fail with '[NotSupported] mexc fetchTickers() is supported for swap markets only'
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWIthdrawals': true,
