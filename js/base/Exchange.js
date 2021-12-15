@@ -922,7 +922,7 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
-    fetchMarkets (params = {}, currencies) {
+    fetchMarkets (params = {}, currencies = undefined) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
