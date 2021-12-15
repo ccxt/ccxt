@@ -43,6 +43,7 @@ module.exports = class ftx extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': true,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
