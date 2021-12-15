@@ -738,7 +738,7 @@ module.exports = class Exchange {
         if (this.has.fetchCurrencies === true) {
             currencies = await this.fetchCurrencies ()
         }
-        const markets = await this.fetchMarkets (params)
+        const markets = await this.fetchMarkets (params, currencies)
         return this.setMarkets (markets, currencies)
     }
 
@@ -922,7 +922,7 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
-    fetchMarkets (params = {}) {
+    fetchMarkets (params = {}, currencies) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
