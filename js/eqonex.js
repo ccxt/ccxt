@@ -1318,16 +1318,17 @@ module.exports = class eqonex extends Exchange {
         let fee = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
         const feeCurrencyCode = this.safeCurrencyCode (currencyId);
+        let feeCostString = undefined;
         let feeCost = this.safeString (order, 'feeTotal');
         const feeScale = this.safeInteger (order, 'fee_scale');
         if (feeCost !== undefined) {
             feeCost = Precise.stringNeg (feeCost);
-            feeCost = this.parseNumber (this.convertFromScale (feeCost, feeScale));
+            feeCostString = this.convertFromScale (feeCost, feeScale);
         }
         if (feeCost !== undefined) {
             fee = {
                 'currency': feeCurrencyCode,
-                'cost': feeCost,
+                'cost': feeCostString,
                 'rate': undefined,
             };
         }
