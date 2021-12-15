@@ -28,9 +28,9 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
         [
             'publicAPI',
             'privateAPI',
-            'marginAPI',
-            'swapAPI',
-            'futureAPI',
+            'margin',
+            'swap',
+            'future',
             'CORS',
             'fetchCurrencies',
             'fetchFundingFees',

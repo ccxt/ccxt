@@ -24,9 +24,9 @@ module.exports = class huobi extends Exchange {
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
-                // 'marginAPI': true,
-                'swapAPI': true,
-                'futureAPI': true,
+                // 'margin': true,
+                'swap': true,
+                'future': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,

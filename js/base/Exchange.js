@@ -63,9 +63,9 @@ module.exports = class Exchange {
             'has': {
                 'privateAPI': true,
                 'publicAPI': true,
-                'marginAPI': undefined,
-                'swapAPI': undefined,
-                'futureAPI': undefined,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
