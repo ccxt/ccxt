@@ -359,6 +359,20 @@ module.exports = class ftx extends Exchange {
                     'BNB': 'bep2',
                 },
             },
+            'marginType': {
+                'spot': {
+                    'cross': true,
+                    'isolated': false,
+                },
+                'swap': {
+                    'cross': true,
+                    'isolated': false,
+                },
+                'future': {
+                    'cross': true,
+                    'isolated': false,
+                },
+            },
         });
     }
 

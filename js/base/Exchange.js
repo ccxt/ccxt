@@ -189,6 +189,20 @@ module.exports = class Exchange {
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
             },
+            'marginType': {
+                'spot': {
+                    'cross': undefined,
+                    'isolated': undefined,
+                },
+                'swap': {
+                    'cross': undefined,
+                    'isolated': undefined,
+                },
+                'future': {
+                    'cross': undefined,
+                    'isolated': undefined,
+                },
+            },
         } // return
     } // describe ()
 

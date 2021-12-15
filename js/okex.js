@@ -568,6 +568,20 @@ module.exports = class okex extends Exchange {
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
+            'marginType': {
+                'spot': {
+                    'cross': true,
+                    'isolated': true,
+                },
+                'swap': {
+                    'cross': true,
+                    'isolated': true,
+                },
+                'future': {
+                    'cross': true,
+                    'isolated': true,
+                },
+            },
         });
     }
 

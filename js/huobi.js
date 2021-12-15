@@ -784,6 +784,20 @@ module.exports = class huobi extends Exchange {
                 'SBTC': 'Super Bitcoin',
                 'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
+            'marginType': {
+                'spot': {
+                    'cross': true,
+                    'isolated': true,
+                },
+                'swap': {
+                    'cross': true,
+                    'isolated': true,
+                },
+                'future': {
+                    'cross': true,
+                    'isolated': true,
+                },
+            },
         });
     }
 

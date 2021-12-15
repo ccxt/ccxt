@@ -509,6 +509,20 @@ module.exports = class gateio extends Exchange {
                 },
             },
             'broad': {},
+            'marginType': {
+                'spot': {
+                    'cross': true,
+                    'isolated': true,
+                },
+                'swap': {
+                    'cross': true,
+                    'isolated': true,
+                },
+                'future': {
+                    'cross': true,
+                    'isolated': true,
+                },
+            },
         });
     }
 

@@ -345,6 +345,20 @@ module.exports = class kraken extends Exchange {
                 'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
                 'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
             },
+            'marginType': {
+                'spot': {
+                    'cross': true,
+                    'isolated': false,
+                },
+                'swap': {
+                    'cross': true,
+                    'isolated': false,
+                },
+                'future': {
+                    'cross': true,
+                    'isolated': false,
+                },
+            },
         });
     }
 

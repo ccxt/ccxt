@@ -20,6 +20,9 @@ module.exports = class binance extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'marginAPI': true,
+                'swapAPI': true,
+                'futureAPI': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
@@ -925,6 +928,20 @@ module.exports = class binance extends Exchange {
                 'broad': {
                     'has no operation privilege': PermissionDenied,
                     'MAX_POSITION': InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
+                },
+            },
+            'marginType': {
+                'spot': {
+                    'cross': true,
+                    'isolated': true,
+                },
+                'swap': {
+                    'cross': true,
+                    'isolated': true,
+                },
+                'future': {
+                    'cross': true,
+                    'isolated': true,
                 },
             },
         });
