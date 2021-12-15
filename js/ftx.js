@@ -340,6 +340,10 @@ module.exports = class ftx extends Exchange {
                 'cancelOrder': {
                     'method': 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
                 },
+                'expiry': {
+                    'BOLSONARO2022': '20241005',
+                    'TRUMP2024': '20241105',
+                },
                 'fetchOpenOrders': {
                     'method': 'privateGetOrders', // privateGetConditionalOrders
                 },
@@ -491,9 +495,9 @@ module.exports = class ftx extends Exchange {
             const settleId = contract ? 'USD' : undefined;
             const spot = !contract;
             const margin = !contract;
-            const swap = this.safeString (splitName, 1) === 'PERP';
-            let futures = false;
+            const swap = (this.safeString (splitName, 1) === 'PERP');
             const option = false;
+            let futures = false;
             let type = 'spot';
             let expiry = undefined;
             if (swap) {
@@ -501,12 +505,16 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote + ':' + settleId;
             } else if (contract) {
                 type = 'futures';
-                futures = true;
-                const arrayLength = splitName.length;
-                const index = arrayLength - 1;
-                const expiry = this.safeValue (splitName, index);
-                expiry = this.safeString (splitName, 1);
+                const expiryDates = this.safeValue (this.options, 'expiry');
+                if (id in expiryDates) {
+                    expiry = expiryDates[id];
+                } else {
+                    const arrayLength = splitName.length;
+                    const index = arrayLength - 1;
+                    expiry = this.safeValue (splitName, index);
+                }
                 symbol = base + '/' + quote + ':' + settleId + '-' + expiry;
+                futures = true;
             }
             // check if a market is a spot or future market
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
