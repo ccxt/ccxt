@@ -20,6 +20,9 @@ module.exports = class bybit extends Exchange {
             'rateLimit': 100,
             'hostname': 'bybit.com', // bybit.com, bytick.com
             'has': {
+                'marginAPI': false,
+                'swapAPI': true,
+                'futureAPI': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': true,

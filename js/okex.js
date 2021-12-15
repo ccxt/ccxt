@@ -20,6 +20,9 @@ module.exports = class okex extends Exchange {
             'pro': true,
             'certified': true,
             'has': {
+                'marginAPI': true,
+                'swapAPI': true,
+                'futureAPI': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createOrder': true,

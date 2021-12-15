@@ -19,6 +19,7 @@ module.exports = class kraken extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
+                'marginAPI': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
