@@ -227,8 +227,8 @@ class ndax extends Exchange {
 
     public function sign_in($params = array ()) {
         $this->check_required_credentials();
-        if ($this->login === null || $this->password === null || $this->twofa === null) {
-            throw new AuthenticationError($this->id . ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials');
+        if ($this->login === null || $this->password === null) {
+            throw new AuthenticationError($this->id . ' signIn() requires exchange.login, exchange.password');
         }
         $request = array(
             'grant_type' => 'client_credentials', // the only supported value
@@ -250,6 +250,9 @@ class ndax extends Exchange {
         }
         $pending2faToken = $this->safe_string($response, 'Pending2FaToken');
         if ($pending2faToken !== null) {
+            if ($this->twofa === null) {
+                throw new AuthenticationError($this->id . ' signIn() requires exchange.twofa credentials');
+            }
             $this->options['pending2faToken'] = $pending2faToken;
             $request = array(
                 'Code' => $this->oath(),
@@ -936,11 +939,13 @@ class ndax extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'Amount');
-            $account['used'] = $this->safe_string($balance, 'Hold');
-            $result[$code] = $account;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['total'] = $this->safe_string($balance, 'Amount');
+                $account['used'] = $this->safe_string($balance, 'Hold');
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
