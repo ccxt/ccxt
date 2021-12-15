@@ -321,12 +321,18 @@ module.exports = class gateio extends Exchange {
                 'defaultType': 'spot',
                 'swap': {
                     'fetchMarkets': {
-                        'settlementCurrencies': [ 'usdt', 'btc' ],
+                        'settlementCurrencies': {
+                            'USDT': 'usdt',
+                            'BTC': 'btc',
+                        },
                     },
                 },
                 'futures': {
                     'fetchMarkets': {
-                        'settlementCurrencies': [ 'usdt', 'btc' ],
+                        'settlementCurrencies': {
+                            'USDT': 'usdt',
+                            'BTC': 'btc',
+                        },
                     },
                 },
             },
@@ -674,7 +680,7 @@ module.exports = class gateio extends Exchange {
                         'symbol': symbol,
                         'base': base,
                         'quote': quote,
-                        'settle': settle,
+                        'settle': this.safeCurrencyCode (settle),
                         'baseId': baseId,
                         'quoteId': quoteId,
                         'settleId': settle,
