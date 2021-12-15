@@ -27,7 +27,6 @@ module.exports = class mexc extends Exchange {
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
-                'fetchContractMarkets': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressByNetwork': true,

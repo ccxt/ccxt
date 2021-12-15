@@ -41,7 +41,6 @@ module.exports = class ndax extends Exchange {
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'signIn': true,
-                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60',

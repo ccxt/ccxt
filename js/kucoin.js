@@ -55,7 +55,6 @@ module.exports = class kucoin extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'loadTimeDifference': true,
                 'transfer': true,
                 'withdraw': true,
             },

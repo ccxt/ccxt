@@ -32,8 +32,6 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
-                'getQuotes': true,
-                'getWavesAddress': true,
                 'signIn': true,
                 'withdraw': true,
             },

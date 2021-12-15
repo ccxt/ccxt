@@ -21,7 +21,6 @@ module.exports = class idex extends Exchange {
             'certified': true,
             'requiresWeb3': true,
             'has': {
-                'associateWallet': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,

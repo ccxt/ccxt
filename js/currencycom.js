@@ -35,7 +35,6 @@ module.exports = class currencycom extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
-                'loadTimeDifference': true,
             },
             'timeframes': {
                 '1m': '1m',
