@@ -2658,3 +2658,14 @@ class Exchange(object):
         type = self.safe_string(params, 'type', market_type)
         params = self.omit(params, 'type')
         return [type, params]
+
+    def year_month_day(self, date_str):
+        date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
+        month = '' + str(date.year)
+        day = '' + str(date.day)
+        year = str(date.year)
+        if (month.length < 2):
+            month = '0' + month
+        if (day.length < 2):
+            day = '0' + day
+        return year + month + day
