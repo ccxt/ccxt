@@ -3678,7 +3678,7 @@ module.exports = class okex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    setDemo (enable) {
+    isDemoAccount (enable) {
         if (enable) {
             this.headers['x-simulated-trading'] = 1;
         } else {
