@@ -60,6 +60,7 @@ class coinbasepro(Exchange):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
@@ -109,6 +110,7 @@ class coinbasepro(Exchange):
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
+                        'products/spark-lines',  # experimental
                     ],
                 },
                 'private': {
@@ -439,7 +441,19 @@ class coinbasepro(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         #
-        # publicGetProductsIdTicker
+        # fetchTickers
+        #
+        #      [
+        #         1639472400,  # timestamp
+        #         4.26,  # low
+        #         4.38,  # high
+        #         4.35,  # open
+        #         4.27  # close
+        #      ]
+        #
+        # fetchTicker
+        #
+        #     publicGetProductsIdTicker
         #
         #     {
         #         "trade_id":843439,
@@ -451,7 +465,7 @@ class coinbasepro(Exchange):
         #         "volume":"1903188.03750000"
         #     }
         #
-        # publicGetProductsIdStats
+        #     publicGetProductsIdStats
         #
         #     {
         #         "open": "34.19000000",
@@ -460,33 +474,85 @@ class coinbasepro(Exchange):
         #         "volume": "2.41000000"
         #     }
         #
-        timestamp = self.parse8601(self.safe_value(ticker, 'time'))
-        bid = self.safe_number(ticker, 'bid')
-        ask = self.safe_number(ticker, 'ask')
-        last = self.safe_number_2(ticker, 'price', 'last')
+        timestamp = None
+        bid = None
+        ask = None
+        last = None
+        high = None
+        low = None
+        open = None
+        volume = None
         symbol = None if (market is None) else market['symbol']
-        return {
+        if isinstance(ticker, list):
+            last = self.safe_number(ticker, 4)
+            timestamp = self.milliseconds()
+        else:
+            timestamp = self.parse8601(self.safe_value(ticker, 'time'))
+            bid = self.safe_number(ticker, 'bid')
+            ask = self.safe_number(ticker, 'ask')
+            high = self.safe_number(ticker, 'high')
+            low = self.safe_number(ticker, 'low')
+            open = self.safe_number(ticker, 'open')
+            last = self.safe_number_2(ticker, 'price', 'last')
+            volume = self.safe_number(ticker, 'volume')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
+            'high': high,
+            'low': low,
             'bid': bid,
             'bidVolume': None,
             'ask': ask,
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }
+        })
+
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        request = {}
+        response = self.publicGetProductsSparkLines(self.extend(request, params))
+        #
+        #     {
+        #         YYY-USD: [
+        #             [
+        #                 1639472400,  # timestamp
+        #                 4.26,  # low
+        #                 4.38,  # high
+        #                 4.35,  # open
+        #                 4.27  # close
+        #             ],
+        #             [
+        #                 1639468800,
+        #                 4.31,
+        #                 4.45,
+        #                 4.35,
+        #                 4.35
+        #             ],
+        #         ]
+        #     }
+        #
+        result = {}
+        marketIds = list(response.keys())
+        delimiter = '-'
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            entry = self.safe_value(response, marketId, [])
+            first = self.safe_value(entry, 0, [])
+            market = self.safe_market(marketId, None, delimiter)
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(first, market)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
