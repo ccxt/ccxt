@@ -403,23 +403,6 @@ module.exports = class ftx extends Exchange {
         return result;
     }
 
-    getSymbol (base, quote, id, isContract) {
-        if (isContract) {
-            const splitName = id.split ('-');
-            const perp = this.safeString (splitName, 1);
-            if (perp === 'PERP') {
-                return base + '/' + quote + ':USD';
-            } else {
-                const arrayLength = splitName.length;
-                const index = arrayLength - 1;
-                const expiry = splitName[index];
-                return base + '/' + quote + ':USD-' + expiry;
-            }
-        } else {
-            return base + '/' + quote;
-        }
-    }
-
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets (params);
         //
@@ -503,7 +486,7 @@ module.exports = class ftx extends Exchange {
             const isFuture = this.safeString (market, 'type') === 'future';
             const contract = isFuture;
             const name = this.safeString (market, 'name');
-            const symbol = this.getSymbol (base, quote, name, contract);
+            let symbol = base + '/' + quote;
             const splitName = name.split ('-');
             const settleId = contract ? 'USD' : undefined;
             const spot = !contract;
@@ -515,10 +498,15 @@ module.exports = class ftx extends Exchange {
             let expiry = undefined;
             if (swap) {
                 type = 'swap';
+                symbol = base + '/' + quote + ':' + settleId;
             } else if (contract) {
                 type = 'futures';
-                expiry = this.safeString (splitName, 1);
                 futures = true;
+                const arrayLength = splitName.length;
+                const index = arrayLength - 1;
+                const expiry = this.safeValue (splitName, index);
+                expiry = this.safeString (splitName, 1);
+                symbol = base + '/' + quote + ':' + settleId + '-' + expiry;
             }
             // check if a market is a spot or future market
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
@@ -943,29 +931,13 @@ module.exports = class ftx extends Exchange {
         const id = this.safeString (trade, 'id');
         const takerOrMaker = this.safeString (trade, 'liquidity');
         const marketId = this.safeString (trade, 'market');
-        const future = this.safeString (trade, 'future');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else {
-            const base = this.safeCurrencyCode (this.safeString (trade, 'baseCurrency'));
-            const quote = this.safeCurrencyCode (this.safeString (trade, 'quoteCurrency'));
-            if ((base !== undefined) && (quote !== undefined)) {
-                symbol = this.getSymbol (base, quote, marketId, future);
-            } else {
-                symbol = marketId;
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
         const side = this.safeString (trade, 'side');
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
