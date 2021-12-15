@@ -1366,6 +1366,16 @@ ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
 $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 ```
 
+Also, different exchange's methods might accept different `params`, which affect their functionality, like:
+```text
+binance.createOrder('BTC/USDT', 'limit', 'buy', amount, price, params: {'type':'margin', 'isIsolated': 'TRUE'} )
+```
+However, for other exchange those params won't be accepted, because as said, accepted parameters list are defined by specific exchange. To find out what parameter can be passed to the specific method, you have two possible way:
+
+A) Open specific exchange file [from this list](https://github.com/ccxt/ccxt/tree/master/js) and search for desired function (i.e. `createOrder`) and inspect its snippet to find out the details of `params` usage.
+or
+B) Go to the specific exchange API docs and read the list of parameters for that specific function endpoint (i.e. `order` ) 
+
 For a full list of accepted method parameters for each exchange, please consult [API docs](#exchanges).
 
 ### API Method Naming Conventions
