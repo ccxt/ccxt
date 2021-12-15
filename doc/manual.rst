@@ -2829,6 +2829,23 @@ The set of all possible API endpoints differs from exchange to exchange. Most of
    ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
    $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 
+The unified methods of exchanges might expect and will accept various ``params`` which affect their functionality, like:
+
+.. code-block:: Python
+
+   params = {'type':'margin', 'isIsolated': 'TRUE'}  # --------------┑
+   # params will go as the last argument to the unified method       |
+   #                                                                 v
+   binance.create_order('BTC/USDT', 'limit', 'buy', amount, price, params)
+
+An exchange will not accept the params from a different exchange, they're not interchangeable. The list of accepted parameters is defined by each specific exchange. 
+
+To find which parameters can be passed to a unified method:
+
+
+ * either open the `exchange-specific implementation <https://github.com/ccxt/ccxt/tree/master/js>`__ file and search for the desired function (i.e. ``createOrder``\ ) to inspect and find out the details of ``params`` usage
+ * or go to the exchange's API docs and read the list of parameters for your specific function or endpoint (i.e. ``order``\ )
+
 For a full list of accepted method parameters for each exchange, please consult :ref:`API docs <exchanges>`.
 
 API Method Naming Conventions

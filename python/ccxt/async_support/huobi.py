@@ -1329,6 +1329,7 @@ class huobi(Exchange):
         return ticker
 
     async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
         options = self.safe_value(self.options, 'fetchTickers', {})
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         type = self.safe_string(options, 'type', defaultType)
@@ -1346,6 +1347,29 @@ class huobi(Exchange):
                 method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged'
         query = self.omit(params, ['type', 'subType'])
         response = await getattr(self, method)(query)
+        #
+        # spot
+        #
+        #     {
+        #         "data":[
+        #             {
+        #                 "symbol":"hbcbtc",
+        #                 "open":5.313E-5,
+        #                 "high":5.34E-5,
+        #                 "low":5.112E-5,
+        #                 "close":5.175E-5,
+        #                 "amount":1183.87,
+        #                 "vol":0.0618599229,
+        #                 "count":205,
+        #                 "bid":5.126E-5,
+        #                 "bidSize":5.25,
+        #                 "ask":5.214E-5,
+        #                 "askSize":150.0
+        #             },
+        #         ],
+        #         "status":"ok",
+        #         "ts":1639547261293
+        #     }
         #
         # future
         #

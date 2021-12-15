@@ -1366,6 +1366,22 @@ ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
 $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 ```
 
+The unified methods of exchanges might expect and will accept various `params` which affect their functionality, like:
+
+```Python
+params = {'type':'margin', 'isIsolated': 'TRUE'}  # --------------┑
+# params will go as the last argument to the unified method       |
+#                                                                 v
+binance.create_order('BTC/USDT', 'limit', 'buy', amount, price, params)
+```
+
+An exchange will not accept the params from a different exchange, they're not interchangeable. The list of accepted parameters is defined by each specific exchange. 
+
+To find which parameters can be passed to a unified method:
+
+- either open the [exchange-specific implementation](https://github.com/ccxt/ccxt/tree/master/js) file and search for the desired function (i.e. `createOrder`) to inspect and find out the details of `params` usage
+- or go to the exchange's API docs and read the list of parameters for your specific function or endpoint (i.e. `order`)
+
 For a full list of accepted method parameters for each exchange, please consult [API docs](#exchanges).
 
 ### API Method Naming Conventions
@@ -4313,3 +4329,4 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - As written above, some exchanges are not available in certain countries. You should use a proxy or get a server somewhere closer to the exchange.
 - If you are getting authentication errors or *'invalid keys'* errors, those are most likely due to a nonce issue.
 - Some exchanges do not state it clearly if they fail to authenticate your request. In those circumstances they might respond with an exotic error code, like HTTP 502 Bad Gateway Error or something that's even less related to the actual cause of the error.
+

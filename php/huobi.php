@@ -1346,6 +1346,7 @@ class huobi extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchTickers', array());
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($options, 'type', $defaultType);
@@ -1365,6 +1366,29 @@ class huobi extends Exchange {
         }
         $query = $this->omit($params, array( 'type', 'subType' ));
         $response = $this->$method ($query);
+        //
+        // spot
+        //
+        //     {
+        //         "data":array(
+        //             array(
+        //                 "symbol":"hbcbtc",
+        //                 "open":5.313E-5,
+        //                 "high":5.34E-5,
+        //                 "low":5.112E-5,
+        //                 "close":5.175E-5,
+        //                 "amount":1183.87,
+        //                 "vol":0.0618599229,
+        //                 "count":205,
+        //                 "bid":5.126E-5,
+        //                 "bidSize":5.25,
+        //                 "ask":5.214E-5,
+        //                 "askSize":150.0
+        //             ),
+        //         ),
+        //         "status":"ok",
+        //         "ts":1639547261293
+        //     }
         //
         // future
         //
