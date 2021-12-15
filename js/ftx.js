@@ -14,7 +14,7 @@ module.exports = class ftx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ftx',
             'name': 'FTX',
-            'countries': [ 'HK' ],
+            'countries': [ 'BS' ], // Bahamas
             'rateLimit': 100,
             'certified': true,
             'pro': true,
