@@ -1491,7 +1491,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let method = 'privatePostAuthRMovementsHist';
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['code'];
+            request['currency'] = currency['code'].toUpper();
             method = 'privatePostAuthRMovementsCurrencyHist';
         }
         if (since !== undefined) {
