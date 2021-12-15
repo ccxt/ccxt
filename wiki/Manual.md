@@ -1366,7 +1366,7 @@ ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
 $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 ```
 
-Also, different exchange's methods might accept different `params`, which affect their functionality, like:
+The unified methods of exchanges might expect and accept different `params` which affect their functionality, like:
 
 ```Python
 params = {'type':'margin', 'isIsolated': 'TRUE'}  # --------------+
