@@ -85,75 +85,81 @@ module.exports = class whitebit extends Exchange {
                         'v1/healthcheck',
                     ],
                 },
-                'publicV1': {
-                    'get': [
-                        'markets',
-                        'tickers',
-                        'ticker',
-                        'symbols',
-                        'depth/result',
-                        'history',
-                        'kline',
-                    ],
+                'v1': {
+                    'public': {
+                        'get': [
+                            'markets',
+                            'tickers',
+                            'ticker',
+                            'symbols',
+                            'depth/result',
+                            'history',
+                            'kline',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'account/balance',
+                            'order/new',
+                            'order/cancel',
+                            'orders',
+                            'account/order_history',
+                            'account/executed_history',
+                            'account/executed_history/all',
+                            'account/order',
+                        ],
+                    },
                 },
-                'publicV2': {
-                    'get': [
-                        'markets',
-                        'ticker',
-                        'assets',
-                        'fee',
-                        'depth/{market}',
-                        'trades/{market}',
-                    ],
+                'v2': {
+                    'public': {
+                        'get': [
+                            'markets',
+                            'ticker',
+                            'assets',
+                            'fee',
+                            'depth/{market}',
+                            'trades/{market}',
+                        ],
+                    },
                 },
-                'publicV4': {
-                    'get': [
-                        'assets',
-                        'ticker',
-                        'trades/{market}',
-                        'fee',
-                        'assets',
-                        'time',
-                        'ping',
-                    ],
-                },
-                'privateV1': {
-                    'post': [
-                        'account/balance',
-                        'order/new',
-                        'order/cancel',
-                        'orders',
-                        'account/order_history',
-                        'account/executed_history',
-                        'account/executed_history/all',
-                        'account/order',
-                    ],
-                },
-                'privateV4': {
-                    'post': [
-                        'main-account/address',
-                        'main-account/balance',
-                        'main-account/create-new-address',
-                        'main-account/codes',
-                        'main-account/codes/apply',
-                        'main-account/codes/my',
-                        'main-account/codes/history',
-                        'main-account/fiat-deposit-url',
-                        'main-account/history',
-                        'main-account/withdraw',
-                        'main-account/withdraw-pay',
-                        'trade-account/balance',
-                        'trade-account/executed-history',
-                        'trade-account/order',
-                        'trade-account/order/history',
-                        'order/new',
-                        'order/market',
-                        'order/stock_market',
-                        'order/stop_limit',
-                        'order/stop_market',
-                        'order/cancel',
-                        'orders',
-                    ],
+                'v4': {
+                    'public': {
+                        'get': [
+                            'assets',
+                            'ticker',
+                            'trades/{market}',
+                            'fee',
+                            'assets',
+                            'time',
+                            'ping',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'main-account/address',
+                            'main-account/balance',
+                            'main-account/create-new-address',
+                            'main-account/codes',
+                            'main-account/codes/apply',
+                            'main-account/codes/my',
+                            'main-account/codes/history',
+                            'main-account/fiat-deposit-url',
+                            'main-account/history',
+                            'main-account/withdraw',
+                            'main-account/withdraw-pay',
+                            'trade-account/balance',
+                            'trade-account/executed-history',
+                            'trade-account/order',
+                            'trade-account/order/history',
+                            'order/new',
+                            'order/market',
+                            'order/stock_market',
+                            'order/stop_limit',
+                            'order/stop_market',
+                            'order/cancel',
+                            'orders',
+                        ],
+                    },
                 },
             },
             'fees': {
@@ -182,7 +188,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicV2GetMarkets (params);
+        const response = await this.v2PublicGetMarkets (params);
         //
         //     {
         //         "success":true,
@@ -249,7 +255,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicV2GetAssets (params);
+        const response = await this.v2PublicGetAssets (params);
         //
         //     {
         //         "success":true,
@@ -305,7 +311,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        const response = await this.publicV2GetFee (params);
+        const response = await this.v2PublicGetFee (params);
         const fees = this.safeValue (response, 'result');
         return {
             'maker': this.safeNumber (fees, 'makerFee'),
@@ -319,7 +325,7 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.publicV1GetTicker (this.extend (request, params));
+        const response = await this.v1PublicGetTicker (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -411,7 +417,7 @@ module.exports = class whitebit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicV1GetTickers (params);
+        const response = await this.v1PublicGetTickers (params);
         //
         //     {
         //         "success":true,
@@ -455,7 +461,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 50, maximum = 100
         }
-        const response = await this.publicV2GetDepthMarket (this.extend (request, params));
+        const response = await this.v2PublicGetDepthMarket (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -490,7 +496,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 50, maximum = 10000
         }
-        const response = await this.publicV1GetHistory (this.extend (request, params));
+        const response = await this.v1PublicGetHistory (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -519,7 +525,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 50, maximum = 10000
         }
-        const response = await this.publicV2GetTradesMarket (this.extend (request, params));
+        const response = await this.v2PublicGetTradesMarket (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -566,7 +572,7 @@ module.exports = class whitebit extends Exchange {
         //         "isBuyerMaker":false
         //     }
         //
-        // orderTrades (privateV4)
+        // orderTrades (v4Private)
         //       {
         //          "time": 1593342324.613711,      // Timestamp of executed order
         //          "fee": "0.00000419198",         // fee that you pay
@@ -649,7 +655,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1440
         }
-        const response = await this.publicV1GetKline (this.extend (request, params));
+        const response = await this.v1PublicGetKline (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -711,7 +717,7 @@ module.exports = class whitebit extends Exchange {
             'amount': this.numberToString (this.amountToPrecision (symbol, amount)),
         };
         if (type === 'market') {
-            method = 'privateV4PostOrderMarket';
+            method = 'v4PrivatePostOrderMarket';
             if (side === 'buy') {
                 let cost = this.safeNumber (params, 'cost');
                 const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
@@ -731,27 +737,27 @@ module.exports = class whitebit extends Exchange {
             }
         }
         if (type === 'limit') {
-            method = 'privateV4PostOrderNew';
+            method = 'v4PrivatePostOrderNew';
             const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
             request['price'] = convertedPrice;
         }
         const customType = this.safeValue (params, 'type');
         if (customType === 'stockMarket') {
-            method = 'privateV4PostOrderStockMarket';
+            method = 'v4PrivatePostOrderStockMarket';
             if (side === 'sell') {
                 throw new ArgumentsRequired (this.id + ' createOrder() only accepts "buy" side for this order type');
             }
         }
         if (customType === 'stopLimit' || customType === 'stopMarket') {
             if (customType === 'stoplimit') {
-                method = 'privateV4OPostOrderStopLimit';
+                method = 'v4PrivateOPostOrderStopLimit';
                 const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
                 request['price'] = convertedPrice;
             }
             if (customType === 'stopMarket') {
                 // the same as above but for limit orders
                 // the amount is in stock currency to buy/sell
-                method = 'privateV4PostOrderStopMarket';
+                method = 'v4PrivatePostOrderStopMarket';
             }
             const activationPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
             if (activationPrice === undefined) {
@@ -773,12 +779,12 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
             'orderId': id,
         };
-        return await this.privateV4PostOrderCancel (this.extend (request, params));
+        return await this.v4PrivatePostOrderCancel (this.extend (request, params));
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateV4PostTradeAccountBalance (params);
+        const response = await this.v4PrivatePostTradeAccountBalance (params);
         //
         // Response
         // {
@@ -821,7 +827,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50 max 100
         }
-        const response = await this.privateV4PostOrders (this.extend (request, params));
+        const response = await this.v4PrivatePostOrders (this.extend (request, params));
         // [
         //     {
         //         "orderId": 3686033640,            // unexecuted order ID
@@ -855,7 +861,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50 max 100
         }
-        const response = await this.privateV4PostTradeAccountOrderHistory (this.extend (request, params));
+        const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
         //
         // {
         //     "BTC_USDT": [
@@ -985,7 +991,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
-        const response = await this.privateV4PostTradeAccountOrder (this.extend (request, params));
+        const response = await this.v4PrivatePostTradeAccountOrder (this.extend (request, params));
         // {
         //     "records": [
         //         {
@@ -1013,9 +1019,9 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'ticker': currency['id'],
         };
-        let method = 'privateV4PostMainAccountAddress';
+        let method = 'v4PrivatePostMainAccountAddress';
         if (this.isFiat (code)) {
-            method = 'privateV4PostMainAccountFiatDepositUrl';
+            method = 'v4PrivatePostMainAccountFiatDepositUrl';
             const provider = this.safeNumber2 (params, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
@@ -1093,7 +1099,7 @@ module.exports = class whitebit extends Exchange {
             }
             request['provider'] = provider;
         }
-        const response = await this.privateV4PostMainAccountWithdraw (this.extend (request, params));
+        const response = await this.v4PrivatePostMainAccountWithdraw (this.extend (request, params));
         //
         // [
         //   empty array - has success status - go to deposit/withdraw history and check you request status by uniqueId
@@ -1110,15 +1116,17 @@ module.exports = class whitebit extends Exchange {
         return this.inArray (currency, fiatCurrencies);
     }
 
-    sign (path, api = 'publicV1', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        if (api === 'publicV1') {
+        const version = this.safeValue (api, 0);
+        const accessibility = this.safeValue (api, 1);
+        let url = this.urls['api'][version][accessibility] + '/' + this.implodeParams (path, params);
+        if (accessibility === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         }
-        if (api === 'privateV4') {
+        if (accessibility === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.stringToBinary (this.secret);
