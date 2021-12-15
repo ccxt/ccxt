@@ -519,13 +519,13 @@ module.exports = class eqonex extends Exchange {
             type = this.parseOrderType (this.safeString (trade, 'ordType'));
             priceString = this.safeString (trade, 'lastPx');
             amountString = this.safeString (trade, 'qty');
-            let feeCost = this.safeNumber (trade, 'commission');
-            if (feeCost !== undefined) {
-                feeCost = -feeCost;
+            let feeCostString = this.safeString (trade, 'commission');
+            if (feeCostString !== undefined) {
+                feeCostString = Precise.stringNeg (feeCostString);
                 const feeCurrencyId = this.safeString (trade, 'commCurrency');
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
                 };
             }
@@ -533,10 +533,7 @@ module.exports = class eqonex extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -546,11 +543,11 @@ module.exports = class eqonex extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchBalance (params = {}) {
