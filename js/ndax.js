@@ -194,7 +194,7 @@ module.exports = class ndax extends Exchange {
                 // these credentials are required for signIn() and withdraw()
                 'login': true,
                 'password': true,
-                'twofa': true,
+                // 'twofa': true,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -2025,6 +2025,9 @@ module.exports = class ndax extends Exchange {
         const sessionToken = this.safeString (this.options, 'sessionToken');
         if (sessionToken === undefined) {
             throw new AuthenticationError (this.id + ' call signIn() method to obtain a session token');
+        }
+        if (this.twofa === undefined) {
+            throw new AuthenticationError (this.id + ' withdraw() requires exchange.twofa credentials');
         }
         this.checkAddress (address);
         const omsId = this.safeInteger (this.options, 'omsId', 1);
