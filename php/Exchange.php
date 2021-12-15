@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.63.54';
+$version = '1.63.80';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.63.54';
+    const VERSION = '1.63.80';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -186,6 +186,7 @@ class Exchange {
         'groupBy' => 'group_by',
         'filterBy' => 'filter_by',
         'sortBy' => 'sort_by',
+        'sortBy2' => 'sort_by2',
         'deepExtend' => 'deep_extend',
         'unCamelCase' => 'un_camel_case',
         'isNumber' => 'is_number',
@@ -662,6 +663,20 @@ class Exchange {
         usort($arrayOfArrays, function ($a, $b) use ($key, $descending) {
             if ($a[$key] == $b[$key]) {
                 return 0;
+            }
+            return $a[$key] < $b[$key] ? -$descending : $descending;
+        });
+        return $arrayOfArrays;
+    }
+
+    public static function sort_by_2($arrayOfArrays, $key1, $key2, $descending = false) {
+        $descending = $descending ? -1 : 1;
+        usort($arrayOfArrays, function ($a, $b) use ($key1, $key2, $descending) {
+            if ($a[$key1] == $b[$key1]) {
+                if ($a[$key2] == $b[$key2]) {
+                    return 0;
+                }
+                return $a[$key2] < $b[$key2] ? -$descending : $descending;
             }
             return $a[$key] < $b[$key] ? -$descending : $descending;
         });
@@ -1153,7 +1168,7 @@ class Exchange {
             'fetchBorrowRate' => false,
             'fetchBorrowRates' => false,
             'fetchClosedOrders' => false,
-            'fetchCurrencies' => false,
+            'fetchCurrencies' => 'emulated',
             'fetchDepositAddress' => false,
             'fetchDeposits' => false,
             'fetchFundingFees' => false,
@@ -1776,7 +1791,7 @@ class Exchange {
             return $this->markets;
         }
         $currencies = null;
-        if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies']) {
+        if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = $this->fetch_currencies();
         }
         $markets = $this->fetch_markets($params);

@@ -20,7 +20,7 @@ class oceanex(Exchange):
         return self.deep_extend(super(oceanex, self).describe(), {
             'id': 'oceanex',
             'name': 'OceanEx',
-            'countries': ['LU', 'CN', 'SG'],
+            'countries': ['BS'],  # Bahamas
             'version': 'v1',
             'rateLimit': 3000,
             'urls': {
@@ -39,7 +39,6 @@ class oceanex(Exchange):
                 'fetchAllTradingFees': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': None,
                 'fetchFundingFees': None,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,

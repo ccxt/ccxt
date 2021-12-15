@@ -13,7 +13,7 @@ module.exports = class exmo extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'exmo',
             'name': 'EXMO',
-            'countries': [ 'ES', 'RU' ], // Spain, Russia
+            'countries': [ 'LT' ], // Lithuania
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1.1',
             'has': {

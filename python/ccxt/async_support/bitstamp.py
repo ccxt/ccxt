@@ -49,7 +49,6 @@ class bitstamp(Exchange):
                 'fetchBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchFees': True,
                 'fetchFundingFees': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
@@ -885,19 +884,6 @@ class bitstamp(Exchange):
         await self.load_markets()
         balance = await self.privatePostBalance(params)
         return self.parse_funding_fees(balance)
-
-    async def fetch_fees(self, params={}):
-        await self.load_markets()
-        balance = await self.privatePostBalance(params)
-        tradingFees = self.parse_trading_fees(balance)
-        del tradingFees['info']
-        fundingFees = self.parse_funding_fees(balance)
-        del fundingFees['info']
-        return {
-            'info': balance,
-            'trading': tradingFees,
-            'funding': fundingFees,
-        }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

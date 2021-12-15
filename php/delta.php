@@ -649,9 +649,6 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($trade, 'timestamp', 0.001, $timestamp);
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $product = $this->safe_value($trade, 'product', array());
         $marketId = $this->safe_string($product, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -670,18 +667,18 @@ class delta extends Exchange {
         if ($type !== null) {
             $type = str_replace('_order', '', $type);
         }
-        $feeCost = $this->safe_number($trade, 'commission');
+        $feeCostString = $this->safe_string($trade, 'commission');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $settlingAsset = $this->safe_value($product, 'settling_asset', array());
             $feeCurrencyId = $this->safe_string($settlingAsset, 'symbol');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
@@ -689,13 +686,13 @@ class delta extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -925,8 +922,8 @@ class delta extends Exchange {
         $remaining = $this->safe_string($order, 'unfilled_size');
         $average = $this->safe_string($order, 'average_fill_price');
         $fee = null;
-        $feeCost = $this->safe_number($order, 'paid_commission');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($order, 'paid_commission');
+        if ($feeCostString !== null) {
             $feeCurrencyCode = null;
             if ($market !== null) {
                 $settlingAsset = $this->safe_value($market['info'], 'settling_asset', array());
@@ -934,7 +931,7 @@ class delta extends Exchange {
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             }
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }

@@ -12,7 +12,7 @@ module.exports = class oceanex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'oceanex',
             'name': 'OceanEx',
-            'countries': [ 'LU', 'CN', 'SG' ],
+            'countries': [ 'BS' ], // Bahamas
             'version': 'v1',
             'rateLimit': 3000,
             'urls': {
@@ -31,7 +31,6 @@ module.exports = class oceanex extends Exchange {
                 'fetchAllTradingFees': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': undefined,
                 'fetchFundingFees': undefined,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,

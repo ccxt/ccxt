@@ -36,6 +36,7 @@ class mexc extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -2099,5 +2100,72 @@ class mexc extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback);
         }
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        //
+        // Gets a history of funding $rates with their timestamps
+        //  (param) $symbol => Future currency pair
+        //  (param) $limit => mexc $limit is page_size default 20, maximum is 100
+        //  (param) $since => not used by mexc
+        //  (param) $params => Object containing more $params for the $request
+        //  return => [array($symbol, fundingRate, $timestamp, dateTime)]
+        //
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            // 'page_size' => $limit, // optional
+            // 'page_num' => 1, // optional, current page number, default is 1
+        );
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        $response = yield $this->contractPublicGetFundingRateHistory (array_merge($request, $params));
+        //
+        // {
+        //     "success" => true,
+        //     "code" => 0,
+        //     "data" => {
+        //         "pageSize" => 2,
+        //         "totalCount" => 21,
+        //         "totalPage" => 11,
+        //         "currentPage" => 1,
+        //         "resultList" => array(
+        //             array(
+        //                 "symbol" => "BTC_USDT",
+        //                 "fundingRate" => 0.000266,
+        //                 "settleTime" => 1609804800000
+        //             ),
+        //             {
+        //                 "symbol" => "BTC_USDT",
+        //                 "fundingRate" => 0.00029,
+        //                 "settleTime" => 1609776000000
+        //             }
+        //         )
+        //     }
+        // }
+        //
+        $data = $this->safe_value($response, 'data');
+        $result = $this->safe_value($data, 'resultList');
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $entry = $result[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $symbol = $this->safe_symbol($marketId);
+            $timestamp = $this->safe_string($entry, 'settleTime');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 }

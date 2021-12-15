@@ -41,5 +41,6 @@
     "stex":          { "skip": true },
     "tidebit":       { "skip": true },
     "vcc":           { "skip": true },
-    "xbtce":         { "skip": true }
+    "xbtce":         { "skip": true },
+    "zaif":          { "skip": true }
 }

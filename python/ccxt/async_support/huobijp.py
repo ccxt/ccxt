@@ -823,109 +823,90 @@ class huobijp(Exchange):
         return response['data']
 
     async def fetch_currencies(self, params={}):
-        response = await self.v2PublicGetReferenceCurrencies()
+        request = {
+            'language': self.options['language'],
+        }
+        response = await self.publicGetSettingsCurrencys(self.extend(request, params))
+        #
         #     {
-        #       "code": 200,
-        #       "data": [
-        #         {
-        #           "currency": "sxp",
-        #           "assetType": "1",
-        #           "chains": [
+        #         "status":"ok",
+        #         "data":[
         #             {
-        #               "chain": "sxp",
-        #               "displayName": "ERC20",
-        #               "baseChain": "ETH",
-        #               "baseChainProtocol": "ERC20",
-        #               "isDynamic": True,
-        #               "numOfConfirmations": "12",
-        #               "numOfFastConfirmations": "12",
-        #               "depositStatus": "allowed",
-        #               "minDepositAmt": "0.23",
-        #               "withdrawStatus": "allowed",
-        #               "minWithdrawAmt": "0.23",
-        #               "withdrawPrecision": "8",
-        #               "maxWithdrawAmt": "227000.000000000000000000",
-        #               "withdrawQuotaPerDay": "227000.000000000000000000",
-        #               "withdrawQuotaPerYear": null,
-        #               "withdrawQuotaTotal": null,
-        #               "withdrawFeeType": "fixed",
-        #               "transactFeeWithdraw": "11.1653",
-        #               "addrWithTag": False,
-        #               "addrDepositTag": False
+        #                 "currency-addr-with-tag":false,
+        #                 "fast-confirms":12,
+        #                 "safe-confirms":12,
+        #                 "currency-type":"eth",
+        #                 "quote-currency":true,
+        #                 "withdraw-enable-timestamp":1609430400000,
+        #                 "deposit-enable-timestamp":1609430400000,
+        #                 "currency-partition":"all",
+        #                 "support-sites":["OTC","INSTITUTION","MINEPOOL"],
+        #                 "withdraw-precision":6,
+        #                 "visible-assets-timestamp":1508839200000,
+        #                 "deposit-min-amount":"1",
+        #                 "withdraw-min-amount":"10",
+        #                 "show-precision":"8",
+        #                 "tags":"",
+        #                 "weight":23,
+        #                 "full-name":"Tether USDT",
+        #                 "otc-enable":1,
+        #                 "visible":true,
+        #                 "white-enabled":false,
+        #                 "country-disabled":false,
+        #                 "deposit-enabled":true,
+        #                 "withdraw-enabled":true,
+        #                 "name":"usdt",
+        #                 "state":"online",
+        #                 "display-name":"USDT",
+        #                 "suspend-withdraw-desc":null,
+        #                 "withdraw-desc":"Minimum withdrawal amount: 10 USDT(ERC20). not >_<not To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.not >_<not Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        #                 "suspend-deposit-desc":null,
+        #                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. not >_<not Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. not >_<not Minimum deposit amount: 1 USDT. Any deposits less than the minimum will not be credited or refunded.not >_<not Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.not >_<not Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        #                 "suspend-visible-desc":null
         #             }
-        #           ],
-        #           "instStatus": "normal"
-        #         }
-        #       ]
+        #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        currencies = self.safe_value(response, 'data')
         result = {}
-        for i in range(0, len(data)):
-            entry = data[i]
-            currencyId = self.safe_string(entry, 'currency')
-            code = self.safe_currency_code(currencyId)
-            chains = self.safe_value(entry, 'chains', [])
-            networks = {}
-            instStatus = self.safe_string(entry, 'instStatus')
-            currencyActive = instStatus == 'normal'
-            fee = None
-            precision = None
-            minWithdraw = None
-            maxWithdraw = None
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'chain')
-                baseChainProtocol = self.safe_string(chain, 'baseChainProtocol')
-                huobiToken = 'h' + currencyId
-                if baseChainProtocol is None:
-                    if huobiToken == networkId:
-                        baseChainProtocol = 'ERC20'
-                    else:
-                        baseChainProtocol = self.safe_string(chain, 'displayName')
-                network = self.safe_network(baseChainProtocol)
-                minWithdraw = self.safe_number(chain, 'minWithdrawAmt')
-                maxWithdraw = self.safe_number(chain, 'maxWithdrawAmt')
-                withdraw = self.safe_string(chain, 'withdrawStatus')
-                deposit = self.safe_string(chain, 'depositStatus')
-                active = (withdraw == 'allowed') and (deposit == 'allowed')
-                precision = self.safe_integer(chain, 'withdrawPrecision')
-                fee = self.safe_number(chain, 'transactFeeWithdraw')
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'limits': {
-                        'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
-                        },
-                    },
-                    'active': active,
-                    'fee': fee,
-                    'precision': precision,
-                }
-            networksKeys = list(networks.keys())
-            networkLength = len(networksKeys)
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = self.safe_value(currency, 'name')
+            precision = self.safe_integer(currency, 'withdraw-precision')
+            code = self.safe_currency_code(id)
+            depositEnabled = self.safe_value(currency, 'deposit-enabled')
+            withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
+            countryDisabled = self.safe_value(currency, 'country-disabled')
+            visible = self.safe_value(currency, 'visible', False)
+            state = self.safe_string(currency, 'state')
+            active = visible and depositEnabled and withdrawEnabled and (state == 'online') and not countryDisabled
+            name = self.safe_string(currency, 'display-name')
             result[code] = {
-                'info': entry,
+                'id': id,
                 'code': code,
-                'id': currencyId,
-                'active': currencyActive,
-                'fee': fee if (networkLength <= 1) else None,
-                'name': None,
+                'type': 'crypto',
+                # 'payin': currency['deposit-enabled'],
+                # 'payout': currency['withdraw-enabled'],
+                # 'transfer': None,
+                'name': name,
+                'active': active,
+                'fee': None,  # todo need to fetch from fee endpoint
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': None,
-                        'max': None,
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
+                    },
+                    'deposit': {
+                        'min': self.safe_number(currency, 'deposit-min-amount'),
+                        'max': math.pow(10, precision),
                     },
                     'withdraw': {
-                        'min': minWithdraw if (networkLength <= 1) else None,
-                        'max': maxWithdraw if (networkLength <= 1) else None,
+                        'min': self.safe_number(currency, 'withdraw-min-amount'),
+                        'max': math.pow(10, precision),
                     },
                 },
-                'precision': precision if (networkLength <= 1) else None,
-                'networks': networks,
+                'info': currency,
             }
         return result
 

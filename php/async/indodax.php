@@ -24,7 +24,6 @@ class indodax extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => null,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => null,
                 'fetchOpenOrders' => true,

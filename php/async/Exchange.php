@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.63.54';
+$version = '1.63.80';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.63.54';
+    const VERSION = '1.63.80';
 
     public static $loop;
     public static $kernel;
@@ -198,7 +198,7 @@ class Exchange extends \ccxt\Exchange {
             return $this->markets;
         }
         $currencies = null;
-        if ($this->has['fetchCurrencies']) {
+        if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = yield $this->fetch_currencies ();
         }
         $markets = yield $this->fetch_markets ($params);

@@ -28,7 +28,6 @@ module.exports = class bitstamp extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchFees': true,
                 'fetchFundingFees': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
@@ -921,20 +920,6 @@ module.exports = class bitstamp extends Exchange {
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
         return this.parseFundingFees (balance);
-    }
-
-    async fetchFees (params = {}) {
-        await this.loadMarkets ();
-        const balance = await this.privatePostBalance (params);
-        const tradingFees = this.parseTradingFees (balance);
-        delete tradingFees['info'];
-        const fundingFees = this.parseFundingFees (balance);
-        delete fundingFees['info'];
-        return {
-            'info': balance,
-            'trading': tradingFees,
-            'funding': fundingFees,
-        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -44,6 +44,7 @@ class mexc(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressByNetwork': True,
                 'fetchDeposits': True,
+                'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -1973,3 +1974,66 @@ class mexc(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             raise ExchangeError(feedback)
+
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        #
+        # Gets a history of funding rates with their timestamps
+        #  (param) symbol: Future currency pair
+        #  (param) limit: mexc limit is page_size default 20, maximum is 100
+        #  (param) since: not used by mexc
+        #  (param) params: Object containing more params for the request
+        #  return: [{symbol, fundingRate, timestamp, dateTime}]
+        #
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            # 'page_size': limit,  # optional
+            # 'page_num': 1,  # optional, current page number, default is 1
+        }
+        if limit is not None:
+            request['page_size'] = limit
+        response = await self.contractPublicGetFundingRateHistory(self.extend(request, params))
+        #
+        # {
+        #     "success": True,
+        #     "code": 0,
+        #     "data": {
+        #         "pageSize": 2,
+        #         "totalCount": 21,
+        #         "totalPage": 11,
+        #         "currentPage": 1,
+        #         "resultList": [
+        #             {
+        #                 "symbol": "BTC_USDT",
+        #                 "fundingRate": 0.000266,
+        #                 "settleTime": 1609804800000
+        #             },
+        #             {
+        #                 "symbol": "BTC_USDT",
+        #                 "fundingRate": 0.00029,
+        #                 "settleTime": 1609776000000
+        #             }
+        #         ]
+        #     }
+        # }
+        #
+        data = self.safe_value(response, 'data')
+        result = self.safe_value(data, 'resultList')
+        rates = []
+        for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_string(entry, 'settleTime')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)

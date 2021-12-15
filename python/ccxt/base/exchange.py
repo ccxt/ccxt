@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.63.54'
+__version__ = '1.63.80'
 
 # -----------------------------------------------------------------------------
 
@@ -265,7 +265,7 @@ class Exchange(object):
         'fetchBorrowRate': False,
         'fetchBorrowRates': False,
         'fetchClosedOrders': False,
-        'fetchCurrencies': False,
+        'fetchCurrencies': 'emulated',
         'fetchDepositAddress': False,
         'fetchDeposits': False,
         'fetchL2OrderBook': True,
@@ -912,6 +912,10 @@ class Exchange(object):
         return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
 
     @staticmethod
+    def sort_by_2(array, key1, key2, descending=False):
+        return sorted(array, key=lambda k: (k[key1] if k[key1] is not None else "", k[key2] if k[key2] is not None else ""), reverse=descending)
+
+    @staticmethod
     def array_concat(a, b):
         return a + b
 
@@ -1420,7 +1424,7 @@ class Exchange(object):
                     return self.set_markets(self.markets)
                 return self.markets
         currencies = None
-        if self.has['fetchCurrencies']:
+        if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
         markets = self.fetch_markets(params)
         return self.set_markets(markets, currencies)

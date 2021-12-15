@@ -176,6 +176,7 @@ class yobit extends Exchange {
                 'UST' => 'Uservice',
                 'VOL' => 'VolumeCoin',
                 'XIN' => 'XINCoin',
+                'XMT' => 'SummitCoin',
                 'XRA' => 'Ratecoin',
             ),
             'options' => array(

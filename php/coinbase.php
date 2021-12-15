@@ -37,21 +37,21 @@ class coinbase extends Exchange {
                 'fetchDepositAddress' => null,
                 'fetchDeposits' => true,
                 'fetchIndexOHLCV' => false,
-                'fetchL2OrderBook' => null,
+                'fetchL2OrderBook' => false,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyBuys' => true,
                 'fetchMySells' => true,
                 'fetchMyTrades' => null,
-                'fetchOHLCV' => null,
+                'fetchOHLCV' => false,
                 'fetchOpenOrders' => null,
                 'fetchOrder' => null,
-                'fetchOrderBook' => null,
+                'fetchOrderBook' => false,
                 'fetchOrders' => null,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => null,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => null,
                 'fetchTransactions' => null,
@@ -672,20 +672,93 @@ class coinbase extends Exchange {
         return $result;
     }
 
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'currency' => 'USD',
+        );
+        $response = $this->publicGetExchangeRates (array_merge($request, $params));
+        //
+        //     {
+        //         "data":{
+        //             "currency":"USD",
+        //             "rates":{
+        //                 "AED":"3.6731",
+        //                 "AFN":"103.163942",
+        //                 "ALL":"106.973038",
+        //             }
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rates = $this->safe_value($data, 'rates', array());
+        $quoteId = $this->safe_string($data, 'currency');
+        $result = array();
+        $baseIds = is_array($rates) ? array_keys($rates) : array();
+        $delimiter = '-';
+        for ($i = 0; $i < count($baseIds); $i++) {
+            $baseId = $baseIds[$i];
+            $marketId = $baseId . $delimiter . $quoteId;
+            $market = $this->safe_market($marketId, null, $delimiter);
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker($rates[$baseId], $market);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $timestamp = $this->seconds();
         $market = $this->market($symbol);
         $request = array_merge(array(
             'symbol' => $market['id'],
         ), $params);
-        $buy = $this->publicGetPricesSymbolBuy ($request);
-        $sell = $this->publicGetPricesSymbolSell ($request);
         $spot = $this->publicGetPricesSymbolSpot ($request);
-        $ask = $this->safe_number($buy['data'], 'amount');
-        $bid = $this->safe_number($sell['data'], 'amount');
-        $last = $this->safe_number($spot['data'], 'amount');
-        return array(
+        //
+        //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
+        //
+        $buy = $this->publicGetPricesSymbolBuy ($request);
+        //
+        //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
+        //
+        $sell = $this->publicGetPricesSymbolSell ($request);
+        //
+        //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
+        //
+        return $this->parse_ticker(array( $spot, $buy, $sell ), $market);
+    }
+
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // fetchTicker
+        //
+        //     array(
+        //         "48691.23", // $spot
+        //         "48691.23", // $buy
+        //         "48691.23",  // $sell
+        //     )
+        //
+        // fetchTickers
+        //
+        //     "48691.23"
+        //
+        $symbol = $this->safe_symbol(null, $market);
+        $ask = null;
+        $bid = null;
+        $last = null;
+        $timestamp = $this->milliseconds();
+        if (gettype($ticker) === 'string') {
+            $inverted = Precise::string_div('1', $ticker); // the currency requested, USD or other, is the base currency
+            $last = $this->parse_number($inverted);
+        } else {
+            list($spot, $buy, $sell) = $ticker;
+            $spotData = $this->safe_value($spot, 'data', array());
+            $buyData = $this->safe_value($buy, 'data', array());
+            $sellData = $this->safe_value($sell, 'data', array());
+            $last = $this->safe_number($spotData, 'amount');
+            $bid = $this->safe_number($buyData, 'amount');
+            $ask = $this->safe_number($sellData, 'amount');
+        }
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -705,12 +778,8 @@ class coinbase extends Exchange {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => null,
-            'info' => array(
-                'buy' => $buy,
-                'sell' => $sell,
-                'spot' => $spot,
-            ),
-        );
+            'info' => $ticker,
+        ));
     }
 
     public function fetch_balance($params = array ()) {

@@ -30,6 +30,7 @@ module.exports = class mexc extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -2093,5 +2094,72 @@ module.exports = class mexc extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
         }
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Gets a history of funding rates with their timestamps
+        //  (param) symbol: Future currency pair
+        //  (param) limit: mexc limit is page_size default 20, maximum is 100
+        //  (param) since: not used by mexc
+        //  (param) params: Object containing more params for the request
+        //  return: [{symbol, fundingRate, timestamp, dateTime}]
+        //
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'page_size': limit, // optional
+            // 'page_num': 1, // optional, current page number, default is 1
+        };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.contractPublicGetFundingRateHistory (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "code": 0,
+        //     "data": {
+        //         "pageSize": 2,
+        //         "totalCount": 21,
+        //         "totalPage": 11,
+        //         "currentPage": 1,
+        //         "resultList": [
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "fundingRate": 0.000266,
+        //                 "settleTime": 1609804800000
+        //             },
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "fundingRate": 0.00029,
+        //                 "settleTime": 1609776000000
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = this.safeValue (data, 'resultList');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.safeString (entry, 'settleTime');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 };
