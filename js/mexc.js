@@ -624,7 +624,14 @@ module.exports = class mexc extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.contractPublicGetTicker (params);
+        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        let method = 'spotPublicGetMarketTicker';
+        if (type === 'swap') {
+            method = 'contractPublicGetTicker';
+        }
+        const response = await this[method] (this.extend (query));
         //
         //     {
         //         "success":true,
