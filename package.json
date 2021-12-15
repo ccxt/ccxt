@@ -29,7 +29,7 @@
     "test-php-base": "php -f php/test/decimal_to_precision.php && php -f php/test/test_crypto.php",
     "clijs": "node ./examples/js/cli.js",
     "clipy": "python3 ./examples/py/cli.py",
-    "cliphp": "php ./examples/php/cli.php"
+    "cliphp": "php ./examples/php/cli.php",
     "export-exchanges": "node build/export-exchanges",
     "export-docs": "python3 build/export-docs.py",
     "capabilities": "node ./examples/js/exchange-capabilities.js",
