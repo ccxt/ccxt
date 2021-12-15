@@ -1369,7 +1369,7 @@ $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 The unified methods of exchanges might expect and accept different `params` which affect their functionality, like:
 
 ```Python
-params = {'type':'margin', 'isIsolated': 'TRUE'}  # --------------+
+params = {'type':'margin', 'isIsolated': 'TRUE'}  # --------------┑
 # params will go as the last argument to the unified method       |
 #                                                                 v
 binance.create_order('BTC/USDT', 'limit', 'buy', amount, price, params)
