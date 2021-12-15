@@ -182,7 +182,7 @@ class Exchange(BaseExchange):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = await self.fetch_currencies()
-        markets = await self.fetch_markets(params)
+        markets = await self.fetch_markets(params, currencies)
         return self.set_markets(markets, currencies)
 
     async def load_markets(self, reload=False, params={}):
@@ -219,7 +219,7 @@ class Exchange(BaseExchange):
         self.loaded_fees = self.deep_extend(self.loaded_fees, await self.fetch_fees())
         return self.loaded_fees
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}, currencies=None):
         # markets are returned as a list
         # currencies are returned as a dict
         # this is for historical reasons
