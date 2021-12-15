@@ -225,8 +225,8 @@ module.exports = class ndax extends Exchange {
 
     async signIn (params = {}) {
         this.checkRequiredCredentials ();
-        if (this.login === undefined || this.password === undefined || this.twofa === undefined) {
-            throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials');
+        if (this.login === undefined || this.password === undefined) {
+            throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password');
         }
         let request = {
             'grant_type': 'client_credentials', // the only supported value
@@ -248,6 +248,9 @@ module.exports = class ndax extends Exchange {
         }
         const pending2faToken = this.safeString (response, 'Pending2FaToken');
         if (pending2faToken !== undefined) {
+            if (this.twofa === undefined) {
+                throw new AuthenticationError (this.id + ' signIn() requires exchange.twofa credentials');
+            }
             this.options['pending2faToken'] = pending2faToken;
             request = {
                 'Code': this.oath (),
@@ -934,11 +937,13 @@ module.exports = class ndax extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'ProductId');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'Amount');
-            account['used'] = this.safeString (balance, 'Hold');
-            result[code] = account;
+            if (currencyId in this.currencies_by_id) {
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeString (balance, 'Amount');
+                account['used'] = this.safeString (balance, 'Hold');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
