@@ -1795,7 +1795,7 @@ class Exchange {
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = $this->fetch_currencies();
         }
-        $markets = $this->fetch_markets($params);
+        $markets = $this->fetch_markets($params, $currencies);
         return $this->set_markets($markets, $currencies);
     }
 
@@ -2345,7 +2345,7 @@ class Exchange {
         }
     }
 
-    public function fetch_markets($params = array()) {
+    public function fetch_markets($params = array(), $currencies = null) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
