@@ -1372,7 +1372,7 @@ Also, different exchange's methods might accept different `params`, which affect
 params = {'type':'margin', 'isIsolated': 'TRUE'}  # --------------+
 # params will go as the last argument to the unified method       |
 #                                                                 v
-binance.createOrder ('BTC/USDT', 'limit', 'buy', amount, price, params)
+binance.create_order('BTC/USDT', 'limit', 'buy', amount, price, params)
 ```
 
 An exchange will not accept params from a different exchange. The list of accepted parameters is defined each by specific exchange. 
