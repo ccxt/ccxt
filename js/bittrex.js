@@ -20,6 +20,9 @@ module.exports = class bittrex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'marginAPI': false,
+                'swapAPI': false,
+                'futureAPI': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
