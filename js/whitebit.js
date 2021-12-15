@@ -62,11 +62,17 @@ module.exports = class whitebit extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
                 'api': {
                     'web': 'https://whitebit.com/',
-                    'privateV1': 'https://whitebit.com/api/v1',
-                    'privateV4': 'https://whitebit.com/api/v4',
-                    'publicV2': 'https://whitebit.com/api/v2/public',
-                    'publicV1': 'https://whitebit.com/api/v1/public',
-                    'publicV4': 'https://whitebit.com/api/v4/public',
+                    'v1': {
+                        'public': 'https://whitebit.com/api/v1/public',
+                        'private': 'https://whitebit.com/api/v1',
+                    },
+                    'v2': {
+                        'public': 'https://whitebit.com/api/v2/public',
+                    },
+                    'v4': {
+                        'public': 'https://whitebit.com/api/v4/public',
+                        'private': 'https://whitebit.com/api/v4',
+                    },
                 },
                 'www': 'https://www.whitebit.com',
                 'doc': 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
