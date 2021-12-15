@@ -201,7 +201,7 @@ class Exchange extends \ccxt\Exchange {
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = yield $this->fetch_currencies ();
         }
-        $markets = yield $this->fetch_markets ($params);
+        $markets = yield $this->fetch_markets ($params, $currencies);
         return $this->set_markets ($markets, $currencies);
     }
 
