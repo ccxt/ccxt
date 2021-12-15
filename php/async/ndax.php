@@ -196,7 +196,7 @@ class ndax extends Exchange {
                 // these credentials are required for signIn() and withdraw()
                 'login' => true,
                 'password' => true,
-                'twofa' => true,
+                // 'twofa' => true,
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -2027,6 +2027,9 @@ class ndax extends Exchange {
         $sessionToken = $this->safe_string($this->options, 'sessionToken');
         if ($sessionToken === null) {
             throw new AuthenticationError($this->id . ' call signIn() method to obtain a session token');
+        }
+        if ($this->twofa === null) {
+            throw new AuthenticationError($this->id . ' withdraw() requires exchange.twofa credentials');
         }
         $this->check_address($address);
         $omsId = $this->safe_integer($this->options, 'omsId', 1);

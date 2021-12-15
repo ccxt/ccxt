@@ -200,7 +200,7 @@ class ndax(Exchange):
                 # these credentials are required for signIn() and withdraw()
                 'login': True,
                 'password': True,
-                'twofa': True,
+                # 'twofa': True,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1949,6 +1949,8 @@ class ndax(Exchange):
         sessionToken = self.safe_string(self.options, 'sessionToken')
         if sessionToken is None:
             raise AuthenticationError(self.id + ' call signIn() method to obtain a session token')
+        if self.twofa is None:
+            raise AuthenticationError(self.id + ' withdraw() requires exchange.twofa credentials')
         self.check_address(address)
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.load_markets()
