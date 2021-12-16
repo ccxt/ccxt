@@ -850,17 +850,19 @@ module.exports = class deribit extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     {
-        //         'trade_seq': 39201926,
-        //         'trade_id':' 64135724',
-        //         'timestamp': 1583174775400,
-        //         'tick_direction': 1,
-        //         'price': 8865.0,
-        //         'instrument_name': 'BTC-PERPETUAL',
-        //         'index_price': 8863.31,
-        //         'direction': 'buy',
-        //         'amount': 10.0
-        //     }
+        //      {
+        //          "trade_seq":132564271,
+        //          "trade_id":"195402220",
+        //          "timestamp":1639684927932,
+        //          "tick_direction":0,
+        //          "price":47946.5,
+        //          "mark_price":47944.13,
+        //          "instrument_name":"BTC-PERPETUAL",
+        //          "index_price":47925.45,
+        //          "direction":"buy",
+        //          "amount":580.0
+        //      }
+        //
         //
         // fetchMyTrades, fetchOrderTrades (private)
         //
@@ -894,26 +896,23 @@ module.exports = class deribit extends Exchange {
         const side = this.safeString (trade, 'direction');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const liquidity = this.safeString (trade, 'liquidity');
         let takerOrMaker = undefined;
         if (liquidity !== undefined) {
             // M = maker, T = taker, MT = both
             takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
         }
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -923,11 +922,11 @@ module.exports = class deribit extends Exchange {
             'type': this.safeString (trade, 'order_type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -946,29 +945,29 @@ module.exports = class deribit extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         'jsonrpc': '2.0',
-        //         'result': {
-        //             'trades': [
-        //                 {
-        //                     'trade_seq': 39201926,
-        //                     'trade_id':' 64135724',
-        //                     'timestamp': 1583174775400,
-        //                     'tick_direction': 1,
-        //                     'price': 8865.0,
-        //                     'instrument_name': 'BTC-PERPETUAL',
-        //                     'index_price': 8863.31,
-        //                     'direction': 'buy',
-        //                     'amount': 10.0
-        //                 },
-        //             ],
-        //             'has_more': true,
-        //         },
-        //         'usIn': 1583779594843931,
-        //         'usOut': 1583779594844446,
-        //         'usDiff': 515,
-        //         'testnet': false
-        //     }
+        //      {
+        //          "jsonrpc":"2.0",
+        //          "result": {
+        //              "trades": [
+        //                  {
+        //                      "trade_seq":132564271,
+        //                      "trade_id":"195402220",
+        //                      "timestamp":1639684927932,
+        //                      "tick_direction":0,
+        //                      "price":47946.5,
+        //                      "mark_price":47944.13,
+        //                      "instrument_name":"BTC-PERPETUAL",
+        //                      "index_price":47925.45,
+        //                      "direction":"buy","amount":580.0
+        //                  }
+        //              ],
+        //              "has_more":true
+        //          },
+        //          "usIn":1639684931934671,
+        //          "usOut":1639684931935337,
+        //          "usDiff":666,
+        //          "testnet":false
+        //      }
         //
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'trades', []);
@@ -1416,8 +1415,7 @@ module.exports = class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
-        return this.parseTrades (trades, undefined, since, limit);
+        return this.parseTrades (result, undefined, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
