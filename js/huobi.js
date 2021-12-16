@@ -29,6 +29,7 @@ module.exports = class huobi extends Exchange {
                 'cancelOrders': true,
                 'CORS': undefined,
                 'createOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRates': true,
