@@ -15,6 +15,7 @@ const {
     , unique
     , indexBy
     , sortBy
+    , sortBy2
     , groupBy
     , aggregate
     , uuid
@@ -737,7 +738,7 @@ module.exports = class Exchange {
             return this.markets
         }
         let currencies = undefined
-        // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated') 
+        // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has.fetchCurrencies === true) {
             currencies = await this.fetchCurrencies ()
         }
@@ -1266,7 +1267,7 @@ module.exports = class Exchange {
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
-        result = sortBy (result, 'timestamp')
+        result = sortBy2 (result, 'timestamp', 'id')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         const tail = since === undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
