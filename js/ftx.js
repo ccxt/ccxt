@@ -628,25 +628,11 @@ module.exports = class ftx extends Exchange {
         //         "volumeUsd24h":8570651.12113,
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'name');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
-        } else {
-            const type = this.safeString (ticker, 'type');
-            if (type === 'future') {
-                symbol = marketId;
-            } else {
-                const base = this.safeCurrencyCode (this.safeString (ticker, 'baseCurrency'));
-                const quote = this.safeCurrencyCode (this.safeString (ticker, 'quoteCurrency'));
-                if ((base !== undefined) && (quote !== undefined)) {
-                    symbol = base + '/' + quote;
-                }
-            }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'last');
         const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
         let percentage = this.safeNumber (ticker, 'change24h');
