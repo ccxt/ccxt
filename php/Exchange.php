@@ -2088,7 +2088,7 @@ class Exchange {
         foreach ($array as $trade) {
             $result[] = array_merge($this->parse_trade($trade, $market), $params);
         }
-        $result = $this->sort_by($result, 'timestamp');
+        $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = isset($market) ? $market['symbol'] : null;
         $tail = $since === null;
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
