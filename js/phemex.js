@@ -1922,6 +1922,49 @@ module.exports = class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+        // https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotAmendOrder
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
+        }
+        if (type !== undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order if you need to change type');
+        }
+        if (side !== undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order if you need to change side');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdID');
+        params = this.omit (params, [ 'clientOrderId', 'clOrdID' ]);
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+        } else {
+            request['orderID'] = id;
+        }
+        const finalPrice = this.safeString (params, 'priceEp');
+        params = this.omit (params, [ 'priceEp' ]);
+        if (finalPrice !== undefined) {
+            request['priceEp'] = this.priceToPrecision (symbol, finalPrice);
+        } else if (price !== undefined) {
+            request['priceEp'] = this.priceToPrecision (symbol, price * Math.pow (10, market['valueScale']));
+        }
+        const finalQty = this.safeString (params, 'baseQtyEV');
+        params = this.omit (params, [ 'baseQtyEV' ]);
+        if (finalQty !== undefined) {
+            request['baseQtyEV'] = this.amountToPrecision (symbol, finalQty);
+        } else if (amount !== undefined) {
+            request['baseQtyEV'] = this.amountToPrecision (symbol, amount * Math.pow (10, market['valueScale']));
+        }
+        const method = market['spot'] ? 'privatePutSpotOrders' : 'privatePutOrdersReplace';
+        const response = await this[method] (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
