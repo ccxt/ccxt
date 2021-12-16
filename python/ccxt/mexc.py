@@ -16,7 +16,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -33,6 +32,7 @@ class mexc(Exchange):
             'version': 'v2',
             'certified': True,
             'has': {
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': False,
@@ -43,22 +43,29 @@ class mexc(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddressByNetwork': True,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
+                'fetchMarketsByType': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrdersByState': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWIthdrawals': True,
+                'fetchWithdrawals': True,
+                'reduceMargin': True,
+                'setLeverage': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -624,9 +631,10 @@ class mexc(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        if type != 'swap':
-            raise NotSupported(self.id + ' fetchTickers() is supported for swap markets only')
-        response = self.contractPublicGetTicker(query)
+        method = 'spotPublicGetMarketTicker'
+        if type == 'swap':
+            method = 'contractPublicGetTicker'
+        response = getattr(self, method)(self.extend(query))
         #
         #     {
         #         "success":true,

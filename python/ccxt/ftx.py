@@ -55,6 +55,9 @@ class ftx(Exchange):
                 },
             },
             'has': {
+                'margin': True,
+                'swap': True,
+                'future': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,

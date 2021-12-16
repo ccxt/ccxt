@@ -49,11 +49,15 @@ class huobi(Exchange):
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
             'has': {
+                # 'margin': True,
+                'swap': True,
+                'future': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'CORS': None,
                 'createOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRates': True,

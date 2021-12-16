@@ -34,6 +34,9 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'has': {
+                'margin': true,
+                'swap': true,
+                'future': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,

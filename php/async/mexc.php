@@ -11,7 +11,6 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 use \ccxt\Precise;
 
 class mexc extends Exchange {
@@ -25,6 +24,7 @@ class mexc extends Exchange {
             'version' => 'v2',
             'certified' => true,
             'has' => array(
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
@@ -35,22 +35,29 @@ class mexc extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressByNetwork' => true,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
+                'fetchMarketsByType' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrdersByState' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWIthdrawals' => true,
+                'fetchWithdrawals' => true,
+                'reduceMargin' => true,
+                'setLeverage' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -636,10 +643,11 @@ class mexc extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
-        if ($type !== 'swap') {
-            throw new NotSupported($this->id . ' fetchTickers() is supported for swap markets only');
+        $method = 'spotPublicGetMarketTicker';
+        if ($type === 'swap') {
+            $method = 'contractPublicGetTicker';
         }
-        $response = yield $this->contractPublicGetTicker ($query);
+        $response = yield $this->$method (array_merge($query));
         //
         //     {
         //         "success":true,

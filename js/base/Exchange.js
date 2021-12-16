@@ -61,7 +61,11 @@ module.exports = class Exchange {
             'pro': false, // if it is integrated with CCXT Pro for WebSocket support
             'alias': false, // whether this exchange is an alias to another exchange
             'has': {
-                'loadMarkets': true,
+                'privateAPI': true,
+                'publicAPI': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
@@ -102,8 +106,7 @@ module.exports = class Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': undefined,
-                'privateAPI': true,
-                'publicAPI': true,
+                'loadMarkets': true,
                 'signIn': undefined,
                 'withdraw': undefined,
             },

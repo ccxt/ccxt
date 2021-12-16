@@ -20,6 +20,10 @@ module.exports = class okex extends Exchange {
             'pro': true,
             'certified': true,
             'has': {
+                'margin': true,
+                'swap': true,
+                'future': true,
+                'addMargin': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createOrder': true,
@@ -30,12 +34,16 @@ module.exports = class okex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressByNetwork': true,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
+                'fetchLeverage': true,
                 'fetchMarkets': true,
+                'fetchMarketsByType': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -45,21 +53,20 @@ module.exports = class okex extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
-                'fetchLeverage': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTickersByType': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
+                'setLeverage': true,
+                'setMarginMode': true,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
-                'setLeverage': true,
-                'setPositionMode': true,
-                'setMarginMode': true,
-                'addMargin': true,
-                'reduceMargin': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -3690,6 +3697,14 @@ module.exports = class okex extends Exchange {
 
     async addMargin (symbol, amount, params = {}) {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    setSandboxMode (enable) {
+        if (enable) {
+            this.headers['x-simulated-trading'] = 1;
+        } else {
+            this.headers['x-simulated-trading'] = null;
+        }
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

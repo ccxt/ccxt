@@ -41,6 +41,7 @@ class deribit extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
                 'fetchOrderTrades' => true,
+                'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
