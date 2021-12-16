@@ -38,6 +38,9 @@ class binance(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'margin': True,
+                'swap': True,
+                'future': True,
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,

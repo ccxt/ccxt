@@ -41,6 +41,9 @@ class okex(Exchange):
             'pro': True,
             'certified': True,
             'has': {
+                'margin': True,
+                'swap': True,
+                'future': True,
                 'addMargin': True,
                 'cancelOrder': True,
                 'CORS': None,

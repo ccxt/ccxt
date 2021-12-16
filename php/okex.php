@@ -25,6 +25,9 @@ class okex extends Exchange {
             'pro' => true,
             'certified' => true,
             'has' => array(
+                'margin' => true,
+                'swap' => true,
+                'future' => true,
                 'addMargin' => true,
                 'cancelOrder' => true,
                 'CORS' => null,

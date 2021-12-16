@@ -43,6 +43,9 @@ class bittrex(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'margin': False,
+                'swap': False,
+                'future': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,

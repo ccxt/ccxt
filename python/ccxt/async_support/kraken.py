@@ -45,6 +45,7 @@ class kraken(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'margin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,

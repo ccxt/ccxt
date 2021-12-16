@@ -38,6 +38,8 @@ class kucoin(Exchange):
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,
             'has': {
+                'swap': False,
+                'future': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
