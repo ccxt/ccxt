@@ -1887,7 +1887,7 @@ module.exports = class ftx extends Exchange {
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
-            'entryPrice': undefined,
+            'entryPrice': this.parseNumber (entryPriceString),
             'notional': this.parseNumber (notionalString),
             'leverage': leverage,
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
