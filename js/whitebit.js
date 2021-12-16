@@ -718,54 +718,50 @@ module.exports = class whitebit extends Exchange {
         };
         const stopPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
         if (stopPrice !== undefined) {
-            request['activation_price'] = this.numberToString (this.priceToPrecision (symbol, stopPrice));
             // it's a stop order
-            if (type === 'limit') {
+            request['activation_price'] = this.numberToString (this.priceToPrecision (symbol, stopPrice));
+            if (type === 'limit' || type === 'stopLimit') {
                 // it's a stop-limit-order
                 method = 'v4PrivateOPostOrderStopLimit';
-                if (price === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a stopLimit order');
-                }
-                const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
-                request['price'] = convertedPrice;
-            } else if (type === 'stopMarket') {
+            } else if (type === 'market' || type === 'stopMarket') {
                 // it's a stop-market-order
                 method = 'v4PrivatePostOrderStopMarket';
             }
         } else {
-            if (type === 'stopMarket') {
-                // it's a stopMarket tring to use the price as activationPrice
-                method = 'v4PrivatePostOrderStopMarket';
-                if (price === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires a activationPrice, stopPrice or price parameter for the ' + type + ' order type');
-                }
-                request['activation_price'] = this.numberToString (this.priceToPrecision (symbol, price));
-            } else if (type === 'market') {
+            if (type === 'market') {
                 // it's a regular market order
                 method = 'v4PrivatePostOrderMarket';
-                if (side === 'buy') {
-                    let cost = this.safeNumber (params, 'cost');
-                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                    if (createMarketBuyOrderRequiresPrice) {
-                        if (price !== undefined) {
-                            if (cost === undefined) {
-                                cost = amount * price;
-                            }
-                        } else if (cost === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
-                        }
-                    } else {
-                        cost = (cost === undefined) ? amount : cost;
-                    }
-                    const costToPrecision = this.costToPrecision (symbol, cost);
-                    request['amount'] = this.numberToString (costToPrecision);
-                }
             }
             if (type === 'limit') {
                 // it's a regular limit order
                 method = 'v4PrivatePostOrderNew';
-                const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
-                request['price'] = convertedPrice;
+            }
+        }
+        // aggregate common assignments
+        if (type === 'limit' || type === 'stopLimit') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a stopLimit order');
+            }
+            const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
+            request['price'] = convertedPrice;
+        }
+        if (type === 'market' || type === 'stopMarket') {
+            if (side === 'buy') {
+                let cost = this.safeNumber (params, 'cost');
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        if (cost === undefined) {
+                            cost = amount * price;
+                        }
+                    } else if (cost === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
+                    }
+                } else {
+                    cost = (cost === undefined) ? amount : cost;
+                }
+                const costToPrecision = this.costToPrecision (symbol, cost);
+                request['amount'] = this.numberToString (costToPrecision);
             }
         }
         if (method === undefined) {
