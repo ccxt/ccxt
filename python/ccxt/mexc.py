@@ -16,7 +16,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -60,7 +59,7 @@ class mexc(Exchange):
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
-                # 'fetchTickers': True,    # is True, but causes test to fail with '[NotSupported] mexc fetchTickers() is supported for swap markets only'
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWIthdrawals': True,
@@ -632,9 +631,10 @@ class mexc(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        if type != 'swap':
-            raise NotSupported(self.id + ' fetchTickers() is supported for swap markets only')
-        response = self.contractPublicGetTicker(query)
+        method = 'spotPublicGetMarketTicker'
+        if type == 'swap':
+            method = 'contractPublicGetTicker'
+        response = getattr(self, method)(self.extend(query))
         #
         #     {
         #         "success":true,

@@ -11,7 +11,6 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 use \ccxt\Precise;
 
 class mexc extends Exchange {
@@ -52,7 +51,7 @@ class mexc extends Exchange {
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
-                // 'fetchTickers' => true,    // is true, but causes test to fail with '[NotSupported] mexc fetchTickers() is supported for swap markets only'
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWIthdrawals' => true,
@@ -644,10 +643,11 @@ class mexc extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
-        if ($type !== 'swap') {
-            throw new NotSupported($this->id . ' fetchTickers() is supported for swap markets only');
+        $method = 'spotPublicGetMarketTicker';
+        if ($type === 'swap') {
+            $method = 'contractPublicGetTicker';
         }
-        $response = yield $this->contractPublicGetTicker ($query);
+        $response = yield $this->$method (array_merge($query));
         //
         //     {
         //         "success":true,
