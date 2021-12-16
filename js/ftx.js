@@ -1854,14 +1854,14 @@ module.exports = class ftx extends Exchange {
         const leverage = parseInt (Precise.stringDiv ('1', initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         const markPriceString = this.safeString (position, 'entryPrice');
-        const notionalString = this.safeString (position, 'cost');
+        const notionalString = Precise.stringAbs (this.safeString (position, 'cost'));
         const initialMargin = Precise.stringMul (notionalString, initialMarginPercentage);
         const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
         const unrealizedPnlString = this.safeString (position, 'recentPnl');
         const percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMargin, 4), '100'));
         const entryPriceString = this.safeString (position, 'recentAverageOpenPrice');
-        const collateralUsedString = this.safeString (position, 'collateralUsed');
+        const collateralUsedString = Precise.stringAbs (this.safeString (position, 'collateralUsed'));
         let marginRatio = undefined;
         if ((entryPriceString !== undefined) && (Precise.stringGt (liquidationPriceString, '0'))) {
             marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralUsedString, 4));
