@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, NotSupported, PermissionDenied } = require ('./base/errors');
+const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -46,7 +46,7 @@ module.exports = class mexc extends Exchange {
                 'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
-                // 'fetchTickers': true,    // is true, but causes test to fail with '[NotSupported] mexc fetchTickers() is supported for swap markets only'
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWIthdrawals': true,
@@ -638,10 +638,11 @@ module.exports = class mexc extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        if (type !== 'swap') {
-            throw new NotSupported (this.id + ' fetchTickers() is supported for swap markets only');
+        let method = 'spotPublicGetMarketTicker';
+        if (type === 'swap') {
+            method = 'contractPublicGetTicker';
         }
-        const response = await this.contractPublicGetTicker (query);
+        const response = await this[method] (this.extend (query));
         //
         //     {
         //         "success":true,
