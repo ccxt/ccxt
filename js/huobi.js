@@ -24,11 +24,15 @@ module.exports = class huobi extends Exchange {
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
+                // 'margin': true,
+                'swap': true,
+                'future': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'CORS': undefined,
                 'createOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRates': true,
@@ -1339,6 +1343,7 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchTickers', {});
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (options, 'type', defaultType);
@@ -1358,6 +1363,29 @@ module.exports = class huobi extends Exchange {
         }
         const query = this.omit (params, [ 'type', 'subType' ]);
         const response = await this[method] (query);
+        //
+        // spot
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "symbol":"hbcbtc",
+        //                 "open":5.313E-5,
+        //                 "high":5.34E-5,
+        //                 "low":5.112E-5,
+        //                 "close":5.175E-5,
+        //                 "amount":1183.87,
+        //                 "vol":0.0618599229,
+        //                 "count":205,
+        //                 "bid":5.126E-5,
+        //                 "bidSize":5.25,
+        //                 "ask":5.214E-5,
+        //                 "askSize":150.0
+        //             },
+        //         ],
+        //         "status":"ok",
+        //         "ts":1639547261293
+        //     }
         //
         // future
         //

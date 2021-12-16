@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 110 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 111 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1535,6 +1535,17 @@ The CCXT library currently supports the following 110 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg
+          :target: https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN
+          :alt: zipmex
+     
+     - zipmex
+     - `Zipmex <https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://apidoc.ndax.io/
+          :alt: API Version *
+     
+     - 
 
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have `dark pools <https://en.wikipedia.org/wiki/Dark_pool>`__\ , `OTC <https://en.wikipedia.org/wiki/Over-the-counter_(finance>`__\ ) (over-the-counter trading), merchant APIs and much more.
@@ -2817,6 +2828,23 @@ The set of all possible API endpoints differs from exchange to exchange. Most of
    bitso.publicGetTicker ({ book: 'eth_mxn' })                 // JavaScript
    ccxt.zaif().public_get_ticker_pair ({ 'pair': 'btc_jpy' })  # Python
    $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
+
+The unified methods of exchanges might expect and will accept various ``params`` which affect their functionality, like:
+
+.. code-block:: Python
+
+   params = {'type':'margin', 'isIsolated': 'TRUE'}  # --------------┑
+   # params will go as the last argument to the unified method       |
+   #                                                                 v
+   binance.create_order('BTC/USDT', 'limit', 'buy', amount, price, params)
+
+An exchange will not accept the params from a different exchange, they're not interchangeable. The list of accepted parameters is defined by each specific exchange. 
+
+To find which parameters can be passed to a unified method:
+
+
+ * either open the `exchange-specific implementation <https://github.com/ccxt/ccxt/tree/master/js>`__ file and search for the desired function (i.e. ``createOrder``\ ) to inspect and find out the details of ``params`` usage
+ * or go to the exchange's API docs and read the list of parameters for your specific function or endpoint (i.e. ``order``\ )
 
 For a full list of accepted method parameters for each exchange, please consult :ref:`API docs <exchanges>`.
 

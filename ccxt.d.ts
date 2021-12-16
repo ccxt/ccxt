@@ -537,6 +537,7 @@ declare module 'ccxt' {
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
+    export class zipmex extends ndax {}
 
     /* tslint:enable */
 
@@ -653,5 +654,6 @@ declare module 'ccxt' {
         | 'yobit'
         | 'zaif'
         | 'zb'
+        | 'zipmex'
 
 }

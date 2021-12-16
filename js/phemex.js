@@ -40,6 +40,7 @@ module.exports = class phemex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
@@ -327,8 +328,9 @@ module.exports = class phemex extends Exchange {
         if (value === undefined) {
             return value;
         }
-        value = value.replace (',', '');
-        const parts = value.split (' ');
+        let parts = value.split (',');
+        value = parts.join ('');
+        parts = value.split (' ');
         return this.safeNumber (parts, 0);
     }
 

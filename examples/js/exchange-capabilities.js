@@ -40,12 +40,16 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
             }
         }
         
-        let apiBasics = [
+        const apiBasics = [
             'publicAPI',
             'privateAPI',
-            'CORS'
+            'CORS'            
+			'margin',
+            'swap',
+            'future',
+            'CORS',
         ];
-        apiBasics.concat([
+        const allItems = apiBasics.concat([
             'fetchCurrencies',
             'fetchFundingFees',
             'fetchFundingRate',
@@ -115,7 +119,9 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
             'signIn',
             'transfer',
             'withdraw',
-        ]).forEach (methodName => {
+        ]);
+		
+		allItems.forEach (methodName => {
 
             total += 1
 

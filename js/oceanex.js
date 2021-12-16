@@ -12,7 +12,7 @@ module.exports = class oceanex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'oceanex',
             'name': 'OceanEx',
-            'countries': [ 'LU', 'CN', 'SG' ],
+            'countries': [ 'BS' ], // Bahamas
             'version': 'v1',
             'rateLimit': 3000,
             'urls': {

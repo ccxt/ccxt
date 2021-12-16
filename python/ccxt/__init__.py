@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.63.71'
+__version__ = '1.63.98'
 
 # ----------------------------------------------------------------------------
 
@@ -181,6 +181,7 @@ from ccxt.xena import xena                                  # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
+from ccxt.zipmex import zipmex                              # noqa: F401
 
 exchanges = [
     'aax',
@@ -295,6 +296,7 @@ exchanges = [
     'yobit',
     'zaif',
     'zb',
+    'zipmex',
 ]
 
 base = [

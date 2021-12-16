@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.63.71'
+__version__ = '1.63.98'
 
 # -----------------------------------------------------------------------------
 
@@ -910,6 +910,10 @@ class Exchange(object):
     @staticmethod
     def sort_by(array, key, descending=False):
         return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
+
+    @staticmethod
+    def sort_by_2(array, key1, key2, descending=False):
+        return sorted(array, key=lambda k: (k[key1] if k[key1] is not None else "", k[key2] if k[key2] is not None else ""), reverse=descending)
 
     @staticmethod
     def array_concat(a, b):

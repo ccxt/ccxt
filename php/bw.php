@@ -54,8 +54,6 @@ class bw extends Exchange {
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
-                'privateAPI' => null,
-                'publicAPI' => null,
                 'withdraw' => null,
             ),
             'timeframes' => array(

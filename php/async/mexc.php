@@ -11,7 +11,6 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 use \ccxt\Precise;
 
 class mexc extends Exchange {
@@ -25,6 +24,7 @@ class mexc extends Exchange {
             'version' => 'v2',
             'certified' => true,
             'has' => array(
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
@@ -35,21 +35,29 @@ class mexc extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressByNetwork' => true,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
+                'fetchMarketsByType' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrdersByState' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWIthdrawals' => true,
+                'fetchWithdrawals' => true,
+                'reduceMargin' => true,
+                'setLeverage' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -489,42 +497,46 @@ class mexc extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'baseCoin');
             $quoteId = $this->safe_string($market, 'quoteCoin');
+            $settleId = $this->safe_string($market, 'settleCoin');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $id;
-            $precision = array(
-                'price' => $this->safe_number($market, 'priceUnit'),
-                'amount' => $this->safe_number($market, 'volUnit'),
-            );
-            $taker = $this->safe_number($market, 'takerFeeRate');
-            $maker = $this->safe_number($market, 'makerFeeRate');
+            $settle = $this->safe_currency_code($settleId);
             $state = $this->safe_string($market, 'state');
-            $active = ($state === '0');
-            $type = 'swap';
-            $swap = true;
-            $spot = false;
-            $contractSize = $this->safe_string($market, 'contractSize');
-            $linear = true;
-            $inverse = false;
-            $result[] = array_merge($this->fees['trading'], array(
+            $result[] = array(
                 'info' => $market,
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote . ':' . $settle,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'type' => $type,
-                'swap' => $swap,
-                'spot' => $spot,
-                'contractSize' => $contractSize,
-                'linear' => $linear,
-                'inverse' => $inverse,
-                'active' => $active,
-                'taker' => $taker,
-                'maker' => $maker,
-                'precision' => $precision,
+                'settleId' => $settleId,
+                'type' => 'swap',
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'futures' => false,
+                'option' => false,
+                'derivative' => true,
+                'contract' => true,
+                'linear' => true,
+                'inverse' => false,
+                'taker' => $this->safe_number($market, 'takerFeeRate'),
+                'maker' => $this->safe_number($market, 'makerFeeRate'),
+                'contractSize' => $this->safe_string($market, 'contractSize'),
+                'active' => ($state === '0'),
+                'expiry' => $this->safe_integer($market, 'expire_time'),
+                'fees' => $this->safe_value($this->fees, 'trading'),
+                'precision' => array(
+                    'price' => $this->safe_number($market, 'priceUnit'),
+                    'amount' => $this->safe_number($market, 'volUnit'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->safe_number($market, 'minLeverage'),
+                        'max' => $this->safe_number($market, 'maxLeverage'),
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minVol'),
                         'max' => $this->safe_number($market, 'maxVol'),
@@ -538,7 +550,7 @@ class mexc extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }
@@ -631,10 +643,11 @@ class mexc extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
-        if ($type !== 'swap') {
-            throw new NotSupported($this->id . ' fetchTickers() is supported for swap markets only');
+        $method = 'spotPublicGetMarketTicker';
+        if ($type === 'swap') {
+            $method = 'contractPublicGetTicker';
         }
-        $response = yield $this->contractPublicGetTicker ($query);
+        $response = yield $this->$method (array_merge($query));
         //
         //     {
         //         "success":true,
@@ -2099,5 +2112,72 @@ class mexc extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback);
         }
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        //
+        // Gets a history of funding $rates with their timestamps
+        //  (param) $symbol => Future currency pair
+        //  (param) $limit => mexc $limit is page_size default 20, maximum is 100
+        //  (param) $since => not used by mexc
+        //  (param) $params => Object containing more $params for the $request
+        //  return => [array($symbol, fundingRate, $timestamp, dateTime)]
+        //
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            // 'page_size' => $limit, // optional
+            // 'page_num' => 1, // optional, current page number, default is 1
+        );
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        $response = yield $this->contractPublicGetFundingRateHistory (array_merge($request, $params));
+        //
+        // {
+        //     "success" => true,
+        //     "code" => 0,
+        //     "data" => {
+        //         "pageSize" => 2,
+        //         "totalCount" => 21,
+        //         "totalPage" => 11,
+        //         "currentPage" => 1,
+        //         "resultList" => array(
+        //             array(
+        //                 "symbol" => "BTC_USDT",
+        //                 "fundingRate" => 0.000266,
+        //                 "settleTime" => 1609804800000
+        //             ),
+        //             {
+        //                 "symbol" => "BTC_USDT",
+        //                 "fundingRate" => 0.00029,
+        //                 "settleTime" => 1609776000000
+        //             }
+        //         )
+        //     }
+        // }
+        //
+        $data = $this->safe_value($response, 'data');
+        $result = $this->safe_value($data, 'resultList');
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $entry = $result[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $symbol = $this->safe_symbol($marketId);
+            $timestamp = $this->safe_string($entry, 'settleTime');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 }

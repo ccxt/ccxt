@@ -44,7 +44,6 @@ class bibox extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
-                'publicAPI' => null,
                 'withdraw' => true,
             ),
             'timeframes' => array(

@@ -12,7 +12,7 @@ module.exports = class bitbay extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitbay',
             'name': 'BitBay',
-            'countries': [ 'MT', 'EU' ], // Malta
+            'countries': [ 'EE' ], // Estonia
             'rateLimit': 1000,
             'has': {
                 'cancelOrder': true,

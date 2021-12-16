@@ -20,6 +20,9 @@ module.exports = class bybit extends Exchange {
             'rateLimit': 100,
             'hostname': 'bybit.com', // bybit.com, bytick.com
             'has': {
+                'margin': false,
+                'swap': true,
+                'future': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': true,
@@ -51,8 +54,8 @@ module.exports = class bybit extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
-                'setMarginMode': true,
                 'setLeverage': true,
+                'setMarginMode': true,
             },
             'timeframes': {
                 '1m': '1',

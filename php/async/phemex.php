@@ -43,6 +43,7 @@ class phemex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
@@ -330,7 +331,8 @@ class phemex extends Exchange {
         if ($value === null) {
             return $value;
         }
-        $value = str_replace(',', '', $value);
+        $parts = explode(',', $value);
+        $value = implode('', $parts);
         $parts = explode(' ', $value);
         return $this->safe_number($parts, 0);
     }

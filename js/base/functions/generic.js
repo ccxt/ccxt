@@ -47,8 +47,9 @@ module.exports = {
 
     , keysort (x, out = {}) {
 
-        for (const k of keys (x).sort ())
+        for (const k of keys (x).sort ()) {
             out[k] = x[k]
+        }
 
         return out
     }
@@ -157,6 +158,22 @@ module.exports = {
             return direction
         } else {
             return 0
+        }
+    })
+
+    , sortBy2: (array, key1, key2, descending = false, direction  = descending ? -1 : 1) => array.sort ((a, b) => {
+        if (a[key1] < b[key1]) {
+            return -direction
+        } else if (a[key1] > b[key1]) {
+            return direction
+        } else {
+            if (a[key2] < b[key2]) {
+                return -direction;
+            } else if (a[key2] > b[key2]) {
+                return direction;
+            } else {
+                return 0
+            }
         }
     })
 

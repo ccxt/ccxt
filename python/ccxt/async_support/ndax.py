@@ -41,8 +41,8 @@ class ndax(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderTrades': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
@@ -200,7 +200,7 @@ class ndax(Exchange):
                 # these credentials are required for signIn() and withdraw()
                 'login': True,
                 'password': True,
-                'twofa': True,
+                # 'twofa': True,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -230,8 +230,8 @@ class ndax(Exchange):
 
     async def sign_in(self, params={}):
         self.check_required_credentials()
-        if self.login is None or self.password is None or self.twofa is None:
-            raise AuthenticationError(self.id + ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials')
+        if self.login is None or self.password is None:
+            raise AuthenticationError(self.id + ' signIn() requires exchange.login, exchange.password')
         request = {
             'grant_type': 'client_credentials',  # the only supported value
         }
@@ -251,6 +251,8 @@ class ndax(Exchange):
             return response
         pending2faToken = self.safe_string(response, 'Pending2FaToken')
         if pending2faToken is not None:
+            if self.twofa is None:
+                raise AuthenticationError(self.id + ' signIn() requires exchange.twofa credentials')
             self.options['pending2faToken'] = pending2faToken
             request = {
                 'Code': self.oath(),
@@ -909,11 +911,12 @@ class ndax(Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'ProductId')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'Amount')
-            account['used'] = self.safe_string(balance, 'Hold')
-            result[code] = account
+            if currencyId in self.currencies_by_id:
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['total'] = self.safe_string(balance, 'Amount')
+                account['used'] = self.safe_string(balance, 'Hold')
+                result[code] = account
         return self.parse_balance(result)
 
     def parse_ledger_entry_type(self, type):
@@ -1946,6 +1949,8 @@ class ndax(Exchange):
         sessionToken = self.safe_string(self.options, 'sessionToken')
         if sessionToken is None:
             raise AuthenticationError(self.id + ' call signIn() method to obtain a session token')
+        if self.twofa is None:
+            raise AuthenticationError(self.id + ' withdraw() requires exchange.twofa credentials')
         self.check_address(address)
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
