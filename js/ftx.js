@@ -549,13 +549,6 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote + ':' + settleId;
             } else if (contract) {
                 type = 'futures';
-                // TODO: delete
-                if (!expiry || !settleId || !base || !quote) {
-                    type = 'breakpoint';
-                    const y = 'stop_here';
-                    const x = 'comment line';
-                }
-                // TODO: delete
                 symbol = base + '/' + quote + ':' + settleId + '-' + expiry;
             }
             // check if a market is a spot or future market
