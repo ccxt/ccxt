@@ -3523,6 +3523,12 @@ class okex(Exchange):
     async def add_margin(self, symbol, amount, params={}):
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
+    def set_sandbox_mode(self, enable):
+        if enable:
+            self.headers['x-simulated-trading'] = 1
+        else:
+            self.headers['x-simulated-trading'] = None
+
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return  # fallback to default error handler

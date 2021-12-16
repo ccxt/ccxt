@@ -52,7 +52,7 @@ class okex3(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': None,  # see below
+                'fetchCurrencies': True,  # see below
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchLedger': True,
@@ -715,6 +715,7 @@ class okex3(Exchange):
                     'rate': 'public',
                     '{instrument_id}/constituents': 'public',
                 },
+                'warnOnFetchCurrenciesWithoutAuthorization': False,
             },
             'commonCurrencies': {
                 # OKEX refers to ERC20 version of Aeternity(AEToken)
@@ -993,52 +994,56 @@ class okex3(Exchange):
             raise NotSupported(self.id + ' fetchMarketsByType does not support market type ' + type)
 
     def fetch_currencies(self, params={}):
-        # has['fetchCurrencies'] is currently set to False
         # despite that their docs say these endpoints are public:
         #     https://www.okex.com/api/account/v3/withdrawal/fee
         #     https://www.okex.com/api/account/v3/currencies
         # it will still reply with {"code":30001, "message": "OK-ACCESS-KEY header is required"}
         # if you attempt to access it without authentication
-        response = self.accountGetCurrencies(params)
-        #
-        #     [
-        #         {
-        #             name: '',
-        #             currency: 'BTC',
-        #             can_withdraw: '1',
-        #             can_deposit: '1',
-        #             min_withdrawal: '0.0100000000000000'
-        #         },
-        #     ]
-        #
-        result = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'currency')
-            code = self.safe_currency_code(id)
-            precision = 0.00000001  # default precision, todo: fix "magic constants"
-            name = self.safe_string(currency, 'name')
-            canDeposit = self.safe_integer(currency, 'can_deposit')
-            canWithdraw = self.safe_integer(currency, 'can_withdraw')
-            active = True if (canDeposit and canWithdraw) else False
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': None,
-                'name': name,
-                'active': active,
-                'fee': None,  # todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {
-                        'min': self.safe_number(currency, 'min_withdrawal'),
-                        'max': None,
+        if not self.check_required_credentials(False):
+            if self.options['warnOnFetchCurrenciesWithoutAuthorization']:
+                raise ExchangeError(self.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = False to suppress self warning message.')
+            return None
+        else:
+            response = self.accountGetCurrencies(params)
+            #
+            #     [
+            #         {
+            #             name: '',
+            #             currency: 'BTC',
+            #             can_withdraw: '1',
+            #             can_deposit: '1',
+            #             min_withdrawal: '0.0100000000000000'
+            #         },
+            #     ]
+            #
+            result = {}
+            for i in range(0, len(response)):
+                currency = response[i]
+                id = self.safe_string(currency, 'currency')
+                code = self.safe_currency_code(id)
+                precision = 0.00000001  # default precision, todo: fix "magic constants"
+                name = self.safe_string(currency, 'name')
+                canDeposit = self.safe_integer(currency, 'can_deposit')
+                canWithdraw = self.safe_integer(currency, 'can_withdraw')
+                active = True if (canDeposit and canWithdraw) else False
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': currency,
+                    'type': None,
+                    'name': name,
+                    'active': active,
+                    'fee': None,  # todo: redesign
+                    'precision': precision,
+                    'limits': {
+                        'amount': {'min': None, 'max': None},
+                        'withdraw': {
+                            'min': self.safe_number(currency, 'min_withdrawal'),
+                            'max': None,
+                        },
                     },
-                },
-            }
-        return result
+                }
+            return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

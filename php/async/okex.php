@@ -3691,6 +3691,14 @@ class okex extends Exchange {
         return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
+    public function set_sandbox_mode($enable) {
+        if ($enable) {
+            $this->headers['x-simulated-trading'] = 1;
+        } else {
+            $this->headers['x-simulated-trading'] = null;
+        }
+    }
+
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to default $error handler
