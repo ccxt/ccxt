@@ -458,28 +458,66 @@ module.exports = class deribit extends Exchange {
                 const id = this.safeString (market, 'instrument_name');
                 const baseId = this.safeString (market, 'base_currency');
                 const quoteId = this.safeString (market, 'quote_currency');
+                const settleId = quoteId;
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
+                const settle = this.safeCurrencyCode (settleId);
                 const type = this.safeString (market, 'kind');
-                const future = (type === 'future');
+                const settlementPeriod = this.safeValue (market, 'settlement_period');
+                const swap = (settlementPeriod === 'perpetual');
+                const future = !swap && (type === 'future');
                 const option = (type === 'option');
-                const active = this.safeValue (market, 'is_active');
+                let symbol = quote + '/' + base + ':' + settle;
+                let expiry = undefined;
+                let strike = undefined;
+                let optionType = undefined;
+                if (option || future) {
+                    expiry = this.yyyymmdd (this.iso8601 (this.safeInteger (market, 'expiration_timestamp')), '');
+                    symbol = symbol + '-' + expiry;
+                    if (option) {
+                        strike = this.safeNumber (market, 'strike');
+                        optionType = this.safeString (market, 'option_type');
+                        symbol = symbol + ':' + strike + ':' + optionType;
+                    }
+                }
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
                 const tickSize = this.safeNumber (market, 'tick_size');
-                const precision = {
-                    'amount': minTradeAmount,
-                    'price': tickSize,
-                };
                 result.push ({
                     'id': id,
-                    'symbol': id,
+                    'symbol': symbol,
                     'base': base,
                     'quote': quote,
-                    'active': active,
-                    'precision': precision,
+                    'settle': settle,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': settleId,
+                    'type': type,
+                    'spot': false,
+                    'margin': false,
+                    'swap': swap,
+                    'future': future,
+                    'option': option,
+                    'derivative': true,
+                    'contract': true,
+                    'linear': false,
+                    'inverse': true,
                     'taker': this.safeNumber (market, 'taker_commission'),
                     'maker': this.safeNumber (market, 'maker_commission'),
+                    'contractSize': this.safeString (market, 'contract_size'),
+                    'active': this.safeValue (market, 'is_active'),
+                    'expiry': expiry,
+                    'strike': strike,
+                    'optionType': optionType,
+                    'fees': this.safeValue (this.fees, 'trading'),
+                    'precision': {
+                        'amount': minTradeAmount,
+                        'price': tickSize,
+                    },
                     'limits': {
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                         'amount': {
                             'min': minTradeAmount,
                             'max': undefined,
@@ -493,10 +531,6 @@ module.exports = class deribit extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'type': type,
-                    'spot': false,
-                    'future': future,
-                    'option': option,
                     'info': market,
                 });
             }
