@@ -1861,10 +1861,19 @@ module.exports = class ftx extends Exchange {
         const unrealizedPnlString = this.safeString (position, 'recentPnl');
         const percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMargin, 4), '100'));
         const entryPriceString = this.safeString (position, 'recentAverageOpenPrice');
-        const collateralUsedString = Precise.stringAbs (this.safeString (position, 'collateralUsed'));
+        let difference = undefined;
+        let collateral = undefined;
         let marginRatio = undefined;
         if ((entryPriceString !== undefined) && (Precise.stringGt (liquidationPriceString, '0'))) {
-            marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralUsedString, 4));
+            // collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
+            if (side === 'long') {
+                difference = Precise.stringSub (markPriceString, liquidationPriceString);
+            } else {
+                difference = Precise.stringSub (liquidationPriceString, markPriceString);
+            }
+            const loss = Precise.stringMul (difference, contractsString);
+            collateral = Precise.stringAdd (loss, maintenanceMarginString);
+            marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateral, 4));
         }
         // ftx has a weird definition of realizedPnl
         // it keeps the historical record of the realizedPnl per contract forever
@@ -1887,7 +1896,7 @@ module.exports = class ftx extends Exchange {
             'marginRatio': marginRatio,
             'liquidationPrice': this.parseNumber (liquidationPriceString),
             'markPrice': this.parseNumber (markPriceString),
-            'collateral': this.parseNumber (collateralUsedString),
+            'collateral': this.parseNumber (collateral),
             'marginType': 'cross',
             'side': side,
             'percentage': percentage,
