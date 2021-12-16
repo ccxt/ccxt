@@ -1890,7 +1890,7 @@ class ftx extends Exchange {
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentageString),
-            'entryPrice' => null,
+            'entryPrice' => $this->parse_number($entryPriceString),
             'notional' => $this->parse_number($notionalString),
             'leverage' => $leverage,
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),

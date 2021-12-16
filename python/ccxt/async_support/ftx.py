@@ -1821,7 +1821,7 @@ class ftx(Exchange):
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
-            'entryPrice': None,
+            'entryPrice': self.parse_number(entryPriceString),
             'notional': self.parse_number(notionalString),
             'leverage': leverage,
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
