@@ -35,7 +35,7 @@ class ftx(Exchange):
         return self.deep_extend(super(ftx, self).describe(), {
             'id': 'ftx',
             'name': 'FTX',
-            'countries': ['HK'],
+            'countries': ['BS'],  # Bahamas
             'rateLimit': 100,
             'certified': True,
             'pro': True,

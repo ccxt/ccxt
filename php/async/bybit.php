@@ -54,8 +54,8 @@ class bybit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
-                'setMarginMode' => true,
                 'setLeverage' => true,
+                'setMarginMode' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',

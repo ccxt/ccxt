@@ -53,6 +53,7 @@ class phemex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,

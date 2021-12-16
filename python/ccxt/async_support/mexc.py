@@ -33,6 +33,7 @@ class mexc(Exchange):
             'version': 'v2',
             'certified': True,
             'has': {
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': False,
@@ -43,22 +44,29 @@ class mexc(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddressByNetwork': True,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
+                'fetchMarketsByType': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrdersByState': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
+                # 'fetchTickers': True,    # is True, but causes test to fail with '[NotSupported] mexc fetchTickers() is supported for swap markets only'
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWIthdrawals': True,
+                'fetchWithdrawals': True,
+                'reduceMargin': True,
+                'setLeverage': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -482,42 +490,46 @@ class mexc(Exchange):
             id = self.safe_string(market, 'symbol')
             baseId = self.safe_string(market, 'baseCoin')
             quoteId = self.safe_string(market, 'quoteCoin')
+            settleId = self.safe_string(market, 'settleCoin')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = id
-            precision = {
-                'price': self.safe_number(market, 'priceUnit'),
-                'amount': self.safe_number(market, 'volUnit'),
-            }
-            taker = self.safe_number(market, 'takerFeeRate')
-            maker = self.safe_number(market, 'makerFeeRate')
+            settle = self.safe_currency_code(settleId)
             state = self.safe_string(market, 'state')
-            active = (state == '0')
-            type = 'swap'
-            swap = True
-            spot = False
-            contractSize = self.safe_string(market, 'contractSize')
-            linear = True
-            inverse = False
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'info': market,
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote + ':' + settle,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'type': type,
-                'swap': swap,
-                'spot': spot,
-                'contractSize': contractSize,
-                'linear': linear,
-                'inverse': inverse,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'precision': precision,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'futures': False,
+                'option': False,
+                'derivative': True,
+                'contract': True,
+                'linear': True,
+                'inverse': False,
+                'taker': self.safe_number(market, 'takerFeeRate'),
+                'maker': self.safe_number(market, 'makerFeeRate'),
+                'contractSize': self.safe_string(market, 'contractSize'),
+                'active': (state == '0'),
+                'expiry': self.safe_integer(market, 'expire_time'),
+                'fees': self.safe_value(self.fees, 'trading'),
+                'precision': {
+                    'price': self.safe_number(market, 'priceUnit'),
+                    'amount': self.safe_number(market, 'volUnit'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': self.safe_number(market, 'minLeverage'),
+                        'max': self.safe_number(market, 'maxLeverage'),
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minVol'),
                         'max': self.safe_number(market, 'maxVol'),
@@ -531,7 +543,7 @@ class mexc(Exchange):
                         'max': None,
                     },
                 },
-            }))
+            })
         return result
 
     async def fetch_spot_markets(self, params={}):

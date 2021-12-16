@@ -25,6 +25,7 @@ class mexc extends Exchange {
             'version' => 'v2',
             'certified' => true,
             'has' => array(
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
@@ -35,22 +36,29 @@ class mexc extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressByNetwork' => true,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
+                'fetchMarketsByType' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrdersByState' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
+                // 'fetchTickers' => true,    // is true, but causes test to fail with '[NotSupported] mexc fetchTickers() is supported for swap markets only'
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWIthdrawals' => true,
+                'fetchWithdrawals' => true,
+                'reduceMargin' => true,
+                'setLeverage' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -490,42 +498,46 @@ class mexc extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'baseCoin');
             $quoteId = $this->safe_string($market, 'quoteCoin');
+            $settleId = $this->safe_string($market, 'settleCoin');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $id;
-            $precision = array(
-                'price' => $this->safe_number($market, 'priceUnit'),
-                'amount' => $this->safe_number($market, 'volUnit'),
-            );
-            $taker = $this->safe_number($market, 'takerFeeRate');
-            $maker = $this->safe_number($market, 'makerFeeRate');
+            $settle = $this->safe_currency_code($settleId);
             $state = $this->safe_string($market, 'state');
-            $active = ($state === '0');
-            $type = 'swap';
-            $swap = true;
-            $spot = false;
-            $contractSize = $this->safe_string($market, 'contractSize');
-            $linear = true;
-            $inverse = false;
-            $result[] = array_merge($this->fees['trading'], array(
+            $result[] = array(
                 'info' => $market,
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote . ':' . $settle,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'type' => $type,
-                'swap' => $swap,
-                'spot' => $spot,
-                'contractSize' => $contractSize,
-                'linear' => $linear,
-                'inverse' => $inverse,
-                'active' => $active,
-                'taker' => $taker,
-                'maker' => $maker,
-                'precision' => $precision,
+                'settleId' => $settleId,
+                'type' => 'swap',
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'futures' => false,
+                'option' => false,
+                'derivative' => true,
+                'contract' => true,
+                'linear' => true,
+                'inverse' => false,
+                'taker' => $this->safe_number($market, 'takerFeeRate'),
+                'maker' => $this->safe_number($market, 'makerFeeRate'),
+                'contractSize' => $this->safe_string($market, 'contractSize'),
+                'active' => ($state === '0'),
+                'expiry' => $this->safe_integer($market, 'expire_time'),
+                'fees' => $this->safe_value($this->fees, 'trading'),
+                'precision' => array(
+                    'price' => $this->safe_number($market, 'priceUnit'),
+                    'amount' => $this->safe_number($market, 'volUnit'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->safe_number($market, 'minLeverage'),
+                        'max' => $this->safe_number($market, 'maxLeverage'),
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minVol'),
                         'max' => $this->safe_number($market, 'maxVol'),
@@ -539,7 +551,7 @@ class mexc extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }
