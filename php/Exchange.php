@@ -3537,20 +3537,4 @@ class Exchange {
         $params = $this->omit($params, $type);
         return array($type, $params);
     }
-
-    public function year_month_day($date_str) {
-        $unixtime = strtotime($date_str);
-        $month = strval(date('m', $unixtime));
-        $day = strval(date('d', $unixtime)); 
-        $year = strval(date('Y', $unixtime ));
-
-        if (strlen($month) < 2) {
-            $month = '0' + $month;
-        }
-        if (strlen($day) < 2) {
-            $day = '0' + $day;
-        }
-
-        return $year.$month.$day;
-    }
 }
