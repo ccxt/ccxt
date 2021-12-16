@@ -1120,7 +1120,9 @@ module.exports = class whitebit extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const version = this.safeValue (api, 0);
         const accessibility = this.safeValue (api, 1);
-        let url = this.urls['api'][version][accessibility] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][version][accessibility];
+        const pathWithParams = '/' + this.implodeParams (path, params);
+        url += pathWithParams;
         if (accessibility === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -1130,8 +1132,7 @@ module.exports = class whitebit extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.stringToBinary (this.secret);
-            const baseUrl = this.urls['api']['web'];
-            const request = '/' + url.replace (baseUrl, '');
+            const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64 (body);
             const signature = this.hmac (payload, secret, 'sha512');
