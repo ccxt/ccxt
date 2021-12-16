@@ -1909,8 +1909,12 @@ module.exports = class binance extends Exchange {
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
+        const interval = this.safeString (this.timeframes, timeframe);
+        if (interval === undefined) {
+            throw new BadRequest (this.id + ' does not have timeframe ' + timeframe);
+        }
         const request = {
-            'interval': this.timeframes[timeframe],
+            'interval': interval,
             'limit': limit,
         };
         if (price === 'index') {
