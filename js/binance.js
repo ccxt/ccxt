@@ -49,6 +49,7 @@ module.exports = class binance extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -2753,6 +2754,17 @@ module.exports = class binance extends Exchange {
         } else {
             return response;
         }
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'orderId': id,
+        };
+        const response = await this.privateGetMyTrades (this.extend (request, params));
+        return this.parseTrades (response, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
