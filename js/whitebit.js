@@ -737,7 +737,7 @@ module.exports = class whitebit extends Exchange {
                 method = 'v4PrivatePostOrderNew';
             }
         }
-        // aggregate common assignments
+        // aggregate common assignments regardless stop or not
         if (type === 'limit' || type === 'stopLimit') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a stopLimit order');
