@@ -121,7 +121,7 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
             'withdraw',
         ]);
 		
-		allItems.forEach (methodName => {
+        allItems.forEach (methodName => {
 
             total += 1
 
