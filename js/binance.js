@@ -20,6 +20,9 @@ module.exports = class binance extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'margin': true,
+                'swap': true,
+                'future': true,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
