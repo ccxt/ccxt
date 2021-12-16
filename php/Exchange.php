@@ -679,7 +679,7 @@ class Exchange {
                 }
                 return $a[$key2] < $b[$key2] ? -$descending : $descending;
             }
-            return $a[$key] < $b[$key] ? -$descending : $descending;
+            return $a[$key1] < $b[$key1] ? -$descending : $descending;
         });
         return $arrayOfArrays;
     }
