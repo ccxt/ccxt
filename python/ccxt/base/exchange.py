@@ -1863,7 +1863,7 @@ class Exchange(object):
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
         array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
-        array = self.sort_by(array, 'timestamp')
+        array = self.sort_by_2(array, 'timestamp', 'id')
         symbol = market['symbol'] if market else None
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
