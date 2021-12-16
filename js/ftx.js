@@ -541,7 +541,7 @@ module.exports = class ftx extends Exchange {
             const swap = (this.safeString (future, 'perpetual') === 'true');
             const option = false;
             const isFuture = contract && !swap;
-            const expiry = this.yearMonthDay (this.safeString (future, 'expiry'));
+            const expiry = this.yyyymmdd (this.safeString (future, 'expiry'), '');
             let type = 'spot';
             let symbol = base + '/' + quote;
             if (swap) {
