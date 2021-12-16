@@ -69,8 +69,8 @@ class bybit(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
-                'setMarginMode': True,
                 'setLeverage': True,
+                'setMarginMode': True,
             },
             'timeframes': {
                 '1m': '1',

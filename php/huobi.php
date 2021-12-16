@@ -36,6 +36,7 @@ class huobi extends Exchange {
                 'cancelOrders' => true,
                 'CORS' => null,
                 'createOrder' => true,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRates' => true,

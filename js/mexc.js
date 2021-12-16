@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, NotSupported, PermissionDenied } = require ('./base/errors');
+const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -19,6 +19,7 @@ module.exports = class mexc extends Exchange {
             'version': 'v2',
             'certified': true,
             'has': {
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': false,
@@ -29,22 +30,29 @@ module.exports = class mexc extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressByNetwork': true,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
+                'fetchMarketsByType': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrdersByState': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWIthdrawals': true,
+                'fetchWithdrawals': true,
+                'reduceMargin': true,
+                'setLeverage': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -630,10 +638,11 @@ module.exports = class mexc extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        if (type !== 'swap') {
-            throw new NotSupported (this.id + ' fetchTickers() is supported for swap markets only');
+        let method = 'spotPublicGetMarketTicker';
+        if (type === 'swap') {
+            method = 'contractPublicGetTicker';
         }
-        const response = await this.contractPublicGetTicker (query);
+        const response = await this[method] (this.extend (query));
         //
         //     {
         //         "success":true,

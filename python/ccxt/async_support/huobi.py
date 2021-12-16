@@ -54,6 +54,7 @@ class huobi(Exchange):
                 'cancelOrders': True,
                 'CORS': None,
                 'createOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRates': True,

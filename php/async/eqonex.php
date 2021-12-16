@@ -458,7 +458,7 @@ class eqonex extends Exchange {
         // public fetchTrades
         //
         //     array(
-        //         4022800,                 // 0 $price
+        //         4022800,                 // 0 price
         //         47000,                   // 1 quantity
         //         "20210206-21:39:12.886", // 2 $timestamp
         //         256323,                  // 3 sequence number
@@ -522,13 +522,13 @@ class eqonex extends Exchange {
             $type = $this->parse_order_type($this->safe_string($trade, 'ordType'));
             $priceString = $this->safe_string($trade, 'lastPx');
             $amountString = $this->safe_string($trade, 'qty');
-            $feeCost = $this->safe_number($trade, 'commission');
-            if ($feeCost !== null) {
-                $feeCost = -$feeCost;
+            $feeCostString = $this->safe_string($trade, 'commission');
+            if ($feeCostString !== null) {
+                $feeCostString = Precise::string_neg($feeCostString);
                 $feeCurrencyId = $this->safe_string($trade, 'commCurrency');
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
                 $fee = array(
-                    'cost' => $feeCost,
+                    'cost' => $feeCostString,
                     'currency' => $feeCurrencyCode,
                 );
             }
@@ -536,10 +536,7 @@ class eqonex extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -549,11 +546,11 @@ class eqonex extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_balance($params = array ()) {
@@ -1324,16 +1321,17 @@ class eqonex extends Exchange {
         $fee = null;
         $currencyId = $this->safe_integer($order, 'feeInstrumentId');
         $feeCurrencyCode = $this->safe_currency_code($currencyId);
+        $feeCostString = null;
         $feeCost = $this->safe_string($order, 'feeTotal');
         $feeScale = $this->safe_integer($order, 'fee_scale');
         if ($feeCost !== null) {
             $feeCost = Precise::string_neg($feeCost);
-            $feeCost = $this->parse_number($this->convert_from_scale($feeCost, $feeScale));
+            $feeCostString = $this->convert_from_scale($feeCost, $feeScale);
         }
         if ($feeCost !== null) {
             $fee = array(
                 'currency' => $feeCurrencyCode,
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'rate' => null,
             );
         }

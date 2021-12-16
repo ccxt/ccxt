@@ -54,8 +54,8 @@ module.exports = class bybit extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
-                'setMarginMode': true,
                 'setLeverage': true,
+                'setMarginMode': true,
             },
             'timeframes': {
                 '1m': '1',
