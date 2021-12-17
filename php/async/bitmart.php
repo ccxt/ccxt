@@ -298,6 +298,7 @@ class bitmart extends Exchange {
                 'ONE' => 'Menlo One',
                 'PLA' => 'Plair',
                 'TCT' => 'TacoCat Token',
+                'TRU' => 'Truebit', // conflict with TrueFi
             ),
             'options' => array(
                 'networks' => array(

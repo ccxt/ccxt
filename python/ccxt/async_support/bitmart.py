@@ -318,6 +318,7 @@ class bitmart(Exchange):
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
                 'TCT': 'TacoCat Token',
+                'TRU': 'Truebit',  # conflict with TrueFi
             },
             'options': {
                 'networks': {
