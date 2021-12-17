@@ -107,6 +107,7 @@ except ImportError:
 
 # -----------------------------------------------------------------------------
 
+globalVars = globals()
 
 class Exchange(object):
     """Base exchange class"""
@@ -1353,24 +1354,24 @@ class Exchange(object):
         parts = re.sub(r'0+$', '', string).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
 
-    def cost_to_precision(self, symbol, cost):
+    def cost_to_precision(self, symbol, cost, roundingMode='TRUNCATE'):
         market = self.market(symbol)
-        return self.decimal_to_precision(cost, TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
+        return self.decimal_to_precision(cost, globalVars[roundingMode], market['precision']['price'], self.precisionMode, self.paddingMode)
 
-    def price_to_precision(self, symbol, price):
+    def price_to_precision(self, symbol, price, roundingMode='ROUND'):
         market = self.market(symbol)
-        return self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+        return self.decimal_to_precision(price, globalVars[roundingMode], market['precision']['price'], self.precisionMode, self.paddingMode)
 
-    def amount_to_precision(self, symbol, amount):
+    def amount_to_precision(self, symbol, amount, roundingMode='TRUNCATE'):
         market = self.market(symbol)
-        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        return self.decimal_to_precision(amount, globalVars[roundingMode], market['precision']['amount'], self.precisionMode, self.paddingMode)
 
-    def fee_to_precision(self, symbol, fee):
+    def fee_to_precision(self, symbol, fee, roundingMode='ROUND'):
         market = self.market(symbol)
-        return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+        return self.decimal_to_precision(fee, globalVars[roundingMode], market['precision']['price'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
+    def currency_to_precision(self, currency, fee, roundingMode='ROUND'):
+        return self.decimal_to_precision(fee, globalVars[roundingMode], self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets

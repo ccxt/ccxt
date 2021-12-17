@@ -42,7 +42,7 @@ const { // eslint-disable-line object-curly-newline
     , ExchangeNotAvailable
     , RateLimitExceeded } = require ('./errors')
 
-const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConstants
+const precisionConstants = functions.precisionConstants
 
 const BN = require ('../static_dependencies/BN/bn')
 const Precise = require ('./Precise')
@@ -186,8 +186,8 @@ module.exports = class Exchange {
                 'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
             },
-            'precisionMode': DECIMAL_PLACES,
-            'paddingMode': NO_PADDING,
+            'precisionMode': precisionConstants.DECIMAL_PLACES,
+            'paddingMode': precisionConstants.NO_PADDING,
             'limits': {
                 'amount': { 'min': undefined, 'max': undefined },
                 'price': { 'min': undefined, 'max': undefined },
@@ -1470,28 +1470,28 @@ module.exports = class Exchange {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
-    costToPrecision (symbol, cost) {
+    costToPrecision (symbol, cost, roundingMode = 'TRUNCATE') {
         const market = this.market (symbol)
-        return decimalToPrecision (cost, TRUNCATE, market.precision.price, this.precisionMode, this.paddingMode)
+        return decimalToPrecision (cost, precisionConstants[roundingMode], market.precision.price, this.precisionMode, this.paddingMode)
     }
 
-    priceToPrecision (symbol, price) {
+    priceToPrecision (symbol, price, roundingMode = 'ROUND') {
         const market = this.market (symbol)
-        return decimalToPrecision (price, ROUND, market.precision.price, this.precisionMode, this.paddingMode)
+        return decimalToPrecision (price, precisionConstants[roundingMode], market.precision.price, this.precisionMode, this.paddingMode)
     }
 
-    amountToPrecision (symbol, amount) {
+    amountToPrecision (symbol, amount, roundingMode = 'TRUNCATE') {
         const market = this.market (symbol)
-        return decimalToPrecision (amount, TRUNCATE, market.precision.amount, this.precisionMode, this.paddingMode)
+        return decimalToPrecision (amount, precisionConstants[roundingMode], market.precision.amount, this.precisionMode, this.paddingMode)
     }
 
-    feeToPrecision (symbol, fee) {
+    feeToPrecision (symbol, fee, roundingMode = 'ROUND') {
         const market = this.market (symbol)
-        return decimalToPrecision (fee, ROUND, market.precision.price, this.precisionMode, this.paddingMode)
+        return decimalToPrecision (fee, precisionConstants[roundingMode], market.precision.price, this.precisionMode, this.paddingMode)
     }
 
-    currencyToPrecision (currency, fee) {
-        return decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
+    currencyToPrecision (currency, fee, roundingMode = 'ROUND') {
+        return decimalToPrecision (fee, precisionConstants[roundingMode], this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
