@@ -49,6 +49,7 @@ module.exports = class mexc extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchWIthdrawals': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
@@ -231,6 +232,8 @@ module.exports = class mexc extends Exchange {
                 'COFI': 'COFIX', // conflict with CoinFi
                 'DFT': 'dFuture',
                 'DRK': 'DRK',
+                'FLUX1': 'FLUX', // switched places
+                'FLUX': 'FLUX1', // switched places
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance', // conflict with Prosper
@@ -342,7 +345,7 @@ module.exports = class mexc extends Exchange {
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'full_name');
-            let currencyActive = undefined;
+            let currencyActive = false;
             let currencyPrecision = undefined;
             let currencyFee = undefined;
             let currencyWithdrawMin = undefined;
@@ -356,7 +359,7 @@ module.exports = class mexc extends Exchange {
                 const isDepositEnabled = this.safeValue (chain, 'is_deposit_enabled', false);
                 const isWithdrawEnabled = this.safeValue (chain, 'is_withdraw_enabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
-                currencyActive = (currencyActive === undefined) ? active : currencyActive;
+                currencyActive = active || currencyActive;
                 const precisionDigits = this.safeInteger (chain, 'precision');
                 const precision = 1 / Math.pow (10, precisionDigits);
                 const withdrawMin = this.safeString (chain, 'withdraw_limit_min');
