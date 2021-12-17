@@ -371,7 +371,7 @@ class bitfinex2(bitfinex):
         return self.status
 
     def fetch_markets(self, params={}):
-        # todo drop v1 in favor of v2 configs
+        # todo drop v1 in favor of v2 configs  ( temp-reference for v2update: https://pastebin.com/raw/S8CmqSHQ )
         # pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         v2response = self.publicGetConfPubListPairFutures(params)
         v1response = self.v1GetSymbolsDetails(params)
@@ -560,6 +560,7 @@ class bitfinex2(bitfinex):
             fid = 'f' + id
             result[code] = {
                 'id': fid,
+                'uppercaseId': id,
                 'code': code,
                 'info': [id, label, pool, feeValues, undl],
                 'type': type,
@@ -1414,7 +1415,7 @@ class bitfinex2(bitfinex):
         method = 'privatePostAuthRMovementsHist'
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id']
+            request['currency'] = currency['uppercaseId']
             method = 'privatePostAuthRMovementsCurrencyHist'
         if since is not None:
             request['start'] = since

@@ -367,7 +367,7 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_markets($params = array ()) {
-        // todo drop v1 in favor of v2 configs
+        // todo drop v1 in favor of v2 configs  ( temp-reference for v2update => https://pastebin.com/raw/S8CmqSHQ )
         // pub:list:pair:exchange,pub:list:pair:$margin,pub:list:pair:$futures,pub:info:pair
         $v2response = yield $this->publicGetConfPubListPairFutures ($params);
         $v1response = yield $this->v1GetSymbolsDetails ($params);
@@ -560,6 +560,7 @@ class bitfinex2 extends bitfinex {
             $fid = 'f' . $id;
             $result[$code] = array(
                 'id' => $fid,
+                'uppercaseId' => $id,
                 'code' => $code,
                 'info' => array( $id, $label, $pool, $feeValues, $undl ),
                 'type' => $type,
@@ -1497,7 +1498,7 @@ class bitfinex2 extends bitfinex {
         $method = 'privatePostAuthRMovementsHist';
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
+            $request['currency'] = $currency['uppercaseId'];
             $method = 'privatePostAuthRMovementsCurrencyHist';
         }
         if ($since !== null) {
