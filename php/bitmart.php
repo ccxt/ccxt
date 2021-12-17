@@ -288,6 +288,7 @@ class bitmart extends Exchange {
             'commonCurrencies' => array(
                 'COT' => 'Community Coin',
                 'CPC' => 'CPCoin',
+                'DMS' => 'DimSum', // conflict with Dragon Mainland Shards
                 'FOX' => 'Fox Finance',
                 'GDT' => 'Gorilla Diamond',
                 '$HERO' => 'Step Hero',
