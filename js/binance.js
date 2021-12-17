@@ -2764,7 +2764,6 @@ module.exports = class binance extends Exchange {
         const market = this.market (symbol);
         const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, 'type');
-        let method = undefined;
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchOrderTrades() supports spot markets only');
         }
