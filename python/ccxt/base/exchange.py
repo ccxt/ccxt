@@ -107,7 +107,13 @@ except ImportError:
 
 # -----------------------------------------------------------------------------
 
-globalVars = globals()
+try
+    globalVars = globals()
+except
+    globalVars = {
+        'TRUNCATE': TRUNCATE,
+        'ROUND': ROUND,
+    }
 
 class Exchange(object):
     """Base exchange class"""
