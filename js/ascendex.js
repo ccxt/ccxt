@@ -469,8 +469,10 @@ module.exports = class ascendex extends Exchange {
             const market = dataById[id];
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
+            const settleId = undefined;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
             const precision = {
                 'amount': this.safeNumber (market, 'lotSize'),
                 'price': this.safeNumber (market, 'tickSize'),
@@ -484,6 +486,8 @@ module.exports = class ascendex extends Exchange {
             let symbol = id;
             if (!future) {
                 symbol = base + '/' + quote;
+            } else {
+                symbol = base + '/' + quote + ':' + settle;
             }
             const fee = this.safeNumber (market, 'commissionReserveRate');
             result.push ({
@@ -491,18 +495,33 @@ module.exports = class ascendex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'info': market,
                 'type': type,
                 'spot': spot,
                 'margin': margin,
-                'future': future,
-                'active': active,
-                'precision': precision,
+                'swap': false,
+                'futures': future,
+                'option': false,
+                'derivative': true,
+                'contract': true,
+                'linear': true,
+                'inverse': false,
                 'taker': fee,
                 'maker': fee,
+                'contractSize': undefined,
+                'active': active,
+                'expiry': undefined,
+                'fees': undefined,
+                'precision': precision,
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minQty'),
                         'max': this.safeNumber (market, 'maxQty'),
