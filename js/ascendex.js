@@ -499,7 +499,6 @@ module.exports = class ascendex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'info': market,
                 'type': type,
                 'spot': spot,
                 'margin': margin,
@@ -516,6 +515,7 @@ module.exports = class ascendex extends Exchange {
                 'active': active,
                 'expiry': undefined,
                 'fees': undefined,
+                'info': market,
                 'precision': precision,
                 'limits': {
                     'leverage': {
