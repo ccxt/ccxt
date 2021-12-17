@@ -282,7 +282,7 @@ module.exports = class hitbtc extends Exchange {
                 },
                 'versions': {
                     'private': {
-                        'get': {
+                        'GET': {
                             'trading/balance': 'v2',
                             'history/order': 'v2',
                             'history/trades': 'v2',
@@ -303,7 +303,7 @@ module.exports = class hitbtc extends Exchange {
                             'sub-acc/balance/{subAccountUserID}': 'v2',
                             'sub-acc/deposit-address/{subAccountUserId}/{currency}': 'v2',
                         },
-                        'post': {
+                        'POST': {
                             'account/crypto/address/{currency}': 'v2',
                             'account/crypto/withdraw': 'v2',
                             'account/transfer': 'v2',
@@ -313,20 +313,20 @@ module.exports = class hitbtc extends Exchange {
                             'sub-acc/activate': 'v2',
                             'sub-acc/transfer': 'v2',
                         },
-                        'put': {
+                        'PUT': {
                             'order/{clientOrderId}': 'v2',
                             'margin/account/{symbol}': 'v2',
                             'margin/order/{clientOrderId}': 'v2',
                             'account/crypto/withdraw/{id}': 'v2',
                             'sub-acc/acl/{subAccountUserId}': 'v2',
                         },
-                        'delete': {
+                        'DELETE': {
                             'margin/account': 'v2',
                             'margin/account/{symbol}': 'v2',
                             'margin/position/{symbol}': 'v2',
                             'account/crypto/withdraw/{id}': 'v2',
                         },
-                        'patch': {
+                        'PATCH': {
                             'order/{clientOrderId}': 'v2',
                         },
                     },
@@ -1362,7 +1362,13 @@ module.exports = class hitbtc extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/api/' + this.version + '/';
+        const versions = this.safeValue (this.options, 'versions', {});
+        const apiVersions = this.safeValue (versions, api, {});
+        const methodVersions = this.safeValue (apiVersions, method, {});
+        const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
+        const version = this.safeString (params, 'version', defaultVersion);
+        params = this.omit (params, 'version');
+        let url = '/api/' + version + '/';
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             url += api + '/' + this.implodeParams (path, params);
