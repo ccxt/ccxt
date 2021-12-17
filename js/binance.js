@@ -4958,11 +4958,11 @@ module.exports = class binance extends Exchange {
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (limit > 93) {
+        if (limit === undefined) {
+            limit = 93;
+        } else if (limit > 93) {
             // Binance API says the limit is 100, but illegal parameter errors are returned when limit is > 93
             throw new BadRequest (this.id + ' fetchBorrowRateHistory limit parameter cannot exceed 93');
-        } else if (!limit) {
-            limit = 93;
         }
         const currency = this.currency (code);
         const request = {
