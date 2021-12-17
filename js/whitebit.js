@@ -742,7 +742,7 @@ module.exports = class whitebit extends Exchange {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a stopLimit order');
             }
-            const convertedPrice = this.numberToString (this.priceToPrecision (symbol, price));
+            const convertedPrice = this.priceToPrecision (symbol, price);
             request['price'] = convertedPrice;
         }
         if (type === 'market' || type === 'stopMarket') {
@@ -760,8 +760,7 @@ module.exports = class whitebit extends Exchange {
                 } else {
                     cost = (cost === undefined) ? amount : cost;
                 }
-                const costToPrecision = this.costToPrecision (symbol, cost);
-                request['amount'] = this.numberToString (costToPrecision);
+                request['amount'] = this.costToPrecision (symbol, cost);
             }
         }
         if (method === undefined) {
