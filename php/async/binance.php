@@ -59,6 +59,7 @@ class binance extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -2765,14 +2766,30 @@ class binance extends Exchange {
         }
     }
 
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $type = $this->safe_string($params, 'type', $market['type']);
+        $params = $this->omit($params, 'type');
+        if ($type !== 'spot') {
+            throw new NotSupported($this->id . ' fetchOrderTrades() supports spot markets only');
+        }
+        $request = array(
+            'orderId' => $id,
+        );
+        return yield $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchMyTrades', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
+        $type = $this->safe_string($params, 'type', $market['type']);
         $params = $this->omit($params, 'type');
         $method = null;
         if ($type === 'spot') {

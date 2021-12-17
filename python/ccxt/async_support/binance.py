@@ -70,6 +70,7 @@ class binance(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -2653,13 +2654,26 @@ class binance(Exchange):
         else:
             return response
 
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        type = self.safe_string(params, 'type', market['type'])
+        params = self.omit(params, 'type')
+        if type != 'spot':
+            raise NotSupported(self.id + ' fetchOrderTrades() supports spot markets only')
+        request = {
+            'orderId': id,
+        }
+        return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
+        type = self.safe_string(params, 'type', market['type'])
         params = self.omit(params, 'type')
         method = None
         if type == 'spot':
