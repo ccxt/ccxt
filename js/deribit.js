@@ -6,7 +6,6 @@ const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } = require ('./base/errors');
 const Precise = require ('./base/Precise');
-
 //  ---------------------------------------------------------------------------
 
 module.exports = class deribit extends Exchange {
@@ -1082,13 +1081,14 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
         const id = this.safeString (order, 'order_id');
-        const price = this.safeNumber (order, 'price');
-        const average = this.safeNumber (order, 'average_price');
-        const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber (order, 'filled_amount');
+        const priceString = this.safeString (order, 'price');
+        const averageString = this.safeString (order, 'average_price');
+        const amountString = this.safeString (order, 'amount');
+        const filledString = this.safeString (order, 'filled_amount');
         let lastTradeTimestamp = undefined;
-        if (filled !== undefined) {
-            if (filled > 0) {
+        if (filledString !== undefined) {
+            const isFilledPositive = Precise.stringGt (filledString, '0');
+            if (isFilledPositive) {
                 lastTradeTimestamp = lastUpdate;
             }
         }
@@ -1096,12 +1096,12 @@ module.exports = class deribit extends Exchange {
         const marketId = this.safeString (order, 'instrument_name');
         market = this.safeMarket (marketId, market);
         const side = this.safeStringLower (order, 'direction');
-        let feeCost = this.safeNumber (order, 'commission');
+        let feeCostString = this.safeString (order, 'commission');
         let fee = undefined;
-        if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
+        if (feeCostString !== undefined) {
+            feeCostString = Precise.stringAbs (feeCostString);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['base'],
             };
         }
@@ -1114,7 +1114,7 @@ module.exports = class deribit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeValue (order, 'stop_price');
         const postOnly = this.safeValue (order, 'post_only');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1126,17 +1126,17 @@ module.exports = class deribit extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amount,
+            'amount': amountString,
             'cost': undefined,
-            'average': average,
-            'filled': filled,
+            'average': averageString,
+            'filled': filledString,
             'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
