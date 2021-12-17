@@ -437,7 +437,7 @@ declare module 'ccxt' {
     export class binanceusdm extends binance {}
     export class bit2c extends Exchange {}
     export class bitbank extends Exchange {}
-    export class bitbay extends Exchange {}
+    export class bitbay extends zonda {}
     export class bitbns extends Exchange {}
     export class bitcoincom extends hitbtc {}
     export class bitfinex extends Exchange {}
@@ -538,6 +538,7 @@ declare module 'ccxt' {
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
     export class zipmex extends ndax {}
+    export class zonda extends Exchange {}
 
     /* tslint:enable */
 
@@ -655,5 +656,6 @@ declare module 'ccxt' {
         | 'zaif'
         | 'zb'
         | 'zipmex'
+        | 'zonda'
 
 }

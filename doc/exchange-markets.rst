@@ -190,18 +190,6 @@ The CCXT library currently supports the following 111 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
-          :target: https://auth.bitbay.net/ref/jHlbB4mIkdS1
-          :alt: bitbay
-     
-     - bitbay
-     - `BitBay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://bitbay.net/public-api
-          :alt: API Version *
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg
           :target: https://ref.bitbns.com/1090961
           :alt: bitbns
@@ -1494,6 +1482,18 @@ The CCXT library currently supports the following 111 cryptocurrency exchange ma
      - `Zipmex <https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://apidoc.ndax.io/
+          :alt: API Version *
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
+          :target: https://auth.zondaglobal.com/ref/jHlbB4mIkdS1
+          :alt: zonda
+     
+     - zonda
+     - `Zonda <https://auth.zondaglobal.com/ref/jHlbB4mIkdS1>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.zonda.exchange/
           :alt: API Version *
      
      - 

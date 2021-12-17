@@ -26,7 +26,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :target: https://discord.gg/dhzSKYU
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-113-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-114-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -567,18 +567,6 @@ The CCXT library currently supports the following 111 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.bitbank.cc/
           :alt: API Version 1
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
-          :target: https://auth.bitbay.net/ref/jHlbB4mIkdS1
-          :alt: bitbay
-     
-     - bitbay
-     - `BitBay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://bitbay.net/public-api
-          :alt: API Version *
      
      - 
      - 
@@ -1877,6 +1865,18 @@ The CCXT library currently supports the following 111 cryptocurrency exchange ma
           :alt: API Version *
      
      - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
+          :target: https://auth.zondaglobal.com/ref/jHlbB4mIkdS1
+          :alt: zonda
+     
+     - zonda
+     - `Zonda <https://auth.zondaglobal.com/ref/jHlbB4mIkdS1>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.zonda.exchange/
+          :alt: API Version *
+     
+     - 
 
 
 The list above is updated frequently, new crypto markets, exchanges, bug fixes, and API endpoints are introduced on a regular basis. See the `Manual <https://docs.ccxt.com/en/latest/manual.html>`__ for more details. If you can't find a cryptocurrency exchange in the list above and want it to be added, post a link to it by opening an issue here on GitHub or send us an email.
@@ -1935,14 +1935,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.64.8/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.64.8/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.64.9/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.64.9/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.64.8/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.64.9/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
