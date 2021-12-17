@@ -54,6 +54,7 @@ class mexc extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchWIthdrawals' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
@@ -236,6 +237,8 @@ class mexc extends Exchange {
                 'COFI' => 'COFIX', // conflict with CoinFi
                 'DFT' => 'dFuture',
                 'DRK' => 'DRK',
+                'FLUX1' => 'FLUX', // switched places
+                'FLUX' => 'FLUX1', // switched places
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
                 'PROS' => 'Pros.Finance', // conflict with Prosper
@@ -347,7 +350,7 @@ class mexc extends Exchange {
             $id = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'full_name');
-            $currencyActive = null;
+            $currencyActive = false;
             $currencyPrecision = null;
             $currencyFee = null;
             $currencyWithdrawMin = null;
@@ -361,7 +364,7 @@ class mexc extends Exchange {
                 $isDepositEnabled = $this->safe_value($chain, 'is_deposit_enabled', false);
                 $isWithdrawEnabled = $this->safe_value($chain, 'is_withdraw_enabled', false);
                 $active = ($isDepositEnabled && $isWithdrawEnabled);
-                $currencyActive = ($currencyActive === null) ? $active : $currencyActive;
+                $currencyActive = $active || $currencyActive;
                 $precisionDigits = $this->safe_integer($chain, 'precision');
                 $precision = 1 / pow(10, $precisionDigits);
                 $withdrawMin = $this->safe_string($chain, 'withdraw_limit_min');

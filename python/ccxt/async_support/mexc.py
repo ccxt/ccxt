@@ -62,6 +62,7 @@ class mexc(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchWIthdrawals': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
@@ -244,6 +245,8 @@ class mexc(Exchange):
                 'COFI': 'COFIX',  # conflict with CoinFi
                 'DFT': 'dFuture',
                 'DRK': 'DRK',
+                'FLUX1': 'FLUX',  # switched places
+                'FLUX': 'FLUX1',  # switched places
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
@@ -350,7 +353,7 @@ class mexc(Exchange):
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'full_name')
-            currencyActive = None
+            currencyActive = False
             currencyPrecision = None
             currencyFee = None
             currencyWithdrawMin = None
@@ -364,7 +367,7 @@ class mexc(Exchange):
                 isDepositEnabled = self.safe_value(chain, 'is_deposit_enabled', False)
                 isWithdrawEnabled = self.safe_value(chain, 'is_withdraw_enabled', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
-                currencyActive = active if (currencyActive is None) else currencyActive
+                currencyActive = active or currencyActive
                 precisionDigits = self.safe_integer(chain, 'precision')
                 precision = 1 / math.pow(10, precisionDigits)
                 withdrawMin = self.safe_string(chain, 'withdraw_limit_min')
