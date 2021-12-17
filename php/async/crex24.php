@@ -144,6 +144,7 @@ class crex24 extends Exchange {
                 'BULL' => 'BuySell',
                 'CLC' => 'CaluraCoin',
                 'CREDIT' => 'TerraCredit',
+                'DMS' => 'Documentchain', // conflict with Dragon Mainland Shards
                 'EGG' => 'NestEGG Coin',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND' => 'FUNDChains',
