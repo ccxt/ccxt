@@ -1929,10 +1929,10 @@ module.exports = class phemex extends Exchange {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
         }
         if (type !== undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order if you need to change type');
+            throw new ArgumentsRequired (this.id + ' editOrder() does not support changing the order type. Cancel and recreate the order if you need to change the order type');
         }
         if (side !== undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order if you need to change side');
+            throw new ArgumentsRequired (this.id + ' editOrder() does not support changing the order side. Cancel and recreate order if you need to change the order side');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
