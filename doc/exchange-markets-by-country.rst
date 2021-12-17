@@ -464,17 +464,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - Estonia
-     - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
-          :target: https://auth.bitbay.net/ref/jHlbB4mIkdS1
-          :alt: bitbay
-     
-     - bitbay
-     - `BitBay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://bitbay.net/public-api
-          :alt: API Version *
-     
-   * - Estonia
      - .. image:: https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg
           :target: https://crex24.com/?refid=slxsjsjtil8xexl9hksr
           :alt: crex24
@@ -506,6 +495,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest
           :alt: API Version 2
+     
+   * - Estonia
+     - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
+          :target: https://auth.zondaglobal.com/ref/jHlbB4mIkdS1
+          :alt: zonda
+     
+     - zonda
+     - `Zonda <https://auth.zondaglobal.com/ref/jHlbB4mIkdS1>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.zonda.exchange/
+          :alt: API Version *
      
    * - France
      - .. image:: https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg
