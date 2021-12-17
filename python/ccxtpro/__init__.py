@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.9.45'
+__version__ = '0.9.46'
 
 # -----------------------------------------------------------------------------
 
@@ -134,6 +134,8 @@ from ccxt.async_support.whitebit import whitebit                          # noqa
 from ccxt.async_support.xena import xena                                  # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
+from ccxt.async_support.zipmex import zipmex                              # noqa: F401
+from ccxt.async_support.zonda import zonda                                # noqa: F401
 
 # CCXT Pro exchanges
 
