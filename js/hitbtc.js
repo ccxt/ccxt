@@ -374,60 +374,125 @@ module.exports = class hitbtc extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetSymbol (params);
         //
-        //     [
-        //         {
-        //             "id":"BCNBTC",
-        //             "baseCurrency":"BCN",
-        //             "quoteCurrency":"BTC",
-        //             "quantityIncrement":"100",
-        //             "tickSize":"0.00000000001",
-        //             "takeLiquidityRate":"0.002",
-        //             "provideLiquidityRate":"0.001",
-        //             "feeCurrency":"BTC"
-        //         }
-        //     ]
+        // SPOT
         //
+        //    "ENJUSDT": {
+        //        "type": "spot",
+        //        "base_currency": "ENJ",
+        //        "quote_currency": "USDT",
+        //        "quantity_increment": "1",
+        //        "tick_size": "0.0000001",
+        //        "take_rate": "0.0025",
+        //        "make_rate": "0.001",
+        //        "fee_currency": "USDT",
+        //        "margin_trading": true,
+        //        "max_initial_leverage": "10.00"
+        //    },
+        //
+        // FUTURES
+        //
+        //    "EOSUSDT_PERP": {
+        //        "type": "futures",
+        //        "expiry": null,
+        //        "underlying": "EOS",
+        //        "base_currency": null,
+        //        "quote_currency": "USDT",
+        //        "quantity_increment": "0.1",
+        //        "tick_size": "0.00001",
+        //        "take_rate": "0.0005",
+        //        "make_rate": "0.0002",
+        //        "fee_currency": "USDT",
+        //        "margin_trading": true,
+        //        "max_initial_leverage": "50.00"
+        //    }
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString (market, 'id');
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quoteCurrency');
+        const ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const market = this.safeValue (response, id);
+            const hitbtcType = this.safeString (market, 'type');
+            const expiry = this.safeInteger (market, 'expiry');
+            const contract = (hitbtcType === 'futures');
+            const derivative = contract;
+            const spot = (hitbtcType === 'spot');
+            const margin = spot && (this.safeValue (market, 'margin_trading') === true);
+            const future = (expiry !== undefined);
+            const swap = (contract && !future);
+            const option = false;
+            const baseId = this.safeString2 (market, 'base_currency', 'underlying');
+            const quoteId = this.safeString (market, 'quote_currency');
+            const feeCurrencyId = this.safeString (market, 'fee_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+            let settleId = undefined;
+            let settle = undefined;
             let symbol = base + '/' + quote;
-            // bequant fix
-            if (id.indexOf ('_') >= 0) {
-                symbol = id;
+            let type = 'spot';
+            let contractSize = undefined;
+            let linear = undefined;
+            let inverse = undefined;
+            if (contract) {
+                contractSize = 1;
+                settleId = feeCurrencyId;
+                settle = this.safeCurrencyCode (settleId);
+                linear = ((quote !== undefined) && (quote === settle));
+                inverse = !linear;
+                symbol = symbol + ':' + settle;
+                if (future) {
+                    symbol = symbol + '-' + expiry;
+                    type = 'future';
+                } else {
+                    type = 'swap';
+                }
             }
-            const lotString = this.safeString (market, 'quantityIncrement');
-            const stepString = this.safeString (market, 'tickSize');
+            const lotString = this.safeString (market, 'quantity_increment');
+            const stepString = this.safeString (market, 'tick_size');
             const lot = this.parseNumber (lotString);
             const step = this.parseNumber (stepString);
-            const precision = {
-                'price': step,
-                'amount': lot,
-            };
-            const taker = this.safeNumber (market, 'takeLiquidityRate');
-            const maker = this.safeNumber (market, 'provideLiquidityRate');
-            const feeCurrencyId = this.safeString (market, 'feeCurrency');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            result.push (this.extend (this.fees['trading'], {
-                'info': market,
+            const taker = this.safeNumber (market, 'take_rate');
+            const maker = this.safeNumber (market, 'make_rate');
+            const fees = this.safeValue (this.fees, 'trading');
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'type': 'spot',
-                'spot': true,
-                'active': true,
+                'settleId': settleId,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
+                'swap': swap,
+                'future': future,
+                'option': option,
+                'derivative': derivative,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': taker,
                 'maker': maker,
-                'precision': precision,
-                'feeCurrency': feeCurrencyCode,
+                'contractSize': contractSize,
+                'active': true,
+                'expiry': expiry,
+                'feeCurrency': feeCurrency,
+                'fees': {
+                    'tierBased': this.safeValue (fees, 'tierBased'),
+                    'percentage': this.safeValue (fees, 'percentage'),
+                    'taker': taker,
+                    'maker': maker,
+                },
+                'precision': {
+                    'price': lot,
+                    'amount': step,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': 1,
+                        'max': this.safeNumber (market, 'max_initial_leverage', 1),
+                    },
                     'amount': {
                         'min': lot,
                         'max': undefined,
@@ -441,7 +506,8 @@ module.exports = class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+                'info': market,
+            });
         }
         return result;
     }
@@ -1365,7 +1431,7 @@ module.exports = class hitbtc extends Exchange {
         const versions = this.safeValue (this.options, 'versions', {});
         const apiVersions = this.safeValue (versions, api, {});
         const methodVersions = this.safeValue (apiVersions, method, {});
-        const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
+        const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
         let url = '/api/' + version + '/';
