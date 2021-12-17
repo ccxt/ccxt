@@ -2757,14 +2757,10 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
             'orderId': id,
         };
-        const response = await this.privateGetMyTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
