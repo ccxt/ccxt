@@ -16,7 +16,7 @@ module.exports = class hitbtc extends Exchange {
             'name': 'HitBTC',
             'countries': [ 'HK' ],
             'rateLimit': 1500,
-            'version': '2',
+            'version': '3',
             'pro': true,
             'has': {
                 'cancelOrder': true,
@@ -91,76 +91,155 @@ module.exports = class hitbtc extends Exchange {
                         'symbol/{symbol}', // Get symbol info
                         'ticker', // Ticker list for all symbols
                         'ticker/{symbol}', // Ticker for symbol
+                        'price/rate',
+                        'price/history',
+                        'price/ticker',
+                        'price/ticker/{symbol}',
                         'trades',
                         'trades/{symbol}', // Trades
                         'orderbook',
-                        'orderbook/{symbol}', // Orderbook
+                        'orderbook/{symbol}',
                         'candles',
-                        'candles/{symbol}', // Candles
+                        'candles/{symbol}',
+                        // Futures
+                        'futures/info',
+                        'futures/info/{symbol}',
+                        'futures/history/funding',
+                        'futures/candles/index_price',
+                        'futures/candles/index_price/{symbol}',
+                        'futures/candles/mark_price',
+                        'futures/candles/mark_price/{symbol}',
+                        'futures/candles/premium_index',
+                        'futures/candles/premium_index/{symbol}',
+                        'futures/candles/open_interest',
+                        'futures/candles/open_interest/{symbol}',
                     ],
                 },
                 'private': {
                     'get': [
-                        'trading/balance', // Get trading balance
-                        'order', // List your current open orders
-                        'order/{clientOrderId}', // Get a single order by clientOrderId
-                        'trading/fee/all', // Get trading fee rate
-                        'trading/fee/{symbol}', // Get trading fee rate
+                        'spot/balance ',
+                        'trading/balance', // v2
+                        'spot/balance/{currency}',
+                        'spot/order',
+                        'spot/order/{clientOrderId}',
+                        'spot/fee',
+                        'spot/fee/{symbol}',
+                        'spot/history/order',
+                        'spot/history/trade',
+                        'history/order', // v2
+                        'history/trades', // v2
+                        'history/order/{orderId}/trades', // v2
+                        // margin
                         'margin/account',
-                        'margin/account/{symbol}',
-                        'margin/position',
-                        'margin/position/{symbol}',
+                        'margin/account/isolated/{symbol}',
+                        'margin/account/{symbol}', // v2
                         'margin/order',
                         'margin/order/{clientOrderId}',
-                        'history/order', // Get historical orders
-                        'history/trades', // Get historical trades
-                        'history/order/{orderId}/trades', // Get historical trades by specified order
-                        'account/balance', // Get main acccount balance
-                        'account/crypto/address/{currency}', // Get current address
-                        'account/crypto/addresses/{currency}', // Get last 10 deposit addresses for currency
-                        'account/crypto/used-addresses/{currency}', // Get last 10 unique addresses used for withdraw by currency
-                        'account/crypto/estimate-withdraw',
-                        'account/crypto/is-mine/{address}',
-                        'account/transactions', // Get account transactions
-                        'account/transactions/{id}', // Get account transaction by id
-                        'sub-acc',
-                        'sub-acc/acl',
-                        'sub-acc/balance/{subAccountUserID}',
-                        'sub-acc/deposit-address/{subAccountUserId}/{currency}',
+                        'margin/config',
+                        'margin/history/order',
+                        'margin/history/trade',
+                        'margin/position', // v2
+                        'margin/position/{symbol}', // v2
+                        // futures
+                        'futures/balance',
+                        'futures/balance/{currency}',
+                        'futures/account',
+                        'futures/account/isolated/{symbol}',
+                        'futures/order',
+                        'futures/order/{clientOrderId}',
+                        'futures/config',
+                        'futures/fee',
+                        'futures/fee/{symbol}',
+                        'futures/history/order',
+                        'futures/history/trade',
+                        // wallet
+                        'wallet/balance',
+                        'account/balance', // v2: Get main acccount balance
+                        'wallet/balance/{currency}',
+                        'wallet/crypto/address',
+                        'account/crypto/address/{currency}', // v2: Get current address
+                        'account/crypto/addresses/{currency}', // v2: Get last 10 deposit addresses for currency
+                        'wallet/crypto/address/recent-deposit',
+                        'wallet/crypto/address/recent-withdraw',
+                        'wallet/crypto/address/check-mine',
+                        'account/crypto/is-mine/{address}', // v2
+                        'account/crypto/used-addresses/{currency}', // v2: Get last 10 unique addresses used for withdraw by currency
+                        'wallet/transactions',
+                        'wallet/transactions/{tx_id}',
+                        'wallet/crypto/fee/estimate',
+                        'account/crypto/estimate-withdraw', // v2
+                        'wallet/airdrops',
+                        'wallet/amount-locks',
+                        'account/transactions', // v2: Get account transactions
+                        'account/transactions/{id}', // v2: Get account transaction by id
+                        // sub-account
+                        'sub-account/acl',
+                        'sub-account/balance/{subAccID}',
+                        'sub-account/crypto/address/{subAccID}/{currency}',
+                        'sub-acc', // v2
+                        'sub-acc/acl', // v2
+                        'sub-acc/balance/{subAccountUserID}', // v2
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}', // v2
                     ],
                     'post': [
-                        'order', // Create new order
+                        'order',
+                        // margin
                         'margin/order',
-                        'account/crypto/address/{currency}', // Create new crypto deposit address
-                        'account/crypto/withdraw', // Withdraw crypto
-                        'account/crypto/transfer-convert',
-                        'account/transfer', // Transfer amount to trading account or to main account
-                        'account/transfer/internal',
-                        'sub-acc/freeze',
-                        'sub-acc/activate',
-                        'sub-acc/transfer',
+                        // futures
+                        'futures/order',
+                        // wallet
+                        'wallet/crypto/address',
+                        'account/crypto/address/{currency}', // v2
+                        'wallet/crypto/withdraw',
+                        'account/crypto/withdraw', // v2
+                        'wallet/convert',
+                        'wallet/transfer',
+                        'account/transfer', // v2
+                        'account/crypto/transfer-convert', // v2
+                        'account/transfer/internal', // v2
+                        'wallet/internal/withdraw',
+                        'wallet/crypto/check-offchain-available',
+                        'wallet/airdrops/{id}/claim',
+                        'sub-account/freeze',
+                        'sub-acc/freeze', // v2
+                        'sub-account/activate',
+                        'sub-acc/activate', // v2
+                        'sub-account/transfer',
+                        'sub-acc/transfer', // v2
+                        'sub-account/acl',
                     ],
                     'put': [
-                        'order/{clientOrderId}', // Create new order
-                        'margin/account/{symbol}',
-                        'margin/order/{clientOrderId}',
-                        'account/crypto/withdraw/{id}', // Commit crypto withdrawal
-                        'sub-acc/acl/{subAccountUserId}',
+                        'order/{clientOrderId}', // v2
+                        'margin/account/isolated/{symbol}',
+                        'margin/account/{symbol}', // v2
+                        'margin/order/{clientOrderId}', // v2
+                        'futures/account/isolated/{symbol}',
+                        'wallet/crypto/withdraw/{id}',
+                        'account/crypto/withdraw/{id}', // v2
+                        'sub-acc/acl/{subAccountUserId}', // v2
                     ],
                     'delete': [
-                        'order', // Cancel all open orders
-                        'order/{clientOrderId}', // Cancel order
-                        'margin/account',
-                        'margin/account/{symbol}',
+                        'order',
+                        'order/{clientOrderId}',
+                        // margin
+                        'margin/account', // v2
+                        'margin/account/{symbol}', // v2
                         'margin/position',
-                        'margin/position/{symbol}',
+                        'margin/position/isolated/{symbol}',
+                        'margin/position/{symbol}', // v2
                         'margin/order',
                         'margin/order/{clientOrderId}',
-                        'account/crypto/withdraw/{id}', // Rollback crypto withdrawal
+                        // futures
+                        'futures/position',
+                        'futures/position/isolated/{symbol}',
+                        'futures/order',
+                        'futures/order/{clientOrderId}',
+                        // wallet
+                        'wallet/crypto/withdraw/{id}',
+                        'account/crypto/withdraw/{id}', // v2
                     ],
-                    // outdated?
                     'patch': [
-                        'order/{clientOrderId}', // Cancel Replace order
+                        'order/{clientOrderId}', // v2
                     ],
                 },
             },
@@ -200,6 +279,57 @@ module.exports = class hitbtc extends Exchange {
                     'spot': 'trading',
                     'trade': 'trading',
                     'trading': 'trading',
+                },
+                'versions': {
+                    'private': {
+                        'get': {
+                            'trading/balance': 'v2',
+                            'history/order': 'v2',
+                            'history/trades': 'v2',
+                            'history/order/{orderId}/trades': 'v2',
+                            'margin/account/{symbol}': 'v2',
+                            'margin/position': 'v2',
+                            'margin/position/{symbol}': 'v2',
+                            'account/balance': 'v2',
+                            'account/crypto/address/{currency}': 'v2',
+                            'account/crypto/addresses/{currency}': 'v2',
+                            'account/crypto/is-mine/{address}': 'v2',
+                            'account/crypto/used-addresses/{currency}': 'v2',
+                            'account/crypto/estimate-withdraw': 'v2',
+                            'account/transactions': 'v2',
+                            'account/transactions/{id}': 'v2',
+                            'sub-acc': 'v2',
+                            'sub-acc/acl': 'v2',
+                            'sub-acc/balance/{subAccountUserID}': 'v2',
+                            'sub-acc/deposit-address/{subAccountUserId}/{currency}': 'v2',
+                        },
+                        'post': {
+                            'account/crypto/address/{currency}': 'v2',
+                            'account/crypto/withdraw': 'v2',
+                            'account/transfer': 'v2',
+                            'account/crypto/transfer-convert': 'v2',
+                            'account/transfer/internal': 'v2',
+                            'sub-acc/freeze': 'v2',
+                            'sub-acc/activate': 'v2',
+                            'sub-acc/transfer': 'v2',
+                        },
+                        'put': {
+                            'order/{clientOrderId}': 'v2',
+                            'margin/account/{symbol}': 'v2',
+                            'margin/order/{clientOrderId}': 'v2',
+                            'account/crypto/withdraw/{id}': 'v2',
+                            'sub-acc/acl/{subAccountUserId}': 'v2',
+                        },
+                        'delete': {
+                            'margin/account': 'v2',
+                            'margin/account/{symbol}': 'v2',
+                            'margin/position/{symbol}': 'v2',
+                            'account/crypto/withdraw/{id}': 'v2',
+                        },
+                        'patch': {
+                            'order/{clientOrderId}': 'v2',
+                        },
+                    },
                 },
             },
             'commonCurrencies': {
