@@ -472,12 +472,12 @@ module.exports = class deribit extends Exchange {
                 let strike = undefined;
                 let optionType = undefined;
                 if (option || future) {
-                    expiry = this.yyyymmdd (this.iso8601 (this.safeInteger (market, 'expiration_timestamp')), '');
+                    expiry = this.yyyymmdd (this.safeInteger (market, 'expiration_timestamp'), '');
                     symbol = symbol + '-' + expiry;
                     if (option) {
                         strike = this.safeNumber (market, 'strike');
                         optionType = this.safeString (market, 'option_type');
-                        symbol = symbol + ':' + strike + ':' + optionType;
+                        symbol = symbol + ':' + strike.toString () + ':' + optionType;
                     }
                 }
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
