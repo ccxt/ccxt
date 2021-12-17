@@ -4968,9 +4968,9 @@ module.exports = class binance extends Exchange {
         const request = {
             'asset': currency['id'],
             'limit': limit,
-            'startTime': since,
         };
         if (since) {
+            request['startTime'] = since;
             const sinceString = since.toString ();
             const limitString = Precise.stringSub (limit.toString (), '1');
             const timeSinceStart = Precise.stringMul (limitString, '86400000');
