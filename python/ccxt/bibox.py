@@ -31,13 +31,15 @@ class bibox(Exchange):
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
-            'hostname': 'bibox365.com',
+            'hostname': 'bibox.com',
             'has': {
                 'cancelOrder': True,
                 'CORS': None,
                 'createMarketOrder': None,  # or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -53,7 +55,6 @@ class bibox(Exchange):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
-                'publicAPI': None,
                 'withdraw': True,
             },
             'timeframes': {
@@ -351,17 +352,14 @@ class bibox(Exchange):
         feeRate = None  # todo: deduce from market if market is defined
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         if feeCostString is not None:
             fee = {
-                'cost': self.parse_number(Precise.string_neg(feeCostString)),
+                'cost': Precise.string_neg(feeCostString),
                 'currency': feeCurrency,
                 'rate': feeRate,
             }
         id = self.safe_string(trade, 'id')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': None,  # Bibox does not have it(documented) yet
@@ -371,11 +369,11 @@ class bibox(Exchange):
             'type': 'limit',
             'takerOrMaker': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -980,7 +978,7 @@ class bibox(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def parse_order_status(self, status):
         statuses = {

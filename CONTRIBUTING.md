@@ -194,7 +194,7 @@ The contents of the repository are structured as follows:
 /dist/                     # a folder for the generated browser bundle of CCXT
 /ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
-/doc/                      # Sphinx-generated rst-docs for http://ccxt.readthedocs.io/
+/doc/                      # Sphinx-generated rst-docs for http://docs.ccxt.com/
 /js/                       # the JS version of the library
 /php/                      # PHP ccxt module/package folder
 /python/                   # Python ccxt module/package folder for PyPI
@@ -365,7 +365,7 @@ To get the exchange-specific market-id by a unified CCXT symbol, use the followi
 async fetchTicker (symbol, params = {}) {
    const market = this.market (symbol); // the entire market structure
    const request = {
-      'pair': market['id'], // good, they may me equal, but often differ, it's ok
+      'pair': market['id'], // good, they may be equal, but often differ, it's ok
    };
    const response = await this.publicGetEndpoint (this.extend (request, params));
    // parse in a unified way...
@@ -376,7 +376,7 @@ async fetchTicker (symbol, params = {}) {
 async fetchTicker (symbol, params = {}) {
    const marketId = this.marketId (symbol); // just the id
    const request = {
-      'symbol': marketId, // good, they may me equal, but often differ, it's ok
+      'symbol': marketId, // good, they may be equal, but often differ, it's ok
    };
    const response = await this.publicGetEndpoint (this.extend (request, params));
    // parse in a unified way...
@@ -641,13 +641,75 @@ That `.length;` line ending does the trick. The only case when the array `.lengt
 
 #### Adding Numbers And Concatenating Strings
 
-In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up numbers or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
+In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up numbers or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is.
 
-The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**. The same logic applies to operator `+=` vs operator `.=` – `this.sum()` has to be used in those cases as well.
+There's this aspect of representation of numbers throughout the lib.
+The existing approach documented int the Manual says that the library will accept and will return "floats everywhere" for amounts, prices, costs, etc.
+Using floats is the easiest way of unboarding new users.
+This has known quirks, it's impossible to represent exact numbers with floats (https://0.30000000000000004.com/)
+
+To address that, we are switching to string-based representations everywhere.
+So, we are now in the process of moving towards strings in a non-breaking way.
+
+The new approach is:
+
+We are adding an internal layer for string-based representations and string-based maths in the response parsers.
+That internal layer is built on top of the base `Precise` class, that is used to do all string-based maths.
+That class requires strings to operate on them and it will return strings as well.
+All existing old parsers must be rewritten to use `Precise` string-based representations, on first-encounter.
+All new code of all new parsers must be initially written with `Precise` string-based representations.
+
+What exactly that means:
+
+Compare this pseudocode showing how it was done **before** (an example of some arbitrary parsing code for the purpose of explaining it):
+
+```JavaScript
+const amount = this.safeFloat (order, 'amount');
+const remaining = this.safeFloat (order, 'remaining');
+if (remaining > 0) {
+    status = 'open';
+} else {
+    status = 'closed';
+}
+// ...
+return {
+    // ...
+    'amount': amount,
+    'remaining': remaining,
+    'status': status,
+    // ...
+};
+```
+
+This is how we should do it **from now on**:
+
+```JavaScript
+const amount = this.safeNumber (order, 'amount'); // internal string-layer
+const remaining = this.safeString (order, 'remaining'); // internal string-layer
+if (Precise.stringGt (remaining, '0')) { // internal string-layer
+    status = 'open';
+} else {
+    status = 'closed';
+}
+// ...
+return {
+    // ...
+    'amount': amount, // external layer, goes to the user
+    'remaining': this.parseNumber (remaining), // external layer, goes to the user
+    'status': status,
+    // ...
+};
+```
+
+In all new code of all parsers we should use string-based numbers throughout the body of the parser. Also we should add `parseNumber` as the last step of handling numeric values upon returning the result to the caller. The above two snippets are just examples, showing the usage of `Precise` with `safeString` and `parseNumber`. The actual parsers of orders also involve safeOrder-methods: https://github.com/ccxt/ccxt/pulls?q=safeOrder2.
+
+The user will ultimately have an option to choose which implementation of parseNumber he wants: the one returning floats or the one returning strings. This way everyone will remain happy and the library will work both ways in a non-breaking fashion.
+
+The rule of thumb is: **`+` is for string concatenation only (!)** and **ALL arithmetic operations must use `Precise`**.
 
 #### Formatting Decimal Numbers To Precision
 
-The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
+This section covers the request-assembly part. The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
 
 #### Escaped Control Characters
 
@@ -804,11 +866,11 @@ Upon instantiation the base exchange class takes each URL from its list of endpo
 
 ### Continuous Integration
 
-Builds are automated with [Travis CI](https://travis-ci.org/ccxt/ccxt). The build steps for Travis CI are described in the [`.travis.yml`](https://github.com/ccxt/ccxt/blob/master/.travis.yml) file.
+Builds are automated with [Travis CI](https://app.travis-ci.com/github/ccxt/ccxt). The build steps for Travis CI are described in the [`.travis.yml`](https://github.com/ccxt/ccxt/blob/master/.travis.yml) file.
 
 Windows builds are automated with [Appveyor](https://ci.appveyor.com/project/ccxt/ccxt). The build steps for Appveyor are in the [`appveyor.yml`](https://github.com/ccxt/ccxt/blob/master/appveyor.yml) file.
 
-Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt/ccxt/builds](https://travis-ci.org/ccxt/ccxt/builds).
+Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [app.travis-ci.com/github/ccxt/ccxt/builds](https://app.travis-ci.com/github/ccxt/ccxt/builds).
 
 ### How To Build & Run Tests On Your Local Machine
 
@@ -875,7 +937,7 @@ We also welcome financial contributions in full transparency on our [open collec
 
 Thank you to all the people who have already contributed to ccxt!
 
-<a href="graphs/contributors"><img src="https://opencollective.com/ccxt/contributors.svg?width=890" /></a>
+<a href="https://github.com/ccxt/ccxt/graphs/contributors"><img src="https://opencollective.com/ccxt/contributors.svg?width=890" /></a>
 
 ### Backers
 

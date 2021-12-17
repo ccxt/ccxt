@@ -112,6 +112,7 @@ module.exports = class yobit extends Exchange {
                 'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
                 'DSH': 'DASH',
+                'EGG': 'EggCoin',
                 'EKO': 'EkoCoin',
                 'ENTER': 'ENTRC',
                 'EPC': 'ExperienceCoin',
@@ -166,11 +167,13 @@ module.exports = class yobit extends Exchange {
                 'RUR': 'RUB',
                 'SBTC': 'Super Bitcoin',
                 'SOLO': 'SoloCoin',
+                'SUPER': 'SuperCoin',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
                 'UST': 'Uservice',
                 'VOL': 'VolumeCoin',
                 'XIN': 'XINCoin',
+                'XMT': 'SummitCoin',
                 'XRA': 'Ratecoin',
             },
             'options': {
@@ -614,13 +617,13 @@ module.exports = class yobit extends Exchange {
         const timestamp = this.safeTimestamp (order, 'timestamp_created');
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const remaining = this.safeNumber (order, 'amount');
-        const amount = this.safeNumber (order, 'start_amount');
-        const price = this.safeNumber (order, 'rate');
+        const remaining = this.safeString (order, 'amount');
+        const amount = this.safeString (order, 'start_amount');
+        const price = this.safeString (order, 'rate');
         const fee = undefined;
         const type = 'limit';
         const side = this.safeString (order, 'type');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -642,7 +645,7 @@ module.exports = class yobit extends Exchange {
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

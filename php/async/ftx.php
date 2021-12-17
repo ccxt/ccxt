@@ -18,7 +18,7 @@ class ftx extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'ftx',
             'name' => 'FTX',
-            'countries' => array( 'HK' ),
+            'countries' => array( 'BS' ), // Bahamas
             'rateLimit' => 100,
             'certified' => true,
             'pro' => true,
@@ -38,11 +38,16 @@ class ftx extends Exchange {
                 ),
             ),
             'has' => array(
+                'margin' => true,
+                'swap' => true,
+                'future' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => true,
+                'fetchBorrowRates' => true,
                 'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -130,6 +135,8 @@ class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
+                        // pnl
+                        'pnl/historical_changes',
                     ),
                     'post' => array(
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -294,7 +301,6 @@ class ftx extends Exchange {
                 'exact' => array(
                     'Please slow down' => '\\ccxt\\RateLimitExceeded', // array("error":"Please slow down","success":false)
                     'Size too small for provide' => '\\ccxt\\InvalidOrder', // array("error":"Size too small for provide","success":false)
-                    'Not logged in' => '\\ccxt\\AuthenticationError', // array("error":"Not logged in","success":false)
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)
@@ -313,6 +319,9 @@ class ftx extends Exchange {
                     'Not approved to trade this product' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not approved to trade this product")
                 ),
                 'broad' => array(
+                    // array("error":"Not logged in","success":false)
+                    // array("error":"Not logged in => Invalid API key","success":false)
+                    'Not logged in' => '\\ccxt\\AuthenticationError',
                     'Account does not have enough margin for order' => '\\ccxt\\InsufficientFunds',
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
@@ -366,11 +375,11 @@ class ftx extends Exchange {
         //
         //     {
         //         "success":true,
-        //         "$result" => array(
-        //             array("$id":"BTC","$name":"Bitcoin"),
-        //             array("$id":"ETH","$name":"Ethereum"),
-        //             array("$id":"ETHMOON","$name":"10X Long Ethereum Token","underlying":"ETH"),
-        //             array("$id":"EOSBULL","$name":"3X Long EOS Token","underlying":"EOS"),
+        //         "result" => array(
+        //             array("id":"BTC","name":"Bitcoin"),
+        //             array("id":"ETH","name":"Ethereum"),
+        //             array("id":"ETHMOON","name":"10X Long Ethereum Token","underlying":"ETH"),
+        //             array("id":"EOSBULL","name":"3X Long EOS Token","underlying":"EOS"),
         //         ),
         //     }
         //
@@ -403,7 +412,7 @@ class ftx extends Exchange {
         //
         //     {
         //         'success' => true,
-        //         "$result" => array(
+        //         "result" => array(
         //             array(
         //                 "ask":170.37,
         //                 "baseCurrency":null,
@@ -415,11 +424,11 @@ class ftx extends Exchange {
         //                 "last":170.37,
         //                 "name":"ETH-PERP",
         //                 "price":170.37,
-        //                 "$priceIncrement":0.01,
+        //                 "priceIncrement":0.01,
         //                 "quoteCurrency":null,
         //                 "quoteVolume24h":7742164.59889,
-        //                 "$sizeIncrement":0.001,
-        //                 "$type":"future",
+        //                 "sizeIncrement":0.001,
+        //                 "type":"future",
         //                 "underlying":"ETH",
         //                 "volumeUsd24h":7742164.59889
         //             ),
@@ -434,15 +443,39 @@ class ftx extends Exchange {
         //                 "last":172.72,
         //                 "name":"ETH/USD",
         //                 "price":170.44,
-        //                 "$priceIncrement":0.01,
+        //                 "priceIncrement":0.01,
         //                 "quoteCurrency":"USD",
         //                 "quoteVolume24h":382802.0252,
-        //                 "$sizeIncrement":0.001,
-        //                 "$type":"spot",
+        //                 "sizeIncrement":0.001,
+        //                 "type":"spot",
         //                 "underlying":null,
         //                 "volumeUsd24h":382802.0252
         //             ),
         //         ),
+        //     }
+        //
+        //     {
+        //         name => "BTC-PERP",
+        //         enabled =>  true,
+        //         postOnly =>  false,
+        //         $priceIncrement => "1.0",
+        //         $sizeIncrement => "0.0001",
+        //         minProvideSize => "0.001",
+        //         last => "60397.0",
+        //         bid => "60387.0",
+        //         ask => "60388.0",
+        //         price => "60388.0",
+        //         $type => "future",
+        //         baseCurrency =>  null,
+        //         quoteCurrency =>  null,
+        //         underlying => "BTC",
+        //         restricted =>  false,
+        //         highLeverageFeeExempt =>  true,
+        //         change1h => "-0.0036463231533270636",
+        //         change24h => "-0.01844838515677064",
+        //         changeBod => "-0.010130151132675475",
+        //         quoteVolume24h => "2892083192.6099",
+        //         volumeUsd24h => "2892083192.6099"
         //     }
         //
         $result = array();
@@ -509,14 +542,14 @@ class ftx extends Exchange {
         //         "change24h":-0.031603346901854366,
         //         "changeBod":-0.03297013492914808,
         //         "enabled":true,
-        //         "$last":171.44,
+        //         "last":171.44,
         //         "name":"ETH-PERP",
         //         "price":171.29,
         //         "priceIncrement":0.01,
         //         "quoteCurrency":null, // $quote currency for spot markets
         //         "quoteVolume24h":8570651.12113,
         //         "sizeIncrement":0.001,
-        //         "$type":"future",
+        //         "type":"future",
         //         "underlying":"ETH", // null for spot markets
         //         "volumeUsd24h":8570651.12113,
         //     }
@@ -580,7 +613,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success":true,
-        //         "$result":{
+        //         "result":{
         //             "ask":171.29,
         //             "baseCurrency":null, // base currency for spot markets
         //             "bid":171.24,
@@ -651,7 +684,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success":true,
-        //         "$result":{
+        //         "result":{
         //             "asks":[
         //                 [171.95,279.865],
         //                 [171.98,102.42],
@@ -739,7 +772,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result":array(
+        //         "result":array(
         //             array(
         //                 "close":177.23,
         //                 "high":177.45,
@@ -777,10 +810,10 @@ class ftx extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "$id":1715826,
+        //         "id":1715826,
         //         "liquidation":false,
-        //         "$price":171.62,
-        //         "$side":"buy",
+        //         "price":171.62,
+        //         "side":"buy",
         //         "size":2.095,
         //         "time":"2019-10-18T12:59:54.288166+00:00"
         //     }
@@ -788,18 +821,18 @@ class ftx extends Exchange {
         // fetchMyTrades (private)
         //
         //     {
-        //         "$fee" => 20.1374935,
+        //         "fee" => 20.1374935,
         //         "feeRate" => 0.0005,
         //         "feeCurrency" => "USD",
         //         "future" => "EOS-0329",
-        //         "$id" => 11215,
+        //         "id" => 11215,
         //         "liquidity" => "taker",
-        //         "$market" => "EOS-0329",
+        //         "market" => "EOS-0329",
         //         "baseCurrency" => null,
         //         "quoteCurrency" => null,
-        //         "$orderId" => 8436981,
-        //         "$price" => 4.201,
-        //         "$side" => "buy",
+        //         "orderId" => 8436981,
+        //         "price" => 4.201,
+        //         "side" => "buy",
         //         "size" => 9587,
         //         "time" => "2019-03-27T19:15:10.204619+00:00",
         //         "type" => "order"
@@ -807,17 +840,17 @@ class ftx extends Exchange {
         //
         //     {
         //         "baseCurrency" => "BTC",
-        //         "$fee" => 0,
+        //         "fee" => 0,
         //         "feeCurrency" => "USD",
         //         "feeRate" => 0,
         //         "future" => null,
-        //         "$id" => 664079556,
+        //         "id" => 664079556,
         //         "liquidity" => "taker",
-        //         "$market" => null,
-        //         "$orderId" => null,
-        //         "$price" => 34830.61359,
+        //         "market" => null,
+        //         "orderId" => null,
+        //         "price" => 34830.61359,
         //         "quoteCurrency" => "USD",
-        //         "$side" => "sell",
+        //         "side" => "sell",
         //         "size" => 0.0005996,
         //         "time" => "2021-01-15T16:05:29.246135+00:00",
         //         "tradeId" => null,
@@ -826,17 +859,17 @@ class ftx extends Exchange {
         //
         //     with -ve $fee
         //     {
-        //         "$id" => 1171258927,
-        //         "$fee" => -0.0000713875,
-        //         "$side" => "sell",
+        //         "id" => 1171258927,
+        //         "fee" => -0.0000713875,
+        //         "side" => "sell",
         //         "size" => 1,
         //         "time" => "2021-03-11T13:34:35.523627+00:00",
         //         "type" => "order",
-        //         "$price" => 14.2775,
+        //         "price" => 14.2775,
         //         "future" => null,
-        //         "$market" => "SOL/USD",
+        //         "market" => "SOL/USD",
         //         "feeRate" => -0.000005,
-        //         "$orderId" => 33182929044,
+        //         "orderId" => 33182929044,
         //         "tradeId" => 582936801,
         //         "liquidity" => "maker",
         //         "feeCurrency" => "USD",
@@ -846,17 +879,17 @@ class ftx extends Exchange {
         //
         //     // from OTC order
         //     {
-        //         "$id" => 1172129651,
-        //         "$fee" => 0,
-        //         "$side" => "sell",
+        //         "id" => 1172129651,
+        //         "fee" => 0,
+        //         "side" => "sell",
         //         "size" => 1.47568846,
         //         "time" => "2021-03-11T15:04:46.893383+00:00",
         //         "type" => "otc",
-        //         "$price" => 14.60932598,
+        //         "price" => 14.60932598,
         //         "future" => null,
-        //         "$market" => null,
+        //         "market" => null,
         //         "feeRate" => 0,
-        //         "$orderId" => null,
+        //         "orderId" => null,
         //         "tradeId" => null,
         //         "liquidity" => "taker",
         //         "feeCurrency" => "USD",
@@ -936,7 +969,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success":true,
-        //         "$result":array(
+        //         "result":array(
         //             array(
         //                 "id":1715826,
         //                 "liquidation":false,
@@ -966,7 +999,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => array(
+        //         "result" => array(
         //             "backstopProvider" => true,
         //             "collateral" => 3568181.02691129,
         //             "freeCollateral" => 1786071.456884368,
@@ -1008,7 +1041,7 @@ class ftx extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history($symbol = null, $limit = null, $since = null, $params = array ()) {
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         //
         // Gets a history of funding $rates with their timestamps
         //  (param) $symbol => Future currency pair (e.g. "BTC-PERP")
@@ -1039,7 +1072,7 @@ class ftx extends Exchange {
         //
         //     {
         //        "success" => true,
-        //        "$result" => array(
+        //        "result" => array(
         //          {
         //            "future" => "BTC-PERP",
         //            "rate" => 0.0025,
@@ -1063,7 +1096,8 @@ class ftx extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             );
         }
-        return $this->sort_by($rates, 'timestamp');
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {
@@ -1072,7 +1106,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => array(
+        //         "result" => array(
         //             array(
         //                 "coin" => "USDTBEAR",
         //                 "free" => 2320.2,
@@ -1114,17 +1148,17 @@ class ftx extends Exchange {
         //         "createdAt" => "2019-03-05T09:56:55.728933+00:00",
         //         "filledSize" => 0,
         //         "future" => "XRP-PERP",
-        //         "$id" => 9596912,
-        //         "$market" => "XRP-PERP",
-        //         "$price" => 0.306525,
+        //         "id" => 9596912,
+        //         "market" => "XRP-PERP",
+        //         "price" => 0.306525,
         //         "remainingSize" => 31431,
-        //         "$side" => "sell",
+        //         "side" => "sell",
         //         "size" => 31431,
-        //         "$status" => "open",
-        //         "$type" => "limit",
+        //         "status" => "open",
+        //         "type" => "limit",
         //         "reduceOnly" => false,
         //         "ioc" => false,
-        //         "$postOnly" => false,
+        //         "postOnly" => false,
         //         "clientId" => null,
         //     }
         //
@@ -1136,17 +1170,17 @@ class ftx extends Exchange {
         //         "createdAt" => "2020-02-12T00 => 53 => 49.009726+00 => 00",
         //         "filledSize" => 0.0007,
         //         "future" => None,
-        //         "$id" => 3109208514,
+        //         "id" => 3109208514,
         //         "ioc" => True,
-        //         "$market" => "BNBBULL/USD",
-        //         "$postOnly" => False,
-        //         "$price" => None,
+        //         "market" => "BNBBULL/USD",
+        //         "postOnly" => False,
+        //         "price" => None,
         //         "reduceOnly" => False,
         //         "remainingSize" => 0.0,
-        //         "$side" => "buy",
+        //         "side" => "buy",
         //         "size" => 0.0007,
-        //         "$status" => "closed",
-        //         "$type" => "$market"
+        //         "status" => "closed",
+        //         "type" => "market"
         //     }
         //
         // createOrder (conditional, "stop", "trailingStop", or "takeProfit")
@@ -1154,14 +1188,14 @@ class ftx extends Exchange {
         //     {
         //         "createdAt" => "2019-03-05T09:56:55.728933+00:00",
         //         "future" => "XRP-PERP",
-        //         "$id" => 9596912,
-        //         "$market" => "XRP-PERP",
+        //         "id" => 9596912,
+        //         "market" => "XRP-PERP",
         //         "triggerPrice" => 0.306525,
         //         "orderId" => null,
-        //         "$side" => "sell",
+        //         "side" => "sell",
         //         "size" => 31431,
-        //         "$status" => "open",
-        //         "$type" => "stop",
+        //         "status" => "open",
+        //         "type" => "stop",
         //         "orderPrice" => null,
         //         "error" => null,
         //         "triggeredAt" => null,
@@ -1173,19 +1207,19 @@ class ftx extends Exchange {
         //     {
         //         "createdAt" => "2019-03-05T09:56:55.728933+00:00",
         //         "future" => "XRP-PERP",
-        //         "$id" => 9596912,
-        //         "$market" => "XRP-PERP",
+        //         "id" => 9596912,
+        //         "market" => "XRP-PERP",
         //         "triggerPrice" => 0.306225,
         //         "orderId" => null,
-        //         "$side" => "sell",
+        //         "side" => "sell",
         //         "size" => 31431,
-        //         "$status" => "open",
-        //         "$type" => "stop",
+        //         "status" => "open",
+        //         "type" => "stop",
         //         "orderPrice" => null,
         //         "error" => null,
         //         "triggeredAt" => null,
         //         "reduceOnly" => false,
-        //         "orderType" => "$market",
+        //         "orderType" => "market",
         //         "filledSize" => 0,
         //         "avgFillPrice" => null,
         //         "retryUntilFilled" => false
@@ -1199,18 +1233,18 @@ class ftx extends Exchange {
         //         "createdAt":"2020-09-01T13:45:57.119695+00:00",
         //         "filledSize":0.0,
         //         "future":null,
-        //         "$id":8553541288,
+        //         "id":8553541288,
         //         "ioc":false,
         //         "liquidation":false,
-        //         "$market":"XRP/USDT",
-        //         "$postOnly":false,
-        //         "$price":0.5,
+        //         "market":"XRP/USDT",
+        //         "postOnly":false,
+        //         "price":0.5,
         //         "reduceOnly":false,
         //         "remainingSize":0.0,
-        //         "$side":"sell",
+        //         "side":"sell",
         //         "size":46.0,
-        //         "$status":"closed",
-        //         "$type":"limit"
+        //         "status":"closed",
+        //         "type":"limit"
         //     }
         //
         $id = $this->safe_string($order, 'id');
@@ -1270,7 +1304,7 @@ class ftx extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1280,7 +1314,7 @@ class ftx extends Exchange {
             'market' => $market['id'],
             'side' => $side, // "buy" or "sell"
             // 'price' => 0.306525, // send null for $market orders
-            'type' => $type, // "limit", "$market", "stop", "trailingStop", or "takeProfit"
+            'type' => $type, // "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size' => floatval($this->amount_to_precision($symbol, $amount)),
             // 'reduceOnly' => false, // optional, default is false
             // 'ioc' => false, // optional, default is false, limit or $market orders only
@@ -1327,19 +1361,19 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => array(
+        //         "result" => array(
         //             {
         //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
         //                 "filledSize" => 0,
         //                 "future" => "XRP-PERP",
         //                 "id" => 9596912,
-        //                 "$market" => "XRP-PERP",
-        //                 "$price" => 0.306525,
+        //                 "market" => "XRP-PERP",
+        //                 "price" => 0.306525,
         //                 "remainingSize" => 31431,
-        //                 "$side" => "sell",
+        //                 "side" => "sell",
         //                 "size" => 31431,
         //                 "status" => "open",
-        //                 "$type" => "limit",
+        //                 "type" => "limit",
         //                 "reduceOnly" => false,
         //                 "ioc" => false,
         //                 "postOnly" => false,
@@ -1352,18 +1386,18 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => array(
+        //         "result" => array(
         //             {
         //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
         //                 "future" => "XRP-PERP",
         //                 "id" => 9596912,
-        //                 "$market" => "XRP-PERP",
+        //                 "market" => "XRP-PERP",
         //                 "triggerPrice" => 0.306525,
         //                 "orderId" => null,
-        //                 "$side" => "sell",
+        //                 "side" => "sell",
         //                 "size" => 31431,
         //                 "status" => "open",
-        //                 "$type" => "stop",
+        //                 "type" => "stop",
         //                 "orderPrice" => null,
         //                 "error" => null,
         //                 "triggeredAt" => null,
@@ -1426,18 +1460,18 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => {
+        //         "result" => {
         //             "createdAt" => "2019-03-05T11:56:55.728933+00:00",
         //             "filledSize" => 0,
         //             "future" => "XRP-PERP",
-        //             "$id" => 9596932,
-        //             "$market" => "XRP-PERP",
-        //             "$price" => 0.326525,
+        //             "id" => 9596932,
+        //             "market" => "XRP-PERP",
+        //             "price" => 0.326525,
         //             "remainingSize" => 31431,
-        //             "$side" => "sell",
+        //             "side" => "sell",
         //             "size" => 31431,
         //             "status" => "open",
-        //             "$type" => "limit",
+        //             "type" => "limit",
         //             "reduceOnly" => false,
         //             "ioc" => false,
         //             "postOnly" => false,
@@ -1449,22 +1483,22 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => {
+        //         "result" => {
         //             "createdAt" => "2019-03-05T09:56:55.728933+00:00",
         //             "future" => "XRP-PERP",
-        //             "$id" => 9596912,
-        //             "$market" => "XRP-PERP",
-        //             "$triggerPrice" => 0.306225,
+        //             "id" => 9596912,
+        //             "market" => "XRP-PERP",
+        //             "triggerPrice" => 0.306225,
         //             "orderId" => null,
-        //             "$side" => "sell",
+        //             "side" => "sell",
         //             "size" => 31431,
         //             "status" => "open",
-        //             "$type" => "stop",
-        //             "$orderPrice" => null,
+        //             "type" => "stop",
+        //             "orderPrice" => null,
         //             "error" => null,
         //             "triggeredAt" => null,
         //             "reduceOnly" => false,
-        //             "orderType" => "$market",
+        //             "orderType" => "market",
         //             "filledSize" => 0,
         //             "avgFillPrice" => null,
         //             "retryUntilFilled" => false
@@ -1499,7 +1533,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => "Order queued for cancelation"
+        //         "result" => "Order queued for cancelation"
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -1522,7 +1556,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => "Orders queued for cancelation"
+        //         "result" => "Orders queued for cancelation"
         //     }
         //
         return $result;
@@ -1544,11 +1578,11 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => {
+        //         "result" => {
         //             "createdAt" => "2019-03-05T09:56:55.728933+00:00",
         //             "filledSize" => 10,
         //             "future" => "XRP-PERP",
-        //             "$id" => 9596912,
+        //             "id" => 9596912,
         //             "market" => "XRP-PERP",
         //             "price" => 0.306525,
         //             "avgFillPrice" => 0.306526,
@@ -1589,20 +1623,20 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => array(
+        //         "result" => array(
         //             {
         //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
         //                 "filledSize" => 10,
         //                 "future" => "XRP-PERP",
         //                 "id" => 9596912,
-        //                 "$market" => "XRP-PERP",
+        //                 "market" => "XRP-PERP",
         //                 "price" => 0.306525,
         //                 "avgFillPrice" => 0.306526,
         //                 "remainingSize" => 31421,
         //                 "side" => "sell",
         //                 "size" => 31431,
         //                 "status" => "open",
-        //                 "$type" => "$limit",
+        //                 "type" => "limit",
         //                 "reduceOnly" => false,
         //                 "ioc" => false,
         //                 "postOnly" => false,
@@ -1642,20 +1676,20 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => array(
+        //         "result" => array(
         //             {
         //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
         //                 "filledSize" => 10,
         //                 "future" => "XRP-PERP",
         //                 "id" => 9596912,
-        //                 "$market" => "XRP-PERP",
+        //                 "market" => "XRP-PERP",
         //                 "price" => 0.306525,
         //                 "avgFillPrice" => 0.306526,
         //                 "remainingSize" => 31421,
         //                 "side" => "sell",
         //                 "size" => 31431,
         //                 "status" => "open",
-        //                 "$type" => "$limit",
+        //                 "type" => "limit",
         //                 "reduceOnly" => false,
         //                 "ioc" => false,
         //                 "postOnly" => false,
@@ -1690,7 +1724,7 @@ class ftx extends Exchange {
         //                 "future" => "EOS-0329",
         //                 "id" => 11215,
         //                 "liquidity" => "taker",
-        //                 "$market" => "EOS-0329",
+        //                 "market" => "EOS-0329",
         //                 "baseCurrency" => null,
         //                 "quoteCurrency" => null,
         //                 "orderId" => 8436981,
@@ -1736,10 +1770,10 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => {
+        //         "result" => {
         //             "coin" => "USDTBEAR",
-        //             "$address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //             "$tag" => "null",
+        //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+        //             "tag" => "null",
         //             "fee" => 0,
         //             "id" => 1,
         //             "size" => "20.2",
@@ -1762,7 +1796,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => array(
+        //         "result" => array(
         //             {
         //                 "cost" => -31.7906,
         //                 "entryPrice" => 138.22,
@@ -1791,15 +1825,15 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($result); $i++) {
             $results[] = $this->parse_position($result[$i]);
         }
-        return $results;
+        return $this->filter_by_array($results, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position) {
+    public function parse_position($position, $market = null) {
         //
         //   {
         //     "future" => "XMR-PERP",
         //     "size" => "0.0",
-        //     "$side" => "buy",
+        //     "side" => "buy",
         //     "netSize" => "0.0",
         //     "longOrderSize" => "0.0",
         //     "shortOrderSize" => "0.0",
@@ -1817,7 +1851,8 @@ class ftx extends Exchange {
         $contractsString = $this->safe_string($position, 'size');
         $rawSide = $this->safe_string($position, 'side');
         $side = ($rawSide === 'buy') ? 'long' : 'short';
-        $symbol = $this->safe_string($position, 'future');
+        $marketId = $this->safe_string($position, 'future');
+        $symbol = $this->safe_symbol($marketId, $market);
         $liquidationPriceString = $this->safe_string($position, 'estimatedLiquidationPrice');
         $initialMarginPercentage = $this->safe_string($position, 'initialMarginRequirement');
         $leverage = intval(Precise::string_div('1', $initialMarginPercentage, 0));
@@ -1856,7 +1891,7 @@ class ftx extends Exchange {
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentageString),
-            'entryPrice' => null,
+            'entryPrice' => $this->parse_number($entryPriceString),
             'notional' => $this->parse_number($notionalString),
             'leverage' => $leverage,
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
@@ -1889,9 +1924,9 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => {
-        //             "$address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //             "$tag" => "null"
+        //         "result" => {
+        //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+        //             "tag" => "null"
         //         }
         //     }
         //
@@ -1913,6 +1948,7 @@ class ftx extends Exchange {
             // what are other $statuses here?
             'confirmed' => 'ok', // deposits
             'complete' => 'ok', // withdrawals
+            'cancelled' => 'canceled', // deposits
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1924,12 +1960,12 @@ class ftx extends Exchange {
         //     airdrop
         //
         //     {
-        //         "$id" => 9147072,
+        //         "id" => 9147072,
         //         "coin" => "SRM_LOCKED",
         //         "size" => 3.12,
         //         "time" => "2021-04-27T23:59:03.565983+00:00",
-        //         "$notes" => "SRM Airdrop for FTT holdings",
-        //         "$status" => "complete"
+        //         "notes" => "SRM Airdrop for FTT holdings",
+        //         "status" => "complete"
         //     }
         //
         //     regular deposits
@@ -1938,35 +1974,35 @@ class ftx extends Exchange {
         //         "coin" => "TUSD",
         //         "confirmations" => 64,
         //         "confirmedTime" => "2019-03-05T09:56:55.728933+00:00",
-        //         "$fee" => 0,
-        //         "$id" => 1,
+        //         "fee" => 0,
+        //         "id" => 1,
         //         "sentTime" => "2019-03-05T09:56:55.735929+00:00",
         //         "size" => "99.0",
-        //         "$status" => "confirmed",
+        //         "status" => "confirmed",
         //         "time" => "2019-03-05T09:56:55.728933+00:00",
-        //         "$txid" => "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
+        //         "txid" => "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
         //         "coin" => "TUSD",
-        //         "$address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //         "$tag" => "null",
-        //         "$fee" => 0,
-        //         "$id" => 1,
+        //         "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+        //         "tag" => "null",
+        //         "fee" => 0,
+        //         "id" => 1,
         //         "size" => "99.0",
-        //         "$status" => "complete",
+        //         "status" => "complete",
         //         "time" => "2019-03-05T09:56:55.728933+00:00",
-        //         "$txid" => "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
+        //         "txid" => "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
         //     }
         //
         //     {
         //         "coin" => 'BTC',
-        //         "$id" => 1969806,
-        //         "$notes" => 'Transfer to Dd6gi7m2Eg4zzBbPAxuwfEaHs6tYvyUX5hbPpsTcNPXo',
+        //         "id" => 1969806,
+        //         "notes" => 'Transfer to Dd6gi7m2Eg4zzBbPAxuwfEaHs6tYvyUX5hbPpsTcNPXo',
         //         "size" => 0.003,
-        //         "$status" => 'complete',
+        //         "status" => 'complete',
         //         "time" => '2021-02-03T20:28:54.918146+00:00'
         //     }
         //
@@ -2021,7 +2057,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => {
+        //         "result" => {
         //             "coin" => "TUSD",
         //             "confirmations" => 64,
         //             "confirmedTime" => "2019-03-05T09:56:55.728933+00:00",
@@ -2049,7 +2085,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "$result" => {
+        //         "result" => {
         //             "coin" => "TUSD",
         //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
         //             "tag" => "null",
@@ -2072,6 +2108,13 @@ class ftx extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->implode_params($path, $params);
+        $signOptions = $this->safe_value($this->options, 'sign', array());
+        $headerPrefix = $this->safe_string($signOptions, $this->hostname, 'FTX');
+        $subaccountField = $headerPrefix . '-SUBACCOUNT';
+        $chosenSubaccount = $this->safe_string_2($params, $subaccountField, 'subaccount');
+        if ($chosenSubaccount !== null) {
+            $params = $this->omit($params, array( $subaccountField, 'subaccount' ));
+        }
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . $request;
@@ -2093,14 +2136,12 @@ class ftx extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $options = $this->safe_value($this->options, 'sign', array());
-            $headerPrefix = $this->safe_string($options, $this->hostname, 'FTX');
-            $keyField = $headerPrefix . '-KEY';
-            $tsField = $headerPrefix . '-TS';
-            $signField = $headerPrefix . '-SIGN';
-            $headers[$keyField] = $this->apiKey;
-            $headers[$tsField] = $timestamp;
-            $headers[$signField] = $signature;
+            $headers[$headerPrefix . '-KEY'] = $this->apiKey;
+            $headers[$headerPrefix . '-TS'] = $timestamp;
+            $headers[$headerPrefix . '-SIGN'] = $signature;
+            if ($chosenSubaccount !== null) {
+                $headers[$subaccountField] = $chosenSubaccount;
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
@@ -2110,8 +2151,8 @@ class ftx extends Exchange {
             return; // fallback to the default $error handler
         }
         //
-        //     array("$error":"Invalid parameter start_time","$success":false)
-        //     array("$error":"Not enough balances","$success":false)
+        //     array("error":"Invalid parameter start_time","success":false)
+        //     array("error":"Not enough balances","success":false)
         //
         $success = $this->safe_value($response, 'success');
         if (!$success) {
@@ -2139,10 +2180,10 @@ class ftx extends Exchange {
         //
         //   {
         //       "future" => "ETH-PERP",
-        //        "$id" => 33830,
+        //        "id" => 33830,
         //        "payment" => 0.0441342,
-        //        "$time" => "2019-05-15T18:00:00+00:00",
-        //        "$rate" => 0.0001
+        //        "time" => "2019-05-15T18:00:00+00:00",
+        //        "rate" => 0.0001
         //   }
         //
         $marketId = $this->safe_string($income, 'future');
@@ -2172,7 +2213,8 @@ class ftx extends Exchange {
             $parsed = $this->parse_income ($entry, $market);
             $result[] = $parsed;
         }
-        return $this->filter_by_since_limit($result, $since, $limit, 'timestamp');
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit, 'timestamp');
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2196,7 +2238,7 @@ class ftx extends Exchange {
         // perp
         //     {
         //       "volume" => "71294.7636",
-        //       "$nextFundingRate" => "0.000033",
+        //       "nextFundingRate" => "0.000033",
         //       "nextFundingTime" => "2021-10-14T20:00:00+00:00",
         //       "openInterest" => "47142.994"
         //     }
@@ -2244,7 +2286,7 @@ class ftx extends Exchange {
         //
         //     {
         //       "success" => true,
-        //       "$result" => {
+        //       "result" => {
         //         "volume" => "71294.7636",
         //         "nextFundingRate" => "0.000033",
         //         "nextFundingTime" => "2021-10-14T20:00:00+00:00",
@@ -2254,5 +2296,39 @@ class ftx extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_funding_rate($result, $market);
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetSpotMarginBorrowRates ();
+        //
+        // {
+        //     "success":true,
+        //     "result":array(
+        //         {
+        //             "coin" => "1INCH",
+        //             "previous" => 0.0000462375,
+        //             "estimate" => 0.0000462375
+        //         }
+        //         ...
+        //     )
+        // }
+        //
+        $timestamp = $this->milliseconds();
+        $result = $this->safe_value($response, 'result');
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $rate = $result[$i];
+            $code = $this->safe_currency_code($this->safe_string($rate, 'coin'));
+            $rates[$code] = array(
+                'currency' => $code,
+                'rate' => $this->safe_number($rate, 'previous'),
+                'period' => 3600000,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $rate,
+            );
+        }
+        return $rates;
     }
 }

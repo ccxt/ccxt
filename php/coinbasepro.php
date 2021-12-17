@@ -44,6 +44,7 @@ class coinbasepro extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
@@ -93,6 +94,7 @@ class coinbasepro extends Exchange {
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
+                        'products/spark-lines', // experimental
                     ),
                 ),
                 'private' => array(
@@ -278,7 +280,7 @@ class coinbasepro extends Exchange {
         //
         //     array(
         //         {
-        //             "$id":"ZEC-BTC",
+        //             "id":"ZEC-BTC",
         //             "base_currency":"ZEC",
         //             "quote_currency":"BTC",
         //             "base_min_size":"0.01000000",
@@ -293,7 +295,7 @@ class coinbasepro extends Exchange {
         //             "limit_only":false,
         //             "cancel_only":false,
         //             "trading_disabled":false,
-        //             "$status":"online",
+        //             "status":"online",
         //             "status_message":""
         //         }
         //     )
@@ -433,19 +435,31 @@ class coinbasepro extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        // publicGetProductsIdTicker
+        // fetchTickers
+        //
+        //      array(
+        //         1639472400, // $timestamp
+        //         4.26, // $low
+        //         4.38, // $high
+        //         4.35, // $open
+        //         4.27 // close
+        //      )
+        //
+        // fetchTicker
+        //
+        //     publicGetProductsIdTicker
         //
         //     {
         //         "trade_id":843439,
         //         "price":"0.997999",
         //         "size":"80.29769",
         //         "time":"2020-01-28T02:13:33.012523Z",
-        //         "$bid":"0.997094",
-        //         "$ask":"0.998",
+        //         "bid":"0.997094",
+        //         "ask":"0.998",
         //         "volume":"1903188.03750000"
         //     }
         //
-        // publicGetProductsIdStats
+        //     publicGetProductsIdStats
         //
         //     {
         //         "open" => "34.19000000",
@@ -454,33 +468,88 @@ class coinbasepro extends Exchange {
         //         "volume" => "2.41000000"
         //     }
         //
-        $timestamp = $this->parse8601($this->safe_value($ticker, 'time'));
-        $bid = $this->safe_number($ticker, 'bid');
-        $ask = $this->safe_number($ticker, 'ask');
-        $last = $this->safe_number($ticker, 'price');
+        $timestamp = null;
+        $bid = null;
+        $ask = null;
+        $last = null;
+        $high = null;
+        $low = null;
+        $open = null;
+        $volume = null;
         $symbol = ($market === null) ? null : $market['symbol'];
-        return array(
+        if (gettype($ticker) === 'array' && count(array_filter(array_keys($ticker), 'is_string')) == 0) {
+            $last = $this->safe_number($ticker, 4);
+            $timestamp = $this->milliseconds();
+        } else {
+            $timestamp = $this->parse8601($this->safe_value($ticker, 'time'));
+            $bid = $this->safe_number($ticker, 'bid');
+            $ask = $this->safe_number($ticker, 'ask');
+            $high = $this->safe_number($ticker, 'high');
+            $low = $this->safe_number($ticker, 'low');
+            $open = $this->safe_number($ticker, 'open');
+            $last = $this->safe_number_2($ticker, 'price', 'last');
+            $volume = $this->safe_number($ticker, 'volume');
+        }
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
+            'high' => $high,
+            'low' => $low,
             'bid' => $bid,
             'bidVolume' => null,
             'ask' => $ask,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ));
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $response = $this->publicGetProductsSparkLines (array_merge($request, $params));
+        //
+        //     {
+        //         YYY-USD => array(
+        //             array(
+        //                 1639472400, // timestamp
+        //                 4.26, // low
+        //                 4.38, // high
+        //                 4.35, // open
+        //                 4.27 // close
+        //             ),
+        //             array(
+        //                 1639468800,
+        //                 4.31,
+        //                 4.45,
+        //                 4.35,
+        //                 4.35
+        //             ),
+        //         )
+        //     }
+        //
+        $result = array();
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        $delimiter = '-';
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $entry = $this->safe_value($response, $marketId, array());
+            $first = $this->safe_value($entry, 0, array());
+            $market = $this->safe_market($marketId, null, $delimiter);
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker($first, $market);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -706,20 +775,20 @@ class coinbasepro extends Exchange {
         // createOrder
         //
         //     {
-        //         "$id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
-        //         "$price" => "0.10000000",
+        //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "price" => "0.10000000",
         //         "size" => "0.01000000",
         //         "product_id" => "BTC-USD",
-        //         "$side" => "buy",
+        //         "side" => "buy",
         //         "stp" => "dc",
-        //         "$type" => "limit",
+        //         "type" => "limit",
         //         "time_in_force" => "GTC",
         //         "post_only" => false,
         //         "created_at" => "2016-12-08T20:02:28.53864Z",
         //         "fill_fees" => "0.0000000000000000",
         //         "filled_size" => "0.00000000",
         //         "executed_value" => "0.0000000000000000",
-        //         "$status" => "pending",
+        //         "status" => "pending",
         //         "settled" => false
         //     }
         //
@@ -777,7 +846,7 @@ class coinbasepro extends Exchange {
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -865,18 +934,20 @@ class coinbasepro extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
         if ($clientOrderId !== null) {
             $request['client_oid'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
         }
         $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
         if ($stopPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-            $params = $this->omit($params, array( 'stopPrice', 'stop_price' ));
         }
         $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
         if ($timeInForce !== null) {
             $request['time_in_force'] = $timeInForce;
-            $params = $this->omit($params, array( 'timeInForce', 'time_in_force' ));
         }
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        if ($postOnly) {
+            $request['post_only'] = true;
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only' ));
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['size'] = $this->amount_to_precision($symbol, $amount);
@@ -899,12 +970,12 @@ class coinbasepro extends Exchange {
         //
         //     {
         //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
-        //         "$price" => "0.10000000",
+        //         "price" => "0.10000000",
         //         "size" => "0.01000000",
         //         "product_id" => "BTC-USD",
-        //         "$side" => "buy",
+        //         "side" => "buy",
         //         "stp" => "dc",
-        //         "$type" => "limit",
+        //         "type" => "limit",
         //         "time_in_force" => "GTC",
         //         "post_only" => false,
         //         "created_at" => "2016-12-08T20:02:28.53864Z",
@@ -1056,9 +1127,9 @@ class coinbasepro extends Exchange {
         $id = $this->safe_string($item, 'id');
         $amountString = $this->safe_string($item, 'amount');
         $direction = null;
-        $afterString = $this->safe_number($item, 'balance');
+        $afterString = $this->safe_string($item, 'balance');
         $beforeString = Precise::string_sub($afterString, $amountString);
-        if (Precise.lt ($amountString, '0')) {
+        if (Precise::string_lt($amountString, '0')) {
             $direction = 'out';
             $amountString = Precise::string_abs($amountString);
         } else {

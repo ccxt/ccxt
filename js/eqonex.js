@@ -519,13 +519,13 @@ module.exports = class eqonex extends Exchange {
             type = this.parseOrderType (this.safeString (trade, 'ordType'));
             priceString = this.safeString (trade, 'lastPx');
             amountString = this.safeString (trade, 'qty');
-            let feeCost = this.safeNumber (trade, 'commission');
-            if (feeCost !== undefined) {
-                feeCost = -feeCost;
+            let feeCostString = this.safeString (trade, 'commission');
+            if (feeCostString !== undefined) {
+                feeCostString = Precise.stringNeg (feeCostString);
                 const feeCurrencyId = this.safeString (trade, 'commCurrency');
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
                 };
             }
@@ -533,10 +533,7 @@ module.exports = class eqonex extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -546,11 +543,11 @@ module.exports = class eqonex extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchBalance (params = {}) {
@@ -1306,31 +1303,32 @@ module.exports = class eqonex extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.toMilliseconds (this.safeString (order, 'timeStamp'));
         const lastTradeTimestamp = undefined;
-        const priceString = this.safeString (order, 'price');
+        let priceString = this.safeString (order, 'price');
         const priceScale = this.safeInteger (order, 'price_scale');
-        const price = this.parseNumber (this.convertFromScale (priceString, priceScale));
-        const amountString = this.safeString (order, 'quantity');
+        priceString = this.convertFromScale (priceString, priceScale);
+        let amountString = this.safeString (order, 'quantity');
         const amountScale = this.safeInteger (order, 'quantity_scale');
-        const amount = this.parseNumber (this.convertFromScale (amountString, amountScale));
-        const filledString = this.safeString (order, 'cumQty');
+        amountString = this.convertFromScale (amountString, amountScale);
+        let filledString = this.safeString (order, 'cumQty');
         const filledScale = this.safeInteger (order, 'cumQty_scale');
-        const filled = this.parseNumber (this.convertFromScale (filledString, filledScale));
-        const remainingString = this.safeString (order, 'leavesQty');
+        filledString = this.convertFromScale (filledString, filledScale);
+        let remainingString = this.safeString (order, 'leavesQty');
         const remainingScale = this.safeInteger (order, 'leavesQty_scale');
-        const remaining = this.parseNumber (this.convertFromScale (remainingString, remainingScale));
+        remainingString = this.convertFromScale (remainingString, remainingScale);
         let fee = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
         const feeCurrencyCode = this.safeCurrencyCode (currencyId);
+        let feeCostString = undefined;
         let feeCost = this.safeString (order, 'feeTotal');
         const feeScale = this.safeInteger (order, 'fee_scale');
         if (feeCost !== undefined) {
             feeCost = Precise.stringNeg (feeCost);
-            feeCost = this.parseNumber (this.convertFromScale (feeCost, feeScale));
+            feeCostString = this.convertFromScale (feeCost, feeScale);
         }
         if (feeCost !== undefined) {
             fee = {
                 'currency': feeCurrencyCode,
-                'cost': feeCost,
+                'cost': feeCostString,
                 'rate': undefined,
             };
         }
@@ -1340,7 +1338,7 @@ module.exports = class eqonex extends Exchange {
         }
         const stopPriceScale = this.safeInteger (order, 'stopPx_scale', 0);
         const stopPrice = this.parseNumber (this.convertFromScale (this.safeString (order, 'stopPx'), stopPriceScale));
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1352,17 +1350,17 @@ module.exports = class eqonex extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amount,
+            'amount': amountString,
             'cost': undefined,
             'average': undefined,
-            'filled': filled,
-            'remaining': remaining,
+            'filled': filledString,
+            'remaining': remainingString,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrderStatus (status) {

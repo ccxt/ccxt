@@ -239,7 +239,10 @@ class bitmart extends Exchange {
                     '50021' => '\\ccxt\\BadRequest', // 400, Invalid %s
                     '50022' => '\\ccxt\\ExchangeNotAvailable', // 400, Service unavailable
                     '50023' => '\\ccxt\\BadSymbol', // 400, This Symbol can't place order by api
+                    '50029' => '\\ccxt\\InvalidOrder', // array("message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":array())
+                    '50030' => '\\ccxt\\InvalidOrder', // array("message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":array())
                     '53000' => '\\ccxt\\AccountSuspended', // 403, Your account is frozen due to security policies. Please contact customer service
+                    '53001' => '\\ccxt\\AccountSuspended', // array("message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":array())
                     '57001' => '\\ccxt\\BadRequest', // 405, Method Not Allowed
                     '58001' => '\\ccxt\\BadRequest', // 415, Unsupported Media Type
                     '59001' => '\\ccxt\\ExchangeError', // 500, User account not found
@@ -285,13 +288,17 @@ class bitmart extends Exchange {
             'commonCurrencies' => array(
                 'COT' => 'Community Coin',
                 'CPC' => 'CPCoin',
+                'DMS' => 'DimSum', // conflict with Dragon Mainland Shards
+                'FOX' => 'Fox Finance',
                 'GDT' => 'Gorilla Diamond',
                 '$HERO' => 'Step Hero',
                 '$PAC' => 'PAC',
+                'MIM' => 'MIM Swarm',
                 'MVP' => 'MVP Coin',
                 'ONE' => 'Menlo One',
                 'PLA' => 'Plair',
                 'TCT' => 'TacoCat Token',
+                'TRU' => 'Truebit', // conflict with TrueFi
             ),
             'options' => array(
                 'networks' => array(
@@ -317,7 +324,7 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"c4e5e5b7-fe9f-4191-89f7-53f6c5bf9030",
-        //         "$data":{
+        //         "data":{
         //             "server_time":1599843709578
         //         }
         //     }
@@ -338,19 +345,19 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => {
+        //         "data" => {
         //             "serivce":array(
         //                 array(
         //                     "title" => "Spot API Stop",
         //                     "service_type" => "spot",
-        //                     "$status" => "2",
+        //                     "status" => "2",
         //                     "start_time" => 1527777538000,
         //                     "end_time" => 1527777538000
         //                 ),
         //                 {
         //                     "title" => "Contract API Stop",
         //                     "service_type" => "contract",
-        //                     "$status" => "2",
+        //                     "status" => "2",
         //                     "start_time" => 1527777538000,
         //                     "end_time" => 1527777538000
         //                 }
@@ -391,10 +398,10 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"a67c9146-086d-4d3f-9897-5636a9bb26e1",
-        //         "$data":{
-        //             "$symbols":array(
+        //         "data":{
+        //             "symbols":array(
         //                 array(
-        //                     "$symbol":"PRQ_BTC",
+        //                     "symbol":"PRQ_BTC",
         //                     "symbol_id":1232,
         //                     "base_currency":"PRQ",
         //                     "quote_currency":"BTC",
@@ -435,7 +442,7 @@ class bitmart extends Exchange {
             $pricePrecision = $this->safe_integer($market, 'price_max_precision');
             $precision = array(
                 'amount' => $this->safe_number($market, 'base_min_size'),
-                'price' => $this->parse_number($this->decimal_to_precision(pow(10, -$pricePrecision), ROUND, 12)),
+                'price' => $this->parse_number($this->decimal_to_precision(pow(10, -$pricePrecision), ROUND, 14)),
             );
             $minBuyCost = $this->safe_number($market, 'min_buy_amount');
             $minSellCost = $this->safe_number($market, 'min_sell_amount');
@@ -483,10 +490,10 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"7fcedfb5-a660-4780-8a7a-b36a9e2159f7",
-        //         "$data":{
-        //             "$contracts":array(
+        //         "data":{
+        //             "contracts":array(
         //                 array(
-        //                     "$contract":array(
+        //                     "contract":array(
         //                         "contract_id":1,
         //                         "index_id":1,
         //                         "name":"BTCUSDT",
@@ -649,7 +656,7 @@ class bitmart extends Exchange {
         // spot
         //
         //     {
-        //         "$symbol":"ETH_BTC",
+        //         "symbol":"ETH_BTC",
         //         "last_price":"0.036037",
         //         "quote_volume_24h":"4380.6660000000",
         //         "base_volume_24h":"159.3582006712",
@@ -690,8 +697,8 @@ class bitmart extends Exchange {
         if ($percentage === null) {
             $percentage = $this->safe_number($ticker, 'price_change_percent_24h');
         }
-        $baseVolume = $this->safe_number_2($ticker, 'base_volume_24h', 'base_coin_volume');
-        $quoteVolume = $this->safe_number_2($ticker, 'quote_volume_24h', 'quote_coin_volume');
+        $baseVolume = $this->safe_number_2($ticker, 'base_coin_volume', 'base_volume_24h');
+        $quoteVolume = $this->safe_number_2($ticker, 'quote_coin_volume', 'quote_volume_24h');
         $quoteVolume = $this->safe_number($ticker, 'volume_24h', $quoteVolume);
         $open = $this->safe_number_2($ticker, 'open_24h', 'open');
         $average = null;
@@ -744,10 +751,10 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"6aa5b923-2f57-46e3-876d-feca190e0b82",
-        //         "$data":{
-        //             "$tickers":array(
+        //         "data":{
+        //             "tickers":array(
         //                 {
-        //                     "$symbol":"ETH_BTC",
+        //                     "symbol":"ETH_BTC",
         //                     "last_price":"0.036037",
         //                     "quote_volume_24h":"4380.6660000000",
         //                     "base_volume_24h":"159.3582006712",
@@ -822,13 +829,13 @@ class bitmart extends Exchange {
         //
         //     {
         //         "message":"OK",
-        //         "$code":1000,
+        //         "code":1000,
         //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "$data":{
-        //             "$currencies":array(
-        //                 array("$currency":"MATIC","$name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true),
-        //                 array("$currency":"KTN","$name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false),
-        //                 array("$currency":"BRT","$name":"Berith","withdraw_enabled":true,"deposit_enabled":true),
+        //         "data":{
+        //             "currencies":array(
+        //                 array("currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true),
+        //                 array("currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false),
+        //                 array("currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true),
         //             )
         //         }
         //     }
@@ -888,7 +895,7 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"8254f8fc-431d-404f-ad9a-e716339f66c7",
-        //         "$data":{
+        //         "data":{
         //             "buys":array(
         //                 array("amount":"4.7091","total":"4.71","price":"0.034047","count":"1"),
         //                 array("amount":"5.7439","total":"10.45","price":"0.034039","count":"1"),
@@ -909,7 +916,7 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"c330dfca-ca5b-4f15-b350-9fef3f049b4f",
-        //         "$data":{
+        //         "data":{
         //             "sells":array(
         //                 array("price":"347.6","vol":"6678"),
         //                 array("price":"347.7","vol":"3452"),
@@ -933,15 +940,15 @@ class bitmart extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
-        // public fetchTrades spot
+        // public fetchTrades spot ( amount = count * price )
         //
         //     {
-        //         "$amount":"0.005703",
-        //         "order_time":1599652045394,
-        //         "$price":"0.034029",
-        //         "count":"0.1676",
-        //         "$type":"sell"
-        //     }
+        //          "amount" => "818.94",
+        //          "order_time" => "1637601839035",    // ETH/USDT
+        //          "price" => "4221.99",
+        //          "count" => "0.19397",
+        //          "type" => "buy"
+        //      }
         //
         // public fetchTrades contract, private fetchMyTrades contract
         //
@@ -954,7 +961,7 @@ class bitmart extends Exchange {
         //         "make_fee":"-5.8636644",
         //         "take_fee":"9.772774",
         //         "created_at":"2020-09-09T11:49:50.749170536Z",
-        //         "$way":1,
+        //         "way":1,
         //         "fluctuation":"0"
         //     }
         //
@@ -963,9 +970,9 @@ class bitmart extends Exchange {
         //     {
         //         "detail_id":256348632,
         //         "order_id":2147484350,
-        //         "$symbol":"BTC_USDT",
+        //         "symbol":"BTC_USDT",
         //         "create_time":1590462303000,
-        //         "$side":"buy",
+        //         "side":"buy",
         //         "fees":"0.00001350",
         //         "fee_coin_name":"BTC",
         //         "notional":"88.00000000",
@@ -997,31 +1004,28 @@ class bitmart extends Exchange {
         if ($execType !== null) {
             $takerOrMaker = ($execType === 'M') ? 'maker' : 'taker';
         }
-        $price = $this->safe_number_2($trade, 'price', 'deal_price');
-        $price = $this->safe_number($trade, 'price_avg', $price);
-        $amount = $this->safe_number_2($trade, 'amount', 'deal_vol');
-        $amount = $this->safe_number($trade, 'size', $amount);
-        $cost = $this->safe_number_2($trade, 'count', 'notional');
-        if (($cost === null) && ($price !== null) && ($amount !== null)) {
-            $cost = $amount * $price;
-        }
+        $priceString = $this->safe_string_2($trade, 'price', 'deal_price');
+        $priceString = $this->safe_string($trade, 'price_avg', $priceString);
+        $amountString = $this->safe_string_2($trade, 'count', 'deal_vol');
+        $amountString = $this->safe_string($trade, 'size', $amountString);
+        $costString = $this->safe_string_2($trade, 'amount', 'notional');
         $orderId = $this->safe_integer($trade, 'order_id');
         $marketId = $this->safe_string_2($trade, 'contract_id', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $feeCost = $this->safe_number($trade, 'fees');
+        $feeCostString = $this->safe_string($trade, 'fees');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_coin_name');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             if (($feeCurrencyCode === null) && ($market !== null)) {
                 $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
             }
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -1030,12 +1034,12 @@ class bitmart extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1060,8 +1064,8 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"222d74c0-8f6d-49d9-8e1b-98118c50eeba",
-        //         "$data":{
-        //             "$trades":array(
+        //         "data":{
+        //             "trades":array(
         //                 array(
         //                     "amount":"0.005703",
         //                     "order_time":1599652045394,
@@ -1080,8 +1084,8 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"782bc746-b86e-43bf-8d1a-c68b479c9bdd",
-        //         "$data":{
-        //             "$trades":array(
+        //         "data":{
+        //             "trades":array(
         //                 {
         //                     "order_id":109159616160,
         //                     "trade_id":109159616197,
@@ -1223,8 +1227,8 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"80d86378-ab4e-4c70-819e-b42146cf87ad",
-        //         "$data":{
-        //             "$klines":array(
+        //         "data":{
+        //             "klines":array(
         //                 array("last_price":"0.034987","timestamp":1598787420,"volume":"1.0198","open":"0.035007","close":"0.034987","high":"0.035007","low":"0.034986"),
         //                 array("last_price":"0.034986","timestamp":1598787480,"volume":"0.3959","open":"0.034982","close":"0.034986","high":"0.034986","low":"0.034980"),
         //                 array("last_price":"0.034978","timestamp":1598787540,"volume":"0.3259","open":"0.034987","close":"0.034978","high":"0.034987","low":"0.034977"),
@@ -1239,7 +1243,7 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"32965074-5804-4655-b693-e953e36026a0",
-        //         "$data":array(
+        //         "data":array(
         //             array("low":"404.4","high":"404.4","open":"404.4","close":"404.4","last_price":"404.4","avg_price":"404.4","volume":"7670","timestamp":1598758441,"rise_fall_rate":"0","rise_fall_value":"0","base_coin_volume":"76.7","quote_coin_volume":"31017.48"),
         //             array("low":"404.1","high":"404.4","open":"404.4","close":"404.1","last_price":"404.1","avg_price":"404.15881086","volume":"12076","timestamp":1598758501,"rise_fall_rate":"-0.000741839762611276","rise_fall_value":"-0.3","base_coin_volume":"120.76","quote_coin_volume":"48806.2179994536"),
         //             array("low":"404","high":"404.3","open":"404.1","close":"404","last_price":"404","avg_price":"404.08918918","volume":"740","timestamp":1598758561,"rise_fall_rate":"-0.000247463499133878","rise_fall_value":"-0.1","base_coin_volume":"7.4","quote_coin_volume":"2990.259999932"),
@@ -1287,13 +1291,13 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"a06a5c53-8e6f-42d6-8082-2ff4718d221c",
-        //         "$data":{
+        //         "data":{
         //             "current_page":1,
-        //             "$trades":array(
+        //             "trades":array(
         //                 array(
         //                     "detail_id":256348632,
         //                     "order_id":2147484350,
-        //                     "$symbol":"BTC_USDT",
+        //                     "symbol":"BTC_USDT",
         //                     "create_time":1590462303000,
         //                     "side":"buy",
         //                     "fees":"0.00001350",
@@ -1313,8 +1317,8 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => {
-        //             "$trades" => array(
+        //         "data" => {
+        //             "trades" => array(
         //                 {
         //                     "order_id" => 10116361,
         //                     "trade_id" => 10116363,
@@ -1361,13 +1365,13 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"a06a5c53-8e6f-42d6-8082-2ff4718d221c",
-        //         "$data":{
+        //         "data":{
         //             "current_page":1,
-        //             "$trades":array(
+        //             "trades":array(
         //                 array(
         //                     "detail_id":256348632,
         //                     "order_id":2147484350,
-        //                     "$symbol":"BTC_USDT",
+        //                     "symbol":"BTC_USDT",
         //                     "create_time":1590462303000,
         //                     "side":"buy",
         //                     "fees":"0.00001350",
@@ -1387,8 +1391,8 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => {
-        //             "$trades" => array(
+        //         "data" => {
+        //             "trades" => array(
         //                 {
         //                     "order_id" => 10116361,
         //                     "trade_id" => 10116363,
@@ -1431,10 +1435,10 @@ class bitmart extends Exchange {
         //
         //     {
         //         "message":"OK",
-        //         "$code":1000,
+        //         "code":1000,
         //         "trace":"39069916-72f9-44c7-acde-2ad5afd21cad",
-        //         "$data":{
-        //             "$wallet":array(
+        //         "data":{
+        //             "wallet":array(
         //                 array("id":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000"),
         //                 array("id":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000"),
         //                 array("id":"BMX","name":"BitMart Token","available":"0.00000000","frozen":"0.00000000")
@@ -1446,10 +1450,10 @@ class bitmart extends Exchange {
         //
         //     {
         //         "message":"OK",
-        //         "$code":1000,
+        //         "code":1000,
         //         "trace":"5c3b7fc7-93b2-49ef-bb59-7fdc56915b59",
-        //         "$data":{
-        //             "$wallet":array(
+        //         "data":{
+        //             "wallet":array(
         //                 array("currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000"),
         //                 array("currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000")
         //             )
@@ -1459,10 +1463,10 @@ class bitmart extends Exchange {
         // contract
         //
         //     {
-        //         "$code" => 1000,
+        //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => {
+        //         "data" => {
         //             "accounts" => array(
         //                 {
         //                     "account_id" => 10,
@@ -1512,17 +1516,17 @@ class bitmart extends Exchange {
         //
         //     {
         //         "order_id":1736871726781,
-        //         "$symbol":"BTC_USDT",
+        //         "symbol":"BTC_USDT",
         //         "create_time":1591096004000,
-        //         "$side":"sell",
-        //         "$type":"$market",
-        //         "$price":"0.00",
+        //         "side":"sell",
+        //         "type":"market",
+        //         "price":"0.00",
         //         "price_avg":"0.00",
         //         "size":"0.02000",
         //         "notional":"0.00000000",
         //         "filled_notional":"0.00000000",
         //         "filled_size":"0.00000",
-        //         "$status":"8"
+        //         "status":"8"
         //     }
         //
         // contract fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders, fetchOrders
@@ -1532,19 +1536,19 @@ class bitmart extends Exchange {
         //         "contract_id" => 1,
         //         "position_id" => 10539088,
         //         "account_id" => 10,
-        //         "$price" => "16",
+        //         "price" => "16",
         //         "vol" => "1",
         //         "done_avg_price" => "16",
         //         "done_vol" => "1",
         //         "way" => 3,
-        //         "$category" => 1,
+        //         "category" => 1,
         //         "open_type" => 2,
         //         "make_fee" => "0.00025",
         //         "take_fee" => "0.012",
         //         "origin" => "",
         //         "created_at" => "2018-07-23T11:55:56.715305Z",
         //         "finished_at" => "2018-07-23T11:55:56.763941Z",
-        //         "$status" => 4,
+        //         "status" => 4,
         //         "errno" => 0
         //     }
         //
@@ -1600,7 +1604,7 @@ class bitmart extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status_by_type($type, $status) {
@@ -1683,7 +1687,7 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => {
+        //         "data" => {
         //             "order_id" => 2707217580
         //         }
         //     }
@@ -1717,8 +1721,8 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => {
-        //             "$result" => true
+        //         "data" => {
+        //             "result" => true
         //         }
         //     }
         //
@@ -1728,7 +1732,7 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => true
+        //         "data" => true
         //     }
         //
         // contract
@@ -1737,7 +1741,7 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => {
+        //         "data" => {
         //             "succeed" => array(
         //                 2707219612
         //             ),
@@ -1898,22 +1902,22 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"70e7d427-7436-4fb8-8cdd-97e1f5eadbe9",
-        //         "$data":{
+        //         "data":{
         //             "current_page":1,
-        //             "$orders":array(
+        //             "orders":array(
         //                 {
         //                     "order_id":2147601241,
-        //                     "$symbol":"BTC_USDT",
+        //                     "symbol":"BTC_USDT",
         //                     "create_time":1591099963000,
         //                     "side":"sell",
-        //                     "type":"$limit",
+        //                     "type":"limit",
         //                     "price":"9000.00",
         //                     "price_avg":"0.00",
         //                     "size":"1.00000",
         //                     "notional":"9000.00000000",
         //                     "filled_notional":"0.00000000",
         //                     "filled_size":"0.00000",
-        //                     "$status":"4"
+        //                     "status":"4"
         //                 }
         //             )
         //         }
@@ -1925,8 +1929,8 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => {
-        //             "$orders" => array(
+        //         "data" => {
+        //             "orders" => array(
         //                 {
         //                     "order_id" => 10284160,
         //                     "contract_id" => 1,
@@ -1942,7 +1946,7 @@ class bitmart extends Exchange {
         //                     "origin" => "",
         //                     "created_at" => "2018-07-17T07:24:13.410507Z",
         //                     "finished_at" => null,
-        //                     "$status" => 2,
+        //                     "status" => 2,
         //                     "errno" => 0
         //                 }
         //             )
@@ -2002,12 +2006,12 @@ class bitmart extends Exchange {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"a27c2cb5-ead4-471d-8455-1cfeda054ea6",
-        //         "$data" => {
+        //         "data" => {
         //             "order_id":1736871726781,
-        //             "$symbol":"BTC_USDT",
+        //             "symbol":"BTC_USDT",
         //             "create_time":1591096004000,
         //             "side":"sell",
-        //             "type":"$market",
+        //             "type":"market",
         //             "price":"0.00",
         //             "price_avg":"0.00",
         //             "size":"0.02000",
@@ -2024,8 +2028,8 @@ class bitmart extends Exchange {
         //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => {
-        //             "$orders" => array(
+        //         "data" => {
+        //             "orders" => array(
         //                 {
         //                     "order_id" => 10539098,
         //                     "contract_id" => 1,
@@ -2083,12 +2087,12 @@ class bitmart extends Exchange {
         //
         //     {
         //         "message":"OK",
-        //         "$code":1000,
+        //         "code":1000,
         //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        //         "$data":{
-        //             "$currency":"USDT-TRC20",
+        //         "data":{
+        //             "currency":"USDT-TRC20",
         //             "chain":"USDT-TRC20",
-        //             "$address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
+        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
         //             "address_memo":""
         //         }
         //     }
@@ -2134,10 +2138,10 @@ class bitmart extends Exchange {
         $response = $this->privateAccountPostWithdrawApply (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 1000,
+        //         "code" => 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message" => "OK",
-        //         "$data" => {
+        //         "data" => {
         //             "withdraw_id" => "121212"
         //         }
         //     }
@@ -2170,15 +2174,15 @@ class bitmart extends Exchange {
         //
         //     {
         //         "message":"OK",
-        //         "$code":1000,
+        //         "code":1000,
         //         "trace":"142bf92a-fc50-4689-92b6-590886f90b97",
-        //         "$data":{
-        //             "$records":array(
+        //         "data":{
+        //             "records":array(
         //                 array(
         //                     "withdraw_id":"1679952",
         //                     "deposit_id":"",
         //                     "operation_type":"withdraw",
-        //                     "$currency":"BMX",
+        //                     "currency":"BMX",
         //                     "apply_time":1588867374000,
         //                     "arrival_amount":"59.000000000000",
         //                     "fee":"1.000000000000",
@@ -2230,12 +2234,12 @@ class bitmart extends Exchange {
         //         "withdraw_id":"1679952",
         //         "deposit_id":"",
         //         "operation_type":"withdraw",
-        //         "$currency":"BMX",
+        //         "currency":"BMX",
         //         "apply_time":1588867374000,
         //         "arrival_amount":"59.000000000000",
-        //         "$fee":"1.000000000000",
-        //         "$status":0,
-        //         "$address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //         "fee":"1.000000000000",
+        //         "status":0,
+        //         "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
         //         "address_memo":"",
         //         "tx_id":""
         //     }
@@ -2347,14 +2351,14 @@ class bitmart extends Exchange {
         //
         // spot
         //
-        //     array("$message":"Bad Request [to is empty]","$code":50000,"trace":"f9d46e1b-4edb-4d07-a06e-4895fb2fc8fc","data":array())
-        //     array("$message":"Bad Request [from is empty]","$code":50000,"trace":"579986f7-c93a-4559-926b-06ba9fa79d76","data":array())
-        //     array("$message":"Kline size over 500","$code":50004,"trace":"d625caa8-e8ca-4bd2-b77c-958776965819","data":array())
-        //     array("$message":"Balance not enough","$code":50020,"trace":"7c709d6a-3292-462c-98c5-32362540aeef","data":array())
+        //     array("message":"Bad Request [to is empty]","code":50000,"trace":"f9d46e1b-4edb-4d07-a06e-4895fb2fc8fc","data":array())
+        //     array("message":"Bad Request [from is empty]","code":50000,"trace":"579986f7-c93a-4559-926b-06ba9fa79d76","data":array())
+        //     array("message":"Kline size over 500","code":50004,"trace":"d625caa8-e8ca-4bd2-b77c-958776965819","data":array())
+        //     array("message":"Balance not enough","code":50020,"trace":"7c709d6a-3292-462c-98c5-32362540aeef","data":array())
         //
         // contract
         //
-        //     array("errno":"OK","$message":"INVALID_PARAMETER","$code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null)
+        //     array("errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null)
         //
         $message = $this->safe_string($response, 'message');
         $errorCode = $this->safe_string($response, 'code');

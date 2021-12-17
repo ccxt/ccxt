@@ -64,7 +64,7 @@ class bitrue(Exchange):
                 'fetchOrders': False,
                 'fetchPositions': False,
                 'fetchPremiumIndexOHLCV': False,
-                'fetchStatus': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -339,6 +339,17 @@ class bitrue(Exchange):
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
+
+    def fetch_status(self, params={}):
+        response = self.v1PublicGetPing(params)
+        keys = list(response.keys())
+        keysLength = len(keys)
+        formattedStatus = 'maintenance' if keysLength else 'ok'
+        self.status = self.extend(self.status, {
+            'status': formattedStatus,
+            'updated': self.milliseconds(),
+        })
+        return self.status
 
     def fetch_time(self, params={}):
         response = self.v1PublicGetTime(params)
@@ -883,12 +894,8 @@ class bitrue(Exchange):
         timestamp = self.safe_integer_2(trade, 'T', 'time')
         priceString = self.safe_string_2(trade, 'p', 'price')
         amountString = self.safe_string_2(trade, 'q', 'qty')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        costString = Precise.string_mul(priceString, amountString)
-        cost = self.parse_number(costString)
         id = self.safe_string_2(trade, 't', 'a')
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
@@ -905,7 +912,7 @@ class bitrue(Exchange):
         fee = None
         if 'commission' in trade:
             fee = {
-                'cost': self.safe_number(trade, 'commission'),
+                'cost': self.safe_string(trade, 'commission'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         takerOrMaker = None
@@ -913,7 +920,7 @@ class bitrue(Exchange):
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         if 'maker' in trade:
             takerOrMaker = 'maker' if trade['maker'] else 'taker'
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -923,11 +930,11 @@ class bitrue(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

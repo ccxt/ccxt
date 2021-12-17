@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.59.83'
+__version__ = '1.64.14'
 
 # ----------------------------------------------------------------------------
 
@@ -131,6 +131,7 @@ from ccxt.equos import equos                                # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.ftx import ftx                                    # noqa: F401
+from ccxt.ftxus import ftxus                                # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
@@ -147,6 +148,7 @@ from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.latoken import latoken                            # noqa: F401
+from ccxt.latoken1 import latoken1                          # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
 from ccxt.liquid import liquid                              # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
@@ -179,6 +181,8 @@ from ccxt.xena import xena                                  # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
+from ccxt.zipmex import zipmex                              # noqa: F401
+from ccxt.zonda import zonda                                # noqa: F401
 
 exchanges = [
     'aax',
@@ -243,6 +247,7 @@ exchanges = [
     'exmo',
     'flowbtc',
     'ftx',
+    'ftxus',
     'gateio',
     'gemini',
     'hitbtc',
@@ -259,6 +264,7 @@ exchanges = [
     'kucoin',
     'kuna',
     'latoken',
+    'latoken1',
     'lbank',
     'liquid',
     'luno',
@@ -291,6 +297,8 @@ exchanges = [
     'yobit',
     'zaif',
     'zb',
+    'zipmex',
+    'zonda',
 ]
 
 base = [

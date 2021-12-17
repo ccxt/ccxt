@@ -186,45 +186,45 @@ class btcmarkets extends Exchange {
         //    {
         //         "id" => "6500230339",
         //         "assetName" => "XRP",
-        //         "$amount" => "500",
-        //         "$type" => "Deposit",
+        //         "amount" => "500",
+        //         "type" => "Deposit",
         //         "creationTime" => "2020-07-27T07:52:08.640000Z",
-        //         "$status" => "Complete",
+        //         "status" => "Complete",
         //         "description" => "RIPPLE Deposit, XRP 500",
-        //         "$fee" => "0",
-        //         "$lastUpdate" => "2020-07-27T07:52:08.665000Z",
+        //         "fee" => "0",
+        //         "lastUpdate" => "2020-07-27T07:52:08.665000Z",
         //         "paymentDetail" => {
         //             "txId" => "lsjflsjdfljsd",
-        //             "$address" => "kjasfkjsdf?dt=873874545"
+        //             "address" => "kjasfkjsdf?dt=873874545"
         //         }
         //    }
         //
         //    {
         //         "id" => "500985282",
         //         "assetName" => "BTC",
-        //         "$amount" => "0.42570126",
-        //         "$type" => "Withdraw",
+        //         "amount" => "0.42570126",
+        //         "type" => "Withdraw",
         //         "creationTime" => "2017-07-29T12:49:03.931000Z",
-        //         "$status" => "Complete",
+        //         "status" => "Complete",
         //         "description" => "BTC withdraw from [nick-btcmarkets@snowmonkey.co.uk] to Address => 1B9DsnSYQ54VMqFHVJYdGoLMCYzFwrQzsj $amount => 0.42570126 $fee => 0.00000000",
-        //         "$fee" => "0.0005",
-        //         "$lastUpdate" => "2017-07-29T12:52:20.676000Z",
+        //         "fee" => "0.0005",
+        //         "lastUpdate" => "2017-07-29T12:52:20.676000Z",
         //         "paymentDetail" => {
         //             "txId" => "fkjdsfjsfljsdfl",
-        //             "$address" => "a;daddjas;djas"
+        //             "address" => "a;daddjas;djas"
         //         }
         //    }
         //
         //    {
         //         "id" => "505102262",
         //         "assetName" => "XRP",
-        //         "$amount" => "979.836",
-        //         "$type" => "Deposit",
+        //         "amount" => "979.836",
+        //         "type" => "Deposit",
         //         "creationTime" => "2017-07-31T08:50:01.053000Z",
-        //         "$status" => "Complete",
+        //         "status" => "Complete",
         //         "description" => "Ripple Deposit, X 979.8360",
-        //         "$fee" => "0",
-        //         "$lastUpdate" => "2017-07-31T08:50:01.290000Z"
+        //         "fee" => "0",
+        //         "lastUpdate" => "2017-07-31T08:50:01.290000Z"
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($transaction, 'creationTime'));
@@ -462,7 +462,7 @@ class btcmarkets extends Exchange {
         // fetchTicker
         //
         //     {
-        //         "$marketId":"BAT-AUD",
+        //         "marketId":"BAT-AUD",
         //         "bestBid":"0.3751",
         //         "bestAsk":"0.377",
         //         "lastPrice":"0.3769",
@@ -472,7 +472,7 @@ class btcmarkets extends Exchange {
         //         "pricePct24h":"3.26",
         //         "low24h":"0.3611",
         //         "high24h":"0.3799",
-        //         "$timestamp":"2020-08-09T18:28:23.280000Z"
+        //         "timestamp":"2020-08-09T18:28:23.280000Z"
         //     }
         //
         $symbol = null;
@@ -561,24 +561,24 @@ class btcmarkets extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "$id":"6191646611",
-        //         "$price":"539.98",
-        //         "$amount":"0.5",
-        //         "$timestamp":"2020-08-09T15:21:05.016000Z",
-        //         "$side":"Ask"
+        //         "id":"6191646611",
+        //         "price":"539.98",
+        //         "amount":"0.5",
+        //         "timestamp":"2020-08-09T15:21:05.016000Z",
+        //         "side":"Ask"
         //     }
         //
         // private fetchMyTrades
         //
         //     {
-        //         "$id" => "36014819",
-        //         "$marketId" => "XRP-AUD",
-        //         "$timestamp" => "2019-06-25T16:01:02.977000Z",
-        //         "$price" => "0.67",
-        //         "$amount" => "1.50533262",
-        //         "$side" => "Ask",
-        //         "$fee" => "0.00857285",
-        //         "$orderId" => "3648306",
+        //         "id" => "36014819",
+        //         "marketId" => "XRP-AUD",
+        //         "timestamp" => "2019-06-25T16:01:02.977000Z",
+        //         "price" => "0.67",
+        //         "amount" => "1.50533262",
+        //         "side" => "Ask",
+        //         "fee" => "0.00857285",
+        //         "orderId" => "3648306",
         //         "liquidityType" => "Taker",
         //         "clientOrderId" => "48"
         //     }
@@ -618,20 +618,17 @@ class btcmarkets extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderId = $this->safe_string($trade, 'orderId');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
         $takerOrMaker = $this->safe_string_lower($trade, 'liquidityType');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -640,12 +637,12 @@ class btcmarkets extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -732,14 +729,14 @@ class btcmarkets extends Exchange {
         //     {
         //         "orderId" => "7524",
         //         "marketId" => "BTC-AUD",
-        //         "$side" => "Bid",
-        //         "$type" => "Limit",
+        //         "side" => "Bid",
+        //         "type" => "Limit",
         //         "creationTime" => "2019-08-30T11:08:21.956000Z",
-        //         "$price" => "100.12",
-        //         "$amount" => "1.034",
+        //         "price" => "100.12",
+        //         "amount" => "1.034",
         //         "openAmount" => "1.034",
         //         "status" => "Accepted",
-        //         "$clientOrderId" => "1234-5678",
+        //         "clientOrderId" => "1234-5678",
         //         "timeInForce" => "IOC",
         //         "postOnly" => false,
         //         "selfTrade" => "P",
@@ -808,17 +805,17 @@ class btcmarkets extends Exchange {
         //
         //     {
         //         "orderId" => "7524",
-        //         "$marketId" => "BTC-AUD",
-        //         "$side" => "Bid",
-        //         "$type" => "Limit",
+        //         "marketId" => "BTC-AUD",
+        //         "side" => "Bid",
+        //         "type" => "Limit",
         //         "creationTime" => "2019-08-30T11:08:21.956000Z",
-        //         "$price" => "100.12",
-        //         "$amount" => "1.034",
+        //         "price" => "100.12",
+        //         "amount" => "1.034",
         //         "openAmount" => "1.034",
-        //         "$status" => "Accepted",
-        //         "$clientOrderId" => "1234-5678",
-        //         "$timeInForce" => "IOC",
-        //         "$postOnly" => false,
+        //         "status" => "Accepted",
+        //         "clientOrderId" => "1234-5678",
+        //         "timeInForce" => "IOC",
+        //         "postOnly" => false,
         //         "selfTrade" => "P",
         //         "triggerAmount" => "105",
         //         "targetAmount" => "1000"
@@ -847,16 +844,16 @@ class btcmarkets extends Exchange {
             $side = 'sell';
         }
         $type = $this->safe_string_lower($order, 'type');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
-        $remaining = $this->safe_number($order, 'openAmount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
+        $remaining = $this->safe_string($order, 'openAmount');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'triggerPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -878,7 +875,7 @@ class btcmarkets extends Exchange {
             'status' => $status,
             'trades' => null,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

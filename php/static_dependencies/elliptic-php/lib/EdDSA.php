@@ -6,13 +6,13 @@ use Elliptic\EdDSA\Signature;
 use BN\BN;
 
 class EdDSA {
-    
+
     public $curve;
     public $g;
     public $pointClass;
     public $encodingLength;
     public $hash;
-    
+
     function __construct($curve) {
         assert($curve == "ed25519"); //, 'only tested with ed25519 so far');
 
@@ -62,7 +62,7 @@ class EdDSA {
         $s_ = $this->hashInt($Rencoded, $pubkey, $message);
         $s_ = $s_->mul($secret_le);
         $S = $r->add($s_)->umod($this->curve->n);
-        $Sencoded = $S->toArray('le');
+        $Sencoded = $S->toArray('le', 32);
         $Sencoded[31] |= $sign_bit;
         return $this->makeSignature([ "R" => $R, "S" => $S, "Rencoded" => $Rencoded, "Sencoded" => $Sencoded ]);
     }

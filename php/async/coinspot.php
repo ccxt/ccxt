@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
 
 class coinspot extends Exchange {
 
@@ -110,9 +109,9 @@ class coinspot extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "$balances":array(
+        //         "balances":array(
         //             {
-        //                 "LTC":array("$balance":0.1,"audbalance":16.59,"rate":165.95)
+        //                 "LTC":array("balance":0.1,"audbalance":16.59,"rate":165.95)
         //             }
         //         )
         //     }
@@ -198,7 +197,7 @@ class coinspot extends Exchange {
         //     {
         //         "status":"ok",
         //         "orders":array(
-        //             array("amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"$market":"BTC/AUD"),
+        //             array("amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"),
         //         ),
         //     }
         //
@@ -211,26 +210,21 @@ class coinspot extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "$amount":0.00102091,
+        //         "amount":0.00102091,
         //         "rate":21549.09999991,
         //         "total":21.99969168,
         //         "coin":"BTC",
         //         "solddate":1604890646143,
-        //         "$market":"BTC/AUD"
+        //         "market":"BTC/AUD"
         //     }
         //
         $priceString = $this->safe_string($trade, 'rate');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'total');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $costString = $this->safe_number($trade, 'total');
         $timestamp = $this->safe_integer($trade, 'solddate');
         $marketId = $this->safe_string($trade, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '/');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
             'symbol' => $symbol,
@@ -240,11 +234,11 @@ class coinspot extends Exchange {
             'type' => null,
             'side' => null,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

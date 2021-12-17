@@ -28,8 +28,8 @@ with open(package_json, encoding='utf-8') as f:
     package = json.load(f)
 
 project_urls = {
-    'Homepage': 'https://ccxt.trade',
-    'Documentation': 'https://ccxt.readthedocs.io/en/latest/manual.html',
+    'Homepage': 'https://ccxt.com',
+    'Documentation': 'https://docs.ccxt.com/en/latest/manual.html',
     'Discord': 'https://discord.gg/dhzSKYU',
     'Twitter': 'https://twitter.com/ccxt_official',
     'Funding': 'https://opencollective.com/ccxt',
@@ -87,15 +87,16 @@ setup(
 
     extras_require={
         ':python_version>="3.5.2"': [
-            'aiohttp>=3.7.4,<3.8',
+            'aiohttp>=3.8',
             'aiodns>=1.1.1',
-            'yarl==1.6.3',
+            'yarl==1.7.2',
         ],
         'qa': [
             'flake8==3.7.9',
         ],
         'doc': [
             'Sphinx==4.0',
+            'mistune==0.8.4',  # needed for m2r2
             'm2r2==0.2.7',
             'sphinx-rtd-theme==0.5.2',
             'readthedocs-sphinx-search==0.1.0',

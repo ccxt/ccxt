@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -31,28 +38,31 @@ class coinbase(Exchange):
                 'createDepositAddress': True,
                 'createOrder': None,
                 'deposit': None,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': None,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': None,
                 'fetchDeposits': True,
                 'fetchIndexOHLCV': False,
-                'fetchL2OrderBook': None,
+                'fetchL2OrderBook': False,
                 'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': True,
                 'fetchMySells': True,
                 'fetchMyTrades': None,
-                'fetchOHLCV': None,
+                'fetchOHLCV': False,
                 'fetchOpenOrders': None,
                 'fetchOrder': None,
-                'fetchOrderBook': None,
+                'fetchOrderBook': False,
                 'fetchOrders': None,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': None,
                 'fetchTransactions': None,
@@ -143,6 +153,7 @@ class coinbase(Exchange):
                     'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
                     'unverified_email': AuthenticationError,  # 400 User has not verified their email
                     'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
+                    'invalid_authentication_method': AuthenticationError,  # 401 API access is blocked for deleted users.
                     'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
                     'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
                     'expired_token': AuthenticationError,  # 401 Expired Oauth token
@@ -644,20 +655,89 @@ class coinbase(Exchange):
             }
         return result
 
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'currency': 'USD',
+        }
+        response = await self.publicGetExchangeRates(self.extend(request, params))
+        #
+        #     {
+        #         "data":{
+        #             "currency":"USD",
+        #             "rates":{
+        #                 "AED":"3.6731",
+        #                 "AFN":"103.163942",
+        #                 "ALL":"106.973038",
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rates = self.safe_value(data, 'rates', {})
+        quoteId = self.safe_string(data, 'currency')
+        result = {}
+        baseIds = list(rates.keys())
+        delimiter = '-'
+        for i in range(0, len(baseIds)):
+            baseId = baseIds[i]
+            marketId = baseId + delimiter + quoteId
+            market = self.safe_market(marketId, None, delimiter)
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(rates[baseId], market)
+        return self.filter_by_array(result, 'symbol', symbols)
+
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        timestamp = self.seconds()
         market = self.market(symbol)
         request = self.extend({
             'symbol': market['id'],
         }, params)
-        buy = await self.publicGetPricesSymbolBuy(request)
-        sell = await self.publicGetPricesSymbolSell(request)
         spot = await self.publicGetPricesSymbolSpot(request)
-        ask = self.safe_number(buy['data'], 'amount')
-        bid = self.safe_number(sell['data'], 'amount')
-        last = self.safe_number(spot['data'], 'amount')
-        return {
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        buy = await self.publicGetPricesSymbolBuy(request)
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        sell = await self.publicGetPricesSymbolSell(request)
+        #
+        #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
+        #
+        return self.parse_ticker([spot, buy, sell], market)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTicker
+        #
+        #     [
+        #         "48691.23",  # spot
+        #         "48691.23",  # buy
+        #         "48691.23",  # sell
+        #     ]
+        #
+        # fetchTickers
+        #
+        #     "48691.23"
+        #
+        symbol = self.safe_symbol(None, market)
+        ask = None
+        bid = None
+        last = None
+        timestamp = self.milliseconds()
+        if isinstance(ticker, basestring):
+            inverted = Precise.string_div('1', ticker)  # the currency requested, USD or other, is the base currency
+            last = self.parse_number(inverted)
+        else:
+            spot, buy, sell = ticker
+            spotData = self.safe_value(spot, 'data', {})
+            buyData = self.safe_value(buy, 'data', {})
+            sellData = self.safe_value(sell, 'data', {})
+            last = self.safe_number(spotData, 'amount')
+            bid = self.safe_number(buyData, 'amount')
+            ask = self.safe_number(sellData, 'amount')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -677,12 +757,8 @@ class coinbase(Exchange):
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,
-            'info': {
-                'buy': buy,
-                'sell': sell,
-                'spot': spot,
-            },
-        }
+            'info': ticker,
+        })
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

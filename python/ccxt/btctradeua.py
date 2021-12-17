@@ -311,10 +311,12 @@ class btctradeua(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.milliseconds()
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        symbol = self.safe_symbol(None, market)
+        side = self.safe_string(order, 'type')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amnt_trade')
+        remaining = self.safe_string(order, 'amnt_trade')
+        return self.safe_order2({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'timestamp': timestamp,  # until they fix their timestamp
@@ -325,18 +327,18 @@ class btctradeua(Exchange):
             'type': None,
             'timeInForce': None,
             'postOnly': None,
-            'side': self.safe_string(order, 'type'),
-            'price': self.safe_number(order, 'price'),
+            'side': side,
+            'price': price,
             'stopPrice': None,
-            'amount': self.safe_number(order, 'amnt_trade'),
-            'filled': 0,
-            'remaining': self.safe_number(order, 'amnt_trade'),
+            'amount': amount,
+            'filled': None,
+            'remaining': remaining,
             'trades': None,
             'info': order,
             'cost': None,
             'average': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

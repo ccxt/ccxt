@@ -36,7 +36,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.59.83'
+const version = '1.64.14'
 
 Exchange.ccxtVersion = version
 
@@ -105,6 +105,7 @@ const exchanges = {
     'exmo':                    require ('./js/exmo.js'),
     'flowbtc':                 require ('./js/flowbtc.js'),
     'ftx':                     require ('./js/ftx.js'),
+    'ftxus':                   require ('./js/ftxus.js'),
     'gateio':                  require ('./js/gateio.js'),
     'gemini':                  require ('./js/gemini.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
@@ -121,6 +122,7 @@ const exchanges = {
     'kucoin':                  require ('./js/kucoin.js'),
     'kuna':                    require ('./js/kuna.js'),
     'latoken':                 require ('./js/latoken.js'),
+    'latoken1':                require ('./js/latoken1.js'),
     'lbank':                   require ('./js/lbank.js'),
     'liquid':                  require ('./js/liquid.js'),
     'luno':                    require ('./js/luno.js'),
@@ -152,7 +154,9 @@ const exchanges = {
     'xena':                    require ('./js/xena.js'),
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),    
+    'zb':                      require ('./js/zb.js'),
+    'zipmex':                  require ('./js/zipmex.js'),
+    'zonda':                   require ('./js/zonda.js'),    
 }
 
 //-----------------------------------------------------------------------------

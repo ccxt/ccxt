@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -648,9 +647,6 @@ module.exports = class delta extends Exchange {
         timestamp = this.safeIntegerProduct (trade, 'timestamp', 0.001, timestamp);
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const product = this.safeValue (trade, 'product', {});
         const marketId = this.safeString (product, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -669,18 +665,18 @@ module.exports = class delta extends Exchange {
         if (type !== undefined) {
             type = type.replace ('_order', '');
         }
-        const feeCost = this.safeNumber (trade, 'commission');
+        const feeCostString = this.safeString (trade, 'commission');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const settlingAsset = this.safeValue (product, 'settling_asset', {});
             const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -688,13 +684,13 @@ module.exports = class delta extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -919,13 +915,13 @@ module.exports = class delta extends Exchange {
         const side = this.safeString (order, 'side');
         let type = this.safeString (order, 'order_type');
         type = type.replace ('_order', '');
-        const price = this.safeNumber (order, 'limit_price');
-        const amount = this.safeNumber (order, 'size');
-        const remaining = this.safeNumber (order, 'unfilled_size');
-        const average = this.safeNumber (order, 'average_fill_price');
+        const price = this.safeString (order, 'limit_price');
+        const amount = this.safeString (order, 'size');
+        const remaining = this.safeString (order, 'unfilled_size');
+        const average = this.safeString (order, 'average_fill_price');
         let fee = undefined;
-        const feeCost = this.safeNumber (order, 'paid_commission');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (order, 'paid_commission');
+        if (feeCostString !== undefined) {
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
                 const settlingAsset = this.safeValue (market['info'], 'settling_asset', {});
@@ -933,11 +929,11 @@ module.exports = class delta extends Exchange {
                 feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -956,7 +952,7 @@ module.exports = class delta extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

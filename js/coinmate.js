@@ -3,8 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -172,6 +171,7 @@ module.exports = class coinmate extends Exchange {
                     'Incorrect order ID': InvalidOrder,
                     'Minimum Order Size ': InvalidOrder,
                     'TOO MANY REQUESTS': RateLimitExceeded,
+                    'Access denied.': AuthenticationError, // {"error":true,"errorMessage":"Access denied.","data":null}
                 },
             },
         });
@@ -459,25 +459,22 @@ module.exports = class coinmate extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const side = this.safeStringLower2 (trade, 'type', 'tradeType');
         const type = this.safeStringLower (trade, 'orderType');
         const orderId = this.safeString (trade, 'orderId');
         const id = this.safeString (trade, 'transactionId');
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'createdTimestamp');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['quote'],
             };
         }
         let takerOrMaker = this.safeString (trade, 'feeType');
         takerOrMaker = (takerOrMaker === 'MAKER') ? 'maker' : 'taker';
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -487,11 +484,11 @@ module.exports = class coinmate extends Exchange {
             'side': side,
             'order': orderId,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -609,20 +606,17 @@ module.exports = class coinmate extends Exchange {
         const id = this.safeString (order, 'id');
         const timestamp = this.safeInteger (order, 'timestamp');
         const side = this.safeStringLower (order, 'type');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'originalAmount');
-        let remaining = this.safeNumber (order, 'remainingAmount');
-        if (remaining === undefined) {
-            remaining = this.safeNumber (order, 'amount');
-        }
+        const priceString = this.safeString (order, 'price');
+        const amountString = this.safeString (order, 'originalAmount');
+        const remainingString = this.safeString2 (order, 'remainingAmount', 'amount');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
-        const average = this.safeNumber (order, 'avgPrice');
+        const averageString = this.safeString (order, 'avgPrice');
         const marketId = this.safeString (order, 'currencyPair');
         const symbol = this.safeSymbol (marketId, market, '_');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
@@ -633,18 +627,18 @@ module.exports = class coinmate extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amount,
+            'amount': amountString,
             'cost': undefined,
-            'average': average,
+            'average': averageString,
             'filled': undefined,
-            'remaining': remaining,
+            'remaining': remainingString,
             'status': status,
             'trades': undefined,
             'info': order,
             'fee': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -23,7 +23,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.precise import Precise
 
 
 class cex(Exchange):
@@ -55,6 +54,8 @@ class cex(Exchange):
             },
             'timeframes': {
                 '1m': '1m',
+                '1h': '1h',
+                '1d': '1d',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -420,12 +421,9 @@ class cex(Exchange):
         else:
             if self.options['fetchOHLCVWarning']:
                 raise ExchangeError(self.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, self might produce an empty or None reply. Set exchange.options['fetchOHLCVWarning'] = False or add({'options': {'fetchOHLCVWarning': False}}) to constructor params to suppress self warning message.")
-        ymd = self.ymd(since)
-        ymd = ymd.split('-')
-        ymd = ''.join(ymd)
         request = {
             'pair': market['id'],
-            'yyyymmdd': ymd,
+            'yyyymmdd': self.yyyymmdd(since, ''),
         }
         try:
             response = await self.publicGetOhlcvHdYyyymmddPair(self.extend(request, params))
@@ -503,19 +501,27 @@ class cex(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "type": "sell",
+        #          "date": "1638401878",
+        #          "amount": "0.401000",
+        #          "price": "249",
+        #          "tid": "11922"
+        #      }
+        #
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -525,11 +531,11 @@ class cex(Exchange):
             'side': side,
             'order': None,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

@@ -1,6 +1,6 @@
 {
   "name": "@2525venturesbv/ccxt",
-  "version": "1.59.84",
+  "version": "1.64.14",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -27,8 +27,12 @@
     "test-js-base": "mocha js/test/base/test.base.js --reporter ololog/reporter",
     "test-python-base": "python3 python/ccxt/test/test_decimal_to_precision.py && python3 python/ccxt/test/test_crypto.py",
     "test-php-base": "php -f php/test/decimal_to_precision.php && php -f php/test/test_crypto.php",
+    "cli.js": "node ./examples/js/cli.js",
+    "cli.py": "python3 ./examples/py/cli.py",
+    "cli.php": "php ./examples/php/cli.php",
     "export-exchanges": "node build/export-exchanges",
     "export-docs": "python3 build/export-docs.py",
+    "capabilities": "node ./examples/js/exchange-capabilities.js",
     "git-ignore-generated-files": "node build/git-ignore-generated-files",
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",
     "update-badges": "node build/update-badges",
@@ -56,8 +60,6 @@
     "as-table": "1.0.37",
     "asciichart": "1.5.25",
     "browserify": "14.5.0",
-    "chai": "4.1.2",
-    "chai-as-promised": "7.1.1",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "14.1.0",
     "eslint-plugin-import": "2.20.1",
@@ -73,7 +75,7 @@
   "bugs": {
     "url": "https://github.com/ccxt/ccxt/issues"
   },
-  "homepage": "https://ccxt.trade",
+  "homepage": "https://ccxt.com",
   "keywords": [
     "algorithmic",
     "algotrading",
@@ -575,7 +577,14 @@
     "mexc.com",
     "MEXC Global",
     "bitrue.com",
-    "Bitrue"
+    "Bitrue",
+    "ftx.us",
+    "FTXUS",
+    "FTX US",
+    "zipmex.com",
+    "Zipmex",
+    "zondaglobal.com",
+    "Zonda"
   ],
   "collective": {
     "type": "opencollective",

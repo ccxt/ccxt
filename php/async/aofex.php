@@ -28,7 +28,6 @@ class aofex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => null,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -329,7 +328,7 @@ class aofex extends Exchange {
         //     {
         //         "errno" => 0,
         //         "errmsg" => "success",
-        //         "$result" => array(
+        //         "result" => array(
         //             array( "available" => "0", "frozen" => "0", "currency" => "BTC" )
         //         )
         //     }
@@ -352,6 +351,27 @@ class aofex extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     {
+        //         "category":"1",
+        //         "delivery":"",
+        //         "exercise":"",
+        //         "instType":"SPOT",
+        //         "level":"Lv1",
+        //         "maker":"-0.0008",
+        //         "taker":"-0.001",
+        //         "ts":"1639043138472"
+        //     }
+        //
+        return array(
+            'info' => $fee,
+            'symbol' => $this->safe_symbol(null, $market),
+            'maker' => $this->safe_number($fee, 'fromFee'),
+            'taker' => $this->safe_number($fee, 'toFee'),
+        );
+    }
+
     public function fetch_trading_fee($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -363,18 +383,13 @@ class aofex extends Exchange {
         //     {
         //         "errno":0,
         //         "errmsg":"success",
-        //         "$result" => {
+        //         "result" => {
         //             "toFee":"0.002","fromFee":"0.002"
         //         }
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return array(
-            'info' => $response,
-            'symbol' => $symbol,
-            'maker' => $this->safe_number($result, 'fromFee'),
-            'taker' => $this->safe_number($result, 'toFee'),
-        );
+        return $this->parse_trading_fee($result, $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -528,8 +543,8 @@ class aofex extends Exchange {
         //
         //     {
         //         $id => 1584948803298490,
-        //         $amount => "2.737",
-        //         $price => "0.021209",
+        //         amount => "2.737",
+        //         price => "0.021209",
         //         direction => "sell",
         //         ts => 1584948803
         //     }
@@ -537,12 +552,12 @@ class aofex extends Exchange {
         // fetchOrder trades
         //
         //     {
-        //         "$id":null,
-        //         "$ctime":"2020-03-23 20:07:17",
-        //         "$price":"123.9",
+        //         "id":null,
+        //         "ctime":"2020-03-23 20:07:17",
+        //         "price":"123.9",
         //         "number":"0.010688626311541565",
         //         "total_price":"1.324320799999999903",
-        //         "$fee":"0.000021377252623083"
+        //         "fee":"0.000021377252623083"
         //     }
         //
         $id = $this->safe_string($trade, 'id');
@@ -555,15 +570,10 @@ class aofex extends Exchange {
         $side = $this->safe_string($trade, 'direction');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'amount', 'number');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->safe_number($trade, 'total_price');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
-        $feeCost = $this->safe_number($trade, 'fee');
+        $costString = $this->safe_string($trade, 'total_price');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyCode = null;
             if ($market !== null) {
                 if ($side === 'buy') {
@@ -573,11 +583,11 @@ class aofex extends Exchange {
                 }
             }
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -587,11 +597,11 @@ class aofex extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -656,14 +666,14 @@ class aofex extends Exchange {
         //         "order_sn" => "BL74426415849672087836G48N1",
         //         "symbol" => "ETH-USDT",
         //         "ctime" => "2020-03-23 20:40:08",
-        //         "$type" => 2,
-        //         "$side" => "buy",
-        //         "$price" => "90", // null for $market orders
-        //         "$number" => "0.1",
+        //         "type" => 2,
+        //         "side" => "buy",
+        //         "price" => "90", // null for $market orders
+        //         "number" => "0.1",
         //         "total_price" => "9.0", // 0 for $market orders
         //         "deal_number" => null,
         //         "deal_price" => null,
-        //         "$status" => 1,
+        //         "status" => 1,
         //     }
         //
         // fetchOrder
@@ -752,7 +762,7 @@ class aofex extends Exchange {
             'remaining' => null,
             'trades' => $rawTrades,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_closed_order($id, $symbol = null, $params = array ()) {
@@ -765,10 +775,10 @@ class aofex extends Exchange {
         //     {
         //         "errno" => 0,
         //         "errmsg" => "success",
-        //         "$result" => {
-        //             "$trades" => array(
+        //         "result" => {
+        //             "trades" => array(
         //                 array(
-        //                     "$id":null,
+        //                     "id":null,
         //                     "ctime":"2020-03-23 20:07:17",
         //                     "price":"123.9",
         //                     "number":"0.010688626311541565",
@@ -778,7 +788,7 @@ class aofex extends Exchange {
         //             ),
         //             "entrust":{
         //                 "order_sn":"BM7442641584965237751ZMAKJ5",
-        //                 "$symbol":"ETH-USDT",
+        //                 "symbol":"ETH-USDT",
         //                 "ctime":"2020-03-23 20:07:17",
         //                 "type":1,
         //                 "side":"buy",
@@ -823,10 +833,10 @@ class aofex extends Exchange {
         //     {
         //         "errno" => 0,
         //         "errmsg" => "success",
-        //         "$result" => array(
+        //         "result" => array(
         //             {
         //                 "order_sn" => "BL74426415849672087836G48N1",
-        //                 "$symbol" => "ETH-USDT",
+        //                 "symbol" => "ETH-USDT",
         //                 "ctime" => "2020-03-23 20:40:08",
         //                 "type" => 2,
         //                 "side" => "buy",
@@ -902,9 +912,9 @@ class aofex extends Exchange {
         //
         //     {
         //         "errno" => 0,
-        //         "errmsg" => "$success",
-        //         "$result" => {
-        //             "$success" => array( "avl12121", "bl3123123" ),
+        //         "errmsg" => "success",
+        //         "result" => {
+        //             "success" => array( "avl12121", "bl3123123" ),
         //             "failed" => array( "sd24564", "sdf6564564" )
         //         }
         //     }

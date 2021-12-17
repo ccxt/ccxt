@@ -556,7 +556,7 @@ declare module "@2525venturesbv/ccxt" {
   export class binanceusdm extends binance {}
   export class bit2c extends Exchange {}
   export class bitbank extends Exchange {}
-  export class bitbay extends Exchange {}
+  export class bitbay extends zonda {}
   export class bitbns extends Exchange {}
   export class bitcoincom extends hitbtc {}
   export class bitfinex extends Exchange {}
@@ -584,7 +584,7 @@ declare module "@2525venturesbv/ccxt" {
   export class bw extends Exchange {}
   export class bybit extends Exchange {}
   export class bytetrade extends Exchange {}
-  export class cdax extends huobipro {}
+  export class cdax extends Exchange {}
   export class cex extends Exchange {}
   export class coinbase extends Exchange {}
   export class coinbaseprime extends coinbasepro {}
@@ -606,13 +606,14 @@ declare module "@2525venturesbv/ccxt" {
   export class exmo extends Exchange {}
   export class flowbtc extends Exchange {}
   export class ftx extends Exchange {}
+  export class ftxus extends ftx {}
   export class gateio extends Exchange {}
   export class gemini extends Exchange {}
   export class hitbtc extends Exchange {}
   export class hitbtc3 extends Exchange {}
   export class hollaex extends Exchange {}
   export class huobi extends Exchange {}
-  export class huobijp extends huobipro {}
+  export class huobijp extends Exchange {}
   export class huobipro extends huobi {}
   export class idex extends Exchange {}
   export class independentreserve extends Exchange {}
@@ -622,6 +623,7 @@ declare module "@2525venturesbv/ccxt" {
   export class kucoin extends Exchange {}
   export class kuna extends Exchange {}
   export class latoken extends Exchange {}
+  export class latoken1 extends Exchange {}
   export class lbank extends Exchange {}
   export class liquid extends Exchange {}
   export class luno extends Exchange {}
@@ -654,6 +656,8 @@ declare module "@2525venturesbv/ccxt" {
   export class yobit extends Exchange {}
   export class zaif extends Exchange {}
   export class zb extends Exchange {}
+  export class zipmex extends ndax {}
+  export class zonda extends Exchange {}
 
   /* tslint:enable */
 
@@ -720,6 +724,7 @@ declare module "@2525venturesbv/ccxt" {
     | "exmo"
     | "flowbtc"
     | "ftx"
+    | "ftxus"
     | "gateio"
     | "gemini"
     | "hitbtc"
@@ -736,6 +741,7 @@ declare module "@2525venturesbv/ccxt" {
     | "kucoin"
     | "kuna"
     | "latoken"
+    | "latoken1"
     | "lbank"
     | "liquid"
     | "luno"
@@ -767,5 +773,7 @@ declare module "@2525venturesbv/ccxt" {
     | "xena"
     | "yobit"
     | "zaif"
-    | "zb";
+    | "zb"
+    | "zipmex"
+    | "zonda";
 }

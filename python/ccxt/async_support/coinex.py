@@ -14,7 +14,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.precise import Precise
 
 
 class coinex(Exchange):
@@ -344,7 +343,35 @@ class coinex(Exchange):
         return self.parse_order_book(response['data'], symbol)
 
     def parse_trade(self, trade, market=None):
-        # self method parses both public and private trades
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "id":  2611511379,
+        #          "type": "buy",
+        #          "price": "192.63",
+        #          "amount": "0.02266931",
+        #          "date":  1638990110,
+        #          "date_ms":  1638990110518
+        #      },
+        #
+        # fetchMyTrades(private)
+        #
+        #      {
+        #          "id": 2611520950,
+        #          "order_id": 63286573298,
+        #          "account_id": 0,
+        #          "create_time": 1638990636,
+        #          "type": "sell",
+        #          "role": "taker",
+        #          "price": "192.29",
+        #          "amount": "0.098",
+        #          "fee": "0.03768884",
+        #          "fee_asset": "USDT",
+        #          "market": "AAVEUSDT",
+        #          "deal_money": "18.84442"
+        #      }
+        #
         timestamp = self.safe_timestamp(trade, 'create_time')
         if timestamp is None:
             timestamp = self.safe_integer(trade, 'date_ms')
@@ -352,25 +379,21 @@ class coinex(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market)
-        cost = self.safe_number(trade, 'deal_money')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        costString = self.safe_string(trade, 'deal_money')
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_asset')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         takerOrMaker = self.safe_string(trade, 'role')
         side = self.safe_string(trade, 'type')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -380,11 +403,11 @@ class coinex(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -393,6 +416,22 @@ class coinex(Exchange):
             'market': market['id'],
         }
         response = await self.publicGetMarketDeals(self.extend(request, params))
+        #
+        #      {
+        #          "code":    0,
+        #          "data": [
+        #              {
+        #                  "id":  2611511379,
+        #                  "type": "buy",
+        #                  "price": "192.63",
+        #                  "amount": "0.02266931",
+        #                  "date":  1638990110,
+        #                  "date_ms":  1638990110518
+        #                  },
+        #              ],
+        #          "message": "OK"
+        #      }
+        #
         return self.parse_trades(response['data'], market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -441,7 +480,78 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_margin_balance(self, params={}):
+        await self.load_markets()
+        symbol = self.safe_string(params, 'symbol')
+        marketId = self.safe_string(params, 'market')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            marketId = market['id']
+        elif marketId is None:
+            raise ArgumentsRequired(self.id + ' fetching a margin account requires a market parameter or a symbol parameter')
+        params = self.omit(params, ['symbol', 'market'])
+        request = {
+            'market': marketId,
+        }
+        response = await self.privateGetMarginAccount(self.extend(request, params))
+        #
+        #      {
+        #          "code":    0,
+        #           "data": {
+        #              "account_id":    126,
+        #              "leverage":    3,
+        #              "market_type":   "AAVEUSDT",
+        #              "sell_asset_type":   "AAVE",
+        #              "buy_asset_type":   "USDT",
+        #              "balance": {
+        #                  "sell_type": "0.3",     # borrowed
+        #                  "buy_type": "30"
+        #                  },
+        #              "frozen": {
+        #                  "sell_type": "0",
+        #                  "buy_type": "0"
+        #                  },
+        #              "loan": {
+        #                  "sell_type": "0.3",  # loan
+        #                  "buy_type": "0"
+        #                  },
+        #              "interest": {
+        #                  "sell_type": "0.0000125",
+        #                  "buy_type": "0"
+        #                  },
+        #              "can_transfer": {
+        #                  "sell_type": "0.02500646",
+        #                  "buy_type": "4.28635738"
+        #                  },
+        #              "warn_rate":   "",
+        #              "liquidation_price":   ""
+        #              },
+        #          "message": "Success"
+        #      }
+        #
+        result = {'info': response}
+        data = self.safe_value(response, 'data', {})
+        free = self.safe_value(data, 'can_transfer', {})
+        total = self.safe_value(data, 'balance', {})
+        #
+        sellAccount = self.account()
+        sellCurrencyId = self.safe_string(data, 'sell_asset_type')
+        sellCurrencyCode = self.safe_currency_code(sellCurrencyId)
+        sellAccount['free'] = self.safe_string(free, 'sell_type')
+        sellAccount['total'] = self.safe_string(total, 'sell_type')
+        result[sellCurrencyCode] = sellAccount
+        #
+        buyAccount = self.account()
+        buyCurrencyId = self.safe_string(data, 'buy_asset_type')
+        buyCurrencyCode = self.safe_currency_code(buyCurrencyId)
+        buyAccount['free'] = self.safe_string(free, 'buy_type')
+        buyAccount['total'] = self.safe_string(total, 'buy_type')
+        result[buyCurrencyCode] = buyAccount
+        #
+        return self.parse_balance(result)
+
+    async def fetch_spot_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalanceInfo(params)
         #
@@ -476,6 +586,14 @@ class coinex(Exchange):
             account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
         return self.parse_balance(result)
+
+    async def fetch_balance(self, params={}):
+        accountType = self.safe_string(params, 'type', 'main')
+        params = self.omit(params, 'type')
+        if accountType == 'margin':
+            return await self.fetch_margin_balance(params)
+        else:
+            return await self.fetch_spot_balance(params)
 
     def parse_order_status(self, status):
         statuses = {
@@ -512,11 +630,12 @@ class coinex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(order, 'create_time')
-        price = self.safe_number(order, 'price')
-        cost = self.safe_number(order, 'deal_money')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'deal_amount')
-        average = self.safe_number(order, 'avg_price')
+        priceString = self.safe_string(order, 'price')
+        costString = self.safe_string(order, 'deal_money')
+        amountString = self.safe_string(order, 'amount')
+        filledString = self.safe_string(order, 'deal_amount')
+        averageString = self.safe_string(order, 'avg_price')
+        remainingString = self.safe_string(order, 'left')
         symbol = None
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
@@ -526,11 +645,10 @@ class coinex(Exchange):
             symbol = market['symbol']
             if feeCurrency is None:
                 feeCurrency = market['quote']
-        remaining = self.safe_number(order, 'left')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        return self.safe_order({
+        return self.safe_order2({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -542,20 +660,20 @@ class coinex(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': None,
-            'cost': cost,
-            'average': average,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
+            'cost': costString,
+            'average': averageString,
+            'amount': amountString,
+            'filled': filledString,
+            'remaining': remainingString,
             'trades': None,
             'fee': {
                 'currency': feeCurrency,
-                'cost': self.safe_number(order, 'deal_fee'),
+                'cost': self.safe_string(order, 'deal_fee'),
             },
             'info': order,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -592,6 +710,23 @@ class coinex(Exchange):
         response = await self.privateDeleteOrderPending(self.extend(request, params))
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancellAllOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        marketId = market['id']
+        accountId = self.safe_string(params, 'id', '0')
+        request = {
+            'account_id': accountId,  # main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
+            'market': marketId,
+        }
+        response = await self.privateDeleteOrderPending(self.extend(request, params))
+        #
+        # {"code": 0, "data": null, "message": "Success"}
+        #
+        return response
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -669,6 +804,33 @@ class coinex(Exchange):
             market = self.market(symbol)
             request['market'] = market['id']
         response = await self.privateGetOrderUserDeals(self.extend(request, params))
+        #
+        #      {
+        #          "code": 0,
+        #          "data": {
+        #              "data": [
+        #                  {
+        #                      "id": 2611520950,
+        #                      "order_id": 63286573298,
+        #                      "account_id": 0,
+        #                      "create_time": 1638990636,
+        #                      "type": "sell",
+        #                      "role": "taker",
+        #                      "price": "192.29",
+        #                      "amount": "0.098",
+        #                      "fee": "0.03768884",
+        #                      "fee_asset": "USDT",
+        #                      "market": "AAVEUSDT",
+        #                      "deal_money": "18.84442"
+        #                          },
+        #                      ],
+        #              "curr_page": 1,
+        #              "has_next": False,
+        #              "count": 3
+        #              },
+        #          "message": "Success"
+        #      }
+        #
         data = self.safe_value(response, 'data')
         trades = self.safe_value(data, 'data', [])
         return self.parse_trades(trades, market, since, limit)
@@ -936,7 +1098,7 @@ class coinex(Exchange):
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
-        if (code != '0') or (data is None) or ((message != 'Success') and (message != 'Succeeded') and (message != 'Ok') and not data):
+        if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message != 'Ok') and not data):
             responseCodes = {
                 # https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
                 '23': PermissionDenied,  # IP Prohibited

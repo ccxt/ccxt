@@ -1,7 +1,7 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 
 module.exports = class hitbtc3 extends Exchange {
     describe () {
@@ -201,55 +201,58 @@ module.exports = class hitbtc3 extends Exchange {
                 '1M': '1M',
             },
             'exceptions': {
-                '429': RateLimitExceeded,
-                '500': ExchangeError,
-                '503': ExchangeNotAvailable,
-                '504': ExchangeNotAvailable,
-                '600': PermissionDenied,
-                '800': ExchangeError,
-                '1002': AuthenticationError,
-                '1003': PermissionDenied,
-                '1004': AuthenticationError,
-                '1005': AuthenticationError,
-                '2001': BadSymbol,
-                '2002': BadRequest,
-                '2003': BadRequest,
-                '2010': BadRequest,
-                '2011': BadRequest,
-                '2012': BadRequest,
-                '2020': BadRequest,
-                '2022': BadRequest,
-                '10001': BadRequest,
-                '10021': AccountSuspended,
-                '10022': BadRequest,
-                '20001': InsufficientFunds,
-                '20002': OrderNotFound,
-                '20003': ExchangeError,
-                '20004': ExchangeError,
-                '20005': ExchangeError,
-                '20006': ExchangeError,
-                '20007': ExchangeError,
-                '20008': InvalidOrder,
-                '20009': InvalidOrder,
-                '20010': OnMaintenance,
-                '20011': ExchangeError,
-                '20012': ExchangeError,
-                '20014': ExchangeError,
-                '20016': ExchangeError,
-                '20031': ExchangeError,
-                '20032': ExchangeError,
-                '20033': ExchangeError,
-                '20034': ExchangeError,
-                '20040': ExchangeError,
-                '20041': ExchangeError,
-                '20042': ExchangeError,
-                '20043': ExchangeError,
-                '20044': PermissionDenied,
-                '20045': ExchangeError,
-                '20080': ExchangeError,
-                '21001': ExchangeError,
-                '21003': AccountSuspended,
-                '21004': AccountSuspended,
+                'exact': {
+                    '429': RateLimitExceeded,
+                    '500': ExchangeError,
+                    '503': ExchangeNotAvailable,
+                    '504': ExchangeNotAvailable,
+                    '600': PermissionDenied,
+                    '800': ExchangeError,
+                    '1002': AuthenticationError,
+                    '1003': PermissionDenied,
+                    '1004': AuthenticationError,
+                    '1005': AuthenticationError,
+                    '2001': BadSymbol,
+                    '2002': BadRequest,
+                    '2003': BadRequest,
+                    '2010': BadRequest,
+                    '2011': BadRequest,
+                    '2012': BadRequest,
+                    '2020': BadRequest,
+                    '2022': BadRequest,
+                    '10001': BadRequest,
+                    '10021': AccountSuspended,
+                    '10022': BadRequest,
+                    '20001': InsufficientFunds,
+                    '20002': OrderNotFound,
+                    '20003': ExchangeError,
+                    '20004': ExchangeError,
+                    '20005': ExchangeError,
+                    '20006': ExchangeError,
+                    '20007': ExchangeError,
+                    '20008': InvalidOrder,
+                    '20009': InvalidOrder,
+                    '20010': OnMaintenance,
+                    '20011': ExchangeError,
+                    '20012': ExchangeError,
+                    '20014': ExchangeError,
+                    '20016': ExchangeError,
+                    '20031': ExchangeError,
+                    '20032': ExchangeError,
+                    '20033': ExchangeError,
+                    '20034': ExchangeError,
+                    '20040': ExchangeError,
+                    '20041': ExchangeError,
+                    '20042': ExchangeError,
+                    '20043': ExchangeError,
+                    '20044': PermissionDenied,
+                    '20045': ExchangeError,
+                    '20080': ExchangeError,
+                    '21001': ExchangeError,
+                    '21003': AccountSuspended,
+                    '21004': AccountSuspended,
+                },
+                'broad': {},
             },
             'options': {
                 'networks': {
@@ -506,7 +509,21 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const response = await this.privateGetSpotBalance ();
+        const type = this.safeStringLower (params, 'type', 'spot');
+        params = this.omit (params, [ 'type' ]);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const account = this.safeString (accountsByType, type);
+        let response = undefined;
+        if (account === 'wallet') {
+            response = await this.privateGetWalletBalance (params);
+        } else if (account === 'spot') {
+            response = await this.privateGetSpotBalance (params);
+        } else if (account === 'derivatives') {
+            response = await this.privateGetFuturesBalance (params);
+        } else {
+            const keys = Object.keys (accountsByType);
+            throw new BadRequest (this.id + ' fetchBalance() type parameter must be one of ' + keys.join (', '));
+        }
         //
         //     [
         //       {
@@ -589,7 +606,7 @@ module.exports = class hitbtc3 extends Exchange {
         const timestamp = this.parse8601 (ticker['timestamp']);
         const symbol = this.safeSymbol (undefined, market);
         const baseVolume = this.safeNumber (ticker, 'volume');
-        const quoteVolume = this.safeNumber (ticker, 'volumeQuote');
+        const quoteVolume = this.safeNumber (ticker, 'volume_quote');
         const open = this.safeNumber (ticker, 'open');
         const last = this.safeNumber (ticker, 'last');
         const vwap = this.vwap (baseVolume, quoteVolume);
@@ -909,7 +926,7 @@ module.exports = class hitbtc3 extends Exchange {
             request['symbols'] = marketIds.join (',');
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['depth'] = limit;
         }
         const response = await this.publicGetPublicOrderbook (this.extend (request, params));
         const result = {};
@@ -929,6 +946,26 @@ module.exports = class hitbtc3 extends Exchange {
         return result[symbol];
     }
 
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
+        //         "take_rate":"0.0009",
+        //         "make_rate":"0.0009"
+        //     }
+        //
+        const taker = this.safeNumber (fee, 'take_rate');
+        const maker = this.safeNumber (fee, 'make_rate');
+        const marketId = this.safeString (fee, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'taker': taker,
+            'maker': maker,
+        };
+    }
+
     async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -936,33 +973,32 @@ module.exports = class hitbtc3 extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.privateGetSpotFeeSymbol (this.extend (request, params));
-        //  {"take_rate":"0.0009","make_rate":"0.0009"}
-        const taker = this.safeNumber (response, 'take_rate');
-        const maker = this.safeNumber (response, 'make_rate');
-        return {
-            'info': response,
-            'symbol': symbol,
-            'taker': taker,
-            'maker': maker,
-        };
+        //
+        //     {
+        //         "take_rate":"0.0009",
+        //         "make_rate":"0.0009"
+        //     }
+        //
+        return this.parseTradingFee (response, market);
     }
 
     async fetchTradingFees (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetSpotFee (params);
-        // [{"symbol":"ARVUSDT","take_rate":"0.0009","make_rate":"0.0009"}]
+        //
+        //     [
+        //         {
+        //             "symbol":"ARVUSDT",
+        //             "take_rate":"0.0009",
+        //             "make_rate":"0.0009"
+        //         }
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const symbol = this.safeSymbol (this.safeString (entry, 'symbol'));
-            const taker = this.safeNumber (entry, 'take_rate');
-            const maker = this.safeNumber (entry, 'make_rate');
-            result[symbol] = {
-                'info': entry,
-                'symbol': symbol,
-                'taker': taker,
-                'maker': maker,
-            };
+            const fee = this.parseTradingFee (response[i]);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
         }
         return result;
     }
@@ -1330,13 +1366,13 @@ module.exports = class hitbtc3 extends Exchange {
         const toId = this.safeString (accountsByType, toAccount);
         const keys = Object.keys (accountsByType);
         if (fromId === undefined) {
-            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', ') + ' instead of ' + fromId);
+            throw new ArgumentsRequired (this.id + ' transfer() fromAccount argument must be one of ' + keys.join (', '));
         }
         if (toId === undefined) {
-            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', ') + ' instead of ' + toId);
+            throw new ArgumentsRequired (this.id + ' transfer() toAccount argument must be one of ' + keys.join (', '));
         }
         if (fromId === toId) {
-            throw new ExchangeError (this.id + ' from and to cannot be the same account');
+            throw new BadRequest (this.id + ' transfer() fromAccount and toAccount arguments cannot be the same account');
         }
         const request = {
             'currency': currency['id'],
@@ -1363,7 +1399,7 @@ module.exports = class hitbtc3 extends Exchange {
     async convertCurrencyNetwork (code, amount, fromNetwork, toNetwork, params) {
         await this.loadMarkets ();
         if (code !== 'USDT') {
-            throw new ExchangeError (this.id + ' convertCurrencyNetwork only supports USDT currently');
+            throw new ExchangeError (this.id + ' convertCurrencyNetwork() only supports USDT currently');
         }
         const networks = this.safeValue (this.options, 'networks', {});
         fromNetwork = fromNetwork.toUpperCase ();
@@ -1371,11 +1407,11 @@ module.exports = class hitbtc3 extends Exchange {
         fromNetwork = this.safeString (networks, fromNetwork); // handle ETH>ERC20 alias
         toNetwork = this.safeString (networks, toNetwork); // handle ETH>ERC20 alias
         if (fromNetwork === toNetwork) {
-            throw new ExchangeError (this.id + ' fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest (this.id + ' fromNetwork cannot be the same as toNetwork');
         }
         if ((fromNetwork === undefined) || (toNetwork === undefined)) {
             const keys = Object.keys (networks);
-            throw new ExchangeError (this.id + ' invalid network, please select one of ' + keys.join (', '));
+            throw new ArgumentsRequired (this.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + keys.join (', '));
         }
         const request = {
             'from_currency': fromNetwork,
@@ -1430,16 +1466,21 @@ module.exports = class hitbtc3 extends Exchange {
         //       }
         //     }
         //
+        //     {
+        //       "error": {
+        //         "code": "600",
+        //         "message": "Action not allowed"
+        //       }
+        //     }
+        //
         const error = this.safeValue (response, 'error');
         const errorCode = this.safeString (error, 'code');
         if (errorCode !== undefined) {
-            const description = this.safeString (error, 'description', '');
-            const ExceptionClass = this.safeValue (this.exceptions, errorCode);
-            if (ExceptionClass !== undefined) {
-                throw new ExceptionClass (this.id + ' ' + description);
-            } else {
-                throw new ExchangeError (this.id + ' ' + description);
-            }
+            const feedback = this.id + ' ' + body;
+            const message = this.safeString2 (error, 'message', 'description');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 

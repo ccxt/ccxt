@@ -25,6 +25,8 @@ module.exports = class phemex extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -38,6 +40,7 @@ module.exports = class phemex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
@@ -325,8 +328,9 @@ module.exports = class phemex extends Exchange {
         if (value === undefined) {
             return value;
         }
-        value = value.replace (',', '');
-        const parts = value.split (' ');
+        let parts = value.split (',');
+        value = parts.join ('');
+        parts = value.split (' ');
         return this.safeNumber (parts, 0);
     }
 
@@ -391,7 +395,12 @@ module.exports = class phemex extends Exchange {
             inverse = true;
         }
         const linear = !inverse;
-        const symbol = (inverse) ? id : (base + '/' + quote); // fix for uBTCUSD inverse
+        let symbol = undefined;
+        if (linear) {
+            symbol = base + '/' + quote + ':' + quote;
+        } else {
+            symbol = base + '/' + quote + ':' + base;
+        }
         const precision = {
             'amount': this.safeNumber (market, 'lotSize'),
             'price': this.safeNumber (market, 'tickSize'),
@@ -421,6 +430,7 @@ module.exports = class phemex extends Exchange {
         };
         const status = this.safeString (market, 'status');
         const active = status === 'Listed';
+        const contractSize = this.safeString (market, 'contractSize');
         return {
             'id': id,
             'symbol': symbol,
@@ -441,6 +451,7 @@ module.exports = class phemex extends Exchange {
             'valueScale': valueScale,
             'ratioScale': ratioScale,
             'precision': precision,
+            'contractSize': contractSize,
             'limits': limits,
         };
     }
@@ -527,6 +538,7 @@ module.exports = class phemex extends Exchange {
             'priceScale': 8,
             'valueScale': 8,
             'ratioScale': 8,
+            'contractSize': undefined,
             'limits': limits,
         };
     }
@@ -1238,13 +1250,7 @@ module.exports = class phemex extends Exchange {
                 };
             }
         }
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        if (costString === undefined) {
-            costString = Precise.stringMul (priceString, amountString);
-        }
-        const cost = this.parseNumber (costString);
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'symbol': symbol,
@@ -1254,11 +1260,11 @@ module.exports = class phemex extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     parseSpotBalance (response) {

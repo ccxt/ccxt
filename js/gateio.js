@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const Precise = require ('./base/Precise');
+const { TICK_SIZE } = require ('./base/functions/number');
 const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 module.exports = class gateio extends Exchange {
@@ -13,7 +14,7 @@ module.exports = class gateio extends Exchange {
             'name': 'Gate.io',
             'countries': [ 'KR' ],
             'rateLimit': 10 / 3, // 300 requests per second or 3.33ms
-            'version': '4',
+            'version': 'v4',
             'certified': true,
             'pro': true,
             'urls': {
@@ -30,13 +31,22 @@ module.exports = class gateio extends Exchange {
                 },
             },
             'has': {
+                'margin': true,
+                'swap': true,
+                'future': true,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingFees': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -44,15 +54,21 @@ module.exports = class gateio extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
+                'fetchNetworkDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
+                'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
+                'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -76,6 +92,7 @@ module.exports = class gateio extends Exchange {
                             'currency_pairs/{currency_pair}': 1,
                             'cross/currencies': 1,
                             'cross/currencies/{currency}': 1,
+                            'funding_book': 1,
                         },
                     },
                     'futures': {
@@ -238,6 +255,7 @@ module.exports = class gateio extends Exchange {
                             '{settle}/positions/{contract}/leverage': 1.5,
                             '{settle}/positions/{contract}/risk_limit': 1.5,
                             '{settle}/orders': 1.5,
+                            '{settle}/price_orders': 1.5,
                         },
                         'delete': {
                             '{settle}/orders': 1.5,
@@ -267,7 +285,8 @@ module.exports = class gateio extends Exchange {
                 'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
-                'BYN': 'Beyond Finance',
+                'BYN': 'BeyondFi',
+                'EGG': 'Goose Finance',
                 'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'GTC_HT': 'Game.com HT',
                 'GTC_BSC': 'Game.com BSC',
@@ -275,7 +294,6 @@ module.exports = class gateio extends Exchange {
                 'MPH': 'Morpher', // conflict with 88MPH
                 'RAI': 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
-                'STX': 'Stox',
                 'TNC': 'Trinity Network Credit',
                 'TON': 'TONToken',
                 'VAI': 'VAIOT',
@@ -285,6 +303,9 @@ module.exports = class gateio extends Exchange {
                 'secret': true,
             },
             'options': {
+                'createOrder': {
+                    'expiration': 86400, // for conditional orders
+                },
                 'networks': {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
@@ -308,6 +329,7 @@ module.exports = class gateio extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': true,
@@ -407,94 +429,97 @@ module.exports = class gateio extends Exchange {
             },
             // https://www.gate.io/docs/apiv4/en/index.html#label-list
             'exceptions': {
-                'INVALID_PARAM_VALUE': BadRequest,
-                'INVALID_PROTOCOL': BadRequest,
-                'INVALID_ARGUMENT': BadRequest,
-                'INVALID_REQUEST_BODY': BadRequest,
-                'MISSING_REQUIRED_PARAM': ArgumentsRequired,
-                'BAD_REQUEST': BadRequest,
-                'INVALID_CONTENT_TYPE': BadRequest,
-                'NOT_ACCEPTABLE': BadRequest,
-                'METHOD_NOT_ALLOWED': BadRequest,
-                'NOT_FOUND': ExchangeError,
-                'INVALID_CREDENTIALS': AuthenticationError,
-                'INVALID_KEY': AuthenticationError,
-                'IP_FORBIDDEN': AuthenticationError,
-                'READ_ONLY': PermissionDenied,
-                'INVALID_SIGNATURE': AuthenticationError,
-                'MISSING_REQUIRED_HEADER': AuthenticationError,
-                'REQUEST_EXPIRED': AuthenticationError,
-                'ACCOUNT_LOCKED': AccountSuspended,
-                'FORBIDDEN': PermissionDenied,
-                'SUB_ACCOUNT_NOT_FOUND': ExchangeError,
-                'SUB_ACCOUNT_LOCKED': AccountSuspended,
-                'MARGIN_BALANCE_EXCEPTION': ExchangeError,
-                'MARGIN_TRANSFER_FAILED': ExchangeError,
-                'TOO_MUCH_FUTURES_AVAILABLE': ExchangeError,
-                'FUTURES_BALANCE_NOT_ENOUGH': InsufficientFunds,
-                'ACCOUNT_EXCEPTION': ExchangeError,
-                'SUB_ACCOUNT_TRANSFER_FAILED': ExchangeError,
-                'ADDRESS_NOT_USED': ExchangeError,
-                'TOO_FAST': RateLimitExceeded,
-                'WITHDRAWAL_OVER_LIMIT': ExchangeError,
-                'API_WITHDRAW_DISABLED': ExchangeNotAvailable,
-                'INVALID_WITHDRAW_ID': ExchangeError,
-                'INVALID_WITHDRAW_CANCEL_STATUS': ExchangeError,
-                'INVALID_PRECISION': InvalidOrder,
-                'INVALID_CURRENCY': BadSymbol,
-                'INVALID_CURRENCY_PAIR': BadSymbol,
-                'POC_FILL_IMMEDIATELY': ExchangeError,
-                'ORDER_NOT_FOUND': OrderNotFound,
-                'ORDER_CLOSED': InvalidOrder,
-                'ORDER_CANCELLED': InvalidOrder,
-                'QUANTITY_NOT_ENOUGH': InvalidOrder,
-                'BALANCE_NOT_ENOUGH': InsufficientFunds,
-                'MARGIN_NOT_SUPPORTED': InvalidOrder,
-                'MARGIN_BALANCE_NOT_ENOUGH': InsufficientFunds,
-                'AMOUNT_TOO_LITTLE': InvalidOrder,
-                'AMOUNT_TOO_MUCH': InvalidOrder,
-                'REPEATED_CREATION': InvalidOrder,
-                'LOAN_NOT_FOUND': OrderNotFound,
-                'LOAN_RECORD_NOT_FOUND': OrderNotFound,
-                'NO_MATCHED_LOAN': ExchangeError,
-                'NOT_MERGEABLE': ExchangeError,
-                'NO_CHANGE': ExchangeError,
-                'REPAY_TOO_MUCH': ExchangeError,
-                'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
-                'TOO_MANY_ORDERS': InvalidOrder,
-                'MIXED_ACCOUNT_TYPE': InvalidOrder,
-                'AUTO_BORROW_TOO_MUCH': ExchangeError,
-                'TRADE_RESTRICTED': InsufficientFunds,
-                'USER_NOT_FOUND': ExchangeError,
-                'CONTRACT_NO_COUNTER': ExchangeError,
-                'CONTRACT_NOT_FOUND': BadSymbol,
-                'RISK_LIMIT_EXCEEDED': ExchangeError,
-                'INSUFFICIENT_AVAILABLE': InsufficientFunds,
-                'LIQUIDATE_IMMEDIATELY': InvalidOrder,
-                'LEVERAGE_TOO_HIGH': InvalidOrder,
-                'LEVERAGE_TOO_LOW': InvalidOrder,
-                'ORDER_NOT_OWNED': ExchangeError,
-                'ORDER_FINISHED': ExchangeError,
-                'POSITION_CROSS_MARGIN': ExchangeError,
-                'POSITION_IN_LIQUIDATION': ExchangeError,
-                'POSITION_IN_CLOSE': ExchangeError,
-                'POSITION_EMPTY': InvalidOrder,
-                'REMOVE_TOO_MUCH': ExchangeError,
-                'RISK_LIMIT_NOT_MULTIPLE': ExchangeError,
-                'RISK_LIMIT_TOO_HIGH': ExchangeError,
-                'RISK_LIMIT_TOO_lOW': ExchangeError,
-                'PRICE_TOO_DEVIATED': InvalidOrder,
-                'SIZE_TOO_LARGE': InvalidOrder,
-                'SIZE_TOO_SMALL': InvalidOrder,
-                'PRICE_OVER_LIQUIDATION': InvalidOrder,
-                'PRICE_OVER_BANKRUPT': InvalidOrder,
-                'ORDER_POC_IMMEDIATE': InvalidOrder,
-                'INCREASE_POSITION': InvalidOrder,
-                'CONTRACT_IN_DELISTING': ExchangeError,
-                'INTERNAL': ExchangeError,
-                'SERVER_ERROR': ExchangeError,
-                'TOO_BUSY': ExchangeNotAvailable,
+                'exact': {
+                    'INVALID_PARAM_VALUE': BadRequest,
+                    'INVALID_PROTOCOL': BadRequest,
+                    'INVALID_ARGUMENT': BadRequest,
+                    'INVALID_REQUEST_BODY': BadRequest,
+                    'MISSING_REQUIRED_PARAM': ArgumentsRequired,
+                    'BAD_REQUEST': BadRequest,
+                    'INVALID_CONTENT_TYPE': BadRequest,
+                    'NOT_ACCEPTABLE': BadRequest,
+                    'METHOD_NOT_ALLOWED': BadRequest,
+                    'NOT_FOUND': ExchangeError,
+                    'INVALID_CREDENTIALS': AuthenticationError,
+                    'INVALID_KEY': AuthenticationError,
+                    'IP_FORBIDDEN': AuthenticationError,
+                    'READ_ONLY': PermissionDenied,
+                    'INVALID_SIGNATURE': AuthenticationError,
+                    'MISSING_REQUIRED_HEADER': AuthenticationError,
+                    'REQUEST_EXPIRED': AuthenticationError,
+                    'ACCOUNT_LOCKED': AccountSuspended,
+                    'FORBIDDEN': PermissionDenied,
+                    'SUB_ACCOUNT_NOT_FOUND': ExchangeError,
+                    'SUB_ACCOUNT_LOCKED': AccountSuspended,
+                    'MARGIN_BALANCE_EXCEPTION': ExchangeError,
+                    'MARGIN_TRANSFER_FAILED': ExchangeError,
+                    'TOO_MUCH_FUTURES_AVAILABLE': ExchangeError,
+                    'FUTURES_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'ACCOUNT_EXCEPTION': ExchangeError,
+                    'SUB_ACCOUNT_TRANSFER_FAILED': ExchangeError,
+                    'ADDRESS_NOT_USED': ExchangeError,
+                    'TOO_FAST': RateLimitExceeded,
+                    'WITHDRAWAL_OVER_LIMIT': ExchangeError,
+                    'API_WITHDRAW_DISABLED': ExchangeNotAvailable,
+                    'INVALID_WITHDRAW_ID': ExchangeError,
+                    'INVALID_WITHDRAW_CANCEL_STATUS': ExchangeError,
+                    'INVALID_PRECISION': InvalidOrder,
+                    'INVALID_CURRENCY': BadSymbol,
+                    'INVALID_CURRENCY_PAIR': BadSymbol,
+                    'POC_FILL_IMMEDIATELY': ExchangeError,
+                    'ORDER_NOT_FOUND': OrderNotFound,
+                    'ORDER_CLOSED': InvalidOrder,
+                    'ORDER_CANCELLED': InvalidOrder,
+                    'QUANTITY_NOT_ENOUGH': InvalidOrder,
+                    'BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'MARGIN_NOT_SUPPORTED': InvalidOrder,
+                    'MARGIN_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'AMOUNT_TOO_LITTLE': InvalidOrder,
+                    'AMOUNT_TOO_MUCH': InvalidOrder,
+                    'REPEATED_CREATION': InvalidOrder,
+                    'LOAN_NOT_FOUND': OrderNotFound,
+                    'LOAN_RECORD_NOT_FOUND': OrderNotFound,
+                    'NO_MATCHED_LOAN': ExchangeError,
+                    'NOT_MERGEABLE': ExchangeError,
+                    'NO_CHANGE': ExchangeError,
+                    'REPAY_TOO_MUCH': ExchangeError,
+                    'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
+                    'TOO_MANY_ORDERS': InvalidOrder,
+                    'MIXED_ACCOUNT_TYPE': InvalidOrder,
+                    'AUTO_BORROW_TOO_MUCH': ExchangeError,
+                    'TRADE_RESTRICTED': InsufficientFunds,
+                    'USER_NOT_FOUND': ExchangeError,
+                    'CONTRACT_NO_COUNTER': ExchangeError,
+                    'CONTRACT_NOT_FOUND': BadSymbol,
+                    'RISK_LIMIT_EXCEEDED': ExchangeError,
+                    'INSUFFICIENT_AVAILABLE': InsufficientFunds,
+                    'LIQUIDATE_IMMEDIATELY': InvalidOrder,
+                    'LEVERAGE_TOO_HIGH': InvalidOrder,
+                    'LEVERAGE_TOO_LOW': InvalidOrder,
+                    'ORDER_NOT_OWNED': ExchangeError,
+                    'ORDER_FINISHED': ExchangeError,
+                    'POSITION_CROSS_MARGIN': ExchangeError,
+                    'POSITION_IN_LIQUIDATION': ExchangeError,
+                    'POSITION_IN_CLOSE': ExchangeError,
+                    'POSITION_EMPTY': InvalidOrder,
+                    'REMOVE_TOO_MUCH': ExchangeError,
+                    'RISK_LIMIT_NOT_MULTIPLE': ExchangeError,
+                    'RISK_LIMIT_TOO_HIGH': ExchangeError,
+                    'RISK_LIMIT_TOO_lOW': ExchangeError,
+                    'PRICE_TOO_DEVIATED': InvalidOrder,
+                    'SIZE_TOO_LARGE': InvalidOrder,
+                    'SIZE_TOO_SMALL': InvalidOrder,
+                    'PRICE_OVER_LIQUIDATION': InvalidOrder,
+                    'PRICE_OVER_BANKRUPT': InvalidOrder,
+                    'ORDER_POC_IMMEDIATE': InvalidOrder,
+                    'INCREASE_POSITION': InvalidOrder,
+                    'CONTRACT_IN_DELISTING': ExchangeError,
+                    'INTERNAL': ExchangeError,
+                    'SERVER_ERROR': ExchangeError,
+                    'TOO_BUSY': ExchangeNotAvailable,
+                },
             },
+            'broad': {},
         });
     }
 
@@ -618,20 +643,30 @@ module.exports = class gateio extends Exchange {
                 for (let i = 0; i < response.length; i++) {
                     const market = response[i];
                     const id = this.safeString (market, 'name');
-                    const [ baseId, quoteId, date ] = id.split ('_');
+                    const parts = id.split ('_');
+                    const baseId = this.safeString (parts, 0);
+                    const quoteId = this.safeString (parts, 1);
+                    const date = this.safeString (parts, 2);
                     const linear = quoteId.toLowerCase () === settle;
                     const inverse = baseId.toLowerCase () === settle;
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
                     let symbol = '';
-                    if (date) {
-                        symbol = base + '/' + quote + '-' + date + ':' + this.safeCurrencyCode (settle);
+                    if (date !== undefined) {
+                        symbol = base + '/' + quote + ':' + this.safeCurrencyCode (settle) + '-' + date;
                     } else {
                         symbol = base + '/' + quote + ':' + this.safeCurrencyCode (settle);
                     }
+                    const priceDeviate = this.safeString (market, 'order_price_deviate');
+                    const markPrice = this.safeString (market, 'mark_price');
+                    const minMultiplier = Precise.stringSub ('1', priceDeviate);
+                    const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
+                    const minPrice = Precise.stringMul (minMultiplier, markPrice);
+                    const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     const feeIndex = (type === 'futures') ? 'swap' : type;
+                    const pricePrecision = this.safeNumber (market, 'order_price_round');
                     result.push ({
                         'info': market,
                         'id': id,
@@ -654,14 +689,23 @@ module.exports = class gateio extends Exchange {
                         // Fee is in %, so divide by 100
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
-                        'contractSize': this.safeString (market, 'contractSize', '1'),
+                        'contractSize': this.safeString (market, 'quanto_multiplier'),
+                        'precision': {
+                            'amount': this.parseNumber ('1'),
+                            'price': pricePrecision,
+                        },
                         'limits': {
                             'leverage': {
+                                'min': this.safeNumber (market, 'leverage_min'),
                                 'max': this.safeNumber (market, 'leverage_max'),
                             },
                             'amount': {
                                 'min': this.safeNumber (market, 'order_size_min'),
                                 'max': this.safeNumber (market, 'order_size_max'),
+                            },
+                            'price': {
+                                'min': minPrice,
+                                'max': maxPrice,
                             },
                         },
                         'expiry': this.safeInteger (market, 'expire_time'),
@@ -714,16 +758,17 @@ module.exports = class gateio extends Exchange {
                 const symbol = base + '/' + quote;
                 const takerPercent = this.safeString (market, 'fee');
                 const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-                const amountPrecision = this.safeString (market, 'amount_precision');
-                const pricePrecision = this.safeString (market, 'precision');
-                const amountLimit = this.parsePrecision (amountPrecision);
-                const priceLimit = this.parsePrecision (pricePrecision);
+                const amountPrecisionString = this.safeString (market, 'amount_precision');
+                const pricePrecisionString = this.safeString (market, 'precision');
+                const amountPrecision = this.parseNumber (this.parsePrecision (amountPrecisionString));
+                const pricePrecision = this.parseNumber (this.parsePrecision (pricePrecisionString));
                 const tradeStatus = this.safeString (market, 'trade_status');
                 result.push ({
                     'info': market,
                     'id': id,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': undefined,
                     'base': base,
                     'quote': quote,
                     'symbol': symbol,
@@ -741,17 +786,17 @@ module.exports = class gateio extends Exchange {
                     'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                     'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                     'precision': {
-                        'amount': parseInt (amountPrecision),
-                        'price': parseInt (pricePrecision),
+                        'amount': amountPrecision,
+                        'price': pricePrecision,
                     },
                     'active': tradeStatus === 'tradable',
                     'limits': {
                         'amount': {
-                            'min': this.parseNumber (amountLimit),
+                            'min': amountPrecision,
                             'max': undefined,
                         },
                         'price': {
-                            'min': this.parseNumber (priceLimit),
+                            'min': pricePrecision,
                             'max': undefined,
                         },
                         'cost': {
@@ -802,7 +847,7 @@ module.exports = class gateio extends Exchange {
         //
         const result = {};
         // TODO: remove magic constants
-        const amountPrecision = 6;
+        const amountPrecision = this.parseNumber ('1e-6');
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
@@ -1170,11 +1215,11 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         // let defaultType = 'future';
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires the argument "symbol"');
-        }
         const market = this.market (symbol);
         const request = this.prepareRequest (market);
         request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
@@ -1203,7 +1248,8 @@ module.exports = class gateio extends Exchange {
                 'amount': this.safeNumber (entry, 'change'),
             });
         }
-        return result;
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1218,10 +1264,10 @@ module.exports = class gateio extends Exchange {
         //     };
         //
         const request = this.prepareRequest (market);
-        const spot = market['spot'];
+        const spotOrMargin = market['spot'] || market['margin'];
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
-            // 'margin': 'publicMarginGetOrderBook',
+            'margin': 'publicSpotGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
             'futures': 'publicDeliveryGetSettleOrderBook',
         });
@@ -1265,38 +1311,38 @@ module.exports = class gateio extends Exchange {
         //     {
         //         "current": 1634350208.745,
         //         "asks": [
-        //             {"s":24909,"p":"61264.8"},
-        //             {"s":81,"p":"61266.6"},
-        //             {"s":2000,"p":"61267.6"},
-        //             {"s":490,"p":"61270.2"},
-        //             {"s":12,"p":"61270.4"},
-        //             {"s":11782,"p":"61273.2"},
-        //             {"s":14666,"p":"61273.3"},
-        //             {"s":22541,"p":"61273.4"},
-        //             {"s":33,"p":"61273.6"},
-        //             {"s":11980,"p":"61274.5"}
+        //             {"s":24909,"p": "61264.8"},
+        //             {"s":81,"p": "61266.6"},
+        //             {"s":2000,"p": "61267.6"},
+        //             {"s":490,"p": "61270.2"},
+        //             {"s":12,"p": "61270.4"},
+        //             {"s":11782,"p": "61273.2"},
+        //             {"s":14666,"p": "61273.3"},
+        //             {"s":22541,"p": "61273.4"},
+        //             {"s":33,"p": "61273.6"},
+        //             {"s":11980,"p": "61274.5"}
         //         ],
         //         "bids": [
-        //             {"s":41844,"p":"61264.7"},
-        //             {"s":13783,"p":"61263.3"},
-        //             {"s":1143,"p":"61259.8"},
-        //             {"s":81,"p":"61258.7"},
-        //             {"s":2471,"p":"61257.8"},
-        //             {"s":2471,"p":"61257.7"},
-        //             {"s":2471,"p":"61256.5"},
-        //             {"s":3,"p":"61254.2"},
-        //             {"s":114,"p":"61252.4"},
-        //             {"s":14372,"p":"61248.6"}
+        //             {"s":41844,"p": "61264.7"},
+        //             {"s":13783,"p": "61263.3"},
+        //             {"s":1143,"p": "61259.8"},
+        //             {"s":81,"p": "61258.7"},
+        //             {"s":2471,"p": "61257.8"},
+        //             {"s":2471,"p": "61257.7"},
+        //             {"s":2471,"p": "61256.5"},
+        //             {"s":3,"p": "61254.2"},
+        //             {"s":114,"p": "61252.4"},
+        //             {"s":14372,"p": "61248.6"}
         //         ],
         //         "update": 1634350208.724
         //     }
         //
         let timestamp = this.safeInteger (response, 'current');
-        if (!spot) {
+        if (!spotOrMargin) {
             timestamp = timestamp * 1000;
         }
-        const priceKey = spot ? 0 : 'p';
-        const amountKey = spot ? 1 : 's';
+        const priceKey = spotOrMargin ? 0 : 'p';
+        const amountKey = spotOrMargin ? 1 : 's';
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
     }
 
@@ -1306,7 +1352,7 @@ module.exports = class gateio extends Exchange {
         const request = this.prepareRequest (market);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTickers',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'futures': 'publicDeliveryGetSettleTickers',
         });
@@ -1359,8 +1405,8 @@ module.exports = class gateio extends Exchange {
         const bid = this.safeNumber (ticker, 'highest_bid');
         const high = this.safeNumber (ticker, 'high_24h');
         const low = this.safeNumber (ticker, 'low_24h');
-        const baseVolume = this.safeNumber (ticker, 'base_volume', 'volume_24h_base');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume', 'volume_24h_quote');
+        const baseVolume = this.safeNumber2 (ticker, 'base_volume', 'volume_24h_base');
+        const quoteVolume = this.safeNumber2 (ticker, 'quote_volume', 'volume_24h_quote');
         const percentage = this.safeNumber (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1393,18 +1439,26 @@ module.exports = class gateio extends Exchange {
         params = this.omit (params, 'type');
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetTickers',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'futures': 'publicDeliveryGetSettleTickers',
         });
         const request = {};
         const futures = type === 'futures';
         const swap = type === 'swap';
-        if ((swap || futures) && !params['settle']) {
+        const settle = this.safeString (params, 'settle');
+        if ((swap || futures) && (settle === undefined)) {
             request['settle'] = swap ? 'usdt' : 'btc';
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseTickers (response, symbols);
+    }
+
+    fetchBalanceHelper (entry) {
+        const account = this.account ();
+        account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
+        account['free'] = this.safeString (entry, 'available');
+        return account;
     }
 
     async fetchBalance (params = {}) {
@@ -1418,7 +1472,7 @@ module.exports = class gateio extends Exchange {
         const futures = type === 'futures';
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetAccounts',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'privateMarginGetAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'futures': 'privateDeliveryGetSettleAccounts',
         });
@@ -1432,106 +1486,152 @@ module.exports = class gateio extends Exchange {
         } else {
             response = await this[method] (this.extend (request, params));
         }
-        //  SPOT
+        // Spot
+        //
         //     [
-        //       {
-        //         "currency": "DBC",
-        //         "available": "0",
-        //         "locked": "0"
-        //       },
-        //       ...
+        //         {
+        //             "currency": "DBC",
+        //             "available": "0",
+        //             "locked": "0"
+        //         },
+        //         ...
         //     ]
         //
+        //  Margin
+        //
+        //    [
+        //         {
+        //             "currency_pair":"DOGE_USDT",
+        //             "locked":false,
+        //             "risk":"9999.99",
+        //             "base": {
+        //               "currency":"DOGE",
+        //               "available":"0",
+        //               "locked":"0",
+        //               "borrowed":"0",
+        //               "interest":"0"
+        //             },
+        //             "quote": {
+        //               "currency":"USDT",
+        //               "available":"0.73402",
+        //               "locked":"0",
+        //               "borrowed":"0",
+        //               "interest":"0"
+        //             }
+        //         },
+        //         ...
+        //    ]
+        //
         //  Perpetual Swap
-        //  {
-        //     order_margin: "0",
-        //     point: "0",
-        //     bonus: "0",
-        //     history: {
-        //       dnw: "2.1321",
-        //       pnl: "11.5351",
-        //       refr: "0",
-        //       point_fee: "0",
-        //       fund: "-0.32340576684",
-        //       bonus_dnw: "0",
-        //       point_refr: "0",
-        //       bonus_offset: "0",
-        //       fee: "-0.20132775",
-        //       point_dnw: "0",
-        //     },
-        //     unrealised_pnl: "13.315100000006",
-        //     total: "12.51345151332",
-        //     available: "0",
-        //     in_dual_mode: false,
-        //     currency: "USDT",
-        //     position_margin: "12.51345151332",
-        //     user: "6333333",
-        //   }
+        //
+        //    {
+        //       order_margin: "0",
+        //       point: "0",
+        //       bonus: "0",
+        //       history: {
+        //         dnw: "2.1321",
+        //         pnl: "11.5351",
+        //         refr: "0",
+        //         point_fee: "0",
+        //         fund: "-0.32340576684",
+        //         bonus_dnw: "0",
+        //         point_refr: "0",
+        //         bonus_offset: "0",
+        //         fee: "-0.20132775",
+        //         point_dnw: "0",
+        //       },
+        //       unrealised_pnl: "13.315100000006",
+        //       total: "12.51345151332",
+        //       available: "0",
+        //       in_dual_mode: false,
+        //       currency: "USDT",
+        //       position_margin: "12.51345151332",
+        //       user: "6333333",
+        //     }
         //
         //   Delivery Future
-        //   {
-        //     order_margin: "0",
-        //     point: "0",
-        //     history: {
-        //       dnw: "1",
-        //       pnl: "0",
-        //       refr: "0",
-        //       point_fee: "0",
-        //       point_dnw: "0",
-        //       settle: "0",
-        //       settle_fee: "0",
-        //       point_refr: "0",
-        //       fee: "0",
-        //     },
-        //     unrealised_pnl: "0",
-        //     total: "1",
-        //     available: "1",
-        //     currency: "USDT",
-        //     position_margin: "0",
-        //     user: "6333333",
-        //   }
-        const result = {};
+        //
+        //     {
+        //       order_margin: "0",
+        //       point: "0",
+        //       history: {
+        //         dnw: "1",
+        //         pnl: "0",
+        //         refr: "0",
+        //         point_fee: "0",
+        //         point_dnw: "0",
+        //         settle: "0",
+        //         settle_fee: "0",
+        //         point_refr: "0",
+        //         fee: "0",
+        //       },
+        //       unrealised_pnl: "0",
+        //       total: "1",
+        //       available: "1",
+        //       currency: "USDT",
+        //       position_margin: "0",
+        //       user: "6333333",
+        //     }
+        //
+        const margin = type === 'margin';
+        const result = {
+            'info': response,
+        };
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
-            const account = this.account ();
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            account['used'] = this.safeString2 (entry, 'locked', 'position_margin');
-            account['free'] = this.safeString (entry, 'available');
-            result[code] = account;
+            if (margin) {
+                const marketId = this.safeString (entry, 'currency_pair');
+                const symbol = this.safeSymbol (marketId, undefined, '_');
+                const base = this.safeValue (entry, 'base', {});
+                const quote = this.safeValue (entry, 'quote', {});
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency', {}));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency', {}));
+                const subResult = {};
+                subResult[baseCode] = this.fetchBalanceHelper (base);
+                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                result[symbol] = this.parseBalance (subResult);
+            } else {
+                const code = this.safeCurrencyCode (this.safeString (entry, 'currency', {}));
+                result[code] = this.fetchBalanceHelper (entry);
+            }
         }
-        return this.parseBalance (result);
+        return margin ? result : this.parseBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
         const request = this.prepareRequest (market);
         request['interval'] = this.timeframes[timeframe];
-        const isMark = price === 'mark';
-        const isIndex = price === 'index';
-        if (isMark || isIndex) {
-            const prefix = isMark ? 'mark_' : 'index_';
-            request['contract'] = prefix + market['id'];
+        let method = 'publicSpotGetCandlesticks';
+        if (market['contract']) {
+            if (market['futures']) {
+                method = 'publicDeliveryGetSettleCandlesticks';
+            } else if (market['swap']) {
+                method = 'publicFuturesGetSettleCandlesticks';
+            }
+            const isMark = (price === 'mark');
+            const isIndex = (price === 'index');
+            if (isMark || isIndex) {
+                request['contract'] = price + '_' + market['id'];
+                params = this.omit (params, 'price');
+            }
         }
         if (since === undefined) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
         } else {
+            const timeframeSeconds = this.parseTimeframe (timeframe);
+            const timeframeMilliseconds = timeframeSeconds * 1000;
+            // align forward to the next timeframe alignment
+            since = this.sum (since - (since % timeframeMilliseconds), timeframeMilliseconds);
             request['from'] = parseInt (since / 1000);
             if (limit !== undefined) {
-                request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe) - 1);
+                request['to'] = this.sum (request['from'], limit * timeframeSeconds - 1);
             }
         }
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'publicSpotGetCandlesticks',
-            'margin': 'publicSpotGetCandlesticks',
-            'swap': 'publicFuturesGetSettleCandlesticks',
-            'futures': 'publicDeliveryGetSettleCandlesticks',
-        });
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -1543,15 +1643,15 @@ module.exports = class gateio extends Exchange {
         return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
-    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'contract': market['id'],
-            'settle': market['quote'].toLowerCase (),
+            'settle': market['settleId'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1576,7 +1676,8 @@ module.exports = class gateio extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return this.sortBy (rates, 'timestamp');
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1603,10 +1704,10 @@ module.exports = class gateio extends Exchange {
         //
         //     {
         //          "t":1632873600,         // Unix timestamp in seconds
-        //          "o":"41025",            // Open price
-        //          "h":"41882.17",         // Highest price
-        //          "c":"41776.92",         // Close price
-        //          "l":"40783.94"          // Lowest price
+        //          "o": "41025",           // Open price
+        //          "h": "41882.17",         // Highest price
+        //          "c": "41776.92",         // Close price
+        //          "l": "40783.94"          // Lowest price
         //     }
         //
         if (Array.isArray (ohlcv)) {
@@ -1658,7 +1759,7 @@ module.exports = class gateio extends Exchange {
         const request = this.prepareRequest (market);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTrades',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'futures': 'publicDeliveryGetSettleTrades',
         });
@@ -1724,7 +1825,7 @@ module.exports = class gateio extends Exchange {
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotGetMyTrades',
-            // 'margin': 'publicMarginGetCurrencyPairs',
+            'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTrades',
             'futures': 'privateDeliveryGetSettleMyTrades',
         });
@@ -1997,19 +2098,239 @@ module.exports = class gateio extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-            'side': side,
-        };
-        const response = await this.privateSpotPostOrders (this.extend (request, params));
+        const contract = market['contract'];
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        let methodTail = 'Orders';
+        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly');
+        const defaultTimeInForce = this.safeValue2 (params, 'tif', 'time_in_force', 'gtc');
+        let timeInForce = this.safeValue (params, 'timeInForce', defaultTimeInForce);
+        params = this.omit (params, [ 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ]);
+        const isLimitOrder = (type === 'limit');
+        const isMarketOrder = (type === 'market');
+        if (isLimitOrder && price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for ' + type + ' orders');
+        }
+        if (contract) {
+            const amountToPrecision = this.amountToPrecision (symbol, amount);
+            const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
+            amount = parseInt (signedAmount);
+            if (isMarketOrder) {
+                timeInForce = 'ioc';
+                price = 0;
+            }
+        } else if (!isLimitOrder) {
+            // Gateio doesn't have market orders for spot
+            throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets');
+        }
+        let request = undefined;
+        const trigger = this.safeValue (params, 'trigger');
+        if (stopPrice === undefined && trigger === undefined) {
+            if (contract) {
+                // contract order
+                request = {
+                    'contract': market['id'], // filled in prepareRequest above
+                    'size': amount, // int64, positive = bid, negative = ask
+                    // 'iceberg': 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
+                    'price': this.priceToPrecision (symbol, price), // 0 for market order with tif set as ioc
+                    // 'close': false, // true to close the position, with size set to 0
+                    // 'reduce_only': false, // St as true to be reduce-only order
+                    // 'tif': 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
+                    // 'text': clientOrderId, // 't-abcdef1234567890',
+                    // 'auto_size': '', // close_long, close_short, note size also needs to be set to 0
+                    'settle': market['settleId'], // filled in prepareRequest above
+                };
+                if (reduceOnly !== undefined) {
+                    request['reduce_only'] = reduceOnly;
+                }
+                if (timeInForce !== undefined) {
+                    request['tif'] = timeInForce;
+                }
+            } else {
+                const options = this.safeValue (this.options, 'createOrder', {});
+                const defaultAccount = this.safeString (options, 'account', 'spot');
+                const account = this.safeString (params, 'account', defaultAccount);
+                params = this.omit (params, 'account');
+                // spot order
+                request = {
+                    // 'text': clientOrderId, // 't-abcdef1234567890',
+                    'currency_pair': market['id'], // filled in prepareRequest above
+                    'type': type,
+                    'account': account, // 'spot', 'margin', 'cross_margin'
+                    'side': side,
+                    'amount': this.amountToPrecision (symbol, amount),
+                    'price': this.priceToPrecision (symbol, price),
+                    // 'time_in_force': 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
+                    // 'iceberg': 0, // amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
+                    // 'auto_borrow': false, // used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+                    // 'auto_repay': false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
+                };
+                if (timeInForce !== undefined) {
+                    request['time_in_force'] = timeInForce;
+                }
+            }
+            let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                // user-defined, must follow the rules if not empty
+                //     prefixed with t-
+                //     no longer than 28 bytes without t- prefix
+                //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
+                if (clientOrderId.length > 28) {
+                    throw new BadRequest (this.id + ' createOrder() clientOrderId or text param must be up to 28 characters');
+                }
+                params = this.omit (params, [ 'text', 'clientOrderId' ]);
+                if (clientOrderId[0] !== 't') {
+                    clientOrderId = 't-' + clientOrderId;
+                }
+                request['text'] = clientOrderId;
+            }
+        } else {
+            if (contract) {
+                // contract conditional order
+                const rule = (side === 'sell') ? 1 : 2;
+                request = {
+                    'initial': {
+                        'contract': market['id'],
+                        'size': amount, // positive = buy, negative = sell, set to 0 to close the position
+                        'price': this.priceToPrecision (symbol, price), // set to 0 to use market price
+                        // 'close': false, // set to true if trying to close the position
+                        // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
+                        // 'text': clientOrderId, // web, api, app
+                        // 'reduce_only': false,
+                    },
+                    'trigger': {
+                        // 'strategy_type': 0, // 0 = by price, 1 = by price gap, only 0 is supported currently
+                        // 'price_type': 0, // 0 latest deal price, 1 mark price, 2 index price
+                        'price': this.priceToPrecision (symbol, stopPrice), // price or gap
+                        'rule': rule, // 1 means price_type >= price, 2 means price_type <= price
+                        // 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    },
+                    'settle': market['settleId'],
+                };
+                const expiration = this.safeInteger (params, 'expiration');
+                if (expiration !== undefined) {
+                    request['trigger']['expiration'] = expiration;
+                    params = this.omit (params, 'expiration');
+                }
+                if (reduceOnly !== undefined) {
+                    request['initial']['reduce_only'] = reduceOnly;
+                }
+                if (timeInForce !== undefined) {
+                    request['initial']['tif'] = timeInForce;
+                }
+            } else {
+                // spot conditional order
+                const options = this.safeValue (this.options, 'createOrder', {});
+                const defaultAccount = this.safeString (options, 'account', 'normal');
+                const account = this.safeString (params, 'account', defaultAccount);
+                params = this.omit (params, 'account');
+                const defaultExpiration = this.safeInteger (options, 'expiration');
+                const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
+                const rule = (side === 'sell') ? '>=' : '<=';
+                const triggerPrice = this.safeValue (trigger, 'price', stopPrice);
+                request = {
+                    'trigger': {
+                        'price': this.priceToPrecision (symbol, triggerPrice),
+                        'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
+                        'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
+                    },
+                    'put': {
+                        'type': type,
+                        'side': side,
+                        'price': this.priceToPrecision (symbol, price),
+                        'amount': this.amountToPrecision (symbol, amount),
+                        'account': account, // normal, margin
+                        'time_in_force': timeInForce, // gtc, ioc for taker only
+                    },
+                    'market': market['id'],
+                };
+            }
+            methodTail = 'PriceOrders';
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotPost' + methodTail,
+            'margin': 'privateSpotPost' + methodTail,
+            'swap': 'privateFuturesPostSettle' + methodTail,
+            'future': 'privateDeliveryPostSettle' + methodTail,
+        });
+        const response = await this[method] (this.deepExtend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "id":"95282841887",
+        //         "text":"apiv4",
+        //         "create_time":"1637383156",
+        //         "update_time":"1637383156",
+        //         "create_time_ms":1637383156017,
+        //         "update_time_ms":1637383156017,
+        //         "status":"open",
+        //         "currency_pair":"ETH_USDT",
+        //         "type":"limit",
+        //         "account":"spot",
+        //         "side":"buy",
+        //         "amount":"0.01",
+        //         "price":"3500",
+        //         "time_in_force":"gtc",
+        //         "iceberg":"0",
+        //         "left":"0.01",
+        //         "fill_price":"0",
+        //         "filled_total":"0",
+        //         "fee":"0",
+        //         "fee_currency":"ETH",
+        //         "point_fee":"0",
+        //         "gt_fee":"0",
+        //         "gt_discount":false,
+        //         "rebated_fee":"0",
+        //         "rebated_fee_currency":"USDT"
+        //     }
+        //
+        // spot conditional
+        //
+        //     {"id":5891843}
+        //
+        // futures and perpetual swaps
+        //
+        //     {
+        //         "id":95938572327,
+        //         "contract":"ETH_USDT",
+        //         "mkfr":"0",
+        //         "tkfr":"0.0005",
+        //         "tif":"gtc",
+        //         "is_reduce_only":false,
+        //         "create_time":1637384600.08,
+        //         "price":"3000",
+        //         "size":1,
+        //         "refr":"0",
+        //         "left":1,
+        //         "text":"api",
+        //         "fill_price":"0",
+        //         "user":2436035,
+        //         "status":"open",
+        //         "is_liq":false,
+        //         "refu":0,
+        //         "is_close":false,
+        //         "iceberg":0
+        //     }
+        //
+        // futures and perpetual swaps conditionals
+        //
+        //     {"id":7615567}
+        //
         return this.parseOrder (response, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'liquidated': 'closed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        // createOrder, spot
         //
         //     {
         //       "id": "62364648575",
@@ -2041,38 +2362,72 @@ module.exports = class gateio extends Exchange {
         //
         //
         const id = this.safeString (order, 'id');
-        const marketId = this.safeString (order, 'currency_pair');
+        const marketId = this.safeString2 (order, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
         let timestamp = this.safeTimestamp (order, 'create_time');
         timestamp = this.safeInteger (order, 'create_time_ms', timestamp);
         let lastTradeTimestamp = this.safeTimestamp (order, 'update_time');
         lastTradeTimestamp = this.safeInteger (order, 'update_time_ms', lastTradeTimestamp);
-        const amount = this.safeString (order, 'amount');
+        const amountRaw = this.safeString2 (order, 'amount', 'size');
+        const amount = Precise.stringAbs (amountRaw);
         const price = this.safeString (order, 'price');
+        // const average = this.safeString (order, 'fill_price');
         const remaining = this.safeString (order, 'left');
         const cost = this.safeString (order, 'filled_total'); // same as filled_price
-        const side = this.safeString (order, 'side');
-        const type = this.safeString (order, 'type');
-        // open, closed, cancelled - almost already ccxt unified!
-        let status = this.safeString (order, 'status');
-        if (status === 'cancelled') {
-            status = 'canceled';
+        let rawStatus = undefined;
+        let side = undefined;
+        const contract = this.safeValue (market, 'contract');
+        if (contract) {
+            if (amount) {
+                side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
+            } else {
+                side = undefined;
+            }
+            rawStatus = this.safeString (order, 'finish_as', 'open');
+        } else {
+            // open, closed, cancelled - almost already ccxt unified!
+            rawStatus = this.safeString (order, 'status');
+            side = this.safeString (order, 'side');
         }
-        const timeInForce = this.safeStringUpper (order, 'time_in_force');
+        const status = this.parseOrderStatus (rawStatus);
+        const type = this.safeString (order, 'type');
+        const timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
         const fees = [];
-        fees.push ({
-            'currency': 'GT',
-            'cost': this.safeNumber (order, 'gt_fee'),
-        });
-        fees.push ({
-            'currency': this.safeCurrencyCode (this.safeString (order, 'fee_currency')),
-            'cost': this.safeNumber (order, 'fee'),
-        });
+        const gtFee = this.safeNumber (order, 'gt_fee');
+        if (gtFee) {
+            fees.push ({
+                'currency': 'GT',
+                'cost': gtFee,
+            });
+        }
+        const fee = this.safeNumber (order, 'fee');
+        if (fee) {
+            fees.push ({
+                'currency': this.safeCurrencyCode (this.safeString (order, 'fee_currency')),
+                'cost': fee,
+            });
+        }
         const rebate = this.safeString (order, 'rebated_fee');
-        fees.push ({
-            'currency': this.safeCurrencyCode (this.safeString (order, 'rebated_fee_currency')),
-            'cost': this.parseNumber (Precise.stringNeg (rebate)),
-        });
+        if (rebate) {
+            fees.push ({
+                'currency': this.safeCurrencyCode (this.safeString (order, 'rebated_fee_currency')),
+                'cost': this.parseNumber (Precise.stringNeg (rebate)),
+            });
+        }
+        const mkfr = this.safeNumber (order, 'mkfr');
+        const tkfr = this.safeNumber (order, 'tkfr');
+        if (mkfr) {
+            fees.push ({
+                'currency': this.safeCurrencyCode (this.safeString (order, 'settleId')),
+                'cost': mkfr,
+            });
+        }
+        if (tkfr) {
+            fees.push ({
+                'currency': this.safeCurrencyCode (this.safeString (market, 'settleId')),
+                'cost': tkfr,
+            });
+        }
         return this.safeOrder2 ({
             'id': id,
             'clientOrderId': id,
@@ -2096,7 +2451,7 @@ module.exports = class gateio extends Exchange {
             'fees': fees,
             'trades': undefined,
             'info': order,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -2107,19 +2462,31 @@ module.exports = class gateio extends Exchange {
         const market = this.market (symbol);
         const request = {
             'order_id': id,
-            'currency_pair': market['id'],
         };
-        const response = await this.privateSpotGetOrdersOrderId (this.extend (request, params));
+        if (market['spot'] || market['margin']) {
+            request['currency_pair'] = market['id'];
+        } else {
+            request['settle'] = market['settleId'];
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotGetOrdersOrderId',
+            // 'margin': 'publicMarginGetTickers',
+            'swap': 'privateFuturesGetSettleOrdersOrderId',
+            'futures': 'privateDeliveryGetSettlePriceOrdersOrderId',
+        });
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (symbol === undefined) {
+        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        if (symbol === undefined && (type === 'spot') || type === 'margin' || type === 'cross_margin') {
             const request = {
                 // 'page': 1,
                 // 'limit': limit,
-                // 'account': '', // spot/margin (default), cross_margin
+                'account': type, // spot/margin (default), cross_margin
             };
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -2176,37 +2543,192 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currency_pair': market['id'],
-            'status': status,
-        };
+        const request = this.prepareRequest (market);
+        request['status'] = status;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined) {
+        if (since !== undefined && (market['spot'] || market['margin'])) {
             request['start'] = parseInt (since / 1000);
         }
-        const response = await this.privateSpotGetOrders (this.extend (request, params));
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotGetOrders',
+            'margin': 'privateSpotGetOrders',
+            'swap': 'privateFuturesGetSettleOrders',
+            'futures': 'privateDeliveryGetSettleOrders',
+        });
+        if (market['type'] === 'margin' || market['type'] === 'cross_margin') {
+            request['account'] = market['type'];
+        }
+        const response = await this[method] (this.extend (request, params));
+        // SPOT
+        // {
+        //     "id":"8834234273",
+        //     "text": "3",
+        //     "create_time": "1635406193",
+        //     "update_time": "1635406193",
+        //     "create_time_ms": 1635406193361,
+        //     "update_time_ms": 1635406193361,
+        //     "status": "closed",
+        //     "currency_pair": "BTC_USDT",
+        //     "type": "limit",
+        //     "account": "spot",
+        //     "side": "sell",
+        //     "amount": "0.0002",
+        //     "price": "58904.01",
+        //     "time_in_force":"gtc",
+        //     "iceberg": "0",
+        //     "left": "0.0000",
+        //     "fill_price": "11.790516",
+        //     "filled_total": "11.790516",
+        //     "fee": "0.023581032",
+        //     "fee_currency": "USDT",
+        //     "point_fee": "0",
+        //     "gt_fee": "0",
+        //     "gt_discount": false,
+        //     "rebated_fee_currency": "BTC"
+        // }
+        // Perpetual Swap
+        // {
+        //     "status": "finished",
+        //     "size":-1,
+        //     "left":0,
+        //     "id":82750739203,
+        //     "is_liq":false,
+        //     "is_close":false,
+        //     "contract": "BTC_USDT",
+        //     "text": "web",
+        //     "fill_price": "60721.3",
+        //     "finish_as": "filled",
+        //     "iceberg":0,
+        //     "tif": "ioc",
+        //     "is_reduce_only":true,
+        //     "create_time": 1635403475.412,
+        //     "finish_time": 1635403475.4127,
+        //     "price": "0"
+        // }
         return this.parseOrders (response, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol parameter');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'order_id': id,
-            'currency_pair': market['id'],
         };
-        const response = await this.privateSpotDeleteOrdersOrderId (this.extend (request, params));
-        return this.parseOrder (response);
+        if (market['contract']) {
+            request['settle'] = market['settleId'];
+        } else {
+            request['currency_pair'] = market['id'];
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'privateSpotDeleteOrdersOrderId',
+            'margin': 'privateSpotDeleteOrdersOrderId',
+            'swap': 'privateFuturesDeleteSettleOrdersOrderId',
+            'futures': 'privateDeliveryDeleteSettleOrdersOrderId',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "id":"95282841887",
+        //         "text":"apiv4",
+        //         "create_time":"1637383156",
+        //         "update_time":"1637383235",
+        //         "create_time_ms":1637383156017,
+        //         "update_time_ms":1637383235085,
+        //         "status":"cancelled",
+        //         "currency_pair":"ETH_USDT",
+        //         "type":"limit",
+        //         "account":"spot",
+        //         "side":"buy",
+        //         "amount":"0.01",
+        //         "price":"3500",
+        //         "time_in_force":"gtc",
+        //         "iceberg":"0",
+        //         "left":"0.01",
+        //         "fill_price":"0",
+        //         "filled_total":"0",
+        //         "fee":"0",
+        //         "fee_currency":"ETH",
+        //         "point_fee":"0",
+        //         "gt_fee":"0",
+        //         "gt_discount":false,
+        //         "rebated_fee":"0",
+        //         "rebated_fee_currency":"USDT"
+        //     }
+        //
+        // spot conditional
+        //
+        //     {
+        //         "market":"ETH_USDT",
+        //         "user":2436035,
+        //         "trigger":{
+        //             "price":"3500",
+        //             "rule":"\u003c=",
+        //             "expiration":86400
+        //         },
+        //         "put":{
+        //             "type":"limit",
+        //             "side":"buy",
+        //             "price":"3500",
+        //             "amount":"0.01000000000000000000",
+        //             "account":"normal",
+        //             "time_in_force":"gtc"
+        //         },
+        //         "id":5891843,
+        //         "ctime":1637382379,
+        //         "ftime":1637382673,
+        //         "status":"canceled"
+        //     }
+        //
+        // perpetual swaps
+        //
+        //     {
+        //         id: "82241928192",
+        //         contract: "BTC_USDT",
+        //         mkfr: "0",
+        //         tkfr: "0.0005",
+        //         tif: "gtc",
+        //         is_reduce_only: false,
+        //         create_time: "1635196145.06",
+        //         finish_time: "1635196233.396",
+        //         price: "61000",
+        //         size: "4",
+        //         refr: "0",
+        //         left: "4",
+        //         text: "web",
+        //         fill_price: "0",
+        //         user: "6693577",
+        //         finish_as: "cancelled",
+        //         status: "finished",
+        //         is_liq: false,
+        //         refu: "0",
+        //         is_close: false,
+        //         iceberg: "0",
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        return await this.privateSpotDeleteOrders (this.extend (request, params));
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -2258,34 +2780,225 @@ module.exports = class gateio extends Exchange {
         };
     }
 
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((leverage < 0) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const method = this.getSupportedMapping (market['type'], {
+            'swap': 'privateFuturesPostSettlePositionsContractLeverage',
+            'futures': 'privateDeliveryPostSettlePositionsContractLeverage',
+        });
+        const request = this.prepareRequest (market);
+        request['query'] = {
+            'leverage': leverage.toString (),
+        };
+        if ('cross_leverage_limit' in params) {
+            if (leverage !== 0) {
+                throw new BadRequest (this.id + ' cross margin leverage(valid only when leverage is 0)');
+            }
+            request['cross_leverage_limit'] = params['cross_leverage_limit'].toString ();
+            params = this.omit (params, 'cross_leverage_limit');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "value":"0",
+        //         "leverage":"5",
+        //         "mode":"single",
+        //         "realised_point":"0",
+        //         "contract":"BTC_USDT",
+        //         "entry_price":"0",
+        //         "mark_price":"62035.86",
+        //         "history_point":"0",
+        //         "realised_pnl":"0",
+        //         "close_order":null,
+        //         "size":0,
+        //         "cross_leverage_limit":"0",
+        //         "pending_orders":0,
+        //         "adl_ranking":6,
+        //         "maintenance_rate":"0.005",
+        //         "unrealised_pnl":"0",
+        //         "user":2436035,
+        //         "leverage_max":"100",
+        //         "history_pnl":"0",
+        //         "risk_limit":"1000000",
+        //         "margin":"0",
+        //         "last_close_pnl":"0",
+        //         "liq_price":"0"
+        //     }
+        //
+        return response;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         value: "12.475572",
+        //         leverage: "0",
+        //         mode: "single",
+        //         realised_point: "0",
+        //         contract: "BTC_USDT",
+        //         entry_price: "62422.6",
+        //         mark_price: "62377.86",
+        //         history_point: "0",
+        //         realised_pnl: "-0.00624226",
+        //         close_order:  null,
+        //         size: "2",
+        //         cross_leverage_limit: "25",
+        //         pending_orders: "0",
+        //         adl_ranking: "5",
+        //         maintenance_rate: "0.005",
+        //         unrealised_pnl: "-0.008948",
+        //         user: "663337",
+        //         leverage_max: "100",
+        //         history_pnl: "14.98868396636",
+        //         risk_limit: "1000000",
+        //         margin: "0.740721495056",
+        //         last_close_pnl: "-0.041996015",
+        //         liq_price: "59058.58"
+        //     }
+        //
+        const contract = this.safeValue (position, 'contract');
+        market = this.safeMarket (contract, market);
+        const now = this.milliseconds ();
+        const size = this.safeString (position, 'size');
+        let side = undefined;
+        if (size > 0) {
+            side = 'buy';
+        } else if (size < 0) {
+            side = 'sell';
+        }
+        const maintenanceRate = this.safeString (position, 'maintenance_rate');
+        const notional = this.safeString (position, 'value');
+        const initialMargin = this.safeString (position, 'margin');
+        // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
+        const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMargin, notional)),
+            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
+            'entryPrice': this.safeNumber (position, 'entry_price'),
+            'notional': this.parseNumber (notional),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            //     realisedPnl: position['realised_pnl'],
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liq_price'),
+            'markPrice': this.safeNumber (position, 'mark_price'),
+            'collateral': undefined,
+            'marginType': undefined,
+            'side': side,
+            'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
+        };
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        // :param symbols: Not used by Gateio
+        // :param params:
+        //    settle: The currency that derivative contracts are settled in
+        //    Other exchange specific params
+        //
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'swap');
+        const type = this.safeString (params, 'type', defaultType);
+        const method = this.getSupportedMapping (type, {
+            'swap': 'privateFuturesGetSettlePositions',
+            'futures': 'privateDeliveryGetSettlePositions',
+        });
+        const defaultSettle = type === 'swap' ? 'usdt' : 'btc';
+        const settle = this.safeString (params, 'settle', defaultSettle);
+        const request = {
+            'settle': settle,
+        };
+        const response = await this[method] (request);
+        //
+        //     [
+        //         {
+        //             value: "12.475572",
+        //             leverage: "0",
+        //             mode: "single",
+        //             realised_point: "0",
+        //             contract: "BTC_USDT",
+        //             entry_price: "62422.6",
+        //             mark_price: "62377.86",
+        //             history_point: "0",
+        //             realised_pnl: "-0.00624226",
+        //             close_order:  null,
+        //             size: "2",
+        //             cross_leverage_limit: "25",
+        //             pending_orders: "0",
+        //             adl_ranking: "5",
+        //             maintenance_rate: "0.005",
+        //             unrealised_pnl: "-0.008948",
+        //             user: "6693577",
+        //             leverage_max: "100",
+        //             history_pnl: "14.98868396636",
+        //             risk_limit: "1000000",
+        //             margin: "0.740721495056",
+        //             last_close_pnl: "-0.041996015",
+        //             liq_price: "59058.58"
+        //         }
+        //     ]
+        //
+        const result = this.parsePositions (response);
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, futures, delivery
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '' ? '' : '/' + path);
         const entirePath = '/' + type + endPart;
         let url = this.urls['api'][authentication] + entirePath;
-        let queryString = '';
         if (authentication === 'public') {
-            queryString = this.urlencode (query);
             if (Object.keys (query).length) {
-                url += '?' + queryString;
+                url += '?' + this.urlencode (query);
             }
         } else {
+            let queryString = '';
             if ((method === 'GET') || (method === 'DELETE')) {
-                queryString = this.urlencode (query);
                 if (Object.keys (query).length) {
+                    queryString = this.urlencode (query);
                     url += '?' + queryString;
                 }
             } else {
+                const urlQueryParams = this.safeValue (query, 'query', {});
+                if (Object.keys (urlQueryParams).length) {
+                    queryString = this.urlencode (urlQueryParams);
+                    url += '?' + queryString;
+                }
+                query = this.omit (query, 'query');
                 body = this.json (query);
             }
             const bodyPayload = (body === undefined) ? '' : body;
             const bodySignature = this.hash (this.encode (bodyPayload), 'sha512');
             const timestamp = this.seconds ();
             const timestampString = timestamp.toString ();
-            const signaturePath = '/api/v4' + entirePath;
+            const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join ("\n");
@@ -2301,11 +3014,21 @@ module.exports = class gateio extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        //
+        //     {"label":"ORDER_NOT_FOUND","message":"Order not found"}
+        //     {"label":"INVALID_PARAM_VALUE","message":"invalid argument: status"}
+        //     {"label":"INVALID_PARAM_VALUE","message":"invalid argument: Trigger.rule"}
+        //     {"label":"INVALID_PARAM_VALUE","message":"invalid argument: trigger.expiration invalid range"}
+        //     {"label":"INVALID_ARGUMENT","detail":"invalid size"}
+        //
         const label = this.safeString (response, 'label');
         if (label !== undefined) {
-            const message = this.safeString2 (response, 'message', 'detail', '');
-            const Error = this.safeValue (this.exceptions, label, ExchangeError);
-            throw new Error (this.id + ' ' + message);
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], label, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };

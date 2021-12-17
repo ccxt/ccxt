@@ -12,7 +12,6 @@ install:
   - set PATH=%PATH:C:\Python27;=%
   - set PATH=%PATH:C:\Python27\Scripts;=%
   - echo %PATH%
-  - dir C:\
   - npm install
   - python --version
   - pip --version
@@ -24,12 +23,13 @@ install:
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
-  - cd c:\tools\php80
+  - cd c:\tools\php81
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
   - echo extension_dir=ext >> php.ini
   - echo extension=php_curl.dll >> php.ini
   - echo extension=php_mbstring.dll >> php.ini
+  - echo extension=php_gmp.dll >> php.ini
   - cd %APPVEYOR_BUILD_FOLDER%
 matrix:
   fast_finish: true

@@ -2,13 +2,9 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = (exchange, market, method) => {
 
@@ -47,8 +43,11 @@ module.exports = (exchange, market, method) => {
         //---------------------------------------------------------------------
     }
 
-    expect (market).to.deep.include.all.keys (format)
-    expect (market).to.not.have.key ('lot')
+    const keys = Object.keys (format)
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i]
+        assert (key in market)
+    }
 
     // assert ((market['baseId'] === undefined) || (typeof market['baseId'] === 'string'))
     // assert ((market['quoteId'] === undefined) || (typeof market['quoteId'] === 'string'))
@@ -62,6 +61,4 @@ module.exports = (exchange, market, method) => {
     // expect (market['limits']['amount']['min']).to.not.be.undefined
     // expect (market['limits']['price']['min']).to.not.be.undefined
     // expect (market['limits']['cost']['min']).to.not.be.undefined
-
-    // log (market)
 }

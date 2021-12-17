@@ -55,13 +55,11 @@ class idex extends Exchange {
             ),
             'urls' => array(
                 'test' => array(
-                    'public' => 'https://api-sandbox.idex.io',
-                    'private' => 'https://api-sandbox.idex.io',
+                    'MATIC' => 'https://api-sandbox-matic.idex.io',
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api' => array(
-                    'ETH' => 'https://api-eth.idex.io',
-                    'BSC' => 'https://api-bsc.idex.io',
+                    'MATIC' => 'https://api-matic.idex.io',
                 ),
                 'www' => 'https://idex.io',
                 'doc' => array(
@@ -107,7 +105,7 @@ class idex extends Exchange {
             'options' => array(
                 'defaultTimeInForce' => 'gtc',
                 'defaultSelfTradePrevention' => 'cn',
-                'network' => 'ETH', // also supports BSC
+                'network' => 'MATIC',
             ),
             'exceptions' => array(
                 'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
@@ -735,12 +733,12 @@ class idex extends Exchange {
         // fetchClosedOrders / fetchOpenOrders
         // array(
         //   {
-        //     "$market" => "DIL-ETH",
+        //     "market" => "DIL-ETH",
         //     "orderId" => "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
         //     "wallet" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
         //     "time" => 1598873478650,
         //     "status" => "filled",
-        //     "type" => "$limit",
+        //     "type" => "limit",
         //     "side" => "buy",
         //     "originalQuantity" => "0.40000000",
         //     "executedQuantity" => "0.40000000",
@@ -814,22 +812,22 @@ class idex extends Exchange {
     public function parse_order($order, $market = null) {
         //
         //     {
-        //         "$market" => "DIL-ETH",
+        //         "market" => "DIL-ETH",
         //         "orderId" => "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
         //         "wallet" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
         //         "time" => 1598873478650,
-        //         "$status" => "$filled",
-        //         "$type" => "limit",
-        //         "$side" => "buy",
+        //         "status" => "filled",
+        //         "type" => "limit",
+        //         "side" => "buy",
         //         "originalQuantity" => "0.40000000",
         //         "executedQuantity" => "0.40000000",
         //         "cumulativeQuoteQuantity" => "0.03962396",
         //         "avgExecutionPrice" => "0.09905990",
-        //         "$price" => "1.00000000",
-        //         "$fills" => array(
+        //         "price" => "1.00000000",
+        //         "fills" => array(
         //             {
         //             "fillId" => "48582d10-b9bb-3c4b-94d3-e67537cf2472",
-        //             "$price" => "0.09905990",
+        //             "price" => "0.09905990",
         //             "quantity" => "0.40000000",
         //             "quoteQuantity" => "0.03962396",
         //             "time" => 1598873478650,

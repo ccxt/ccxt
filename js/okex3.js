@@ -24,7 +24,7 @@ module.exports = class okex3 extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': undefined, // see below
+                'fetchCurrencies': true, // see below
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchLedger': true,
@@ -687,6 +687,7 @@ module.exports = class okex3 extends Exchange {
                     'rate': 'public',
                     '{instrument_id}/constituents': 'public',
                 },
+                'warnOnFetchCurrenciesWithoutAuthorization': false,
             },
             'commonCurrencies': {
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
@@ -696,6 +697,7 @@ module.exports = class okex3 extends Exchange {
                 'HSR': 'HC',
                 'MAG': 'Maggie',
                 'SBTC': 'Super Bitcoin',
+                'TRADE': 'Unitrade',
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
@@ -978,53 +980,59 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        // has['fetchCurrencies'] is currently set to false
         // despite that their docs say these endpoints are public:
         //     https://www.okex.com/api/account/v3/withdrawal/fee
         //     https://www.okex.com/api/account/v3/currencies
         // it will still reply with { "code":30001, "message": "OK-ACCESS-KEY header is required" }
         // if you attempt to access it without authentication
-        const response = await this.accountGetCurrencies (params);
-        //
-        //     [
-        //         {
-        //             name: '',
-        //             currency: 'BTC',
-        //             can_withdraw: '1',
-        //             can_deposit: '1',
-        //             min_withdrawal: '0.0100000000000000'
-        //         },
-        //     ]
-        //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'currency');
-            const code = this.safeCurrencyCode (id);
-            const precision = 0.00000001; // default precision, todo: fix "magic constants"
-            const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeInteger (currency, 'can_deposit');
-            const canWithdraw = this.safeInteger (currency, 'can_withdraw');
-            const active = (canDeposit && canWithdraw) ? true : false;
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': undefined,
-                'name': name,
-                'active': active,
-                'fee': undefined, // todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': {
-                        'min': this.safeNumber (currency, 'min_withdrawal'),
-                        'max': undefined,
+        if (!this.checkRequiredCredentials (false)) {
+            if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
+                throw new ExchangeError (this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
+            }
+            return undefined;
+        } else {
+            const response = await this.accountGetCurrencies (params);
+            //
+            //     [
+            //         {
+            //             name: '',
+            //             currency: 'BTC',
+            //             can_withdraw: '1',
+            //             can_deposit: '1',
+            //             min_withdrawal: '0.0100000000000000'
+            //         },
+            //     ]
+            //
+            const result = {};
+            for (let i = 0; i < response.length; i++) {
+                const currency = response[i];
+                const id = this.safeString (currency, 'currency');
+                const code = this.safeCurrencyCode (id);
+                const precision = 0.00000001; // default precision, todo: fix "magic constants"
+                const name = this.safeString (currency, 'name');
+                const canDeposit = this.safeInteger (currency, 'can_deposit');
+                const canWithdraw = this.safeInteger (currency, 'can_withdraw');
+                const active = (canDeposit && canWithdraw) ? true : false;
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': currency,
+                    'type': undefined,
+                    'name': name,
+                    'active': active,
+                    'fee': undefined, // todo: redesign
+                    'precision': precision,
+                    'limits': {
+                        'amount': { 'min': undefined, 'max': undefined },
+                        'withdraw': {
+                            'min': this.safeNumber (currency, 'min_withdrawal'),
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
+            return result;
         }
-        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -2168,28 +2176,28 @@ module.exports = class okex3 extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let amount = this.safeNumber (order, 'size');
-        const filled = this.safeNumber2 (order, 'filled_size', 'filled_qty');
+        let amount = this.safeString (order, 'size');
+        const filled = this.safeString2 (order, 'filled_size', 'filled_qty');
         let remaining = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
-                amount = Math.max (amount, filled);
-                remaining = Math.max (0, amount - filled);
+                amount = Precise.stringMax (amount, filled);
+                remaining = Precise.stringMax ('0', Precise.stringSub (amount, filled));
             }
         }
         if (type === 'market') {
-            remaining = 0;
+            remaining = '0';
         }
-        let cost = this.safeNumber2 (order, 'filled_notional', 'funds');
-        const price = this.safeNumber (order, 'price');
-        let average = this.safeNumber (order, 'price_avg');
+        let cost = this.safeString2 (order, 'filled_notional', 'funds');
+        const price = this.safeString (order, 'price');
+        let average = this.safeString (order, 'price_avg');
         if (cost === undefined) {
             if (filled !== undefined && average !== undefined) {
-                cost = average * filled;
+                cost = Precise.stringMul (average, filled);
             }
         } else {
-            if ((average === undefined) && (filled !== undefined) && (filled > 0)) {
-                average = cost / filled;
+            if ((average === undefined) && (filled !== undefined) && Precise.stringGt (filled, '0')) {
+                average = Precise.stringDiv (cost, filled);
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -2207,7 +2215,7 @@ module.exports = class okex3 extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumber (order, 'trigger_price');
-        return {
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2229,7 +2237,7 @@ module.exports = class okex3 extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -3274,8 +3282,8 @@ module.exports = class okex3 extends Exchange {
             const market = this.market (code); // we intentionally put a market inside here for the margin and swap ledgers
             const marketInfo = this.safeValue (market, 'info', {});
             const settlementCurrencyId = this.safeString (marketInfo, 'settlement_currency');
-            const settlementCurrencyСode = this.safeCurrencyCode (settlementCurrencyId);
-            currency = this.currency (settlementCurrencyСode);
+            const settlementCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
+            currency = this.currency (settlementCurrencyCode);
             const underlyingId = this.safeString (marketInfo, 'underlying');
             request['underlying'] = underlyingId;
         } else if ((type === 'margin') || (type === 'swap')) {

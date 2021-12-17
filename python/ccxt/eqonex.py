@@ -505,21 +505,18 @@ class eqonex(Exchange):
             type = self.parse_order_type(self.safe_string(trade, 'ordType'))
             priceString = self.safe_string(trade, 'lastPx')
             amountString = self.safe_string(trade, 'qty')
-            feeCost = self.safe_number(trade, 'commission')
-            if feeCost is not None:
-                feeCost = -feeCost
+            feeCostString = self.safe_string(trade, 'commission')
+            if feeCostString is not None:
+                feeCostString = Precise.string_neg(feeCostString)
                 feeCurrencyId = self.safe_string(trade, 'commCurrency')
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
                 }
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        cost = self.parse_number(Precise.string_mul(amountString, priceString))
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -529,11 +526,11 @@ class eqonex(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -1248,28 +1245,29 @@ class eqonex(Exchange):
         lastTradeTimestamp = None
         priceString = self.safe_string(order, 'price')
         priceScale = self.safe_integer(order, 'price_scale')
-        price = self.parse_number(self.convert_from_scale(priceString, priceScale))
+        priceString = self.convert_from_scale(priceString, priceScale)
         amountString = self.safe_string(order, 'quantity')
         amountScale = self.safe_integer(order, 'quantity_scale')
-        amount = self.parse_number(self.convert_from_scale(amountString, amountScale))
+        amountString = self.convert_from_scale(amountString, amountScale)
         filledString = self.safe_string(order, 'cumQty')
         filledScale = self.safe_integer(order, 'cumQty_scale')
-        filled = self.parse_number(self.convert_from_scale(filledString, filledScale))
+        filledString = self.convert_from_scale(filledString, filledScale)
         remainingString = self.safe_string(order, 'leavesQty')
         remainingScale = self.safe_integer(order, 'leavesQty_scale')
-        remaining = self.parse_number(self.convert_from_scale(remainingString, remainingScale))
+        remainingString = self.convert_from_scale(remainingString, remainingScale)
         fee = None
         currencyId = self.safe_integer(order, 'feeInstrumentId')
         feeCurrencyCode = self.safe_currency_code(currencyId)
+        feeCostString = None
         feeCost = self.safe_string(order, 'feeTotal')
         feeScale = self.safe_integer(order, 'fee_scale')
         if feeCost is not None:
             feeCost = Precise.string_neg(feeCost)
-            feeCost = self.parse_number(self.convert_from_scale(feeCost, feeScale))
+            feeCostString = self.convert_from_scale(feeCost, feeScale)
         if feeCost is not None:
             fee = {
                 'currency': feeCurrencyCode,
-                'cost': feeCost,
+                'cost': feeCostString,
                 'rate': None,
             }
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
@@ -1277,7 +1275,7 @@ class eqonex(Exchange):
             timeInForce = None
         stopPriceScale = self.safe_integer(order, 'stopPx_scale', 0)
         stopPrice = self.parse_number(self.convert_from_scale(self.safe_string(order, 'stopPx'), stopPriceScale))
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1289,17 +1287,17 @@ class eqonex(Exchange):
             'timeInForce': timeInForce,
             'postOnly': None,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amount,
+            'amount': amountString,
             'cost': None,
             'average': None,
-            'filled': filled,
-            'remaining': remaining,
+            'filled': filledString,
+            'remaining': remainingString,
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def parse_order_status(self, status):
         statuses = {

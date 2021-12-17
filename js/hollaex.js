@@ -808,11 +808,11 @@ module.exports = class hollaex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'size');
-        const filled = this.safeNumber (order, 'filled');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'filled');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -834,7 +834,7 @@ module.exports = class hollaex extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
 
 class bit2c extends Exchange {
 
@@ -290,8 +289,8 @@ class bit2c extends Exchange {
 
     public function parse_order($order, $market = null) {
         $timestamp = $this->safe_integer($order, 'created');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -304,7 +303,7 @@ class bit2c extends Exchange {
         }
         $id = $this->safe_string($order, 'id');
         $status = $this->safe_string($order, 'status');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -326,7 +325,7 @@ class bit2c extends Exchange {
             'fee' => null,
             'info' => $order,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -338,8 +337,8 @@ class bit2c extends Exchange {
         }
         $request['take'] = $limit;
         if ($since !== null) {
-            $request['toTime'] = $this->ymd($this->milliseconds(), '.');
-            $request['fromTime'] = $this->ymd($since, '.');
+            $request['toTime'] = $this->yyyymmdd($this->milliseconds(), '.');
+            $request['fromTime'] = $this->yyyymmdd($since, '.');
         }
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -352,16 +351,16 @@ class bit2c extends Exchange {
     public function parse_trade($trade, $market = null) {
         $timestamp = null;
         $id = null;
-        $priceString = null;
-        $amountString = null;
+        $price = null;
+        $amount = null;
         $orderId = null;
-        $feeCost = null;
+        $fee = null;
         $side = null;
         $reference = $this->safe_string($trade, 'reference');
         if ($reference !== null) {
             $timestamp = $this->safe_timestamp($trade, 'ticks');
-            $priceString = $this->safe_string($trade, 'price');
-            $amountString = $this->safe_string($trade, 'firstAmount');
+            $price = $this->safe_string($trade, 'price');
+            $amount = $this->safe_string($trade, 'firstAmount');
             $reference_parts = explode('|', $reference); // $reference contains 'pair|$orderId|tradeId'
             if ($market === null) {
                 $marketId = $this->safe_string($trade, 'pair');
@@ -379,12 +378,18 @@ class bit2c extends Exchange {
             } else if ($side === 1) {
                 $side = 'sell';
             }
-            $feeCost = $this->safe_number($trade, 'feeAmount');
+            $feeCost = $this->safe_string($trade, 'feeAmount');
+            if ($feeCost !== null) {
+                $fee = array(
+                    'cost' => $feeCost,
+                    'currency' => 'NIS',
+                );
+            }
         } else {
             $timestamp = $this->safe_timestamp($trade, 'date');
             $id = $this->safe_string($trade, 'tid');
-            $priceString = $this->safe_string($trade, 'price');
-            $amountString = $this->safe_string($trade, 'amount');
+            $price = $this->safe_string($trade, 'price');
+            $amount = $this->safe_string($trade, 'amount');
             $side = $this->safe_value($trade, 'isBid');
             if ($side !== null) {
                 if ($side) {
@@ -398,10 +403,7 @@ class bit2c extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -413,13 +415,9 @@ class bit2c extends Exchange {
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
-            'fee' => array(
-                'cost' => $feeCost,
-                'currency' => 'NIS',
-                'rate' => null,
-            ),
-        );
+            'cost' => null,
+            'fee' => $fee,
+        ), $market);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -455,8 +453,8 @@ class bit2c extends Exchange {
             return; // fallback to default $error handler
         }
         //
-        //     array( "$error" : "please approve new terms of use on site." )
-        //     array( "$error" => "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490).")
+        //     array( "error" : "please approve new terms of use on site." )
+        //     array( "error" => "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490).")
         //
         $error = $this->safe_string($response, 'error');
         if ($error !== null) {

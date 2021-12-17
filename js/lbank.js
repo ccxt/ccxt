@@ -435,15 +435,15 @@ module.exports = class lbank extends Exchange {
         const timestamp = this.safeInteger (order, 'create_time');
         // Limit Order Request Returns: Order Price
         // Market Order Returns: cny amount of market order
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount', 0.0);
-        const filled = this.safeNumber (order, 'deal_amount', 0.0);
-        const average = this.safeNumber (order, 'avg_price');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
+        const filled = this.safeString (order, 'deal_amount');
+        const average = this.safeString (order, 'avg_price');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'order_id');
         const type = this.safeString (order, 'order_type');
         const side = this.safeString (order, 'type');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -465,7 +465,7 @@ module.exports = class lbank extends Exchange {
             'fee': undefined,
             'info': this.safeValue (order, 'info', order),
             'average': average,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

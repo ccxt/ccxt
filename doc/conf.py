@@ -145,7 +145,7 @@ htmlhelp_basename = 'ccxtdoc'
 # important: keep blank line after ".. raw:: html"
 # by putting these scripts at the top of the file they execute straight away after they load
 rst_prolog = """
-:github_url: https://ccxt.trade
+:github_url: https://ccxt.com
 .. raw:: html
 
    <script>

@@ -127,7 +127,7 @@ class whitebit extends Exchange {
         //     {
         //         "success":true,
         //         "message":"",
-        //         "$result":array(
+        //         "result":array(
         //             {
         //                 "name":"BTC_USD",
         //                 "moneyPrec":"2",
@@ -194,13 +194,13 @@ class whitebit extends Exchange {
         //     {
         //         "success":true,
         //         "message":"",
-        //         "$result":{
+        //         "result":{
         //             "BTC":{
-        //                 "$id":"4f37bc79-f612-4a63-9a81-d37f7f9ff622",
+        //                 "id":"4f37bc79-f612-4a63-9a81-d37f7f9ff622",
         //                 "lastUpdateTimestamp":"2019-10-12T04:40:05.000Z",
-        //                 "$name":"Bitcoin",
-        //                 "$canWithdraw":true,
-        //                 "$canDeposit":true,
+        //                 "name":"Bitcoin",
+        //                 "canWithdraw":true,
+        //                 "canDeposit":true,
         //                 "minWithdrawal":"0.001",
         //                 "maxWithdrawal":"0",
         //                 "makerFee":"0.1",
@@ -291,25 +291,25 @@ class whitebit extends Exchange {
         //         "open":"0.02182",
         //         "high":"0.022039",
         //         "low":"0.02161",
-        //         "$last":"0.021987",
+        //         "last":"0.021987",
         //         "volume":"2810.267",
         //         "deal":"61.383565474",
-        //         "$change":"0.76",
+        //         "change":"0.76",
         //     }
         //
         // fetchTickers v1
         //
         //     {
         //         "at":1571022144,
-        //         "$ticker" => {
+        //         "ticker" => {
         //             "bid":"0.022024",
         //             "ask":"0.022042",
         //             "low":"0.02161",
         //             "high":"0.022062",
-        //             "$last":"0.022036",
+        //             "last":"0.022036",
         //             "vol":"2813.503",
         //             "deal":"61.457279261",
-        //             "$change":"0.95"
+        //             "change":"0.95"
         //         }
         //     }
         //
@@ -356,10 +356,10 @@ class whitebit extends Exchange {
         //     {
         //         "success":true,
         //         "message":"",
-        //         "$result" => {
+        //         "result" => {
         //             "ETH_BTC" => array(
         //                 "at":1571022144,
-        //                 "$ticker" => array(
+        //                 "ticker" => array(
         //                     "bid":"0.022024",
         //                     "ask":"0.022042",
         //                     "low":"0.02161",
@@ -400,7 +400,7 @@ class whitebit extends Exchange {
         //     {
         //         "success":true,
         //         "message":"",
-        //         "$result":{
+        //         "result":{
         //             "lastUpdateTimestamp":"2019-10-14T03:15:47.000Z",
         //             "asks":[
         //                 ["0.02204","2.03"],
@@ -435,7 +435,7 @@ class whitebit extends Exchange {
         //     {
         //         "success":true,
         //         "message":"",
-        //         "$result":array(
+        //         "result":array(
         //             {
         //                 "id":11887426,
         //                 "type":"buy",
@@ -464,7 +464,7 @@ class whitebit extends Exchange {
         //     {
         //         "success":true,
         //         "message":"",
-        //         "$result" => array(
+        //         "result" => array(
         //             array(
         //                 "tradeId":11903347,
         //                 "price":"0.022044",
@@ -489,21 +489,21 @@ class whitebit extends Exchange {
         // fetchTradesV1
         //
         //     {
-        //         "$id":11887426,
+        //         "id":11887426,
         //         "type":"buy",
         //         "time":1571023057.413769,
-        //         "$amount":"0.171",
-        //         "$price":"0.022052"
+        //         "amount":"0.171",
+        //         "price":"0.022052"
         //     }
         //
         // fetchTradesV2
         //
         //     {
         //         "tradeId":11903347,
-        //         "$price":"0.022044",
+        //         "price":"0.022044",
         //         "volume":"0.029",
         //         "time":"2019-10-14T06:30:57.000Z",
-        //         "$isBuyerMaker":false
+        //         "isBuyerMaker":false
         //     }
         //
         $timestamp = $this->safe_value($trade, 'time');
@@ -571,7 +571,7 @@ class whitebit extends Exchange {
         //     {
         //         "success":true,
         //         "message":"",
-        //         "$result":[
+        //         "result":[
         //             [1591488000,"0.025025","0.025025","0.025029","0.025023","6.181","0.154686629"],
         //             [1591488060,"0.025028","0.025033","0.025035","0.025026","8.067","0.201921167"],
         //             [1591488120,"0.025034","0.02505","0.02505","0.025034","20.089","0.503114696"],

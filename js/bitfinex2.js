@@ -337,6 +337,14 @@ module.exports = class bitfinex2 extends bitfinex {
         return 'f' + code;
     }
 
+    getCurrencyName (code) {
+        // temporary fix for transpiler recognition, even though this is in parent class
+        if (code in this.options['currencyNames']) {
+            return this.options['currencyNames'][code];
+        }
+        throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
+    }
+
     async fetchStatus (params = {}) {
         //
         //    [1] // operative
@@ -971,6 +979,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
             'INSUFFICIENT': 'canceled',
+            'POSTONLY': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         };
@@ -1029,7 +1038,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1037,12 +1046,29 @@ module.exports = class bitfinex2 extends bitfinex {
         const market = this.market (symbol);
         const orderTypes = this.safeValue (this.options, 'orderTypes', {});
         const orderType = this.safeStringUpper (orderTypes, type, type);
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        params = this.omit (params, [ 'postOnly' ]);
         amount = (side === 'sell') ? -amount : amount;
         const request = {
-            'symbol': market['id'],
+            // 'gid': 0123456789, // int32,  optional group id for the order
+            // 'cid': 0123456789, // int32 client order id
             'type': orderType,
+            'symbol': market['id'],
+            // 'price': this.numberToString (price),
             'amount': this.numberToString (amount),
+            // 'flags': 0, // int32, https://docs.bitfinex.com/v2/docs/flag-values
+            // 'lev': 10, // the value should be between 1 and 100 inclusive, optional, 10 by default
+            // 'price_trailing': this.numberToString (priceTrailing),
+            // 'price_aux_limit': this.numberToString (stopPrice),
+            // 'price_oco_stop': this.numberToString (ocoStopPrice),
+            // 'tif': '2020-01-01 10:45:23', // datetime for automatic order cancellation
+            // 'meta': {
+            //     'aff_code': 'AFF_CODE_HERE'
+            // },
         };
+        if (postOnly) {
+            request['flags'] = 4096;
+        }
         if ((orderType === 'LIMIT') || (orderType === 'EXCHANGE LIMIT')) {
             request['price'] = this.numberToString (price);
         } else if ((orderType === 'STOP') || (orderType === 'EXCHANGE STOP')) {
