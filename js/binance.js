@@ -2757,6 +2757,17 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = this.safeString (params, 'type', market['type']);
+        params = this.omit (params, 'type');
+        let method = undefined;
+        if (type !== 'spot') {
+            throw new NotSupported (this.id + ' fetchOrderTrades() supports spot markets only');
+        }
         const request = {
             'orderId': id,
         };
@@ -2769,8 +2780,7 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, 'type');
         let method = undefined;
         if (type === 'spot') {
