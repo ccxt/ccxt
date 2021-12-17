@@ -992,7 +992,7 @@ class Exchange {
 
     public function check_address($address) {
         if (empty($address) || !is_string($address)) {
-            throw new InvalidAddress($this->id . ' address is undefined');
+            throw new InvalidAddress($this->id . ' address is null');
         }
 
         if ((count(array_unique(str_split($address))) === 1) ||
