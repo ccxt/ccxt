@@ -220,6 +220,7 @@ module.exports = class Exchange {
             'precisionMode': DECIMAL_PLACES,
             'paddingMode': NO_PADDING,
             'limits': {
+                'leverage': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },

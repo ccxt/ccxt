@@ -1091,6 +1091,10 @@ class Exchange {
                 'min' => null,
                 'max' => null,
             ),
+            'leverage' => array(
+                'min' => null,
+                'max' => null,
+            ),
         );
         $this->httpExceptions = array(
             '422' => 'ExchangeError',
