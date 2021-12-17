@@ -554,6 +554,7 @@ module.exports = class bitfinex2 extends bitfinex {
             const fid = 'f' + id;
             result[code] = {
                 'id': fid,
+                'uppercaseId': id,
                 'code': code,
                 'info': [ id, label, pool, feeValues, undl ],
                 'type': type,
@@ -1491,7 +1492,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let method = 'privatePostAuthRMovementsHist';
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['code'].toUpper ();
+            request['currency'] = currency['uppercaseId'];
             method = 'privatePostAuthRMovementsCurrencyHist';
         }
         if (since !== undefined) {
