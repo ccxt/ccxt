@@ -779,7 +779,7 @@ module.exports = class whitebit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'orderId': id,
+            'orderId': parseInt (id),
         };
         return await this.v4PrivatePostOrderCancel (this.extend (request, params));
     }
