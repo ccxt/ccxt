@@ -275,7 +275,7 @@ class Exchange(object):
         'fetchBidsAsks': None,
         'fetchBorrowRate': None,
         'fetchBorrowRateHistory': None,
-        'fetchBorrowRatePerSymbol': None,
+        'fetchBorrowRatesPerSymbol': None,
         'fetchBorrowRates': None,
         'fetchCanceledOrders': None,
         'fetchClosedOrder': None,

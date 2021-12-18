@@ -1179,7 +1179,7 @@ class Exchange {
             'fetchBidsAsks' => null,
             'fetchBorrowRate' => null,
             'fetchBorrowRateHistory' => null,
-            'fetchBorrowRatePerSymbol' => null,
+            'fetchBorrowRatesPerSymbol' => null,
             'fetchBorrowRates' => null,
             'fetchCanceledOrders' => null,
             'fetchClosedOrder' => null,
