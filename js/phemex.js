@@ -1924,15 +1924,14 @@ module.exports = class phemex extends Exchange {
     }
 
     async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
-        // https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotAmendOrder
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
         }
         if (type !== undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() does not support changing the order type. Cancel and recreate the order if you need to change the order type');
+            throw new ArgumentsRequired (this.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order for that purpose');
         }
         if (side !== undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() does not support changing the order side. Cancel and recreate order if you need to change the order side');
+            throw new ArgumentsRequired (this.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order for that purpose');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1951,15 +1950,21 @@ module.exports = class phemex extends Exchange {
         if (finalPrice !== undefined) {
             request['priceEp'] = this.priceToPrecision (symbol, finalPrice);
         } else if (price !== undefined) {
-            request['priceEp'] = this.priceToPrecision (symbol, price * Math.pow (10, market['valueScale']));
+            request['priceEp'] = this.toEp (price, market);
         }
-        const finalQty = this.safeString (params, 'baseQtyEV');
-        params = this.omit (params, [ 'baseQtyEV' ]);
+        const finalQty = this.safeString2 (params, 'baseQtyEv', 'baseQtyEV');
+        params = this.omit (params, [ 'baseQtyEv', 'baseQtyEV' ]);
+        // Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment.
         if (finalQty !== undefined) {
             request['baseQtyEV'] = this.amountToPrecision (symbol, finalQty);
         } else if (amount !== undefined) {
-            request['baseQtyEV'] = this.amountToPrecision (symbol, amount * Math.pow (10, market['valueScale']));
+            request['baseQtyEV'] = this.toEv (amount, market);
         }
+        const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPxEp'] = this.toEp (stopPrice, market);
+        }
+        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
         const method = market['spot'] ? 'privatePutSpotOrders' : 'privatePutOrdersReplace';
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
