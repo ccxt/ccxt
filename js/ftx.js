@@ -547,7 +547,8 @@ module.exports = class ftx extends Exchange {
             const swap = (perpetual === true);
             const option = false;
             const isFuture = contract && !swap;
-            let expiry = this.safeString (future, 'expiry');
+            let expiry = undefined;
+            const expiryDatetime = this.safeString (future, 'expiry');
             let type = 'spot';
             let symbol = base + '/' + quote;
             if (swap) {
@@ -555,8 +556,8 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote + ':' + settle;
             } else if (isFuture) {
                 type = 'future';
-                expiry = this.yyyymmdd (this.parse8601 (expiry), '');
-                symbol = base + '/' + quote + ':' + settle + '-' + expiry;
+                expiry = this.parse8601 (expiryDatetime);
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             // check if a market is a spot or future market
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
@@ -586,6 +587,7 @@ module.exports = class ftx extends Exchange {
                 'maker': this.safeNumber (fees, 'maker'),
                 'contractSize': 1,
                 'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
                 'fees': fees,
