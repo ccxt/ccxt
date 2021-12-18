@@ -549,24 +549,18 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 50, maximum = 10000
-        }
-        const response = await this.v2PublicGetTradesMarket (this.extend (request, params));
+        const response = await this.v4PublicGetTradesMarket (this.extend (request, params));
         //
+        // [
         //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result": [
-        //             {
-        //                 "tradeId":11903347,
-        //                 "price":"0.022044",
-        //                 "volume":"0.029",
-        //                 "time":"2019-10-14T06:30:57.000Z",
-        //                 "isBuyerMaker":false
-        //             },
-        //         ],
-        //     }
+        //       "tradeID": 158056419,             // A unique ID associated with the trade for the currency pair transaction Note: Unix timestamp does not qualify as trade_id.
+        //       "price": "9186.13",               // Transaction price in quote pair volume.
+        //       "quote_volume": "0.0021",         // Transaction amount in quote pair volume.
+        //       "base_volume": "9186.13",         // Transaction amount in base pair volume.
+        //       "trade_timestamp": 1594391747,    // Unix timestamp in milliseconds, identifies when the transaction occurred.
+        //       "type": "sell"                    // Used to determine whether or not the transaction originated as a buy or sell. Buy – Identifies an ask that was removed from the order book. Sell – Identifies a bid that was removed from the order book.
+        //     },
+        // ],
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
@@ -578,6 +572,15 @@ module.exports = class whitebit extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        // fetchTradesV4
+        //     {
+        //       "tradeID": 158056419,             // A unique ID associated with the trade for the currency pair transaction Note: Unix timestamp does not qualify as trade_id.
+        //       "price": "9186.13",               // Transaction price in quote pair volume.
+        //       "quote_volume": "0.0021",         // Transaction amount in quote pair volume.
+        //       "base_volume": "9186.13",         // Transaction amount in base pair volume.
+        //       "trade_timestamp": 1594391747,    // Unix timestamp in milliseconds, identifies when the transaction occurred.
+        //       "type": "sell"                    // Used to determine whether or not the transaction originated as a buy or sell. Buy – Identifies an ask that was removed from the order book. Sell – Identifies a bid that was removed from the order book.
+        //     },
         //
         // fetchTradesV1
         //
@@ -617,11 +620,17 @@ module.exports = class whitebit extends Exchange {
         } else {
             timestamp = parseInt (timestamp * 1000);
         }
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (trade, 'trade_timestamp');
+        }
         const orderId = this.safeString (trade, 'dealOrderId');
         const cost = this.safeString (trade, 'deal');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'amount', 'volume');
-        const id = this.safeString2 (trade, 'id', 'tradeId');
+        let id = this.safeString2 (trade, 'id', 'tradeId');
+        if (id === undefined) {
+            id = this.safeString (trade, 'tradeID');
+        }
         let side = this.safeString (trade, 'type');
         if (side === undefined) {
             const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
