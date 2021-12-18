@@ -562,8 +562,7 @@ module.exports = class whitebit extends Exchange {
         //     },
         // ],
         //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -626,7 +625,10 @@ module.exports = class whitebit extends Exchange {
         const orderId = this.safeString (trade, 'dealOrderId');
         const cost = this.safeString (trade, 'deal');
         const price = this.safeString (trade, 'price');
-        const amount = this.safeString2 (trade, 'amount', 'volume');
+        let amount = this.safeString2 (trade, 'amount', 'volume');
+        if (amount === undefined) {
+            amount = this.safeString (trade, 'base_volume');
+        }
         let id = this.safeString2 (trade, 'id', 'tradeId');
         if (id === undefined) {
             id = this.safeString (trade, 'tradeID');
