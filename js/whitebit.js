@@ -852,9 +852,9 @@ module.exports = class whitebit extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const market = undefined;
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             request['market'] = market['id'];
         }
         if (limit !== undefined) {
