@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\NotSupported;
@@ -1368,7 +1369,12 @@ class coinbasepro extends Exchange {
                 }
             }
             $what = $nonce . $method . $request . $payload;
-            $secret = base64_decode($this->secret);
+            $secret = null;
+            try {
+                $secret = base64_decode($this->secret);
+            } catch (Exception $e) {
+                throw new AuthenticationError($this->id . ' sign() invalid base64 secret');
+            }
             $signature = $this->hmac($this->encode($what), $secret, 'sha256', 'base64');
             $headers = array(
                 'CB-ACCESS-KEY' => $this->apiKey,

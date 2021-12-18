@@ -26,6 +26,7 @@ class phemex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRates' => false,
@@ -1921,6 +1922,50 @@ class phemex extends Exchange {
         //         }
         //     }
         //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order($data, $market);
+    }
+
+    public function edit_order($id, $symbol, $type = null, $side = null, $amount = null, $price = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
+        }
+        if ($type !== null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() $type changing is not implemented. Try to cancel & recreate order for that purpose');
+        }
+        if ($side !== null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() $side changing is not implemented. Try to cancel & recreate order for that purpose');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdID');
+        $params = $this->omit($params, array( 'clientOrderId', 'clOrdID' ));
+        if ($clientOrderId !== null) {
+            $request['clOrdID'] = $clientOrderId;
+        } else {
+            $request['orderID'] = $id;
+        }
+        if ($price !== null) {
+            $request['priceEp'] = $this->to_ep($price, $market);
+        }
+        // Note the uppercase 'V' in 'baseQtyEV' $request-> that is exchange's requirement at this moment. However, to avoid mistakes from user $side, let's support lowercased 'baseQtyEv' too
+        $finalQty = $this->safe_string($params, 'baseQtyEv');
+        $params = $this->omit($params, array( 'baseQtyEv' ));
+        if ($finalQty !== null) {
+            $request['baseQtyEV'] = $finalQty;
+        } else if ($amount !== null) {
+            $request['baseQtyEV'] = $this->to_ev($amount, $market);
+        }
+        $stopPrice = $this->safe_string_2($params, 'stopPx', 'stopPrice');
+        if ($stopPrice !== null) {
+            $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
+        }
+        $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
+        $method = $market['spot'] ? 'privatePutSpotOrders' : 'privatePutOrdersReplace';
+        $response = $this->$method (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_order($data, $market);
     }
