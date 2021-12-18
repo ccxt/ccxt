@@ -474,7 +474,10 @@ module.exports = class ftx extends Exchange {
         //         volumeUsd24h: "2892083192.6099"
         //     }
         //
-        const allFuturesResponse = await this.publicGetFutures ();
+        let allFuturesResponse = undefined;
+        if (this.id !== 'ftxus') {
+            allFuturesResponse = await this.publicGetFutures ();
+        }
         //
         //    {
         //        success: true,
@@ -519,7 +522,7 @@ module.exports = class ftx extends Exchange {
         //
         const result = [];
         const markets = this.safeValue (response, 'result', []);
-        const allFutures = this.safeValue (allFuturesResponse, 'result');
+        const allFutures = this.safeValue (allFuturesResponse, 'result', []);
         const allFuturesDict = {};
         for (let i = 0; i < allFutures.length; i++) {
             const futureDict = allFutures[i];
