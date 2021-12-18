@@ -278,48 +278,47 @@ module.exports = class hitbtc3 extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetPublicSymbol (params);
         //
-        // SPOT
+        //     {
+        //         "AAVEUSDT_PERP":{
+        //             "type":"futures",
+        //             "expiry":null,
+        //             "underlying":"AAVE",
+        //             "base_currency":null,
+        //             "quote_currency":"USDT",
+        //             "quantity_increment":"0.01",
+        //             "tick_size":"0.001",
+        //             "take_rate":"0.0005",
+        //             "make_rate":"0.0002",
+        //             "fee_currency":"USDT",
+        //             "margin_trading":true,
+        //             "max_initial_leverage":"50.00"
+        //         },
+        //         "MANAUSDT":{
+        //             "type":"spot",
+        //             "base_currency":"MANA",
+        //             "quote_currency":"USDT",
+        //             "quantity_increment":"1",
+        //             "tick_size":"0.0000001",
+        //             "take_rate":"0.0025",
+        //             "make_rate":"0.001",
+        //             "fee_currency":"USDT",
+        //             "margin_trading":true,
+        //             "max_initial_leverage":"5.00"
+        //         },
+        //     }
         //
-        //    "ENJUSDT": {
-        //        "type": "spot",
-        //        "base_currency": "ENJ",
-        //        "quote_currency": "USDT",
-        //        "quantity_increment": "1",
-        //        "tick_size": "0.0000001",
-        //        "take_rate": "0.0025",
-        //        "make_rate": "0.001",
-        //        "fee_currency": "USDT",
-        //        "margin_trading": true,
-        //        "max_initial_leverage": "10.00"
-        //    },
-        //
-        // FUTURES
-        //
-        //    "EOSUSDT_PERP": {
-        //        "type": "futures",
-        //        "expiry": null,
-        //        "underlying": "EOS",
-        //        "base_currency": null,
-        //        "quote_currency": "USDT",
-        //        "quantity_increment": "0.1",
-        //        "tick_size": "0.00001",
-        //        "take_rate": "0.0005",
-        //        "make_rate": "0.0002",
-        //        "fee_currency": "USDT",
-        //        "margin_trading": true,
-        //        "max_initial_leverage": "50.00"
-        //    }
         const result = [];
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeValue (response, id);
-            const hitbtcType = this.safeString (market, 'type');
+            const marketType = this.safeString (market, 'type');
             const expiry = this.safeInteger (market, 'expiry');
-            const contract = (hitbtcType === 'futures');
+            const contract = (marketType === 'futures');
             const derivative = contract;
-            const spot = (hitbtcType === 'spot');
-            const margin = spot && (this.safeValue (market, 'margin_trading') === true);
+            const spot = (marketType === 'spot');
+            const marginTrading = this.safeValue (market, 'margin_trading', false);
+            const margin = spot && marginTrading;
             const future = (expiry !== undefined);
             const swap = (contract && !future);
             const option = false;
@@ -370,7 +369,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'margin': margin,
                 'swap': swap,
                 'future': future,
-                'futures': future,  // Deprecated, use future instead
+                'futures': future, // deprecated, use future instead
                 'option': option,
                 'derivative': derivative,
                 'contract': contract,
