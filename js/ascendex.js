@@ -497,24 +497,18 @@ module.exports = class ascendex extends Exchange {
             const active = (status === 'Normal');
             const type = ('useLot' in market) ? 'spot' : 'swap';
             const spot = (type === 'spot');
-            const perpetual = (type === 'swap');
+            const swap = (type === 'swap');
+            const future = (type === 'future');
             const margin = this.safeValue (market, 'marginTradable', false);
-            let contract = false;
-            if (margin || perpetual === true) {
-                contract = true;
-            }
-            let linear = false;
-            if (perpetual) {
-                linear = true;
-            }
+            const contract = swap || future;
+            const derivative = contract;
+            const linear = contract ? true : undefined;
             let minQty = this.safeNumber (market, 'minQty');
             let maxQty = this.safeNumber (market, 'maxQty');
             let minPrice = this.safeNumber (market, 'tickSize');
             let maxPrice = undefined;
-            let symbol = id;
-            if (!perpetual) {
-                symbol = base + '/' + quote;
-            } else {
+            let symbol = base + '/' + quote;
+            if (contract) {
                 const lotSizeFilter = this.safeValue (market, 'lotSizeFilter');
                 minQty = this.safeNumber (lotSizeFilter, 'minQty');
                 maxQty = this.safeNumber (lotSizeFilter, 'maxQty');
@@ -542,14 +536,14 @@ module.exports = class ascendex extends Exchange {
                 'type': type,
                 'spot': spot,
                 'margin': margin,
-                'swap': perpetual,
+                'swap': swap,
                 'future': false,
                 'option': false,
                 'active': active,
-                'derivative': contract,
+                'derivative': derivative,
                 'contract': contract,
                 'linear': linear,
-                'inverse': undefined,
+                'inverse': contract ? !linear : undefined,
                 'taker': fee,
                 'maker': fee,
                 'contractSize': undefined,
@@ -573,8 +567,8 @@ module.exports = class ascendex extends Exchange {
                         'max': maxPrice,
                     },
                     'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'minNotional'),
+                        'max': this.safeNumber (market, 'maxNotional'),
                     },
                 },
                 'info': market,
