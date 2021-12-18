@@ -2688,8 +2688,8 @@ To get a list of all available methods with an exchange instance, including impl
 .. code-block:: text
 
    console.log (new ccxt.kraken ())   // JavaScript
-   print(dir(ccxt.hitbtc()))           # Python
-   var_dump (new \ccxt\okcoinusd ()); // PHP
+   print(dir(ccxt.kraken()))           # Python
+   var_dump (new \ccxt\kraken ()); // PHP
 
 Public/Private API
 ------------------
@@ -2709,10 +2709,7 @@ Public APIs include the following:
  * OHLCV series for charting
  * other public endpoints
 
-For trading with private API you need to obtain API keys from/to exchanges. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well.
-
-If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
-
+The private API is mostly used for trading and for accessing account-specific private data, therefore it requires authentication. You have to get the private API keys from the exchanges. It often means registering with an exchange website and creating the API keys for your account. Most exchanges require personal information or identification. Some exchanges will only allow trading after completing the KYC verification.
 Private APIs allow the following:
 
 
@@ -2736,8 +2733,8 @@ To get a list of all available methods with an exchange instance, you can simply
 .. code-block:: text
 
    console.log (new ccxt.kraken ())   // JavaScript
-   print(dir(ccxt.hitbtc()))           # Python
-   var_dump (new \ccxt\okcoinusd ()); // PHP
+   print(dir(ccxt.kraken()))           # Python
+   var_dump (new \ccxt\kraken ()); // PHP
 
 Synchronous vs Asynchronous Calls
 ---------------------------------
