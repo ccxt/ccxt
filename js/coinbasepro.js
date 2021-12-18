@@ -1295,19 +1295,20 @@ module.exports = class coinbasepro extends Exchange {
                 }
             }
             const what = nonce + method + request + payload;
+            let secret = undefined;
             try {
-                const secret = this.base64ToBinary (this.secret);
-                const signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
-                headers = {
-                    'CB-ACCESS-KEY': this.apiKey,
-                    'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': nonce,
-                    'CB-ACCESS-PASSPHRASE': this.password,
-                    'Content-Type': 'application/json',
-                };
+                secret = this.base64ToBinary (this.secret);
             } catch (e) {
-                throw new AuthenticationError ('Invalid secret');
+                throw new AuthenticationError (this.id + ' sign() invalid secret');
             }
+            const signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
+            headers = {
+                'CB-ACCESS-KEY': this.apiKey,
+                'CB-ACCESS-SIGN': signature,
+                'CB-ACCESS-TIMESTAMP': nonce,
+                'CB-ACCESS-PASSPHRASE': this.password,
+                'Content-Type': 'application/json',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
