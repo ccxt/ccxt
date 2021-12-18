@@ -356,7 +356,6 @@ module.exports = class hitbtc3 extends Exchange {
             const step = this.parseNumber (stepString);
             const taker = this.safeNumber (market, 'take_rate');
             const maker = this.safeNumber (market, 'make_rate');
-            const fees = this.safeValue (this.fees, 'trading');
             result.push ({
                 'id': id,
                 'symbol': symbol,
