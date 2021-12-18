@@ -431,30 +431,6 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        // const futures = await this.v1PublicGetFuturesContracts (params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "symbol":"BTC-PERP",
-        //                 "tradingStartTime":1579701600000,
-        //                 "collapseDecimals":"1,0.1,0.01",
-        //                 "minQty":"0.000000001",
-        //                 "maxQty":"1000000000",
-        //                 "minNotional":"5",
-        //                 "maxNotional":"1000000",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "tickSize":"0.25",
-        //                 "lotSize":"0.0001",
-        //                 "priceScale":2,
-        //                 "qtyScale":4,
-        //                 "notionalScale":2
-        //             }
-        //         ]
-        //     }
-        //
         const futures = await this.v2PublicGetFuturesContract (params);
         //
         // {
