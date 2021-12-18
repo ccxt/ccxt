@@ -392,16 +392,19 @@ module.exports = class kucoinfutures extends kucoin {
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
-            const expireDate = this.safeString (market, 'expireDate');
-            const futures = expireDate ? true : false;
+            const expiry = this.safeInteger (market, 'expireDate');
+            const futures = expiry ? true : false;
             const swap = !futures;
-            const base = this.safeString (market, 'baseCurrency');
-            const quote = this.safeString (market, 'quoteCurrency');
-            const settle = this.safeString (market, 'settleCurrency');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const settleId = this.safeString (market, 'settleCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
             if (futures) {
-                symbol = base + '/' + quote + ':' + settle + '-' + expireDate;
+                symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'futures';
             }
             const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
@@ -414,35 +417,18 @@ module.exports = class kucoinfutures extends kucoin {
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             const amount = this.safeString (market, 'baseIncrement');
             const price = this.safeString (market, 'priceIncrement');
-            const precision = {
-                'amount': amount ? this.precisionFromString (this.safeString (market, 'baseIncrement')) : undefined,
-                'price': price ? this.precisionFromString (this.safeString (market, 'priceIncrement')) : undefined,
-            };
-            const limits = {
-                'amount': {
-                    'min': baseMinSize,
-                    'max': baseMaxSize,
-                },
-                'price': {
-                    'min': this.safeNumber (market, 'priceIncrement'),
-                    'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
-                },
-                'cost': {
-                    'min': quoteMinSize,
-                    'max': quoteMaxSize,
-                },
-                'leverage': {
-                    'max': this.safeNumber (market, 'maxLeverage', 1),
-                },
-            };
+            const fees = this.safeValue (this.fees, 'trading');
+            const taker = this.safeNumber (market, 'takerFeeRate');
+            const maker = this.safeNumber (market, 'makerFeeRate');
             result.push ({
                 'id': id,
                 'symbol': symbol,
-                'baseId': base,
-                'quoteId': quote,
-                'settleId': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'type': type,
                 'spot': false,
                 'margin': false,
@@ -450,18 +436,46 @@ module.exports = class kucoinfutures extends kucoin {
                 'futures': futures,
                 'option': false,
                 'active': true,
-                'maker': this.safeNumber (market, 'makerFeeRate'),
-                'taker': this.safeNumber (market, 'takerFeeRate'),
-                'precision': precision,
-                'contract': swap,
+                'derivative': true,
+                'contract': true,
                 'linear': inverse !== true,
                 'inverse': inverse,
-                'expiry': this.parseNumber (expireDate),
+                'taker': taker,
+                'maker': maker,
                 'contractSize': this.parseNumber (Precise.stringAbs (this.safeString (market, 'multiplier'))),
-                'limits': limits,
+                'expiry': this.parseNumber (expiry),
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'fees': {
+                    'taker': taker,
+                    'maker': maker,
+                    'tierBased': this.safeValue (fees, 'tierBased'),
+                    'percentage': this.safeValue (fees, 'percentage'),
+                },
+                'precision': {
+                    'amount': amount ? this.precisionFromString (amount) : undefined,
+                    'price': price ? this.precisionFromString (price) : undefined,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (market, 'maxLeverage', 1),
+                    },
+                    'amount': {
+                        'min': baseMinSize,
+                        'max': baseMaxSize,
+                    },
+                    'price': {
+                        'min': price,
+                        'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
+                    },
+                    'cost': {
+                        'min': quoteMinSize,
+                        'max': quoteMaxSize,
+                    },
+                },
                 'info': market,
-                // Fee is in %, so divide by 100
-                'fees': this.safeValue (this.fees, 'type', {}),
             });
         }
         return result;
