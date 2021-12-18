@@ -4971,24 +4971,21 @@ module.exports = class binance extends Exchange {
         };
         if (since !== undefined) {
             request['startTime'] = since;
-            const sinceString = since.toString ();
-            const limitString = Precise.stringSub (limit.toString (), '1');
-            const timeSinceStart = Precise.stringMul (limitString, '86400000');
-            const endTime = Precise.stringAdd (sinceString, timeSinceStart);    // Is required when startTime pre-dates today - 93 days
-            const now = this.milliseconds ().toString ();
-            request['endTime'] = parseInt (Precise.stringMin (endTime, now));   // Cannot have an endTime later than current time
+            const interval = limit * 86400000;
+            const endTime = this.sum (since, interval); // required when startTime is further than 93 days in the past
+            const now = this.milliseconds ();
+            request['endTime'] = this.min (endTime, now); // cannot have an endTime later than current time
         }
         const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
         //
-        // [
-        //     {
-        //         "asset": "USDT",
-        //         "timestamp": 1638230400000,
-        //         "dailyInterestRate": "0.0006",
-        //         "vipLevel": 0
-        //     },
-        //     ...
-        // ]
+        //     [
+        //         {
+        //             "asset": "USDT",
+        //             "timestamp": 1638230400000,
+        //             "dailyInterestRate": "0.0006",
+        //             "vipLevel": 0
+        //         },
+        //     ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
