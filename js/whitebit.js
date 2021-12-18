@@ -583,11 +583,9 @@ module.exports = class whitebit extends Exchange {
         //          "role": 2,                      // Role - 1 - maker, 2 - taker
         //          "deal": "0.00419198"            // amount in money
         //       }
-        let timestamp = this.safeValue (trade, 'time');
-        if (typeof timestamp === 'string') {
-            timestamp = this.parse8601 (timestamp);
-        } else {
-            timestamp = parseInt (timestamp * 1000);
+        let timestamp = this.safeTimestamp (trade, 'time');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (trade, 'time'));
         }
         const orderId = this.safeString (trade, 'dealOrderId');
         const cost = this.safeString (trade, 'deal');
@@ -602,7 +600,7 @@ module.exports = class whitebit extends Exchange {
             }
         }
         const symbol = this.safeSymbol (undefined, market);
-        const role = this.safeNumber (trade, 'role');
+        const role = this.safeInteger (trade, 'role');
         let takerOrMaker = undefined;
         if (role !== undefined) {
             takerOrMaker = (role === 1) ? 'maker' : 'taker';
@@ -1060,19 +1058,17 @@ module.exports = class whitebit extends Exchange {
         //         "minAmount": "1"                                                              // min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange
         //     }
         // }
-        let memo = undefined;
-        let address = this.safeValue (response, 'url');
-        if (address === undefined) {
-            const addressField = this.safeValue (response, 'account');
-            address = this.safeValue (addressField, 'address');
-            memo = this.safeValue (addressField, 'memo');
-        }
+        const url = this.safeString (response, 'url');
+        const account = this.safeValue (response, 'account', {});
+        const address = this.safeString (account, 'address', url);
+        const tag = this.safeString (account, 'memo');
+        this.checkAddress (address);
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': memo,
-            'network': this.safeValue (params, 'network'),
+            'tag': tag,
+            'network': undefined,
             'info': response,
         };
     }
