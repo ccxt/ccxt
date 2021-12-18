@@ -25,11 +25,10 @@ async function main () {
         p[c] = (p[c] || 0) + 1
         return p
     }, {})
-    console.log (reduced);
-    process.exit ();
-    const methods = ccxt.unique (ccxt.flatten (metainfo));
-    console.log (methods);
-    process.exit ();
+    const unified = Object.entries (reduced).filter (([ _, count ]) => count > 1)
+    const methods = unified.map (([ method, _ ]) => method).sort ()
+    // console.log (methods);
+    // process.exit ();
 
     const table = asTable (exchanges.map (exchange => {
 
@@ -129,7 +128,7 @@ async function main () {
             'withdraw',
         ]);
 
-        allItems.forEach (methodName => {
+        methods.forEach (methodName => {
 
             total += 1
 
