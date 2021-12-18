@@ -530,7 +530,8 @@ module.exports = class ftx extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'name');
             const future = this.safeValue (allFuturesDict, id);
-            const contract = (this.safeString (market, 'type') === 'future');
+            const ftxType = this.safeString (market, 'type');
+            const contract = (ftxType === 'future');
             const baseId = this.safeString2 (market, 'baseCurrency', 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency', 'USD');
             const settleId = contract ? 'USD' : undefined;
@@ -539,18 +540,20 @@ module.exports = class ftx extends Exchange {
             const settle = this.safeCurrencyCode (settleId);
             const spot = !contract;
             const margin = !contract;
-            const swap = (this.safeString (future, 'perpetual') === 'true');
+            const perpetual = this.safeValue (future, 'perpetual');
+            const swap = (perpetual === true);
             const option = false;
             const isFuture = contract && !swap;
-            const expiry = this.yyyymmdd (this.safeString (future, 'expiry'), '');
+            let expiry = this.safeString (future, 'expiry');
             let type = 'spot';
             let symbol = base + '/' + quote;
             if (swap) {
                 type = 'swap';
-                symbol = base + '/' + quote + ':' + settleId;
-            } else if (contract) {
-                type = 'futures';
-                symbol = base + '/' + quote + ':' + settleId + '-' + expiry;
+                symbol = base + '/' + quote + ':' + settle;
+            } else if (isFuture) {
+                type = 'future';
+                expiry = this.yyyymmdd (this.parse8601 (expiry), '');
+                symbol = base + '/' + quote + ':' + settle + '-' + expiry;
             }
             // check if a market is a spot or future market
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
