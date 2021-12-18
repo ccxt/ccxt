@@ -87,7 +87,6 @@ function initializeAllExchanges () {
         'bitsane',
         'chbtc',
         'coinbasepro',
-        'coinmarketcap',
         'jubi',
         'hitbtc',
         'bitstamp1',

@@ -50,6 +50,7 @@ class binance(Exchange):
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchBorrowRate': True,
+                'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
@@ -4655,3 +4656,44 @@ class binance(Exchange):
             'datetime': self.iso8601(timestamp),
             'info': response,
         }
+
+    async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
+        await self.load_markets()
+        if limit is None:
+            limit = 93
+        elif limit > 93:
+            # Binance API says the limit is 100, but "Illegal characters found in a parameter." is returned when limit is > 93
+            raise BadRequest(self.id + ' fetchBorrowRateHistory limit parameter cannot exceed 92')
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            'limit': limit,
+        }
+        if since is not None:
+            request['startTime'] = since
+            endTime = self.sum(since, limit * 86400000) - 1  # required when startTime is further than 93 days in the past
+            now = self.milliseconds()
+            request['endTime'] = min(endTime, now)  # cannot have an endTime later than current time
+        response = await self.sapiGetMarginInterestRateHistory(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "asset": "USDT",
+        #             "timestamp": 1638230400000,
+        #             "dailyInterestRate": "0.0006",
+        #             "vipLevel": 0
+        #         },
+        #     ]
+        #
+        result = []
+        for i in range(0, len(response)):
+            item = response[i]
+            timestamp = self.safe_number(item, 'timestamp')
+            result.append({
+                'currency': code,
+                'rate': self.safe_number(item, 'dailyInterestRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': item,
+            })
+        return result

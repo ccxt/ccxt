@@ -276,100 +276,137 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const request = {};
-        const response = await this.publicGetPublicSymbol (this.extend (request, params));
-        //
-        // fetches both spot and future markets
+        const response = await this.publicGetPublicSymbol (params);
         //
         //     {
-        //         "ETHBTC": {
-        //             "type": "spot",
-        //             "base_currency": "ETH",
-        //             "quote_currency": "BTC",
-        //             "quantity_increment": "0.001",
-        //             "tick_size": "0.000001",
-        //             "take_rate": "0.001",
-        //             "make_rate": "-0.0001",
-        //             "fee_currency": "BTC",
-        //             "margin_trading": true,
-        //             "max_initial_leverage": "10.00"
-        //         }
+        //         "AAVEUSDT_PERP":{
+        //             "type":"futures",
+        //             "expiry":null,
+        //             "underlying":"AAVE",
+        //             "base_currency":null,
+        //             "quote_currency":"USDT",
+        //             "quantity_increment":"0.01",
+        //             "tick_size":"0.001",
+        //             "take_rate":"0.0005",
+        //             "make_rate":"0.0002",
+        //             "fee_currency":"USDT",
+        //             "margin_trading":true,
+        //             "max_initial_leverage":"50.00"
+        //         },
+        //         "MANAUSDT":{
+        //             "type":"spot",
+        //             "base_currency":"MANA",
+        //             "quote_currency":"USDT",
+        //             "quantity_increment":"1",
+        //             "tick_size":"0.0000001",
+        //             "take_rate":"0.0025",
+        //             "make_rate":"0.001",
+        //             "fee_currency":"USDT",
+        //             "margin_trading":true,
+        //             "max_initial_leverage":"5.00"
+        //         },
         //     }
         //
-        const marketIds = Object.keys (response);
         const result = [];
-        for (let i = 0; i < marketIds.length; i++) {
-            const id = marketIds[i];
-            const entry = response[id];
-            const type = this.safeString (entry, 'type');
-            const spot = (type === 'spot');
-            const futures = (type === 'futures');
-            let baseId = undefined;
-            if (spot) {
-                baseId = this.safeString (entry, 'base_currency');
-            } else if (futures) {
-                baseId = this.safeString (entry, 'underlying');
-            } else {
-                throw new ExchangeError (this.id + ' invalid market type ' + type);
-            }
-            const quoteId = this.safeString (entry, 'quote_currency');
+        const ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const market = this.safeValue (response, id);
+            const marketType = this.safeString (market, 'type');
+            const expiry = this.safeInteger (market, 'expiry');
+            const contract = (marketType === 'futures');
+            const derivative = contract;
+            const spot = (marketType === 'spot');
+            const marginTrading = this.safeValue (market, 'margin_trading', false);
+            const margin = spot && marginTrading;
+            const future = (expiry !== undefined);
+            const swap = (contract && !future);
+            const option = false;
+            const baseId = this.safeString2 (market, 'base_currency', 'underlying');
+            const quoteId = this.safeString (market, 'quote_currency');
+            const feeCurrencyId = this.safeString (market, 'fee_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+            let settleId = undefined;
+            let settle = undefined;
             let symbol = base + '/' + quote;
-            let minLeverage = undefined;
-            if (futures) {
-                symbol = symbol + ':' + quote;
-                minLeverage = this.parseNumber ('1');
+            let type = 'spot';
+            let contractSize = undefined;
+            let linear = undefined;
+            let inverse = undefined;
+            if (contract) {
+                contractSize = 1;
+                settleId = feeCurrencyId;
+                settle = this.safeCurrencyCode (settleId);
+                linear = ((quote !== undefined) && (quote === settle));
+                inverse = !linear;
+                symbol = symbol + ':' + settle;
+                if (future) {
+                    symbol = symbol + '-' + expiry;
+                    type = 'future';
+                } else {
+                    type = 'swap';
+                }
             }
-            const maker = this.safeNumber (entry, 'make_rate');
-            const taker = this.safeNumber (entry, 'take_rate');
-            const feeCurrency = this.safeString (entry, 'fee_currency');
-            const feeSide = (feeCurrency === quoteId) ? 'quote' : 'base';
-            const margin = this.safeValue (entry, 'margin_trading', false);
-            const priceIncrement = this.safeNumber (entry, 'tick_size');
-            const amountIncrement = this.safeNumber (entry, 'quantity_increment');
-            const maxLeverage = this.safeNumber (entry, 'max_initial_leverage');
-            const precision = {
-                'price': priceIncrement,
-                'amount': amountIncrement,
-            };
-            const limits = {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'leverage': {
-                    'min': minLeverage,
-                    'max': maxLeverage,
-                },
-            };
+            const lotString = this.safeString (market, 'quantity_increment');
+            const stepString = this.safeString (market, 'tick_size');
+            const lot = this.parseNumber (lotString);
+            const step = this.parseNumber (stepString);
+            const taker = this.safeNumber (market, 'take_rate');
+            const maker = this.safeNumber (market, 'make_rate');
             result.push ({
-                'info': entry,
-                'symbol': symbol,
                 'id': id,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
                 'spot': spot,
                 'margin': margin,
-                'futures': futures,
-                'type': type,
-                'feeSide': feeSide,
-                'maker': maker,
+                'swap': swap,
+                'future': future,
+                'futures': future, // deprecated, use future instead
+                'option': option,
+                'derivative': derivative,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': taker,
-                'precision': precision,
-                'limits': limits,
-                'expiry': undefined,
+                'maker': maker,
+                'contractSize': contractSize,
+                'active': true,
+                'expiry': expiry,
                 'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'feeCurrency': feeCurrency,
+                'precision': {
+                    'price': lot,
+                    'amount': step,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': 1,
+                        'max': this.safeNumber (market, 'max_initial_leverage', 1),
+                    },
+                    'amount': {
+                        'min': lot,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': step,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.parseNumber (Precise.stringMul (lotString, stepString)),
+                        'max': undefined,
+                    },
+                },
+                'info': market,
             });
         }
         return result;

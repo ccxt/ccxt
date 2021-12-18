@@ -142,9 +142,6 @@ module.exports = class bibox extends Exchange {
                 'REVO': 'Revo Network',
                 'TERN': 'Ternio-ERC20',
             },
-            'options': {
-                'fetchCurrencies': 'fetchCurrenciesPrivate', // or 'fetchCurrenciesPrivate' with apiKey and secret
-            },
         });
     }
 
@@ -453,8 +450,11 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const method = this.safeString (this.options, 'fetchCurrencies', 'fetchCurrenciesPublic');
-        return await this[method] (params);
+        if (this.checkRequiredCredentials (false)) {
+            return await this.fetchCurrenciesPrivate (params);
+        } else {
+            return await this.fetchCurrenciesPublic (params);
+        }
     }
 
     async fetchCurrenciesPublic (params = {}) {
@@ -517,7 +517,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrenciesPrivate (params = {}) {
-        if (!this.apiKey || !this.secret) {
+        if (!this.checkRequiredCredentials (false)) {
             throw new AuthenticationError (this.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
         }
         const request = {

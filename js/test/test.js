@@ -99,22 +99,14 @@ if (settings && settings.skip) {
 
 async function testSymbol (exchange, symbol) {
 
-    if (exchange.id !== 'coinmarketcap') {
-        await tests['loadMarkets'] (exchange)
-        await tests['fetchCurrencies'] (exchange)
-    }
-
+    await tests['loadMarkets'] (exchange)
+    await tests['fetchCurrencies'] (exchange)
     await tests['fetchTicker']  (exchange, symbol)
     await tests['fetchTickers'] (exchange, symbol)
     await tests['fetchOHLCV']   (exchange, symbol)
     await tests['fetchTrades']  (exchange, symbol)
 
-    if (exchange.id === 'coinmarketcap') {
-
-        console.log (await exchange.fetchTickers ())
-        console.log (await exchange.fetchGlobal  ())
-
-    } else if (exchange.id === 'coinbase') {
+    if (exchange.id === 'coinbase') {
 
         // nothing for now
 

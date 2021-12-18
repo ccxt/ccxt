@@ -39,6 +39,7 @@ class bittrex extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,

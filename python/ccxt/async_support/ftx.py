@@ -64,6 +64,7 @@ class ftx(Exchange):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': True,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': True,
                 'fetchClosedOrders': None,
                 'fetchCurrencies': True,
@@ -906,24 +907,21 @@ class ftx(Exchange):
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         side = self.safe_string(trade, 'side')
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': self.safe_number(trade, 'feeRate'),
+                'rate': self.safe_string(trade, 'feeRate'),
             }
         orderId = self.safe_string(trade, 'orderId')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -933,11 +931,11 @@ class ftx(Exchange):
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

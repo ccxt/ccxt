@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.64.15'
+__version__ = '1.64.29'
 
 # -----------------------------------------------------------------------------
 
@@ -52,7 +52,6 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 
 from ccxt.async_support.aax import aax                                    # noqa: F401
-from ccxt.async_support.aofex import aofex                                # noqa: F401
 from ccxt.async_support.ascendex import ascendex                          # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
@@ -99,7 +98,6 @@ from ccxt.async_support.coinbasepro import coinbasepro                    # noqa
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
 from ccxt.async_support.coinex import coinex                              # noqa: F401
 from ccxt.async_support.coinfalcon import coinfalcon                      # noqa: F401
-from ccxt.async_support.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.async_support.coinmate import coinmate                          # noqa: F401
 from ccxt.async_support.coinone import coinone                            # noqa: F401
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
@@ -168,7 +166,6 @@ from ccxt.async_support.zonda import zonda                                # noqa
 
 exchanges = [
     'aax',
-    'aofex',
     'ascendex',
     'bequant',
     'bibox',
@@ -215,7 +212,6 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
-    'coinmarketcap',
     'coinmate',
     'coinone',
     'coinspot',

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.64.15';
+$version = '1.64.29';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.64.15';
+    const VERSION = '1.64.29';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -63,7 +63,6 @@ class Exchange {
 
     public static $exchanges = array(
         'aax',
-        'aofex',
         'ascendex',
         'bequant',
         'bibox',
@@ -110,7 +109,6 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinfalcon',
-        'coinmarketcap',
         'coinmate',
         'coinone',
         'coinspot',
@@ -992,7 +990,7 @@ class Exchange {
 
     public function check_address($address) {
         if (empty($address) || !is_string($address)) {
-            throw new InvalidAddress($this->id . ' address is undefined');
+            throw new InvalidAddress($this->id . ' address is null');
         }
 
         if ((count(array_unique(str_split($address))) === 1) ||
@@ -1091,6 +1089,10 @@ class Exchange {
                 'min' => null,
                 'max' => null,
             ),
+            'leverage' => array(
+                'min' => null,
+                'max' => null,
+            ),
         );
         $this->httpExceptions = array(
             '422' => 'ExchangeError',
@@ -1156,49 +1158,85 @@ class Exchange {
 
         // API methods metainfo
         $this->has = array(
-            'loadMarkets' => true,
-            'cancelAllOrders' => false,
+            'publicAPI' => true,
+            'privateAPI' => true,
+            'margin' => null,
+            'swap' => null,
+            'future' => null,
+            'addMargin' => null,
+            'cancelAllOrders' => null,
             'cancelOrder' => true,
-            'cancelOrders' => false,
-            'CORS' => false,
-            'createDepositAddress' => false,
+            'cancelOrders' => null,
+            'CORS' => null,
+            'createDepositAddress' => null,
             'createLimitOrder' => true,
             'createMarketOrder' => true,
             'createOrder' => true,
-            'deposit' => false,
+            'deposit' => null,
+            'editOrder' => 'emulated',
+            'fetchAccounts' => null,
             'fetchBalance' => true,
-            'fetchBorrowRate' => false,
-            'fetchBorrowRates' => false,
-            'fetchClosedOrders' => false,
+            'fetchBidsAsks' => null,
+            'fetchBorrowRate' => null,
+            'fetchBorrowRateHistory' => null,
+            'fetchBorrowRatePerSymbol' => null,
+            'fetchBorrowRates' => null,
+            'fetchCanceledOrders' => null,
+            'fetchClosedOrder' => null,
+            'fetchClosedOrders' => null,
             'fetchCurrencies' => 'emulated',
-            'fetchDepositAddress' => false,
-            'fetchDeposits' => false,
-            'fetchFundingFees' => false,
+            'fetchDeposit' => null,
+            'fetchDepositAddress' => null,
+            'fetchDepositAddresses' => null,
+            'fetchDeposits' => null,
+            'fetchFees' => null,
+            'fetchFundingFee' => null,
+            'fetchFundingFees' => null,
+            'fetchFundingHistory' => null,
+            'fetchFundingRate' => null,
+            'fetchFundingRateHistory' => null,
+            'fetchFundingRates' => null,
+            'fetchIndexOHLCV' => null,
+            'fetchIsolatedPositions' => null,
             'fetchL2OrderBook' => true,
-            'fetchLedger' => false,
+            'fetchLedger' => null,
+            'fetchLedgerEntry' => null,
             'fetchMarkets' => true,
-            'fetchMyTrades' => false,
+            'fetchMarkOHLCV' => null,
+            'fetchMyTrades' => null,
             'fetchOHLCV' => 'emulated',
-            'fetchOpenOrders' => false,
-            'fetchOrder' => false,
-            'fetchOrderTrades' => false,
+            'fetchOpenOrder' => null,
+            'fetchOpenOrders' => null,
+            'fetchOrder' => null,
             'fetchOrderBook' => true,
-            'fetchOrderBooks' => false,
-            'fetchOrders' => false,
+            'fetchOrderBooks' => null,
+            'fetchOrders' => null,
+            'fetchOrderTrades' => null,
+            'fetchPosition' => null,
+            'fetchPositions' => null,
+            'fetchPositionsRisk' => null,
+            'fetchPremiumIndexOHLCV' => null,
             'fetchStatus' => 'emulated',
             'fetchTicker' => true,
-            'fetchTickers' => false,
-            'fetchTime' => false,
+            'fetchTickers' => null,
+            'fetchTime' => null,
             'fetchTrades' => true,
-            'fetchTradingFee' => false,
-            'fetchTradingFees' => false,
-            'fetchTradingLimits' => false,
-            'fetchTransactions' => false,
-            'fetchWithdrawals' => false,
-            'privateAPI' => true,
-            'publicAPI' => true,
-            'signIn' => false,
-            'withdraw' => false,
+            'fetchTradingFee' => null,
+            'fetchTradingFees' => null,
+            'fetchTradingLimits' => null,
+            'fetchTransactions' => null,
+            'fetchTransfers' => null,
+            'fetchWithdrawal' => null,
+            'fetchWithdrawals' => null,
+            'loadLeverageBrackets' => null,
+            'loadMarkets' => true,
+            'reduceMargin' => null,
+            'setLeverage' => null,
+            'setMarginMode' => null,
+            'setPositionMode' => null,
+            'signIn' => null,
+            'transfer' => null,
+            'withdraw' => null,
         );
 
         $this->precisionMode = DECIMAL_PLACES;
