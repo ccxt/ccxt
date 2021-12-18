@@ -16,7 +16,9 @@ module.exports = class deribit extends Exchange {
             'countries': [ 'NL' ], // Netherlands
             'version': 'v2',
             'userAgent': undefined,
-            'rateLimit': 50, // 20 requests per second for 'non-matching' endpoints; 1000 (ms) / 20 = 50ms between requests; 5 per second for 'matching' cost = (1000/rateLimit) / (5) = 4
+            // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
+            // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
+            'rateLimit': 50, 
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
