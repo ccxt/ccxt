@@ -775,9 +775,6 @@ module.exports = class gateio extends Exchange {
                 const market = response[i];
                 const id = this.safeString (market, 'id');
                 const spot = (type === 'spot');
-                const futures = (type === 'futures');
-                const swap = (type === 'swap');
-                const option = (type === 'option');
                 const [ baseId, quoteId ] = id.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
@@ -789,34 +786,52 @@ module.exports = class gateio extends Exchange {
                 const amountPrecision = this.parseNumber (this.parsePrecision (amountPrecisionString));
                 const pricePrecision = this.parseNumber (this.parsePrecision (pricePrecisionString));
                 const tradeStatus = this.safeString (market, 'trade_status');
+                const taker = this.parseNumber (Precise.stringDiv (takerPercent, '100'));
+                const maker = this.parseNumber (Precise.stringDiv (makerPercent, '100'));
+                const fees = this.safeValue (this.fees, 'trading', {});
                 result.push ({
-                    'info': market,
                     'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'settle': undefined,
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'settleId': undefined,
-                    'base': base,
-                    'quote': quote,
-                    'symbol': symbol,
                     'type': type,
                     'spot': spot,
                     'margin': margin,
-                    'futures': futures,
-                    'swap': swap,
-                    'option': option,
-                    'contract': false,
+                    'swap': false,
+                    'futures': false,
+                    'option': false,
+                    'active': tradeStatus === 'tradable',
                     'derivative': false,
-                    'linear': false,
-                    'inverse': false,
+                    'contract': false,
+                    'linear': undefined,
+                    'inverse': undefined,
                     // Fee is in %, so divide by 100
-                    'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
-                    'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+                    'taker': taker,
+                    'maker': maker,
+                    'contractSize': undefined,
+                    'expiry': undefined,
+                    'expiryDatetime': undefined,
+                    'strike': undefined,
+                    'optionType': undefined,
+                    'fees': {
+                        'taker': taker,
+                        'maker': maker,
+                        'tierBased': this.safeValue (fees, 'tierBased'),
+                        'percentage': this.safeValue (fees, 'percentage'),
+                    },
                     'precision': {
                         'amount': amountPrecision,
                         'price': pricePrecision,
                     },
-                    'active': tradeStatus === 'tradable',
                     'limits': {
+                        'leverage': {
+                            'min': this.parseNumber ('1'),
+                            'max': this.safeNumber (market, 'lever', 1),
+                        },
                         'amount': {
                             'min': amountPrecision,
                             'max': undefined,
@@ -829,10 +844,8 @@ module.exports = class gateio extends Exchange {
                             'min': this.safeNumber (market, 'min_quote_amount'),
                             'max': undefined,
                         },
-                        'leverage': {
-                            'max': this.safeNumber (market, 'lever', 1),
-                        },
                     },
+                    'info': market,
                 });
             }
         }
