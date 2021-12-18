@@ -546,7 +546,7 @@ module.exports = class ascendex extends Exchange {
                 'inverse': contract ? !linear : undefined,
                 'taker': fee,
                 'maker': fee,
-                'contractSize': undefined,
+                'contractSize': 1,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
