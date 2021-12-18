@@ -383,6 +383,8 @@ module.exports = class hitbtc3 extends Exchange {
                 'active': true,
                 'expiry': expiry,
                 'feeCurrency': feeCurrency,
+                'strike': undefined,
+                'optionType': undefined,
                 'fees': {
                     'tierBased': this.safeValue (fees, 'tierBased'),
                     'percentage': this.safeValue (fees, 'percentage'),
