@@ -602,10 +602,6 @@ module.exports = class whitebit extends Exchange {
             }
         }
         const symbol = this.safeSymbol (undefined, market);
-        let quoteId = undefined;
-        if (symbol !== undefined) {
-            quoteId = symbol.split ('/')[1];
-        }
         const role = this.safeNumber (trade, 'role');
         let takerOrMaker = undefined;
         if (role !== undefined) {
@@ -614,9 +610,11 @@ module.exports = class whitebit extends Exchange {
         let fee = undefined;
         const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {
+            const safeMarket = this.safeMarket (undefined, market);
+            const quote = safeMarket['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': quoteId,
+                'currency': quote,
             };
         }
         return this.safeTrade ({
@@ -1083,12 +1081,12 @@ module.exports = class whitebit extends Exchange {
         const currency = this.currency (code); // check if it has canDeposit
         const request = {
             'ticker': currency['id'],
-            'amount': this.numberToString (amount),
+            'amount': this.currencyToPrecision (code, amount),
             'address': address,
         };
-        const uniqueId = this.safeValue (params, 'uniqueId');
+        let uniqueId = this.safeValue (params, 'uniqueId');
         if (uniqueId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId');
+            uniqueId = this.uuid22 ();
         }
         request['uniqueId'] = uniqueId;
         if (tag !== undefined) {
