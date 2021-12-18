@@ -24,6 +24,7 @@ module.exports = class phemex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRates': false,
@@ -1919,6 +1920,50 @@ module.exports = class phemex extends Exchange {
         //         }
         //     }
         //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
+        }
+        if (type !== undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order for that purpose');
+        }
+        if (side !== undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order for that purpose');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdID');
+        params = this.omit (params, [ 'clientOrderId', 'clOrdID' ]);
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+        } else {
+            request['orderID'] = id;
+        }
+        if (price !== undefined) {
+            request['priceEp'] = this.toEp (price, market);
+        }
+        // Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
+        const finalQty = this.safeString (params, 'baseQtyEv');
+        params = this.omit (params, [ 'baseQtyEv' ]);
+        if (finalQty !== undefined) {
+            request['baseQtyEV'] = finalQty;
+        } else if (amount !== undefined) {
+            request['baseQtyEV'] = this.toEv (amount, market);
+        }
+        const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPxEp'] = this.toEp (stopPrice, market);
+        }
+        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        const method = market['spot'] ? 'privatePutSpotOrders' : 'privatePutOrdersReplace';
+        const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
