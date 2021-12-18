@@ -499,9 +499,9 @@ module.exports = class ascendex extends Exchange {
             const spot = (type === 'spot');
             const perpetual = (type === 'swap');
             const margin = this.safeValue (market, 'marginTradable', false);
-            let derivativeContract = false;
+            let contract = false;
             if (margin || perpetual === true) {
-                derivativeContract = true;
+                contract = true;
             }
             let linear = false;
             if (perpetual) {
@@ -543,19 +543,21 @@ module.exports = class ascendex extends Exchange {
                 'spot': spot,
                 'margin': margin,
                 'swap': perpetual,
-                'futures': false,
+                'future': false,
                 'option': false,
-                'derivative': derivativeContract,
-                'contract': derivativeContract,
+                'active': active,
+                'derivative': contract,
+                'contract': contract,
                 'linear': linear,
                 'inverse': undefined,
                 'taker': fee,
                 'maker': fee,
                 'contractSize': undefined,
-                'active': active,
                 'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'fees': undefined,
-                'info': market,
                 'precision': precision,
                 'limits': {
                     'leverage': {
@@ -575,6 +577,7 @@ module.exports = class ascendex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
