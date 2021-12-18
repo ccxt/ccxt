@@ -1264,8 +1264,7 @@ Public APIs include the following:
 - OHLCV series for charting
 - other public endpoints
 
-A private API is mostly used to access account-specific, personal data and require authentication. To use private API you need to obtain API keys from/to exchanges. For that, in most cases, you will need to register with exchanges and create API keys with your account ( CCXT will not create accounts or API keys for you ). Most exchanges require personal info or identification, or sometimes even a verification.
-
+The private API is mostly used for trading and for accessing account-specific private data, therefore it requires authentication. You have to get the private API keys from the exchanges. It often means registering with an exchange website and creating the API keys for your account. Most exchanges require personal information or identification. Some exchanges will only allow trading after completing the KYC verification.
 Private APIs allow the following:
 
 - manage personal account info
