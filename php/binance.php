@@ -38,6 +38,7 @@ class binance extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchBorrowRate' => true,
+                'fetchBorrowRateHistory' => true,
                 'fetchBorrowRates' => false,
                 'fetchClosedOrders' => 'emulated',
                 'fetchCurrencies' => true,
@@ -4959,5 +4960,50 @@ class binance extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $response,
         );
+    }
+
+    public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        if ($limit === null) {
+            $limit = 93;
+        } else if ($limit > 93) {
+            // Binance API says the $limit is 100, but "Illegal characters found in a parameter." is returned when $limit is > 93
+            throw new BadRequest($this->id . ' fetchBorrowRateHistory $limit parameter cannot exceed 92');
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'asset' => $currency['id'],
+            'limit' => $limit,
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+            $endTime = $this->sum($since, $limit * 86400000) - 1; // required when startTime is further than 93 days in the past
+            $now = $this->milliseconds();
+            $request['endTime'] = min ($endTime, $now); // cannot have an $endTime later than current time
+        }
+        $response = $this->sapiGetMarginInterestRateHistory (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             "asset" => "USDT",
+        //             "timestamp" => 1638230400000,
+        //             "dailyInterestRate" => "0.0006",
+        //             "vipLevel" => 0
+        //         ),
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $timestamp = $this->safe_number($item, 'timestamp');
+            $result[] = array(
+                'currency' => $code,
+                'rate' => $this->safe_number($item, 'dailyInterestRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $item,
+            );
+        }
+        return $result;
     }
 }
