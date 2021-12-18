@@ -772,6 +772,9 @@ module.exports = class whitebit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -934,17 +937,17 @@ module.exports = class whitebit extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const side = this.safeString (order, 'side');
-        const filled = this.safeValue (order, 'dealStock');
-        const amount = this.safeValue (order, 'amount');
-        const clientOrderId = this.safeValue (order, 'clientOrderId');
-        const price = this.safeValue (order, 'price');
-        const activationPrice = this.safeValue (order, 'activation_price');
-        let orderId = this.safeValue (order, 'orderId');
+        const filled = this.safeString (order, 'dealStock');
+        const amount = this.safeString (order, 'amount');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const price = this.safeString (order, 'price');
+        const activationPrice = this.safeString (order, 'activation_price');
+        let orderId = this.safeString (order, 'orderId');
         if (orderId === undefined) {
-            orderId = this.safeValue (order, 'id');
+            orderId = this.safeString (order, 'id');
         }
-        const type = this.safeValue (order, 'type');
-        const dealFee = this.safeValue (order, 'dealFee');
+        const type = this.safeString (order, 'type');
+        const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
         if (dealFee !== undefined) {
             let feeCurrencyCode = undefined;
