@@ -171,7 +171,7 @@ module.exports = class whitebit extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchTradesMethod': 'fetchTradesV1',
+                'fetchTradesMethod': 'fetchTradesV4',
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
             },
             'exceptions': {
@@ -515,6 +515,35 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchTradesV2 (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 50, maximum = 10000
+        }
+        const response = await this.v2PublicGetTradesMarket (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result": [
+        //             {
+        //                 "tradeId":11903347,
+        //                 "price":"0.022044",
+        //                 "volume":"0.029",
+        //                 "time":"2019-10-14T06:30:57.000Z",
+        //                 "isBuyerMaker":false
+        //             },
+        //         ],
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTrades (result, market, since, limit);
+    }
+
+    async fetchTradesV4 (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
