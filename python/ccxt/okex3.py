@@ -70,7 +70,7 @@ class okex3(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
-                'futures': True,
+                'future': True,
                 'withdraw': True,
             },
             'timeframes': {
