@@ -468,12 +468,11 @@ module.exports = class deribit extends Exchange {
                 const future = !swap && (type === 'future');
                 const option = (type === 'option');
                 let symbol = quote + '/' + base + ':' + settle;
-                let expiry = undefined;
+                const expiry = this.safeInteger (market, 'expiration_timestamp');
                 let strike = undefined;
                 let optionType = undefined;
                 if (option || future) {
-                    expiry = this.yyyymmdd (this.safeInteger (market, 'expiration_timestamp'), '');
-                    symbol = symbol + '-' + expiry;
+                    symbol = symbol + '-' + this.yymmdd (expiry, '');
                     if (option) {
                         strike = this.safeNumber (market, 'strike');
                         optionType = this.safeString (market, 'option_type');
@@ -506,6 +505,7 @@ module.exports = class deribit extends Exchange {
                     'contractSize': this.safeString (market, 'contract_size'),
                     'active': this.safeValue (market, 'is_active'),
                     'expiry': expiry,
+                    'expiryDatetime': this.iso8601 (expiry),
                     'strike': strike,
                     'optionType': optionType,
                     'fees': this.safeValue (this.fees, 'trading'),
