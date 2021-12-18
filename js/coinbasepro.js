@@ -1299,7 +1299,7 @@ module.exports = class coinbasepro extends Exchange {
             try {
                 secret = this.base64ToBinary (this.secret);
             } catch (e) {
-                throw new AuthenticationError (this.id + ' sign() invalid secret');
+                throw new AuthenticationError (this.id + ' sign() invalid base64 secret');
             }
             const signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
             headers = {
