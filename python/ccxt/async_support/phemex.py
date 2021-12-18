@@ -37,6 +37,7 @@ class phemex(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRates': False,
@@ -1855,6 +1856,42 @@ class phemex(Exchange):
         #         }
         #     }
         #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
+
+    async def edit_order(self, id, symbol, type=None, side=None, amount=None, price=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        if type is not None:
+            raise ArgumentsRequired(self.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order for that purpose')
+        if side is not None:
+            raise ArgumentsRequired(self.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order for that purpose')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdID')
+        params = self.omit(params, ['clientOrderId', 'clOrdID'])
+        if clientOrderId is not None:
+            request['clOrdID'] = clientOrderId
+        else:
+            request['orderID'] = id
+        if price is not None:
+            request['priceEp'] = self.to_ep(price, market)
+        # Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at self moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
+        finalQty = self.safe_string(params, 'baseQtyEv')
+        params = self.omit(params, ['baseQtyEv'])
+        if finalQty is not None:
+            request['baseQtyEV'] = finalQty
+        elif amount is not None:
+            request['baseQtyEV'] = self.to_ev(amount, market)
+        stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
+        if stopPrice is not None:
+            request['stopPxEp'] = self.to_ep(stopPrice, market)
+        params = self.omit(params, ['stopPx', 'stopPrice'])
+        method = 'privatePutSpotOrders' if market['spot'] else 'privatePutOrdersReplace'
+        response = await getattr(self, method)(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
