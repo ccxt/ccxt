@@ -2554,7 +2554,7 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
-            request['start_time'] = Precise.stringDiv (since.toString (), '1000');
+            request['start_time'] = parseInt (since / 1000);
         }
         const response = await this.privateGetSpotMarginBorrowHistory (this.extend (request, params));
         //
