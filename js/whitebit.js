@@ -715,12 +715,12 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'market': market['id'],
             'side': side,
-            'amount': this.numberToString (this.amountToPrecision (symbol, amount)),
+            'amount': this.amountToPrecision (symbol, amount),
         };
         const stopPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
         if (stopPrice !== undefined) {
             // it's a stop order
-            request['activation_price'] = this.numberToString (this.priceToPrecision (symbol, stopPrice));
+            request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
             if (type === 'limit' || type === 'stopLimit') {
                 // it's a stop-limit-order
                 method = 'v4PrivateOPostOrderStopLimit';
@@ -942,10 +942,7 @@ module.exports = class whitebit extends Exchange {
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const price = this.safeString (order, 'price');
         const activationPrice = this.safeString (order, 'activation_price');
-        let orderId = this.safeString (order, 'orderId');
-        if (orderId === undefined) {
-            orderId = this.safeString (order, 'id');
-        }
+        const orderId = this.safeString (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
