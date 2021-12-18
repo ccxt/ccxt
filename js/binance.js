@@ -1534,16 +1534,14 @@ module.exports = class binance extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            const contract = future || delivery;
             const contractType = this.safeString (market, 'contractType');
             const idSymbol = contract && (contractType !== 'PERPETUAL');
             let symbol = undefined;
             let expiry = undefined;
             if (idSymbol) {
-                expiry = this.safeString (market, 'deliveryDate');
-                symbol = base + '/' + quote + ':' + settle + '-' + expiry;
+                expiry = this.safeInteger (market, 'deliveryDate');
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
                 this.oldSymbolMappings[id] = symbol;
-                expiry = parseInt (expiry);
             } else if (contract) { // Already known that it's not delivery
                 symbol = base + '/' + quote + ':' + settle;
                 this.oldSymbolMappings[base + '/' + quote] = symbol;
@@ -1600,10 +1598,10 @@ module.exports = class binance extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'quantityPrecision'),
-                    'price': this.safeInteger (market, 'pricePrecision'),
                     'base': this.safeInteger (market, 'baseAssetPrecision'),
                     'quote': this.safeInteger (market, 'quotePrecision'),
+                    'amount': this.safeInteger (market, 'quantityPrecision'),
+                    'price': this.safeInteger (market, 'pricePrecision'),
                 },
                 'limits': {
                     'leverage': {
