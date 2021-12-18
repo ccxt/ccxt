@@ -294,98 +294,135 @@ class hitbtc3(Exchange):
         return self.milliseconds()
 
     def fetch_markets(self, params={}):
-        request = {}
-        response = self.publicGetPublicSymbol(self.extend(request, params))
-        #
-        # fetches both spot and future markets
+        response = self.publicGetPublicSymbol(params)
         #
         #     {
-        #         "ETHBTC": {
-        #             "type": "spot",
-        #             "base_currency": "ETH",
-        #             "quote_currency": "BTC",
-        #             "quantity_increment": "0.001",
-        #             "tick_size": "0.000001",
-        #             "take_rate": "0.001",
-        #             "make_rate": "-0.0001",
-        #             "fee_currency": "BTC",
-        #             "margin_trading": True,
-        #             "max_initial_leverage": "10.00"
-        #         }
+        #         "AAVEUSDT_PERP":{
+        #             "type":"futures",
+        #             "expiry":null,
+        #             "underlying":"AAVE",
+        #             "base_currency":null,
+        #             "quote_currency":"USDT",
+        #             "quantity_increment":"0.01",
+        #             "tick_size":"0.001",
+        #             "take_rate":"0.0005",
+        #             "make_rate":"0.0002",
+        #             "fee_currency":"USDT",
+        #             "margin_trading":true,
+        #             "max_initial_leverage":"50.00"
+        #         },
+        #         "MANAUSDT":{
+        #             "type":"spot",
+        #             "base_currency":"MANA",
+        #             "quote_currency":"USDT",
+        #             "quantity_increment":"1",
+        #             "tick_size":"0.0000001",
+        #             "take_rate":"0.0025",
+        #             "make_rate":"0.001",
+        #             "fee_currency":"USDT",
+        #             "margin_trading":true,
+        #             "max_initial_leverage":"5.00"
+        #         },
         #     }
         #
-        marketIds = list(response.keys())
         result = []
-        for i in range(0, len(marketIds)):
-            id = marketIds[i]
-            entry = response[id]
-            type = self.safe_string(entry, 'type')
-            spot = (type == 'spot')
-            futures = (type == 'futures')
-            baseId = None
-            if spot:
-                baseId = self.safe_string(entry, 'base_currency')
-            elif futures:
-                baseId = self.safe_string(entry, 'underlying')
-            else:
-                raise ExchangeError(self.id + ' invalid market type ' + type)
-            quoteId = self.safe_string(entry, 'quote_currency')
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            market = self.safe_value(response, id)
+            marketType = self.safe_string(market, 'type')
+            expiry = self.safe_integer(market, 'expiry')
+            contract = (marketType == 'futures')
+            derivative = contract
+            spot = (marketType == 'spot')
+            marginTrading = self.safe_value(market, 'margin_trading', False)
+            margin = spot and marginTrading
+            future = (expiry is not None)
+            swap = (contract and not future)
+            option = False
+            baseId = self.safe_string_2(market, 'base_currency', 'underlying')
+            quoteId = self.safe_string(market, 'quote_currency')
+            feeCurrencyId = self.safe_string(market, 'fee_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
+            settleId = None
+            settle = None
             symbol = base + '/' + quote
-            minLeverage = None
-            if futures:
-                symbol = symbol + ':' + quote
-                minLeverage = self.parse_number('1')
-            maker = self.safe_number(entry, 'make_rate')
-            taker = self.safe_number(entry, 'take_rate')
-            feeCurrency = self.safe_string(entry, 'fee_currency')
-            feeSide = 'quote' if (feeCurrency == quoteId) else 'base'
-            margin = self.safe_value(entry, 'margin_trading', False)
-            priceIncrement = self.safe_number(entry, 'tick_size')
-            amountIncrement = self.safe_number(entry, 'quantity_increment')
-            maxLeverage = self.safe_number(entry, 'max_initial_leverage')
-            precision = {
-                'price': priceIncrement,
-                'amount': amountIncrement,
-            }
-            limits = {
-                'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-                'leverage': {
-                    'min': minLeverage,
-                    'max': maxLeverage,
-                },
-            }
+            type = 'spot'
+            contractSize = None
+            linear = None
+            inverse = None
+            if contract:
+                contractSize = 1
+                settleId = feeCurrencyId
+                settle = self.safe_currency_code(settleId)
+                linear = ((quote is not None) and (quote == settle))
+                inverse = not linear
+                symbol = symbol + ':' + settle
+                if future:
+                    symbol = symbol + '-' + expiry
+                    type = 'future'
+                else:
+                    type = 'swap'
+            lotString = self.safe_string(market, 'quantity_increment')
+            stepString = self.safe_string(market, 'tick_size')
+            lot = self.parse_number(lotString)
+            step = self.parse_number(stepString)
+            taker = self.safe_number(market, 'take_rate')
+            maker = self.safe_number(market, 'make_rate')
             result.append({
-                'info': entry,
-                'symbol': symbol,
                 'id': id,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
                 'spot': spot,
                 'margin': margin,
-                'futures': futures,
-                'type': type,
-                'feeSide': feeSide,
-                'maker': maker,
+                'swap': swap,
+                'future': future,
+                'futures': future,  # deprecated, use future instead
+                'option': option,
+                'derivative': derivative,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': taker,
-                'precision': precision,
-                'limits': limits,
-                'expiry': None,
+                'maker': maker,
+                'contractSize': contractSize,
+                'active': True,
+                'expiry': expiry,
                 'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'feeCurrency': feeCurrency,
+                'precision': {
+                    'price': lot,
+                    'amount': step,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': 1,
+                        'max': self.safe_number(market, 'max_initial_leverage', 1),
+                    },
+                    'amount': {
+                        'min': lot,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': step,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.parse_number(Precise.string_mul(lotString, stepString)),
+                        'max': None,
+                    },
+                },
+                'info': market,
             })
         return result
 
