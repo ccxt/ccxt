@@ -1021,12 +1021,12 @@ module.exports = class whitebit extends Exchange {
         let method = 'v4PrivatePostMainAccountAddress';
         if (this.isFiat (code)) {
             method = 'v4PrivatePostMainAccountFiatDepositUrl';
-            const provider = this.safeNumber2 (params, 'provider');
+            const provider = this.safeNumber (params, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
             }
             request['provider'] = provider;
-            const amount = this.safeNumber2 (params, 'amount');
+            const amount = this.safeNumber (params, 'amount');
             if (amount === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an amount when the ticker is fiat');
             }
