@@ -18,7 +18,7 @@ module.exports = class deribit extends Exchange {
             'userAgent': undefined,
             // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
-            'rateLimit': 50, 
+            'rateLimit': 50,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
