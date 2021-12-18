@@ -940,7 +940,7 @@ module.exports = class whitebit extends Exchange {
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const price = this.safeString (order, 'price');
         const activationPrice = this.safeString (order, 'activation_price');
-        const orderId = this.safeString (order, 'orderId', 'id');
+        const orderId = this.safeString2 (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
@@ -954,7 +954,7 @@ module.exports = class whitebit extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const timestamp = this.safeTimestamp (order, 'ctime', 'timestamp');
+        const timestamp = this.safeTimestamp2 (order, 'ctime', 'timestamp');
         const lastTimestamp = this.safeTimestamp (order, 'ftime');
         return this.safeOrder2 ({
             'info': order,
