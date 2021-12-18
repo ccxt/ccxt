@@ -591,14 +591,9 @@ module.exports = class whitebit extends Exchange {
             timestamp = parseInt (timestamp * 1000);
         }
         const orderId = this.safeString (trade, 'dealOrderId');
-        const priceString = this.safeString (trade, 'price');
-        let amountString = this.safeString (trade, 'deal');
-        if (amountString === undefined) {
-            amountString = this.safeString2 (trade, 'amount', 'volume');
-        }
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
+        const cost = this.safeString (trade, 'deal');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString2 (trade, 'amount', 'volume');
         const id = this.safeString2 (trade, 'id', 'tradeId');
         let side = this.safeString (trade, 'type');
         if (side === undefined) {
@@ -607,14 +602,23 @@ module.exports = class whitebit extends Exchange {
                 side = isBuyerMaker ? 'buy' : 'sell';
             }
         }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        const symbol = this.safeSymbol (undefined, market);
+        let quoteId = undefined;
+        if (symbol !== undefined) {
+            quoteId = symbol.split ('/')[1];
         }
         const role = this.safeNumber (trade, 'role');
         let takerOrMaker = undefined;
         if (role !== undefined) {
             takerOrMaker = (role === 1) ? 'maker' : 'taker';
+        }
+        let fee = undefined;
+        const feeCost = this.safeString (trade, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': quoteId,
+            };
         }
         return this.safeTrade ({
             'info': trade,
@@ -629,8 +633,8 @@ module.exports = class whitebit extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
-        });
+            'fee': fee,
+        }, market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -982,8 +986,9 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'orderId': parseInt (id),
         };
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             request['market'] = market['id'];
         }
         if (limit !== undefined) {
@@ -1008,7 +1013,7 @@ module.exports = class whitebit extends Exchange {
         //     "limit": 100
         // }
         const data = this.safeValue (response, 'records', []);
-        return this.parseTrades (data);
+        return this.parseTrades (data, market);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1118,9 +1123,8 @@ module.exports = class whitebit extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const version = this.safeValue (api, 0);
         const accessibility = this.safeValue (api, 1);
-        let url = this.urls['api'][version][accessibility];
         const pathWithParams = '/' + this.implodeParams (path, params);
-        url += pathWithParams;
+        let url = this.urls['api'][version][accessibility] + pathWithParams;
         if (accessibility === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
