@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
@@ -126,10 +125,10 @@ module.exports = class whitebit extends Exchange {
                     'public': {
                         'get': [
                             'assets',
+                            'fee',
+                            'orderbook/{market}',
                             'ticker',
                             'trades/{market}',
-                            'fee',
-                            'assets',
                             'time',
                             'ping',
                         ],
@@ -459,31 +458,30 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default = 50, maximum = 100
+            request['depth'] = limit; // default = 50, maximum = 100
         }
-        const response = await this.v2PublicGetDepthMarket (this.extend (request, params));
+        const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":{
-        //             "lastUpdateTimestamp":"2019-10-14T03:15:47.000Z",
-        //             "asks":[
-        //                 ["0.02204","2.03"],
-        //                 ["0.022041","2.492"],
-        //                 ["0.022042","2.254"],
-        //             ],
-        //             "bids":[
-        //                 ["0.022018","2.327"],
-        //                 ["0.022017","1.336"],
-        //                 ["0.022015","2.089"],
-        //             ],
-        //         }
-        //     }
+        // {
+        //     "timestamp": 1594391413,        // Current timestamp
+        //     "asks": [                       // Array of ask orders
+        //       [
+        //         "9184.41",                  // Price of lowest ask
+        //         "0.773162"                  // Amount of lowest ask
+        //       ],
+        //       [ ... ]
+        //     ],
+        //     "bids": [                       // Array of bid orders
+        //       [
+        //         "9181.19",                  // Price of highest bid
+        //         "0.010873"                  // Amount of highest bid
+        //       ],
+        //       [ ... ]
+        //     ]
+        //   }
         //
-        const result = this.safeValue (response, 'result', {});
-        const timestamp = this.parse8601 (this.safeString (result, 'lastUpdateTimestamp'));
-        return this.parseOrderBook (result, symbol, timestamp);
+        const timestamp = this.safeString (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     async fetchTradesV1 (symbol, since = undefined, limit = undefined, params = {}) {
