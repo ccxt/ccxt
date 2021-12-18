@@ -4969,7 +4969,7 @@ module.exports = class binance extends Exchange {
             'asset': currency['id'],
             'limit': limit,
         };
-        if (since) {
+        if (since !== undefined) {
             request['startTime'] = since;
             const sinceString = since.toString ();
             const limitString = Precise.stringSub (limit.toString (), '1');
