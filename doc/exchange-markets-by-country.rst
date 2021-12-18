@@ -1234,17 +1234,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - UK
-     - .. image:: https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg
-          :target: https://aofex.com/#/register?key=9763840
-          :alt: aofex
-     
-     - aofex
-     - `AOFEX <https://aofex.com/#/register?key=9763840>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://aofex.zendesk.com/hc/en-us/sections/360005576574-API
-          :alt: API Version *
-     
-   * - UK
      - .. image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
           :target: https://www.bitstamp.net
           :alt: bitstamp
