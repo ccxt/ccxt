@@ -524,7 +524,7 @@ module.exports = class mexc extends Exchange {
                 'maker': maker,
                 'contractSize': this.safeString (market, 'contractSize'),
                 'active': (state === '0'),
-                'expiry': this.safeInteger (market, 'expireTime'),
+                'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
