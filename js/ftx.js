@@ -530,12 +530,13 @@ module.exports = class ftx extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'name');
             const future = this.safeValue (allFuturesDict, id);
+            const contract = (this.safeString (market, 'type') === 'future');
             const baseId = this.safeString2 (market, 'baseCurrency', 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency', 'USD');
+            const settleId = contract ? 'USD' : undefined;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const contract = this.safeString (market, 'type') === 'future';
-            const settleId = contract ? 'USD' : undefined;
+            const settle = this.safeCurrencyCode (settleId);
             const spot = !contract;
             const margin = !contract;
             const swap = (this.safeString (future, 'perpetual') === 'true');
@@ -554,11 +555,13 @@ module.exports = class ftx extends Exchange {
             // check if a market is a spot or future market
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
             const priceIncrement = this.safeNumber (market, 'priceIncrement');
+            const fees = this.safeValue (this.fees, 'trading');
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -573,12 +576,13 @@ module.exports = class ftx extends Exchange {
                 'contract': contract,
                 'linear': true,
                 'inverse': false,
-                // Fee is in %, so divide by 100
-                // 'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // TODO
-                // 'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')), // TODO
-                'contractSize': 1, // TODO: double check
+                'taker': this.safeNumber (fees, 'taker'),
+                'maker': this.safeNumber (fees, 'maker'),
+                'contractSize': 1,
                 'expiry': expiry,
-                // 'fees': this.safeValue (this.fees, feeIndex, {}), // TODO
+                'strike': undefined,
+                'optionType': undefined,
+                'fees': fees,
                 'precision': {
                     'amount': sizeIncrement,
                     'price': priceIncrement,
@@ -597,7 +601,8 @@ module.exports = class ftx extends Exchange {
                         'max': undefined,
                     },
                     'leverage': {
-                        'max': 20,
+                        'min': this.parseNumber ('1'),
+                        'max': this.parseNumber ('20'),
                     },
                 },
                 'info': market,
