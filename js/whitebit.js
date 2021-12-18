@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
