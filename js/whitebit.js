@@ -931,7 +931,8 @@ module.exports = class whitebit extends Exchange {
         //         "dealMoney": "41.258268"          // amount in money currency that finished
         //     },
         const marketId = this.safeString (order, 'market');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
         const side = this.safeString (order, 'side');
         const filled = this.safeValue (order, 'dealStock');
         const amount = this.safeValue (order, 'amount');
