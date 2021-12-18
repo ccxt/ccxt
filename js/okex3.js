@@ -42,7 +42,7 @@ module.exports = class okex3 extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
-                'futures': true,
+                'future': true,
                 'withdraw': true,
             },
             'timeframes': {
