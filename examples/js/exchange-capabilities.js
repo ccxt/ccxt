@@ -1,28 +1,37 @@
 "use strict";
 
-/*  ------------------------------------------------------------------------ */
-// node ./examples/js/exchange-capabilities.js --csv
-
-const isCsvStyle  = process.argv.includes ('--csv')
-const delimiter   = isCsvStyle ? ',' : '|'
-const ccxt        = require ('../../ccxt.js')
-    , asTable     = require ('as-table').configure ({ delimiter: ' '+delimiter+' ', /* print: require ('string.ify').noPretty  */ })
-    , log         = require ('ololog').noLocate
-    , ansi        = require ('ansicolor').nice
+const csv       = process.argv.includes ('--csv')
+    , delimiter = csv ? ',' : '|'
+    , ccxt      = require ('../../ccxt.js')
+    , asTable   = require ('as-table').configure ({ delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ })
+    , log       = require ('ololog').noLocate
+    , ansi      = require ('ansicolor').nice
 
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
 const isWindows = process.platform == 'win32' // fix for windows, as it doesn't show darkred-VS-red well enough
 
-;(async function test () {
+async function main () {
+
     let total = 0
     let notImplemented = 0
     let inexistentApi = 0
     let implemented = 0
     let emulated = 0
- 
 
-    const table = asTable (ccxt.exchanges.map (id => new ccxt[id]()).map (exchange => {
+    const exchanges = ccxt.exchanges.map (id => new ccxt[id] ())
+    const metainfo = ccxt.flatten (exchanges.map (exchange => Object.keys (exchange.has)))
+    const reduced = metainfo.reduce ((p, c) => {
+        p[c] = (p[c] || 0) + 1
+        return p
+    }, {})
+    console.log (reduced);
+    process.exit ();
+    const methods = ccxt.unique (ccxt.flatten (metainfo));
+    console.log (methods);
+    process.exit ();
+
+    const table = asTable (exchanges.map (exchange => {
 
         let result = {};
 
@@ -30,21 +39,20 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
         let exchangeClassName = exchange.id;
         while (exchangeClassName !== 'Exchange') {
             let protoType = ccxt[exchangeClassName];
-            if (protoType){
+            if (protoType) {
                 let methodNamesArray = Object.getOwnPropertyNames (protoType.prototype);
                 exchangeDefinedMethods = exchangeDefinedMethods.concat( methodNamesArray);
                 exchangeClassName = Object.getPrototypeOf( (new protoType()).constructor).name;
-            }
-            else{
+            } else {
                 break;
             }
         }
-        
+
         const apiBasics = [
             'publicAPI',
             'privateAPI',
-            'CORS'            
-			'margin',
+            'CORS',
+            'margin',
             'swap',
             'future',
             'CORS',
@@ -120,7 +128,7 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
             'transfer',
             'withdraw',
         ]);
-		
+
         allItems.forEach (methodName => {
 
             total += 1
@@ -131,7 +139,7 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
             let coloredString = '';
 
             if ( capHas === false && capType !== 'function' ) { // if explicitly set to 'false' under 'has' params (to exclude mistake, we check if it's undefined too)
-                coloredString = isWindows ? exchange.id.lightMagenta : exchange.id.red 
+                coloredString = isWindows ? exchange.id.lightMagenta : exchange.id.red
                 inexistentApi += 1
             } else if ( capHas === 'emulated') { // if explicitly set to 'emulated' under 'has' params
                 coloredString = exchange.id.yellow
@@ -150,12 +158,12 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
         return result
     }))
 
-    if (isCsvStyle) {
-        let lines = table.split ("\n")	
-        lines = lines.slice (0, 1).concat (lines.slice (2))	
+    if (csv) {
+        let lines = table.split ("\n")
+        lines = lines.slice (0, 1).concat (lines.slice (2))
         log (lines.join ("\n"))
     } else {
-        log(table)
+        log (table)
     }
 
     log ('Summary: ',
@@ -169,4 +177,6 @@ const isWindows = process.platform == 'win32' // fix for windows, as it doesn't 
 
     log("\nMessy? Try piping to less (e.g. node script.js | less -S -R)\n".red)
 
-}) ()
+}
+
+main ()
