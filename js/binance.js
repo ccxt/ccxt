@@ -4959,10 +4959,10 @@ module.exports = class binance extends Exchange {
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit === undefined) {
-            limit = 93;
-        } else if (limit > 93) {
-            // Binance API says the limit is 100, but illegal parameter errors are returned when limit is > 93
-            throw new BadRequest (this.id + ' fetchBorrowRateHistory limit parameter cannot exceed 93');
+            limit = 92;
+        } else if (limit > 92) {
+            // Binance API says the limit is 100, but "Illegal characters found in a parameter." is returned when limit is > 92
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory limit parameter cannot exceed 92');
         }
         const currency = this.currency (code);
         const request = {
@@ -4970,8 +4970,9 @@ module.exports = class binance extends Exchange {
             'limit': limit,
         };
         if (since !== undefined) {
+            since = since - 1;
             request['startTime'] = since;
-            const endTime = this.sum (since, limit * 86400000); // required when startTime is further than 93 days in the past
+            const endTime = this.sum (since, limit * 86400000); // required when startTime is further than 92 days in the past
             const now = this.milliseconds ();
             request['endTime'] = Math.min (endTime, now); // cannot have an endTime later than current time
         }
