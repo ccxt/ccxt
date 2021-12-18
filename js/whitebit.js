@@ -1063,7 +1063,6 @@ module.exports = class whitebit extends Exchange {
         const address = this.safeString (account, 'address', url);
         const tag = this.safeString (account, 'memo');
         this.checkAddress (address);
-        this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
