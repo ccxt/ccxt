@@ -469,7 +469,7 @@ module.exports = class kraken extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': 0,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'leverage': {
