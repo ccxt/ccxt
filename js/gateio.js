@@ -555,8 +555,8 @@ module.exports = class gateio extends Exchange {
         if (swap || futures || option) {
             const settlementCurrencies = this.getSettlementCurrencies (type, 'fetchMarkets');
             for (let c = 0; c < settlementCurrencies.length; c++) {
-                const settle = this.safeCurrencyCode (settlementCurrencies[c]);
-                query['settle'] = settle;
+                const settleId = this.safeCurrencyCode (settlementCurrencies[c]);
+                query['settle'] = settleId;
                 response = await this[method] (query);
                 //  Perpetual swap
                 //      [
@@ -654,10 +654,11 @@ module.exports = class gateio extends Exchange {
                     const baseId = this.safeString (parts, 0);
                     const quoteId = this.safeString (parts, 1);
                     const date = this.safeString (parts, 2);
-                    const linear = quoteId.toLowerCase () === settle;
-                    const inverse = baseId.toLowerCase () === settle;
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
+                    const settle = this.safeCurrencyCode (settle);
+                    const linear = quoteId.toLowerCase () === settle;
+                    const inverse = baseId.toLowerCase () === settle;
                     let symbol = '';
                     if (date !== undefined) {
                         symbol = base + '/' + quote + ':' + this.safeCurrencyCode (settle) + '-' + date;
@@ -674,13 +675,18 @@ module.exports = class gateio extends Exchange {
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     const feeIndex = (type === 'futures') ? 'swap' : type;
                     const pricePrecision = this.safeNumber (market, 'order_price_round');
+                    const expiry = this.safeInteger (market, 'expire_time');
+                    const fees = this.safeValue (this.fees, feeIndex, {});
+                    // Fee is in %, so divide by 100
+                    const taker = this.parseNumber (Precise.stringDiv (takerPercent, '100'))
+                    const maker = this.parseNumber (Precise.stringDiv (makerPercent, '100'))
                     result.push ({
                         'info': market,
                         'id': id,
                         'symbol': symbol,
                         'base': base,
                         'quote': quote,
-                        'settle': this.safeCurrencyCode (settle),
+                        'settle': settle,
                         'baseId': baseId,
                         'quoteId': quoteId,
                         'settleId': settle,
@@ -690,17 +696,24 @@ module.exports = class gateio extends Exchange {
                         'swap': swap,
                         'futures': futures,
                         'option': option,
+                        'active': true,
                         'derivative': true,
                         'contract': true,
                         'linear': linear,
                         'inverse': inverse,
-                        // Fee is in %, so divide by 100
-                        'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
-                        'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+                        'taker': taker,
+                        'maker': maker,
                         'contractSize': this.safeString (market, 'quanto_multiplier'),
-                        'active': true,
-                        'expiry': this.safeInteger (market, 'expire_time'),
-                        'fees': this.safeValue (this.fees, feeIndex, {}),
+                        'expiry': expiry,
+                        'expiryDatetime': this.iso8601 (expiry),
+                        'strike': undefined,
+                        'optionType': undefined,
+                        'fees': {
+                            'taker': taker,
+                            'maker': maker,
+                            'tierBased': this.safeValue (fees, 'tierBased'),
+                            'percentage': this.safeValue (fees, 'percentage'),
+                        },
                         'precision': {
                             'amount': this.parseNumber ('1'),
                             'price': pricePrecision,
