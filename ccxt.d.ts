@@ -472,7 +472,6 @@ declare module 'ccxt' {
     export class coincheck extends Exchange {}
     export class coinex extends Exchange {}
     export class coinfalcon extends Exchange {}
-    export class coinmarketcap extends Exchange {}
     export class coinmate extends Exchange {}
     export class coinone extends Exchange {}
     export class coinspot extends Exchange {}
@@ -589,7 +588,6 @@ declare module 'ccxt' {
         | 'coincheck'
         | 'coinex'
         | 'coinfalcon'
-        | 'coinmarketcap'
         | 'coinmate'
         | 'coinone'
         | 'coinspot'
