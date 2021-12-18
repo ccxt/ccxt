@@ -1945,18 +1945,14 @@ module.exports = class phemex extends Exchange {
         } else {
             request['orderID'] = id;
         }
-        const finalPrice = this.safeString (params, 'priceEp');
-        params = this.omit (params, [ 'priceEp' ]);
-        if (finalPrice !== undefined) {
-            request['priceEp'] = this.priceToPrecision (symbol, finalPrice);
-        } else if (price !== undefined) {
+        if (price !== undefined) {
             request['priceEp'] = this.toEp (price, market);
         }
-        const finalQty = this.safeString2 (params, 'baseQtyEv', 'baseQtyEV');
-        params = this.omit (params, [ 'baseQtyEv', 'baseQtyEV' ]);
-        // Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment.
+        // Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
+        const finalQty = this.safeString (params, 'baseQtyEv');
+        params = this.omit (params, [ 'baseQtyEv' ]);
         if (finalQty !== undefined) {
-            request['baseQtyEV'] = this.amountToPrecision (symbol, finalQty);
+            request['baseQtyEV'] = finalQty;
         } else if (amount !== undefined) {
             request['baseQtyEV'] = this.toEv (amount, market);
         }
