@@ -254,36 +254,31 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.v2PublicGetAssets (params);
+        const response = await this.v4PublicGetAssets (params);
+        // }
+        // "BTC": {
+        //     "name": "Bitcoin",                        // Full name of cryptocurrency.
+        //     "unified_cryptoasset_id": 1,              // Unique ID of cryptocurrency assigned by Unified Cryptoasset ID, 0 if unknown
+        //     "can_withdraw": true,                     // Identifies whether withdrawals are enabled or disabled.
+        //     "can_deposit": true,                      // Identifies whether deposits are enabled or disabled.
+        //     "min_withdraw": "0.001",                  // Identifies the single minimum withdrawal amount of a cryptocurrency.
+        //     "max_withdraw": "2",                      // Identifies the single maximum withdrawal amount of a cryptocurrency.
+        //     "maker_fee": "0.1",                       // Maker fee in percentage
+        //     "taker_fee": "0.1",                       // Taker fee in percentage
+        //     "min_deposit": "0.0001",                  // Min deposit amount
+        //     "max_deposit": "0",                       // Max deposit amount, will not be returned if there is no limit, 0 if unlimited
+        //  },
+        // }
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":{
-        //             "BTC":{
-        //                 "id":"4f37bc79-f612-4a63-9a81-d37f7f9ff622",
-        //                 "lastUpdateTimestamp":"2019-10-12T04:40:05.000Z",
-        //                 "name":"Bitcoin",
-        //                 "canWithdraw":true,
-        //                 "canDeposit":true,
-        //                 "minWithdrawal":"0.001",
-        //                 "maxWithdrawal":"0",
-        //                 "makerFee":"0.1",
-        //                 "takerFee":"0.1"
-        //             }
-        //         }
-        //     }
-        //
-        const currencies = this.safeValue (response, 'result');
-        const ids = Object.keys (currencies);
+        const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const currency = currencies[id];
+            const currency = response[id];
             // breaks down in Python due to utf8 encoding issues on the exchange side
             // const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeValue (currency, 'canDeposit', true);
-            const canWithdraw = this.safeValue (currency, 'canWithdraw', true);
+            const canDeposit = this.safeValue (currency, 'can_deposit', true);
+            const canWithdraw = this.safeValue (currency, 'can_withdraw', true);
             const active = canDeposit && canWithdraw;
             const code = this.safeCurrencyCode (id);
             result[code] = {
@@ -300,8 +295,8 @@ module.exports = class whitebit extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber (currency, 'minWithdrawal'),
-                        'max': this.safeNumber (currency, 'maxWithdrawal'),
+                        'min': this.safeNumber (currency, 'min_withdraw'),
+                        'max': this.safeNumber (currency, 'max_withdraw'),
                     },
                 },
             };
