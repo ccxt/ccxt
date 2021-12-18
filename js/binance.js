@@ -4971,8 +4971,7 @@ module.exports = class binance extends Exchange {
         };
         if (since !== undefined) {
             request['startTime'] = since;
-            const interval = limit * 86400000;
-            const endTime = this.sum (since, interval); // required when startTime is further than 93 days in the past
+            const endTime = this.sum (since, limit * 86400000); // required when startTime is further than 93 days in the past
             const now = this.milliseconds ();
             request['endTime'] = this.min (endTime, now); // cannot have an endTime later than current time
         }
