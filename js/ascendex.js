@@ -515,8 +515,8 @@ module.exports = class ascendex extends Exchange {
                 const priceFilter = this.safeValue (market, 'priceFilter');
                 minPrice = this.safeNumber (priceFilter, 'minPrice');
                 maxPrice = this.safeNumber (priceFilter, 'maxPrice');
-                const str = this.safeString (market, 'underlying');
-                const substrings = str.split ('/');
+                const underlying = this.safeString (market, 'underlying');
+                const substrings = underlying.split ('/');
                 baseId = substrings[0];
                 quoteId = substrings[1];
                 base = this.safeCurrencyCode (baseId);
@@ -551,7 +551,6 @@ module.exports = class ascendex extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'fees': undefined,
                 'precision': precision,
                 'limits': {
                     'leverage': {
