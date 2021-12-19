@@ -417,9 +417,6 @@ module.exports = class kucoinfutures extends kucoin {
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             const amount = this.safeString (market, 'baseIncrement');
             const price = this.safeString (market, 'priceIncrement');
-            const fees = this.safeValue (this.fees, 'trading');
-            const taker = this.safeNumber (market, 'takerFeeRate');
-            const maker = this.safeNumber (market, 'makerFeeRate');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -440,19 +437,13 @@ module.exports = class kucoinfutures extends kucoin {
                 'contract': true,
                 'linear': inverse !== true,
                 'inverse': inverse,
-                'taker': taker,
-                'maker': maker,
+                'taker': this.safeNumber (market, 'takerFeeRate'),
+                'maker': this.safeNumber (market, 'makerFeeRate'),
                 'contractSize': this.parseNumber (Precise.stringAbs (this.safeString (market, 'multiplier'))),
                 'expiry': this.parseNumber (expiry),
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
-                'fees': {
-                    'taker': taker,
-                    'maker': maker,
-                    'tierBased': this.safeValue (fees, 'tierBased'),
-                    'percentage': this.safeValue (fees, 'percentage'),
-                },
                 'precision': {
                     'amount': amount ? this.precisionFromString (amount) : undefined,
                     'price': price ? this.precisionFromString (price) : undefined,
