@@ -1636,18 +1636,18 @@ module.exports = class phemex extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const price = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'priceEp'), market)));
-        const amount = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'baseQtyEv'), market)));
-        const remaining = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market)));
-        const filled = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'cumBaseQtyEv'), market)));
-        const cost = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'quoteQtyEv'), market)));
-        const average = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'avgPriceEp'), market)));
+        const price = this.omitZero (this.fromEp (this.safeString (order, 'priceEp'), market));
+        const amount = this.omitZero (this.fromEv (this.safeString (order, 'baseQtyEv'), market));
+        const remaining = this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market));
+        const filled = this.fromEv (this.safeString2 (order, 'cumBaseQtyEv', 'cumBaseValueEv'), market);
+        const cost = this.omitZero (this.fromEv (this.safeString (order, 'quoteQtyEv'), market));
+        const average = this.omitZero (this.fromEp (this.safeString (order, 'avgPriceEp'), market));
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const timestamp = this.safeIntegerProduct2 (order, 'actionTimeNs', 'createTimeNs', 0.000001);
         let fee = undefined;
-        const feeCost = this.parseNumber (this.fromEv (this.safeString (order, 'cumFeeEv'), market));
+        const feeCost = this.fromEv (this.safeString (order, 'cumFeeEv'), market);
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1657,7 +1657,7 @@ module.exports = class phemex extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp', market))));
         const postOnly = (timeInForce === 'PO');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1679,7 +1679,7 @@ module.exports = class phemex extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseSwapOrder (order, market = undefined) {
@@ -2156,7 +2156,7 @@ module.exports = class phemex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
