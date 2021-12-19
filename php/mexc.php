@@ -503,7 +503,6 @@ class mexc extends Exchange {
             $settle = $this->safe_currency_code($settleId);
             $state = $this->safe_string($market, 'state');
             $result[] = array(
-                'info' => $market,
                 'id' => $id,
                 'symbol' => $base . '/' . $quote . ':' . $settle,
                 'base' => $base,
@@ -526,8 +525,10 @@ class mexc extends Exchange {
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
                 'contractSize' => $this->safe_string($market, 'contractSize'),
                 'active' => ($state === '0'),
-                'expiry' => $this->safe_integer($market, 'expire_time'),
-                'fees' => $this->safe_value($this->fees, 'trading'),
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
                     'price' => $this->safe_number($market, 'priceUnit'),
                     'amount' => $this->safe_number($market, 'volUnit'),
@@ -550,6 +551,7 @@ class mexc extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -593,33 +595,44 @@ class mexc extends Exchange {
             $quantityScale = $this->safe_integer($market, 'quantity_scale');
             $pricePrecision = 1 / pow(10, $priceScale);
             $quantityPrecision = 1 / pow(10, $quantityScale);
-            $precision = array(
-                'price' => $pricePrecision,
-                'amount' => $quantityPrecision,
-            );
-            $taker = $this->safe_number($market, 'taker_fee_rate');
-            $maker = $this->safe_number($market, 'maker_fee_rate');
             $state = $this->safe_string($market, 'state');
-            $active = ($state === 'ENABLED');
             $type = 'spot';
-            $swap = false;
-            $spot = true;
-            $result[] = array_merge($this->fees['trading'], array(
-                'info' => $market,
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => $type,
-                'swap' => $swap,
-                'spot' => $spot,
-                'active' => $active,
-                'taker' => $taker,
-                'maker' => $maker,
-                'precision' => $precision,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($state === 'ENABLED'),
+                'derivative' => false,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($market, 'taker_fee_rate'),
+                'maker' => $this->safe_number($market, 'maker_fee_rate'),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $pricePrecision,
+                    'amount' => $quantityPrecision,
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => null,
                         'max' => null,
@@ -633,7 +646,8 @@ class mexc extends Exchange {
                         'max' => $this->safe_number($market, 'max_amount'),
                     ),
                 ),
-            ));
+                'info' => $market,
+            );
         }
         return $result;
     }
