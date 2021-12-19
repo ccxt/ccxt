@@ -499,7 +499,6 @@ module.exports = class mexc extends Exchange {
             const settle = this.safeCurrencyCode (settleId);
             const state = this.safeString (market, 'state');
             result.push ({
-                'info': market,
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
                 'base': base,
@@ -522,8 +521,10 @@ module.exports = class mexc extends Exchange {
                 'maker': this.safeNumber (market, 'makerFeeRate'),
                 'contractSize': this.safeString (market, 'contractSize'),
                 'active': (state === '0'),
-                'expiry': this.safeInteger (market, 'expire_time'),
-                'fees': this.safeValue (this.fees, 'trading'),
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
                     'price': this.safeNumber (market, 'priceUnit'),
                     'amount': this.safeNumber (market, 'volUnit'),
@@ -546,6 +547,7 @@ module.exports = class mexc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -589,33 +591,44 @@ module.exports = class mexc extends Exchange {
             const quantityScale = this.safeInteger (market, 'quantity_scale');
             const pricePrecision = 1 / Math.pow (10, priceScale);
             const quantityPrecision = 1 / Math.pow (10, quantityScale);
-            const precision = {
-                'price': pricePrecision,
-                'amount': quantityPrecision,
-            };
-            const taker = this.safeNumber (market, 'taker_fee_rate');
-            const maker = this.safeNumber (market, 'maker_fee_rate');
             const state = this.safeString (market, 'state');
-            const active = (state === 'ENABLED');
             const type = 'spot';
-            const swap = false;
-            const spot = true;
-            result.push (this.extend (this.fees['trading'], {
-                'info': market,
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': type,
-                'swap': swap,
-                'spot': spot,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'precision': precision,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (state === 'ENABLED'),
+                'derivative': false,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'taker_fee_rate'),
+                'maker': this.safeNumber (market, 'maker_fee_rate'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': pricePrecision,
+                    'amount': quantityPrecision,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': undefined,
                         'max': undefined,
@@ -629,7 +642,8 @@ module.exports = class mexc extends Exchange {
                         'max': this.safeNumber (market, 'max_amount'),
                     },
                 },
-            }));
+                'info': market,
+            });
         }
         return result;
     }
