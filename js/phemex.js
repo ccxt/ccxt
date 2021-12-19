@@ -1636,12 +1636,12 @@ module.exports = class phemex extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const price = this.omitZero (this.fromEp (this.safeString (order, 'priceEp'), market));
-        const amount = this.omitZero (this.fromEv (this.safeString (order, 'baseQtyEv'), market));
+        const price = this.fromEp (this.safeString (order, 'priceEp'), market);
+        const amount = this.fromEv (this.safeString (order, 'baseQtyEv'), market);
         const remaining = this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market));
         const filled = this.fromEv (this.safeString2 (order, 'cumBaseQtyEv', 'cumBaseValueEv'), market);
-        const cost = this.omitZero (this.fromEv (this.safeString (order, 'quoteQtyEv'), market));
-        const average = this.omitZero (this.fromEp (this.safeString (order, 'avgPriceEp'), market));
+        const cost = this.fromEv (this.safeString2 (order, 'quoteQtyEv', 'cumQuoteValueEv'), market);
+        const average = this.fromEp (this.safeString (order, 'avgPriceEp'), market);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
