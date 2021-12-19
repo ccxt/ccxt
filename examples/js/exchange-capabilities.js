@@ -1,11 +1,12 @@
 "use strict";
 
-const csv       = process.argv.includes ('--csv')
+const csv = process.argv.includes ('--csv')
     , delimiter = csv ? ',' : '|'
-    , ccxt      = require ('../../ccxt.js')
-    , asTable   = require ('as-table').configure ({ delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ })
-    , log       = require ('ololog').noLocate
-    , ansi      = require ('ansicolor').nice
+    , ccxt = require ('../../ccxt.js')
+    , asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ }
+    , asTable = require ('as-table').configure (asTableConfig)
+    , log = require ('ololog').noLocate
+    , ansi = require ('ansicolor').nice
 
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
@@ -21,33 +22,15 @@ async function main () {
 
     const exchanges = ccxt.exchanges.map (id => new ccxt[id] ())
     const metainfo = ccxt.flatten (exchanges.map (exchange => Object.keys (exchange.has)))
-    const reduced = metainfo.reduce ((p, c) => {
-        p[c] = (p[c] || 0) + 1
-        return p
+    const reduced = metainfo.reduce ((previous, current) => {
+        previous[current] = (previous[current] || 0) + 1
+        return previous
     }, {})
     const unified = Object.entries (reduced).filter (([ _, count ]) => count > 1)
     const methods = unified.map (([ method, _ ]) => method).sort ()
-    // console.log (methods);
-    // process.exit ();
-
     const table = asTable (exchanges.map (exchange => {
-
         let result = {};
-
-        let exchangeDefinedMethods = [];
-        let exchangeClassName = exchange.id;
-        while (exchangeClassName !== 'Exchange') {
-            let protoType = ccxt[exchangeClassName];
-            if (protoType) {
-                let methodNamesArray = Object.getOwnPropertyNames (protoType.prototype);
-                exchangeDefinedMethods = exchangeDefinedMethods.concat( methodNamesArray);
-                exchangeClassName = Object.getPrototypeOf( (new protoType()).constructor).name;
-            } else {
-                break;
-            }
-        }
-
-        const apiBasics = [
+        const basics = [
             'publicAPI',
             'privateAPI',
             'CORS',
@@ -56,94 +39,28 @@ async function main () {
             'future',
             'CORS',
         ];
-        const allItems = apiBasics.concat([
-            'fetchCurrencies',
-            'fetchFundingFees',
-            'fetchFundingRate',
-            'fetchFundingRates',
-            'fetchFundingRateHistory',
-            'fetchIndexOHLCV',
-            'fetchMarkOHLCV',
-            'fetchMarkets',
-            'fetchOHLCV',
-            'fetchOrderBook',
-            'fetchOrderBooks',
-            'fetchBidsAsks',
-            'fetchStatus',
-            'fetchTicker',
-            'fetchTickers',
-            'fetchTime',
-            'fetchTrades',
-            'fetchTradingLimits',
-            'cancelAllOrders',
-            'cancelOrder',
-            'cancelOrders',
-            'createDepositAddress',
-            'createOrder',
-            'createReduceOnlyOrder',
-            'deposit',
-            'editOrder',
-            'fetchAccounts',
-            'fetchBalance',
-            'fetchBorrowRate',
-            'fetchBorrowRates',
-            'fetchCanceledOrders',
-            'fetchClosedOrder',
-            'fetchClosedOrders',
-            'fetchDeposit',
-            'fetchDepositAddress',
-            'fetchDepositAddresses',
-            'fetchDeposits',
-            'fetchFees',
-            'fetchFundingFee',
-            'fetchFundingHistory',
-            'fetchIsolatedPositions',
-            'fetchLedger',
-            'fetchLedgerEntry',
-            'fetchMyTrades',
-            'fetchOpenOrder',
-            'fetchOpenOrders',
-            'fetchOrder',
-            'fetchOrderTrades',
-            'fetchOrders',
-            'fetchPosition',
-            'fetchPositions',
-            'fetchPremiumIndexOHLCV',
-            'fetchTradingFee',
-            'fetchTradingFees',
-            'fetchTransactions',
-            'fetchTransfers',
-            'fetchMyDustTrades',
-            'fetchWithdrawal',
-            'fetchWithdrawals',
-            'futuresTransfer',
-            'loadTimeDifference',
-            'addMargin',
-            'reduceMargin',
-            'setLeverage',
-            'setMarginMode',
-            'setPositionMode',
-            'signIn',
-            'transfer',
-            'withdraw',
-        ]);
 
-        methods.forEach (methodName => {
+        ccxt.unique (basics.concat (methods)).forEach (key => {
 
             total += 1
 
-            let isApiBasics=apiBasics.includes(methodName)
-            let capType = typeof exchange[methodName]
-            let capHas  = exchange.has[methodName]
+            const isApiBasics = basics.includes (key)
+            let capType = typeof exchange[key]
+            let capHas = exchange.has[key]
             let coloredString = '';
 
-            if ( capHas === false && capType !== 'function' ) { // if explicitly set to 'false' under 'has' params (to exclude mistake, we check if it's undefined too)
+            const feature = exchange.has[key]
+
+            if (feature === false) {
+                // if explicitly set to 'false' in exchange.has (to exclude mistake, we check if it's undefined too)
                 coloredString = isWindows ? exchange.id.lightMagenta : exchange.id.red
                 inexistentApi += 1
-            } else if ( capHas === 'emulated') { // if explicitly set to 'emulated' under 'has' params
+            } else if (feature === 'emulated') {
+                // if explicitly set to 'emulated' in exchange.has
                 coloredString = exchange.id.yellow
                 emulated += 1
-            } else if ( (isApiBasics && capHas) || ( !isApiBasics && capType === 'function' && exchangeDefinedMethods.includes(methodName) ) ) { // if neither 'false' nor 'emulated', and if  method exists
+            } else if (feature) {
+                // if neither 'false' nor 'emulated', and if  method exists
                 coloredString = exchange.id.green
                 implemented += 1
             } else {
@@ -151,7 +68,7 @@ async function main () {
                 notImplemented += 1
             }
 
-            result[methodName] = coloredString
+            result[key] = coloredString
         })
 
         return result
