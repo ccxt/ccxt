@@ -562,7 +562,6 @@ module.exports = class ftx extends Exchange {
             // check if a market is a spot or future market
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
             const priceIncrement = this.safeNumber (market, 'priceIncrement');
-            const fees = this.safeValue (this.fees, 'trading');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -583,14 +582,11 @@ module.exports = class ftx extends Exchange {
                 'contract': contract,
                 'linear': true,
                 'inverse': false,
-                'taker': this.safeNumber (fees, 'taker'),
-                'maker': this.safeNumber (fees, 'maker'),
                 'contractSize': 1,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
-                'fees': fees,
                 'precision': {
                     'amount': sizeIncrement,
                     'price': priceIncrement,
