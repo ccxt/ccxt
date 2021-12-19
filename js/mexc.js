@@ -591,11 +591,8 @@ module.exports = class mexc extends Exchange {
             const quantityScale = this.safeInteger (market, 'quantity_scale');
             const pricePrecision = 1 / Math.pow (10, priceScale);
             const quantityPrecision = 1 / Math.pow (10, quantityScale);
-            const taker = this.safeNumber (market, 'taker_fee_rate');
-            const maker = this.safeNumber (market, 'maker_fee_rate');
             const state = this.safeString (market, 'state');
             const type = 'spot';
-            const fees = this.safeValue (this.fees, 'trading');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -616,19 +613,13 @@ module.exports = class mexc extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': taker,
-                'maker': maker,
+                'taker': this.safeNumber (market, 'taker_fee_rate'),
+                'maker': this.safeNumber (market, 'maker_fee_rate'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'fees': {
-                    'taker': taker,
-                    'maker': maker,
-                    'tierBased': this.safeValue (fees, 'tierBased'),
-                    'percentage': this.safeValue (fees, 'percentage'),
-                },
                 'precision': {
                     'price': pricePrecision,
                     'amount': quantityPrecision,
