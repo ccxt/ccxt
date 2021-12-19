@@ -436,26 +436,31 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $futures = yield $this->v1PublicGetFuturesContracts ($params);
+        $perpetuals = yield $this->v2PublicGetFuturesContract ($params);
         //
         //     {
         //         "code":0,
         //         "data":array(
         //             {
         //                 "symbol":"BTC-PERP",
+        //                 "status":"Normal",
+        //                 "displayName":"BTCUSDT",
+        //                 "settlementAsset":"USDT",
+        //                 "underlying":"BTC/USDT",
         //                 "tradingStartTime":1579701600000,
-        //                 "collapseDecimals":"1,0.1,0.01",
-        //                 "minQty":"0.000000001",
-        //                 "maxQty":"1000000000",
-        //                 "minNotional":"5",
-        //                 "maxNotional":"1000000",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "tickSize":"0.25",
-        //                 "lotSize":"0.0001",
-        //                 "priceScale":2,
-        //                 "qtyScale":4,
-        //                 "notionalScale":2
+        //                 "priceFilter":array("minPrice":"1","maxPrice":"1000000","tickSize":"1"),
+        //                 "lotSizeFilter":array("minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"),
+        //                 "commissionType":"Quote",
+        //                 "commissionReserveRate":"0.001",
+        //                 "marketOrderPriceMarkup":"0.03",
+        //                 "marginRequirements":array(
+        //                     array("positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"),
+        //                     array("positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"),
+        //                     array("positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"),
+        //                     array("positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"),
+        //                     array("positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"),
+        //                     array("positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2")
+        //                 )
         //             }
         //         )
         //     }
@@ -463,10 +468,10 @@ class ascendex extends Exchange {
         $productsData = $this->safe_value($products, 'data', array());
         $productsById = $this->index_by($productsData, 'symbol');
         $cashData = $this->safe_value($cash, 'data', array());
-        $futuresData = $this->safe_value($futures, 'data', array());
-        $cashAndFuturesData = $this->array_concat($cashData, $futuresData);
-        $cashAndFuturesById = $this->index_by($cashAndFuturesData, 'symbol');
-        $dataById = $this->deep_extend($productsById, $cashAndFuturesById);
+        $perpetualsData = $this->safe_value($perpetuals, 'data', array());
+        $cashAndPerpetualsData = $this->array_concat($cashData, $perpetualsData);
+        $cashAndPerpetualsById = $this->index_by($cashAndPerpetualsData, 'symbol');
+        $dataById = $this->deep_extend($productsById, $cashAndPerpetualsById);
         $ids = is_array($dataById) ? array_keys($dataById) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -474,21 +479,43 @@ class ascendex extends Exchange {
             $market = $dataById[$id];
             $baseId = $this->safe_string($market, 'baseAsset');
             $quoteId = $this->safe_string($market, 'quoteAsset');
+            $settleId = $this->safe_value($market, 'settlementAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
             $precision = array(
                 'amount' => $this->safe_number($market, 'lotSize'),
                 'price' => $this->safe_number($market, 'tickSize'),
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'Normal');
-            $type = (is_array($market) && array_key_exists('useLot', $market)) ? 'spot' : 'future';
+            $type = ($settle !== null) ? 'swap' : 'spot';
             $spot = ($type === 'spot');
-            $future = ($type === 'future');
+            $swap = ($type === 'swap');
             $margin = $this->safe_value($market, 'marginTradable', false);
-            $symbol = $id;
-            if (!$future) {
-                $symbol = $base . '/' . $quote;
+            $contract = $swap;
+            $derivative = $contract;
+            $linear = $contract ? true : null;
+            $contractSize = $contract ? 1 : null;
+            $minQty = $this->safe_number($market, 'minQty');
+            $maxQty = $this->safe_number($market, 'maxQty');
+            $minPrice = $this->safe_number($market, 'tickSize');
+            $maxPrice = null;
+            $symbol = $base . '/' . $quote;
+            if ($contract) {
+                $lotSizeFilter = $this->safe_value($market, 'lotSizeFilter');
+                $minQty = $this->safe_number($lotSizeFilter, 'minQty');
+                $maxQty = $this->safe_number($lotSizeFilter, 'maxQty');
+                $priceFilter = $this->safe_value($market, 'priceFilter');
+                $minPrice = $this->safe_number($priceFilter, 'minPrice');
+                $maxPrice = $this->safe_number($priceFilter, 'maxPrice');
+                $underlying = $this->safe_string($market, 'underlying');
+                $parts = explode('/', $underlying);
+                $baseId = $this->safe_string($parts, 0);
+                $quoteId = $this->safe_string($parts, 1);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote . ':' . $settle;
             }
             $fee = $this->safe_number($market, 'commissionReserveRate');
             $result[] = array(
@@ -496,31 +523,48 @@ class ascendex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => $settleId,
                 'type' => $type,
                 'spot' => $spot,
                 'margin' => $margin,
-                'future' => $future,
+                'swap' => $swap,
+                'future' => false,
+                'option' => false,
                 'active' => $active,
-                'precision' => $precision,
+                'derivative' => $derivative,
+                'contract' => $contract,
+                'linear' => $linear,
+                'inverse' => $contract ? !$linear : null,
                 'taker' => $fee,
                 'maker' => $fee,
+                'contractSize' => $contractSize,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => $precision,
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'minQty'),
-                        'max' => $this->safe_number($market, 'maxQty'),
+                        'min' => $minQty,
+                        'max' => $maxQty,
                     ),
                     'price' => array(
-                        'min' => $this->safe_number($market, 'tickSize'),
-                        'max' => null,
+                        'min' => $minPrice,
+                        'max' => $maxPrice,
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'minNotional'),
                         'max' => $this->safe_number($market, 'maxNotional'),
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
