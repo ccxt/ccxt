@@ -433,43 +433,32 @@ module.exports = class ascendex extends Exchange {
         //
         const perpetuals = await this.v2PublicGetFuturesContract (params);
         //
-        // {
-        //     "code": 0,
-        //     "data": [
-        //         {
-        //             "symbol"          : "BTC-PERP",
-        //             "status"          : "Normal",
-        //             "displayName"     : "BTCUSDT",    // the name displayed on the webpage
-        //             "settlementAsset" : "USDT",       // settlement asset
-        //             "underlying"      : "BTC/USDT",
-        //             "tradingStartTime": 1579701600000,
-        //             "priceFilter": {
-        //                 "minPrice"  : "0.25",     // the order price cannot be smaller than the minPrice
-        //                 "maxPrice"  : "1000000",  // the order price cannot be greater than the maxPrice
-        //                 "tickSize"  : "0.25"      // the order price must be a multiple of the tickSize
-        //             },
-        //             "lotSizeFilter": {
-        //                 "minQty"  : "0.0001",     // the order quantity cannot be smaller than the minQty
-        //                 "maxQty"  : "1000000000", // the order quantity cannot be greater than the maxQty
-        //                 "lotSize" : "0.0001"      // the order quantity must be a multiple of the lotSize
-        //             },
-        //             "marginRequirements": [
-        //                 {
-        //                     "positionNotionalLowerbound": "0",     // position lower bound
-        //                     "positionNotionalUpperbound": "50000", // position upper bound
-        //                     "initialMarginRate"         : "0.01",  // initial margin rate
-        //                     "maintenanceMarginRate"     : "0.006"  // maintenance margin rate
-        //                 },
-        //                 {
-        //                     "positionNotionalLowerbound": "50000",
-        //                     "positionNotionalUpperbound": "200000",
-        //                     "initialMarginRate"         : "0.02",
-        //                     "maintenanceMarginRate"     : "0.012"
-        //                 }
-        //             ]
-        //         }
-        //     ]
-        // }
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC-PERP",
+        //                 "status":"Normal",
+        //                 "displayName":"BTCUSDT",
+        //                 "settlementAsset":"USDT",
+        //                 "underlying":"BTC/USDT",
+        //                 "tradingStartTime":1579701600000,
+        //                 "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
+        //                 "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
+        //                 "commissionType":"Quote",
+        //                 "commissionReserveRate":"0.001",
+        //                 "marketOrderPriceMarkup":"0.03",
+        //                 "marginRequirements":[
+        //                     {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
+        //                     {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
+        //                     {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+        //                     {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
+        //                     {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+        //                     {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
+        //                 ]
+        //             }
+        //         ]
+        //     }
         //
         const productsData = this.safeValue (products, 'data', []);
         const productsById = this.indexBy (productsData, 'symbol');
