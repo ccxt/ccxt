@@ -577,18 +577,9 @@ class poloniex(Exchange):
         id = self.safe_string_2(trade, 'globalTradeID', 'tradeID')
         orderId = self.safe_string(trade, 'orderNumber')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
-        symbol = None
-        if (not market) and ('currencyPair' in trade):
-            marketId = self.safe_string(trade, 'currencyPair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                quoteId, baseId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'currencyPair')
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         side = self.safe_string(trade, 'type')
         fee = None
         priceString = self.safe_string(trade, 'rate')
@@ -821,15 +812,6 @@ class poloniex(Exchange):
         #         'fee': '0.00000000',
         #         'clientOrderId': '12345',
         #         'currencyPair': 'BTC_MANA',
-        #         # ---------------------------------------------------------
-        #         # the following fields are injected by createOrder
-        #         'timestamp': timestamp,
-        #         'status': 'open',
-        #         'type': type,
-        #         'side': side,
-        #         'price': price,
-        #         'amount': amount,
-        #         # ---------------------------------------------------------
         #         # 'resultingTrades' in editOrder
         #         'resultingTrades': {
         #             'BTC_MANA': [],
@@ -839,98 +821,59 @@ class poloniex(Exchange):
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'date'))
-        symbol = None
         marketId = self.safe_string(order, 'currencyPair')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                quoteId, baseId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        trades = None
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         resultingTrades = self.safe_value(order, 'resultingTrades')
         if not isinstance(resultingTrades, list):
             resultingTrades = self.safe_value(resultingTrades, self.safe_string(market, 'id', marketId))
-        if resultingTrades is not None:
-            trades = self.parse_trades(resultingTrades, market)
-        price = self.safe_number_2(order, 'price', 'rate')
-        remaining = self.safe_number(order, 'amount')
-        amount = self.safe_number(order, 'startingAmount')
-        filled = None
-        cost = 0
-        if amount is not None:
-            if remaining is not None:
-                filled = amount - remaining
-                if price is not None:
-                    cost = filled * price
-        else:
-            amount = remaining
+        price = self.safe_string_2(order, 'price', 'rate')
+        remaining = self.safe_string(order, 'amount')
+        amount = self.safe_string_2(order, 'startingAmount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        average = None
-        lastTradeTimestamp = None
-        if filled is None:
-            if trades is not None:
-                filled = 0
-                cost = 0
-                tradesLength = len(trades)
-                if tradesLength > 0:
-                    lastTradeTimestamp = trades[0]['timestamp']
-                    for i in range(0, tradesLength):
-                        trade = trades[i]
-                        tradeAmount = trade['amount']
-                        tradePrice = trade['price']
-                        filled = self.sum(filled, tradeAmount)
-                        cost = self.sum(cost, tradePrice * tradeAmount)
-                        lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
-                if amount is not None:
-                    remaining = max(amount - filled, 0)
-                    if filled >= amount:
-                        status = 'closed'
-        if (filled is not None) and (cost is not None) and (filled > 0):
-            average = cost / filled
-        type = self.safe_string(order, 'type')
-        side = self.safe_string(order, 'side', type)
-        if type == side:
-            type = None
+        side = self.safe_string(order, 'type')
         id = self.safe_string(order, 'orderNumber')
         fee = None
-        feeCost = self.safe_number(order, 'fee')
+        feeCurrency = self.safe_string(order, 'tokenFeeCurrency')
+        feeCost = None
+        feeCurrencyCode = None
+        rate = self.safe_string(order, 'fee')
+        if feeCurrency is None:
+            feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
+        else:
+            # poloniex accepts a 30% discount to pay fees in TRX
+            feeCurrencyCode = self.safe_currency_code(feeCurrency)
+            feeCost = self.safe_string(order, 'tokenFee')
         if feeCost is not None:
-            feeCurrencyCode = None
-            if market is not None:
-                feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
             fee = {
+                'rate': rate,
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        return {
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': type,
+            'type': 'limit',
             'timeInForce': None,
             'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
-            'average': average,
+            'cost': None,
+            'average': None,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
-            'trades': trades,
+            'trades': resultingTrades,
             'fee': fee,
-        }
+        }, market)
 
     def parse_open_orders(self, orders, market, result):
         for i in range(0, len(orders)):
@@ -984,7 +927,6 @@ class poloniex(Exchange):
             request['clientOrderId'] = clientOrderId
             params = self.omit(params, 'clientOrderId')
         # remember the timestamp before issuing the request
-        timestamp = self.milliseconds()
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1004,14 +946,10 @@ class poloniex(Exchange):
         #         'currencyPair': 'BTC_MANA',
         #     }
         #
-        return self.parse_order(self.extend({
-            'timestamp': timestamp,
-            'status': 'open',
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-        }, response), market)
+        response = self.extend(response, {
+            'type': side,
+        })
+        return self.parse_order(response, market)
 
     def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -1084,7 +1022,9 @@ class poloniex(Exchange):
         result = self.safe_value(response['result'], id)
         if result is None:
             raise OrderNotFound(self.id + ' order id ' + id + ' not found')
-        return self.parse_order(result)
+        return self.extend(self.parse_order(result), {
+            'id': id,
+        })
 
     def fetch_closed_order(self, id, symbol=None, params={}):
         self.load_markets()
