@@ -32,6 +32,7 @@ module.exports = class binance extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowRate': true,
+                'fetchBorrowRateHistory': true,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
@@ -4953,5 +4954,50 @@ module.exports = class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': response,
         };
+    }
+
+    async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 93;
+        } else if (limit > 93) {
+            // Binance API says the limit is 100, but "Illegal characters found in a parameter." is returned when limit is > 93
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory limit parameter cannot exceed 92');
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'limit': limit,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+            const endTime = this.sum (since, limit * 86400000) - 1; // required when startTime is further than 93 days in the past
+            const now = this.milliseconds ();
+            request['endTime'] = Math.min (endTime, now); // cannot have an endTime later than current time
+        }
+        const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "asset": "USDT",
+        //             "timestamp": 1638230400000,
+        //             "dailyInterestRate": "0.0006",
+        //             "vipLevel": 0
+        //         },
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const timestamp = this.safeNumber (item, 'timestamp');
+            result.push ({
+                'currency': code,
+                'rate': this.safeNumber (item, 'dailyInterestRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': item,
+            });
+        }
+        return result;
     }
 };

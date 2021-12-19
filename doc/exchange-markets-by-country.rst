@@ -1234,17 +1234,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - UK
-     - .. image:: https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg
-          :target: https://aofex.com/#/register?key=9763840
-          :alt: aofex
-     
-     - aofex
-     - `AOFEX <https://aofex.com/#/register?key=9763840>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://aofex.zendesk.com/hc/en-us/sections/360005576574-API
-          :alt: API Version *
-     
-   * - UK
      - .. image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
           :target: https://www.bitstamp.net
           :alt: bitstamp
@@ -1419,17 +1408,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.pro.coinbase.com
           :alt: API Version *
-     
-   * - US
-     - .. image:: https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg
-          :target: https://coinmarketcap.com
-          :alt: coinmarketcap
-     
-     - coinmarketcap
-     - `CoinMarketCap <https://coinmarketcap.com>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://coinmarketcap.com/api
-          :alt: API Version 1
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg

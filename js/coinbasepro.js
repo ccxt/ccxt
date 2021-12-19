@@ -1364,7 +1364,12 @@ module.exports = class coinbasepro extends Exchange {
                 }
             }
             const what = nonce + method + request + payload;
-            const secret = this.base64ToBinary (this.secret);
+            let secret = undefined;
+            try {
+                secret = this.base64ToBinary (this.secret);
+            } catch (e) {
+                throw new AuthenticationError (this.id + ' sign() invalid base64 secret');
+            }
             const signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,

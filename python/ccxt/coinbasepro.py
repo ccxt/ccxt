@@ -1282,7 +1282,11 @@ class coinbasepro(Exchange):
                     body = self.json(query)
                     payload = body
             what = nonce + method + request + payload
-            secret = self.base64_to_binary(self.secret)
+            secret = None
+            try:
+                secret = self.base64_to_binary(self.secret)
+            except Exception as e:
+                raise AuthenticationError(self.id + ' sign() invalid base64 secret')
             signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
             headers = {
                 'CB-ACCESS-KEY': self.apiKey,

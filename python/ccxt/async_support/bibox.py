@@ -158,9 +158,6 @@ class bibox(Exchange):
                 'REVO': 'Revo Network',
                 'TERN': 'Ternio-ERC20',
             },
-            'options': {
-                'fetchCurrencies': 'fetchCurrenciesPrivate',  # or 'fetchCurrenciesPrivate' with apiKey and secret
-            },
         })
 
     async def fetch_markets(self, params={}):
@@ -444,8 +441,10 @@ class bibox(Exchange):
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_currencies(self, params={}):
-        method = self.safe_string(self.options, 'fetchCurrencies', 'fetchCurrenciesPublic')
-        return await getattr(self, method)(params)
+        if self.check_required_credentials(False):
+            return await self.fetch_currencies_private(params)
+        else:
+            return await self.fetch_currencies_public(params)
 
     async def fetch_currencies_public(self, params={}):
         request = {
@@ -505,7 +504,7 @@ class bibox(Exchange):
         return result
 
     async def fetch_currencies_private(self, params={}):
-        if not self.apiKey or not self.secret:
+        if not self.check_required_credentials(False):
             raise AuthenticationError(self.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = False before calling its methods.")
         request = {
             'cmd': 'transfer/coinList',
