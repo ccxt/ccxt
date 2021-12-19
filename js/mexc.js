@@ -498,9 +498,6 @@ module.exports = class mexc extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const state = this.safeString (market, 'state');
-            const fees = this.safeValue (this.fees, 'trading');
-            const taker = this.safeNumber (market, 'takerFeeRate');
-            const maker = this.safeNumber (market, 'makerFeeRate');
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -520,20 +517,14 @@ module.exports = class mexc extends Exchange {
                 'contract': true,
                 'linear': true,
                 'inverse': false,
-                'taker': taker,
-                'maker': maker,
+                'taker': this.safeNumber (market, 'takerFeeRate'),
+                'maker': this.safeNumber (market, 'makerFeeRate'),
                 'contractSize': this.safeString (market, 'contractSize'),
                 'active': (state === '0'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'fees': {
-                    'tierBased': this.safeValue (fees, 'tierBased'),
-                    'percentage': this.safeValue (fees, 'percentage'),
-                    'taker': taker,
-                    'maker': maker,
-                },
                 'precision': {
                     'price': this.safeNumber (market, 'priceUnit'),
                     'amount': this.safeNumber (market, 'volUnit'),
