@@ -28,7 +28,6 @@ class bitfinex extends Exchange {
                 'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
-                'deposit' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
