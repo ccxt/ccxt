@@ -435,43 +435,60 @@ module.exports = class bitmart extends Exchange {
             // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             //
             const pricePrecision = this.safeInteger (market, 'price_max_precision');
-            const precision = {
-                'amount': this.safeNumber (market, 'base_min_size'),
-                'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 14)),
-            };
             const minBuyCost = this.safeNumber (market, 'min_buy_amount');
             const minSellCost = this.safeNumber (market, 'min_sell_amount');
             const minCost = Math.max (minBuyCost, minSellCost);
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'base_min_size'),
-                    'max': this.safeNumber (market, 'base_max_size'),
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': undefined,
-                },
-            };
             result.push ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'future': false,
+                'margin': false,
                 'swap': false,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'future': false,
+                'option': false,
+                'derivative': false,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': undefined,
+                'maker': undefined,
+                'contractSize': undefined,
                 'active': true,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'base_min_size'),
+                    'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 14)),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'base_min_size'),
+                        'max': this.safeNumber (market, 'base_max_size'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': minCost,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
             });
         }
         return result;
