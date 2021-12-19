@@ -373,12 +373,12 @@ module.exports = class aax extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
-            const aaxType = this.safeString (market, 'type');
+            const marketType = this.safeString (market, 'type');
             let inverse = undefined;
             let linear = undefined;
             let quanto = undefined;
-            const spot = (aaxType === 'spot');
-            const swap = (aaxType === 'futures');
+            const spot = (marketType === 'spot');
+            const swap = (marketType === 'futures');
             const settleType = this.safeStringLower (market, 'settleType');
             if (settleType !== undefined) {
                 inverse = (settleType === 'inverse');
