@@ -431,7 +431,7 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const futures = await this.v2PublicGetFuturesContract (params);
+        const perpetuals = await this.v2PublicGetFuturesContract (params);
         //
         // {
         //     "code": 0,
@@ -474,10 +474,10 @@ module.exports = class ascendex extends Exchange {
         const productsData = this.safeValue (products, 'data', []);
         const productsById = this.indexBy (productsData, 'symbol');
         const cashData = this.safeValue (cash, 'data', []);
-        const futuresData = this.safeValue (futures, 'data', []);
-        const cashAndFuturesData = this.arrayConcat (cashData, futuresData);
-        const cashAndFuturesById = this.indexBy (cashAndFuturesData, 'symbol');
-        const dataById = this.deepExtend (productsById, cashAndFuturesById);
+        const perpetualsData = this.safeValue (perpetuals, 'data', []);
+        const cashAndPerpetualsData = this.arrayConcat (cashData, perpetualsData);
+        const cashAndPerpetualsById = this.indexBy (cashAndPerpetualsData, 'symbol');
+        const dataById = this.deepExtend (productsById, cashAndPerpetualsById);
         const ids = Object.keys (dataById);
         const result = [];
         for (let i = 0; i < ids.length; i++) {
@@ -498,9 +498,8 @@ module.exports = class ascendex extends Exchange {
             const type = ('useLot' in market) ? 'spot' : 'swap';
             const spot = (type === 'spot');
             const swap = (type === 'swap');
-            const future = (type === 'future');
             const margin = this.safeValue (market, 'marginTradable', false);
-            const contract = swap || future;
+            const contract = swap;
             const derivative = contract;
             const linear = contract ? true : undefined;
             let minQty = this.safeNumber (market, 'minQty');
