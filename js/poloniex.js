@@ -995,7 +995,7 @@ module.exports = class poloniex extends Exchange {
         response = this.extend (response, {
             'type': side,
         });
-        return this.extend (this.parseOrder (response, market));
+        return this.parseOrder (response, market);
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
