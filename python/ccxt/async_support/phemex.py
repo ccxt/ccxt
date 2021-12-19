@@ -1587,18 +1587,18 @@ class phemex(Exchange):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        price = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'priceEp'), market)))
-        amount = self.parse_number(self.omit_zero(self.from_ev(self.safe_string(order, 'baseQtyEv'), market)))
-        remaining = self.parse_number(self.omit_zero(self.from_ev(self.safe_string(order, 'leavesBaseQtyEv'), market)))
-        filled = self.parse_number(self.omit_zero(self.from_ev(self.safe_string(order, 'cumBaseQtyEv'), market)))
-        cost = self.parse_number(self.omit_zero(self.from_ev(self.safe_string(order, 'quoteQtyEv'), market)))
-        average = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'avgPriceEp'), market)))
+        price = self.from_ep(self.safe_string(order, 'priceEp'), market)
+        amount = self.from_ev(self.safe_string(order, 'baseQtyEv'), market)
+        remaining = self.omit_zero(self.from_ev(self.safe_string(order, 'leavesBaseQtyEv'), market))
+        filled = self.from_ev(self.safe_string_2(order, 'cumBaseQtyEv', 'cumBaseValueEv'), market)
+        cost = self.from_ev(self.safe_string_2(order, 'cumQuoteValueEv', 'quoteQtyEv'), market)
+        average = self.from_ep(self.safe_string(order, 'avgPriceEp'), market)
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
         type = self.parse_order_type(self.safe_string(order, 'ordType'))
         timestamp = self.safe_integer_product_2(order, 'actionTimeNs', 'createTimeNs', 0.000001)
         fee = None
-        feeCost = self.parse_number(self.from_ev(self.safe_string(order, 'cumFeeEv'), market))
+        feeCost = self.from_ev(self.safe_string(order, 'cumFeeEv'), market)
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -1607,7 +1607,7 @@ class phemex(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp', market))))
         postOnly = (timeInForce == 'PO')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1629,7 +1629,7 @@ class phemex(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def parse_swap_order(self, order, market=None):
         #
@@ -2057,7 +2057,7 @@ class phemex(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         method = 'privateGetExchangeSpotOrderTrades' if market['spot'] else 'privateGetExchangeOrderTrade'
