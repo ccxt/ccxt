@@ -470,28 +470,67 @@ class deribit(Exchange):
                 id = self.safe_string(market, 'instrument_name')
                 baseId = self.safe_string(market, 'base_currency')
                 quoteId = self.safe_string(market, 'quote_currency')
+                settleId = quoteId
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
-                type = self.safe_string(market, 'kind')
-                future = (type == 'future')
-                option = (type == 'option')
-                active = self.safe_value(market, 'is_active')
+                settle = self.safe_currency_code(settleId)
+                kind = self.safe_string(market, 'kind')
+                settlementPeriod = self.safe_value(market, 'settlement_period')
+                swap = (settlementPeriod == 'perpetual')
+                future = not swap and (kind == 'future')
+                option = (kind == 'option')
+                symbol = quote + '/' + base + ':' + settle
+                expiry = self.safe_integer(market, 'expiration_timestamp')
+                strike = None
+                optionType = None
+                type = 'swap'
+                if option or future:
+                    symbol = symbol + '-' + self.yymmdd(expiry, '')
+                    if option:
+                        type = 'option'
+                        strike = self.safe_number(market, 'strike')
+                        optionType = self.safe_string(market, 'option_type')
+                        symbol = symbol + ':' + self.number_to_string(strike) + ':' + optionType
+                    else:
+                        type = 'future'
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
-                precision = {
-                    'amount': minTradeAmount,
-                    'price': tickSize,
-                }
                 result.append({
                     'id': id,
-                    'symbol': id,
+                    'symbol': symbol,
                     'base': base,
                     'quote': quote,
-                    'active': active,
-                    'precision': precision,
+                    'settle': settle,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': settleId,
+                    'type': type,
+                    'spot': False,
+                    'margin': False,
+                    'swap': swap,
+                    'future': future,
+                    'option': option,
+                    'derivative': True,
+                    'contract': True,
+                    'linear': False,
+                    'inverse': True,
                     'taker': self.safe_number(market, 'taker_commission'),
                     'maker': self.safe_number(market, 'maker_commission'),
+                    'contractSize': self.safe_string(market, 'contract_size'),
+                    'active': self.safe_value(market, 'is_active'),
+                    'expiry': expiry,
+                    'expiryDatetime': self.iso8601(expiry),
+                    'strike': strike,
+                    'optionType': optionType,
+                    'precision': {
+                        'amount': minTradeAmount,
+                        'price': tickSize,
+                    },
                     'limits': {
+                        'leverage': {
+                            'min': None,
+                            'max': None,
+                        },
                         'amount': {
                             'min': minTradeAmount,
                             'max': None,
@@ -505,10 +544,6 @@ class deribit(Exchange):
                             'max': None,
                         },
                     },
-                    'type': type,
-                    'spot': False,
-                    'future': future,
-                    'option': option,
                     'info': market,
                 })
         return result
