@@ -462,11 +462,11 @@ module.exports = class deribit extends Exchange {
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
                 const settle = this.safeCurrencyCode (settleId);
-                const deribitType = this.safeString (market, 'kind');
+                const kind = this.safeString (market, 'kind');
                 const settlementPeriod = this.safeValue (market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
-                const future = !swap && (deribitType === 'future');
-                const option = (deribitType === 'option');
+                const future = !swap && (kind === 'future');
+                const option = (kind === 'option');
                 let symbol = quote + '/' + base + ':' + settle;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
                 let strike = undefined;
