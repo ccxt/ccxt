@@ -25,7 +25,6 @@ module.exports = class bitfinex extends Exchange {
                 'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
-                'deposit': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
