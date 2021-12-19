@@ -478,7 +478,7 @@ module.exports = class deribit extends Exchange {
                         type = 'option';
                         strike = this.safeNumber (market, 'strike');
                         optionType = this.safeString (market, 'option_type');
-                        symbol = symbol + ':' + strike.toString () + ':' + optionType;
+                        symbol = symbol + ':' + this.numberToString (strike) + ':' + optionType;
                     } else {
                         type = 'future';
                     }
