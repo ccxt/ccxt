@@ -44,9 +44,6 @@ async function main () {
 
             total += 1
 
-            const isApiBasics = basics.includes (key)
-            let capType = typeof exchange[key]
-            let capHas = exchange.has[key]
             let coloredString = '';
 
             const feature = exchange.has[key]
