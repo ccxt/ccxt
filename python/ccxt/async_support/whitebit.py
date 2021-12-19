@@ -568,17 +568,19 @@ class whitebit(Exchange):
         #     }
         #
         # orderTrades(v4Private)
-        #       {
-        #          "time": 1593342324.613711,      # Timestamp of executed order
-        #          "fee": "0.00000419198",         # fee that you pay
-        #          "price": "0.00000701",          # price
-        #          "amount": "598",                # amount in stock
-        #          "id": 149156519,                # trade id
-        #          "dealOrderId": 3134995325,      # completed order Id
-        #          "clientOrderId": "customId11",  # custom order id; "clientOrderId": "" - if not specified.
-        #          "role": 2,                      # Role - 1 - maker, 2 - taker
-        #          "deal": "0.00419198"            # amount in money
-        #       }
+        #
+        #     {
+        #         "time": 1593342324.613711,
+        #         "fee": "0.00000419198",
+        #         "price": "0.00000701",
+        #         "amount": "598",
+        #         "id": 149156519,  # trade id
+        #         "dealOrderId": 3134995325,  # orderId
+        #         "clientOrderId": "customId11",  # empty string if not specified
+        #         "role": 2,  # 1 = maker, 2 = taker
+        #         "deal": "0.00419198"  # amount in money
+        #     }
+        #
         timestamp = self.safe_timestamp(trade, 'time')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'time'))
@@ -754,20 +756,10 @@ class whitebit(Exchange):
         await self.load_markets()
         response = await self.v4PrivatePostTradeAccountBalance(params)
         #
-        # Response
-        # {
-        #     "...": {...},
-        #     "BTC": {
-        #         "available": "0.123",      # Available balance of currency for trading
-        #         "freeze": "1"              # Balance of currency that is currently in active orders
-        #     },
-        #     "...": {...},
-        #     "XMR": {
-        #         "available": "3013",
-        #         "freeze": "100"
-        #     },
-        #     "...": {...}
-        # }
+        #     {
+        #         "BTC": {"available": "0.123", "freeze": "1"},
+        #         "XMR": {"available": "3013", "freeze": "100"},
+        #     }
         #
         balanceKeys = list(response.keys())
         result = {}
@@ -792,25 +784,26 @@ class whitebit(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 50 max 100
         response = await self.v4PrivatePostOrders(self.extend(request, params))
-        # [
-        #     {
-        #         "orderId": 3686033640,            # unexecuted order ID
-        #         "clientOrderId": "customId11",    # custom order id; "clientOrderId": "" - if not specified.
-        #         "market": "BTC_USDT",             # currency market
-        #         "side": "buy",                    # order side
-        #         "type": "limit",                  # unexecuted order type
-        #         "timestamp": 1594605801.49815,    # current timestamp of unexecuted order
-        #         "dealMoney": "0",                 # executed amount in money
-        #         "dealStock": "0",                 # executed amount in stock
-        #         "amount": "2.241379",             # active order amount
-        #         "takerFee": "0.001",              # taker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        #         "makerFee": "0.001",              # maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        #         "left": "2.241379",               # unexecuted amount in stock
-        #         "dealFee": "0",                   # executed fee by deal
-        #         "price": "40000"                  # unexecuted order price
-        #     },
-        #     {...}
-        # ]
+        #
+        #     [
+        #         {
+        #             "orderId": 3686033640,            # unexecuted order ID
+        #             "clientOrderId": "customId11",    # custom order id; "clientOrderId": "" - if not specified.
+        #             "market": "BTC_USDT",             # currency market
+        #             "side": "buy",                    # order side
+        #             "type": "limit",                  # unexecuted order type
+        #             "timestamp": 1594605801.49815,    # current timestamp of unexecuted order
+        #             "dealMoney": "0",                 # executed amount in money
+        #             "dealStock": "0",                 # executed amount in stock
+        #             "amount": "2.241379",             # active order amount
+        #             "takerFee": "0.001",              # taker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        #             "makerFee": "0.001",              # maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        #             "left": "2.241379",               # unexecuted amount in stock
+        #             "dealFee": "0",                   # executed fee by deal
+        #             "price": "40000"                  # unexecuted order price
+        #         },
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -824,23 +817,23 @@ class whitebit(Exchange):
             request['limit'] = limit  # default 50 max 100
         response = await self.v4PrivatePostTradeAccountOrderHistory(self.extend(request, params))
         #
-        # {
-        #     "BTC_USDT": [
-        #         {
-        #             "id": 160305483,               # orderID
-        #             "clientOrderId": "customId11",  # custom order id; "clientOrderId": "" - if not specified.
-        #             "time": 1594667731.724403,     # Timestamp of the executed order
-        #             "side": "sell",                # Order side "sell" / "buy"
-        #             "role": 2,                     # Role - 1 - maker, 2 - taker
-        #             "amount": "0.000076",          # amount in stock
-        #             "price": "9264.21",            # price
-        #             "deal": "0.70407996",          # amount in money
-        #             "fee": "0.00070407996"         # paid fee
-        #         },
-        #     ],
-        # }
+        #     {
+        #         "BTC_USDT": [
+        #             {
+        #                 "id": 160305483,
+        #                 "clientOrderId": "customId11",  # empty string if not specified
+        #                 "time": 1594667731.724403,
+        #                 "side": "sell",
+        #                 "role": 2,  # 1 = maker, 2 = taker
+        #                 "amount": "0.000076",
+        #                 "price": "9264.21",
+        #                 "deal": "0.70407996",
+        #                 "fee": "0.00070407996"
+        #             },
+        #         ],
+        #     }
         #
-        # Parsing: flattening orders and injecting the market
+        # flattening orders and injecting the market
         keys = list(response.keys())
         closedOrdersParsed = []
         for i in range(0, len(keys)):
@@ -853,51 +846,58 @@ class whitebit(Exchange):
         return self.parse_orders(closedOrdersParsed, market, since, limit)
 
     def parse_order(self, order, market=None):
-        # For created orders / open Orders
-        # {
-        #     "orderId": 4180284841,             # order id
-        #     "clientOrderId": "order1987111",   # custom client order id; "clientOrderId": "" - if not specified.
-        #     "market": "BTC_USDT",              # deal market
-        #     "side": "buy",                     # order side
-        #     "type": "stop limit",              # order type
-        #     "timestamp": 1595792396.165973,    # current timestamp
-        #     "dealMoney": "0",                  # if order finished - amount in money currency that finished
-        #     "dealStock": "0",                  # if order finished - amount in stock currency that finished
-        #     "amount": "0.001",                 # amount
-        #     "takerFee": "0.001",               # maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        #     "makerFee": "0.001",               # maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        #     "left": "0.001",                   # if order not finished - rest of amount that must be finished
-        #     "dealFee": "0",                    # fee in money that you pay if order is finished
-        #     "price": "40000",                  # price
-        #     "activation_price": "40000"        # activation price -> only for stopLimit, stopMarket
-        # }
-        # For Closed Orders
+        #
+        # createOrder, fetchOpenOrders
         #
         #     {
-        #         "market": "BTC_USDT"             # artificial field
+        #         "orderId": 4180284841,             # order id
+        #         "clientOrderId": "order1987111",   # empty string if not specified.
+        #         "market": "BTC_USDT",              # deal market
+        #         "side": "buy",                     # order side
+        #         "type": "stop limit",              # order type
+        #         "timestamp": 1595792396.165973,    # current timestamp
+        #         "dealMoney": "0",                  # if order finished - amount in money currency that finished
+        #         "dealStock": "0",                  # if order finished - amount in stock currency that finished
+        #         "amount": "0.001",                 # amount
+        #         "takerFee": "0.001",               # rounded to zero if less than 0.0001
+        #         "makerFee": "0.001",               # rounded to zero if less than 0.0001
+        #         "left": "0.001",                   # remaining amount
+        #         "dealFee": "0",                    # fee in money that you pay if order is finished
+        #         "price": "40000",                  # price
+        #         "activation_price": "40000"        # activation price -> only for stopLimit, stopMarket
+        #     }
+        #
+        # fetchClosedOrders
+        #
+        #     {
+        #         "market": "BTC_USDT"              # artificial field
         #         "amount": "0.0009",               # amount of trade
         #         "price": "40000",                 # price
         #         "type": "limit",                  # order type
         #         "id": 4986126152,                 # order id
-        #         "clientOrderId": "customId11",    # custom order identifier; "clientOrderId": "" - if not specified.
+        #         "clientOrderId": "customId11",    # empty string if not specified.
         #         "side": "sell",                   # order side
         #         "ctime": 1597486960.311311,       # timestamp of order creation
-        #         "takerFee": "0.001",              # maker fee ratio. If the number less than 0.0001 - its rounded to zero
+        #         "takerFee": "0.001",              # rounded to zero if less than 0.0001
         #         "ftime": 1597486960.311332,       # executed order timestamp
-        #         "makerFee": "0.001",              # maker fee ratio. If the number less than 0.0001 - its rounded to zero
+        #         "makerFee": "0.001",              # rounded to zero if less than 0.0001
         #         "dealFee": "0.041258268",         # paid fee if order is finished
         #         "dealStock": "0.0009",            # amount in stock currency that finished
         #         "dealMoney": "41.258268"          # amount in money currency that finished
-        #     },
+        #     }
+        #
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
         side = self.safe_string(order, 'side')
         filled = self.safe_string(order, 'dealStock')
         amount = self.safe_string(order, 'amount')
+        remaining = self.safe_string(order, 'left')
         clientOrderId = self.safe_string(order, 'clientOrderId')
+        if clientOrderId == '':
+            clientOrderId = None
         price = self.safe_string(order, 'price')
-        activationPrice = self.safe_string(order, 'activation_price')
+        stopPrice = self.safe_string(order, 'activation_price')
         orderId = self.safe_string_2(order, 'orderId', 'id')
         type = self.safe_string(order, 'type')
         dealFee = self.safe_string(order, 'dealFee')
@@ -911,24 +911,28 @@ class whitebit(Exchange):
                 'currency': feeCurrencyCode,
             }
         timestamp = self.safe_timestamp_2(order, 'ctime', 'timestamp')
-        lastTimestamp = self.safe_timestamp(order, 'ftime')
+        lastTradeTimestamp = self.safe_timestamp(order, 'ftime')
         return self.safe_order2({
             'info': order,
             'id': orderId,
             'symbol': symbol,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
-            'lastTradeTimestamp': lastTimestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'timeInForce': None,
             'postOnly': None,
+            'status': None,
             'side': side,
             'price': price,
             'type': type,
-            'stopPrice': activationPrice,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
-            'fee': fee,
+            'remaining': remaining,
+            'average': None,
             'cost': None,
+            'fee': fee,
             'trades': None,
         }, market)
 
@@ -944,23 +948,25 @@ class whitebit(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 50, max 100
         response = await self.v4PrivatePostTradeAccountOrder(self.extend(request, params))
-        # {
-        #     "records": [
-        #         {
-        #             "time": 1593342324.613711,      # Timestamp of executed order
-        #             "fee": "0.00000419198",         # fee that you pay
-        #             "price": "0.00000701",          # price
-        #             "amount": "598",                # amount in stock
-        #             "id": 149156519,                # trade id
-        #             "dealOrderId": 3134995325,      # completed order Id
-        #             "clientOrderId": "customId11",  # custom order id; "clientOrderId": "" - if not specified.
-        #             "role": 2,                      # Role - 1 - maker, 2 - taker
-        #             "deal": "0.00419198"            # amount in money
-        #         }
-        #     ],
-        #     "offset": 0,
-        #     "limit": 100
-        # }
+        #
+        #     {
+        #         "records": [
+        #             {
+        #                 "time": 1593342324.613711,
+        #                 "fee": "0.00000419198",
+        #                 "price": "0.00000701",
+        #                 "amount": "598",
+        #                 "id": 149156519,  # trade id
+        #                 "dealOrderId": 3134995325,  # orderId
+        #                 "clientOrderId": "customId11",  # empty string if not specified
+        #                 "role": 2,  # 1 = maker, 2 = taker
+        #                 "deal": "0.00419198"
+        #             }
+        #         ],
+        #         "offset": 0,
+        #         "limit": 100
+        #     }
+        #
         data = self.safe_value(response, 'records', [])
         return self.parse_trades(data, market)
 
@@ -985,27 +991,32 @@ class whitebit(Exchange):
             if uniqueId is None:
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat')
         response = await getattr(self, method)(self.extend(request, params))
-        # Response for fiat
-        # {
-        #     "url": "https://someaddress.com"                  # address for deposit
-        # }
-        # Response for crypo
-        # {
-        #     "account": {
-        #         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",        # deposit address
-        #         "memo": "48565488244493"                                                      # memo if currency requires memo
-        #     },
-        #     "required": {
-        #         "fixedFee": "0",                                                              # fixed deposit fee
-        #         "flexFee": {                                                                 # flexible fee - is fee that use percent rate
-        #             "maxFee": "0",                                                            # maximum fixed fee that you will pay
-        #             "minFee": "0",                                                            # minimum fixed fee that you will pay
-        #             "percent": "0"                                                            # percent of deposit that you will pay
-        #         },
-        #         "maxAmount": "0",                                                             # max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange
-        #         "minAmount": "1"                                                              # min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange
+        #
+        # fiat
+        #
+        #     {
+        #         "url": "https://someaddress.com"  # address for depositing
         #     }
-        # }
+        #
+        # crypto
+        #
+        #     {
+        #         "account": {
+        #             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",  # deposit address
+        #             "memo": "48565488244493"  # memo if currency requires memo
+        #         },
+        #         "required": {
+        #             "fixedFee": "0",  # fixed deposit fee
+        #             "flexFee": { # flexible fee - is fee that use percent rate
+        #                 "maxFee": "0",  # maximum fixed fee that you will pay
+        #                 "minFee": "0",  # minimum fixed fee that you will pay
+        #                 "percent": "0"  # percent of deposit that you will pay
+        #             },
+        #             "maxAmount": "0",  # max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange
+        #             "minAmount": "1"  # min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange
+        #         }
+        #     }
+        #
         url = self.safe_string(response, 'url')
         account = self.safe_value(response, 'account', {})
         address = self.safe_string(account, 'address', url)
@@ -1040,9 +1051,10 @@ class whitebit(Exchange):
             request['provider'] = provider
         response = await self.v4PrivatePostMainAccountWithdraw(self.extend(request, params))
         #
-        # [
-        #   empty array - has success status - go to deposit/withdraw history and check you request status by uniqueId
-        # ]
+        # empty array with a success status
+        # go to deposit/withdraw history and check you request status by uniqueId
+        #
+        #     []
         #
         return {
             'id': uniqueId,
