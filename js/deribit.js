@@ -508,7 +508,6 @@ module.exports = class deribit extends Exchange {
                     'expiryDatetime': this.iso8601 (expiry),
                     'strike': strike,
                     'optionType': optionType,
-                    'fees': this.safeValue (this.fees, 'trading'),
                     'precision': {
                         'amount': minTradeAmount,
                         'price': tickSize,
