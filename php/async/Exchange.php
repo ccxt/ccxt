@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.64.30';
+$version = '1.64.38';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.64.30';
+    const VERSION = '1.64.38';
 
     public static $loop;
     public static $kernel;

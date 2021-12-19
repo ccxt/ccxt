@@ -434,13 +434,13 @@ class deribit extends Exchange {
             //             array(
             //                 tick_size => 0.0005,
             //                 taker_commission => 0.0004,
-            //                 strike => 300,
+            //                 $strike => 300,
             //                 settlement_period => 'week',
             //                 quote_currency => 'USD',
             //                 option_type => 'call',
             //                 min_trade_amount => 1,
             //                 maker_commission => 0.0004,
-            //                 kind => 'option',
+            //                 $kind => 'option',
             //                 is_active => true,
             //                 instrument_name => 'ETH-13MAR20-300-C',
             //                 expiration_timestamp => 1584086400000,
@@ -461,28 +461,69 @@ class deribit extends Exchange {
                 $id = $this->safe_string($market, 'instrument_name');
                 $baseId = $this->safe_string($market, 'base_currency');
                 $quoteId = $this->safe_string($market, 'quote_currency');
+                $settleId = $quoteId;
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $type = $this->safe_string($market, 'kind');
-                $future = ($type === 'future');
-                $option = ($type === 'option');
-                $active = $this->safe_value($market, 'is_active');
+                $settle = $this->safe_currency_code($settleId);
+                $kind = $this->safe_string($market, 'kind');
+                $settlementPeriod = $this->safe_value($market, 'settlement_period');
+                $swap = ($settlementPeriod === 'perpetual');
+                $future = !$swap && ($kind === 'future');
+                $option = ($kind === 'option');
+                $symbol = $quote . '/' . $base . ':' . $settle;
+                $expiry = $this->safe_integer($market, 'expiration_timestamp');
+                $strike = null;
+                $optionType = null;
+                $type = 'swap';
+                if ($option || $future) {
+                    $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
+                    if ($option) {
+                        $type = 'option';
+                        $strike = $this->safe_number($market, 'strike');
+                        $optionType = $this->safe_string($market, 'option_type');
+                        $symbol = $symbol . ':' . $this->number_to_string($strike) . ':' . $optionType;
+                    } else {
+                        $type = 'future';
+                    }
+                }
                 $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
                 $tickSize = $this->safe_number($market, 'tick_size');
-                $precision = array(
-                    'amount' => $minTradeAmount,
-                    'price' => $tickSize,
-                );
                 $result[] = array(
                     'id' => $id,
-                    'symbol' => $id,
+                    'symbol' => $symbol,
                     'base' => $base,
                     'quote' => $quote,
-                    'active' => $active,
-                    'precision' => $precision,
+                    'settle' => $settle,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => $settleId,
+                    'type' => $type,
+                    'spot' => false,
+                    'margin' => false,
+                    'swap' => $swap,
+                    'future' => $future,
+                    'option' => $option,
+                    'derivative' => true,
+                    'contract' => true,
+                    'linear' => false,
+                    'inverse' => true,
                     'taker' => $this->safe_number($market, 'taker_commission'),
                     'maker' => $this->safe_number($market, 'maker_commission'),
+                    'contractSize' => $this->safe_string($market, 'contract_size'),
+                    'active' => $this->safe_value($market, 'is_active'),
+                    'expiry' => $expiry,
+                    'expiryDatetime' => $this->iso8601($expiry),
+                    'strike' => $strike,
+                    'optionType' => $optionType,
+                    'precision' => array(
+                        'amount' => $minTradeAmount,
+                        'price' => $tickSize,
+                    ),
                     'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                         'amount' => array(
                             'min' => $minTradeAmount,
                             'max' => null,
@@ -496,10 +537,6 @@ class deribit extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'type' => $type,
-                    'spot' => false,
-                    'future' => $future,
-                    'option' => $option,
                     'info' => $market,
                 );
             }

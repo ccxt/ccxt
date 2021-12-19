@@ -496,7 +496,6 @@ class mexc(Exchange):
             settle = self.safe_currency_code(settleId)
             state = self.safe_string(market, 'state')
             result.append({
-                'info': market,
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
                 'base': base,
@@ -519,8 +518,10 @@ class mexc(Exchange):
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.safe_string(market, 'contractSize'),
                 'active': (state == '0'),
-                'expiry': self.safe_integer(market, 'expire_time'),
-                'fees': self.safe_value(self.fees, 'trading'),
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
                     'price': self.safe_number(market, 'priceUnit'),
                     'amount': self.safe_number(market, 'volUnit'),
@@ -543,6 +544,7 @@ class mexc(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -584,33 +586,44 @@ class mexc(Exchange):
             quantityScale = self.safe_integer(market, 'quantity_scale')
             pricePrecision = 1 / math.pow(10, priceScale)
             quantityPrecision = 1 / math.pow(10, quantityScale)
-            precision = {
-                'price': pricePrecision,
-                'amount': quantityPrecision,
-            }
-            taker = self.safe_number(market, 'taker_fee_rate')
-            maker = self.safe_number(market, 'maker_fee_rate')
             state = self.safe_string(market, 'state')
-            active = (state == 'ENABLED')
             type = 'spot'
-            swap = False
-            spot = True
-            result.append(self.extend(self.fees['trading'], {
-                'info': market,
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': type,
-                'swap': swap,
-                'spot': spot,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'precision': precision,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (state == 'ENABLED'),
+                'derivative': False,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(market, 'taker_fee_rate'),
+                'maker': self.safe_number(market, 'maker_fee_rate'),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': pricePrecision,
+                    'amount': quantityPrecision,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': None,
                         'max': None,
@@ -624,7 +637,8 @@ class mexc(Exchange):
                         'max': self.safe_number(market, 'max_amount'),
                     },
                 },
-            }))
+                'info': market,
+            })
         return result
 
     async def fetch_tickers(self, symbols=None, params={}):

@@ -47,7 +47,7 @@ class okex3 extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
-                'futures' => true,
+                'future' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(

@@ -436,26 +436,31 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
-        futures = self.v1PublicGetFuturesContracts(params)
+        perpetuals = self.v2PublicGetFuturesContract(params)
         #
         #     {
         #         "code":0,
         #         "data":[
         #             {
         #                 "symbol":"BTC-PERP",
+        #                 "status":"Normal",
+        #                 "displayName":"BTCUSDT",
+        #                 "settlementAsset":"USDT",
+        #                 "underlying":"BTC/USDT",
         #                 "tradingStartTime":1579701600000,
-        #                 "collapseDecimals":"1,0.1,0.01",
-        #                 "minQty":"0.000000001",
-        #                 "maxQty":"1000000000",
-        #                 "minNotional":"5",
-        #                 "maxNotional":"1000000",
-        #                 "statusCode":"Normal",
-        #                 "statusMessage":"",
-        #                 "tickSize":"0.25",
-        #                 "lotSize":"0.0001",
-        #                 "priceScale":2,
-        #                 "qtyScale":4,
-        #                 "notionalScale":2
+        #                 "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
+        #                 "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
+        #                 "commissionType":"Quote",
+        #                 "commissionReserveRate":"0.001",
+        #                 "marketOrderPriceMarkup":"0.03",
+        #                 "marginRequirements":[
+        #                     {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
+        #                     {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
+        #                     {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+        #                     {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
+        #                     {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+        #                     {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
+        #                 ]
         #             }
         #         ]
         #     }
@@ -463,10 +468,10 @@ class ascendex(Exchange):
         productsData = self.safe_value(products, 'data', [])
         productsById = self.index_by(productsData, 'symbol')
         cashData = self.safe_value(cash, 'data', [])
-        futuresData = self.safe_value(futures, 'data', [])
-        cashAndFuturesData = self.array_concat(cashData, futuresData)
-        cashAndFuturesById = self.index_by(cashAndFuturesData, 'symbol')
-        dataById = self.deep_extend(productsById, cashAndFuturesById)
+        perpetualsData = self.safe_value(perpetuals, 'data', [])
+        cashAndPerpetualsData = self.array_concat(cashData, perpetualsData)
+        cashAndPerpetualsById = self.index_by(cashAndPerpetualsData, 'symbol')
+        dataById = self.deep_extend(productsById, cashAndPerpetualsById)
         ids = list(dataById.keys())
         result = []
         for i in range(0, len(ids)):
@@ -474,52 +479,91 @@ class ascendex(Exchange):
             market = dataById[id]
             baseId = self.safe_string(market, 'baseAsset')
             quoteId = self.safe_string(market, 'quoteAsset')
+            settleId = self.safe_value(market, 'settlementAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
             precision = {
                 'amount': self.safe_number(market, 'lotSize'),
                 'price': self.safe_number(market, 'tickSize'),
             }
             status = self.safe_string(market, 'status')
             active = (status == 'Normal')
-            type = 'spot' if ('useLot' in market) else 'future'
+            type = 'swap' if (settle is not None) else 'spot'
             spot = (type == 'spot')
-            future = (type == 'future')
+            swap = (type == 'swap')
             margin = self.safe_value(market, 'marginTradable', False)
-            symbol = id
-            if not future:
-                symbol = base + '/' + quote
+            contract = swap
+            derivative = contract
+            linear = True if contract else None
+            contractSize = 1 if contract else None
+            minQty = self.safe_number(market, 'minQty')
+            maxQty = self.safe_number(market, 'maxQty')
+            minPrice = self.safe_number(market, 'tickSize')
+            maxPrice = None
+            symbol = base + '/' + quote
+            if contract:
+                lotSizeFilter = self.safe_value(market, 'lotSizeFilter')
+                minQty = self.safe_number(lotSizeFilter, 'minQty')
+                maxQty = self.safe_number(lotSizeFilter, 'maxQty')
+                priceFilter = self.safe_value(market, 'priceFilter')
+                minPrice = self.safe_number(priceFilter, 'minPrice')
+                maxPrice = self.safe_number(priceFilter, 'maxPrice')
+                underlying = self.safe_string(market, 'underlying')
+                parts = underlying.split('/')
+                baseId = self.safe_string(parts, 0)
+                quoteId = self.safe_string(parts, 1)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote + ':' + settle
             fee = self.safe_number(market, 'commissionReserveRate')
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': settleId,
                 'type': type,
                 'spot': spot,
                 'margin': margin,
-                'future': future,
+                'swap': swap,
+                'future': False,
+                'option': False,
                 'active': active,
-                'precision': precision,
+                'derivative': derivative,
+                'contract': contract,
+                'linear': linear,
+                'inverse': not linear if contract else None,
                 'taker': fee,
                 'maker': fee,
+                'contractSize': contractSize,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': precision,
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': self.safe_number(market, 'minQty'),
-                        'max': self.safe_number(market, 'maxQty'),
+                        'min': minQty,
+                        'max': maxQty,
                     },
                     'price': {
-                        'min': self.safe_number(market, 'tickSize'),
-                        'max': None,
+                        'min': minPrice,
+                        'max': maxPrice,
                     },
                     'cost': {
                         'min': self.safe_number(market, 'minNotional'),
                         'max': self.safe_number(market, 'maxNotional'),
                     },
                 },
+                'info': market,
             })
         return result
 

@@ -3,9 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
-const Precise = require ('./base/Precise');
-
+const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
@@ -22,22 +20,25 @@ module.exports = class whitebit extends Exchange {
                 'createDepositAddress': undefined,
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
-                'createOrder': undefined,
+                'createOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
-                'fetchBalance': undefined,
+                'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
-                'fetchStatus': true,
+                'fetchOrderTrades': true,
+                'fetchOpenOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
-                'privateAPI': undefined,
+                'privateAPI': true,
                 'publicAPI': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -60,8 +61,17 @@ module.exports = class whitebit extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
                 'api': {
                     'web': 'https://whitebit.com/',
-                    'publicV2': 'https://whitebit.com/api/v2/public',
-                    'publicV1': 'https://whitebit.com/api/v1/public',
+                    'v1': {
+                        'public': 'https://whitebit.com/api/v1/public',
+                        'private': 'https://whitebit.com/api/v1',
+                    },
+                    'v2': {
+                        'public': 'https://whitebit.com/api/v2/public',
+                    },
+                    'v4': {
+                        'public': 'https://whitebit.com/api/v4/public',
+                        'private': 'https://whitebit.com/api/v4',
+                    },
                 },
                 'www': 'https://www.whitebit.com',
                 'doc': 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
@@ -74,26 +84,81 @@ module.exports = class whitebit extends Exchange {
                         'v1/healthcheck',
                     ],
                 },
-                'publicV1': {
-                    'get': [
-                        'markets',
-                        'tickers',
-                        'ticker',
-                        'symbols',
-                        'depth/result',
-                        'history',
-                        'kline',
-                    ],
+                'v1': {
+                    'public': {
+                        'get': [
+                            'markets',
+                            'tickers',
+                            'ticker',
+                            'symbols',
+                            'depth/result',
+                            'history',
+                            'kline',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'account/balance',
+                            'order/new',
+                            'order/cancel',
+                            'orders',
+                            'account/order_history',
+                            'account/executed_history',
+                            'account/executed_history/all',
+                            'account/order',
+                        ],
+                    },
                 },
-                'publicV2': {
-                    'get': [
-                        'markets',
-                        'ticker',
-                        'assets',
-                        'fee',
-                        'depth/{market}',
-                        'trades/{market}',
-                    ],
+                'v2': {
+                    'public': {
+                        'get': [
+                            'markets',
+                            'ticker',
+                            'assets',
+                            'fee',
+                            'depth/{market}',
+                            'trades/{market}',
+                        ],
+                    },
+                },
+                'v4': {
+                    'public': {
+                        'get': [
+                            'assets',
+                            'ticker',
+                            'trades/{market}',
+                            'fee',
+                            'assets',
+                            'time',
+                            'ping',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'main-account/address',
+                            'main-account/balance',
+                            'main-account/create-new-address',
+                            'main-account/codes',
+                            'main-account/codes/apply',
+                            'main-account/codes/my',
+                            'main-account/codes/history',
+                            'main-account/fiat-deposit-url',
+                            'main-account/history',
+                            'main-account/withdraw',
+                            'main-account/withdraw-pay',
+                            'trade-account/balance',
+                            'trade-account/executed-history',
+                            'trade-account/order',
+                            'trade-account/order/history',
+                            'order/new',
+                            'order/market',
+                            'order/stock_market',
+                            'order/stop_limit',
+                            'order/stop_market',
+                            'order/cancel',
+                            'orders',
+                        ],
+                    },
                 },
             },
             'fees': {
@@ -105,11 +170,14 @@ module.exports = class whitebit extends Exchange {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchTradesMethod': 'fetchTradesV1',
+                'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
             },
             'exceptions': {
                 'exact': {
-                    '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null}
+                    '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
+                    '422': InvalidOrder, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
                     'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
@@ -119,7 +187,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicV2GetMarkets (params);
+        const response = await this.v2PublicGetMarkets (params);
         //
         //     {
         //         "success":true,
@@ -186,7 +254,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicV2GetAssets (params);
+        const response = await this.v2PublicGetAssets (params);
         //
         //     {
         //         "success":true,
@@ -242,7 +310,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        const response = await this.publicV2GetFee (params);
+        const response = await this.v2PublicGetFee (params);
         const fees = this.safeValue (response, 'result');
         return {
             'maker': this.safeNumber (fees, 'makerFee'),
@@ -256,7 +324,7 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.publicV1GetTicker (this.extend (request, params));
+        const response = await this.v1PublicGetTicker (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -348,7 +416,7 @@ module.exports = class whitebit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicV1GetTickers (params);
+        const response = await this.v1PublicGetTickers (params);
         //
         //     {
         //         "success":true,
@@ -392,7 +460,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 50, maximum = 100
         }
-        const response = await this.publicV2GetDepthMarket (this.extend (request, params));
+        const response = await this.v2PublicGetDepthMarket (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -427,7 +495,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 50, maximum = 10000
         }
-        const response = await this.publicV1GetHistory (this.extend (request, params));
+        const response = await this.v1PublicGetHistory (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -456,7 +524,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 50, maximum = 10000
         }
-        const response = await this.publicV2GetTradesMarket (this.extend (request, params));
+        const response = await this.v2PublicGetTradesMarket (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -503,42 +571,67 @@ module.exports = class whitebit extends Exchange {
         //         "isBuyerMaker":false
         //     }
         //
-        let timestamp = this.safeValue (trade, 'time');
-        if (typeof timestamp === 'string') {
-            timestamp = this.parse8601 (timestamp);
-        } else {
-            timestamp = parseInt (timestamp * 1000);
+        // orderTrades (v4Private)
+        //
+        //     {
+        //         "time": 1593342324.613711,
+        //         "fee": "0.00000419198",
+        //         "price": "0.00000701",
+        //         "amount": "598",
+        //         "id": 149156519, // trade id
+        //         "dealOrderId": 3134995325, // orderId
+        //         "clientOrderId": "customId11", // empty string if not specified
+        //         "role": 2, // 1 = maker, 2 = taker
+        //         "deal": "0.00419198" // amount in money
+        //     }
+        //
+        let timestamp = this.safeTimestamp (trade, 'time');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (trade, 'time'));
         }
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString2 (trade, 'amount', 'volume');
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
+        const orderId = this.safeString (trade, 'dealOrderId');
+        const cost = this.safeString (trade, 'deal');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString2 (trade, 'amount', 'volume');
         const id = this.safeString2 (trade, 'id', 'tradeId');
         let side = this.safeString (trade, 'type');
         if (side === undefined) {
             const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
-            side = isBuyerMaker ? 'buy' : 'sell';
+            if (side !== undefined) {
+                side = isBuyerMaker ? 'buy' : 'sell';
+            }
         }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        const symbol = this.safeSymbol (undefined, market);
+        const role = this.safeInteger (trade, 'role');
+        let takerOrMaker = undefined;
+        if (role !== undefined) {
+            takerOrMaker = (role === 1) ? 'maker' : 'taker';
         }
-        return {
+        let fee = undefined;
+        const feeCost = this.safeString (trade, 'fee');
+        if (feeCost !== undefined) {
+            const safeMarket = this.safeMarket (undefined, market);
+            const quote = safeMarket['quote'];
+            fee = {
+                'cost': feeCost,
+                'currency': quote,
+            };
+        }
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
-        };
+            'fee': fee,
+        }, market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -563,7 +656,7 @@ module.exports = class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1440
         }
-        const response = await this.publicV1GetKline (this.extend (request, params));
+        const response = await this.v1PublicGetKline (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -615,11 +708,448 @@ module.exports = class whitebit extends Exchange {
         return this.status;
     }
 
-    sign (path, api = 'publicV1', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        let method = undefined;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'side': side,
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
+        if (stopPrice !== undefined) {
+            // it's a stop order
+            request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
+            if (type === 'limit' || type === 'stopLimit') {
+                // it's a stop-limit-order
+                method = 'v4PrivateOPostOrderStopLimit';
+            } else if (type === 'market' || type === 'stopMarket') {
+                // it's a stop-market-order
+                method = 'v4PrivatePostOrderStopMarket';
+            }
+        } else {
+            if (type === 'market') {
+                // it's a regular market order
+                method = 'v4PrivatePostOrderMarket';
+            }
+            if (type === 'limit') {
+                // it's a regular limit order
+                method = 'v4PrivatePostOrderNew';
+            }
+        }
+        // aggregate common assignments regardless stop or not
+        if (type === 'limit' || type === 'stopLimit') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a stopLimit order');
+            }
+            const convertedPrice = this.priceToPrecision (symbol, price);
+            request['price'] = convertedPrice;
+        }
+        if (type === 'market' || type === 'stopMarket') {
+            if (side === 'buy') {
+                let cost = this.safeNumber (params, 'cost');
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        if (cost === undefined) {
+                            cost = amount * price;
+                        }
+                    } else if (cost === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
+                    }
+                } else {
+                    cost = (cost === undefined) ? amount : cost;
+                }
+                request['amount'] = this.costToPrecision (symbol, cost);
+            }
+        }
+        if (method === undefined) {
+            throw new ArgumentsRequired (this.id + 'Invalid type:  createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket');
+        }
+        const response = await this[method] (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'orderId': parseInt (id),
+        };
+        return await this.v4PrivatePostOrderCancel (this.extend (request, params));
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v4PrivatePostTradeAccountBalance (params);
+        //
+        //     {
+        //         "BTC": { "available": "0.123", "freeze": "1" },
+        //         "XMR": { "available": "3013", "freeze": "100" },
+        //     }
+        //
+        const balanceKeys = Object.keys (response);
+        const result = { };
+        for (let i = 0; i < balanceKeys.length; i++) {
+            const id = balanceKeys[i];
+            const balance = response[id];
+            const code = this.safeCurrencyCode (id);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'freeze');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50 max 100
+        }
+        const response = await this.v4PrivatePostOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "orderId": 3686033640,            // unexecuted order ID
+        //             "clientOrderId": "customId11",    // custom order id; "clientOrderId": "" - if not specified.
+        //             "market": "BTC_USDT",             // currency market
+        //             "side": "buy",                    // order side
+        //             "type": "limit",                  // unexecuted order type
+        //             "timestamp": 1594605801.49815,    // current timestamp of unexecuted order
+        //             "dealMoney": "0",                 // executed amount in money
+        //             "dealStock": "0",                 // executed amount in stock
+        //             "amount": "2.241379",             // active order amount
+        //             "takerFee": "0.001",              // taker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //             "makerFee": "0.001",              // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //             "left": "2.241379",               // unexecuted amount in stock
+        //             "dealFee": "0",                   // executed fee by deal
+        //             "price": "40000"                  // unexecuted order price
+        //         },
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50 max 100
+        }
+        const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
+        //
+        //     {
+        //         "BTC_USDT": [
+        //             {
+        //                 "id": 160305483,
+        //                 "clientOrderId": "customId11", // empty string if not specified
+        //                 "time": 1594667731.724403,
+        //                 "side": "sell",
+        //                 "role": 2, // 1 = maker, 2 = taker
+        //                 "amount": "0.000076",
+        //                 "price": "9264.21",
+        //                 "deal": "0.70407996",
+        //                 "fee": "0.00070407996"
+        //             },
+        //         ],
+        //     }
+        //
+        // flattening orders and injecting the market
+        const keys = Object.keys (response);
+        const closedOrdersParsed = [];
+        for (let i = 0; i < keys.length; i++) {
+            const marketKey = keys[i];
+            const orders = response[marketKey];
+            for (let j = 0; j < orders.length; j++) {
+                const order = orders[j];
+                order['market'] = marketKey;
+                closedOrdersParsed.push (order);
+            }
+        }
+        return this.parseOrders (closedOrdersParsed, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder, fetchOpenOrders
+        //
+        //     {
+        //         "orderId": 4180284841,             // order id
+        //         "clientOrderId": "order1987111",   // empty string if not specified.
+        //         "market": "BTC_USDT",              // deal market
+        //         "side": "buy",                     // order side
+        //         "type": "stop limit",              // order type
+        //         "timestamp": 1595792396.165973,    // current timestamp
+        //         "dealMoney": "0",                  // if order finished - amount in money currency that finished
+        //         "dealStock": "0",                  // if order finished - amount in stock currency that finished
+        //         "amount": "0.001",                 // amount
+        //         "takerFee": "0.001",               // rounded to zero if less than 0.0001
+        //         "makerFee": "0.001",               // rounded to zero if less than 0.0001
+        //         "left": "0.001",                   // remaining amount
+        //         "dealFee": "0",                    // fee in money that you pay if order is finished
+        //         "price": "40000",                  // price
+        //         "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
+        //     }
+        //
+        // fetchClosedOrders
+        //
+        //     {
+        //         "market": "BTC_USDT"              // artificial field
+        //         "amount": "0.0009",               // amount of trade
+        //         "price": "40000",                 // price
+        //         "type": "limit",                  // order type
+        //         "id": 4986126152,                 // order id
+        //         "clientOrderId": "customId11",    // empty string if not specified.
+        //         "side": "sell",                   // order side
+        //         "ctime": 1597486960.311311,       // timestamp of order creation
+        //         "takerFee": "0.001",              // rounded to zero if less than 0.0001
+        //         "ftime": 1597486960.311332,       // executed order timestamp
+        //         "makerFee": "0.001",              // rounded to zero if less than 0.0001
+        //         "dealFee": "0.041258268",         // paid fee if order is finished
+        //         "dealStock": "0.0009",            // amount in stock currency that finished
+        //         "dealMoney": "41.258268"          // amount in money currency that finished
+        //     }
+        //
+        const marketId = this.safeString (order, 'market');
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
+        const side = this.safeString (order, 'side');
+        const filled = this.safeString (order, 'dealStock');
+        const amount = this.safeString (order, 'amount');
+        const remaining = this.safeString (order, 'left');
+        let clientOrderId = this.safeString (order, 'clientOrderId');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
+        const price = this.safeString (order, 'price');
+        const stopPrice = this.safeString (order, 'activation_price');
+        const orderId = this.safeString2 (order, 'orderId', 'id');
+        const type = this.safeString (order, 'type');
+        const dealFee = this.safeString (order, 'dealFee');
+        let fee = undefined;
+        if (dealFee !== undefined) {
+            let feeCurrencyCode = undefined;
+            if (market !== undefined) {
+                feeCurrencyCode = market['quote'];
+            }
+            fee = {
+                'cost': this.parseNumber (dealFee),
+                'currency': feeCurrencyCode,
+            };
+        }
+        const timestamp = this.safeTimestamp2 (order, 'ctime', 'timestamp');
+        const lastTradeTimestamp = this.safeTimestamp (order, 'ftime');
+        return this.safeOrder2 ({
+            'info': order,
+            'id': orderId,
+            'symbol': symbol,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'status': undefined,
+            'side': side,
+            'price': price,
+            'type': type,
+            'stopPrice': stopPrice,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'average': undefined,
+            'cost': undefined,
+            'fee': fee,
+            'trades': undefined,
+        }, market);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': parseInt (id),
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50, max 100
+        }
+        const response = await this.v4PrivatePostTradeAccountOrder (this.extend (request, params));
+        //
+        //     {
+        //         "records": [
+        //             {
+        //                 "time": 1593342324.613711,
+        //                 "fee": "0.00000419198",
+        //                 "price": "0.00000701",
+        //                 "amount": "598",
+        //                 "id": 149156519, // trade id
+        //                 "dealOrderId": 3134995325, // orderId
+        //                 "clientOrderId": "customId11", // empty string if not specified
+        //                 "role": 2, // 1 = maker, 2 = taker
+        //                 "deal": "0.00419198"
+        //             }
+        //         ],
+        //         "offset": 0,
+        //         "limit": 100
+        //     }
+        //
+        const data = this.safeValue (response, 'records', []);
+        return this.parseTrades (data, market);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ticker': currency['id'],
+        };
+        let method = 'v4PrivatePostMainAccountAddress';
+        if (this.isFiat (code)) {
+            method = 'v4PrivatePostMainAccountFiatDepositUrl';
+            const provider = this.safeNumber (params, 'provider');
+            if (provider === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
+            }
+            request['provider'] = provider;
+            const amount = this.safeNumber (params, 'amount');
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an amount when the ticker is fiat');
+            }
+            request['amount'] = amount;
+            const uniqueId = this.safeValue (params, 'uniqueId');
+            if (uniqueId === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // fiat
+        //
+        //     {
+        //         "url": "https://someaddress.com" // address for depositing
+        //     }
+        //
+        // crypto
+        //
+        //     {
+        //         "account": {
+        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN", // deposit address
+        //             "memo": "48565488244493" // memo if currency requires memo
+        //         },
+        //         "required": {
+        //             "fixedFee": "0", // fixed deposit fee
+        //             "flexFee": { // flexible fee - is fee that use percent rate
+        //                 "maxFee": "0", // maximum fixed fee that you will pay
+        //                 "minFee": "0", // minimum fixed fee that you will pay
+        //                 "percent": "0" // percent of deposit that you will pay
+        //             },
+        //             "maxAmount": "0", // max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange
+        //             "minAmount": "1" // min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange
+        //         }
+        //     }
+        //
+        const url = this.safeString (response, 'url');
+        const account = this.safeValue (response, 'account', {});
+        const address = this.safeString (account, 'address', url);
+        const tag = this.safeString (account, 'memo');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': undefined,
+            'info': response,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code); // check if it has canDeposit
+        const request = {
+            'ticker': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'address': address,
+        };
+        let uniqueId = this.safeValue (params, 'uniqueId');
+        if (uniqueId === undefined) {
+            uniqueId = this.uuid22 ();
+        }
+        request['uniqueId'] = uniqueId;
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        if (this.isFiat (code)) {
+            const provider = this.safeValue (params, 'provider');
+            if (provider === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a provider when the ticker is fiat');
+            }
+            request['provider'] = provider;
+        }
+        const response = await this.v4PrivatePostMainAccountWithdraw (this.extend (request, params));
+        //
+        // empty array with a success status
+        // go to deposit/withdraw history and check you request status by uniqueId
+        //
+        //     []
+        //
+        return {
+            'id': uniqueId,
+            'info': response,
+        };
+    }
+
+    isFiat (currency) {
+        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
+        return this.inArray (currency, fiatCurrencies);
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        if (Object.keys (query).length) {
-            url += '?' + this.urlencode (query);
+        const version = this.safeValue (api, 0);
+        const accessibility = this.safeValue (api, 1);
+        const pathWithParams = '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][version][accessibility] + pathWithParams;
+        if (accessibility === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        }
+        if (accessibility === 'private') {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ().toString ();
+            const secret = this.stringToBinary (this.secret);
+            const request = '/' + 'api' + '/' + version + pathWithParams;
+            body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
+            const payload = this.stringToBase64 (body);
+            const signature = this.hmac (payload, secret, 'sha512');
+            headers = {
+                'Content-Type': 'application/json',
+                'X-TXC-APIKEY': this.apiKey,
+                'X-TXC-PAYLOAD': payload,
+                'X-TXC-SIGNATURE': signature,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -632,8 +1162,8 @@ module.exports = class whitebit extends Exchange {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
         }
         if (response !== undefined) {
-            const success = this.safeValue (response, 'success');
-            if (!success) {
+            const status = this.safeValue (response, 'status');
+            if ((status !== undefined && status !== '200')) {
                 const feedback = this.id + ' ' + body;
                 const status = this.safeString (response, 'status');
                 if (typeof status === 'string') {

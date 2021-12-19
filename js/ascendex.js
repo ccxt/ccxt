@@ -431,26 +431,31 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const futures = await this.v1PublicGetFuturesContracts (params);
+        const perpetuals = await this.v2PublicGetFuturesContract (params);
         //
         //     {
         //         "code":0,
         //         "data":[
         //             {
         //                 "symbol":"BTC-PERP",
+        //                 "status":"Normal",
+        //                 "displayName":"BTCUSDT",
+        //                 "settlementAsset":"USDT",
+        //                 "underlying":"BTC/USDT",
         //                 "tradingStartTime":1579701600000,
-        //                 "collapseDecimals":"1,0.1,0.01",
-        //                 "minQty":"0.000000001",
-        //                 "maxQty":"1000000000",
-        //                 "minNotional":"5",
-        //                 "maxNotional":"1000000",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "tickSize":"0.25",
-        //                 "lotSize":"0.0001",
-        //                 "priceScale":2,
-        //                 "qtyScale":4,
-        //                 "notionalScale":2
+        //                 "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
+        //                 "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
+        //                 "commissionType":"Quote",
+        //                 "commissionReserveRate":"0.001",
+        //                 "marketOrderPriceMarkup":"0.03",
+        //                 "marginRequirements":[
+        //                     {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
+        //                     {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
+        //                     {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+        //                     {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
+        //                     {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+        //                     {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
+        //                 ]
         //             }
         //         ]
         //     }
@@ -458,32 +463,54 @@ module.exports = class ascendex extends Exchange {
         const productsData = this.safeValue (products, 'data', []);
         const productsById = this.indexBy (productsData, 'symbol');
         const cashData = this.safeValue (cash, 'data', []);
-        const futuresData = this.safeValue (futures, 'data', []);
-        const cashAndFuturesData = this.arrayConcat (cashData, futuresData);
-        const cashAndFuturesById = this.indexBy (cashAndFuturesData, 'symbol');
-        const dataById = this.deepExtend (productsById, cashAndFuturesById);
+        const perpetualsData = this.safeValue (perpetuals, 'data', []);
+        const cashAndPerpetualsData = this.arrayConcat (cashData, perpetualsData);
+        const cashAndPerpetualsById = this.indexBy (cashAndPerpetualsData, 'symbol');
+        const dataById = this.deepExtend (productsById, cashAndPerpetualsById);
         const ids = Object.keys (dataById);
         const result = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = dataById[id];
-            const baseId = this.safeString (market, 'baseAsset');
-            const quoteId = this.safeString (market, 'quoteAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            let baseId = this.safeString (market, 'baseAsset');
+            let quoteId = this.safeString (market, 'quoteAsset');
+            const settleId = this.safeValue (market, 'settlementAsset');
+            let base = this.safeCurrencyCode (baseId);
+            let quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
             const precision = {
                 'amount': this.safeNumber (market, 'lotSize'),
                 'price': this.safeNumber (market, 'tickSize'),
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
-            const type = ('useLot' in market) ? 'spot' : 'future';
+            const type = (settle !== undefined) ? 'swap' : 'spot';
             const spot = (type === 'spot');
-            const future = (type === 'future');
+            const swap = (type === 'swap');
             const margin = this.safeValue (market, 'marginTradable', false);
-            let symbol = id;
-            if (!future) {
-                symbol = base + '/' + quote;
+            const contract = swap;
+            const derivative = contract;
+            const linear = contract ? true : undefined;
+            const contractSize = contract ? 1 : undefined;
+            let minQty = this.safeNumber (market, 'minQty');
+            let maxQty = this.safeNumber (market, 'maxQty');
+            let minPrice = this.safeNumber (market, 'tickSize');
+            let maxPrice = undefined;
+            let symbol = base + '/' + quote;
+            if (contract) {
+                const lotSizeFilter = this.safeValue (market, 'lotSizeFilter');
+                minQty = this.safeNumber (lotSizeFilter, 'minQty');
+                maxQty = this.safeNumber (lotSizeFilter, 'maxQty');
+                const priceFilter = this.safeValue (market, 'priceFilter');
+                minPrice = this.safeNumber (priceFilter, 'minPrice');
+                maxPrice = this.safeNumber (priceFilter, 'maxPrice');
+                const underlying = this.safeString (market, 'underlying');
+                const parts = underlying.split ('/');
+                baseId = this.safeString (parts, 0);
+                quoteId = this.safeString (parts, 1);
+                base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote + ':' + settle;
             }
             const fee = this.safeNumber (market, 'commissionReserveRate');
             result.push ({
@@ -491,31 +518,48 @@ module.exports = class ascendex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': settleId,
                 'type': type,
                 'spot': spot,
                 'margin': margin,
-                'future': future,
+                'swap': swap,
+                'future': false,
+                'option': false,
                 'active': active,
-                'precision': precision,
+                'derivative': derivative,
+                'contract': contract,
+                'linear': linear,
+                'inverse': contract ? !linear : undefined,
                 'taker': fee,
                 'maker': fee,
+                'contractSize': contractSize,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': precision,
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': this.safeNumber (market, 'minQty'),
-                        'max': this.safeNumber (market, 'maxQty'),
+                        'min': minQty,
+                        'max': maxQty,
                     },
                     'price': {
-                        'min': this.safeNumber (market, 'tickSize'),
-                        'max': undefined,
+                        'min': minPrice,
+                        'max': maxPrice,
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'minNotional'),
                         'max': this.safeNumber (market, 'maxNotional'),
                     },
                 },
+                'info': market,
             });
         }
         return result;

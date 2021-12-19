@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.64.30'
+__version__ = '1.64.38'
 
 # -----------------------------------------------------------------------------
 
@@ -275,7 +275,7 @@ class Exchange(object):
         'fetchBidsAsks': None,
         'fetchBorrowRate': None,
         'fetchBorrowRateHistory': None,
-        'fetchBorrowRatePerSymbol': None,
+        'fetchBorrowRatesPerSymbol': None,
         'fetchBorrowRates': None,
         'fetchCanceledOrders': None,
         'fetchClosedOrder': None,
