@@ -66,6 +66,7 @@ class ftx extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -1697,6 +1698,13 @@ class ftx extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_orders($result, $market, $since, $limit);
+    }
+
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'orderId' => $id,
+        );
+        return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

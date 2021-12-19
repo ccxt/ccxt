@@ -84,6 +84,7 @@ class ftx(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -1640,6 +1641,12 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
+
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        request = {
+            'orderId': id,
+        }
+        return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
