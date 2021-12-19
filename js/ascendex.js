@@ -495,7 +495,7 @@ module.exports = class ascendex extends Exchange {
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
-            const type = ('useLot' in market) ? 'spot' : 'swap';
+            const type = (settle !== undefined) ? 'swap' : 'spot';
             const spot = (type === 'spot');
             const swap = (type === 'swap');
             const margin = this.safeValue (market, 'marginTradable', false);
