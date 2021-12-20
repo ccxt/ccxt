@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
@@ -942,7 +943,6 @@ module.exports = class whitebit extends Exchange {
         const symbol = market['symbol'];
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
-        const amount = this.safeString (order, 'amount');
         const remaining = this.safeString (order, 'left');
         let clientOrderId = this.safeString (order, 'clientOrderId');
         if (clientOrderId === '') {
@@ -952,6 +952,12 @@ module.exports = class whitebit extends Exchange {
         const stopPrice = this.safeString (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
+        let amount = this.safeString (order, 'amount');
+        const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+        if (createMarketBuyOrderRequiresPrice && side === 'buy' && type.indexOf ('limit') < 0) {
+            // in these cases the amount is in the quote currency
+            amount = Precise.stringDiv (amount, price);
+        }
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
         if (dealFee !== undefined) {
