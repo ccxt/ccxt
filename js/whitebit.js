@@ -847,7 +847,7 @@ module.exports = class whitebit extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (response, market, since, limit, { 'status': 'open' });
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -891,7 +891,7 @@ module.exports = class whitebit extends Exchange {
                 closedOrdersParsed.push (order);
             }
         }
-        return this.parseOrders (closedOrdersParsed, market, since, limit);
+        return this.parseOrders (closedOrdersParsed, market, since, limit, { 'status': 'filled' });
     }
 
     parseOrder (order, market = undefined) {
