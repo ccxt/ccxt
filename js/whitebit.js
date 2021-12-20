@@ -587,7 +587,7 @@ module.exports = class whitebit extends Exchange {
         //         "amount": "598",
         //         "id": 149156519, // trade id
         //         "dealOrderId": 3134995325, // orderId
-        //         "clientOrderId": "customId11", // empty string if not specified
+        //         "clientOrderId": "customId11",
         //         "role": 2, // 1 = maker, 2 = taker
         //         "deal": "0.00419198" // amount in money
         //     }
