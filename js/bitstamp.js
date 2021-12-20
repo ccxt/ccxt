@@ -320,7 +320,7 @@ module.exports = class bitstamp extends Exchange {
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
-            const symbolId = baseId + '_' + quoteId;
+            const marketId = baseId + '_' + quoteId;
             const id = this.safeString (market, 'url_symbol');
             const amountPrecisionString = this.safeString (market, 'base_decimals');
             const pricePrecisionString = this.safeString (market, 'counter_decimals');
@@ -343,7 +343,7 @@ module.exports = class bitstamp extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'symbolId': symbolId,
+                'marketId': marketId,
                 'info': market,
                 'type': 'spot',
                 'spot': true,
@@ -660,7 +660,7 @@ module.exports = class bitstamp extends Exchange {
         const feeCostString = this.safeString (trade, 'fee');
         let feeCurrency = undefined;
         if (market !== undefined) {
-            priceString = this.safeString (trade, market['symbolId'], priceString);
+            priceString = this.safeString (trade, market['marketId'], priceString);
             amountString = this.safeString (trade, market['baseId'], amountString);
             costString = this.safeString (trade, market['quoteId'], costString);
             feeCurrency = market['quote'];
@@ -1311,8 +1311,7 @@ module.exports = class bitstamp extends Exchange {
         // there is no timestamp from fetchOrder
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         const marketId = this.safeStringLower (order, 'currency_pair');
-        market = this.safeSymbol (marketId, market, '/');
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol (marketId, market, '/');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const amount = this.safeString (order, 'amount');
         const transactions = this.safeValue (order, 'transactions', []);
