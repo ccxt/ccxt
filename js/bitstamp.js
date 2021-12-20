@@ -694,6 +694,8 @@ module.exports = class bitstamp extends Exchange {
                 side = 'sell';
             } else if (side === '0') {
                 side = 'buy';
+            } else {
+                side = undefined;
             }
         }
         if (costString !== undefined) {
@@ -1309,17 +1311,13 @@ module.exports = class bitstamp extends Exchange {
         // there is no timestamp from fetchOrder
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         const marketId = this.safeStringLower (order, 'currency_pair');
-        let symbol = this.safeSymbol (marketId, market, '/');
+        market = this.safeSymbol (marketId, market, '/');
+        const symbol = market['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const amount = this.safeNumber (order, 'amount');
+        const amount = this.safeString (order, 'amount');
         const transactions = this.safeValue (order, 'transactions', []);
-        const trades = this.parseTrades (transactions, market);
-        const length = trades.length;
-        if (length) {
-            symbol = trades[0]['symbol'];
-        }
-        const price = this.safeNumber (order, 'price');
-        return this.safeOrder ({
+        const price = this.safeString (order, 'price');
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
@@ -1337,11 +1335,11 @@ module.exports = class bitstamp extends Exchange {
             'amount': amount,
             'filled': undefined,
             'remaining': undefined,
-            'trades': trades,
+            'trades': transactions,
             'fee': undefined,
             'info': order,
             'average': undefined,
-        });
+        }, market);
     }
 
     parseLedgerEntryType (type) {
