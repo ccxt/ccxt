@@ -1171,10 +1171,10 @@ module.exports = class whitebit extends Exchange {
         if (response !== undefined) {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
-            const status = this.safeValue (response, 'status');
+            const status = this.safeInteger (response, 'status');
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-            const code = this.safeValue (response, 'code');
+            const code = this.safeInteger (response, 'code');
             const hasErrorStatus = status !== undefined && status !== '200';
             if (hasErrorStatus || code) {
                 const feedback = this.id + ' ' + body;
