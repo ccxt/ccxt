@@ -907,7 +907,7 @@ class Exchange(object):
             for arg in args:
                 # -- diff --
                 for key in arg:
-                    if result[key] is None:
+                    if result.get(key) is None:
                         result[key] = arg[key]
                 # -- enddiff --
             return result
