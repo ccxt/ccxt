@@ -1177,7 +1177,7 @@ module.exports = class whitebit extends Exchange {
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             const code = this.safeInteger (response, 'code');
             const hasErrorStatus = status !== undefined && status !== '200';
-            if (hasErrorStatus || code) {
+            if (hasErrorStatus || code !== undefined) {
                 const feedback = this.id + ' ' + body;
                 let errorInfo = undefined;
                 if (hasErrorStatus) {
