@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
@@ -176,11 +176,19 @@ module.exports = class whitebit extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Unauthorized request.': AuthenticationError,
+                    'The order id field is required.': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
+                    'This action is unauthorized.': PermissionDenied, // {"code":0,"message":"This action is unauthorized."}
+                    'This API Key is not authorized to perform this action.': PermissionDenied,
+                    'Not enough balance': InsufficientFunds, // {"code":0,"message":"Validation failed","errors":{"amount":["Not enough balance"]}}
+                    'Amount must be greater than 0': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+                    'The market format is invalid.': BadSymbol, // {"code":0,"message":"Validation failed","errors":{"market":["The market format is invalid."]}}
+                    'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
                     '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
-                    '422': InvalidOrder, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
+                    '422': OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
-                    'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                    'Finished order id not found on your account': OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
                 },
             },
         });
@@ -1162,12 +1170,25 @@ module.exports = class whitebit extends Exchange {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
         }
         if (response !== undefined) {
+            // For cases where we have a meaningful status
+            // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             const status = this.safeValue (response, 'status');
-            if ((status !== undefined && status !== '200')) {
+            // For these cases where we have a generic code variable error key
+            // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+            const code = this.safeValue (response, 'code');
+            const hasErrorStatus = status !== undefined && status !== '200';
+            if (hasErrorStatus || code) {
                 const feedback = this.id + ' ' + body;
-                const status = this.safeString (response, 'status');
-                if (typeof status === 'string') {
+                if (hasErrorStatus) {
                     this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+                }
+                const errorObject = this.safeValue (response, 'errors');
+                if (errorObject !== undefined) {
+                    const errorKey = Object.keys (errorObject)[0];
+                    const errorMessageArray = this.safeValue (errorObject, errorKey, []);
+                    const errorMessage = errorMessageArray.length > 0 ? errorMessageArray[0] : body;
+                    this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
                 }
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
                 throw new ExchangeError (feedback);
