@@ -163,7 +163,7 @@ class Transpiler {
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
             [ /\.call\s*\(this, /g, '(' ]
-            [ /\.softExtend/g, 'soft_extend' ]
+            [ /\.softExtend\s/g, '.soft_extend' ]
         ]
     }
 
