@@ -761,10 +761,6 @@ class Exchange {
         $overwrite = array();
         $merged = array_merge(...array_slice($args, 1));
         $keys = array_keys($merged);
-        echo "here\n";
-        var_dump($args);
-        var_dump($merged);
-        var_dump($target);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             if ($target[$key] === null) {
