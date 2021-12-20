@@ -202,6 +202,8 @@ module.exports = class ftx extends Exchange {
                         'nft/gallery_settings',
                         // latency statistics
                         'stats/latency_stats',
+                        // pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         // subaccounts
