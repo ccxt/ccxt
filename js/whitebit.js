@@ -178,14 +178,14 @@ module.exports = class whitebit extends Exchange {
             'exceptions': {
                 'exact': {
                     'Unauthorized request.': AuthenticationError, // {"code":10,"message":"Unauthorized request."}
-                    'The order id field is required.': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
                     'The market format is invalid.': BadSymbol, // {"code":0,"message":"Validation failed","errors":{"market":["The market format is invalid."]}}
                     'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
-                    'Unexecuted order was not found.': InvalidOrder, // {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
                     'Amount must be greater than 0': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-                    'This action is unauthorized.': PermissionDenied, // {"code":0,"message":"This action is unauthorized."}
+                    'The order id field is required.': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
                     'Not enough balance': InsufficientFunds, // {"code":0,"message":"Validation failed","errors":{"amount":["Not enough balance"]}}
+                    'This action is unauthorized.': PermissionDenied, // {"code":0,"message":"This action is unauthorized."}
                     'This API Key is not authorized to perform this action.': PermissionDenied, // {"code":4,"message":"This API Key is not authorized to perform this action."}
+                    'Unexecuted order was not found.': OrderNotFound, // {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
                     '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
                     '422': OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
@@ -1194,8 +1194,7 @@ module.exports = class whitebit extends Exchange {
                     if (errorObject !== undefined) {
                         const errorKey = Object.keys (errorObject)[0];
                         const errorMessageArray = this.safeValue (errorObject, errorKey, []);
-                        const errorMessage = errorMessageArray.length > 0 ? errorMessageArray[0] : body;
-                        errorInfo = errorMessage;
+                        errorInfo = errorMessageArray.length > 0 ? errorMessageArray[0] : body;
                     }
                 }
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorInfo, feedback);
