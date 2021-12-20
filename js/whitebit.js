@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
@@ -830,20 +830,20 @@ module.exports = class whitebit extends Exchange {
         //
         //     [
         //         {
-        //             "orderId": 3686033640,            // unexecuted order ID
-        //             "clientOrderId": "customId11",    // custom order id; "clientOrderId": "" - if not specified.
-        //             "market": "BTC_USDT",             // currency market
-        //             "side": "buy",                    // order side
-        //             "type": "limit",                  // unexecuted order type
+        //             "orderId": 3686033640,
+        //             "clientOrderId": "customId11",
+        //             "market": "BTC_USDT",
+        //             "side": "buy",
+        //             "type": "limit",
         //             "timestamp": 1594605801.49815,    // current timestamp of unexecuted order
         //             "dealMoney": "0",                 // executed amount in money
         //             "dealStock": "0",                 // executed amount in stock
         //             "amount": "2.241379",             // active order amount
-        //             "takerFee": "0.001",              // taker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        //             "makerFee": "0.001",              // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //             "takerFee": "0.001",
+        //             "makerFee": "0.001",
         //             "left": "2.241379",               // unexecuted amount in stock
         //             "dealFee": "0",                   // executed fee by deal
-        //             "price": "40000"                  // unexecuted order price
+        //             "price": "40000"
         //         },
         //     ]
         //
@@ -899,37 +899,37 @@ module.exports = class whitebit extends Exchange {
         // createOrder, fetchOpenOrders
         //
         //     {
-        //         "orderId": 4180284841,             // order id
-        //         "clientOrderId": "order1987111",   // empty string if not specified.
-        //         "market": "BTC_USDT",              // deal market
-        //         "side": "buy",                     // order side
-        //         "type": "stop limit",              // order type
-        //         "timestamp": 1595792396.165973,    // current timestamp
+        //         "orderId": 4180284841,
+        //         "clientOrderId": "order1987111",
+        //         "market": "BTC_USDT",
+        //         "side": "buy",
+        //         "type": "stop limit",
+        //         "timestamp": 1595792396.165973,
         //         "dealMoney": "0",                  // if order finished - amount in money currency that finished
         //         "dealStock": "0",                  // if order finished - amount in stock currency that finished
-        //         "amount": "0.001",                 // amount
-        //         "takerFee": "0.001",               // rounded to zero if less than 0.0001
-        //         "makerFee": "0.001",               // rounded to zero if less than 0.0001
+        //         "amount": "0.001",
+        //         "takerFee": "0.001",
+        //         "makerFee": "0.001",
         //         "left": "0.001",                   // remaining amount
         //         "dealFee": "0",                    // fee in money that you pay if order is finished
-        //         "price": "40000",                  // price
+        //         "price": "40000",
         //         "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
         //     }
         //
         // fetchClosedOrders
         //
         //     {
-        //         "market": "BTC_USDT"              // artificial field
-        //         "amount": "0.0009",               // amount of trade
-        //         "price": "40000",                 // price
-        //         "type": "limit",                  // order type
-        //         "id": 4986126152,                 // order id
-        //         "clientOrderId": "customId11",    // empty string if not specified.
-        //         "side": "sell",                   // order side
+        //         "market": "BTC_USDT"
+        //         "amount": "0.0009",
+        //         "price": "40000",
+        //         "type": "limit",
+        //         "id": 4986126152,
+        //         "clientOrderId": "customId11",
+        //         "side": "sell",
         //         "ctime": 1597486960.311311,       // timestamp of order creation
-        //         "takerFee": "0.001",              // rounded to zero if less than 0.0001
+        //         "takerFee": "0.001",
         //         "ftime": 1597486960.311332,       // executed order timestamp
-        //         "makerFee": "0.001",              // rounded to zero if less than 0.0001
+        //         "makerFee": "0.001",
         //         "dealFee": "0.041258268",         // paid fee if order is finished
         //         "dealStock": "0.0009",            // amount in stock currency that finished
         //         "dealMoney": "41.258268"          // amount in money currency that finished
@@ -1055,25 +1055,25 @@ module.exports = class whitebit extends Exchange {
         // fiat
         //
         //     {
-        //         "url": "https://someaddress.com" // address for depositing
+        //         "url": "https://someaddress.com"
         //     }
         //
         // crypto
         //
         //     {
         //         "account": {
-        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN", // deposit address
-        //             "memo": "48565488244493" // memo if currency requires memo
+        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //             "memo": "48565488244493"
         //         },
         //         "required": {
-        //             "fixedFee": "0", // fixed deposit fee
-        //             "flexFee": { // flexible fee - is fee that use percent rate
-        //                 "maxFee": "0", // maximum fixed fee that you will pay
-        //                 "minFee": "0", // minimum fixed fee that you will pay
-        //                 "percent": "0" // percent of deposit that you will pay
+        //             "fixedFee": "0",
+        //             "flexFee": {
+        //                 "maxFee": "0",
+        //                 "minFee": "0",
+        //                 "percent": "0"
         //             },
-        //             "maxAmount": "0", // max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange
-        //             "minAmount": "1" // min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange
+        //             "maxAmount": "0",
+        //             "minAmount": "1"
         //         }
         //     }
         //
