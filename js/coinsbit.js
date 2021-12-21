@@ -5,7 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors'); // , BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied
 const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+// const Precise = require ('./base/Precise');
 // ---------------------------------------------------------------------------
 
 module.exports = class coinsbit extends Exchange {
@@ -40,10 +40,10 @@ module.exports = class coinsbit extends Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
-                'fetchStatus': 'emulated',
+                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTime': 'emulated',
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': undefined,
@@ -51,19 +51,10 @@ module.exports = class coinsbit extends Exchange {
                 'withdraw': undefined,
             },
             'timeframes': {
-                // This exchange has only 4 intervals of second-scale.
-                //    ________________________________________
-                //    | interval | works for diapason up to  |
-                //    |--------------------------------------|
-                //    | 60       | 12 hours (43200 seconds)  |
-                //    | 1800     | 24 hours (86400 seconds)  |
-                //    | 3600     | 7 days (7*86400 seconds)  |
-                //    | 86400    | any interval              |
-                //    |__________|___________________________|
-                '1m': 60,
-                '30m': 1800,
-                '1h': 3600,
-                '1d': 86400,
+                '1m': 60, // works for max 12 hours diapason (between from-to)
+                '30m': 1800, // for max 24 hours diapason
+                '1h': 3600, // for max 7 days diapason
+                '1d': 86400, // for any diapason
             },
             'urls': {
                 'logo': '  <<< TODO >>>   https://upload.wikimedia.org/wikipedia/commons/8/8c/Coinsbit.png  ',
@@ -175,61 +166,6 @@ module.exports = class coinsbit extends Exchange {
         });
     }
 
-    // This method can be moved into base
-    safeMarketObject (market) {
-        // I see there are many new exchange classes (mexc, gateio, ...) where inside 'fetchMarkets' these properties are being set for spot-market objects (on each object) while in original exchange API responses those properties doesn't exist at all. So, these can be filled with this helper function (like 'safeTicker' does for each ticker object)
-        return this.deepExtend (market, {
-            'spot': undefined,
-            'derivative': undefined,
-            'contract': undefined,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
-            'settle': undefined,
-            'settleId': undefined,
-        });
-    }
-
-    // This method can be moved into base
-    validateTimestamp (methodName, ts) {
-        // Validate if provided timestamp is in MILLISECONDS format (13 digits), and not SECONDS (10 digits)
-        if (ts && ts.toString ().length !== 13) {
-            throw new ExchangeError (this.id + '->' + methodName + '() : provided timestamp should be in Milliseconds (13 digit).');
-        }
-    }
-
-    // ###################  exchange-specific methods ################### //
-    async fetchStatus (params = {}) {
-        const [defaultType, request] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params); // Here should be also defaultType adpoted, because in my experience I've seen cases when spot is working, but futures/perp/etc is under maintenance
-        let response = '';
-        if (defaultType === 'spot') {
-            response = await this.spotPublicGetSymbols (request); // This specific exchange (coinsbit) unfortunately, doesn't have any good way to get API status, so this is a specific case, I'm just making the most affordable endpoint call (better than nothing) to define the working-status of API. (However, overall structure might be like this)
-            //
-            // {"success":true,"message":"","result":["5BI_BUSD",...],"code":"200"}
-            //
-        } else if (defaultType === 'futures') {
-            // JUST FOR DEMONSTRATIONAL PURPOSES
-            // response = await this.futuresPublicGetSymbols (params);
-        }
-        const code = this.safeString (response, 'code');
-        if (code !== undefined) {
-            const status = (code === '200') ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-            });
-        }
-        return this.status;
-    }
-
-    async fetchTime (params = {}) {
-        return this.milliseconds ();
-    }
-
     async fetchMarkets (params = {}) {
         const [defaultType, request] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params); // Note: imho, I am against dividing methods according to types (like 'fetchSpotMarkets', 'fetchFuturesMarkets' and etc..) because there might be many types and exchanges, from time to time, add new types, thus it will need a never-ending 'new method' creations. I think that, independent to the exchange-type, everything should be done with one 'fetchXXX' functions - if there are multiple different types, they should be handled inside one 'fetchXXX' function (just by passing 'defaultType' parameter). That has also one advantage - the most of the 'return' object structure can be same and only a few property-values might need to be happening inside if-else blocks, thus will save multiple 'fetchSpotXXX', 'fetchFuturesXXX' functions to be written over-and-over again with same structure.
         let data = '';
@@ -283,6 +219,17 @@ module.exports = class coinsbit extends Exchange {
                 'quoteId': quoteId,
                 'type': type,
                 'spot': defaultType === 'spot',
+                'derivative': undefined,
+                'contract': undefined,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'settle': undefined,
+                'settleId': undefined,
                 'margin': undefined,
                 'active': undefined,
                 'taker': undefined,
@@ -408,7 +355,7 @@ module.exports = class coinsbit extends Exchange {
             // if arrived from parseTickers
             market = this.market (key);
             tickerFinal = ticker['ticker'];
-            timestamp = Precise.stringticker['at'] + '000';
+            timestamp = this.safeTimestamp (ticker, 'at');
         } else {
             // if arrived from fetchTicker, then there is nothing to be done more
             tickerFinal = ticker;
@@ -523,7 +470,6 @@ module.exports = class coinsbit extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const request = this.handleMarketTypeAndParams ('fetchOHLCV', undefined, params)[1];
-        this.validateTimestamp ('fetchOHLCV', since); // This shuold probalby live in base
         await this.loadMarkets ();
         const market = this.market (symbol);
         request['market'] = market['id'];
@@ -597,8 +543,8 @@ module.exports = class coinsbit extends Exchange {
         // the ordering in swap / contract candles is OHLCV
         //
         if (market === undefined) {
-            const symbol = this.safeValue (ohlcv, 'market');
-            market = this.market (symbol);
+            const marketId = this.safeString (ohlcv, 'market');
+            market = this.market (marketId, market);
         }
         return [
             this.safeTimestamp (ohlcv, 'time'),
@@ -612,7 +558,6 @@ module.exports = class coinsbit extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const request = this.handleMarketTypeAndParams ('fetchOHLCV', undefined, params)[1];
-        this.validateTimestamp ('fetchOHLCV', since); // This shuold probalby live in base
         await this.loadMarkets ();
         const market = this.market (symbol);
         request['market'] = market['id'];
@@ -671,7 +616,7 @@ module.exports = class coinsbit extends Exchange {
                 //         price: "0.00794371",
                 //         total: "7.68882295"
                 //     },
-                if (!Array.isArray (data)) { //NOTE: Instead of this.safeValue I've used this
+                if (!Array.isArray (data)) { // NOTE: Instead of this.safeValue I've used this
                     data = [];
                 }
             }
