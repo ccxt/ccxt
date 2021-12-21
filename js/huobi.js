@@ -2627,7 +2627,7 @@ module.exports = class huobi extends Exchange {
                         const values = Object.values (response);
                         result = this.safeValue (values, 0);
                         if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                            throw new InvalidAddress (this.id + ' fetchWithdrawAddress() cannot find withdraw address for ' + code);
                         }
                     }
                 }
@@ -2636,7 +2636,7 @@ module.exports = class huobi extends Exchange {
         }
         result = this.safeValue (response, network);
         if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+            throw new InvalidAddress (this.id + ' fetchWithdrawAddress() cannot find ' + network + ' withdraw address for ' + code);
         }
         return result;
     }
