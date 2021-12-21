@@ -349,8 +349,8 @@ module.exports = class hitbtc3 extends Exchange {
                     type = 'swap';
                 }
             }
-            const lotString = this.safeString (market, 'tick_size');
-            const stepString = this.safeString (market, 'quantity_increment');
+            const lotString = this.safeString (market, 'quantity_increment');
+            const stepString = this.safeString (market, 'tick_size');
             const lot = this.parseNumber (lotString);
             const step = this.parseNumber (stepString);
             const taker = this.safeNumber (market, 'take_rate');
