@@ -181,10 +181,6 @@ module.exports = class coinsbit extends Exchange {
             //         "code":"200",
             //
             data = this.safeValue (response, 'result', []);
-        } else if (defaultType === 'futures') {
-            // JUST FOR DEMONSTRATIONAL PURPOSES
-            // const response = await this.futuresPublicGetMarkets (params);
-            // i.e. : data = this.safeValue (response, 'result', []);
         }
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -195,10 +191,10 @@ module.exports = class coinsbit extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const priceScale = this.safeInteger (market, 'moneyPrec'); // <<< TODO >>>  strings 1e-8
+            const priceScale = this.safeInteger (market, 'moneyPrec');
             const quantityScale = this.safeInteger (market, 'stockPrec');
-            const pricePrecision = 1 / Math.pow (10, priceScale);
-            const quantityPrecision = 1 / Math.pow (10, quantityScale);
+            const pricePrecision = Precise.stringDiv( 1 / Math.pow (10, priceScale) );
+            const quantityPrecision = Precise.stringDiv( 1 / Math.pow (10, quantityScale) );
             const minAmount = this.safeNumber (market, 'minAmount');
             const type = 'spot';
             result.push ({
