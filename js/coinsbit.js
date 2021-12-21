@@ -5,7 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors'); // , BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied
 const { TICK_SIZE } = require ('./base/functions/number');
-// const Precise = require ('./base/Precise');
+const Precise = require ('./base/Precise');
 // ---------------------------------------------------------------------------
 
 module.exports = class coinsbit extends Exchange {
@@ -210,7 +210,7 @@ module.exports = class coinsbit extends Exchange {
             const quantityPrecision = 1 / Math.pow (10, quantityScale);
             const minAmount = this.safeNumber (market, 'minAmount');
             const type = 'spot';
-            result.push (this.safeMarketObject ({
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -257,7 +257,7 @@ module.exports = class coinsbit extends Exchange {
                     },
                 },
                 'info': market,
-            }));
+            });
         }
         return result;
     }
@@ -267,7 +267,7 @@ module.exports = class coinsbit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         request['market'] = market['id'];
-        let ticker = {};
+        let ticker = undefined;
         if (market['spot']) {
             const response = await this.spotPublicGetTicker (request);
             //     {
@@ -319,45 +319,36 @@ module.exports = class coinsbit extends Exchange {
             //          code: "200"
             //     }
             tickers = this.safeValue (response, 'result', {});
+            const result = [];
+            const values = Object.values (tickers || []);
+            const keys = Object.keys (tickers);
+            for (let i = 0; i < values.length; i++) {
+                const key = keys[i];
+                const market = this.market (key);
+                result.push (this.extend (this.parseTicker (values[i], market), params));
+            }
+            return this.filterByArray (result, 'symbol', symbols);
         }
-        return this.parseTickers (tickers, undefined, params);
     }
-
-    // This modified parseTickers method needs to exist in base, to keep the KYES & pass them through parseTickers
-    parseTickers (tickers, symbols = undefined, params = {}) {
-        const result = [];
-        const values = Object.values (tickers || []);
-        const keys = Object.keys (tickers);
-        for (let i = 0; i < values.length; i++) {
-            result.push (this.extend (this.parseTicker (values[i], undefined, keys[i]), params));
-        }
-        return this.filterByArray (result, 'symbol', symbols);
-    }
-
-    parseTicker (ticker, market = undefined, key = undefined) {
-        //            BTC_USDT: {
-        //               at: '1640028811',
-        //               ticker: {
-        //                 bid: '46448.49682539',
-        //                 ask: '46458.41093569',
-        //                 open: '46687.39',
-        //                 high: '47550',
-        //                 low: '45584.27',
-        //                 last: '46462.77',
-        //                 vol: '32.56275846',
-        //                 deal: '1510574.62551143',
-        //                 change: '-0'
-        //               }
-        //            },
+    parseTicker (ticker, market = undefined) {
+        //       at: '1640028811',
+        //       ticker: {
+        //         bid: '46448.49682539',
+        //         ask: '46458.41093569',
+        //         open: '46687.39',
+        //         high: '47550',
+        //         low: '45584.27',
+        //         last: '46462.77',
+        //         vol: '32.56275846',
+        //         deal: '1510574.62551143',
+        //         change: '-0'
+        //       }
         let tickerFinal = {};
         let timestamp = null;
-        if (market === undefined) {
-            // if arrived from parseTickers
-            market = this.market (key);
-            tickerFinal = ticker['ticker'];
+        if ('ticker' in ticker) { // if arrived from fetchTickers
+            tickerFinal = this.safeValue (ticker, 'ticker', {});
             timestamp = this.safeTimestamp (ticker, 'at');
-        } else {
-            // if arrived from fetchTicker, then there is nothing to be done more
+        } else { // if arrived from fetchTicker, then there is nothing to be done more
             tickerFinal = ticker;
             timestamp = this.milliseconds ();
         }
@@ -486,7 +477,7 @@ module.exports = class coinsbit extends Exchange {
             request['interval'] = this.timeframes[timeframe];
             const now = this.milliseconds ();
             let startTime = since;
-            let endTime = now + 1000; // At first, Let's add one second
+            let endTime = this.sum (now, 1000); // At first, Let's add one second
             if (startTime === undefined) {
                 startTime = endTime - maxRequestedMilliSeconds;
             } else {
@@ -494,8 +485,8 @@ module.exports = class coinsbit extends Exchange {
             }
             startTime = startTime / 1000;
             endTime = endTime / 1000;
-            request['start'] = Math.ceil (startTime);
-            request['end'] = Math.ceil (endTime);
+            request['start'] = parseInt (startTime);
+            request['end'] = parseInt (endTime);
             response = await this.spotPublicGetKline (this.extend (request, params));
             // {
             //     success: true,
@@ -557,10 +548,12 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const request = this.handleMarketTypeAndParams ('fetchOHLCV', undefined, params)[1];
         await this.loadMarkets ();
         const market = this.market (symbol);
-        request['market'] = market['id'];
+        params = this.handleMarketTypeAndParams ('fetchOHLCV', undefined, params)[1];
+        const request = {
+            'market': market['id']
+        };
         if (limit !== undefined) {
             request['limit'] = limit; // default = 50, minimum = 50, maximum = 1000
         }
