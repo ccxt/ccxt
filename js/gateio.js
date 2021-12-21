@@ -654,9 +654,10 @@ module.exports = class gateio extends Exchange {
                     const settle = this.safeCurrencyCode (settleId);
                     const linear = quote === settle;
                     const inverse = base === settle;
+                    const expiry = parseInt (Precise.stringMul (this.safeString (market, 'expire_time'), '1000'));
                     let symbol = '';
                     if (date !== undefined) {
-                        symbol = base + '/' + quote + ':' + settle + '-' + date;
+                        symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
                     } else {
                         symbol = base + '/' + quote + ':' + settle;
                     }
@@ -669,7 +670,6 @@ module.exports = class gateio extends Exchange {
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                     const pricePrecision = this.safeNumber (market, 'order_price_round');
-                    const expiry = this.safeInteger (market, 'expire_time');
                     // Fee is in %, so divide by 100
                     const taker = this.parseNumber (Precise.stringDiv (takerPercent, '100'));
                     const maker = this.parseNumber (Precise.stringDiv (makerPercent, '100'));
