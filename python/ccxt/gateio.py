@@ -1032,11 +1032,8 @@ class gateio(Exchange):
         indexPrice = self.safe_number(contract, 'index_price')
         interestRate = self.safe_number(contract, 'interest_rate')
         fundingRate = self.safe_string(contract, 'funding_rate')
-        fundingInterval = self.safe_string(contract, 'funding_interval') * 1000
         nextFundingTime = self.safe_integer(contract, 'funding_next_apply') * 1000
-        previousFundingTime = (self.safe_number(contract, 'funding_next_apply') * 1000) - fundingInterval
         fundingRateIndicative = self.safe_number(contract, 'funding_rate_indicative')
-        timestamp = self.milliseconds()
         return {
             'info': contract,
             'symbol': symbol,
@@ -1044,13 +1041,13 @@ class gateio(Exchange):
             'indexPrice': indexPrice,
             'interestRate': interestRate,
             'estimatedSettlePrice': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'previousFundingRate': fundingRate,
             'nextFundingRate': fundingRateIndicative,
-            'previousFundingTimestamp': previousFundingTime,
+            'previousFundingTimestamp': None,
             'nextFundingTimestamp': nextFundingTime,
-            'previousFundingDatetime': self.iso8601(previousFundingTime),
+            'previousFundingDatetime': None,
             'nextFundingDatetime': self.iso8601(nextFundingTime),
         }
 
