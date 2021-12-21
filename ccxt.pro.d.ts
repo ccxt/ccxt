@@ -70,6 +70,7 @@ declare module 'ccxt.pro' {
     export class ripio extends Exchange {}
     export class upbit extends Exchange {}
     export class zb extends Exchange {}
+    export class zipmex extends ndax {}
 
     /* tslint:enable */
 

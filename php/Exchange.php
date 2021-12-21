@@ -57,5 +57,6 @@ Exchange::$exchanges = array(
     'ripio',
     'upbit',
     'zb',
+    'zipmex',
 );
 

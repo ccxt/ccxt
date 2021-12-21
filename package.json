@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.9.50",
+  "version": "0.9.51",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -510,6 +510,8 @@
     "fmfw.io",
     "ftx.us",
     "FTXUS",
-    "FTX US"
+    "FTX US",
+    "zipmex.com",
+    "Zipmex"
   ]
 }
