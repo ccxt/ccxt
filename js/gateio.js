@@ -315,7 +315,8 @@ module.exports = class gateio extends Exchange {
                 'accountsByType': {
                     'spot': 'spot',
                     'margin': 'margin',
-                    'future': 'future',
+                    'future': 'futures',
+                    'futures': 'futures',
                     'delivery': 'delivery',
                 },
                 'defaultType': 'spot',
@@ -525,7 +526,7 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        // :param params['type']: 'spot', 'margin', 'futures' or 'delivery'
+        // :param params['type']: 'spot', 'margin', 'future' or 'delivery'
         // :param params['settle']: The quote currency
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -1480,7 +1481,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchBalance (params = {}) {
         // :param params.type: spot, margin, crossMargin, swap or future
-        // :param params.settle: Settle currency (usdt or btc) for perpetual swap and futures
+        // :param params.settle: Settle currency (usdt or btc) for perpetual swap and future
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -1765,7 +1766,7 @@ module.exports = class gateio extends Exchange {
         //         'reverse': false, // true to retrieve records where id is smaller than the specified last_id, false to retrieve records where id is larger than the specified last_id
         //     };
         //
-        // swap, futures
+        // swap, future
         //
         //     const request = {
         //         'settle': market['settleId'],
@@ -2308,7 +2309,7 @@ module.exports = class gateio extends Exchange {
         //
         //     {"id":5891843}
         //
-        // futures and perpetual swaps
+        // future and perpetual swaps
         //
         //     {
         //         "id":95938572327,
@@ -2490,7 +2491,7 @@ module.exports = class gateio extends Exchange {
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotGetOrdersOrderId',
-            // 'margin': 'publicMarginGetTickers',
+            'margin': 'privateSpotGetOrdersOrderId',
             'swap': 'privateFuturesGetSettleOrdersOrderId',
             'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
         });
@@ -2988,7 +2989,7 @@ module.exports = class gateio extends Exchange {
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
-        const type = api[1]; // spot, margin, futures, delivery
+        const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '' ? '' : '/' + path);
