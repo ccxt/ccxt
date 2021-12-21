@@ -673,10 +673,8 @@ module.exports = class gateio extends Exchange {
                     const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-                    const feeIndex = (type === 'futures') ? 'swap' : type;
                     const pricePrecision = this.safeNumber (market, 'order_price_round');
                     const expiry = this.safeInteger (market, 'expire_time');
-                    const fees = this.safeValue (this.fees, feeIndex, {});
                     // Fee is in %, so divide by 100
                     const taker = this.parseNumber (Precise.stringDiv (takerPercent, '100'))
                     const maker = this.parseNumber (Precise.stringDiv (makerPercent, '100'))
@@ -708,12 +706,6 @@ module.exports = class gateio extends Exchange {
                         'expiryDatetime': this.iso8601 (expiry),
                         'strike': undefined,
                         'optionType': undefined,
-                        'fees': {
-                            'taker': taker,
-                            'maker': maker,
-                            'tierBased': this.safeValue (fees, 'tierBased'),
-                            'percentage': this.safeValue (fees, 'percentage'),
-                        },
                         'precision': {
                             'amount': this.parseNumber ('1'),
                             'price': pricePrecision,
@@ -788,7 +780,6 @@ module.exports = class gateio extends Exchange {
                 const tradeStatus = this.safeString (market, 'trade_status');
                 const taker = this.parseNumber (Precise.stringDiv (takerPercent, '100'));
                 const maker = this.parseNumber (Precise.stringDiv (makerPercent, '100'));
-                const fees = this.safeValue (this.fees, 'trading', {});
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -817,12 +808,6 @@ module.exports = class gateio extends Exchange {
                     'expiryDatetime': undefined,
                     'strike': undefined,
                     'optionType': undefined,
-                    'fees': {
-                        'taker': taker,
-                        'maker': maker,
-                        'tierBased': this.safeValue (fees, 'tierBased'),
-                        'percentage': this.safeValue (fees, 'percentage'),
-                    },
                     'precision': {
                         'amount': amountPrecision,
                         'price': pricePrecision,
