@@ -28,6 +28,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -1715,6 +1716,8 @@ module.exports = class ascendex extends Exchange {
         //     nextFundingTime: "1640102400000"
         // }
         //
+        const marketId = this.safeString (fundingRate, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const currentTime = this.safeInteger (fundingRate, 'time');
         const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
         const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
@@ -1724,7 +1727,7 @@ module.exports = class ascendex extends Exchange {
         }
         return {
             'info': fundingRate,
-            'symbol': market['id'],
+            'symbol': symbol,
             'markPrice': this.safeNumber (fundingRate, 'markPrice'),
             'indexPrice': this.safeNumber (fundingRate, 'indexPrice'),
             'interestRate': this.parseNumber ('0'),
