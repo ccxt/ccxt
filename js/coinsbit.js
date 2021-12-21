@@ -193,8 +193,8 @@ module.exports = class coinsbit extends Exchange {
             const symbol = base + '/' + quote;
             const priceScale = this.safeInteger (market, 'moneyPrec');
             const quantityScale = this.safeInteger (market, 'stockPrec');
-            const pricePrecision = Precise.stringDiv( 1 / Math.pow (10, priceScale) );
-            const quantityPrecision = Precise.stringDiv( 1 / Math.pow (10, quantityScale) );
+            const pricePrecision = Precise.stringDiv (1 / Math.pow (10, priceScale));
+            const quantityPrecision = Precise.stringDiv (1 / Math.pow (10, quantityScale));
             const minAmount = this.safeNumber (market, 'minAmount');
             const type = 'spot';
             result.push ({
@@ -317,6 +317,7 @@ module.exports = class coinsbit extends Exchange {
             return this.filterByArray (result, 'symbol', symbols);
         }
     }
+
     parseTicker (ticker, market = undefined) {
         //       at: '1640028811',
         //       ticker: {
@@ -536,7 +537,7 @@ module.exports = class coinsbit extends Exchange {
         const market = this.market (symbol);
         params = this.handleMarketTypeAndParams ('fetchOHLCV', undefined, params)[1];
         const request = {
-            'market': market['id']
+            'market': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default = 50, minimum = 50, maximum = 1000
@@ -678,7 +679,7 @@ module.exports = class coinsbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //    {
         //        success: true,
         //        message: "",
@@ -687,7 +688,7 @@ module.exports = class coinsbit extends Exchange {
         //    }
         const success = this.safeValue (response, 'success', true);
         const code = this.safeString (response, 'code');
-        if ((code !== undefined && code !== '200') || !success) { 
+        if ((code !== undefined && code !== '200') || !success) {
             const feedback = this.id + ' ' + body;
             // Just to keep notes: history/result & depth/result endpoints only return pure ARRAY as response, without any code/messages
             let responseCode = 0;
