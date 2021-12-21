@@ -34,7 +34,7 @@ module.exports = class coinsbit extends Exchange {
                 'fetchMarkets': true,
                 // 'fetchMarketsByType': <-- i think fetchMarketsByType makes things complex, and might be totally removed from ccxt. There should be one 'fetchMarkets' imho. you can see another comment related to this matter under 'checkExchangeType' function down below.
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': undefined,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
@@ -165,13 +165,14 @@ module.exports = class coinsbit extends Exchange {
 
     checkExchangeType (methodName, params) { // This method can be moved into base
         // My proposal is to use separate exchange-type (spot|margin|futures) for each API call. So, we can assume a default to be always 'spot' but typically, in every function we should have created a separate parameter, named 'exchangeType', instead of generic 'type', because 'type' can be a very specific to the individual method, and it's better that there was a specific variable name dedicated for 'exchange-type' meaning. Imho, that shouldn't be 'type' but 'exchangeType'(or alike).
-        const defaultType = this.safeString2 (this.options, 'fetchStatus', 'defaultType', 'spot');
+        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'spot');
         const exchangeType = this.safeString (params, 'exchangeType', defaultType);
         const supportedExchangeTypes = Object.keys (this.api);
         if (!supportedExchangeTypes.includes (exchangeType)) {
             throw new ExchangeError (this.id + " does not support '" + exchangeType + "' type, set exchange.options['defaultType'] to desired: " + supportedExchangeTypes.join (' | ')); // eslint-disable-line quotes
         }
-        return exchangeType;
+        params = this.omit (params, 'exchangeType');
+        return [exchangeType, params];
     }
 
     safeMarketObject (element) { // This method can be moved into base
@@ -193,10 +194,10 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const exchangeType = this.checkExchangeType ('fetchStatus', params); // Here should be also exchangeType adpoted, because in my experience I've seen cases when spot is working, but futures/perp/etc is under maintenance
+        const [exchangeType, request] = this.checkExchangeType ('fetchStatus', params); // Here should be also exchangeType adpoted, because in my experience I've seen cases when spot is working, but futures/perp/etc is under maintenance
         let response = '';
         if (exchangeType === 'spot') {
-            response = await this.spotPublicGetSymbols (params); // This specific exchange (coinsbit) unfortunately, doesn't have any good way to get API status, so this is a specific case, I'm just making the most affordable endpoint call (better than nothing) to define the working-status of API. (However, overall structure might be like this)
+            response = await this.spotPublicGetSymbols (request); // This specific exchange (coinsbit) unfortunately, doesn't have any good way to get API status, so this is a specific case, I'm just making the most affordable endpoint call (better than nothing) to define the working-status of API. (However, overall structure might be like this)
             //
             // {"success":true,"message":"","result":["5BI_BUSD",...],"code":"200"}
             //
@@ -220,11 +221,9 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const exchangeType = this.checkExchangeType ('fetchMarkets', params); // Note: imho, I am against dividing methods according to types (like 'fetchSpotMarkets', 'fetchFuturesMarkets' and etc..) because there might be many types and exchanges, from time to time, add new types, thus it will need a never-ending 'new method' creations. I think that, independent to the exchange-type, everything should be done with one 'fetchXXX' functions - if there are multiple different types, they should be handled inside one 'fetchXXX' function (just by passing 'exchangeType' parameter). That has also one advantage - the most of the 'return' object structure can be same and only a few property-values might need to be happening inside if-else blocks, thus will save multiple 'fetchSpotXXX', 'fetchFuturesXXX' functions to be written over-and-over again with same structure.
-        const exchangeTypeChecked = this.checkExchangeType (exchangeType);
-        const request = this.deepExtend ({}, params);
+        const [exchangeType, request] = this.checkExchangeType ('fetchMarkets', params); // Note: imho, I am against dividing methods according to types (like 'fetchSpotMarkets', 'fetchFuturesMarkets' and etc..) because there might be many types and exchanges, from time to time, add new types, thus it will need a never-ending 'new method' creations. I think that, independent to the exchange-type, everything should be done with one 'fetchXXX' functions - if there are multiple different types, they should be handled inside one 'fetchXXX' function (just by passing 'exchangeType' parameter). That has also one advantage - the most of the 'return' object structure can be same and only a few property-values might need to be happening inside if-else blocks, thus will save multiple 'fetchSpotXXX', 'fetchFuturesXXX' functions to be written over-and-over again with same structure.
         let data = '';
-        if (exchangeTypeChecked === 'spot') {
+        if (exchangeType === 'spot') {
             const response = await this.spotPublicGetMarkets (request);
             //     {
             //         "success": true,
@@ -244,7 +243,7 @@ module.exports = class coinsbit extends Exchange {
             //         "code":"200",
             //
             data = this.safeValue (response, 'result', []);
-        } else if (exchangeTypeChecked === 'futures') {
+        } else if (exchangeType === 'futures') {
             // JUST FOR DEMONSTRATIONAL PURPOSES
             // const response = await this.futuresPublicGetMarkets (params);
             // i.e. : data = this.safeValue (response, 'result', []);
@@ -306,10 +305,9 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchTicker (symbol = undefined, params = {}) {
+        const [exchangeType, request] = this.checkExchangeType ('fetchTicker', params);
         await this.loadMarkets ();
-        const exchangeType = this.checkExchangeType ('fetchTicker', params);
         const market = this.market (symbol);
-        const request = this.omit (params, 'exchangeType');
         request['market'] = market['id'];
         let ticker = {};
         if (exchangeType === 'spot') {
@@ -337,9 +335,8 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        const [exchangeType, request] = this.checkExchangeType ('fetchTickers', params);
         await this.loadMarkets ();
-        const exchangeType = this.checkExchangeType ('fetchTickers', params);
-        const request = this.omit (params, 'exchangeType');
         let tickers = {};
         if (exchangeType === 'spot') {
             const response = await this.spotPublicGetTickers (request);
@@ -423,9 +420,9 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const exchangeType = this.checkExchangeType ('fetchTickers', params);
+        const [exchangeType, request] = this.checkExchangeType ('fetchOrderBook', params);
+        await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = this.omit (params, 'exchangeType');
         request['market'] = market['id'];
         let orderbook = {};
         if (exchangeType === 'spot') {
