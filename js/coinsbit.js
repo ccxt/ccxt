@@ -396,8 +396,7 @@ module.exports = class coinsbit extends Exchange {
                 //     }
                 const priceKey = 0;
                 const amountKey = 1;
-                const timestamp = this.milliseconds ();
-                orderbook = this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
+                orderbook = this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', priceKey, amountKey);
             } else if (method === 'book') {
                 request['offset'] = this.safeString (params, 'offset', 0);
                 // ATM, they need to call separately (unfortunately)
@@ -442,8 +441,7 @@ module.exports = class coinsbit extends Exchange {
                 const response = { 'bids': bids, 'asks': asks };
                 const priceKey = 'price';
                 const amountKey = 'amount';
-                const timestamp = this.milliseconds ();
-                orderbook = this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
+                orderbook = this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', priceKey, amountKey);
             }
         }
         // orderbook['nonce']  <<< TODO >>> -- atm I dont know how to handle that, as the response doesn't have right that property
@@ -600,9 +598,6 @@ module.exports = class coinsbit extends Exchange {
                 //         price: "0.00794371",
                 //         total: "7.68882295"
                 //     },
-                if (!Array.isArray (data)) { // NOTE: Instead of this.safeValue I've used this
-                    data = [];
-                }
             }
         }
         return this.parseTrades (data, market, since, limit);
