@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors'); // , BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied 
+const { ExchangeError } = require ('./base/errors'); // , BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 // function c(o){console.log(o);}
@@ -138,9 +138,9 @@ module.exports = class coinsbit extends Exchange {
                 'maxDiapasonsForTimeframes': {
                     '1m': 43200,
                     '30m': 86400,
-                    '1h': 86400*7,
+                    '1h': 86400 * 7,
                     '1d': Number.MAX_SAFE_INTEGER,
-                }
+                },
             },
             'commonCurrencies': {
                 // 'xxx': 'xxxxxxx',
@@ -413,27 +413,27 @@ module.exports = class coinsbit extends Exchange {
             tickerFinal = ticker;
             timestamp = this.milliseconds ();
         }
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeNumber (tickerFinal, 'last');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeNumber (tickerFinal, 'high'),
+            'low': this.safeNumber (tickerFinal, 'low'),
+            'bid': this.safeNumber (tickerFinal, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeNumber (tickerFinal, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeNumber (tickerFinal, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined, // They do have 'change' property, but atm,  for some reason, they always return "0 | -0 | -1 | -2" strange values. So, skipping for now.
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
-            'quoteVolume': this.safeNumber (ticker, 'deal'),
+            'baseVolume': this.safeNumber (tickerFinal, 'volume'),
+            'quoteVolume': this.safeNumber (tickerFinal, 'deal'),
             'info': ticker,
         }, market);
     }
