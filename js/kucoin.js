@@ -1624,24 +1624,13 @@ module.exports = class kucoin extends Exchange {
                 'rate': this.safeNumber (trade, 'feeRate'),
             };
         }
-        let type = this.safeString2 (trade, 'type', 'orderType');
+        let type = this.safeString (trade, 'type');
         if (type === 'match') {
             type = undefined;
         }
         let cost = this.safeNumber2 (trade, 'funds', 'dealValue');
         if (cost === undefined) {
-            const defaultType = this.safeString2 (this.options, 'parseTrade', 'defaultType', 'spot');
-            const type = (market === undefined) ? defaultType : market['type'];
-            if (type === 'futures' || type === 'swap') {
-                market = this.market (symbol);
-                const contractSize = this.safeString (market, 'contractSize');
-                const contractCost = Precise.stringMul (priceString, amountString);
-                if (contractSize && contractCost) {
-                    cost = this.parseNumber (Precise.stringMul (contractCost, contractSize));
-                }
-            } else {
-                cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         return {
             'info': trade,

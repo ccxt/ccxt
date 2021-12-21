@@ -1344,22 +1344,126 @@ module.exports = class kucoinfutures extends kucoin {
         };
         const response = await this.futuresPublicGetTradeHistory (this.extend (request, params));
         //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "sequence": 102,                              // Sequence number
-        //            "tradeId": "5cbd7377a6ffab0c7ba98b26",        // Transaction ID
-        //            "takerOrderId": "5cbd7377a6ffab0c7ba98b27",   // Taker order ID
-        //            "makerOrderId": "5cbd7377a6ffab0c7ba98b28",   // Maker order ID
-        //            "price": "7000.0",                            // Filled price
-        //            "size": 1,                                    // Filled quantity
-        //            "side": "buy",                                // Side-taker
-        //            "ts": //1545904567062140823                   // Filled time - nanosecond
-        //        }
-        //    }
+        //      {
+        //          "code": "200000",
+        //          "data": [
+        //              {
+        //                  "sequence": 32114961,
+        //                  "side": "buy",
+        //                  "size": 39,
+        //                  "price": "4001.6500000000",
+        //                  "takerOrderId": "61c20742f172110001e0ebe4",
+        //                  "makerOrderId": "61c2073fcfc88100010fcb5d",
+        //                  "tradeId": "61c2074277a0c473e69029b8",
+        //                  "ts": 1640105794099993896   // filled time
+        //              }
+        //          ]
+        //      }
         //
         const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "sequence": 32114961,
+        //         "side": "buy",
+        //         "size": 39,
+        //         "price": "4001.6500000000",
+        //         "takerOrderId": "61c20742f172110001e0ebe4",
+        //         "makerOrderId": "61c2073fcfc88100010fcb5d",
+        //         "tradeId": "61c2074277a0c473e69029b8",
+        //         "ts": 1640105794099993896   // filled time
+        //     }
+        //
+        // fetchMyTrades (private) v2
+        //
+        //     {
+        //         "symbol":"BTC-USDT",
+        //         "tradeId":"5c35c02709e4f67d5266954e",
+        //         "orderId":"5c35c02703aa673ceec2a168",
+        //         "counterOrderId":"5c1ab46003aa676e487fa8e3",
+        //         "side":"buy",
+        //         "liquidity":"taker",
+        //         "forceTaker":true,
+        //         "price":"0.083",
+        //         "size":"0.8424304",
+        //         "funds":"0.0699217232",
+        //         "fee":"0",
+        //         "feeRate":"0",
+        //         "feeCurrency":"USDT",
+        //         "stop":"",
+        //         "type":"limit",
+        //         "createdAt":1547026472000
+        //     }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const id = this.safeString2 (trade, 'tradeId', 'id');
+        const orderId = this.safeString (trade, 'orderId');
+        const takerOrMaker = this.safeString (trade, 'liquidity');
+        let timestamp = this.safeInteger (trade, 'time');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp / 1000000);
+        } else {
+            timestamp = this.safeInteger (trade, 'createdAt');
+            // if it's a historical v1 trade, the exchange returns timestamp in seconds
+            if (('dealValue' in trade) && (timestamp !== undefined)) {
+                timestamp = timestamp * 1000;
+            }
+        }
+        const priceString = this.safeString2 (trade, 'price', 'dealPrice');
+        const amountString = this.safeString2 (trade, 'size', 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const side = this.safeString (trade, 'side');
+        let fee = undefined;
+        const feeCost = this.safeNumber (trade, 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+            let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+            if (feeCurrency === undefined) {
+                if (market !== undefined) {
+                    feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+                }
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': this.safeNumber (trade, 'feeRate'),
+            };
+        }
+        let type = this.safeString2 (trade, 'type', 'orderType');
+        if (type === 'match') {
+            type = undefined;
+        }
+        let cost = this.safeNumber2 (trade, 'funds', 'dealValue');
+        if (cost === undefined) {
+            market = this.market (symbol);
+            const contractSize = this.safeString (market, 'contractSize');
+            const contractCost = Precise.stringMul (priceString, amountString);
+            if (contractSize && contractCost) {
+                cost = this.parseNumber (Precise.stringMul (contractCost, contractSize));
+            }
+        }
+        return {
+            'info': trade,
+            'id': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
