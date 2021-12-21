@@ -771,6 +771,36 @@ module.exports = class huobi extends Exchange {
                     'pro': 'spot',
                     'futures': 'future',
                 },
+                'spot': {
+                    'stopOrderTypes': {
+                        'stop-limit': true,
+                        'buy-stop-limit': true,
+                        'sell-stop-limit': true,
+                        'stop-limit-fok': true,
+                        'buy-stop-limit-fok': true,
+                        'sell-stop-limit-fok': true,
+                    },
+                    'limitOrderTypes': {
+                        'limit': true,
+                        'buy-limit': true,
+                        'sell-limit': true,
+                        'ioc': true,
+                        'buy-ioc': true,
+                        'sell-ioc': true,
+                        'limit-maker': true,
+                        'buy-limit-maker': true,
+                        'sell-limit-maker': true,
+                        'stop-limit': true,
+                        'buy-stop-limit': true,
+                        'sell-stop-limit': true,
+                        'limit-fok': true,
+                        'buy-limit-fok': true,
+                        'sell-limit-fok': true,
+                        'stop-limit-fok': true,
+                        'buy-stop-limit-fok': true,
+                        'sell-stop-limit-fok': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 // https://github.com/ccxt/ccxt/issues/6081
@@ -2233,6 +2263,7 @@ module.exports = class huobi extends Exchange {
                 'currency': feeCurrency,
             };
         }
+        const stopPrice = this.safeString (order, 'stop-price');
         return this.safeOrder2 ({
             'info': order,
             'id': id,
@@ -2246,7 +2277,7 @@ module.exports = class huobi extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': stopPrice,
             'average': undefined,
             'cost': cost,
             'amount': amount,
@@ -2267,7 +2298,7 @@ module.exports = class huobi extends Exchange {
             // spot -----------------------------------------------------------
             'account-id': accountId,
             'symbol': market['id'],
-            'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount': this.amountToPrecision (symbol, amount), // for buy market orders it's the order cost
             // 'price': this.priceToPrecision (symbol, price),
             // 'source': 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
@@ -2287,8 +2318,8 @@ module.exports = class huobi extends Exchange {
             //     direction sell, offset open = open short
             //     direction buy, offset close = close short
             //
-            // 'direction': side, // true Transaction direction
-            // 'offset': 'string', // open, close
+            // 'direction': 'buy'', // buy, sell
+            // 'offset': 'open', // open, close
             // 'lever_rate': 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
             //
             //     limit
@@ -2320,6 +2351,30 @@ module.exports = class huobi extends Exchange {
             //     ...
             //
         };
+        let orderType = type.replace ('buy-', '');
+        orderType = orderType.replace ('sell-', '');
+        const options = this.safeValue (this.options, market['type'], {});
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
+        if (stopPrice === undefined) {
+            const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
+            if (orderType in stopOrderTypes) {
+                throw new ArgumentsRequired (this.id + 'createOrder() requires a stopPrice or a stop-price parameter for a stop order');
+            }
+        } else {
+            const stopOperator = this.safeString (params, 'operator');
+            if (stopOperator === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires an operator parameter "gte" or "lte" for a stop order');
+            }
+            params = this.omit (params, [ 'stopPrice', 'stop-price' ]);
+            request['stop-price'] = this.priceToPrecision (symbol, stopPrice);
+            request['operator'] = stopOperator;
+            if ((orderType === 'limit') || (orderType === 'limit-fok')) {
+                orderType = 'stop-' + orderType;
+            } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
+                throw new NotSupported (this.id + 'createOrder() does not support ' + type + ' orders');
+            }
+        }
+        request['type'] = side + '-' + orderType;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker', {});
@@ -2329,7 +2384,7 @@ module.exports = class huobi extends Exchange {
             request['client-order-id'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'client-order-id' ]);
-        if ((type === 'market') && (side === 'buy')) {
+        if ((orderType === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
@@ -2348,7 +2403,8 @@ module.exports = class huobi extends Exchange {
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
+        const limitOrderTypes = this.safeValue (options, 'limitOrderTypes', {});
+        if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
