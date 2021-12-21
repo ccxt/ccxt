@@ -868,6 +868,7 @@ module.exports = class gateio extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
+            const currencyIdLower = this.safeStringLower (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const delisted = this.safeValue (entry, 'delisted');
             const withdraw_disabled = this.safeValue (entry, 'withdraw_disabled');
@@ -876,6 +877,7 @@ module.exports = class gateio extends Exchange {
             const active = !(delisted && withdraw_disabled && deposit_disabled && trade_disabled);
             result[code] = {
                 'id': currencyId,
+                'lowerCaseId': currencyIdLower,
                 'name': undefined,
                 'code': code,
                 'precision': amountPrecision,
@@ -2774,7 +2776,7 @@ module.exports = class gateio extends Exchange {
             'amount': truncated,
         };
         if ((toId === 'future') || (toId === 'delivery')) {
-            request['settle'] = currency['id'].toLowerCase ();
+            request['settle'] = currency['lowerCaseId'];
         }
         const response = await this.privateWalletPostTransfers (this.extend (request, params));
         //
