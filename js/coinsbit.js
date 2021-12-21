@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors'); // , BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied 
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-
+function c(o){console.log(o);}
 // ---------------------------------------------------------------------------
 
 module.exports = class coinsbit extends Exchange {
@@ -369,24 +369,34 @@ module.exports = class coinsbit extends Exchange {
         } else if (exchangeType === 'futures') {
             // tickers = ..
         }
-        return this.parseTickers (tickers);
+        return this.parseTickers (tickers, undefined, params);
     }
 
+    // This modified parseTickers method needs to exist in base, to keep the KYES & pass them through parseTickers
     parseTickers (tickers, symbols = undefined, params = {}) {
         const result = [];
-        const tickerKeys = Object.keys (tickers);
-        for ( let i = 0; i < tickerKeys.length; i++){
-            const key = tickerKeys[i];
-            const ticker = this.safeValue (tickers[key], 'ticker');
-            ticker['at'] = this.safeString (tickers[key], 'at') + '000';
-            const market = this.market (key);
-            result.push (this.extend (this.parseTicker (ticker, market), params));
+        const values = Object.values (tickers || []);
+        let keys = Object.keys (tickers);
+        for (let i = 0; i < values.length; i++) {
+            result.push (this.extend (this.parseTicker (values[i], undefined, keys[i]), params));
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market = undefined) {
-        const timestamp = this.milliseconds ();
+    parseTicker (ticker, market = undefined, key = undefined) {
+        let tickerFinal = {};
+        let timestamp = null;
+        if (market === undefined) {
+            // if arrived from parseTickers
+            market = this.market (key);
+            tickerFinal = ticker['ticker'];
+            timestamp = Precise.stringticker['at'] + '000';
+        } else {
+            // if arrived from fetchTicker, then there is nothing to be done more
+            tickerFinal = ticker;
+            timestamp = this.milliseconds ();
+        }
+        
         const last = this.safeNumber (ticker, 'last');
         return this.safeTicker ({
             'symbol': market['symbol'],
