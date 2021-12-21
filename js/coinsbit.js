@@ -3,10 +3,9 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors'); // , BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied
+const { ExchangeError, ArgumentsRequired } = require ('./base/errors'); // , BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-// function c(o){console.log(o);}
 // ---------------------------------------------------------------------------
 
 module.exports = class coinsbit extends Exchange {
@@ -32,7 +31,7 @@ module.exports = class coinsbit extends Exchange {
                 'fetchDeposits': undefined,
                 'fetchFundingRateHistory': undefined,
                 'fetchMarkets': true,
-                // 'fetchMarketsByType': <-- i think fetchMarketsByType makes things complex, and might be totally removed from ccxt. There should be one 'fetchMarkets' imho. you can see another comment related to this matter under 'checkExchangeType' function down below.
+                // 'fetchMarketsByType': <-- i think fetchMarketsByType makes things complex, and might be totally removed from ccxt. There should be one 'fetchMarkets' imho. you can see another comment related to this matter under 'handleMarketTypeAndParams' function down below.
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': undefined,
@@ -45,7 +44,7 @@ module.exports = class coinsbit extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': 'emulated',
-                'fetchTrades': undefined,
+                'fetchTrades': true,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
@@ -135,6 +134,7 @@ module.exports = class coinsbit extends Exchange {
                 //     'ERC20': 'ERC-20',
                 //     'BEP20': 'BEP20(BSC)',
                 // },
+                'fetchTradesMethod': 'spotPublicGetHistory', // spotPublicGetHistory | spotPublicGetHistoryResult
                 'maxDiapasonsForTimeframes': {
                     '1m': 43200,
                     '30m': 86400,
@@ -175,21 +175,10 @@ module.exports = class coinsbit extends Exchange {
         });
     }
 
-    checkExchangeType (methodName, params) { // This method can be moved into base
-        // My proposal is to use separate exchange-type (spot|margin|futures) for each API call. So, we can assume a default to be always 'spot' but typically, in every function we should have created a separate parameter, named 'exchangeType', instead of generic 'type', because 'type' can be a very specific to the individual method, and it's better that there was a specific variable name dedicated for 'exchange-type' meaning. Imho, that shouldn't be 'type' but 'exchangeType'(or alike).
-        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'spot');
-        const exchangeType = this.safeString (params, 'exchangeType', defaultType);
-        const supportedExchangeTypes = Object.keys (this.api);
-        if (!supportedExchangeTypes.includes (exchangeType)) {
-            throw new ExchangeError (this.id + " does not support '" + exchangeType + "' type, set exchange.options['defaultType'] to desired: " + supportedExchangeTypes.join (' | ')); // eslint-disable-line quotes
-        }
-        params = this.omit (params, 'exchangeType');
-        return [exchangeType, params];
-    }
-
-    safeMarketObject (element) { // This method can be moved into base
+    // This method can be moved into base
+    safeMarketObject (market) {
         // I see there are many new exchange classes (mexc, gateio, ...) where inside 'fetchMarkets' these properties are being set for spot-market objects (on each object) while in original exchange API responses those properties doesn't exist at all. So, these can be filled with this helper function (like 'safeTicker' does for each ticker object)
-        return this.deepExtend (element, {
+        return this.deepExtend (market, {
             'spot': undefined,
             'derivative': undefined,
             'contract': undefined,
@@ -205,22 +194,24 @@ module.exports = class coinsbit extends Exchange {
         });
     }
 
-    validateTimestamp (methodName, ts) { // This method can be moved into base
+    // This method can be moved into base
+    validateTimestamp (methodName, ts) {
         // Validate if provided timestamp is in MILLISECONDS format (13 digits), and not SECONDS (10 digits)
         if (ts && ts.toString ().length !== 13) {
-            throw new ExchangeError ('Provided timestamp to method "' + methodName + '" should be in Milliseconds (13 digit).');
+            throw new ExchangeError (this.id + '->' + methodName + '() : provided timestamp should be in Milliseconds (13 digit).');
         }
     }
 
+    // ###################  exchange-specific methods ################### //
     async fetchStatus (params = {}) {
-        const [exchangeType, request] = this.checkExchangeType ('fetchStatus', params); // Here should be also exchangeType adpoted, because in my experience I've seen cases when spot is working, but futures/perp/etc is under maintenance
+        const [defaultType, request] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params); // Here should be also defaultType adpoted, because in my experience I've seen cases when spot is working, but futures/perp/etc is under maintenance
         let response = '';
-        if (exchangeType === 'spot') {
+        if (defaultType === 'spot') {
             response = await this.spotPublicGetSymbols (request); // This specific exchange (coinsbit) unfortunately, doesn't have any good way to get API status, so this is a specific case, I'm just making the most affordable endpoint call (better than nothing) to define the working-status of API. (However, overall structure might be like this)
             //
             // {"success":true,"message":"","result":["5BI_BUSD",...],"code":"200"}
             //
-        } else if (exchangeType === 'futures') {
+        } else if (defaultType === 'futures') {
             // JUST FOR DEMONSTRATIONAL PURPOSES
             // response = await this.futuresPublicGetSymbols (params);
         }
@@ -240,9 +231,9 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const [exchangeType, request] = this.checkExchangeType ('fetchMarkets', params); // Note: imho, I am against dividing methods according to types (like 'fetchSpotMarkets', 'fetchFuturesMarkets' and etc..) because there might be many types and exchanges, from time to time, add new types, thus it will need a never-ending 'new method' creations. I think that, independent to the exchange-type, everything should be done with one 'fetchXXX' functions - if there are multiple different types, they should be handled inside one 'fetchXXX' function (just by passing 'exchangeType' parameter). That has also one advantage - the most of the 'return' object structure can be same and only a few property-values might need to be happening inside if-else blocks, thus will save multiple 'fetchSpotXXX', 'fetchFuturesXXX' functions to be written over-and-over again with same structure.
+        const [defaultType, request] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params); // Note: imho, I am against dividing methods according to types (like 'fetchSpotMarkets', 'fetchFuturesMarkets' and etc..) because there might be many types and exchanges, from time to time, add new types, thus it will need a never-ending 'new method' creations. I think that, independent to the exchange-type, everything should be done with one 'fetchXXX' functions - if there are multiple different types, they should be handled inside one 'fetchXXX' function (just by passing 'defaultType' parameter). That has also one advantage - the most of the 'return' object structure can be same and only a few property-values might need to be happening inside if-else blocks, thus will save multiple 'fetchSpotXXX', 'fetchFuturesXXX' functions to be written over-and-over again with same structure.
         let data = '';
-        if (exchangeType === 'spot') {
+        if (defaultType === 'spot') {
             const response = await this.spotPublicGetMarkets (request);
             //     {
             //         "success": true,
@@ -262,7 +253,7 @@ module.exports = class coinsbit extends Exchange {
             //         "code":"200",
             //
             data = this.safeValue (response, 'result', []);
-        } else if (exchangeType === 'futures') {
+        } else if (defaultType === 'futures') {
             // JUST FOR DEMONSTRATIONAL PURPOSES
             // const response = await this.futuresPublicGetMarkets (params);
             // i.e. : data = this.safeValue (response, 'result', []);
@@ -291,7 +282,7 @@ module.exports = class coinsbit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'type': type,
-                'spot': exchangeType === 'spot',
+                'spot': defaultType === 'spot',
                 'margin': undefined,
                 'active': undefined,
                 'taker': undefined,
@@ -325,12 +316,12 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchTicker (symbol = undefined, params = {}) {
-        const [exchangeType, request] = this.checkExchangeType ('fetchTicker', params);
+        const request = this.handleMarketTypeAndParams ('fetchTicker', undefined, params)[1];
         await this.loadMarkets ();
         const market = this.market (symbol);
         request['market'] = market['id'];
         let ticker = {};
-        if (exchangeType === 'spot') {
+        if (market['spot']) {
             const response = await this.spotPublicGetTicker (request);
             //     {
             //          success: true,
@@ -348,17 +339,15 @@ module.exports = class coinsbit extends Exchange {
             //          code: "200"
             //     }
             ticker = this.safeValue (response, 'result', {});
-        } else if (exchangeType === 'futures') {
-            // data = await this.futuresPublicGetTicker (request);
         }
         return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const [exchangeType, request] = this.checkExchangeType ('fetchTickers', params);
+        const [defaultType, request] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         await this.loadMarkets ();
         let tickers = {};
-        if (exchangeType === 'spot') {
+        if (defaultType === 'spot') {
             const response = await this.spotPublicGetTickers (request);
             //     {
             //          success: true,
@@ -383,8 +372,6 @@ module.exports = class coinsbit extends Exchange {
             //          code: "200"
             //     }
             tickers = this.safeValue (response, 'result', {});
-        } else if (exchangeType === 'futures') {
-            // tickers = ..
         }
         return this.parseTickers (tickers, undefined, params);
     }
@@ -401,6 +388,20 @@ module.exports = class coinsbit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined, key = undefined) {
+        //            BTC_USDT: {
+        //               at: '1640028811',
+        //               ticker: {
+        //                 bid: '46448.49682539',
+        //                 ask: '46458.41093569',
+        //                 open: '46687.39',
+        //                 high: '47550',
+        //                 low: '45584.27',
+        //                 last: '46462.77',
+        //                 vol: '32.56275846',
+        //                 deal: '1510574.62551143',
+        //                 change: '-0'
+        //               }
+        //            },
         let tickerFinal = {};
         let timestamp = null;
         if (market === undefined) {
@@ -439,12 +440,12 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const [exchangeType, request] = this.checkExchangeType ('fetchOrderBook', params);
+        const request = this.handleMarketTypeAndParams ('fetchOrderBook', undefined, params)[1];
         await this.loadMarkets ();
         const market = this.market (symbol);
         request['market'] = market['id'];
         let orderbook = {};
-        if (exchangeType === 'spot') {
+        if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = Math.min (1000, limit); // this parameter is not required, default 50 will be returned
             }
@@ -521,8 +522,8 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const [exchangeType, request] = this.checkExchangeType ('fetchOHLCV', params);
-        this.validateTimestamp ('fetchOHLCV', since);
+        const request = this.handleMarketTypeAndParams ('fetchOHLCV', undefined, params)[1];
+        this.validateTimestamp ('fetchOHLCV', since); // This shuold probalby live in base
         await this.loadMarkets ();
         const market = this.market (symbol);
         request['market'] = market['id'];
@@ -535,7 +536,7 @@ module.exports = class coinsbit extends Exchange {
             maxRequestedMilliSeconds = Math.min (this.sum (limit, 1) * duration, maxAllowedDiapason) * 1000;
         }
         let response = null;
-        if (exchangeType === 'spot') {
+        if (market['spot']) {
             request['interval'] = this.timeframes[timeframe];
             const now = this.milliseconds ();
             let startTime = since;
@@ -572,14 +573,10 @@ module.exports = class coinsbit extends Exchange {
             //             {
             //                 time: 1640000060,
             //                 ....
-        } else if (exchangeType === 'futures') {
-            response = [];
         }
-        if (exchangeType === 'spot') {
-            const result = this.safeValue (response, 'result', {});
-            const data = this.safeValue (result, 'kline', []);
-            return this.parseOHLCVs (data, market, timeframe, since, limit);
-        }
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'kline', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -613,11 +610,124 @@ module.exports = class coinsbit extends Exchange {
         ];
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const request = this.handleMarketTypeAndParams ('fetchOHLCV', undefined, params)[1];
+        this.validateTimestamp ('fetchOHLCV', since); // This shuold probalby live in base
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        request['market'] = market['id'];
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 50, minimum = 50, maximum = 1000
+        }
+        const defaultMethod = this.safeString (this.options, 'fetchTradesMethod');
+        const method = this.safeString (params, 'method', defaultMethod);
+        let data = {};
+        if (market['spot']) {
+            if (method === 'spotPublicGetHistory') {
+                if (!('lastId' in params)) {
+                    throw new ArgumentsRequired (this.id + " fetchTrades() requires 'lastId' id in params");
+                }
+                const response = await this[method] (this.deepExtend (request, params));
+                // {
+                //     success: true,
+                //     message: "",
+                //     result: [
+                //         {
+                //             id: 99601,
+                //             type: "buy",
+                //             time: 1640108002.455,
+                //             amount: "323144.05252658",
+                //             price: "0.008",
+                //             total: "2585.15242021"
+                //         },
+                //         {
+                //             id: 99544,
+                //             type: "buy",
+                //             time: 1640107990.112,
+                //             amount: "967.91335",
+                //             price: "0.00794371",
+                //             total: "7.68882295"
+                //         },
+                data = this.safeValue (response, 'result', []);
+            } else if (method === 'spotPublicGetHistoryResult') {
+                if (!('since' in params)) {
+                    throw new ArgumentsRequired (this.id + " fetchTrades() requires 'since' id in params");
+                }
+                data = this[method] (this.deepExtend (request, params));
+                // [
+                //     {
+                //         tid: 99601,
+                //         type: "buy",
+                //         date: 1640108002,
+                //         amount: "323144.05252658",
+                //         price: "0.008",
+                //         total: "2585.15242021"
+                //     },
+                //     {
+                //         tid: 99544,
+                //         type: "buy",
+                //         date: 1640107990,
+                //         amount: "967.91335",
+                //         price: "0.00794371",
+                //         total: "7.68882295"
+                //     },
+                if (!Array.isArray (data)) { //NOTE: Instead of this.safeValue I've used this
+                    data = [];
+                }
+            }
+        }
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //         /history
+        //         {
+        //             id: 99601,
+        //             type: "buy",
+        //             time: 1640108002.455,
+        //             amount: "323144.05252658",
+        //             price: "0.008",
+        //             total: "2585.15242021"
+        //         },
+
+        //         /history/result
+        //         {
+        //             tid: 99601,
+        //             type: "buy",
+        //             date: 1640108002,
+        //             amount: "323144.05252658",
+        //             price: "0.008",
+        //             total: "2585.15242021"
+        //         },
+        const symbol = market['symbol'];
+        const id = this.safeString2 (trade, 'id', this.safeString2 (trade, 'tid'));
+        const timestamp = this.safeTimestamp (trade, 'time', this.safeInteger (trade, 'date'));
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'amount');
+        const side = this.safeString (trade, 'type');
+        const takerOrMaker = 'taker'; // as no other info
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
     sign (path, api = ['spot', 'public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, access ] = api;
         let url = this.urls['api'][section][access] + 'v' + this.version + '/' + access + '/' + path;
-        // const exchangeType = this.safeString (params, 'exchangeType', 'spot'); exchangeType same as section
-        params = this.omit (params, 'exchangeType');
+        // const defaultType = this.safeString (params, 'defaultType', 'spot'); defaultType same as section
+        params = this.omit (params, 'defaultType');
         params = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (method === 'GET') {
@@ -663,6 +773,11 @@ module.exports = class coinsbit extends Exchange {
             // depth endpoint doesn't return any code, so have to manually check.
             const isBidAsks = url.includes ('depth/result');
             if (isBidAsks && response && response['asks']) {
+                return;
+            }
+            // history/result endpoint doesn't return any code, so have to manually check.
+            const isHistoryResults = url.includes ('history/result');
+            if (isHistoryResults && response && Array.isArray (response)) {
                 return;
             }
             let errorMessage = '';
