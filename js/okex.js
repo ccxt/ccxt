@@ -3279,11 +3279,6 @@ module.exports = class okex extends Exchange {
         // in the response above nextFundingRate is actually two funding rates from now
         //
         const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'fundingTime');
-        let previousFundingTimestamp = undefined;
-        if (nextFundingRateTimestamp !== undefined) {
-            // eight hours
-            previousFundingTimestamp = nextFundingRateTimestamp - 28800000;
-        }
         const marketId = this.safeString (fundingRate, 'instId');
         const symbol = this.safeSymbol (marketId, market);
         const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
@@ -3300,9 +3295,9 @@ module.exports = class okex extends Exchange {
             'datetime': undefined,
             'previousFundingRate': undefined,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'previousFundingTimestamp': undefined,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'previousFundingDatetime': undefined,
             'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }
