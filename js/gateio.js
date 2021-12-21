@@ -671,8 +671,8 @@ module.exports = class gateio extends Exchange {
                     const pricePrecision = this.safeNumber (market, 'order_price_round');
                     const expiry = this.safeInteger (market, 'expire_time');
                     // Fee is in %, so divide by 100
-                    const taker = this.parseNumber (Precise.stringDiv (takerPercent, '100'))
-                    const maker = this.parseNumber (Precise.stringDiv (makerPercent, '100'))
+                    const taker = this.parseNumber (Precise.stringDiv (takerPercent, '100'));
+                    const maker = this.parseNumber (Precise.stringDiv (makerPercent, '100'));
                     result.push ({
                         'info': market,
                         'id': id,
