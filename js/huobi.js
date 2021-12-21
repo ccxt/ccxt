@@ -2291,6 +2291,20 @@ module.exports = class huobi extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ methodType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const method = this.getSupportedMapping (methodType, {
+            'spot': 'createSpotOrder',
+            // 'future': 'createContractOrder',
+        });
+        if (method === undefined) {
+            throw new NotSupported (this.id + ' createOrder does not support ' + type + ' markets yet');
+        }
+        return await this[method] (symbol, type, side, amount, price, query);
+    }
+
+    async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
         const accountId = await this.fetchAccountIdByType (market['type']);
@@ -2305,51 +2319,6 @@ module.exports = class huobi extends Exchange {
             // 'client-order-id': clientOrderId, // optional, max 64 chars, must be unique within 8 hours
             // 'stop-price': this.priceToPrecision (symbol, stopPrice), // trigger price for stop limit orders
             // 'operator': 'gte', // gte, lte, trigger price condition
-            // futures --------------------------------------------------------
-            // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-            // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
-            // 'contract_code': market['id'], // optional BTC180914
-            // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807
-            // 'price': this.priceToPrecision (symbol, price),
-            // 'volume': this.amountToPrecision (symbol, amount),
-            //
-            //     direction buy, offset open = open long
-            //     direction sell, offset close = close long
-            //     direction sell, offset open = open short
-            //     direction buy, offset close = close short
-            //
-            // 'direction': 'buy'', // buy, sell
-            // 'offset': 'open', // open, close
-            // 'lever_rate': 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
-            //
-            //     limit
-            //     opponent // BBO
-            //     post_only
-            //     optimal_5
-            //     optimal_10
-            //     optimal_20
-            //     ioc
-            //     fok
-            //     opponent_ioc // IOC order using the BBO price
-            //     optimal_5_ioc
-            //     optimal_10_ioc
-            //     optimal_20_ioc
-            //     opponent_fok // FOR order using the BBO price
-            //     optimal_5_fok
-            //     optimal_10_fok
-            //     optimal_20_fok
-            //
-            // 'order_price_type': 'limit', // required
-            // 'tp_trigger_price': this.priceToPrecision (symbol, triggerPrice),
-            // 'tp_order_price': this.priceToPrecision (symbol, price),
-            // 'tp_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
-            // 'sl_trigger_price': this.priceToPrecision (symbol, stopLossPrice),
-            // 'sl_order_price': this.priceToPrecision (symbol, price),
-            // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
-            // swap -----------------------------------------------------------
-            //
-            //     ...
-            //
         };
         let orderType = type.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
@@ -2430,6 +2399,52 @@ module.exports = class huobi extends Exchange {
             'clientOrderId': undefined,
             'average': undefined,
         };
+    }
+
+    async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // const request = {
+        //     // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+        //     // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
+        //     // 'contract_code': market['id'], // optional BTC180914
+        //     // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807
+        //     // 'price': this.priceToPrecision (symbol, price),
+        //     // 'volume': this.amountToPrecision (symbol, amount),
+        //     //
+        //     //     direction buy, offset open = open long
+        //     //     direction sell, offset close = close long
+        //     //     direction sell, offset open = open short
+        //     //     direction buy, offset close = close short
+        //     //
+        //     // 'direction': 'buy'', // buy, sell
+        //     // 'offset': 'open', // open, close
+        //     // 'lever_rate': 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
+        //     //
+        //     //     limit
+        //     //     opponent // BBO
+        //     //     post_only
+        //     //     optimal_5
+        //     //     optimal_10
+        //     //     optimal_20
+        //     //     ioc
+        //     //     fok
+        //     //     opponent_ioc // IOC order using the BBO price
+        //     //     optimal_5_ioc
+        //     //     optimal_10_ioc
+        //     //     optimal_20_ioc
+        //     //     opponent_fok // FOR order using the BBO price
+        //     //     optimal_5_fok
+        //     //     optimal_10_fok
+        //     //     optimal_20_fok
+        //     //
+        //     // 'order_price_type': 'limit', // required
+        //     // 'tp_trigger_price': this.priceToPrecision (symbol, triggerPrice),
+        //     // 'tp_order_price': this.priceToPrecision (symbol, price),
+        //     // 'tp_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
+        //     // 'sl_trigger_price': this.priceToPrecision (symbol, stopLossPrice),
+        //     // 'sl_order_price': this.priceToPrecision (symbol, price),
+        //     // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
+        // };
+        throw new NotSupported (this.id + ' createContractOrder is not supported yet, it is a work in progress');
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
