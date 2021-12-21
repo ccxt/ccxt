@@ -68,6 +68,8 @@ class huobi extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingLimits' => true,
+                'fetchWithdrawAddress' => true,
+                'fetchWithdrawAddressesByNetwork' => true,
                 'fetchWithdrawals' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -2573,12 +2575,14 @@ class huobi extends Exchange {
         $networksById = $this->index_by($networks, 'id');
         $networkValue = $this->safe_value($networksById, $networkId, $networkId);
         $network = $this->safe_string($networkValue, 'network');
+        $note = $this->safe_string($depositAddress, 'note');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
             'network' => $network,
+            'note' => $note,
             'info' => $depositAddress,
         );
     }
@@ -2637,6 +2641,65 @@ class huobi extends Exchange {
         $result = $this->safe_value($response, $network);
         if ($result === null) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
+        }
+        return $result;
+    }
+
+    public function fetch_withdraw_addresses_by_network($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->spotPrivateGetV2AccountWithdrawAddress (array_merge($request, $params));
+        //
+        //     {
+        //         $code => 200,
+        //         $data => array(
+        //             {
+        //                 $currency => "eth",
+        //                 chain => "eth"
+        //                 note => "Binance - TRC20",
+        //                 addressTag => "",
+        //                 address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $parsed = $this->parse_deposit_addresses($data, array( $code ), false);
+        return $this->index_by($parsed, 'network');
+    }
+
+    public function fetch_withdraw_address($code, $params = array ()) {
+        $rawNetwork = $this->safe_string_upper($params, 'network');
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($networks, $rawNetwork, $rawNetwork);
+        $params = $this->omit($params, 'network');
+        $response = $this->fetch_withdraw_addresses_by_network($code, $params);
+        $result = null;
+        if ($network === null) {
+            $result = $this->safe_value($response, $code);
+            if ($result === null) {
+                $alias = $this->safe_string($networks, $code, $code);
+                $result = $this->safe_value($response, $alias);
+                if ($result === null) {
+                    $defaultNetwork = $this->safe_string($this->options, 'defaultNetwork', 'ERC20');
+                    $result = $this->safe_value($response, $defaultNetwork);
+                    if ($result === null) {
+                        $values = is_array($response) ? array_values($response) : array();
+                        $result = $this->safe_value($values, 0);
+                        if ($result === null) {
+                            throw new InvalidAddress($this->id . ' fetchWithdrawAddress() cannot find withdraw address for ' . $code);
+                        }
+                    }
+                }
+            }
+            return $result;
+        }
+        $result = $this->safe_value($response, $network);
+        if ($result === null) {
+            throw new InvalidAddress($this->id . ' fetchWithdrawAddress() cannot find ' . $network . ' withdraw address for ' . $code);
         }
         return $result;
     }
