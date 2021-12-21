@@ -154,8 +154,6 @@ class ftx(Exchange):
                         'nft/collections',
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        # pnl
-                        'pnl/historical_changes',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -225,6 +223,8 @@ class ftx(Exchange):
                         'nft/gallery_settings',
                         # latency statistics
                         'stats/latency_stats',
+                        # pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         # subaccounts

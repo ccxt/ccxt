@@ -136,8 +136,6 @@ class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        // pnl
-                        'pnl/historical_changes',
                     ),
                     'post' => array(
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -207,6 +205,8 @@ class ftx extends Exchange {
                         'nft/gallery_settings',
                         // latency statistics
                         'stats/latency_stats',
+                        // pnl
+                        'pnl/historical_changes',
                     ),
                     'post' => array(
                         // subaccounts
