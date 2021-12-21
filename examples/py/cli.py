@@ -87,6 +87,7 @@ keys_global = root + '/keys.json'
 keys_local = root + '/keys.local.json'
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
+
 # load the api keys and other settings from a JSON config
 with open(keys_file) as file:
     keys = json.load(file)
@@ -107,9 +108,19 @@ if argv.exchange_id not in ccxt.exchanges:
     print_usage()
     raise Exception('Exchange "' + argv.exchange_id + '" not found.')
 
-
 if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
+
+# check var env for auth keys
+if 'apiKey' not in config:
+    apiKeyVar = (argv.exchange_id + '_apiKey').upper() # example: KRAKEN_APIKEY
+    apiKey = os.environ[apiKeyVar]
+    config['apiKey'] = apiKey
+
+if 'secret' not in config:
+    secretVar = (argv.exchange_id + '_secret').upper() # example: KRAKEN_SECRET
+    secret = os.environ[apiKeyVar]
+    config['secret'] = secret
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
 
