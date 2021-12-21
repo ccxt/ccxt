@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.64.50';
+$version = '1.64.52';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.64.50';
+    const VERSION = '1.64.52';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -291,6 +291,9 @@ class Exchange {
         'fetchDeposits' => 'fetch_deposits',
         'fetchWithdrawals' => 'fetch_withdrawals',
         'fetchDepositAddress' => 'fetch_deposit_address',
+        'fetchDepositAddressesByNetwork' => 'fetch_deposit_addresses_by_network',
+        'fetchWithdrawAddress' => 'fetch_withdraw_address',
+        'fetchWithdrawAddressesByNetwork' => 'fetch_withdraw_addresses_by_network',
         'fetchCurrencies' => 'fetch_currencies',
         'fetchMarkets' => 'fetch_markets',
         'fetchOrderStatus' => 'fetch_order_status',
@@ -1188,6 +1191,7 @@ class Exchange {
             'fetchDeposit' => null,
             'fetchDepositAddress' => null,
             'fetchDepositAddresses' => null,
+            'fetchDepositAddressesByNetwork' => null,
             'fetchDeposits' => null,
             'fetchFundingFee' => null,
             'fetchFundingFees' => null,
@@ -1224,6 +1228,8 @@ class Exchange {
             'fetchTradingLimits' => null,
             'fetchTransactions' => null,
             'fetchTransfers' => null,
+            'fetchWithdrawAddress' => null,
+            'fetchWithdrawAddressesByNetwork' => null,
             'fetchWithdrawal' => null,
             'fetchWithdrawals' => null,
             'loadLeverageBrackets' => null,

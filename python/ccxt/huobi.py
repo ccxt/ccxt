@@ -796,6 +796,36 @@ class huobi(Exchange):
                     'pro': 'spot',
                     'futures': 'future',
                 },
+                'spot': {
+                    'stopOrderTypes': {
+                        'stop-limit': True,
+                        'buy-stop-limit': True,
+                        'sell-stop-limit': True,
+                        'stop-limit-fok': True,
+                        'buy-stop-limit-fok': True,
+                        'sell-stop-limit-fok': True,
+                    },
+                    'limitOrderTypes': {
+                        'limit': True,
+                        'buy-limit': True,
+                        'sell-limit': True,
+                        'ioc': True,
+                        'buy-ioc': True,
+                        'sell-ioc': True,
+                        'limit-maker': True,
+                        'buy-limit-maker': True,
+                        'sell-limit-maker': True,
+                        'stop-limit': True,
+                        'buy-stop-limit': True,
+                        'sell-stop-limit': True,
+                        'limit-fok': True,
+                        'buy-limit-fok': True,
+                        'sell-limit-fok': True,
+                        'stop-limit-fok': True,
+                        'buy-stop-limit-fok': True,
+                        'sell-stop-limit-fok': True,
+                    },
+                },
             },
             'commonCurrencies': {
                 # https://github.com/ccxt/ccxt/issues/6081
@@ -2151,6 +2181,7 @@ class huobi(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
+        stopPrice = self.safe_string(order, 'stop-price')
         return self.safe_order2({
             'info': order,
             'id': id,
@@ -2164,7 +2195,7 @@ class huobi(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': stopPrice,
             'average': None,
             'cost': cost,
             'amount': amount,
@@ -2184,7 +2215,7 @@ class huobi(Exchange):
             # spot -----------------------------------------------------------
             'account-id': accountId,
             'symbol': market['id'],
-            'type': side + '-' + type,  # buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            # 'type': side + '-' + type,  # buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             # 'amount': self.amount_to_precision(symbol, amount),  # for buy market orders it's the order cost
             # 'price': self.price_to_precision(symbol, price),
             # 'source': 'spot-api',  # optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
@@ -2204,8 +2235,8 @@ class huobi(Exchange):
             #     direction sell, offset open = open short
             #     direction buy, offset close = close short
             #
-            # 'direction': side,  # True Transaction direction
-            # 'offset': 'string',  # open, close
+            # 'direction': 'buy'',  # buy, sell
+            # 'offset': 'open',  # open, close
             # 'lever_rate': 1,  # using Leverage greater than 20x requires prior approval of high-leverage agreement
             #
             #     limit
@@ -2237,6 +2268,26 @@ class huobi(Exchange):
             #     ...
             #
         }
+        orderType = type.replace('buy-', '')
+        orderType = orderType.replace('sell-', '')
+        options = self.safe_value(self.options, market['type'], {})
+        stopPrice = self.safe_string_2(params, 'stopPrice', 'stop-price')
+        if stopPrice is None:
+            stopOrderTypes = self.safe_value(options, 'stopOrderTypes', {})
+            if orderType in stopOrderTypes:
+                raise ArgumentsRequired(self.id + 'createOrder() requires a stopPrice or a stop-price parameter for a stop order')
+        else:
+            stopOperator = self.safe_string(params, 'operator')
+            if stopOperator is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires an operator parameter "gte" or "lte" for a stop order')
+            params = self.omit(params, ['stopPrice', 'stop-price'])
+            request['stop-price'] = self.price_to_precision(symbol, stopPrice)
+            request['operator'] = stopOperator
+            if (orderType == 'limit') or (orderType == 'limit-fok'):
+                orderType = 'stop-' + orderType
+            elif (orderType != 'stop-limit') and (orderType != 'stop-limit-fok'):
+                raise NotSupported(self.id + 'createOrder() does not support ' + type + ' orders')
+        request['type'] = side + '-' + orderType
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
         if clientOrderId is None:
             broker = self.safe_value(self.options, 'broker', {})
@@ -2245,7 +2296,7 @@ class huobi(Exchange):
         else:
             request['client-order-id'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'client-order-id'])
-        if (type == 'market') and (side == 'buy'):
+        if (orderType == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if price is None:
                     raise InvalidOrder(self.id + " market buy order requires price argument to calculate cost(total amount of quote currency to spend for buying, amount * price). To switch off self warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = False. Make sure you know what you're doing.")
@@ -2261,7 +2312,8 @@ class huobi(Exchange):
                 request['amount'] = self.cost_to_precision(symbol, amount)
         else:
             request['amount'] = self.amount_to_precision(symbol, amount)
-        if type == 'limit' or type == 'ioc' or type == 'limit-maker' or type == 'stop-limit' or type == 'stop-limit-fok':
+        limitOrderTypes = self.safe_value(options, 'limitOrderTypes', {})
+        if orderType in limitOrderTypes:
             request['price'] = self.price_to_precision(symbol, price)
         response = self.spotPrivatePostV1OrderOrdersPlace(self.extend(request, params))
         timestamp = self.milliseconds()

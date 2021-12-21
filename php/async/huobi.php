@@ -779,6 +779,36 @@ class huobi extends Exchange {
                     'pro' => 'spot',
                     'futures' => 'future',
                 ),
+                'spot' => array(
+                    'stopOrderTypes' => array(
+                        'stop-limit' => true,
+                        'buy-stop-limit' => true,
+                        'sell-stop-limit' => true,
+                        'stop-limit-fok' => true,
+                        'buy-stop-limit-fok' => true,
+                        'sell-stop-limit-fok' => true,
+                    ),
+                    'limitOrderTypes' => array(
+                        'limit' => true,
+                        'buy-limit' => true,
+                        'sell-limit' => true,
+                        'ioc' => true,
+                        'buy-ioc' => true,
+                        'sell-ioc' => true,
+                        'limit-maker' => true,
+                        'buy-limit-maker' => true,
+                        'sell-limit-maker' => true,
+                        'stop-limit' => true,
+                        'buy-stop-limit' => true,
+                        'sell-stop-limit' => true,
+                        'limit-fok' => true,
+                        'buy-limit-fok' => true,
+                        'sell-limit-fok' => true,
+                        'stop-limit-fok' => true,
+                        'buy-stop-limit-fok' => true,
+                        'sell-stop-limit-fok' => true,
+                    ),
+                ),
             ),
             'commonCurrencies' => array(
                 // https://github.com/ccxt/ccxt/issues/6081
@@ -2241,6 +2271,7 @@ class huobi extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
+        $stopPrice = $this->safe_string($order, 'stop-price');
         return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
@@ -2254,7 +2285,7 @@ class huobi extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
+            'stopPrice' => $stopPrice,
             'average' => null,
             'cost' => $cost,
             'amount' => $amount,
@@ -2275,12 +2306,12 @@ class huobi extends Exchange {
             // spot -----------------------------------------------------------
             'account-id' => $accountId,
             'symbol' => $market['id'],
-            'type' => $side . '-' . $type, // buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'type' => $side . '-' . $type, // buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount' => $this->amount_to_precision($symbol, $amount), // for buy $market orders it's the order cost
             // 'price' => $this->price_to_precision($symbol, $price),
             // 'source' => 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
             // 'client-order-id' => $clientOrderId, // optional, max 64 chars, must be unique within 8 hours
-            // 'stop-price' => $this->price_to_precision($symbol, stopPrice), // trigger $price for stop limit orders
+            // 'stop-price' => $this->price_to_precision($symbol, $stopPrice), // trigger $price for stop limit orders
             // 'operator' => 'gte', // gte, lte, trigger $price condition
             // futures --------------------------------------------------------
             // 'symbol' => 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
@@ -2295,8 +2326,8 @@ class huobi extends Exchange {
             //     direction sell, offset open = open short
             //     direction buy, offset close = close short
             //
-            // 'direction' => $side, // true Transaction direction
-            // 'offset' => 'string', // open, close
+            // 'direction' => 'buy'', // buy, sell
+            // 'offset' => 'open', // open, close
             // 'lever_rate' => 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
             //
             //     limit
@@ -2328,6 +2359,30 @@ class huobi extends Exchange {
             //     ...
             //
         );
+        $orderType = str_replace('buy-', '', $type);
+        $orderType = str_replace('sell-', '', $orderType);
+        $options = $this->safe_value($this->options, $market['type'], array());
+        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'stop-price');
+        if ($stopPrice === null) {
+            $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
+            if (is_array($stopOrderTypes) && array_key_exists($orderType, $stopOrderTypes)) {
+                throw new ArgumentsRequired($this->id . 'createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
+            }
+        } else {
+            $stopOperator = $this->safe_string($params, 'operator');
+            if ($stopOperator === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires an operator parameter "gte" or "lte" for a stop order');
+            }
+            $params = $this->omit($params, array( 'stopPrice', 'stop-price' ));
+            $request['stop-price'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['operator'] = $stopOperator;
+            if (($orderType === 'limit') || ($orderType === 'limit-fok')) {
+                $orderType = 'stop-' . $orderType;
+            } else if (($orderType !== 'stop-limit') && ($orderType !== 'stop-limit-fok')) {
+                throw new NotSupported($this->id . 'createOrder() does not support ' . $type . ' orders');
+            }
+        }
+        $request['type'] = $side . '-' . $orderType;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if ($clientOrderId === null) {
             $broker = $this->safe_value($this->options, 'broker', array());
@@ -2337,7 +2392,7 @@ class huobi extends Exchange {
             $request['client-order-id'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'client-order-id' ));
-        if (($type === 'market') && ($side === 'buy')) {
+        if (($orderType === 'market') && ($side === 'buy')) {
             if ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . " $market buy order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
@@ -2356,7 +2411,8 @@ class huobi extends Exchange {
         } else {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
-        if ($type === 'limit' || $type === 'ioc' || $type === 'limit-maker' || $type === 'stop-limit' || $type === 'stop-limit-fok') {
+        $limitOrderTypes = $this->safe_value($options, 'limitOrderTypes', array());
+        if (is_array($limitOrderTypes) && array_key_exists($orderType, $limitOrderTypes)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = yield $this->spotPrivatePostV1OrderOrdersPlace (array_merge($request, $params));
