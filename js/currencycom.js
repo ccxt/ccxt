@@ -297,7 +297,7 @@ module.exports = class currencycom extends Exchange {
             }
             let precisionAmount = 1 / Math.pow (1, this.safeInteger (market, 'baseAssetPrecision'));
             let limitAmount = {
-                'min': Math.pow (10, -precision['amount']),
+                'min': Math.pow (10, -precisionAmount),
                 'max': undefined,
             };
             if ('LOT_SIZE' in filtersByType) {
@@ -319,7 +319,7 @@ module.exports = class currencycom extends Exchange {
                     'max': this.safeNumber (filter, 'maxQty'),
                 };
             }
-            let costMin = -Math.log10 (precision['amount']);
+            let costMin = -Math.log10 (precisionAmount);
             if ('MIN_NOTIONAL' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
                 costMin = this.safeNumber (filter, 'minNotional');
