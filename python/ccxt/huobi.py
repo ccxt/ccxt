@@ -2210,6 +2210,18 @@ class huobi(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
+        methodType, query = self.handle_market_type_and_params('createOrder', market, params)
+        method = self.get_supported_mapping(methodType, {
+            'spot': 'createSpotOrder',
+            # 'future': 'createContractOrder',
+        })
+        if method is None:
+            raise NotSupported(self.id + ' createOrder does not support ' + type + ' markets yet')
+        return getattr(self, method)(symbol, type, side, amount, price, query)
+
+    def create_spot_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
         accountId = self.fetch_account_id_by_type(market['type'])
@@ -2224,51 +2236,6 @@ class huobi(Exchange):
             # 'client-order-id': clientOrderId,  # optional, max 64 chars, must be unique within 8 hours
             # 'stop-price': self.price_to_precision(symbol, stopPrice),  # trigger price for stop limit orders
             # 'operator': 'gte',  # gte, lte, trigger price condition
-            # futures --------------------------------------------------------
-            # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-            # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
-            # 'contract_code': market['id'],  # optional BTC180914
-            # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
-            # 'price': self.price_to_precision(symbol, price),
-            # 'volume': self.amount_to_precision(symbol, amount),
-            #
-            #     direction buy, offset open = open long
-            #     direction sell, offset close = close long
-            #     direction sell, offset open = open short
-            #     direction buy, offset close = close short
-            #
-            # 'direction': 'buy'',  # buy, sell
-            # 'offset': 'open',  # open, close
-            # 'lever_rate': 1,  # using Leverage greater than 20x requires prior approval of high-leverage agreement
-            #
-            #     limit
-            #     opponent  # BBO
-            #     post_only
-            #     optimal_5
-            #     optimal_10
-            #     optimal_20
-            #     ioc
-            #     fok
-            #     opponent_ioc  # IOC order using the BBO price
-            #     optimal_5_ioc
-            #     optimal_10_ioc
-            #     optimal_20_ioc
-            #     opponent_fok  # FOR order using the BBO price
-            #     optimal_5_fok
-            #     optimal_10_fok
-            #     optimal_20_fok
-            #
-            # 'order_price_type': 'limit',  # required
-            # 'tp_trigger_price': self.price_to_precision(symbol, triggerPrice),
-            # 'tp_order_price': self.price_to_precision(symbol, price),
-            # 'tp_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
-            # 'sl_trigger_price': self.price_to_precision(symbol, stopLossPrice),
-            # 'sl_order_price': self.price_to_precision(symbol, price),
-            # 'sl_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
-            # swap -----------------------------------------------------------
-            #
-            #     ...
-            #
         }
         orderType = type.replace('buy-', '')
         orderType = orderType.replace('sell-', '')
@@ -2340,6 +2307,51 @@ class huobi(Exchange):
             'clientOrderId': None,
             'average': None,
         }
+
+    def create_contract_order(self, symbol, type, side, amount, price=None, params={}):
+        # request = {
+        #     # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+        #     # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
+        #     # 'contract_code': market['id'],  # optional BTC180914
+        #     # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
+        #     # 'price': self.price_to_precision(symbol, price),
+        #     # 'volume': self.amount_to_precision(symbol, amount),
+        #     #
+        #     #     direction buy, offset open = open long
+        #     #     direction sell, offset close = close long
+        #     #     direction sell, offset open = open short
+        #     #     direction buy, offset close = close short
+        #     #
+        #     # 'direction': 'buy'',  # buy, sell
+        #     # 'offset': 'open',  # open, close
+        #     # 'lever_rate': 1,  # using Leverage greater than 20x requires prior approval of high-leverage agreement
+        #     #
+        #     #     limit
+        #     #     opponent  # BBO
+        #     #     post_only
+        #     #     optimal_5
+        #     #     optimal_10
+        #     #     optimal_20
+        #     #     ioc
+        #     #     fok
+        #     #     opponent_ioc  # IOC order using the BBO price
+        #     #     optimal_5_ioc
+        #     #     optimal_10_ioc
+        #     #     optimal_20_ioc
+        #     #     opponent_fok  # FOR order using the BBO price
+        #     #     optimal_5_fok
+        #     #     optimal_10_fok
+        #     #     optimal_20_fok
+        #     #
+        #     # 'order_price_type': 'limit',  # required
+        #     # 'tp_trigger_price': self.price_to_precision(symbol, triggerPrice),
+        #     # 'tp_order_price': self.price_to_precision(symbol, price),
+        #     # 'tp_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+        #     # 'sl_trigger_price': self.price_to_precision(symbol, stopLossPrice),
+        #     # 'sl_order_price': self.price_to_precision(symbol, price),
+        #     # 'sl_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+        # }
+        raise NotSupported(self.id + ' createContractOrder is not supported yet, it is a work in progress')
 
     def cancel_order(self, id, symbol=None, params={}):
         clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
