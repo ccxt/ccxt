@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "087f5ed83ca283cdabae741c5e0f613c",
+    "content-hash": "17921f0b4bbc057b9671cc0d83934536",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.64.42",
+            "version": "1.64.49",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "605177992947f45c166b89e0a1c81e56c42745d6"
+                "reference": "19dcf477eacacdf56fce6fac8b14aa1b099c8fe4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/605177992947f45c166b89e0a1c81e56c42745d6",
-                "reference": "605177992947f45c166b89e0a1c81e56c42745d6",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/19dcf477eacacdf56fce6fac8b14aa1b099c8fe4",
+                "reference": "19dcf477eacacdf56fce6fac8b14aa1b099c8fe4",
                 "shasum": ""
             },
             "require": {
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.64.42"
+                "source": "https://github.com/ccxt/ccxt/tree/1.64.49"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-12-19T19:29:43+00:00"
+            "time": "2021-12-21T12:12:54+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -906,16 +906,16 @@
         },
         {
             "name": "react/dns",
-            "version": "v1.8.0",
+            "version": "v1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/dns.git",
-                "reference": "2a5a74ab751e53863b45fb87e1d3913884f88248"
+                "reference": "6d38296756fa644e6cb1bfe95eff0f9a4ed6edcb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/dns/zipball/2a5a74ab751e53863b45fb87e1d3913884f88248",
-                "reference": "2a5a74ab751e53863b45fb87e1d3913884f88248",
+                "url": "https://api.github.com/repos/reactphp/dns/zipball/6d38296756fa644e6cb1bfe95eff0f9a4ed6edcb",
+                "reference": "6d38296756fa644e6cb1bfe95eff0f9a4ed6edcb",
                 "shasum": ""
             },
             "require": {
@@ -923,7 +923,7 @@
                 "react/cache": "^1.0 || ^0.6 || ^0.5",
                 "react/event-loop": "^1.2",
                 "react/promise": "^3.0 || ^2.7 || ^1.2.1",
-                "react/promise-timer": "^1.2"
+                "react/promise-timer": "^1.8"
             },
             "require-dev": {
                 "clue/block-react": "^1.2",
@@ -970,7 +970,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/dns/issues",
-                "source": "https://github.com/reactphp/dns/tree/v1.8.0"
+                "source": "https://github.com/reactphp/dns/tree/v1.9.0"
             },
             "funding": [
                 {
@@ -982,7 +982,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-07-11T12:40:34+00:00"
+            "time": "2021-12-20T08:46:54+00:00"
         },
         {
             "name": "react/event-loop",
@@ -1603,16 +1603,16 @@
         },
         {
             "name": "recoil/kernel",
-            "version": "1.0.3",
+            "version": "1.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/recoilphp/kernel.git",
-                "reference": "10dcfb26890f93b9e3d671e5624a7e18cb3ed865"
+                "reference": "e6a412293ffa684d84e7c71d3175ae0172b3f54e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/recoilphp/kernel/zipball/10dcfb26890f93b9e3d671e5624a7e18cb3ed865",
-                "reference": "10dcfb26890f93b9e3d671e5624a7e18cb3ed865",
+                "url": "https://api.github.com/repos/recoilphp/kernel/zipball/e6a412293ffa684d84e7c71d3175ae0172b3f54e",
+                "reference": "e6a412293ffa684d84e7c71d3175ae0172b3f54e",
                 "shasum": ""
             },
             "require": {
@@ -1661,9 +1661,9 @@
             ],
             "support": {
                 "issues": "https://github.com/recoilphp/kernel/issues",
-                "source": "https://github.com/recoilphp/kernel/tree/1.0.3"
+                "source": "https://github.com/recoilphp/kernel/tree/1.0.4"
             },
-            "time": "2020-08-25T06:12:52+00:00"
+            "time": "2021-12-19T22:49:38+00:00"
         },
         {
             "name": "recoil/react",
