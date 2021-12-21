@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors'); // , BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied 
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-function c(o){console.log(o);}
+// function c(o){console.log(o);}
 // ---------------------------------------------------------------------------
 
 module.exports = class coinsbit extends Exchange {
@@ -52,13 +52,19 @@ module.exports = class coinsbit extends Exchange {
                 'withdraw': undefined,
             },
             'timeframes': {
-                // '1m': '1m',
-                // '5m': '5m',
-                // '15m': '15m',
-                // '30m': '30m',
-                // '1h': '1h',
-                // '1d': '1d',
-                // '1M': '1M',
+                // This exchange has only 4 intervals of second-scale.
+                //    ________________________________________
+                //    | interval | works for diapason up to  |
+                //    |--------------------------------------|
+                //    | 60       | 12 hours (43200 seconds)  |
+                //    | 1800     | 24 hours (86400 seconds)  |
+                //    | 3600     | 7 days (7*86400 seconds)  |
+                //    | 86400    | any interval              |
+                //    |__________|___________________________|
+                '1m': 60,
+                '30m': 1800,
+                '1h': 3600,
+                '1d': 86400,
             },
             'urls': {
                 'logo': '  <<< TODO >>>   https://upload.wikimedia.org/wikipedia/commons/8/8c/Coinsbit.png  ',
@@ -129,6 +135,12 @@ module.exports = class coinsbit extends Exchange {
                 //     'ERC20': 'ERC-20',
                 //     'BEP20': 'BEP20(BSC)',
                 // },
+                'maxDiapasonsForTimeframes': {
+                    '1m': 43200,
+                    '30m': 86400,
+                    '1h': 86400*7,
+                    '1d': Number.MAX_SAFE_INTEGER,
+                }
             },
             'commonCurrencies': {
                 // 'xxx': 'xxxxxxx',
@@ -191,6 +203,13 @@ module.exports = class coinsbit extends Exchange {
             'settle': undefined,
             'settleId': undefined,
         });
+    }
+
+    validateTimestamp (methodName, ts) { // This method can be moved into base
+        // Validate if provided timestamp is in MILLISECONDS format (13 digits), and not SECONDS (10 digits)
+        if (ts && ts.toString ().length !== 13) {
+            throw new ExchangeError ('Provided timestamp to method "' + methodName + '" should be in Milliseconds (13 digit).');
+        }
     }
 
     async fetchStatus (params = {}) {
@@ -272,6 +291,7 @@ module.exports = class coinsbit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'type': type,
+                'spot': exchangeType === 'spot',
                 'margin': undefined,
                 'active': undefined,
                 'taker': undefined,
@@ -373,7 +393,7 @@ module.exports = class coinsbit extends Exchange {
     parseTickers (tickers, symbols = undefined, params = {}) {
         const result = [];
         const values = Object.values (tickers || []);
-        let keys = Object.keys (tickers);
+        const keys = Object.keys (tickers);
         for (let i = 0; i < values.length; i++) {
             result.push (this.extend (this.parseTicker (values[i], undefined, keys[i]), params));
         }
@@ -393,7 +413,6 @@ module.exports = class coinsbit extends Exchange {
             tickerFinal = ticker;
             timestamp = this.milliseconds ();
         }
-        
         const last = this.safeNumber (ticker, 'last');
         return this.safeTicker ({
             'symbol': market['symbol'],
@@ -435,25 +454,13 @@ module.exports = class coinsbit extends Exchange {
                 const response = await this.spotPublicGetDepthResult (this.extend (request, params));
                 //     {
                 //         asks: [
-                //             [
-                //                 "46809.06069986",
-                //                 "2.651"
-                //             ],
-                //             [
-                //                 "46819.80796146",
-                //                 "2.6401"
-                //             ],
+                //             [  "46809.06069986", "2.651"  ],
+                //             [  "46819.80796146", "2.6401" ],
                 //             ...
                 //         ],
                 //         bids: [
-                //             [
-                //                 "46799.39054516",
-                //                 "2.702"
-                //             ],
-                //             [
-                //                 "46801.25196599",
-                //                 "0.4"
-                //             ],
+                //             [  "46799.39054516",  "2.702" ],
+                //             [  "46801.25196599",  "0.4"   ],
                 //             ...
                 //         ]
                 //     }
@@ -511,6 +518,99 @@ module.exports = class coinsbit extends Exchange {
         }
         // orderbook['nonce']  <<< TODO >>> -- atm I dont know how to handle that, as the response doesn't have right that property
         return orderbook;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const [exchangeType, request] = this.checkExchangeType ('fetchOHLCV', params);
+        this.validateTimestamp ('fetchOHLCV', since);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        request['market'] = market['id'];
+        const duration = this.parseTimeframe (timeframe);
+        const maxAllowedDiapason = this.options['maxDiapasonsForTimeframes'][timeframe];
+        let maxRequestedMilliSeconds = null;
+        if (limit === undefined) {
+            maxRequestedMilliSeconds = maxAllowedDiapason * 1000;
+        } else {
+            maxRequestedMilliSeconds = Math.min (this.sum (limit, 1) * duration, maxAllowedDiapason) * 1000;
+        }
+        let response = null;
+        if (exchangeType === 'spot') {
+            request['interval'] = this.timeframes[timeframe];
+            const now = this.milliseconds ();
+            let startTime = since;
+            let endTime = now + 1000; // At first, Let's add one second
+            if (startTime === undefined) {
+                startTime = endTime - maxRequestedMilliSeconds;
+            } else {
+                endTime = this.sum (startTime, maxRequestedMilliSeconds);
+            }
+            startTime = startTime / 1000;
+            endTime = endTime / 1000;
+            request['start'] = Math.ceil (startTime);
+            request['end'] = Math.ceil (endTime);
+            response = await this.spotPublicGetKline (this.extend (request, params));
+            // {
+            //     success: true,
+            //     message: "",
+            //     result: {
+            //         market: "BTC_USDT",
+            //         start: 1640000000,
+            //         end: 1640001234,
+            //         interval: 60,
+            //         kline: [
+            //             {
+            //                 time: 1640000000,
+            //                 open: "46979.18",
+            //                 close: "46893.88",
+            //                 highest: "46979.18",
+            //                 lowest: "46893.88",
+            //                 volume: "2.35947525",
+            //                 amount: "110745.7371631963",
+            //                 market: "BTC_USDT"
+            //             },
+            //             {
+            //                 time: 1640000060,
+            //                 ....
+        } else if (exchangeType === 'futures') {
+            response = [];
+        }
+        if (exchangeType === 'spot') {
+            const result = this.safeValue (response, 'result', {});
+            const data = this.safeValue (result, 'kline', []);
+            return this.parseOHLCVs (data, market, timeframe, since, limit);
+        }
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        // the ordering in spot candles is OCHLV
+        //
+        //     {
+        //         time: '1640051700',
+        //         open: '46954.3',
+        //         close: '46932.07',
+        //         highest: '46960.75',
+        //         lowest: '46932.07',
+        //         volume: '1.6985718',
+        //         amount: '79753.7310157163',
+        //         market: 'BTC_USDT'
+        //     }
+        //
+        // the ordering in swap / contract candles is OHLCV
+        //
+        if (market === undefined) {
+            const symbol = this.safeValue (ohlcv, 'market');
+            market = this.market (symbol);
+        }
+        return [
+            this.safeTimestamp (ohlcv, 'time'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'highest'),
+            this.safeNumber (ohlcv, 'lowest'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'), // At this moment, we do not make any use of 'amount' property
+        ];
     }
 
     sign (path, api = ['spot', 'public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
