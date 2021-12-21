@@ -26,6 +26,26 @@ if (count($argv) > 2) {
 
         $config = json_decode(file_get_contents($keys_file), true);
         $settings = array_key_exists($id, $config) ? $config[$id] : array();
+
+        // check auth keys in env var if not in keys file
+        $api_key_id = 'apiKey';
+        if (array_key_exists($api_key_id, $settings) == false) {
+            $api_key_var = strtoupper($id . '_' . $api_key_id); // example: KRAKEN_APIKEY
+            $api_key_value = getenv($api_key_var);
+            if ($api_key_value) {
+                $settings[$api_key_id] = $api_key_value;
+            }
+        }
+
+        $secret_id = 'secret';
+        if (array_key_exists($secret_id, $settings) == false) {
+            $secret_var = strtoupper($id . '_' . $secret_id); // example: KRAKEN_SECRET
+            $secret_value = getenv($secret_var);
+            if ($secret_value) {
+                $settings[$secret_id] = $secret_value;
+            }
+        }
+
         $config = array_merge($settings, array(
             'verbose' => $verbose, // set to true for debugging
         ));
