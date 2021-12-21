@@ -365,8 +365,8 @@ class hitbtc3(Exchange):
                     type = 'future'
                 else:
                     type = 'swap'
-            lotString = self.safe_string(market, 'tick_size')
-            stepString = self.safe_string(market, 'quantity_increment')
+            lotString = self.safe_string(market, 'quantity_increment')
+            stepString = self.safe_string(market, 'tick_size')
             lot = self.parse_number(lotString)
             step = self.parse_number(stepString)
             taker = self.safe_number(market, 'take_rate')

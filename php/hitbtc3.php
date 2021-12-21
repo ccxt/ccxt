@@ -357,8 +357,8 @@ class hitbtc3 extends Exchange {
                     $type = 'swap';
                 }
             }
-            $lotString = $this->safe_string($market, 'tick_size');
-            $stepString = $this->safe_string($market, 'quantity_increment');
+            $lotString = $this->safe_string($market, 'quantity_increment');
+            $stepString = $this->safe_string($market, 'tick_size');
             $lot = $this->parse_number($lotString);
             $step = $this->parse_number($stepString);
             $taker = $this->safe_number($market, 'take_rate');
