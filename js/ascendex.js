@@ -1721,10 +1721,7 @@ module.exports = class ascendex extends Exchange {
         const currentTime = this.safeInteger (fundingRate, 'time');
         const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
         const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
-        let previousFundingTimestamp = undefined;
-        if (nextFundingRateTimestamp !== undefined) {
-            previousFundingTimestamp = nextFundingRateTimestamp - 28800000;
-        }
+        const previousFundingTimestamp = undefined;
         return {
             'info': fundingRate,
             'symbol': symbol,
@@ -1744,9 +1741,6 @@ module.exports = class ascendex extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRate() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1768,22 +1762,7 @@ module.exports = class ascendex extends Exchange {
         //                      "nextFundingTime": 1640073600000
         //                  },
         //                  {
-        //                      "time": 1640061364633,
-        //                      "symbol": "AKT-PERP",
-        //                      "markPrice": "1.433190832",
-        //                      "indexPrice": "1.43317",
-        //                      "openInterest": "58154",
-        //                      "fundingRate": "0.000014439",
-        //                      "nextFundingTime": 1640073600000
-        //                  },
-        //                  {
-        //                      "time": 1640061364701,
-        //                      "symbol": "BNB-PERP",
-        //                      "markPrice": "531.437102256",
-        //                      "indexPrice": "531.1",
-        //                      "openInterest": "817.22",
-        //                      "fundingRate": "0.000634599",
-        //                      "nextFundingTime":1640073600000
+        //                              ...
         //                  }
         //              ],
         //              "collaterals": [
@@ -1792,12 +1771,7 @@ module.exports = class ascendex extends Exchange {
         //                      "referencePrice": "1"
         //                  },
         //                  {
-        //                      "asset": "KAVA-S",
-        //                      "referencePrice": "3.559"
-        //                  },
-        //                  {
-        //                      "asset": "SRM",
-        //                      "referencePrice": "3.456515"
+        //                              ...
         //                  }
         //              ]
         //          }
