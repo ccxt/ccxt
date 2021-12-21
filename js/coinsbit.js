@@ -198,7 +198,6 @@ module.exports = class coinsbit extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'name');
-            // const [ baseId, quoteId ] = id.split ('_');  // We do have them in properties, so, I don't think this is needed ?
             const baseId = this.safeString (market, 'stock');
             const quoteId = this.safeString (market, 'money');
             const base = this.safeCurrencyCode (baseId);
