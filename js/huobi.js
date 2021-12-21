@@ -61,6 +61,8 @@ module.exports = class huobi extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingLimits': true,
+                'fetchWithdrawAddress': true,
+                'fetchWithdrawAddressesByNetwork': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -2510,12 +2512,14 @@ module.exports = class huobi extends Exchange {
         const networksById = this.indexBy (networks, 'id');
         const networkValue = this.safeValue (networksById, networkId, networkId);
         const network = this.safeString (networkValue, 'network');
+        const note = this.safeString (depositAddress, 'note');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
             'network': network,
+            'note': note,
             'info': depositAddress,
         };
     }
@@ -2551,6 +2555,65 @@ module.exports = class huobi extends Exchange {
         const network = this.safeStringUpper (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
         const response = await this.fetchDepositAddressesByNetwork (code, params);
+        let result = undefined;
+        if (network === undefined) {
+            result = this.safeValue (response, code);
+            if (result === undefined) {
+                const alias = this.safeString (networks, code, code);
+                result = this.safeValue (response, alias);
+                if (result === undefined) {
+                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                    result = this.safeValue (response, defaultNetwork);
+                    if (result === undefined) {
+                        const values = Object.values (response);
+                        result = this.safeValue (values, 0);
+                        if (result === undefined) {
+                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        result = this.safeValue (response, network);
+        if (result === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        }
+        return result;
+    }
+
+    async fetchWithdrawAddressesByNetwork (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.spotPrivateGetV2AccountWithdrawAddress (this.extend (request, params));
+        //
+        //     {
+        //         code: 200,
+        //         data: [
+        //             {
+        //                 currency: "eth",
+        //                 chain: "eth"
+        //                 note: "Binance - TRC20",
+        //                 addressTag: "",
+        //                 address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const parsed = this.parseDepositAddresses (data, [ code ], false);
+        return this.indexBy (parsed, 'network');
+    }
+
+    async fetchWithdrawAddress (code, params = {}) {
+        const rawNetwork = this.safeStringUpper (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeStringUpper (networks, rawNetwork, rawNetwork);
+        params = this.omit (params, 'network');
+        const response = await this.fetchWithdrawAddressesByNetwork (code, params);
         let result = undefined;
         if (network === undefined) {
             result = this.safeValue (response, code);
