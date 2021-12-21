@@ -159,29 +159,27 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const [defaultType, request] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params); // Note: imho, I am against dividing methods according to types (like 'fetchSpotMarkets', 'fetchFuturesMarkets' and etc..) because there might be many types and exchanges, from time to time, add new types, thus it will need a never-ending 'new method' creations. I think that, independent to the exchange-type, everything should be done with one 'fetchXXX' functions - if there are multiple different types, they should be handled inside one 'fetchXXX' function (just by passing 'defaultType' parameter). That has also one advantage - the most of the 'return' object structure can be same and only a few property-values might need to be happening inside if-else blocks, thus will save multiple 'fetchSpotXXX', 'fetchFuturesXXX' functions to be written over-and-over again with same structure.
+        params = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params)[1];
         let data = undefined;
-        if (defaultType === 'spot') {
-            const response = await this.spotPublicGetMarkets (request);
-            //     {
-            //         "success": true,
-            //         "message": "",
-            //         "result": [
-            //             {
-            //                 name: "BTC_USDT",
-            //                 moneyPrec: "8",
-            //                 stock: "BTC",
-            //                 money: "USDT",
-            //                 stockPrec: "8",
-            //                 feePrec: "8",
-            //                 minAmount: "0.001"
-            //             },
-            //             ...
-            //          ],
-            //         "code":"200",
-            //
-            data = this.safeValue (response, 'result', []);
-        }
+        const response = await this.spotPublicGetMarkets (request);
+        //     {
+        //         "success": true,
+        //         "message": "",
+        //         "result": [
+        //             {
+        //                 name: "BTC_USDT",
+        //                 moneyPrec: "8",
+        //                 stock: "BTC",
+        //                 money: "USDT",
+        //                 stockPrec: "8",
+        //                 feePrec: "8",
+        //                 minAmount: "0.001"
+        //             },
+        //             ...
+        //          ],
+        //         "code":"200",
+        //
+        data = this.safeValue (response, 'result', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -205,7 +203,7 @@ module.exports = class coinsbit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'type': type,
-                'spot': defaultType === 'spot',
+                'spot': true,
                 'derivative': undefined,
                 'contract': undefined,
                 'linear': undefined,
