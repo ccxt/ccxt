@@ -1705,12 +1705,58 @@ module.exports = class ascendex extends Exchange {
 
     parseFundingRate (fundingRate, market = undefined) {
         //
+        // {
+        //     time: "1640078764560",
+        //     symbol: "BTC-PERP",
+        //     markPrice: "48499.644083351",
+        //     indexPrice: "48530.35",
+        //     openInterest: "252.1125",
+        //     fundingRate: "-0.000631045",
+        //     nextFundingTime: "1640102400000"
+        // }
+        //
+        const currentTime = this.safeInteger (fundingRate, 'time');
+        const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
+        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
+        let previousFundingTimestamp = undefined;
+        if (nextFundingRateTimestamp !== undefined) {
+            previousFundingTimestamp = nextFundingRateTimestamp - 28800000;
+        }
+        return {
+            'info': fundingRate,
+            'symbol': market['id'],
+            'markPrice': this.safeNumber (fundingRate, 'markPrice'),
+            'indexPrice': this.safeNumber (fundingRate, 'indexPrice'),
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
+            'previousFundingRate': undefined,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRate() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v2PublicGetFuturesPricingData (this.extend (request, params));
+        //
         //     {
         //          "code": 0,
         //          "data": {
         //              "contracts": [
         //                  {
-        //                      "time": 1640061364830, // server time in milliseconds
+        //                      "time": 1640061364830,
         //                      "symbol": "EOS-PERP",
         //                      "markPrice": "3.353854865",
         //                      "indexPrice": "3.3542",
@@ -1754,46 +1800,11 @@ module.exports = class ascendex extends Exchange {
         //          }
         //      }
         //
-        const timeStampRaw = this.safeString (fundingRate, 'time');
-        const timeStamp = this.parse8601 (timeStampRaw);
-        const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
-        const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
-        const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
-        let previousFundingTimestamp = undefined;
-        if (nextFundingRateTimestamp !== undefined) {
-            previousFundingTimestamp = nextFundingRateTimestamp - 3600000;
-        }
-        return {
-            'info': fundingRate,
-            'symbol': market['id'],
-            'markPrice': this.safeNumber (fundingRate, 'markPrice'),
-            'indexPrice': this.safeNumber (fundingRate, 'indexPrice'),
-            'interestRate': this.parseNumber ('0'),
-            'estimatedSettlePrice': undefined,
-            'timestamp': timeStamp,
-            'datetime': undefined,
-            'previousFundingRate': undefined,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
-            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
-        };
-    }
-
-    async fetchFundingRate (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.v2PublicGetFuturesPricingData (this.extend (request, params));
-        //
-        //
-        //
         const data = this.safeValue (response, 'data', {});
-        const contracts = this.safeValue (response, data, {});
-        return this.parseFundingRate (contracts, market);
+        const contracts = this.safeValue (data, 'contracts', []);
+        const contractsBySymbol = this.indexBy (contracts, 'symbol');
+        const contract = this.safeValue (contractsBySymbol, market['id'], {});
+        return this.parseFundingRate (contract, market);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
