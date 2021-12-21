@@ -86,6 +86,8 @@ class huobi(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingLimits': True,
+                'fetchWithdrawAddress': True,
+                'fetchWithdrawAddressesByNetwork': True,
                 'fetchWithdrawals': True,
                 'transfer': True,
                 'withdraw': True,
@@ -2463,12 +2465,14 @@ class huobi(Exchange):
         networksById = self.index_by(networks, 'id')
         networkValue = self.safe_value(networksById, networkId, networkId)
         network = self.safe_string(networkValue, 'network')
+        note = self.safe_string(depositAddress, 'note')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
             'network': network,
+            'note': note,
             'info': depositAddress,
         }
 
@@ -2520,6 +2524,57 @@ class huobi(Exchange):
         result = self.safe_value(response, network)
         if result is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
+        return result
+
+    def fetch_withdraw_addresses_by_network(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.spotPrivateGetV2AccountWithdrawAddress(self.extend(request, params))
+        #
+        #     {
+        #         code: 200,
+        #         data: [
+        #             {
+        #                 currency: "eth",
+        #                 chain: "eth"
+        #                 note: "Binance - TRC20",
+        #                 addressTag: "",
+        #                 address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        parsed = self.parse_deposit_addresses(data, [code], False)
+        return self.index_by(parsed, 'network')
+
+    def fetch_withdraw_address(self, code, params={}):
+        rawNetwork = self.safe_string_upper(params, 'network')
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(networks, rawNetwork, rawNetwork)
+        params = self.omit(params, 'network')
+        response = self.fetch_withdraw_addresses_by_network(code, params)
+        result = None
+        if network is None:
+            result = self.safe_value(response, code)
+            if result is None:
+                alias = self.safe_string(networks, code, code)
+                result = self.safe_value(response, alias)
+                if result is None:
+                    defaultNetwork = self.safe_string(self.options, 'defaultNetwork', 'ERC20')
+                    result = self.safe_value(response, defaultNetwork)
+                    if result is None:
+                        values = list(response.values())
+                        result = self.safe_value(values, 0)
+                        if result is None:
+                            raise InvalidAddress(self.id + ' fetchWithdrawAddress() cannot find withdraw address for ' + code)
+            return result
+        result = self.safe_value(response, network)
+        if result is None:
+            raise InvalidAddress(self.id + ' fetchWithdrawAddress() cannot find ' + network + ' withdraw address for ' + code)
         return result
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
