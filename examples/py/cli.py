@@ -112,15 +112,17 @@ if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
 
 # check var env for auth keys
-if 'apiKey' not in config:
-    apiKeyVar = (argv.exchange_id + '_apiKey').upper() # example: KRAKEN_APIKEY
+apiKeyID = 'apiKey'
+if apiKeyID not in config:
+    apiKeyVar = (argv.exchange_id + '_' + apiKeyID).upper() # example: KRAKEN_APIKEY
     apiKey = os.environ[apiKeyVar]
-    config['apiKey'] = apiKey
+    config[apiKeyID] = apiKey
 
-if 'secret' not in config:
-    secretVar = (argv.exchange_id + '_secret').upper() # example: KRAKEN_SECRET
+secretID = 'secret'
+if secretID not in config:
+    secretVar = (argv.exchange_id + '_' + secretID).upper() # example: KRAKEN_SECRET
     secret = os.environ[secretVar]
-    config['secret'] = secret
+    config[secretID] = secret
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
 
