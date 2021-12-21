@@ -121,7 +121,8 @@ class aax(Exchange):
                         'market/markPrice',  # Get Current Mark Price
                         'futures/funding/predictedFunding/{symbol}',  # Get Predicted Funding Rate
                         'futures/funding/prevFundingRate/{symbol}',  # Get Last Funding Rate
-                        'market/candles/index',  # Get Current Index Candlestick
+                        'market/candles/index',  # * Deprecated
+                        'market/index/candles',
                     ],
                 },
                 'private': {
@@ -383,51 +384,68 @@ class aax(Exchange):
             id = self.safe_string(market, 'symbol')
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
+            settleId = self.safe_string(market, 'settleCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
             status = self.safe_string(market, 'status')
-            active = (status == 'enable')
-            taker = self.safe_number(market, 'takerFee')
-            maker = self.safe_number(market, 'makerFee')
-            type = self.safe_string(market, 'type')
+            marketType = self.safe_string(market, 'type')
             inverse = None
             linear = None
             quanto = None
-            spot = (type == 'spot')
-            futures = (type == 'futures')
+            spot = (marketType == 'spot')
+            swap = (marketType == 'futures')
             settleType = self.safe_string_lower(market, 'settleType')
             if settleType is not None:
                 inverse = (settleType == 'inverse')
                 linear = (settleType == 'vanilla')
                 quanto = (settleType == 'quanto')
-            symbol = id
-            if type == 'spot':
-                symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_number(market, 'lotSize'),
-                'price': self.safe_number(market, 'tickSize'),
-            }
+            symbol = base + '/' + quote
+            type = 'spot'
+            contractSize = None
+            if swap:
+                symbol = symbol + ':' + settle
+                type = 'swap'
+                contractSize = self.safe_number(market, 'multiplier')
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'futures': futures,
-                'inverse': inverse,
+                'margin': False,
+                'swap': swap,
+                'future': False,
+                'option': False,
+                'derivative': swap,
+                'contract': swap,
                 'linear': linear,
+                'inverse': inverse,
+                'taker': self.safe_number(market, 'takerFee'),
+                'maker': self.safe_number(market, 'makerFee'),
+                'contractSize': contractSize,
+                'active': (status == 'enable'),
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'quanto': quanto,
-                'precision': precision,
-                'info': market,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'percentage': False,
-                'tierBased': True,
+                'percentage': False,  # ? Deprecated?
+                'tierBased': True,  # ? Deprecated?
+                'precision': {
+                    'amount': self.safe_number(market, 'lotSize'),
+                    'price': self.safe_number(market, 'tickSize'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_string(market, 'minQuantity'),
                         'max': self.safe_string(market, 'maxQuantity'),
@@ -441,6 +459,7 @@ class aax(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 

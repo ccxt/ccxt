@@ -349,8 +349,8 @@ module.exports = class hitbtc3 extends Exchange {
                     type = 'swap';
                 }
             }
-            const lotString = this.safeString (market, 'quantity_increment');
-            const stepString = this.safeString (market, 'tick_size');
+            const lotString = this.safeString (market, 'tick_size');
+            const stepString = this.safeString (market, 'quantity_increment');
             const lot = this.parseNumber (lotString);
             const step = this.parseNumber (stepString);
             const taker = this.safeNumber (market, 'take_rate');
@@ -1361,7 +1361,7 @@ module.exports = class hitbtc3 extends Exchange {
         }
         const filled = this.safeString (order, 'quantity_cumulative');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const marketId = this.safeString (order, 'marketId');
+        const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const postOnly = this.safeValue (order, 'post_only');
@@ -1554,7 +1554,7 @@ module.exports = class hitbtc3 extends Exchange {
             const payloadString = payload.join ('');
             const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256', 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
-            const encoded = this.stringToBase64 (secondPayload);
+            const encoded = this.decode (this.stringToBase64 (secondPayload));
             headers['Authorization'] = 'HS256 ' + encoded;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

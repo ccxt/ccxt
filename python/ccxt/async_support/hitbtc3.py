@@ -365,8 +365,8 @@ class hitbtc3(Exchange):
                     type = 'future'
                 else:
                     type = 'swap'
-            lotString = self.safe_string(market, 'quantity_increment')
-            stepString = self.safe_string(market, 'tick_size')
+            lotString = self.safe_string(market, 'tick_size')
+            stepString = self.safe_string(market, 'quantity_increment')
             lot = self.parse_number(lotString)
             step = self.parse_number(stepString)
             taker = self.safe_number(market, 'take_rate')
@@ -1297,7 +1297,7 @@ class hitbtc3(Exchange):
             lastTradeTimestamp = self.parse8601(updated)
         filled = self.safe_string(order, 'quantity_cumulative')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        marketId = self.safe_string(order, 'marketId')
+        marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         postOnly = self.safe_value(order, 'post_only')
@@ -1471,6 +1471,6 @@ class hitbtc3(Exchange):
             payloadString = ''.join(payload)
             signature = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256, 'hex')
             secondPayload = self.apiKey + ':' + signature + ':' + timestamp
-            encoded = self.string_to_base64(secondPayload)
+            encoded = self.decode(self.string_to_base64(secondPayload))
             headers['Authorization'] = 'HS256 ' + encoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

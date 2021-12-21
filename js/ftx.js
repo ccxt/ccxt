@@ -133,8 +133,6 @@ module.exports = class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        // pnl
-                        'pnl/historical_changes',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -204,6 +202,8 @@ module.exports = class ftx extends Exchange {
                         'nft/gallery_settings',
                         // latency statistics
                         'stats/latency_stats',
+                        // pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         // subaccounts
