@@ -1703,6 +1703,99 @@ module.exports = class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
     }
 
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        //     {
+        //          "code": 0,
+        //          "data": {
+        //              "contracts": [
+        //                  {
+        //                      "time": 1640061364830, // server time in milliseconds
+        //                      "symbol": "EOS-PERP",
+        //                      "markPrice": "3.353854865",
+        //                      "indexPrice": "3.3542",
+        //                      "openInterest": "14242",
+        //                      "fundingRate": "-0.000073026",
+        //                      "nextFundingTime": 1640073600000
+        //                  },
+        //                  {
+        //                      "time": 1640061364633,
+        //                      "symbol": "AKT-PERP",
+        //                      "markPrice": "1.433190832",
+        //                      "indexPrice": "1.43317",
+        //                      "openInterest": "58154",
+        //                      "fundingRate": "0.000014439",
+        //                      "nextFundingTime": 1640073600000
+        //                  },
+        //                  {
+        //                      "time": 1640061364701,
+        //                      "symbol": "BNB-PERP",
+        //                      "markPrice": "531.437102256",
+        //                      "indexPrice": "531.1",
+        //                      "openInterest": "817.22",
+        //                      "fundingRate": "0.000634599",
+        //                      "nextFundingTime":1640073600000
+        //                  }
+        //              ],
+        //              "collaterals": [
+        //                  {
+        //                      "asset": "USDTR",
+        //                      "referencePrice": "1"
+        //                  },
+        //                  {
+        //                      "asset": "KAVA-S",
+        //                      "referencePrice": "3.559"
+        //                  },
+        //                  {
+        //                      "asset": "SRM",
+        //                      "referencePrice": "3.456515"
+        //                  }
+        //              ]
+        //          }
+        //      }
+        //
+        const timeStampRaw = this.safeString (fundingRate, 'time');
+        const timeStamp = this.parse8601 (timeStampRaw);
+        const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
+        const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
+        const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
+        let previousFundingTimestamp = undefined;
+        if (nextFundingRateTimestamp !== undefined) {
+            previousFundingTimestamp = nextFundingRateTimestamp - 3600000;
+        }
+        return {
+            'info': fundingRate,
+            'symbol': market['id'],
+            'markPrice': this.safeNumber (fundingRate, 'markPrice'),
+            'indexPrice': this.safeNumber (fundingRate, 'indexPrice'),
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': timeStamp,
+            'datetime': undefined,
+            'previousFundingRate': undefined,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v2PublicGetFuturesPricingData (this.extend (request, params));
+        //
+        //
+        //
+        const data = this.safeValue (response, 'data', {});
+        const contracts = this.safeValue (response, data, {});
+        return this.parseFundingRate (contracts, market);
+    }
+
     async setLeverage (leverage, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
