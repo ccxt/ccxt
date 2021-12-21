@@ -705,27 +705,14 @@ module.exports = class coinsbit extends Exchange {
         //        code: "200",
         //        result: [ .... ]
         //    }
-        const success = this.safeValue (response, 'success');
-        if (success !== true) {
-            // depth endpoint doesn't return any code, so have to manually check.
-            const isBidAsks = url.includes ('depth/result');
-            if (isBidAsks && response && response['asks']) {
-                return;
-            }
-            // history/result endpoint doesn't return any code, so have to manually check.
-            const isHistoryResults = url.includes ('history/result');
-            if (isHistoryResults && response && Array.isArray (response)) {
-                return;
-            }
-            let errorMessage = '';
+        const success = this.safeValue (response, 'success', true);
+        const code = this.safeString (response, 'code');
+        if ((code !== undefined && code !== '200') || !success) { 
+            const feedback = this.id + ' ' + body;
+            // Just to keep notes: history/result & depth/result endpoints only return pure ARRAY as response, without any code/messages
             let responseCode = 0;
-            let feedback = this.id + ' ';
-            if (success === false) {
-                errorMessage = this.safeValue (response, 'message');
+            if (success === false) { // If success is not 'false' strictly, then probably response didnt contain expected JSON format at all. Maybe 404 or any outage
                 responseCode = this.safeString (response, 'code');
-                feedback += errorMessage;
-            } else { // seems response didnt contain expected JSON format at all. Maybe 404 or any outage
-                feedback += body;
             }
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
