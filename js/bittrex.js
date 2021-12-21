@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -21,6 +20,9 @@ module.exports = class bittrex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'margin': false,
+                'swap': false,
+                'future': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
@@ -28,6 +30,8 @@ module.exports = class bittrex extends Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -217,7 +221,9 @@ module.exports = class bittrex extends Exchange {
                 // 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
+                'BIFI': 'Bifrost Finance',
                 'MER': 'Mercury', // conflict with Mercurial Finance
+                'PROS': 'Pros.Finance',
                 'REPV2': 'REP',
                 'TON': 'Tokamak Network',
             },
@@ -543,26 +549,25 @@ module.exports = class bittrex extends Exchange {
         //
         // public fetchTrades
         //
-        //     {
-        //         "id":"9c5589db-42fb-436c-b105-5e2edcb95673",
-        //         "executedAt":"2020-10-03T11:48:43.38Z",
-        //         "quantity":"0.17939626",
-        //         "rate":"0.03297952",
-        //         "takerSide":"BUY"
-        //     }
+        //      {
+        //          "id": "8a614d4e-e455-45b0-9aac-502b0aeb433f",
+        //          "executedAt": "2021-11-25T14:54:44.65Z",
+        //          "quantity": "30.00000000",
+        //          "rate": "1.72923112",
+        //          "takerSide": "SELL"
+        //      }
         //
         // private fetchOrderTrades
-        //
-        //     {
-        //         "id": "aaa3e9bd-5b86-4a21-8b3d-1275c1d30b8e",
-        //         "marketSymbol": "OMG-BTC",
-        //         "executedAt": "2020-10-02T16:00:30.3Z",
-        //         "quantity": "7.52710000",
-        //         "rate": "0.00034907",
-        //         "orderId": "3a3dbd33-3a30-4ae5-a41d-68d3c1ac537e",
-        //         "commission": "0.00000525",
-        //         "isTaker": false
-        //     }
+        //      {
+        //          "id": "8a614d4e-e455-45b0-9aac-502b0aeb433f",
+        //          "marketSymbol": "ADA-USDT",
+        //          "executedAt": "2021-11-25T14:54:44.65Z",
+        //          "quantity": "30.00000000",
+        //          "rate": "1.72923112",
+        //          "orderId": "6f7abf18-6901-4659-a48c-db0e88440ea4",
+        //          "commission": "0.38907700",
+        //          "isTaker":  true
+        //      }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'executedAt'));
         const id = this.safeString (trade, 'id');
@@ -571,24 +576,21 @@ module.exports = class bittrex extends Exchange {
         market = this.safeMarket (marketId, market, '-');
         const priceString = this.safeString (trade, 'rate');
         const amountString = this.safeString (trade, 'quantity');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let takerOrMaker = undefined;
         const isTaker = this.safeValue (trade, 'isTaker');
         if (isTaker !== undefined) {
             takerOrMaker = isTaker ? 'taker' : 'maker';
         }
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'commission');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'commission');
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['quote'],
             };
         }
         const side = this.safeStringLower (trade, 'takerSide');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -598,11 +600,11 @@ module.exports = class bittrex extends Exchange {
             'takerOrMaker': takerOrMaker,
             'type': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTime (params = {}) {
@@ -670,7 +672,7 @@ module.exports = class bittrex extends Exchange {
         if (since !== undefined) {
             const now = this.milliseconds ();
             const difference = Math.abs (now - since);
-            const sinceDate = this.ymd (since);
+            const sinceDate = this.yyyymmdd (since);
             const parts = sinceDate.split ('-');
             const sinceYear = this.safeInteger (parts, 0);
             const sinceMonth = this.safeInteger (parts, 1);
@@ -1065,7 +1067,7 @@ module.exports = class bittrex extends Exchange {
             },
             'info': order,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {

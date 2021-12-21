@@ -1,6 +1,6 @@
 # Manual
 
-The CCXT Pro stack is built upon [CCXT](https://ccxt.trade) and extends the core CCXT classes, using:
+The CCXT Pro stack is built upon [CCXT](https://ccxt.com) and extends the core CCXT classes, using:
 
 - JavaScript prototype-level mixins
 - Python multiple inheritance
@@ -48,9 +48,9 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
     +=============================================================+
 ```
 
-# Exchanges
+## Exchanges
 
-The CCXT Pro library currently supports the following 33 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 35 cryptocurrency exchange markets and WebSocket trading APIs:
 
 | logo                                                                                                                                                                                         | id            | name                                                                                | ver                                                                                                                                       | certified                                                                                                                   | pro                                                                          |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -71,10 +71,12 @@ The CCXT Pro library currently supports the following 33 cryptocurrency exchange
 | [![coinbasepro](https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg)](https://pro.coinbase.com/)                                             | coinbasepro   | [Coinbase Pro](https://pro.coinbase.com/)                                           | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.pro.coinbase.com)                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![currencycom](https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg)](https://currency.com/trading/signup?c=362jaimv&pid=referral)           | currencycom   | [Currency.com](https://currency.com/trading/signup?c=362jaimv&pid=referral)         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://currency.com/api)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![ftx](https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg)](https://ftx.com/#a=ccxt)                                                       | ftx           | [FTX](https://ftx.com/#a=ccxt)                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/ftexchange/ftx)                                           | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![ftxus](https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg)](https://ftx.com/#a=ccxt)                                                    | ftxus         | [FTX US](https://ftx.com/#a=ccxt)                                                   | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/ftexchange/ftx)                                           |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![gateio](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)](https://www.gate.io/ref/2436035)                                            | gateio        | [Gate.io](https://www.gate.io/ref/2436035)                                          | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://www.gate.io/docs/apiv4/en/index.html)                                | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                   | hitbtc        | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.hitbtc.com)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![hitbtc3](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | hitbtc3       | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.hitbtc.com)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![huobi](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.huobi.com)                                                       | huobi         | [Huobi](https://www.huobi.com)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/cn/)                                 | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![huobijp](https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg)](https://www.huobi.co.jp/register/?invite_code=znnq3)                       | huobijp       | [Huobi Japan](https://www.huobi.co.jp/register/?invite_code=znnq3)                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api-doc.huobi.co.jp)                                                 |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![idex](https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg)](https://idex.io)                                                             | idex          | [IDEX](https://idex.io)                                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.idex.io/)                                                       | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![kraken](https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg)](https://www.kraken.com)                                                    | kraken        | [Kraken](https://www.kraken.com)                                                    | [![API Version 0](https://img.shields.io/badge/0-lightgray)](https://www.kraken.com/features/api)                                         |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![kucoin](https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg)](https://www.kucoin.com/?rcode=E5wkqe)                                      | kucoin        | [KuCoin](https://www.kucoin.com/?rcode=E5wkqe)                                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.kucoin.com)                                                     |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -92,7 +94,7 @@ This is the list of exchanges in CCXT Pro with support for WebSockets APIs. This
 
 Full list of exchanges available in CCXT via REST: [Supported Cryptocurrency Exchange Markets](https://github.com/ccxt/ccxt/#supported-cryptocurrency-exchange-markets).
 
-# Usage
+## Usage
 
 ```diff
 - this part of the doc is under heavy development right now
@@ -339,7 +341,7 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
 ```JavaScript
 [
-    order, // see https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+    order, // see https://docs.ccxt.com/en/latest/manual.html#order-structure
     order,
     order,
     ...
@@ -519,11 +521,11 @@ The obvious downside of the throttling mode is being less reactive or responsive
 
 ##### watchOrderBook
 
-The `watchOrderBook`'s interface is identical to [fetchOrderBook](https://github.com/ccxt/ccxt/wiki/Manual#order-book). It accepts three arguments:
+The `watchOrderBook`'s interface is identical to [fetchOrderBook](https://docs.ccxt.com/en/latest/manual.html#order-book). It accepts three arguments:
 
 - `symbol` – string, a unified CCXT symbol, required
 - `limit` – integer, the max number of bids/asks returned, optional
-- `params` – assoc dictionary, optional overrides as described in [Overriding Unified API Params](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params)
+- `params` – assoc dictionary, optional overrides as described in [Overriding Unified API Params](https://docs.ccxt.com/en/latest/manual.html#overriding-unified-api-params)
 
 In general, the exchanges can be divided in two categories:
 
@@ -801,7 +803,7 @@ if ($exchange->has['watchTrades']) {
 
 #### Authentication
 
-In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup) for more details.
+In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://docs.ccxt.com/en/latest/manual.html#api-keys-setup) for more details.
 
 #### Trading
 
@@ -899,6 +901,6 @@ watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 - this method is a work in progress now (may be unavailable)
 ```
 
-## Error Handling
+### Error Handling
 
-In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling) for more details.
+In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/en/latest/manual.html#error-handling) for more details.

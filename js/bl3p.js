@@ -12,7 +12,7 @@ module.exports = class bl3p extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bl3p',
             'name': 'BL3P',
-            'countries': [ 'NL', 'EU' ], // Netherlands, EU
+            'countries': [ 'NL' ], // Netherlands
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',

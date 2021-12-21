@@ -24,6 +24,7 @@ before_install:
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
+- git config pull.rebase false
 - git pull --tags
 - phpenv global 7.4.2
 - composer install

@@ -234,7 +234,10 @@ module.exports = class bitmart extends Exchange {
                     '50021': BadRequest, // 400, Invalid %s
                     '50022': ExchangeNotAvailable, // 400, Service unavailable
                     '50023': BadSymbol, // 400, This Symbol can't place order by api
+                    '50029': InvalidOrder, // {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
+                    '50030': InvalidOrder, // {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
                     '53000': AccountSuspended, // 403, Your account is frozen due to security policies. Please contact customer service
+                    '53001': AccountSuspended, // {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
                     '57001': BadRequest, // 405, Method Not Allowed
                     '58001': BadRequest, // 415, Unsupported Media Type
                     '59001': ExchangeError, // 500, User account not found
@@ -280,13 +283,17 @@ module.exports = class bitmart extends Exchange {
             'commonCurrencies': {
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
+                'DMS': 'DimSum', // conflict with Dragon Mainland Shards
+                'FOX': 'Fox Finance',
                 'GDT': 'Gorilla Diamond',
                 '$HERO': 'Step Hero',
                 '$PAC': 'PAC',
+                'MIM': 'MIM Swarm',
                 'MVP': 'MVP Coin',
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
                 'TCT': 'TacoCat Token',
+                'TRU': 'Truebit', // conflict with TrueFi
             },
             'options': {
                 'networks': {
@@ -430,7 +437,7 @@ module.exports = class bitmart extends Exchange {
             const pricePrecision = this.safeInteger (market, 'price_max_precision');
             const precision = {
                 'amount': this.safeNumber (market, 'base_min_size'),
-                'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 12)),
+                'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 14)),
             };
             const minBuyCost = this.safeNumber (market, 'min_buy_amount');
             const minSellCost = this.safeNumber (market, 'min_sell_amount');
@@ -685,8 +692,8 @@ module.exports = class bitmart extends Exchange {
         if (percentage === undefined) {
             percentage = this.safeNumber (ticker, 'price_change_percent_24h');
         }
-        const baseVolume = this.safeNumber2 (ticker, 'base_volume_24h', 'base_coin_volume');
-        let quoteVolume = this.safeNumber2 (ticker, 'quote_volume_24h', 'quote_coin_volume');
+        const baseVolume = this.safeNumber2 (ticker, 'base_coin_volume', 'base_volume_24h');
+        let quoteVolume = this.safeNumber2 (ticker, 'quote_coin_volume', 'quote_volume_24h');
         quoteVolume = this.safeNumber (ticker, 'volume_24h', quoteVolume);
         const open = this.safeNumber2 (ticker, 'open_24h', 'open');
         let average = undefined;
@@ -928,15 +935,15 @@ module.exports = class bitmart extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // public fetchTrades spot
+        // public fetchTrades spot ( amount = count * price )
         //
         //     {
-        //         "amount":"0.005703",
-        //         "order_time":1599652045394,
-        //         "price":"0.034029",
-        //         "count":"0.1676",
-        //         "type":"sell"
-        //     }
+        //          "amount": "818.94",
+        //          "order_time": "1637601839035",    // ETH/USDT
+        //          "price": "4221.99",
+        //          "count": "0.19397",
+        //          "type": "buy"
+        //      }
         //
         // public fetchTrades contract, private fetchMyTrades contract
         //
@@ -992,31 +999,28 @@ module.exports = class bitmart extends Exchange {
         if (execType !== undefined) {
             takerOrMaker = (execType === 'M') ? 'maker' : 'taker';
         }
-        let price = this.safeNumber2 (trade, 'price', 'deal_price');
-        price = this.safeNumber (trade, 'price_avg', price);
-        let amount = this.safeNumber2 (trade, 'amount', 'deal_vol');
-        amount = this.safeNumber (trade, 'size', amount);
-        let cost = this.safeNumber2 (trade, 'count', 'notional');
-        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
-            cost = amount * price;
-        }
+        let priceString = this.safeString2 (trade, 'price', 'deal_price');
+        priceString = this.safeString (trade, 'price_avg', priceString);
+        let amountString = this.safeString2 (trade, 'count', 'deal_vol');
+        amountString = this.safeString (trade, 'size', amountString);
+        const costString = this.safeString2 (trade, 'amount', 'notional');
         const orderId = this.safeInteger (trade, 'order_id');
         const marketId = this.safeString2 (trade, 'contract_id', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const feeCost = this.safeNumber (trade, 'fees');
+        const feeCostString = this.safeString (trade, 'fees');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_coin_name');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             if ((feeCurrencyCode === undefined) && (market !== undefined)) {
                 feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -1025,12 +1029,12 @@ module.exports = class bitmart extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -1595,7 +1599,7 @@ module.exports = class bitmart extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseOrderStatusByType (type, status) {

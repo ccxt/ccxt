@@ -343,11 +343,12 @@ module.exports = class btctradeua extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        const symbol = this.safeSymbol (undefined, market);
+        const side = this.safeString (order, 'type');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amnt_trade');
+        const remaining = this.safeString (order, 'amnt_trade');
+        return this.safeOrder2 ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'timestamp': timestamp, // until they fix their timestamp
@@ -358,18 +359,18 @@ module.exports = class btctradeua extends Exchange {
             'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': this.safeString (order, 'type'),
-            'price': this.safeNumber (order, 'price'),
+            'side': side,
+            'price': price,
             'stopPrice': undefined,
-            'amount': this.safeNumber (order, 'amnt_trade'),
-            'filled': 0,
-            'remaining': this.safeNumber (order, 'amnt_trade'),
+            'amount': amount,
+            'filled': undefined,
+            'remaining': remaining,
             'trades': undefined,
             'info': order,
             'cost': undefined,
             'average': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

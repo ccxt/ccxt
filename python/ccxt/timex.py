@@ -778,6 +778,22 @@ class timex(Exchange):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "fee": 0.0075,
+        #         "market": "ETHBTC"
+        #     }
+        #
+        marketId = self.safe_string(fee, 'market')
+        rate = self.safe_number(fee, 'fee')
+        return {
+            'info': fee,
+            'symbol': self.safe_symbol(marketId, market),
+            'maker': rate,
+            'taker': rate,
+        }
+
     def fetch_trading_fee(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -794,11 +810,7 @@ class timex(Exchange):
         #     ]
         #
         result = self.safe_value(response, 0, {})
-        return {
-            'info': response,
-            'maker': self.safe_number(result, 'fee'),
-            'taker': None,
-        }
+        return self.parse_trading_fee(result, market)
 
     def parse_market(self, market):
         #

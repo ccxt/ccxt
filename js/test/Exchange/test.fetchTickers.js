@@ -2,14 +2,9 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
-    , testTicker = require ('./test.ticker.js')
+const testTicker = require ('./test.ticker.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
 
@@ -20,7 +15,7 @@ module.exports = async (exchange, symbol) => {
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, 'found in ignored exchanges, skipping fetch all tickers...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping fetch all tickers...')
         return
     }
 
@@ -34,13 +29,13 @@ module.exports = async (exchange, symbol) => {
         try {
 
             tickers = await exchange[method] ()
-            log ('fetched all', Object.keys (tickers).length.toString ().green, 'tickers')
+            console.log ('fetched all', Object.keys (tickers).length, 'tickers')
 
         } catch (e) {
 
-            log ('failed to fetch all tickers, fetching multiple tickers at once...')
+            console.log ('failed to fetch all tickers, fetching multiple tickers at once...')
             tickers = await exchange[method] ([ symbol ])
-            log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
+            console.log ('fetched', Object.keys (tickers).length, 'tickers')
         }
 
         Object.values (tickers).forEach ((ticker) => testTicker (exchange, ticker, method, symbol))
@@ -48,7 +43,7 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        log ('fetching all tickers at once not supported')
+        console.log ('fetching all tickers at once not supported')
     }
 }
 

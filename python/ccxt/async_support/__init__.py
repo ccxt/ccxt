@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.59.83'
+__version__ = '1.64.14'
 
 # -----------------------------------------------------------------------------
 
@@ -113,6 +113,7 @@ from ccxt.async_support.equos import equos                                # noqa
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.ftx import ftx                                    # noqa: F401
+from ccxt.async_support.ftxus import ftxus                                # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
@@ -129,6 +130,7 @@ from ccxt.async_support.kraken import kraken                              # noqa
 from ccxt.async_support.kucoin import kucoin                              # noqa: F401
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.latoken import latoken                            # noqa: F401
+from ccxt.async_support.latoken1 import latoken1                          # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
 from ccxt.async_support.liquid import liquid                              # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
@@ -161,6 +163,8 @@ from ccxt.async_support.xena import xena                                  # noqa
 from ccxt.async_support.yobit import yobit                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
 from ccxt.async_support.zb import zb                                      # noqa: F401
+from ccxt.async_support.zipmex import zipmex                              # noqa: F401
+from ccxt.async_support.zonda import zonda                                # noqa: F401
 
 exchanges = [
     'aax',
@@ -225,6 +229,7 @@ exchanges = [
     'exmo',
     'flowbtc',
     'ftx',
+    'ftxus',
     'gateio',
     'gemini',
     'hitbtc',
@@ -241,6 +246,7 @@ exchanges = [
     'kucoin',
     'kuna',
     'latoken',
+    'latoken1',
     'lbank',
     'liquid',
     'luno',
@@ -273,6 +279,8 @@ exchanges = [
     'yobit',
     'zaif',
     'zb',
+    'zipmex',
+    'zonda',
 ]
 
 base = [

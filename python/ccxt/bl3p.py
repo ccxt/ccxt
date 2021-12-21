@@ -14,7 +14,7 @@ class bl3p(Exchange):
         return self.deep_extend(super(bl3p, self).describe(), {
             'id': 'bl3p',
             'name': 'BL3P',
-            'countries': ['NL', 'EU'],  # Netherlands, EU
+            'countries': ['NL'],  # Netherlands
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',

@@ -19,7 +19,6 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.precise import Precise
 
 
 class digifinex(Exchange):
@@ -629,22 +628,19 @@ class digifinex(Exchange):
         side = self.safe_string_2(trade, 'type', 'side')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_value(trade, 'is_maker')
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -653,12 +649,12 @@ class digifinex(Exchange):
             'type': None,
             'order': orderId,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)
@@ -913,11 +909,11 @@ class digifinex(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'executed_amount')
-        price = self.safe_number(order, 'price')
-        average = self.safe_number(order, 'avg_price')
-        return self.safe_order({
+        amountString = self.safe_string(order, 'amount')
+        filledString = self.safe_string(order, 'executed_amount')
+        priceString = self.safe_string(order, 'price')
+        averageString = self.safe_string(order, 'avg_price')
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -929,17 +925,17 @@ class digifinex(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': None,
-            'amount': amount,
-            'filled': filled,
+            'amount': amountString,
+            'filled': filledString,
             'remaining': None,
             'cost': None,
-            'average': average,
+            'average': averageString,
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
@@ -1077,23 +1073,23 @@ class digifinex(Exchange):
             request['limit'] = limit  # default 10, max 100
         response = await self.privateGetMarketMytrades(self.extend(request, params))
         #
-        #     {
-        #         "code": 0,
-        #         "list": [
-        #             {
-        #                 "symbol": "BTC_USDT",
-        #                 "order_id": "6707cbdcda0edfaa7f4ab509e4cbf966",
-        #                 "id": 28457,
-        #                 "price": 0.1,
-        #                 "amount": 0,
-        #                 "fee": 0.096,
-        #                 "fee_currency": "USDT",
-        #                 "timestamp": 1499865549,
-        #                 "side": "buy",
-        #                 "is_maker": True
-        #             }
-        #         ]
-        #     }
+        #      {
+        #          "list":[
+        #              {
+        #                  "timestamp":1639506068,
+        #                  "is_maker":false,
+        #                  "id":"8975951332",
+        #                  "amount":31.83,
+        #                  "side":"sell_market",
+        #                  "symbol":"DOGE_USDT",
+        #                  "fee_currency":"USDT",
+        #                  "fee":0.01163774826
+        #                  ,"order_id":"32b169792f4a7a19e5907dc29fc123d4",
+        #                  "price":0.182811
+        #                }
+        #             ],
+        #           "code": 0
+        #      }
         #
         data = self.safe_value(response, 'list', [])
         return self.parse_trades(data, market, since, limit)
@@ -1191,7 +1187,7 @@ class digifinex(Exchange):
         code = self.safe_currency_code(currencyId)
         return {
             'info': depositAddress,
-            'code': code,
+            'currency': code,
             'address': address,
             'tag': tag,
             'network': None,

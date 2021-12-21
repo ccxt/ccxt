@@ -14,7 +14,7 @@ module.exports = class ftx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ftx',
             'name': 'FTX',
-            'countries': [ 'HK' ],
+            'countries': [ 'BS' ], // Bahamas
             'rateLimit': 100,
             'certified': true,
             'pro': true,
@@ -34,11 +34,16 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'has': {
+                'margin': true,
+                'swap': true,
+                'future': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -126,6 +131,8 @@ module.exports = class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
+                        // pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -290,7 +297,6 @@ module.exports = class ftx extends Exchange {
                 'exact': {
                     'Please slow down': RateLimitExceeded, // {"error":"Please slow down","success":false}
                     'Size too small for provide': InvalidOrder, // {"error":"Size too small for provide","success":false}
-                    'Not logged in': AuthenticationError, // {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder, // {"error":"Size too small","success":false}
@@ -309,6 +315,9 @@ module.exports = class ftx extends Exchange {
                     'Not approved to trade this product': PermissionDenied, // {"success":false,"error":"Not approved to trade this product"}
                 },
                 'broad': {
+                    // {"error":"Not logged in","success":false}
+                    // {"error":"Not logged in: Invalid API key","success":false}
+                    'Not logged in': AuthenticationError,
                     'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
@@ -439,6 +448,30 @@ module.exports = class ftx extends Exchange {
         //                 "volumeUsd24h":382802.0252
         //             },
         //         ],
+        //     }
+        //
+        //     {
+        //         name: "BTC-PERP",
+        //         enabled:  true,
+        //         postOnly:  false,
+        //         priceIncrement: "1.0",
+        //         sizeIncrement: "0.0001",
+        //         minProvideSize: "0.001",
+        //         last: "60397.0",
+        //         bid: "60387.0",
+        //         ask: "60388.0",
+        //         price: "60388.0",
+        //         type: "future",
+        //         baseCurrency:  null,
+        //         quoteCurrency:  null,
+        //         underlying: "BTC",
+        //         restricted:  false,
+        //         highLeverageFeeExempt:  true,
+        //         change1h: "-0.0036463231533270636",
+        //         change24h: "-0.01844838515677064",
+        //         changeBod: "-0.010130151132675475",
+        //         quoteVolume24h: "2892083192.6099",
+        //         volumeUsd24h: "2892083192.6099"
         //     }
         //
         const result = [];
@@ -1004,7 +1037,7 @@ module.exports = class ftx extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol = undefined, limit = undefined, since = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         //
         // Gets a history of funding rates with their timestamps
         //  (param) symbol: Future currency pair (e.g. "BTC-PERP")
@@ -1059,7 +1092,8 @@ module.exports = class ftx extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        return this.sortBy (rates, 'timestamp');
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -1266,7 +1300,7 @@ module.exports = class ftx extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1787,10 +1821,10 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < result.length; i++) {
             results.push (this.parsePosition (result[i]));
         }
-        return results;
+        return this.filterByArray (results, 'symbol', symbols, false);
     }
 
-    parsePosition (position) {
+    parsePosition (position, market = undefined) {
         //
         //   {
         //     "future": "XMR-PERP",
@@ -1813,7 +1847,8 @@ module.exports = class ftx extends Exchange {
         const contractsString = this.safeString (position, 'size');
         const rawSide = this.safeString (position, 'side');
         const side = (rawSide === 'buy') ? 'long' : 'short';
-        const symbol = this.safeString (position, 'future');
+        const marketId = this.safeString (position, 'future');
+        const symbol = this.safeSymbol (marketId, market);
         const liquidationPriceString = this.safeString (position, 'estimatedLiquidationPrice');
         const initialMarginPercentage = this.safeString (position, 'initialMarginRequirement');
         const leverage = parseInt (Precise.stringDiv ('1', initialMarginPercentage, 0));
@@ -1852,7 +1887,7 @@ module.exports = class ftx extends Exchange {
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
-            'entryPrice': undefined,
+            'entryPrice': this.parseNumber (entryPriceString),
             'notional': this.parseNumber (notionalString),
             'leverage': leverage,
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
@@ -1909,6 +1944,7 @@ module.exports = class ftx extends Exchange {
             // what are other statuses here?
             'confirmed': 'ok', // deposits
             'complete': 'ok', // withdrawals
+            'cancelled': 'canceled', // deposits
         };
         return this.safeString (statuses, status, status);
     }
@@ -2068,6 +2104,13 @@ module.exports = class ftx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/api/' + this.implodeParams (path, params);
+        const signOptions = this.safeValue (this.options, 'sign', {});
+        const headerPrefix = this.safeString (signOptions, this.hostname, 'FTX');
+        const subaccountField = headerPrefix + '-SUBACCOUNT';
+        const chosenSubaccount = this.safeString2 (params, subaccountField, 'subaccount');
+        if (chosenSubaccount !== undefined) {
+            params = this.omit (params, [ subaccountField, 'subaccount' ]);
+        }
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + request;
@@ -2089,14 +2132,12 @@ module.exports = class ftx extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            const options = this.safeValue (this.options, 'sign', {});
-            const headerPrefix = this.safeString (options, this.hostname, 'FTX');
-            const keyField = headerPrefix + '-KEY';
-            const tsField = headerPrefix + '-TS';
-            const signField = headerPrefix + '-SIGN';
-            headers[keyField] = this.apiKey;
-            headers[tsField] = timestamp;
-            headers[signField] = signature;
+            headers[headerPrefix + '-KEY'] = this.apiKey;
+            headers[headerPrefix + '-TS'] = timestamp;
+            headers[headerPrefix + '-SIGN'] = signature;
+            if (chosenSubaccount !== undefined) {
+                headers[subaccountField] = chosenSubaccount;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -2168,7 +2209,8 @@ module.exports = class ftx extends Exchange {
             const parsed = this.parseIncome (entry, market);
             result.push (parsed);
         }
-        return this.filterBySinceLimit (result, since, limit, 'timestamp');
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit, 'timestamp');
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2250,5 +2292,39 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseFundingRate (result, market);
+    }
+
+    async fetchBorrowRates (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetSpotMarginBorrowRates ();
+        //
+        // {
+        //     "success":true,
+        //     "result":[
+        //         {
+        //             "coin": "1INCH",
+        //             "previous": 0.0000462375,
+        //             "estimate": 0.0000462375
+        //         }
+        //         ...
+        //     ]
+        // }
+        //
+        const timestamp = this.milliseconds ();
+        const result = this.safeValue (response, 'result');
+        const rates = {};
+        for (let i = 0; i < result.length; i++) {
+            const rate = result[i];
+            const code = this.safeCurrencyCode (this.safeString (rate, 'coin'));
+            rates[code] = {
+                'currency': code,
+                'rate': this.safeNumber (rate, 'previous'),
+                'period': 3600000,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': rate,
+            };
+        }
+        return rates;
     }
 };

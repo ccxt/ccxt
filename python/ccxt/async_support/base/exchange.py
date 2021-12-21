@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.59.83'
+__version__ = '1.64.14'
 
 # -----------------------------------------------------------------------------
 
@@ -42,11 +42,11 @@ __all__ = [
 
 
 class Exchange(BaseExchange):
+    synchronous = False
 
     def __init__(self, config={}):
         if 'asyncio_loop' in config:
             self.asyncio_loop = config['asyncio_loop']
-        self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.aiohttp_trust_env = config.get('aiohttp_trust_env', self.aiohttp_trust_env)
         self.verify = config.get('verify', self.verify)
         self.own_session = 'session' not in config
@@ -73,6 +73,12 @@ class Exchange(BaseExchange):
             await self.close()
 
     def open(self):
+        if self.asyncio_loop is None:
+            if sys.version_info >= (3, 7):
+                self.asyncio_loop = asyncio.get_running_loop()
+            else:
+                self.asyncio_loop = asyncio.get_event_loop()
+            self.throttle.loop = self.asyncio_loop
         if self.own_session and self.session is None:
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
@@ -102,7 +108,7 @@ class Exchange(BaseExchange):
         url = self.proxy + url
 
         if self.verbose:
-            self.log("\nRequest:", method, url, headers, body)
+            self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
         self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
 
         request_body = body
@@ -120,7 +126,7 @@ class Exchange(BaseExchange):
                                       headers=request_headers,
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
-                http_response = await response.text()
+                http_response = await response.text(errors='replace')
                 # CIMultiDictProxy
                 raw_headers = response.headers
                 headers = {}
@@ -140,7 +146,7 @@ class Exchange(BaseExchange):
                 if self.enableLastJsonResponse:
                     self.last_json_response = json_response
                 if self.verbose:
-                    self.log("\nResponse:", method, url, http_status_code, headers, http_response)
+                    self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
@@ -174,7 +180,7 @@ class Exchange(BaseExchange):
                     return self.set_markets(self.markets)
                 return self.markets
         currencies = None
-        if self.has['fetchCurrencies']:
+        if self.has['fetchCurrencies'] is True:
             currencies = await self.fetch_currencies()
         markets = await self.fetch_markets(params)
         return self.set_markets(markets, currencies)

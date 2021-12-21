@@ -130,6 +130,7 @@ class yobit(Exchange):
                 'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
                 'DSH': 'DASH',
+                'EGG': 'EggCoin',
                 'EKO': 'EkoCoin',
                 'ENTER': 'ENTRC',
                 'EPC': 'ExperienceCoin',
@@ -184,11 +185,13 @@ class yobit(Exchange):
                 'RUR': 'RUB',
                 'SBTC': 'Super Bitcoin',
                 'SOLO': 'SoloCoin',
+                'SUPER': 'SuperCoin',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
                 'UST': 'Uservice',
                 'VOL': 'VolumeCoin',
                 'XIN': 'XINCoin',
+                'XMT': 'SummitCoin',
                 'XRA': 'Ratecoin',
             },
             'options': {
@@ -597,13 +600,13 @@ class yobit(Exchange):
         timestamp = self.safe_timestamp(order, 'timestamp_created')
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        remaining = self.safe_number(order, 'amount')
-        amount = self.safe_number(order, 'start_amount')
-        price = self.safe_number(order, 'rate')
+        remaining = self.safe_string(order, 'amount')
+        amount = self.safe_string(order, 'start_amount')
+        price = self.safe_string(order, 'rate')
         fee = None
         type = 'limit'
         side = self.safe_string(order, 'type')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -625,7 +628,7 @@ class yobit(Exchange):
             'fee': fee,
             'average': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

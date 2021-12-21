@@ -67,8 +67,8 @@ class bytetrade(Exchange):
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg',
                 'api': {
-                    'market': 'https://api-v2.byte-trade.com',
-                    'public': 'https://api-v2.byte-trade.com',
+                    'market': 'https://api-v2.bttcdn.com',
+                    'public': 'https://api-v2.bttcdn.com',
                 },
                 'www': 'https://www.byte-trade.com',
                 'doc': 'https://docs.byte-trade.com/#description',
@@ -533,12 +533,12 @@ class bytetrade(Exchange):
         timestamp = self.safe_integer(order, 'timestamp')
         datetime = self.safe_string(order, 'datetime')
         lastTradeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'filled')
-        remaining = self.safe_number(order, 'remaining')
-        cost = self.safe_number(order, 'cost')
-        average = self.safe_number(order, 'average')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        filled = self.safe_string(order, 'filled')
+        remaining = self.safe_string(order, 'remaining')
+        cost = self.safe_string(order, 'cost')
+        average = self.safe_string(order, 'average')
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
@@ -552,7 +552,7 @@ class bytetrade(Exchange):
             'cost': feeCost,
             'rate': feeRate,
         }
-        return {
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -574,7 +574,7 @@ class bytetrade(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.check_required_dependencies()

@@ -781,11 +781,11 @@ class hollaex(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'size')
-        filled = self.safe_number(order, 'filled')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'size')
+        filled = self.safe_string(order, 'filled')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -807,7 +807,7 @@ class hollaex(Exchange):
             'fee': None,
             'info': order,
             'average': None,
-        })
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

@@ -2,19 +2,13 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange) => {
 
     if (exchange.has.fetchStatus) {
-
-        // log ('fetching status...')
 
         const method = 'fetchStatus'
         const status = await exchange[method] ()
@@ -26,12 +20,16 @@ module.exports = async (exchange) => {
             'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
         }
 
-        assert.containsAllKeys (status, sampleStatus)
+        const keys = Object.keys (sampleStatus)
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i]
+            assert (key in status)
+        }
 
         return status
 
     } else {
 
-        log ('fetching status not supported')
+        console.log ('fetching status not supported')
     }
 }

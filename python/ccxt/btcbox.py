@@ -20,7 +20,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.precise import Precise
 
 
 class btcbox(Exchange):
@@ -159,6 +158,17 @@ class btcbox(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "date":"0",
+        #          "price":3,
+        #          "amount":0.1,
+        #          "tid":"1",
+        #          "type":"buy"
+        #      }
+        #
         timestamp = self.safe_timestamp(trade, 'date')
         symbol = None
         if market is not None:
@@ -166,12 +176,9 @@ class btcbox(Exchange):
         id = self.safe_string(trade, 'tid')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         type = None
         side = self.safe_string(trade, 'type')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': None,
@@ -181,11 +188,11 @@ class btcbox(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -195,6 +202,17 @@ class btcbox(Exchange):
         if numSymbols > 1:
             request['coin'] = market['baseId']
         response = self.publicGetOrders(self.extend(request, params))
+        #
+        #     [
+        #          {
+        #              "date":"0",
+        #              "price":3,
+        #              "amount":0.1,
+        #              "tid":"1",
+        #              "type":"buy"
+        #          },
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -252,7 +270,7 @@ class btcbox(Exchange):
         #         "amount_original":1.2,
         #         "amount_outstanding":1.2,
         #         "status":"closed",
-        #         "trades":[]
+        #         "trades":[]  # no clarification of trade value structure of order endpoint
         #     }
         #
         id = self.safe_string(order, 'id')
@@ -309,6 +327,18 @@ class btcbox(Exchange):
             'coin': market['baseId'],
         }, params)
         response = self.privatePostTradeView(self.extend(request, params))
+        #
+        #      {
+        #          "id":11,
+        #          "datetime":"2014-10-21 10:47:20",
+        #          "type":"sell",
+        #          "price":42000,
+        #          "amount_original":1.2,
+        #          "amount_outstanding":1.2,
+        #          "status":"closed",
+        #          "trades":[]
+        #      }
+        #
         return self.parse_order(response, market)
 
     def fetch_orders_by_type(self, type, symbol=None, since=None, limit=None, params={}):
@@ -322,6 +352,18 @@ class btcbox(Exchange):
             'coin': market['baseId'],
         }
         response = self.privatePostTradeList(self.extend(request, params))
+        #
+        # [
+        #      {
+        #          "id":"7",
+        #          "datetime":"2014-10-20 13:27:38",
+        #          "type":"buy",
+        #          "price":42750,
+        #          "amount_original":0.235,
+        #          "amount_outstanding":0.235
+        #      },
+        # ]
+        #
         orders = self.parse_orders(response, market, since, limit)
         # status(open/closed/canceled) is None
         # btcbox does not return status, but we know it's 'open' as we queried for open orders

@@ -56,7 +56,6 @@ class poloniex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
@@ -173,6 +172,7 @@ class poloniex(Exchange):
                 'REPV2': 'REP',
                 'STR': 'XLM',
                 'SOC': 'SOCC',
+                'TRADE': 'Unitrade',
                 'XAP': 'API Coin',
                 # self is not documented in the API docs for Poloniex
                 # https://github.com/ccxt/ccxt/issues/7084
@@ -227,6 +227,7 @@ class poloniex(Exchange):
                     'Invalid currencyPair parameter.': BadSymbol,  # {"error":"Invalid currencyPair parameter."}
                     'Trading is disabled in self market.': BadSymbol,  # {"error":"Trading is disabled in self market."}
                     'Invalid orderNumber parameter.': OrderNotFound,
+                    'Order is beyond acceptable bounds.': InvalidOrder,  # {"error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA"}
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder,  # {"error":"Total must be at least 0.0001."}
@@ -318,6 +319,11 @@ class poloniex(Exchange):
             isFrozen = self.safe_string(market, 'isFrozen')
             active = (isFrozen != '1')
             numericId = self.safe_integer(market, 'id')
+            # these are known defaults
+            precision = {
+                'price': 8,
+                'amount': 8,
+            }
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -329,6 +335,7 @@ class poloniex(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'active': active,
+                'precision': precision,
                 'limits': limits,
                 'info': market,
             })

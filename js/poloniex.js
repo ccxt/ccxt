@@ -41,7 +41,6 @@ module.exports = class poloniex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
@@ -158,6 +157,7 @@ module.exports = class poloniex extends Exchange {
                 'REPV2': 'REP',
                 'STR': 'XLM',
                 'SOC': 'SOCC',
+                'TRADE': 'Unitrade',
                 'XAP': 'API Coin',
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
@@ -212,6 +212,7 @@ module.exports = class poloniex extends Exchange {
                     'Invalid currencyPair parameter.': BadSymbol, // {"error":"Invalid currencyPair parameter."}
                     'Trading is disabled in this market.': BadSymbol, // {"error":"Trading is disabled in this market."}
                     'Invalid orderNumber parameter.': OrderNotFound,
+                    'Order is beyond acceptable bounds.': InvalidOrder, // {"error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA"}
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}
@@ -311,6 +312,11 @@ module.exports = class poloniex extends Exchange {
             const isFrozen = this.safeString (market, 'isFrozen');
             const active = (isFrozen !== '1');
             const numericId = this.safeInteger (market, 'id');
+            // these are known defaults
+            const precision = {
+                'price': 8,
+                'amount': 8,
+            };
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -322,6 +328,7 @@ module.exports = class poloniex extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'active': active,
+                'precision': precision,
                 'limits': limits,
                 'info': market,
             });

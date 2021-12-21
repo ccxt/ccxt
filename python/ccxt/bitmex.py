@@ -47,6 +47,7 @@ class bitmex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -1086,12 +1087,12 @@ class bitmex(Exchange):
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         priceString = self.safe_string_2(trade, 'avgPx', 'price')
         amountString = self.safe_string_2(trade, 'size', 'lastQty')
+        execCost = self.safe_string(trade, 'execCost')
+        costString = Precise.string_div(Precise.string_abs(execCost), '1e8')
         id = self.safe_string(trade, 'trdMatchID')
         order = self.safe_string(trade, 'orderID')
         side = self.safe_string_lower(trade, 'side')
         # price * amount doesn't work for all symbols(e.g. XBT, ETH)
-        costString = self.safe_string(trade, 'execCost')
-        costString = Precise.string_div(Precise.string_abs(costString), '1e8')
         fee = None
         feeCostString = Precise.string_div(self.safe_string(trade, 'execComm'), '1e8')
         if feeCostString is not None:
@@ -1099,9 +1100,9 @@ class bitmex(Exchange):
             feeCurrencyCode = self.safe_currency_code(currencyId)
             feeRateString = self.safe_string(trade, 'commission')
             fee = {
-                'cost': self.parse_number(feeCostString),
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': self.parse_number(feeRateString),
+                'rate': feeRateString,
             }
         # Trade or Funding
         execType = self.safe_string(trade, 'execType')
@@ -1111,7 +1112,7 @@ class bitmex(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         type = self.safe_string_lower(trade, 'ordType')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1121,11 +1122,11 @@ class bitmex(Exchange):
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': self.parse_number(priceString),
-            'cost': self.parse_number(costString),
-            'amount': self.parse_number(amountString),
+            'price': priceString,
+            'cost': costString,
+            'amount': amountString,
             'fee': fee,
-        }
+        }, market)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1230,7 +1231,7 @@ class bitmex(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

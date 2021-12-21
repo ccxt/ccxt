@@ -3,9 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded } = require ('./base/errors');
+const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,17 +19,19 @@ module.exports = class kraken extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
+                'margin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchPremiumIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchLedgerEntry': true,
                 'fetchMarkets': true,
@@ -40,11 +41,12 @@ module.exports = class kraken extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': 'emulated',
+                'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'setMarginMode': false, // Kraken only supports cross margin
@@ -157,6 +159,7 @@ module.exports = class kraken extends Exchange {
                     },
                 },
             },
+            'handleContentTypeApplicationZip': true,
             'api': {
                 'zendesk': {
                     'get': [
@@ -309,6 +312,7 @@ module.exports = class kraken extends Exchange {
                     'UNI': 'UNI',
                     'USDC': 'USDC',
                     'USDT': 'Tether USD (ERC20)',
+                    'USDT-TRC20': 'Tether USD (TRC20)',
                     'WAVES': 'Waves',
                     'WBTC': 'Wrapped Bitcoin (WBTC)',
                     'XLM': 'Stellar XLM',
@@ -341,6 +345,7 @@ module.exports = class kraken extends Exchange {
                 'EAPI:Invalid nonce': InvalidNonce,
                 'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
                 'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
+                'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
             },
         });
     }
@@ -456,7 +461,7 @@ module.exports = class kraken extends Exchange {
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': Math.pow (10, precision['amount']),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
@@ -948,8 +953,8 @@ module.exports = class kraken extends Exchange {
         let timestamp = undefined;
         let side = undefined;
         let type = undefined;
-        let priceString = undefined;
-        let amountString = undefined;
+        let price = undefined;
+        let amount = undefined;
         let id = undefined;
         let orderId = undefined;
         let fee = undefined;
@@ -958,8 +963,8 @@ module.exports = class kraken extends Exchange {
             timestamp = this.safeTimestamp (trade, 2);
             side = (trade[3] === 's') ? 'sell' : 'buy';
             type = (trade[4] === 'l') ? 'limit' : 'market';
-            priceString = this.safeString (trade, 0);
-            amountString = this.safeString (trade, 1);
+            price = this.safeString (trade, 0);
+            amount = this.safeString (trade, 1);
             const tradeLength = trade.length;
             if (tradeLength > 6) {
                 id = this.safeString (trade, 6); // artificially added as per #1794
@@ -980,15 +985,15 @@ module.exports = class kraken extends Exchange {
             timestamp = this.safeTimestamp (trade, 'time');
             side = this.safeString (trade, 'type');
             type = this.safeString (trade, 'ordertype');
-            priceString = this.safeString (trade, 'price');
-            amountString = this.safeString (trade, 'vol');
+            price = this.safeString (trade, 'price');
+            amount = this.safeString (trade, 'vol');
             if ('fee' in trade) {
                 let currency = undefined;
                 if (market !== undefined) {
                     currency = market['quote'];
                 }
                 fee = {
-                    'cost': this.safeNumber (trade, 'fee'),
+                    'cost': this.safeString (trade, 'fee'),
                     'currency': currency,
                 };
             }
@@ -996,10 +1001,8 @@ module.exports = class kraken extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        return {
+        const cost = this.safeString (trade, 'cost');
+        return this.safeTrade ({
             'id': id,
             'order': orderId,
             'info': trade,
@@ -1013,7 +1016,7 @@ module.exports = class kraken extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -1822,18 +1825,21 @@ module.exports = class kraken extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let network = this.safeStringUpper (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
+        params = this.omit (params, 'network');
+        if ((code === 'USDT') && (network === 'TRC20')) {
+            code = code + '-' + network;
+        }
         const defaultDepositMethods = this.safeValue (this.options, 'depositMethods', {});
         const defaultDepositMethod = this.safeString (defaultDepositMethods, code);
         let depositMethod = this.safeString (params, 'method', defaultDepositMethod);
-        let network = this.safeString (params, 'network');
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param
         if (depositMethod === undefined) {
             const depositMethods = await this.fetchDepositMethods (code);
             if (network !== undefined) {
-                const networks = this.safeValue (this.options, 'networks', {});
-                network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
-                params = this.omit (params, 'network');
                 // find best matching deposit method, or fallback to the first one
                 for (let i = 0; i < depositMethods.length; i++) {
                     const entry = this.safeString (depositMethods[i], 'method');

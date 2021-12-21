@@ -119,6 +119,7 @@ class coincheck extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     'disabled API Key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":"disabled API Key")'
+                    'invalid authentication' => '\\ccxt\\AuthenticationError', // array("success":false,"error":"invalid authentication")
                 ),
                 'broad' => array(),
             ),
@@ -208,7 +209,7 @@ class coincheck extends Exchange {
             'info' => $order,
             'average' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -258,6 +259,36 @@ class coincheck extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id" => "206849494",
+        //          "amount" => "0.01",
+        //          "rate" => "5598346.0",
+        //          "pair" => "btc_jpy",
+        //          "order_type" => "sell",
+        //          "created_at" => "2021-12-08T14:10:33.000Z"
+        //      }
+        //
+        // fetchMyTrades (private) - example from docs
+        //
+        //      {
+        //          "id" => 38,
+        //          "order_id" => 49,
+        //          "created_at" => "2015-11-18T07:02:21.000Z",
+        //          "funds" => array(
+        //              "btc" => "0.1",
+        //              "jpy" => "-4096.135"
+        //                  ),
+        //           "pair" => "btc_jpy",
+        //           "rate" => "40900.0",
+        //           "fee_currency" => "JPY",
+        //           "fee" => "6.135",
+        //           "liquidity" => "T",
+        //           "side" => "buy"
+        //      }
+        //
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'id');
         $priceString = $this->safe_string($trade, 'rate');
@@ -288,7 +319,7 @@ class coincheck extends Exchange {
         }
         $takerOrMaker = null;
         $amountString = null;
-        $cost = null;
+        $costString = null;
         $side = null;
         $fee = null;
         $orderId = null;
@@ -300,10 +331,10 @@ class coincheck extends Exchange {
             }
             $funds = $this->safe_value($trade, 'funds', array());
             $amountString = $this->safe_string($funds, $baseId);
-            $cost = $this->safe_number($funds, $quoteId);
+            $costString = $this->safe_string($funds, $quoteId);
             $fee = array(
                 'currency' => $this->safe_string($trade, 'fee_currency'),
-                'cost' => $this->safe_number($trade, 'fee'),
+                'cost' => $this->safe_string($trade, 'fee'),
             );
             $side = $this->safe_string($trade, 'side');
             $orderId = $this->safe_string($trade, 'order_id');
@@ -311,12 +342,7 @@ class coincheck extends Exchange {
             $amountString = $this->safe_string($trade, 'amount');
             $side = $this->safe_string($trade, 'order_type');
         }
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'datetime' => $this->iso8601($timestamp),
@@ -326,17 +352,39 @@ class coincheck extends Exchange {
             'side' => $side,
             'order' => $orderId,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $response = $this->privateGetExchangeOrdersTransactions (array_merge(array(), $params));
+        //
+        //      {
+        //          "success" => true,
+        //          "transactions" => array(
+        //                              array(
+        //                                  "id" => 38,
+        //                                  "order_id" => 49,
+        //                                  "created_at" => "2015-11-18T07:02:21.000Z",
+        //                                  "funds" => array(
+        //                                      "btc" => "0.1",
+        //                                      "jpy" => "-4096.135"
+        //                                          ),
+        //                                  "pair" => "btc_jpy",
+        //                                  "rate" => "40900.0",
+        //                                  "fee_currency" => "JPY",
+        //                                  "fee" => "6.135",
+        //                                  "liquidity" => "T",
+        //                                  "side" => "buy"
+        //                               ),
+        //                          )
+        //      }
+        //
         $transactions = $this->safe_value($response, 'transactions', array());
         return $this->parse_trades($transactions, $market, $since, $limit);
     }
@@ -351,6 +399,16 @@ class coincheck extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->publicGetTrades (array_merge($request, $params));
+        //
+        //      {
+        //          "id" => "206849494",
+        //          "amount" => "0.01",
+        //          "rate" => "5598346.0",
+        //          "pair" => "btc_jpy",
+        //          "order_type" => "sell",
+        //          "created_at" => "2021-12-08T14:10:33.000Z"
+        //      }
+        //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
@@ -426,7 +484,8 @@ class coincheck extends Exchange {
             return;
         }
         //
-        //     array("$success":false,"$error":"disabled API Key")'
+        //     array("success":false,"error":"disabled API Key")'
+        //     array("success":false,"error":"invalid authentication")
         //
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {

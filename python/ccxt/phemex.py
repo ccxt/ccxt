@@ -38,6 +38,8 @@ class phemex(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -51,6 +53,7 @@ class phemex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
@@ -336,7 +339,8 @@ class phemex(Exchange):
     def parse_safe_number(self, value=None):
         if value is None:
             return value
-        value = value.replace(',', '')
+        parts = value.split(',')
+        value = ''.join(parts)
         parts = value.split(' ')
         return self.safe_number(parts, 0)
 
@@ -400,7 +404,11 @@ class phemex(Exchange):
         if settlementCurrencyId != quoteId:
             inverse = True
         linear = not inverse
-        symbol = id if (inverse) else (base + '/' + quote)  # fix for uBTCUSD inverse
+        symbol = None
+        if linear:
+            symbol = base + '/' + quote + ':' + quote
+        else:
+            symbol = base + '/' + quote + ':' + base
         precision = {
             'amount': self.safe_number(market, 'lotSize'),
             'price': self.safe_number(market, 'tickSize'),
@@ -430,6 +438,7 @@ class phemex(Exchange):
         }
         status = self.safe_string(market, 'status')
         active = status == 'Listed'
+        contractSize = self.safe_string(market, 'contractSize')
         return {
             'id': id,
             'symbol': symbol,
@@ -450,6 +459,7 @@ class phemex(Exchange):
             'valueScale': valueScale,
             'ratioScale': ratioScale,
             'precision': precision,
+            'contractSize': contractSize,
             'limits': limits,
         }
 
@@ -535,6 +545,7 @@ class phemex(Exchange):
             'priceScale': 8,
             'valueScale': 8,
             'ratioScale': 8,
+            'contractSize': None,
             'limits': limits,
         }
 
@@ -1202,12 +1213,7 @@ class phemex(Exchange):
                     'rate': self.parse_number(feeRateString),
                     'currency': feeCurrencyCode,
                 }
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        if costString is None:
-            costString = Precise.string_mul(priceString, amountString)
-        cost = self.parse_number(costString)
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'symbol': symbol,
@@ -1217,11 +1223,11 @@ class phemex(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def parse_spot_balance(self, response):
         #

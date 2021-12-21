@@ -155,12 +155,12 @@ class lykke extends Exchange {
         //  public fetchTrades
         //
         //   {
-        //     "$id" => "d5983ab8-e9ec-48c9-bdd0-1b18f8e80a71",
+        //     "id" => "d5983ab8-e9ec-48c9-bdd0-1b18f8e80a71",
         //     "assetPairId" => "BTCUSD",
         //     "dateTime" => "2019-05-15T06:52:02.147Z",
         //     "volume" => 0.00019681,
         //     "index" => 0,
-        //     "$price" => 8023.333,
+        //     "price" => 8023.333,
         //     "action" => "Buy"
         //   }
         //
@@ -481,18 +481,19 @@ class lykke extends Exchange {
         } else if ((is_array($order) && array_key_exists('CreatedAt', $order)) && ($order['CreatedAt'])) {
             $timestamp = $this->parse8601($order['CreatedAt']);
         }
-        $price = $this->safe_number($order, 'Price');
+        $price = $this->safe_string($order, 'Price');
         $side = null;
-        $amount = $this->safe_number($order, 'Volume');
-        if ($amount < 0) {
+        $amount = $this->safe_string($order, 'Volume');
+        $isAmountLessThanZero = Precise::string_lt($amount, '0');
+        if ($isAmountLessThanZero) {
             $side = 'sell';
-            $amount = abs($amount);
+            $amount = Precise::string_abs($amount);
         } else {
             $side = 'buy';
         }
-        $remaining = abs($this->safe_number($order, 'RemainingVolume'));
+        $remaining = Precise::string_abs($this->safe_string($order, 'RemainingVolume'));
         $id = $this->safe_string($order, 'Id');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -514,7 +515,7 @@ class lykke extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

@@ -2,7 +2,7 @@
 Manual
 ======
 
-The CCXT Pro stack is built upon `CCXT <https://ccxt.trade>`__ and extends the core CCXT classes, using:
+The CCXT Pro stack is built upon `CCXT <https://ccxt.com>`__ and extends the core CCXT classes, using:
 
 
  * JavaScript prototype-level mixins
@@ -52,9 +52,9 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
        +=============================================================+
 
 Exchanges
-=========
+---------
 
-The CCXT Pro library currently supports the following 33 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 35 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -344,6 +344,21 @@ The CCXT Pro library currently supports the following 33 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg
+          :target: https://ftx.com/#a=ccxt
+          :alt: ftxus
+     
+     - ftxus
+     - `FTX US <https://ftx.com/#a=ccxt>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://github.com/ftexchange/ftx
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
           :alt: gateio
@@ -406,6 +421,21 @@ The CCXT Pro library currently supports the following 33 cryptocurrency exchange
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg
+          :target: https://www.huobi.co.jp/register/?invite_code=znnq3
+          :alt: huobijp
+     
+     - huobijp
+     - `Huobi Japan <https://www.huobi.co.jp/register/?invite_code=znnq3>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://api-doc.huobi.co.jp
+          :alt: API Version 1
+     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -606,7 +636,7 @@ This is the list of exchanges in CCXT Pro with support for WebSockets APIs. This
 Full list of exchanges available in CCXT via REST: `Supported Cryptocurrency Exchange Markets <https://github.com/ccxt/ccxt/#supported-cryptocurrency-exchange-markets>`__.
 
 Usage
-=====
+-----
 
 .. code-block:: diff
 
@@ -871,7 +901,7 @@ The result from the newUpdates mode will be one or more updates that have occurr
 .. code-block:: JavaScript
 
    [
-       order, // see https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+       order, // see https://docs.ccxt.com/en/latest/manual.html#order-structure
        order,
        order,
        ...
@@ -1058,12 +1088,12 @@ Market Data
 watchOrderBook
 """"""""""""""
 
-The ``watchOrderBook``\ 's interface is identical to `fetchOrderBook <https://github.com/ccxt/ccxt/wiki/Manual#order-book>`__. It accepts three arguments:
+The ``watchOrderBook``\ 's interface is identical to `fetchOrderBook <https://docs.ccxt.com/en/latest/manual.html#order-book>`__. It accepts three arguments:
 
 
  * ``symbol`` – string, a unified CCXT symbol, required
  * ``limit`` – integer, the max number of bids/asks returned, optional
- * ``params`` – assoc dictionary, optional overrides as described in `Overriding Unified API Params <https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params>`__
+ * ``params`` – assoc dictionary, optional overrides as described in `Overriding Unified API Params <https://docs.ccxt.com/en/latest/manual.html#overriding-unified-api-params>`__
 
 In general, the exchanges can be divided in two categories:
 
@@ -1349,7 +1379,7 @@ Private Methods
 Authentication
 ~~~~~~~~~~~~~~
 
-In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See `API Keys Setup <https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup>`__ for more details.
+In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See `API Keys Setup <https://docs.ccxt.com/en/latest/manual.html#api-keys-setup>`__ for more details.
 
 Trading
 ~~~~~~~
@@ -1456,6 +1486,6 @@ watchTransactions
    - this method is a work in progress now (may be unavailable)
 
 Error Handling
---------------
+^^^^^^^^^^^^^^
 
-In case of an error the CCXT Pro will throw a standard CCXT exception, see `Error Handling <https://github.com/ccxt/ccxt/wiki/Manual#error-handling>`__ for more details.
+In case of an error the CCXT Pro will throw a standard CCXT exception, see `Error Handling <https://docs.ccxt.com/en/latest/manual.html#error-handling>`__ for more details.

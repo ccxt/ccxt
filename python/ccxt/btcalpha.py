@@ -164,6 +164,30 @@ class btcalpha(Exchange):
         return result
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "id": "202203440",
+        #          "timestamp": "1637856276.264215",
+        #          "pair": "AAVE_USDT",
+        #          "price": "320.79900000",
+        #          "amount": "0.05000000",
+        #          "type": "buy"
+        #      }
+        #
+        # fetchMyTrades(private)
+        #
+        #      {
+        #          "id": "202203440",
+        #          "timestamp": "1637856276.264215",
+        #          "pair": "AAVE_USDT",
+        #          "price": "320.79900000",
+        #          "amount": "0.05000000",
+        #          "type": "buy",
+        #          "my_side": "buy"
+        #      }
+        #
         symbol = None
         if market is None:
             market = self.safe_value(self.markets_by_id, trade['pair'])
@@ -172,27 +196,23 @@ class btcalpha(Exchange):
         timestamp = self.safe_timestamp(trade, 'timestamp')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        id = self.safe_string_2(trade, 'id', 'tid')
-        side = self.safe_string_2(trade, 'my_side', 'side')
-        orderId = self.safe_string(trade, 'o_id')
-        return {
+        id = self.safe_string(trade, 'id')
+        side = self.safe_string_2(trade, 'my_side', 'type')
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': orderId,
+            'order': id,
             'type': 'limit',
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

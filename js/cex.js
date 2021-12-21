@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -36,6 +35,8 @@ module.exports = class cex extends Exchange {
             },
             'timeframes': {
                 '1m': '1m',
+                '1h': '1h',
+                '1d': '1d',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -417,12 +418,9 @@ module.exports = class cex extends Exchange {
                 throw new ExchangeError (this.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add ({ 'options': { 'fetchOHLCVWarning': false }}) to constructor params to suppress this warning message.");
             }
         }
-        let ymd = this.ymd (since);
-        ymd = ymd.split ('-');
-        ymd = ymd.join ('');
         const request = {
             'pair': market['id'],
-            'yyyymmdd': ymd,
+            'yyyymmdd': this.yyyymmdd (since, ''),
         };
         try {
             const response = await this.publicGetOhlcvHdYyyymmddPair (this.extend (request, params));
@@ -508,20 +506,28 @@ module.exports = class cex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "type": "sell",
+        //          "date": "1638401878",
+        //          "amount": "0.401000",
+        //          "price": "249",
+        //          "tid": "11922"
+        //      }
+        //
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         const side = this.safeString (trade, 'type');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -531,11 +537,11 @@ module.exports = class cex extends Exchange {
             'side': side,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

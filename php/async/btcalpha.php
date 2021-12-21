@@ -172,6 +172,30 @@ class btcalpha extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id" => "202203440",
+        //          "timestamp" => "1637856276.264215",
+        //          "pair" => "AAVE_USDT",
+        //          "price" => "320.79900000",
+        //          "amount" => "0.05000000",
+        //          "type" => "buy"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "id" => "202203440",
+        //          "timestamp" => "1637856276.264215",
+        //          "pair" => "AAVE_USDT",
+        //          "price" => "320.79900000",
+        //          "amount" => "0.05000000",
+        //          "type" => "buy",
+        //          "my_side" => "buy"
+        //      }
+        //
         $symbol = null;
         if ($market === null) {
             $market = $this->safe_value($this->markets_by_id, $trade['pair']);
@@ -182,27 +206,23 @@ class btcalpha extends Exchange {
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        $id = $this->safe_string_2($trade, 'id', 'tid');
-        $side = $this->safe_string_2($trade, 'my_side', 'side');
-        $orderId = $this->safe_string($trade, 'o_id');
-        return array(
+        $id = $this->safe_string($trade, 'id');
+        $side = $this->safe_string_2($trade, 'my_side', 'type');
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'order' => $orderId,
+            'order' => $id,
             'type' => 'limit',
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -294,29 +314,29 @@ class btcalpha extends Exchange {
         //
         // fetchClosedOrders / fetchOrder
         //     {
-        //       "$id" => "923763073",
+        //       "id" => "923763073",
         //       "date" => "1635451090368",
         //       "type" => "sell",
         //       "pair" => "XRP_USDT",
-        //       "$price" => "1.00000000",
-        //       "$amount" => "0.00000000",
-        //       "$status" => "3",
+        //       "price" => "1.00000000",
+        //       "amount" => "0.00000000",
+        //       "status" => "3",
         //       "amount_filled" => "10.00000000",
         //       "amount_original" => "10.0"
-        //       "$trades" => array(),
+        //       "trades" => array(),
         //     }
         //
         // createOrder
         //     {
-        //       "$success" => true,
+        //       "success" => true,
         //       "date" => "1635451754.497541",
         //       "type" => "sell",
         //       "oid" => "923776755",
-        //       "$price" => "1.0",
-        //       "$amount" => "10.0",
+        //       "price" => "1.0",
+        //       "amount" => "10.0",
         //       "amount_filled" => "0.0",
         //       "amount_original" => "10.0",
-        //       "$trades" => array()
+        //       "trades" => array()
         //     }
         //
         $marketId = $this->safe_string($order, 'pair');
@@ -480,7 +500,7 @@ class btcalpha extends Exchange {
             return; // fallback to default $error handler
         }
         //
-        //     array("date":1570599531.4814300537,"$error":"Out of balance -9.99243661 BTC")
+        //     array("date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC")
         //
         $error = $this->safe_string($response, 'error');
         $feedback = $this->id . ' ' . $body;

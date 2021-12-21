@@ -122,7 +122,7 @@ class eqonex extends Exchange {
         $response = $this->publicGetGetInstrumentPairs (array_merge($request, $params));
         //
         //     {
-        //         "$instrumentPairs":[
+        //         "instrumentPairs":[
         //             array(
         //                 "instrumentId":52,
         //                 "symbol":"BTC/USDC",
@@ -166,14 +166,14 @@ class eqonex extends Exchange {
         //
         //     {
         //         "instrumentId":52,
-        //         "$symbol":"BTC/USDC", // "BTC/USDC[F]"
-        //         "$quoteId":1,
-        //         "$baseId":3,
+        //         "symbol":"BTC/USDC", // "BTC/USDC[F]"
+        //         "quoteId":1,
+        //         "baseId":3,
         //         "price_scale":2,
         //         "quantity_scale":6,
         //         "securityStatus":1,
         //         "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //         "$assetType":"PAIR", // "PERPETUAL_SWAP"
+        //         "assetType":"PAIR", // "PERPETUAL_SWAP"
         //         "currency":"BTC",
         //         "contAmtCurr":"USDC",
         //         "settlCurrency":"USDC",
@@ -244,7 +244,7 @@ class eqonex extends Exchange {
         $response = $this->publicGetGetInstruments ($params);
         //
         //     {
-        //         "$instruments" => array(
+        //         "instruments" => array(
         //             array(
         //                 3,     // id
         //                 "BTC", // symbol
@@ -337,7 +337,7 @@ class eqonex extends Exchange {
         //         "c":0.04409900000000002,
         //         "v":0.21267333000000016,
         //         "q":4.850000000000001,
-        //         "$chart":[
+        //         "chart":[
         //             [1612519260000,44099,44099,44099,44099,0,441],
         //             [1612519200000,44099,44099,44099,44099,0,440],
         //             [1612519140000,44269,44271,44269,44271,0,439],
@@ -441,7 +441,7 @@ class eqonex extends Exchange {
         $response = $this->publicGetGetTradeHistory (array_merge($request, $params));
         //
         //     {
-        //         "$trades":[
+        //         "trades":[
         //             [4022800,47000,"20210206-21:39:12.886",256323,1],
         //             [4023066,1000,"20210206-21:38:55.030",256322,1],
         //             [4022406,50000,"20210206-21:36:56.334",256321,1],
@@ -457,7 +457,7 @@ class eqonex extends Exchange {
         // public fetchTrades
         //
         //     array(
-        //         4022800,                 // 0 $price
+        //         4022800,                 // 0 price
         //         47000,                   // 1 quantity
         //         "20210206-21:39:12.886", // 2 $timestamp
         //         256323,                  // 3 sequence number
@@ -475,15 +475,15 @@ class eqonex extends Exchange {
         //         "ordStatus":"2",
         //         "execType":"F",
         //         "aggressorIndicator":true,
-        //         "$orderId":388953019,
-        //         "$price":"1842.04",
+        //         "orderId":388953019,
+        //         "price":"1842.04",
         //         "qty":"0.010000",
         //         "lastPx":"1756.22",
         //         "avgPx":"1756.22",
         //         "cumQty":"0.010000",
         //         "quoteQty":"0.010000",
-        //         "$side":"BUY",
-        //         "$symbol":"ETH/USDC",
+        //         "side":"BUY",
+        //         "symbol":"ETH/USDC",
         //         "clOrdId":"1613106766970339107",
         //         "submitterId":3583,
         //         "targetStrategy":"0",
@@ -521,13 +521,13 @@ class eqonex extends Exchange {
             $type = $this->parse_order_type($this->safe_string($trade, 'ordType'));
             $priceString = $this->safe_string($trade, 'lastPx');
             $amountString = $this->safe_string($trade, 'qty');
-            $feeCost = $this->safe_number($trade, 'commission');
-            if ($feeCost !== null) {
-                $feeCost = -$feeCost;
+            $feeCostString = $this->safe_string($trade, 'commission');
+            if ($feeCostString !== null) {
+                $feeCostString = Precise::string_neg($feeCostString);
                 $feeCurrencyId = $this->safe_string($trade, 'commCurrency');
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
                 $fee = array(
-                    'cost' => $feeCost,
+                    'cost' => $feeCostString,
                     'currency' => $feeCurrencyCode,
                 );
             }
@@ -535,10 +535,7 @@ class eqonex extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -548,18 +545,18 @@ class eqonex extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetPositions ($params);
         //     {
-        //         "$positions":array(
+        //         "positions":array(
         //             array(
         //                 "instrumentId":1,
         //                 "userId":3583,
@@ -567,7 +564,7 @@ class eqonex extends Exchange {
         //                 "availableQuantity":0,
         //                 "quantity_scale":6,
         //                 "symbol":"USDC",
-        //                 "$assetType":"ASSET",
+        //                 "assetType":"ASSET",
         //                 "usdCostBasis":0.0,
         //                 "usdAvgCostBasis":0.0,
         //                 "usdValue":0.0,
@@ -674,7 +671,7 @@ class eqonex extends Exchange {
         //         "instrumentId":53,
         //         "clOrdId":"1613037510849637345",
         //         "userId":3583,
-        //         "$price":2000,
+        //         "price":2000,
         //         "quantity":200,
         //         "ordType":2
         //     }
@@ -696,7 +693,7 @@ class eqonex extends Exchange {
         //
         //     {
         //         "status":"sent",
-        //         "$id":0,
+        //         "id":0,
         //         "origOrderId":385613629,
         //         "instrumentId":53,
         //         "userId":3583,
@@ -767,11 +764,11 @@ class eqonex extends Exchange {
         //
         //     {
         //         "status":"sent",
-        //         "$id":385617863,
+        //         "id":385617863,
         //         "instrumentId":53,
         //         "clOrdId":"1613037510849637345",
         //         "userId":3583,
-        //         "$price":2000,
+        //         "price":2000,
         //         "quantity":200,
         //         "ordType":2
         //     }
@@ -789,7 +786,7 @@ class eqonex extends Exchange {
         //     {
         //         "orderId":388953019,
         //         "clOrdId":"1613106766970339107",
-        //         "$symbol":"ETH/USDC",
+        //         "symbol":"ETH/USDC",
         //         "instrumentId":53,
         //         "side":"1",
         //         "userId":3583,
@@ -862,12 +859,12 @@ class eqonex extends Exchange {
         //
         //     {
         //         "isInitialSnap":false,
-        //         "$orders":array(
+        //         "orders":array(
         //             {
         //                 "orderId":385613629,
         //                 "orderUpdateSeq":1,
         //                 "clOrdId":"1613037448945798198",
-        //                 "$symbol":"ETH/USDC",
+        //                 "symbol":"ETH/USDC",
         //                 "instrumentId":53,
         //                 "side":"1",
         //                 "userId":3583,
@@ -927,7 +924,7 @@ class eqonex extends Exchange {
         $response = $this->privatePostUserTrades (array_merge($request, $params));
         //
         //     {
-        //         "$trades":array(
+        //         "trades":array(
         //             {
         //                 "account":3583,
         //                 "commission":"-0.015805",
@@ -945,7 +942,7 @@ class eqonex extends Exchange {
         //                 "cumQty":"0.010000",
         //                 "quoteQty":"0.010000",
         //                 "side":"BUY",
-        //                 "$symbol":"ETH/USDC",
+        //                 "symbol":"ETH/USDC",
         //                 "clOrdId":"1613106766970339107",
         //                 "submitterId":3583,
         //                 "targetStrategy":"0",
@@ -968,8 +965,8 @@ class eqonex extends Exchange {
         $response = $this->privatePostGetDepositAddresses (array_merge($request, $params));
         //
         //     {
-        //         "$addresses":array(
-        //             array("instrumentId":1,"userId":3583,"symbol":"USDC","$address":"0xdff47af071ea3c537e57278290516cda32a78b97","status":1)
+        //         "addresses":array(
+        //             array("instrumentId":1,"userId":3583,"symbol":"USDC","address":"0xdff47af071ea3c537e57278290516cda32a78b97","status":1)
         //         )
         //     }
         //
@@ -984,7 +981,7 @@ class eqonex extends Exchange {
         //         "instrumentId":1,
         //         "userId":3583,
         //         "symbol":"USDC",
-        //         "$address":"0xdff47af071ea3c537e57278290516cda32a78b97",
+        //         "address":"0xdff47af071ea3c537e57278290516cda32a78b97",
         //         "status":1
         //     }
         //
@@ -1012,7 +1009,7 @@ class eqonex extends Exchange {
         $response = $this->privatePostGetDepositHistory (array_merge($request, $params));
         //
         //     {
-        //         "$deposits":array(
+        //         "deposits":array(
         //             {
         //                 "id":4309,
         //                 "instrumentId":1,
@@ -1070,13 +1067,13 @@ class eqonex extends Exchange {
         // fetchDeposits, fetchWithdrawals
         //
         //     {
-        //         "$id":4309,
+        //         "id":4309,
         //         "instrumentId":1,
         //         "userId":3583,
         //         "symbol":"USDC",
-        //         "$address":"null",
-        //         "$timestamp":"1613021112189",
-        //         "$status":1,
+        //         "address":"null",
+        //         "timestamp":"1613021112189",
+        //         "status":1,
         //         "balance":0.0,
         //         "balance_change":100.0,
         //         "confirms":1,
@@ -1089,11 +1086,11 @@ class eqonex extends Exchange {
         //         "instrumentId" => 1,
         //         "userId" => 23750,
         //         "symbol" => "USDC",
-        //         "$timestamp" => "20200201-05:37:16.584",
-        //         "$status" => 1,
+        //         "timestamp" => "20200201-05:37:16.584",
+        //         "status" => 1,
         //         "userUuid" => "b9e33713-c28f-468f-99bd-f6deab0dd854",
         //         "currencyCode" => "USDC",
-        //         "$address" => "2MvW97yT6E2Kq8bWc1aj1DqfbgMzjRNk2LE",
+        //         "address" => "2MvW97yT6E2Kq8bWc1aj1DqfbgMzjRNk2LE",
         //         "quantity" => 20,
         //         "requestUuid" => "56782b34-8a78-4f5f-b164-4b8f7d583b7f",
         //         "transactionUuid" => "1004eb0f-41e1-41e9-9d48-8eefcc6c09f2",
@@ -1173,8 +1170,8 @@ class eqonex extends Exchange {
         //         "status" => 1,
         //         "userUuid" => "b9e33713-c28f-468f-99bd-f6deab0dd854",
         //         "currencyCode" => "USDC",
-        //         "$address" => "2MvW97yT6E2Kq8bWc1aj1DqfbgMzjRNk2LE",
-        //         "$quantity" => 20,
+        //         "address" => "2MvW97yT6E2Kq8bWc1aj1DqfbgMzjRNk2LE",
+        //         "quantity" => 20,
         //         "requestUuid" => "56782b34-8a78-4f5f-b164-4b8f7d583b7f",
         //         "transactionUuid" => "1004eb0f-41e1-41e9-9d48-8eefcc6c09f2",
         //         "transactionId" => "WS23436",
@@ -1247,12 +1244,12 @@ class eqonex extends Exchange {
         // createOrder, editOrder, cancelOrder
         //
         //     {
-        //         "$status":"sent",
-        //         "$id":385617863,
+        //         "status":"sent",
+        //         "id":385617863,
         //         "instrumentId":53,
         //         "clOrdId":"1613037510849637345",
         //         "userId":3583,
-        //         "$price":2000,
+        //         "price":2000,
         //         "quantity":200,
         //         "ordType":2
         //     }
@@ -1263,26 +1260,26 @@ class eqonex extends Exchange {
         //         "orderId":385613629,
         //         "orderUpdateSeq":1,
         //         "clOrdId":"1613037448945798198",
-        //         "$symbol":"ETH/USDC",
+        //         "symbol":"ETH/USDC",
         //         "instrumentId":53,
-        //         "$side":"1",
+        //         "side":"1",
         //         "userId":3583,
         //         "account":3583,
         //         "execType":"4",
         //         "ordType":"2",
         //         "ordStatus":"C",
-        //         "$timeInForce":"3",
+        //         "timeInForce":"3",
         //         "timeStamp":"20210211-09:57:28.944",
         //         "execId":0,
         //         "targetStrategy":0,
         //         "isHidden":false,
         //         "isReduceOnly":false,
         //         "isLiquidation":false,
-        //         "$fee":0,
+        //         "fee":0,
         //         "feeTotal":0,
         //         "fee_scale":0,
         //         "feeInstrumentId":0,
-        //         "$price":999,
+        //         "price":999,
         //         "price_scale":2,
         //         "quantity":10000000,
         //         "quantity_scale":6,
@@ -1310,29 +1307,30 @@ class eqonex extends Exchange {
         $lastTradeTimestamp = null;
         $priceString = $this->safe_string($order, 'price');
         $priceScale = $this->safe_integer($order, 'price_scale');
-        $price = $this->parse_number($this->convert_from_scale($priceString, $priceScale));
+        $priceString = $this->convert_from_scale($priceString, $priceScale);
         $amountString = $this->safe_string($order, 'quantity');
         $amountScale = $this->safe_integer($order, 'quantity_scale');
-        $amount = $this->parse_number($this->convert_from_scale($amountString, $amountScale));
+        $amountString = $this->convert_from_scale($amountString, $amountScale);
         $filledString = $this->safe_string($order, 'cumQty');
         $filledScale = $this->safe_integer($order, 'cumQty_scale');
-        $filled = $this->parse_number($this->convert_from_scale($filledString, $filledScale));
+        $filledString = $this->convert_from_scale($filledString, $filledScale);
         $remainingString = $this->safe_string($order, 'leavesQty');
         $remainingScale = $this->safe_integer($order, 'leavesQty_scale');
-        $remaining = $this->parse_number($this->convert_from_scale($remainingString, $remainingScale));
+        $remainingString = $this->convert_from_scale($remainingString, $remainingScale);
         $fee = null;
         $currencyId = $this->safe_integer($order, 'feeInstrumentId');
         $feeCurrencyCode = $this->safe_currency_code($currencyId);
+        $feeCostString = null;
         $feeCost = $this->safe_string($order, 'feeTotal');
         $feeScale = $this->safe_integer($order, 'fee_scale');
         if ($feeCost !== null) {
             $feeCost = Precise::string_neg($feeCost);
-            $feeCost = $this->parse_number($this->convert_from_scale($feeCost, $feeScale));
+            $feeCostString = $this->convert_from_scale($feeCost, $feeScale);
         }
         if ($feeCost !== null) {
             $fee = array(
                 'currency' => $feeCurrencyCode,
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'rate' => null,
             );
         }
@@ -1342,7 +1340,7 @@ class eqonex extends Exchange {
         }
         $stopPriceScale = $this->safe_integer($order, 'stopPx_scale', 0);
         $stopPrice = $this->parse_number($this->convert_from_scale($this->safe_string($order, 'stopPx'), $stopPriceScale));
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1354,17 +1352,17 @@ class eqonex extends Exchange {
             'timeInForce' => $timeInForce,
             'postOnly' => null,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
             'stopPrice' => $stopPrice,
-            'amount' => $amount,
+            'amount' => $amountString,
             'cost' => null,
             'average' => null,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'filled' => $filledString,
+            'remaining' => $remainingString,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status($status) {

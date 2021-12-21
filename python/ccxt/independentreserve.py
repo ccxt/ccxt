@@ -259,9 +259,9 @@ class independentreserve(Exchange):
         elif orderType.find('Limit') >= 0:
             orderType = 'limit'
         timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
-        amount = self.safe_number_2(order, 'VolumeOrdered', 'Volume')
-        filled = self.safe_number(order, 'VolumeFilled')
-        remaining = self.safe_number(order, 'Outstanding')
+        amount = self.safe_string_2(order, 'VolumeOrdered', 'Volume')
+        filled = self.safe_string(order, 'VolumeFilled')
+        remaining = self.safe_string(order, 'Outstanding')
         feeRate = self.safe_number(order, 'FeePercent')
         feeCost = None
         if feeRate is not None and filled is not None:
@@ -273,10 +273,10 @@ class independentreserve(Exchange):
         }
         id = self.safe_string(order, 'OrderGuid')
         status = self.parse_order_status(self.safe_string(order, 'Status'))
-        cost = self.safe_number(order, 'Value')
-        average = self.safe_number(order, 'AvgPrice')
-        price = self.safe_number(order, 'Price')
-        return self.safe_order({
+        cost = self.safe_string(order, 'Value')
+        average = self.safe_string(order, 'AvgPrice')
+        price = self.safe_string(order, 'Price')
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -298,7 +298,7 @@ class independentreserve(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def parse_order_status(self, status):
         statuses = {

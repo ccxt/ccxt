@@ -580,7 +580,7 @@ class kuna extends Exchange {
             'info' => $order,
             'cost' => null,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

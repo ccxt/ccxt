@@ -7,6 +7,8 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 
 class hitbtc3 extends Exchange {
 
@@ -207,55 +209,58 @@ class hitbtc3 extends Exchange {
                 '1M' => '1M',
             ),
             'exceptions' => array(
-                '429' => '\\ccxt\\RateLimitExceeded',
-                '500' => '\\ccxt\\ExchangeError',
-                '503' => '\\ccxt\\ExchangeNotAvailable',
-                '504' => '\\ccxt\\ExchangeNotAvailable',
-                '600' => '\\ccxt\\PermissionDenied',
-                '800' => '\\ccxt\\ExchangeError',
-                '1002' => '\\ccxt\\AuthenticationError',
-                '1003' => '\\ccxt\\PermissionDenied',
-                '1004' => '\\ccxt\\AuthenticationError',
-                '1005' => '\\ccxt\\AuthenticationError',
-                '2001' => '\\ccxt\\BadSymbol',
-                '2002' => '\\ccxt\\BadRequest',
-                '2003' => '\\ccxt\\BadRequest',
-                '2010' => '\\ccxt\\BadRequest',
-                '2011' => '\\ccxt\\BadRequest',
-                '2012' => '\\ccxt\\BadRequest',
-                '2020' => '\\ccxt\\BadRequest',
-                '2022' => '\\ccxt\\BadRequest',
-                '10001' => '\\ccxt\\BadRequest',
-                '10021' => '\\ccxt\\AccountSuspended',
-                '10022' => '\\ccxt\\BadRequest',
-                '20001' => '\\ccxt\\InsufficientFunds',
-                '20002' => '\\ccxt\\OrderNotFound',
-                '20003' => '\\ccxt\\ExchangeError',
-                '20004' => '\\ccxt\\ExchangeError',
-                '20005' => '\\ccxt\\ExchangeError',
-                '20006' => '\\ccxt\\ExchangeError',
-                '20007' => '\\ccxt\\ExchangeError',
-                '20008' => '\\ccxt\\InvalidOrder',
-                '20009' => '\\ccxt\\InvalidOrder',
-                '20010' => '\\ccxt\\OnMaintenance',
-                '20011' => '\\ccxt\\ExchangeError',
-                '20012' => '\\ccxt\\ExchangeError',
-                '20014' => '\\ccxt\\ExchangeError',
-                '20016' => '\\ccxt\\ExchangeError',
-                '20031' => '\\ccxt\\ExchangeError',
-                '20032' => '\\ccxt\\ExchangeError',
-                '20033' => '\\ccxt\\ExchangeError',
-                '20034' => '\\ccxt\\ExchangeError',
-                '20040' => '\\ccxt\\ExchangeError',
-                '20041' => '\\ccxt\\ExchangeError',
-                '20042' => '\\ccxt\\ExchangeError',
-                '20043' => '\\ccxt\\ExchangeError',
-                '20044' => '\\ccxt\\PermissionDenied',
-                '20045' => '\\ccxt\\ExchangeError',
-                '20080' => '\\ccxt\\ExchangeError',
-                '21001' => '\\ccxt\\ExchangeError',
-                '21003' => '\\ccxt\\AccountSuspended',
-                '21004' => '\\ccxt\\AccountSuspended',
+                'exact' => array(
+                    '429' => '\\ccxt\\RateLimitExceeded',
+                    '500' => '\\ccxt\\ExchangeError',
+                    '503' => '\\ccxt\\ExchangeNotAvailable',
+                    '504' => '\\ccxt\\ExchangeNotAvailable',
+                    '600' => '\\ccxt\\PermissionDenied',
+                    '800' => '\\ccxt\\ExchangeError',
+                    '1002' => '\\ccxt\\AuthenticationError',
+                    '1003' => '\\ccxt\\PermissionDenied',
+                    '1004' => '\\ccxt\\AuthenticationError',
+                    '1005' => '\\ccxt\\AuthenticationError',
+                    '2001' => '\\ccxt\\BadSymbol',
+                    '2002' => '\\ccxt\\BadRequest',
+                    '2003' => '\\ccxt\\BadRequest',
+                    '2010' => '\\ccxt\\BadRequest',
+                    '2011' => '\\ccxt\\BadRequest',
+                    '2012' => '\\ccxt\\BadRequest',
+                    '2020' => '\\ccxt\\BadRequest',
+                    '2022' => '\\ccxt\\BadRequest',
+                    '10001' => '\\ccxt\\BadRequest',
+                    '10021' => '\\ccxt\\AccountSuspended',
+                    '10022' => '\\ccxt\\BadRequest',
+                    '20001' => '\\ccxt\\InsufficientFunds',
+                    '20002' => '\\ccxt\\OrderNotFound',
+                    '20003' => '\\ccxt\\ExchangeError',
+                    '20004' => '\\ccxt\\ExchangeError',
+                    '20005' => '\\ccxt\\ExchangeError',
+                    '20006' => '\\ccxt\\ExchangeError',
+                    '20007' => '\\ccxt\\ExchangeError',
+                    '20008' => '\\ccxt\\InvalidOrder',
+                    '20009' => '\\ccxt\\InvalidOrder',
+                    '20010' => '\\ccxt\\OnMaintenance',
+                    '20011' => '\\ccxt\\ExchangeError',
+                    '20012' => '\\ccxt\\ExchangeError',
+                    '20014' => '\\ccxt\\ExchangeError',
+                    '20016' => '\\ccxt\\ExchangeError',
+                    '20031' => '\\ccxt\\ExchangeError',
+                    '20032' => '\\ccxt\\ExchangeError',
+                    '20033' => '\\ccxt\\ExchangeError',
+                    '20034' => '\\ccxt\\ExchangeError',
+                    '20040' => '\\ccxt\\ExchangeError',
+                    '20041' => '\\ccxt\\ExchangeError',
+                    '20042' => '\\ccxt\\ExchangeError',
+                    '20043' => '\\ccxt\\ExchangeError',
+                    '20044' => '\\ccxt\\PermissionDenied',
+                    '20045' => '\\ccxt\\ExchangeError',
+                    '20080' => '\\ccxt\\ExchangeError',
+                    '21001' => '\\ccxt\\ExchangeError',
+                    '21003' => '\\ccxt\\AccountSuspended',
+                    '21004' => '\\ccxt\\AccountSuspended',
+                ),
+                'broad' => array(),
             ),
             'options' => array(
                 'networks' => array(
@@ -286,7 +291,7 @@ class hitbtc3 extends Exchange {
         //
         //     {
         //         "ETHBTC" => {
-        //             "$type" => "$spot",
+        //             "type" => "spot",
         //             "base_currency" => "ETH",
         //             "quote_currency" => "BTC",
         //             "quantity_increment" => "0.001",
@@ -388,9 +393,9 @@ class hitbtc3 extends Exchange {
         //         "payout_enabled" => false,
         //         "transfer_enabled" => true,
         //         "precision_transfer" => "0.001",
-        //         "$networks" => array(
+        //         "networks" => array(
         //           {
-        //             "$network" => "ETH",
+        //             "network" => "ETH",
         //             "protocol" => "ERC20",
         //             "default" => true,
         //             "payin_enabled" => false,
@@ -495,7 +500,7 @@ class hitbtc3 extends Exchange {
         }
         $response = $this->privateGetWalletCryptoAddress (array_merge($request, $params));
         //
-        //  [array("$currency":"ETH","$address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3")]
+        //  [array("currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3")]
         //
         $firstAddress = $this->safe_value($response, 0);
         $address = $this->safe_string($firstAddress, 'address');
@@ -512,7 +517,21 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        $response = $this->privateGetSpotBalance ();
+        $type = $this->safe_string_lower($params, 'type', 'spot');
+        $params = $this->omit($params, array( 'type' ));
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $account = $this->safe_string($accountsByType, $type);
+        $response = null;
+        if ($account === 'wallet') {
+            $response = $this->privateGetWalletBalance ($params);
+        } else if ($account === 'spot') {
+            $response = $this->privateGetSpotBalance ($params);
+        } else if ($account === 'derivatives') {
+            $response = $this->privateGetFuturesBalance ($params);
+        } else {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new BadRequest($this->id . ' fetchBalance() $type parameter must be one of ' . implode(', ', $keys));
+        }
         //
         //     array(
         //       array(
@@ -583,19 +602,19 @@ class hitbtc3 extends Exchange {
         //     {
         //       "ask" => "62756.01",
         //       "bid" => "62754.09",
-        //       "$last" => "62755.87",
+        //       "last" => "62755.87",
         //       "low" => "62010.00",
         //       "high" => "66657.99",
-        //       "$open" => "65089.27",
+        //       "open" => "65089.27",
         //       "volume" => "16719.50366",
         //       "volume_quote" => "1063422878.8156828",
-        //       "$timestamp" => "2021-10-22T07:29:14.585Z"
+        //       "timestamp" => "2021-10-22T07:29:14.585Z"
         //     }
         //
         $timestamp = $this->parse8601($ticker['timestamp']);
         $symbol = $this->safe_symbol(null, $market);
         $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = $this->safe_number($ticker, 'volumeQuote');
+        $quoteVolume = $this->safe_number($ticker, 'volume_quote');
         $open = $this->safe_number($ticker, 'open');
         $last = $this->safe_number($ticker, 'last');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
@@ -776,7 +795,7 @@ class hitbtc3 extends Exchange {
         //         "native" => {
         //           "tx_id" => "e20b0965-4024-44d0-b63f-7fb8996a6706",
         //           "index" => "881652766",
-        //           "$currency" => "ETH",
+        //           "currency" => "ETH",
         //           "amount" => "0.01418088",
         //           "hash" => "d95dbbff3f9234114f1211ab0ba2a94f03f394866fd5749d74a1edab80e6c5d3",
         //           "address" => "0xd9259302c32c0a0295d86a39185c9e14f6ba0a0d",
@@ -811,19 +830,19 @@ class hitbtc3 extends Exchange {
     public function parse_transaction($transaction, $currency = null) {
         //
         //     {
-        //       "$id" => "101609495",
+        //       "id" => "101609495",
         //       "created_at" => "2018-03-06T22:05:06.507Z",
         //       "updated_at" => "2018-03-06T22:11:45.03Z",
-        //       "$status" => "SUCCESS",
-        //       "$type" => "DEPOSIT",
+        //       "status" => "SUCCESS",
+        //       "type" => "DEPOSIT",
         //       "subtype" => "BLOCKCHAIN",
-        //       "$native" => {
+        //       "native" => {
         //         "tx_id" => "e20b0965-4024-44d0-b63f-7fb8996a6706",
         //         "index" => "881652766",
-        //         "$currency" => "ETH",
-        //         "$amount" => "0.01418088",
+        //         "currency" => "ETH",
+        //         "amount" => "0.01418088",
         //         "hash" => "d95dbbff3f9234114f1211ab0ba2a94f03f394866fd5749d74a1edab80e6c5d3",
-        //         "$address" => "0xd9259302c32c0a0295d86a39185c9e14f6ba0a0d",
+        //         "address" => "0xd9259302c32c0a0295d86a39185c9e14f6ba0a0d",
         //         "confirmations" => "20",
         //         "senders" => array(
         //           "0x243bec9256c9a3469da22103891465b47583d9f1"
@@ -832,20 +851,20 @@ class hitbtc3 extends Exchange {
         //     }
         //
         //     {
-        //       "$id" => "102703545",
+        //       "id" => "102703545",
         //       "created_at" => "2018-03-30T21:39:17.854Z",
         //       "updated_at" => "2018-03-31T00:23:19.067Z",
-        //       "$status" => "SUCCESS",
-        //       "$type" => "WITHDRAW",
+        //       "status" => "SUCCESS",
+        //       "type" => "WITHDRAW",
         //       "subtype" => "BLOCKCHAIN",
-        //       "$native" => {
+        //       "native" => {
         //         "tx_id" => "5ecd7a85-ce5d-4d52-a916-b8b755e20926",
         //         "index" => "918286359",
-        //         "$currency" => "OMG",
-        //         "$amount" => "2.45",
-        //         "$fee" => "1.22",
+        //         "currency" => "OMG",
+        //         "amount" => "2.45",
+        //         "fee" => "1.22",
         //         "hash" => "0x1c621d89e7a0841342d5fb3b3587f60b95351590161e078c4a1daee353da4ca9",
-        //         "$address" => "0x50227da7644cea0a43258a2e2d7444d01b43dcca",
+        //         "address" => "0x50227da7644cea0a43258a2e2d7444d01b43dcca",
         //         "confirmations" => "0"
         //       }
         //     }
@@ -915,7 +934,7 @@ class hitbtc3 extends Exchange {
             $request['symbols'] = implode(',', $marketIds);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['depth'] = $limit;
         }
         $response = $this->publicGetPublicOrderbook (array_merge($request, $params));
         $result = array();
@@ -935,6 +954,26 @@ class hitbtc3 extends Exchange {
         return $result[$symbol];
     }
 
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     {
+        //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
+        //         "take_rate":"0.0009",
+        //         "make_rate":"0.0009"
+        //     }
+        //
+        $taker = $this->safe_number($fee, 'take_rate');
+        $maker = $this->safe_number($fee, 'make_rate');
+        $marketId = $this->safe_string($fee, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'taker' => $taker,
+            'maker' => $maker,
+        );
+    }
+
     public function fetch_trading_fee($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -942,33 +981,32 @@ class hitbtc3 extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->privateGetSpotFeeSymbol (array_merge($request, $params));
-        //  array("take_rate":"0.0009","make_rate":"0.0009")
-        $taker = $this->safe_number($response, 'take_rate');
-        $maker = $this->safe_number($response, 'make_rate');
-        return array(
-            'info' => $response,
-            'symbol' => $symbol,
-            'taker' => $taker,
-            'maker' => $maker,
-        );
+        //
+        //     {
+        //         "take_rate":"0.0009",
+        //         "make_rate":"0.0009"
+        //     }
+        //
+        return $this->parse_trading_fee($response, $market);
     }
 
     public function fetch_trading_fees($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetSpotFee ($params);
-        // [array("$symbol":"ARVUSDT","take_rate":"0.0009","make_rate":"0.0009")]
+        //
+        //     array(
+        //         {
+        //             "symbol":"ARVUSDT",
+        //             "take_rate":"0.0009",
+        //             "make_rate":"0.0009"
+        //         }
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $symbol = $this->safe_symbol($this->safe_string($entry, 'symbol'));
-            $taker = $this->safe_number($entry, 'take_rate');
-            $maker = $this->safe_number($entry, 'make_rate');
-            $result[$symbol] = array(
-                'info' => $entry,
-                'symbol' => $symbol,
-                'taker' => $taker,
-                'maker' => $maker,
-            );
+            $fee = $this->parse_trading_fee($response[$i]);
+            $symbol = $fee['symbol'];
+            $result[$symbol] = $fee;
         }
         return $result;
     }
@@ -1060,9 +1098,9 @@ class hitbtc3 extends Exchange {
         //
         //     array(
         //       {
-        //         "$id" => "685965182082",
+        //         "id" => "685965182082",
         //         "client_order_id" => "B3CBm9uGg9oYQlw96bBSEt38-6gbgBO0",
-        //         "$symbol" => "BTCUSDT",
+        //         "symbol" => "BTCUSDT",
         //         "side" => "buy",
         //         "status" => "new",
         //         "type" => "limit",
@@ -1093,10 +1131,10 @@ class hitbtc3 extends Exchange {
         //
         //     array(
         //       {
-        //         "$id" => 1393448977,
+        //         "id" => 1393448977,
         //         "order_id" => 653496804534,
         //         "client_order_id" => "065f6f0ff9d54547848454182263d7b4",
-        //         "$symbol" => "DICEETH",
+        //         "symbol" => "DICEETH",
         //         "side" => "buy",
         //         "quantity" => "1.4",
         //         "price" => "0.00261455",
@@ -1123,10 +1161,10 @@ class hitbtc3 extends Exchange {
         //       {
         //         "id" => "488953123149",
         //         "client_order_id" => "103ad305301e4c3590045b13de15b36e",
-        //         "$symbol" => "BTCUSDT",
+        //         "symbol" => "BTCUSDT",
         //         "side" => "buy",
         //         "status" => "new",
-        //         "type" => "$limit",
+        //         "type" => "limit",
         //         "time_in_force" => "GTC",
         //         "quantity" => "0.00001",
         //         "quantity_cumulative" => "0",
@@ -1233,16 +1271,16 @@ class hitbtc3 extends Exchange {
         //
         // limit
         //     {
-        //       "$id" => 488953123149,
+        //       "id" => 488953123149,
         //       "client_order_id" => "103ad305301e4c3590045b13de15b36e",
-        //       "$symbol" => "BTCUSDT",
-        //       "$side" => "buy",
-        //       "$status" => "new",
-        //       "$type" => "limit",
+        //       "symbol" => "BTCUSDT",
+        //       "side" => "buy",
+        //       "status" => "new",
+        //       "type" => "limit",
         //       "time_in_force" => "GTC",
         //       "quantity" => "0.00001",
         //       "quantity_cumulative" => "0",
-        //       "$price" => "0.01",
+        //       "price" => "0.01",
         //       "price_average" => "0.01",
         //       "post_only" => false,
         //       "created_at" => "2021-04-13T13:06:16.567Z",
@@ -1251,12 +1289,12 @@ class hitbtc3 extends Exchange {
         //
         // $market
         //     {
-        //       "$id" => "685877626834",
+        //       "id" => "685877626834",
         //       "client_order_id" => "Yshl7G-EjaREyXQYaGbsmdtVbW-nzQwu",
-        //       "$symbol" => "BTCUSDT",
-        //       "$side" => "buy",
-        //       "$status" => "$filled",
-        //       "$type" => "$market",
+        //       "symbol" => "BTCUSDT",
+        //       "side" => "buy",
+        //       "status" => "filled",
+        //       "type" => "market",
         //       "time_in_force" => "GTC",
         //       "quantity" => "0.00010",
         //       "quantity_cumulative" => "0.00010",
@@ -1265,12 +1303,12 @@ class hitbtc3 extends Exchange {
         //       "updated_at" => "2021-10-26T08:55:55.1Z",
         //       "trades" => array(
         //         {
-        //           "$id" => "1437229630",
+        //           "id" => "1437229630",
         //           "position_id" => "0",
         //           "quantity" => "0.00010",
-        //           "$price" => "62884.78",
+        //           "price" => "62884.78",
         //           "fee" => "0.005659630200",
-        //           "$timestamp" => "2021-10-26T08:55:55.1Z",
+        //           "timestamp" => "2021-10-26T08:55:55.1Z",
         //           "taker" => true
         //         }
         //       )
@@ -1336,13 +1374,13 @@ class hitbtc3 extends Exchange {
         $toId = $this->safe_string($accountsByType, $toAccount);
         $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
         if ($fromId === null) {
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys) . ' instead of ' . $fromId);
+            throw new ArgumentsRequired($this->id . ' transfer() $fromAccount argument must be one of ' . implode(', ', $keys));
         }
         if ($toId === null) {
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys) . ' instead of ' . $toId);
+            throw new ArgumentsRequired($this->id . ' transfer() $toAccount argument must be one of ' . implode(', ', $keys));
         }
         if ($fromId === $toId) {
-            throw new ExchangeError($this->id . ' from and to cannot be the same account');
+            throw new BadRequest($this->id . ' transfer() $fromAccount and $toAccount arguments cannot be the same account');
         }
         $request = array(
             'currency' => $currency['id'],
@@ -1369,7 +1407,7 @@ class hitbtc3 extends Exchange {
     public function convert_currency_network($code, $amount, $fromNetwork, $toNetwork, $params) {
         $this->load_markets();
         if ($code !== 'USDT') {
-            throw new ExchangeError($this->id . ' convertCurrencyNetwork only supports USDT currently');
+            throw new ExchangeError($this->id . ' convertCurrencyNetwork() only supports USDT currently');
         }
         $networks = $this->safe_value($this->options, 'networks', array());
         $fromNetwork = strtoupper($fromNetwork);
@@ -1377,11 +1415,11 @@ class hitbtc3 extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new ExchangeError($this->id . ' $fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest($this->id . ' $fromNetwork cannot be the same as toNetwork');
         }
         if (($fromNetwork === null) || ($toNetwork === null)) {
             $keys = is_array($networks) ? array_keys($networks) : array();
-            throw new ExchangeError($this->id . ' invalid network, please select one of ' . implode(', ', $keys));
+            throw new ArgumentsRequired($this->id . ' convertCurrencyNetwork() requires a $fromNetwork parameter and a $toNetwork parameter, supported $networks are ' . implode(', ', $keys));
         }
         $request = array(
             'from_currency' => $fromNetwork,
@@ -1418,7 +1456,7 @@ class hitbtc3 extends Exchange {
             $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostWalletCryptoWithdraw (array_merge($request, $params));
-        // array("$id":"084cfcd5-06b9-4826-882e-fdb75ec3625d")
+        // array("id":"084cfcd5-06b9-4826-882e-fdb75ec3625d")
         $id = $this->safe_string($response, 'id');
         return array(
             'info' => $response,
@@ -1429,23 +1467,28 @@ class hitbtc3 extends Exchange {
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         //
         //     {
-        //       "$error" => {
-        //         "$code" => 20001,
+        //       "error" => {
+        //         "code" => 20001,
         //         "message" => "Insufficient funds",
-        //         "$description" => "Check that the funds are sufficient, given commissions"
+        //         "description" => "Check that the funds are sufficient, given commissions"
+        //       }
+        //     }
+        //
+        //     {
+        //       "error" => {
+        //         "code" => "600",
+        //         "message" => "Action not allowed"
         //       }
         //     }
         //
         $error = $this->safe_value($response, 'error');
         $errorCode = $this->safe_string($error, 'code');
         if ($errorCode !== null) {
-            $description = $this->safe_string($error, 'description', '');
-            $ExceptionClass = $this->safe_value($this->exceptions, $errorCode);
-            if ($ExceptionClass !== null) {
-                throw new $ExceptionClass($this->id . ' ' . $description);
-            } else {
-                throw new ExchangeError($this->id . ' ' . $description);
-            }
+            $feedback = $this->id . ' ' . $body;
+            $message = $this->safe_string_2($error, 'message', 'description');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            throw new ExchangeError($feedback);
         }
     }
 

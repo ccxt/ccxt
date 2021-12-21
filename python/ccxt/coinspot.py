@@ -8,7 +8,6 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.precise import Precise
 
 
 class coinspot(Exchange):
@@ -212,15 +211,11 @@ class coinspot(Exchange):
         #
         priceString = self.safe_string(trade, 'rate')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.safe_number(trade, 'total')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        costString = self.safe_number(trade, 'total')
         timestamp = self.safe_integer(trade, 'solddate')
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market, '/')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': None,
             'symbol': symbol,
@@ -230,11 +225,11 @@ class coinspot(Exchange):
             'type': None,
             'side': None,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': None,
-        }
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

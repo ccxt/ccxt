@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { now } = require ('./time')
+const { now, sleep } = require ('./time')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -35,7 +35,7 @@ class Throttle {
                     this.running = false
                 }
             } else {
-                await new Promise (x => setTimeout (x, this.config['delay'] * 1000));
+                await sleep (this.config['delay'] * 1000);
                 const current = now ()
                 const elapsed = current - lastTimestamp
                 lastTimestamp = current

@@ -1,35 +1,28 @@
 'use strict'
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
 const debug = process.argv.includes ('--debug') || false
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
-const asTable   = require ('as-table')
-    , log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , fs        = require ('fs')
-    , ccxt      = require ('../../ccxt.js') // eslint-disable-line import/order
-    , chai      = require ('chai')
-    , assert    = chai.assert
+const fs = require ('fs')
+    , assert = require ('assert')
+    , { Agent } = require ('https')
+    , ccxt = require ('../../ccxt.js') // eslint-disable-line import/order
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
-const warn = log.bright.yellow.error // .error → stderr
+process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) })
+process.on ('unhandledRejection', (e) => { console.log (e, e.stack); process.exit (1) })
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
-process.on ('uncaughtException',  (e) => { log.bright.red.error (e); process.exit (1) })
-process.on ('unhandledRejection', (e) => { log.bright.red.error (e); process.exit (1) })
+console.log ('\nTESTING', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n')
 
-/*  ------------------------------------------------------------------------ */
-
-log.bright ('\nTESTING', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n')
-
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 const proxies = [
     '',
@@ -39,8 +32,6 @@ const proxies = [
 //-----------------------------------------------------------------------------
 
 const enableRateLimit = true
-
-const { Agent } = require ('https')
 
 const httpsAgent = new Agent ({
     'ecdhCurve': 'auto',
@@ -100,7 +91,7 @@ if (settings) {
 Object.assign (exchange, settings)
 
 if (settings && settings.skip) {
-    log.error.bright ('[Skipped]', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' })
+    console.log ('[Skipped]', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' })
     process.exit ()
 }
 
@@ -120,8 +111,8 @@ async function testSymbol (exchange, symbol) {
 
     if (exchange.id === 'coinmarketcap') {
 
-        log (await exchange.fetchTickers ())
-        log (await exchange.fetchGlobal  ())
+        console.log (await exchange.fetchTickers ())
+        console.log (await exchange.fetchGlobal  ())
 
     } else if (exchange.id === 'coinbase') {
 
@@ -180,7 +171,7 @@ async function loadExchange (exchange) {
         }
     }
 
-    log (exchange.symbols.length.toString ().bright.green, 'symbols', result)
+    console.log (exchange.symbols.length, 'symbols', result)
 }
 
 //-----------------------------------------------------------------------------
@@ -249,12 +240,12 @@ async function testExchange (exchange) {
         if (exchange.symbols.includes (s)) {
             if ('active' in exchange.markets[s]) {
                 if (exchange.markets[s]['active'] === undefined) {
-                    symbol = s;
+                    symbol = s
                 } else if (exchange.markets[s]['active']) {
-                    symbol = s;
+                    symbol = s
                 }
             } else {
-                symbol = s;
+                symbol = s
             }
             break
         }
@@ -267,7 +258,7 @@ async function testExchange (exchange) {
         symbol = 'BTC/USDT'
     }
 
-    log.green ('SYMBOL:', symbol)
+    console.log ('SYMBOL:', symbol)
     if ((symbol.indexOf ('.d') < 0)) {
         await testSymbol (exchange, symbol)
     }
@@ -304,6 +295,8 @@ async function testExchange (exchange) {
     await tests['fetchTransactions'] (exchange, code)
     await tests['fetchDeposits']     (exchange, code)
     await tests['fetchWithdrawals']  (exchange, code)
+    await tests['fetchBorrowRate']   (exchange, code)
+    await tests['fetchBorrowRates']  (exchange)
 
     if (exchange.extendedTest) {
 
@@ -373,7 +366,7 @@ async function tryAllProxies (exchange, proxies) {
         } catch (e) {
 
             currentProxy = ++currentProxy % proxies.length
-            warn ('[' + e.constructor.name + '] ' + e.message.slice (0, 200))
+            console.log ('[' + e.constructor.name + '] ' + e.message.slice (0, 200))
             if (e instanceof ccxt.DDoSProtection) {
                 continue
             } else if (e instanceof ccxt.RequestTimeout) {

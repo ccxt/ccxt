@@ -52,13 +52,11 @@ module.exports = class idex extends Exchange {
             },
             'urls': {
                 'test': {
-                    'public': 'https://api-sandbox.idex.io',
-                    'private': 'https://api-sandbox.idex.io',
+                    'MATIC': 'https://api-sandbox-matic.idex.io',
                 },
                 'logo': 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api': {
-                    'ETH': 'https://api-eth.idex.io',
-                    'BSC': 'https://api-bsc.idex.io',
+                    'MATIC': 'https://api-matic.idex.io',
                 },
                 'www': 'https://idex.io',
                 'doc': [
@@ -104,7 +102,7 @@ module.exports = class idex extends Exchange {
             'options': {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
-                'network': 'ETH', // also supports BSC
+                'network': 'MATIC',
             },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,

@@ -476,16 +476,16 @@ class itbit(Exchange):
         type = self.safe_string(order, 'type')
         symbol = self.markets_by_id[order['instrument']]['symbol']
         timestamp = self.parse8601(order['createdTime'])
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'amountFilled')
+        amount = self.safe_string(order, 'amount')
+        filled = self.safe_string(order, 'amountFilled')
         fee = None
-        price = self.safe_number(order, 'price')
-        average = self.safe_number(order, 'volumeWeightedAveragePrice')
+        price = self.safe_string(order, 'price')
+        average = self.safe_string(order, 'volumeWeightedAveragePrice')
         clientOrderId = self.safe_string(order, 'clientOrderIdentifier')
         id = self.safe_string(order, 'id')
         postOnlyString = self.safe_string(order, 'postOnly')
         postOnly = (postOnlyString == 'True')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -508,7 +508,7 @@ class itbit(Exchange):
             'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),
             'trades': None,
-        })
+        }, market)
 
     def nonce(self):
         return self.milliseconds()

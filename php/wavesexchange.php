@@ -277,6 +277,9 @@ class wavesexchange extends Exchange {
                     'BSC' => 'BEP20',
                 ),
             ),
+            'commonCurrencies' => array(
+                'EGG' => 'Waves Ducks',
+            ),
             'requiresEddsa' => true,
             'exceptions' => array(
                 '3147270' => '\\ccxt\\InsufficientFunds',  // https://github.com/wavesplatform/matcher/wiki/List-of-all-errors
@@ -352,7 +355,7 @@ class wavesexchange extends Exchange {
             //   "networkByte" => 87,
             //   "matcherVersion" => "2.1.3.5",
             //   "status" => "SimpleResponse",
-            //   "$priceAssets" => array(
+            //   "priceAssets" => array(
             //     "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
             //     "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
             //     "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
@@ -570,14 +573,14 @@ class wavesexchange extends Exchange {
         //
         //     {
         //         "__type":"pair",
-        //         "$data":array(
+        //         "data":array(
         //             "firstPrice":0.00012512,
         //             "lastPrice":0.00012441,
-        //             "$low":0.00012167,
-        //             "$high":0.00012768,
+        //             "low":0.00012167,
+        //             "high":0.00012768,
         //             "weightedAveragePrice":0.000124710697407246,
         //             "volume":209554.26356614,
-        //             "$quoteVolume":26.1336583539951,
+        //             "quoteVolume":26.1336583539951,
         //             "volumeWaves":209554.26356614,
         //             "txsCount":6655
         //         ),
@@ -644,10 +647,10 @@ class wavesexchange extends Exchange {
         //
         //     {
         //         "__type":"list",
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "__type":"pair",
-        //                 "$data":array(
+        //                 "data":array(
         //                     "firstPrice":0.00012512,
         //                     "lastPrice":0.00012441,
         //                     "low":0.00012167,
@@ -691,12 +694,12 @@ class wavesexchange extends Exchange {
         //
         //     {
         //         "__type" => "list",
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "__type" => "candle",
-        //                 "$data" => {
+        //                 "data" => {
         //                     "time" => "2020-06-09T14:47:00.000Z",
-        //                     "$open" => 0.0250385,
+        //                     "open" => 0.0250385,
         //                     "close" => 0.0250385,
         //                     "high" => 0.0250385,
         //                     "low" => 0.0250385,
@@ -775,12 +778,12 @@ class wavesexchange extends Exchange {
         //         "has_next_page" => false,
         //         "last_cursor" => null
         //       ),
-        //       "$items" => array(
+        //       "items" => array(
         //         {
         //           "type" => "platform",
         //           "id" => "ETH",
         //           "name" => "Ethereum",
-        //           "$currencies" => array(
+        //           "currencies" => array(
         //             "BAG",
         //             "BNT",
         //             "CRV",
@@ -856,7 +859,7 @@ class wavesexchange extends Exchange {
         //
         // {
         //   "type" => "deposit_addresses",
-        //   "$currency" => {
+        //   "currency" => {
         //     "type" => "deposit_currency",
         //     "id" => "ERGO",
         //     "waves_asset_id" => "5dJj4Hn9t2Ve3tRpNGirUHy4yBK6qdJRAJYV21yPPuGz",
@@ -986,11 +989,11 @@ class wavesexchange extends Exchange {
         //     3
         //   ),
         //   "success" => true,
-        //   "$matcherPublicKey" => "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
-        //   "$orderFee" => {
-        //     "$dynamic" => {
+        //   "matcherPublicKey" => "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //   "orderFee" => {
+        //     "dynamic" => {
         //       "baseFee" => 300000,
-        //       "$rates" => array(
+        //       "rates" => array(
         //         "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ" => 1.0257813,
         //         "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH" => 0.01268146,
         //         "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk" => 0.05232404,
@@ -1009,7 +1012,7 @@ class wavesexchange extends Exchange {
         //   "networkByte" => 87,
         //   "matcherVersion" => "2.1.4.8",
         //   "status" => "SimpleResponse",
-        //   "$priceAssets" => array(
+        //   "priceAssets" => array(
         //     "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
         //     "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
         //     "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
@@ -1145,7 +1148,7 @@ class wavesexchange extends Exchange {
         ));
         //  {
         //    "success":true,
-        //    "$message":[[array("orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled")]],
+        //    "message":[[array("orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled")]],
         //    "status":"BatchCancelCompleted"
         //  }
         $message = $this->safe_value($response, 'message');
@@ -1250,7 +1253,7 @@ class wavesexchange extends Exchange {
         //   array(
         //     "id" => "9aXcxvXai73jbAm7tQNnqaQ2PwUjdmWuyjvRTKAHsw4f",
         //     "type" => "buy",
-        //     "orderType" => "$limit",
+        //     "orderType" => "limit",
         //     "amount" => 23738330,
         //     "fee" => 300000,
         //     "price" => 3828348334,
@@ -1354,10 +1357,10 @@ class wavesexchange extends Exchange {
             $symbol = $market['symbol'];
         }
         $amountCurrency = $this->safe_currency_code($this->safe_string($assetPair, 'amountAsset', 'WAVES'));
-        $price = $this->parse_number($this->price_from_precision($symbol, $priceString));
-        $amount = $this->parse_number($this->currency_from_precision($amountCurrency, $amountString));
-        $filled = $this->parse_number($this->currency_from_precision($amountCurrency, $filledString));
-        $average = $this->parse_number($this->price_from_precision($symbol, $this->safe_string($order, 'avgWeighedPrice')));
+        $price = $this->price_from_precision($symbol, $priceString);
+        $amount = $this->currency_from_precision($amountCurrency, $amountString);
+        $filled = $this->currency_from_precision($amountCurrency, $filledString);
+        $average = $this->price_from_precision($symbol, $this->safe_string($order, 'avgWeighedPrice'));
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $fee = null;
         if (is_array($order) && array_key_exists('type', $order)) {
@@ -1373,7 +1376,7 @@ class wavesexchange extends Exchange {
                 'fee' => $this->parse_number($this->currency_from_precision($currency, $this->safe_string($order, 'matcherFee'))),
             );
         }
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1395,7 +1398,7 @@ class wavesexchange extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function get_waves_address() {
@@ -1429,15 +1432,15 @@ class wavesexchange extends Exchange {
         $totalBalance = $this->nodeGetAssetsBalanceAddress ($request);
         // {
         //   "address" => "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
-        //   "$balances" => array(
+        //   "balances" => array(
         //     {
         //       "assetId" => "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
-        //       "$balance" => 1177200,
+        //       "balance" => 1177200,
         //       "reissuable" => false,
         //       "minSponsoredAssetFee" => 7420,
         //       "sponsorBalance" => 47492147189709,
         //       "quantity" => 999999999775381400,
-        //       "$issueTransaction" => {
+        //       "issueTransaction" => {
         //         "senderPublicKey" => "BRnVwSVctnV8pge5vRpsJdWnkjWEJspFb6QvrmZvu3Ht",
         //         "quantity" => 1000000000000000000,
         //         "fee" => 100400000,
@@ -1453,10 +1456,10 @@ class wavesexchange extends Exchange {
         //           "3HNpbVkgP69NWSeb9hGYauiQDaXrRXh3tXFzNsGwsAAXnFrA29SYGbLtziW9JLpXEq7qW1uytv5Fnm5XTUMB2BxU"
         //         ),
         //         "assetId" => "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
-        //         "$decimals" => 6,
+        //         "decimals" => 6,
         //         "name" => "USD-N",
         //         "id" => "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
-        //         "$timestamp" => 1574429393962
+        //         "timestamp" => 1574429393962
         //       }
         //     }
         //   )
@@ -1527,7 +1530,11 @@ class wavesexchange extends Exchange {
                 $result[$code] = $this->account();
             }
             $amount = $this->safe_string($reservedBalance, $currencyId);
-            $result[$code]['used'] = $this->currency_from_precision($code, $amount);
+            if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
+                $result[$code]['used'] = $this->currency_from_precision($code, $amount);
+            } else {
+                $result[$code]['used'] = $amount;
+            }
         }
         $wavesRequest = array(
             'address' => $wavesAddress,
@@ -1536,7 +1543,7 @@ class wavesexchange extends Exchange {
         // {
         //   "address" => "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
         //   "confirmations" => 0,
-        //   "$balance" => 909085978
+        //   "balance" => 909085978
         // }
         $result['WAVES'] = $this->safe_value($result, 'WAVES', array());
         $result['WAVES']['total'] = $this->currency_from_precision('WAVES', $this->safe_string($wavesTotal, 'balance'));
@@ -1745,9 +1752,9 @@ class wavesexchange extends Exchange {
                 throw new BadRequest($this->id . ' ' . $code . ' withdraw failed, $amount ' . (string) $amount . ' must be greater than the $minimum allowed $amount of ' . (string) $minimum);
             }
             // {
-            //   "$type" => "withdrawal_addresses",
-            //   "$currency" => {
-            //     "$type" => "withdrawal_currency",
+            //   "type" => "withdrawal_addresses",
+            //   "currency" => {
+            //     "type" => "withdrawal_currency",
             //     "id" => "BTC",
             //     "waves_asset_id" => "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
             //     "decimals" => 8,
