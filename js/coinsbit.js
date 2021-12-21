@@ -117,14 +117,6 @@ module.exports = class coinsbit extends Exchange {
                 },
             },
             'options': {
-                'defaultType': 'spot', // spot, ..
-                // 'networks': {
-                //     'TRX': 'TRC-20',
-                //     'TRC20': 'TRC-20',
-                //     'ETH': 'ERC-20',
-                //     'ERC20': 'ERC-20',
-                //     'BEP20': 'BEP20(BSC)',
-                // },
                 'fetchTradesMethod': 'spotPublicGetHistory', // spotPublicGetHistory | spotPublicGetHistoryResult
                 'maxDiapasonsForTimeframes': {
                     '1m': 43200,
