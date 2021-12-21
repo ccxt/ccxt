@@ -1032,11 +1032,8 @@ module.exports = class gateio extends Exchange {
         const indexPrice = this.safeNumber (contract, 'index_price');
         const interestRate = this.safeNumber (contract, 'interest_rate');
         const fundingRate = this.safeString (contract, 'funding_rate');
-        const fundingInterval = this.safeString (contract, 'funding_interval') * 1000;
         const nextFundingTime = this.safeInteger (contract, 'funding_next_apply') * 1000;
-        const previousFundingTime = (this.safeNumber (contract, 'funding_next_apply') * 1000) - fundingInterval;
         const fundingRateIndicative = this.safeNumber (contract, 'funding_rate_indicative');
-        const timestamp = this.milliseconds ();
         return {
             'info': contract,
             'symbol': symbol,
@@ -1044,13 +1041,13 @@ module.exports = class gateio extends Exchange {
             'indexPrice': indexPrice,
             'interestRate': interestRate,
             'estimatedSettlePrice': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'previousFundingRate': fundingRate,
             'nextFundingRate': fundingRateIndicative,
-            'previousFundingTimestamp': previousFundingTime,
+            'previousFundingTimestamp': undefined,
             'nextFundingTimestamp': nextFundingTime,
-            'previousFundingDatetime': this.iso8601 (previousFundingTime),
+            'previousFundingDatetime': undefined,
             'nextFundingDatetime': this.iso8601 (nextFundingTime),
         };
     }
