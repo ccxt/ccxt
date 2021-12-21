@@ -160,7 +160,7 @@ module.exports = class coinsbit extends Exchange {
 
     async fetchMarkets (params = {}) {
         const [defaultType, request] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params); // Note: imho, I am against dividing methods according to types (like 'fetchSpotMarkets', 'fetchFuturesMarkets' and etc..) because there might be many types and exchanges, from time to time, add new types, thus it will need a never-ending 'new method' creations. I think that, independent to the exchange-type, everything should be done with one 'fetchXXX' functions - if there are multiple different types, they should be handled inside one 'fetchXXX' function (just by passing 'defaultType' parameter). That has also one advantage - the most of the 'return' object structure can be same and only a few property-values might need to be happening inside if-else blocks, thus will save multiple 'fetchSpotXXX', 'fetchFuturesXXX' functions to be written over-and-over again with same structure.
-        let data = '';
+        let data = undefined;
         if (defaultType === 'spot') {
             const response = await this.spotPublicGetMarkets (request);
             //     {
@@ -503,7 +503,6 @@ module.exports = class coinsbit extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        // the ordering in spot candles is OCHLV
         //
         //     {
         //         time: '1640051700',
@@ -620,8 +619,8 @@ module.exports = class coinsbit extends Exchange {
         //             total: "2585.15242021"
         //         },
         const symbol = market['symbol'];
-        const id = this.safeString2 (trade, 'id', this.safeString2 (trade, 'tid'));
-        const timestamp = this.safeTimestamp (trade, 'time', this.safeInteger (trade, 'date'));
+        const id = this.safeString2 (trade, 'id', 'tid');
+        const timestamp = this.safeTimestamp2 (trade, 'time', 'date');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
         const side = this.safeString (trade, 'type');
@@ -646,8 +645,6 @@ module.exports = class coinsbit extends Exchange {
     sign (path, api = ['spot', 'public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, access ] = api;
         let url = this.urls['api'][section][access] + 'v' + this.version + '/' + access + '/' + path;
-        // const defaultType = this.safeString (params, 'defaultType', 'spot'); defaultType same as section
-        params = this.omit (params, 'defaultType');
         params = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (method === 'GET') {
