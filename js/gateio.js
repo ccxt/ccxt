@@ -654,7 +654,7 @@ module.exports = class gateio extends Exchange {
                     const settle = this.safeCurrencyCode (settleId);
                     const linear = quote === settle;
                     const inverse = base === settle;
-                    const expiry = parseInt (Precise.stringMul (this.safeString (market, 'expire_time'), '1000'));
+                    const expiry = this.safeTimestamp (market, 'expire_time');
                     let symbol = '';
                     if (date !== undefined) {
                         symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
