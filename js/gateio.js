@@ -946,9 +946,9 @@ module.exports = class gateio extends Exchange {
 
     async fetchFundingRates (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const settle = this.safeString (params, 'settle');  // TODO: Save settle in markets?
+        const settle = this.safeStringLower (params, 'settle');
         const request = {
-            'settle': settle.toLowerCase (),
+            'settle': settle,
         };
         const response = await this.publicFuturesGetSettleContracts (this.extend (request, params));
         //
@@ -1464,7 +1464,7 @@ module.exports = class gateio extends Exchange {
         const future = type === 'future';
         const swap = type === 'swap';
         const defaultSettle = swap ? 'usdt' : 'btc';
-        const settle = this.safeString (params, 'settle', defaultSettle).toLowerCase ();
+        const settle = this.safeStringLower (params, 'settle', defaultSettle);
         if (swap || future) {
             request['settle'] = settle;
         }
@@ -1498,7 +1498,7 @@ module.exports = class gateio extends Exchange {
         let response = [];
         if (swap || future) {
             const defaultSettle = swap ? 'usdt' : 'btc';
-            request['settle'] = this.safeString (params, 'settle', defaultSettle).toLowerCase ();
+            request['settle'] = this.safeStringLower (params, 'settle', defaultSettle);
             const response_item = await this[method] (this.extend (request, params));
             response = [response_item];
         } else {
@@ -2949,7 +2949,7 @@ module.exports = class gateio extends Exchange {
             'future': 'privateDeliveryGetSettlePositions',
         });
         const defaultSettle = type === 'swap' ? 'usdt' : 'btc';
-        const settle = this.safeString (params, 'settle', defaultSettle).toLowerCase ();
+        const settle = this.safeStringLower (params, 'settle', defaultSettle);
         const request = {
             'settle': settle,
         };
