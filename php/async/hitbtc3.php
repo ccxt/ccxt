@@ -394,8 +394,8 @@ class hitbtc3 extends Exchange {
                 'optionType' => null,
                 'feeCurrency' => $feeCurrency,
                 'precision' => array(
-                    'price' => $lot,
-                    'amount' => $step,
+                    'price' => $step,
+                    'amount' => $lot,
                 ),
                 'limits' => array(
                     'leverage' => array(

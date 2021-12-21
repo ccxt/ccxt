@@ -401,8 +401,8 @@ class hitbtc3(Exchange):
                 'optionType': None,
                 'feeCurrency': feeCurrency,
                 'precision': {
-                    'price': lot,
-                    'amount': step,
+                    'price': step,
+                    'amount': lot,
                 },
                 'limits': {
                     'leverage': {
