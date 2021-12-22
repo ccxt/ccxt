@@ -20,9 +20,9 @@ module.exports = class coinsbit extends Exchange {
             'has': {
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
+                'createOrder': true,
                 'cancelOrder': undefined,
                 'createMarketOrder': undefined,
-                'createOrder': undefined,
                 'fetchBalance': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrders': undefined,
@@ -159,8 +159,8 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        params = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params)[1];
         let data = undefined;
+        const request = params;
         const response = await this.spotPublicGetMarkets (request);
         //     {
         //         "success": true,
@@ -248,72 +248,69 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchTicker (symbol = undefined, params = {}) {
-        const request = this.handleMarketTypeAndParams ('fetchTicker', undefined, params)[1];
         await this.loadMarkets ();
         const market = this.market (symbol);
-        request['market'] = market['id'];
+        const request = {
+            'market': market['id'],
+        };
         let ticker = undefined;
-        if (market['spot']) {
-            const response = await this.spotPublicGetTicker (request);
-            //     {
-            //          success: true,
-            //          message: "",
-            //          result: {
-            //            bid: '46504.7412435',
-            //            ask: '46511.54203562',
-            //            open: '47030.33',
-            //            high: '47549.99',
-            //            low: '45571.08',
-            //            last: '46459.99',
-            //            volume: '8372.29022355',
-            //            deal: '388090406.73607745',
-            //          },
-            //          code: "200"
-            //     }
-            ticker = this.safeValue (response, 'result', {});
-        }
+        const response = await this.spotPublicGetTicker (request);
+        //     {
+        //          success: true,
+        //          message: "",
+        //          result: {
+        //            bid: '46504.7412435',
+        //            ask: '46511.54203562',
+        //            open: '47030.33',
+        //            high: '47549.99',
+        //            low: '45571.08',
+        //            last: '46459.99',
+        //            volume: '8372.29022355',
+        //            deal: '388090406.73607745',
+        //          },
+        //          code: "200"
+        //     }
+        ticker = this.safeValue (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const [defaultType, request] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const request = params;
         await this.loadMarkets ();
         let tickers = {};
-        if (defaultType === 'spot') {
-            const response = await this.spotPublicGetTickers (request);
-            //     {
-            //          success: true,
-            //          message: "",
-            //          result: {
-            //            BTC_USDT: {
-            //               at: '1640028811',
-            //               ticker: {
-            //                 bid: '46448.49682539',
-            //                 ask: '46458.41093569',
-            //                 open: '46687.39',
-            //                 high: '47550',
-            //                 low: '45584.27',
-            //                 last: '46462.77',
-            //                 vol: '32.56275846',
-            //                 deal: '1510574.62551143',
-            //                 change: '-0'
-            //               }
-            //            },
-            //            ...
-            //          },
-            //          code: "200"
-            //     }
-            tickers = this.safeValue (response, 'result', {});
-            const result = [];
-            const values = Object.values (tickers || []);
-            const keys = Object.keys (tickers);
-            for (let i = 0; i < values.length; i++) {
-                const key = keys[i];
-                const market = this.market (key);
-                result.push (this.extend (this.parseTicker (values[i], market), params));
-            }
-            return this.filterByArray (result, 'symbol', symbols);
+        const response = await this.spotPublicGetTickers (request);
+        //     {
+        //          success: true,
+        //          message: "",
+        //          result: {
+        //            BTC_USDT: {
+        //               at: '1640028811',
+        //               ticker: {
+        //                 bid: '46448.49682539',
+        //                 ask: '46458.41093569',
+        //                 open: '46687.39',
+        //                 high: '47550',
+        //                 low: '45584.27',
+        //                 last: '46462.77',
+        //                 vol: '32.56275846',
+        //                 deal: '1510574.62551143',
+        //                 change: '-0'
+        //               }
+        //            },
+        //            ...
+        //          },
+        //          code: "200"
+        //     }
+        tickers = this.safeValue (response, 'result', {});
+        const result = [];
+        const values = Object.values (tickers || []);
+        const keys = Object.keys (tickers);
+        for (let i = 0; i < values.length; i++) {
+            const key = keys[i];
+            const market = this.market (key);
+            result.push (this.extend (this.parseTicker (values[i], market), params));
         }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -364,90 +361,90 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const request = this.handleMarketTypeAndParams ('fetchOrderBook', undefined, params)[1];
         await this.loadMarkets ();
         const market = this.market (symbol);
-        request['market'] = market['id'];
+        const request = {
+            'market': market['id'],
+        };
         let orderbook = {};
-        if (market['spot']) {
-            if (limit !== undefined) {
-                request['limit'] = Math.min (1000, limit); // this parameter is not required, default 50 will be returned
-            }
-            const type = this.safeString (params, 'type', 'bidsAsks'); // <<< TODO >> maybe a better way to set default unified param name (same param can be used for binance fetchBidsAsks too, if that will get integrated inside binance's fetchOrderbook )
-            const method = this.safeString (this.options, 'fetchOrderBookMethod', type);
-            if (method === 'bidsAsks') {
-                const response = await this.spotPublicGetDepthResult (this.extend (request, params));
-                //     {
-                //         asks: [
-                //             [  "46809.06069986", "2.651"  ],
-                //             [  "46819.80796146", "2.6401" ],
-                //             ...
-                //         ],
-                //         bids: [
-                //             [  "46799.39054516",  "2.702" ],
-                //             [  "46801.25196599",  "0.4"   ],
-                //             ...
-                //         ]
-                //     }
-                const priceKey = 0;
-                const amountKey = 1;
-                orderbook = this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', priceKey, amountKey);
-            } else if (method === 'book') {
-                request['offset'] = this.safeString (params, 'offset', 0);
-                // ATM, they need to call separately (unfortunately)
-                request['side'] = this.safeString (params, 'side', 'buy');
-                const requestBids = this.spotPublicGetBook (this.extend (request, params));
-                request['side'] = this.safeString (params, 'side', 'sell');
-                const requestAsks = this.spotPublicGetBook (this.extend (request, params));
-                const responses = await Promise.all ([requestBids, requestAsks]);
-                // FOR EACH (BUY/SELL) REQUEST, THE RESPONSE IS SIMILAR (JUST 'side' PROPERTY IS DIFFERENT BETWEEN THEM)
-                //     {
-                //         success: true,
-                //         message: "",
-                //         result: {
-                //             offset: 0,
-                //             limit: 2,
-                //             total: 334,
-                //             orders: [
-                //                 {
-                //                     id: 8620142523,
-                //                     left: "1.56772",
-                //                     market: "BTC_USDT",
-                //                     amount: "1.56772",
-                //                     type: "limit",
-                //                     price: "46752.63032535",
-                //                     timestamp: 1640031161.544,
-                //                     side: "buy",
-                //                     dealFee: "0",
-                //                     takerFee: "0",
-                //                     makerFee: "0",
-                //                     dealStock: "0",
-                //                     dealMoney: "0"
-                //                 },
-                //                 ...
-                //             ]
-                //         },
-                //         code: 200
-                //     }
-                const resultBids = this.safeValue (responses[0], 'result', {});
-                const resultAsks = this.safeValue (responses[1], 'result', {});
-                const bids = this.safeValue (resultBids, 'orders', []);
-                const asks = this.safeValue (resultAsks, 'orders', []);
-                const response = { 'bids': bids, 'asks': asks };
-                const priceKey = 'price';
-                const amountKey = 'amount';
-                orderbook = this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', priceKey, amountKey);
-            }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (1000, limit); // this parameter is not required, default 50 will be returned
+        }
+        const type = this.safeString (params, 'type', 'depth/result'); // <<< TODO >> maybe a better way to set default unified param name (same param can be used for binance fetchBidsAsks too, if that will get integrated inside binance's fetchOrderbook )
+        const method = this.safeString (this.options, 'fetchOrderBookMethod', type);
+        if (method === 'depth/result') {
+            const response = await this.spotPublicGetDepthResult (this.extend (request, params));
+            //     {
+            //         asks: [
+            //             [  "46809.06069986", "2.651"  ],
+            //             [  "46819.80796146", "2.6401" ],
+            //             ...
+            //         ],
+            //         bids: [
+            //             [  "46799.39054516",  "2.702" ],
+            //             [  "46801.25196599",  "0.4"   ],
+            //             ...
+            //         ]
+            //     }
+            const priceKey = 0;
+            const amountKey = 1;
+            orderbook = this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', priceKey, amountKey);
+        } else if (method === 'book') {
+            request['offset'] = this.safeString (params, 'offset', 0);
+            // ATM, they need to call separately (unfortunately)
+            request['side'] = this.safeString (params, 'side', 'buy');
+            const requestBids = this.spotPublicGetBook (this.extend (request, params));
+            request['side'] = this.safeString (params, 'side', 'sell');
+            const requestAsks = this.spotPublicGetBook (this.extend (request, params));
+            const responses = await Promise.all ([requestBids, requestAsks]);
+            // FOR EACH (BUY/SELL) REQUEST, THE RESPONSE IS SIMILAR (JUST 'side' PROPERTY IS DIFFERENT BETWEEN THEM)
+            //     {
+            //         success: true,
+            //         message: "",
+            //         result: {
+            //             offset: 0,
+            //             limit: 2,
+            //             total: 334,
+            //             orders: [
+            //                 {
+            //                     id: 8620142523,
+            //                     left: "1.56772",
+            //                     market: "BTC_USDT",
+            //                     amount: "1.56772",
+            //                     type: "limit",
+            //                     price: "46752.63032535",
+            //                     timestamp: 1640031161.544,
+            //                     side: "buy",
+            //                     dealFee: "0",
+            //                     takerFee: "0",
+            //                     makerFee: "0",
+            //                     dealStock: "0",
+            //                     dealMoney: "0"
+            //                 },
+            //                 ...
+            //             ]
+            //         },
+            //         code: 200
+            //     }
+            const resultBids = this.safeValue (responses[0], 'result', {});
+            const resultAsks = this.safeValue (responses[1], 'result', {});
+            const bids = this.safeValue (resultBids, 'orders', []);
+            const asks = this.safeValue (resultAsks, 'orders', []);
+            const response = { 'bids': bids, 'asks': asks };
+            const priceKey = 'price';
+            const amountKey = 'amount';
+            orderbook = this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', priceKey, amountKey);
         }
         // orderbook['nonce']  <<< TODO >>> -- atm I dont know how to handle that, as the response doesn't have right that property
         return orderbook;
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = this.handleMarketTypeAndParams ('fetchOHLCV', undefined, params)[1];
         await this.loadMarkets ();
         const market = this.market (symbol);
-        request['market'] = market['id'];
+        const request = {
+            'market': market['id'],
+        };
         const duration = this.parseTimeframe (timeframe);
         const maxAllowedDiapason = this.options['maxDiapasonsForTimeframes'][timeframe];
         let maxRequestedMilliSeconds = null;
@@ -457,44 +454,42 @@ module.exports = class coinsbit extends Exchange {
             maxRequestedMilliSeconds = Math.min (this.sum (limit, 1) * duration, maxAllowedDiapason) * 1000;
         }
         let response = null;
-        if (market['spot']) {
-            request['interval'] = this.timeframes[timeframe];
-            const now = this.milliseconds ();
-            let startTime = since;
-            let endTime = this.sum (now, 1000); // At first, Let's add one second
-            if (startTime === undefined) {
-                startTime = endTime - maxRequestedMilliSeconds;
-            } else {
-                endTime = this.sum (startTime, maxRequestedMilliSeconds);
-            }
-            startTime = startTime / 1000;
-            endTime = endTime / 1000;
-            request['start'] = parseInt (startTime);
-            request['end'] = parseInt (endTime);
-            response = await this.spotPublicGetKline (this.extend (request, params));
-            // {
-            //     success: true,
-            //     message: "",
-            //     result: {
-            //         market: "BTC_USDT",
-            //         start: 1640000000,
-            //         end: 1640001234,
-            //         interval: 60,
-            //         kline: [
-            //             {
-            //                 time: 1640000000,
-            //                 open: "46979.18",
-            //                 close: "46893.88",
-            //                 highest: "46979.18",
-            //                 lowest: "46893.88",
-            //                 volume: "2.35947525",
-            //                 amount: "110745.7371631963",
-            //                 market: "BTC_USDT"
-            //             },
-            //             {
-            //                 time: 1640000060,
-            //                 ....
+        request['interval'] = this.timeframes[timeframe];
+        const now = this.milliseconds ();
+        let startTime = since;
+        let endTime = this.sum (now, 1000); // At first, Let's add one second
+        if (startTime === undefined) {
+            startTime = endTime - maxRequestedMilliSeconds;
+        } else {
+            endTime = this.sum (startTime, maxRequestedMilliSeconds);
         }
+        startTime = startTime / 1000;
+        endTime = endTime / 1000;
+        request['start'] = parseInt (startTime);
+        request['end'] = parseInt (endTime);
+        response = await this.spotPublicGetKline (this.extend (request, params));
+        // {
+        //     success: true,
+        //     message: "",
+        //     result: {
+        //         market: "BTC_USDT",
+        //         start: 1640000000,
+        //         end: 1640001234,
+        //         interval: 60,
+        //         kline: [
+        //             {
+        //                 time: 1640000000,
+        //                 open: "46979.18",
+        //                 close: "46893.88",
+        //                 highest: "46979.18",
+        //                 lowest: "46893.88",
+        //                 volume: "2.35947525",
+        //                 amount: "110745.7371631963",
+        //                 market: "BTC_USDT"
+        //             },
+        //             {
+        //                 time: 1640000060,
+        //                 ....
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'kline', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
@@ -516,10 +511,6 @@ module.exports = class coinsbit extends Exchange {
         //
         // the ordering in swap / contract candles is OHLCV
         //
-        if (market === undefined) {
-            const marketId = this.safeString (ohlcv, 'market');
-            market = this.market (marketId, market);
-        }
         return [
             this.safeTimestamp (ohlcv, 'time'),
             this.safeNumber (ohlcv, 'open'),
@@ -533,7 +524,6 @@ module.exports = class coinsbit extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        params = this.handleMarketTypeAndParams ('fetchOHLCV', undefined, params)[1];
         const request = {
             'market': market['id'],
         };
@@ -543,56 +533,54 @@ module.exports = class coinsbit extends Exchange {
         const defaultMethod = this.safeString (this.options, 'fetchTradesMethod');
         const method = this.safeString (params, 'method', defaultMethod);
         let data = {};
-        if (market['spot']) {
-            if (method === 'spotPublicGetHistory') {
-                if (!('lastId' in params)) {
-                    throw new ArgumentsRequired (this.id + " fetchTrades() requires 'lastId' id in params");
-                }
-                const response = await this[method] (this.deepExtend (request, params));
-                // {
-                //     success: true,
-                //     message: "",
-                //     result: [
-                //         {
-                //             id: 99601,
-                //             type: "buy",
-                //             time: 1640108002.455,
-                //             amount: "323144.05252658",
-                //             price: "0.008",
-                //             total: "2585.15242021"
-                //         },
-                //         {
-                //             id: 99544,
-                //             type: "buy",
-                //             time: 1640107990.112,
-                //             amount: "967.91335",
-                //             price: "0.00794371",
-                //             total: "7.68882295"
-                //         },
-                data = this.safeValue (response, 'result', []);
-            } else if (method === 'spotPublicGetHistoryResult') {
-                if (!('since' in params)) {
-                    throw new ArgumentsRequired (this.id + " fetchTrades() requires 'since' id in params");
-                }
-                data = this[method] (this.deepExtend (request, params));
-                // [
-                //     {
-                //         tid: 99601,
-                //         type: "buy",
-                //         date: 1640108002,
-                //         amount: "323144.05252658",
-                //         price: "0.008",
-                //         total: "2585.15242021"
-                //     },
-                //     {
-                //         tid: 99544,
-                //         type: "buy",
-                //         date: 1640107990,
-                //         amount: "967.91335",
-                //         price: "0.00794371",
-                //         total: "7.68882295"
-                //     },
+        if (method === 'spotPublicGetHistory') {
+            if (!('lastId' in params)) {
+                throw new ArgumentsRequired (this.id + " fetchTrades() requires 'lastId' id in params");
             }
+            const response = await this[method] (this.deepExtend (request, params));
+            // {
+            //     success: true,
+            //     message: "",
+            //     result: [
+            //         {
+            //             id: 99601,
+            //             type: "buy",
+            //             time: 1640108002.455,
+            //             amount: "323144.05252658",
+            //             price: "0.008",
+            //             total: "2585.15242021"
+            //         },
+            //         {
+            //             id: 99544,
+            //             type: "buy",
+            //             time: 1640107990.112,
+            //             amount: "967.91335",
+            //             price: "0.00794371",
+            //             total: "7.68882295"
+            //         },
+            data = this.safeValue (response, 'result', []);
+        } else if (method === 'spotPublicGetHistoryResult') {
+            if (!('since' in params)) {
+                throw new ArgumentsRequired (this.id + " fetchTrades() requires 'since' id in params");
+            }
+            data = this[method] (this.deepExtend (request, params));
+            // [
+            //     {
+            //         tid: 99601,
+            //         type: "buy",
+            //         date: 1640108002,
+            //         amount: "323144.05252658",
+            //         price: "0.008",
+            //         total: "2585.15242021"
+            //     },
+            //     {
+            //         tid: 99544,
+            //         type: "buy",
+            //         date: 1640107990,
+            //         amount: "967.91335",
+            //         price: "0.00794371",
+            //         total: "7.68882295"
+            //     },
         }
         return this.parseTrades (data, market, since, limit);
     }
