@@ -1706,33 +1706,15 @@ module.exports = class ascendex extends Exchange {
 
     parseFundingRate (fundingRate, market = undefined) {
         //
-        // {
-        //     'EOS/USDT:USDT': {
-        //         info: {
-        //             time: "1640148724831",
-        //             symbol: "EOS-PERP",
-        //             markPrice: "3.358762969",
-        //             indexPrice: "3.3589",
-        //             openInterest: "14147",
-        //             fundingRate: "-0.000041038",
-        //             nextFundingTime: "1640160000000"
-        //         },
-        //             symbol:   "EOS/USDT:USDT",
-        //             markPrice:    3.358762969,
-        //             indexPrice:    3.3589,
-        //             interestRate:    0,
-        //             estimatedSettlePrice:    undefined,
-        //             timestamp:    1640148724831,
-        //             datetime:   "2021-12-22T04:52:04.831Z",
-        //             previousFundingRate:    undefined,
-        //             nextFundingRate:    -0.000041038,
-        //             previousFundingTimestamp:    undefined,
-        //             nextFundingTimestamp:    1640160000000,
-        //             previousFundingDatetime:    undefined,
-        //             nextFundingDatetime:   "2021-12-22T08:00:00.000Z"
-        //     },
-        //                      ...
-        // }
+        //      {
+        //          "time": 1640061364830,
+        //          "symbol": "EOS-PERP",
+        //          "markPrice": "3.353854865",
+        //          "indexPrice": "3.3542",
+        //          "openInterest": "14242",
+        //          "fundingRate": "-0.000073026",
+        //          "nextFundingTime": 1640073600000
+        //      }
         //
         const marketId = this.safeString (fundingRate, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1775,18 +1757,12 @@ module.exports = class ascendex extends Exchange {
         //                      "fundingRate": "-0.000073026",
         //                      "nextFundingTime": 1640073600000
         //                  },
-        //                  {
-        //                              ...
-        //                  }
         //              ],
         //              "collaterals": [
         //                  {
         //                      "asset": "USDTR",
         //                      "referencePrice": "1"
         //                  },
-        //                  {
-        //                              ...
-        //                  }
         //              ]
         //          }
         //      }
