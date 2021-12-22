@@ -110,22 +110,16 @@ if argv.exchange_id not in ccxt.exchanges:
 if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
 
-# check auth keys in env var if not in keys file
-apiKeyID = 'apiKey'
-if apiKeyID not in config:
-    apiKeyVar = (argv.exchange_id + '_' + apiKeyID).upper() # example: KRAKEN_APIKEY
-    if apiKeyVar in os.environ:
-        apiKey = os.environ[apiKeyVar]
-        config[apiKeyID] = apiKey
-
-secretID = 'secret'
-if secretID not in config:
-    secretVar = (argv.exchange_id + '_' + secretID).upper() # example: KRAKEN_SECRET
-    if secretVar in os.environ:
-        secret = os.environ[secretVar]
-        config[secretID] = secret
-
 exchange = getattr(ccxt, argv.exchange_id)(config)
+
+# check auth keys in env var
+requiredCredentials = exchange.requiredCredentials
+for credential, isRequired in requiredCredentials.items():
+    if isRequired and credential and not getattr(exchange, credential, None):
+        credentialEnvName = (argv.exchange_id + '_' + credential).upper() # example: KRAKEN_APIKEY
+        if credentialEnvName in os.environ:
+            credentialValue = os.environ[credentialEnvName]
+            setattr(exchange, credential, credentialValue)
 
 if argv.cors:
     exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
