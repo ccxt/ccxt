@@ -65,19 +65,7 @@ let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
 let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
 let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
 
-// check auth keys in env var if not in keys file
-const keyID = 'apiKey';
-if (settings[keyID] === undefined) {
-    const apiKeyVar = (exchangeId + '_' + keyID).toUpperCase() // example: KRAKEN_APIKEY
-    const apiKey =  process.env[apiKeyVar]
-    settings[keyID] = apiKey
-}
-const secretID = 'secret';
-if (settings[secretID] === undefined) {
-    const apiSecretVar = (exchangeId + '_' + secretID).toUpperCase() // example: KRAKEN_SECRET
-    const secret = process.env[apiSecretVar]
-    settings[secretID] = secret
-}
+
 
 //-----------------------------------------------------------------------------
 
@@ -100,6 +88,18 @@ try {
         httpsAgent,
         ... settings,
     })
+    
+    // check auth keys in env var
+    const requiredCredentials = exchange.requiredCredentials;
+    for( const [credential, isRequired] of Object.entries(requiredCredentials) ) {
+        if (isRequired && exchange[credential] === undefined) {
+            const credentialEnvName = (exchangeId + '_' + credential).toUpperCase() // example: KRAKEN_APIKEY
+            const credentialValue = process.env[credentialEnvName]
+            if (credentialValue) {
+                exchange[credential] = credentialValue
+            }
+        }
+    }
 
     if (testnet) {
         exchange.setSandboxMode (true)
