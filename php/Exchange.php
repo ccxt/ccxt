@@ -951,7 +951,7 @@ class Exchange {
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
             // other flags if needed...
         );
-        $flags = 0;
+        $flags = JSON_UNESCAPED_SLASHES;
         foreach ($options as $key => $value) {
             if (array_key_exists($key, $params) && $params[$key]) {
                 $flags |= $options[$key];
