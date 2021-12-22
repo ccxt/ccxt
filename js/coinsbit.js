@@ -16,7 +16,7 @@ module.exports = class coinsbit extends Exchange {
             'name': 'Coinsbit',
             'countries': [ 'EE' ], // Estonia
             // 'rateLimit': 50, // default rate limit is 20 times per second
-            'version': 1,
+            'version': 'v1',
             'certified': false,
             'has': {
                 'addMargin': undefined,
@@ -60,11 +60,8 @@ module.exports = class coinsbit extends Exchange {
             'urls': {
                 'logo': '  <<< TODO >>>   https://upload.wikimedia.org/wikipedia/commons/8/8c/Coinsbit.png  ',
                 'api': {
-                    'spot': {
-                        'public': 'https://coinsbit.io/api/',
-                        'private': 'https://coinsbit.io/api/',
-                        'domain': 'https://coinsbit.io/',
-                    },
+                    'public': 'https://coinsbit.io',
+                    'private': 'https://coinsbit.io',
                 },
                 'www': 'https://coinsbit.io/',
                 'doc': [
@@ -77,35 +74,31 @@ module.exports = class coinsbit extends Exchange {
                 'referral': '  <<< TODO >>>   ',
             },
             'api': {
-                'spot': {
-                    'public': {
-                        'get': {
-                            'markets': 1,
-                            'tickers': 1,
-                            'ticker': 1,
-                            'book': 1,
-                            'history': 1,
-                            'history/result': 1,
-                            'products': 1, // Of no use, everything already available in 'markets'
-                            'symbols': 1, // Of no use, everything already available in 'markets'
-                            'depth/result': 1,
-                            'kline': 1,
-                        },
+                'public': {
+                    'get': {
+                        'markets': 1,
+                        'tickers': 1,
+                        'ticker': 1,
+                        'book': 1,
+                        'history': 1,
+                        'history/result': 1,
+                        'products': 1, // Of no use, everything already available in 'markets'
+                        'symbols': 1, // Of no use, everything already available in 'markets'
+                        'depth/result': 1,
+                        'kline': 1,
                     },
-                    'private': {
-                        'get': {
-                        },
-                        'post': {
-                            'order/new': 1,
-                            'order/cancel': 1,
-                            'orders': 1,
-                            'account/balances': 1,
-                            'account/balance': 1,
-                            'account/order': 1,
-                            'account/trades': 1,
-                            'account/order_history': 1,
-                            'account/order_history_list': 1,
-                        },
+                },
+                'private': {
+                    'post': {
+                        'order/new': 1,
+                        'order/cancel': 1,
+                        'orders': 1,
+                        'account/balances': 1,
+                        'account/balance': 1,
+                        'account/order': 1,
+                        'account/trades': 1,
+                        'account/order_history': 1,
+                        'account/order_history_list': 1,
                     },
                 },
             },
@@ -118,7 +111,7 @@ module.exports = class coinsbit extends Exchange {
                 },
             },
             'options': {
-                'fetchTradesMethod': 'spotPublicGetHistory', // spotPublicGetHistory | spotPublicGetHistoryResult
+                'fetchTradesMethod': 'publicGetHistory', // publicGetHistory | publicGetHistoryResult
                 'maxDiapasonsForTimeframes': {
                     '1m': 43200,
                     '30m': 86400,
@@ -162,7 +155,7 @@ module.exports = class coinsbit extends Exchange {
     async fetchMarkets (params = {}) {
         let data = undefined;
         const request = params;
-        const response = await this.spotPublicGetMarkets (request);
+        const response = await this.publicGetMarkets (request);
         //     {
         //         "success": true,
         //         "message": "",
@@ -255,7 +248,7 @@ module.exports = class coinsbit extends Exchange {
             'market': market['id'],
         };
         let ticker = undefined;
-        const response = await this.spotPublicGetTicker (request);
+        const response = await this.publicGetTicker (request);
         //     {
         //          success: true,
         //          message: "",
@@ -279,7 +272,7 @@ module.exports = class coinsbit extends Exchange {
         const request = params;
         await this.loadMarkets ();
         let tickers = {};
-        const response = await this.spotPublicGetTickers (request);
+        const response = await this.publicGetTickers (request);
         //     {
         //          success: true,
         //          message: "",
@@ -374,7 +367,7 @@ module.exports = class coinsbit extends Exchange {
         const type = this.safeString (params, 'type', 'depth/result'); // <<< TODO >> maybe a better way to set default unified param name (same param can be used for binance fetchBidsAsks too, if that will get integrated inside binance's fetchOrderbook )
         const method = this.safeString (this.options, 'fetchOrderBookMethod', type);
         if (method === 'depth/result') {
-            const response = await this.spotPublicGetDepthResult (this.extend (request, params));
+            const response = await this.publicGetDepthResult (this.extend (request, params));
             //     {
             //         asks: [
             //             [  "46809.06069986", "2.651"  ],
@@ -394,9 +387,9 @@ module.exports = class coinsbit extends Exchange {
             request['offset'] = this.safeString (params, 'offset', 0);
             // ATM, they need to call separately (unfortunately)
             request['side'] = this.safeString (params, 'side', 'buy');
-            const requestBids = this.spotPublicGetBook (this.extend (request, params));
+            const requestBids = this.publicGetBook (this.extend (request, params));
             request['side'] = this.safeString (params, 'side', 'sell');
-            const requestAsks = this.spotPublicGetBook (this.extend (request, params));
+            const requestAsks = this.publicGetBook (this.extend (request, params));
             const responses = await Promise.all ([requestBids, requestAsks]);
             // FOR EACH (BUY/SELL) REQUEST, THE RESPONSE IS SIMILAR (JUST 'side' PROPERTY IS DIFFERENT BETWEEN THEM)
             //     {
@@ -468,7 +461,7 @@ module.exports = class coinsbit extends Exchange {
         endTime = endTime / 1000;
         request['start'] = parseInt (startTime);
         request['end'] = parseInt (endTime);
-        response = await this.spotPublicGetKline (this.extend (request, params));
+        response = await this.publicGetKline (this.extend (request, params));
         // {
         //     success: true,
         //     message: "",
@@ -534,7 +527,7 @@ module.exports = class coinsbit extends Exchange {
         const defaultMethod = this.safeString (this.options, 'fetchTradesMethod');
         const method = this.safeString (params, 'method', defaultMethod);
         let data = {};
-        if (method === 'spotPublicGetHistory') {
+        if (method === 'publicGetHistory') {
             if (!('lastId' in params)) {
                 throw new ArgumentsRequired (this.id + " fetchTrades() requires 'lastId' id in params");
             }
@@ -560,7 +553,7 @@ module.exports = class coinsbit extends Exchange {
             //             total: "7.68882295"
             //         },
             data = this.safeValue (response, 'result', []);
-        } else if (method === 'spotPublicGetHistoryResult') {
+        } else if (method === 'publicGetHistoryResult') {
             if (!('since' in params)) {
                 throw new ArgumentsRequired (this.id + " fetchTrades() requires 'since' id in params");
             }
@@ -728,42 +721,31 @@ module.exports = class coinsbit extends Exchange {
         }, market);
     }
 
-    sign (path, api = ['spot', 'public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const [ section, access ] = api;
-        const apiBaseUrl = this.urls['api'][section][access];
-        let url = '';
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
         params = this.omit (params, this.extractParams (path));
-        if (access === 'public') {
-            url = apiBaseUrl + 'v' + this.version + '/' + access + '/' + path;
-            if (method === 'GET') {
-                if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
-                }
+        if (api === 'public') {
+            url += '/api/' + this.version + '/' + api + '/' + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
-            url = apiBaseUrl + 'v' + this.version + '/' + path;
-            const domain = this.urls['api'][section]['domain']; 
-            const apiDirectory = apiBaseUrl.replace(domain,'');
-            const apiRelativeUrl = '/' + apiDirectory + 'v' + this.version + '/' + path;
-            const timestamp = this.milliseconds ().toString ();
-            if (method === 'POST') {
-                let data = {
-                    'request': apiRelativeUrl,
-                    'nonce': this.milliseconds ()
-                };
-                // data = this.deepExtend(data, params);
-                let dataJsonStr = this.json(data);
-                const encodedJsonStr = this.stringToBase64(dataJsonStr);
-                const signature = this.hmac (this.encode (encodedJsonStr), this.encode (this.secret), 'sha512');
-                body = dataJsonStr;
-                headers = {
-                    'X-TXC-APIKEY': this.apiKey,
-                    'X-TXC-PAYLOAD': encodedJsonStr,
-                    'X-TXC-SIGNATURE': signature,
-                    'Content-type': 'application/json',
-                };
-            }
+            const timestamp = this.seconds ().toString ();
+            const request = '/api/' + this.version + '/' + path;
+            url += request;
+            params['request'] = request;
+            params['nonce'] = timestamp;
+            const auth = this.json (params);
+            const auth64 = this.stringToBase64 (auth);
+            const signature = this.hmac (auth64, this.encode (this.secret), 'sha512');
+            body = auth;
+            headers = {
+                'X-TXC-APIKEY': this.apiKey,
+                'X-TXC-PAYLOAD': this.decode (auth64),
+                'X-TXC-SIGNATURE': signature,
+                'Content-type': 'application/json',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
