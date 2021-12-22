@@ -1401,7 +1401,7 @@ module.exports = class binance extends Exchange {
         return result;
     }
 
-    normalizeBalance (response) {
+    normalizeBalance (response, type) {
         const result = {
             'info': response,
         };
@@ -1461,6 +1461,7 @@ module.exports = class binance extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
+        return result;
     }
 
     async fetchBalance (params = {}) {
@@ -1666,7 +1667,7 @@ module.exports = class binance extends Exchange {
         //       }
         //     ]
         //
-        const result = this.normalizeBalance (response);
+        const result = this.normalizeBalance (response, type);
         return this.parseBalance (result);
     }
 
