@@ -6,6 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors'); // , BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
+function c(o){console.log(o);}
 // ---------------------------------------------------------------------------
 
 module.exports = class coinsbit extends Exchange {
@@ -62,6 +63,7 @@ module.exports = class coinsbit extends Exchange {
                     'spot': {
                         'public': 'https://coinsbit.io/api/',
                         'private': 'https://coinsbit.io/api/',
+                        'domain': 'https://coinsbit.io/',
                     },
                 },
                 'www': 'https://coinsbit.io/',
@@ -628,11 +630,111 @@ module.exports = class coinsbit extends Exchange {
         }, market);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            const request = {
+                'market': market['id'],
+            };
+            if (side === 'buy') {
+                request['side'] = 'BID';
+            } else if (side === 'sell') {
+                request['side'] = 'ASK';
+            }
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            if (price) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            // let orderType = type.toUpperCase ();
+            // if (orderType === 'LIMIT') {
+            //     orderType = 'LIMIT_ORDER';
+            // } else if ((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL')) {
+            //     throw new InvalidOrder (this.id + ' createOrder does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
+            // }
+            const response = await this.spotPrivatePostOrderNew (this.extend (request, params));
+            //
+            //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
+            //
+            c(response); return;
+            return this.parseOrder (response, market);
+        }
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
+        //
+        c();
+        let id = this.safeString2 (order, 'data', 'id');
+        let status = undefined;
+        if (id === undefined) {
+            const keys = Object.keys (order);
+            id = this.safeString (keys, 0);
+            const state = this.safeString (order, id);
+            if (state === 'success') {
+                status = 'canceled';
+            }
+        }
+        const state = this.safeString (order, 'state');
+        const timestamp = this.safeInteger (order, 'create_time');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'quantity');
+        const remaining = this.safeString (order, 'remain_quantity');
+        const filled = this.safeString (order, 'deal_quantity');
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_');
+        let side = undefined;
+        const bidOrAsk = this.safeString (order, 'type');
+        if (bidOrAsk === 'BID') {
+            side = 'buy';
+        } else if (bidOrAsk === 'ASK') {
+            side = 'sell';
+        }
+        status = this.parseOrderStatus (state);
+        let clientOrderId = this.safeString (order, 'client_order_id');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
+        let orderType = this.safeStringLower (order, 'order_type');
+        if (orderType !== undefined) {
+            orderType = orderType.replace ('_order', '');
+        }
+        return this.safeOrder2 ({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': orderType,
+            'timeInForce': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'average': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
+        }, market);
+    }
+
     sign (path, api = ['spot', 'public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, access ] = api;
-        let url = this.urls['api'][section][access] + 'v' + this.version + '/' + access + '/' + path;
+        const apiBaseUrl = this.urls['api'][section][access];
+        let url = '';
         params = this.omit (params, this.extractParams (path));
         if (access === 'public') {
+            url = apiBaseUrl + 'v' + this.version + '/' + access + '/' + path;
             if (method === 'GET') {
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
@@ -640,26 +742,28 @@ module.exports = class coinsbit extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
+            url = apiBaseUrl + 'v' + this.version + '/' + path;
+            const domain = this.urls['api'][section]['domain']; 
+            const apiDirectory = apiBaseUrl.replace(domain,'');
+            const apiRelativeUrl = '/' + apiDirectory + 'v' + this.version + '/' + path;
             const timestamp = this.milliseconds ().toString ();
-            let auth = '';
-            headers = {
-                'ApiKey': this.apiKey,
-                'Request-Time': timestamp,
-                'Content-Type': 'application/json',
-            };
             if (method === 'POST') {
-                auth = this.json (params);
-                body = auth;
-            } else {
-                params = this.keysort (params);
-                if (Object.keys (params).length) {
-                    auth += this.urlencode (params);
-                    url += '?' + auth;
-                }
+                let data = {
+                    'request': apiRelativeUrl,
+                    'nonce': this.milliseconds ()
+                };
+                // data = this.deepExtend(data, params);
+                let dataJsonStr = this.json(data);
+                const encodedJsonStr = this.stringToBase64(dataJsonStr);
+                const signature = this.hmac (this.encode (encodedJsonStr), this.encode (this.secret), 'sha512');
+                body = dataJsonStr;
+                headers = {
+                    'X-TXC-APIKEY': this.apiKey,
+                    'X-TXC-PAYLOAD': encodedJsonStr,
+                    'X-TXC-SIGNATURE': signature,
+                    'Content-type': 'application/json',
+                };
             }
-            auth = this.apiKey + timestamp + auth;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            headers['Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
