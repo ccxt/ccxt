@@ -949,15 +949,24 @@ module.exports = class whitebit extends Exchange {
         if (clientOrderId === '') {
             clientOrderId = undefined;
         }
-        const price = this.safeString (order, 'price');
+        let price = this.safeString (order, 'price');
         const stopPrice = this.safeString (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
         let amount = this.safeString (order, 'amount');
-        const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-        if (createMarketBuyOrderRequiresPrice && side === 'buy' && type.indexOf ('limit') < 0) {
-            // in these cases the amount is in the quote currency
-            amount = Precise.stringDiv (amount, price);
+        let cost = undefined;
+        if (price === '0') {
+            // api error to be solved
+            price = undefined;
+        }
+        if (side === 'buy' && type.indexOf ('market') > 0) {
+            // in these cases the amount is in the quote currency meaning it's the cost
+            cost = amount;
+            if (price !== undefined) {
+                // if the price is available we can do this conversion
+                // from amount in quote currency to base currency
+                amount = Precise.stringDiv (amount, price);
+            }
         }
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
@@ -992,7 +1001,7 @@ module.exports = class whitebit extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'average': undefined,
-            'cost': undefined,
+            'cost': cost,
             'fee': fee,
             'trades': undefined,
         }, market);
