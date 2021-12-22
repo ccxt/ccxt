@@ -609,7 +609,6 @@ module.exports = class bitcointrade extends Exchange {
         );
         let average = undefined;
         let filled = this.safeNumber (order, 'executed_amount');
-        let remaining = undefined;
         const fills = undefined;
         let trades = undefined;
         let lastTradeTimestamp = this.parseDate(
