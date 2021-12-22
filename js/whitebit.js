@@ -959,13 +959,14 @@ module.exports = class whitebit extends Exchange {
             // api error to be solved
             price = undefined;
         }
-        if (side === 'buy' && type.indexOf ('market') > 0) {
+        if (side === 'buy' && type.indexOf ('market') >= 0) {
             // in these cases the amount is in the quote currency meaning it's the cost
             cost = amount;
+            amount = undefined;
             if (price !== undefined) {
                 // if the price is available we can do this conversion
                 // from amount in quote currency to base currency
-                amount = Precise.stringDiv (amount, price);
+                amount = Precise.stringDiv (cost, price);
             }
         }
         const dealFee = this.safeString (order, 'dealFee');
