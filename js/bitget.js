@@ -67,7 +67,7 @@ module.exports = class bitget extends Exchange {
                     'https://bitgetlimited.github.io/apidoc/en/swap',
                     'https://bitgetlimited.github.io/apidoc/en/spot',
                 ],
-                'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
+                'fees': 'https://www.bitget.com/en/rate',
                 'test': {
                     'rest': 'https://testnet.bitget.com',
                 },
