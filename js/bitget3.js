@@ -933,7 +933,7 @@ module.exports = class bitget extends Exchange {
         //         "orderId":null,
         //         "success":true,
         //         "fail":false
-        //     } 
+        //     }
         //
         const result = {};
         const data = this.safeValue (response, 'data', []);
