@@ -1760,10 +1760,7 @@ module.exports = class ascendex extends Exchange {
 
     async fetchFundingRates (symbols, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            // 'symbol': market['id'],
-        };
-        const response = await this.v2PublicGetFuturesPricingData (this.extend (request, params));
+        const response = await this.v2PublicGetFuturesPricingData (params);
         //
         //     {
         //          "code": 0,
