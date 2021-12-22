@@ -393,8 +393,8 @@ class hitbtc3 extends Exchange {
                 'optionType' => null,
                 'feeCurrency' => $feeCurrency,
                 'precision' => array(
-                    'price' => $lot,
-                    'amount' => $step,
+                    'price' => $step,
+                    'amount' => $lot,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -1369,7 +1369,7 @@ class hitbtc3 extends Exchange {
         }
         $filled = $this->safe_string($order, 'quantity_cumulative');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $marketId = $this->safe_string($order, 'marketId');
+        $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $postOnly = $this->safe_value($order, 'post_only');
@@ -1562,7 +1562,7 @@ class hitbtc3 extends Exchange {
             $payloadString = implode('', $payload);
             $signature = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256', 'hex');
             $secondPayload = $this->apiKey . ':' . $signature . ':' . $timestamp;
-            $encoded = base64_encode($secondPayload);
+            $encoded = $this->decode(base64_encode($secondPayload));
             $headers['Authorization'] = 'HS256 ' . $encoded;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

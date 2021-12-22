@@ -41,7 +41,6 @@ class bitfinex(Exchange):
                 'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
-                'deposit': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,

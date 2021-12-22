@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.64.39';
+$version = '1.64.55';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.64.39';
+    const VERSION = '1.64.55';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -948,7 +948,7 @@ class Exchange {
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
             // other flags if needed...
         );
-        $flags = 0;
+        $flags = JSON_UNESCAPED_SLASHES;
         foreach ($options as $key => $value) {
             if (array_key_exists($key, $params) && $params[$key]) {
                 $flags |= $options[$key];
@@ -1188,8 +1188,8 @@ class Exchange {
             'fetchDeposit' => null,
             'fetchDepositAddress' => null,
             'fetchDepositAddresses' => null,
+            'fetchDepositAddressesByNetwork' => null,
             'fetchDeposits' => null,
-            'fetchFees' => null,
             'fetchFundingFee' => null,
             'fetchFundingFees' => null,
             'fetchFundingHistory' => null,
@@ -1197,7 +1197,6 @@ class Exchange {
             'fetchFundingRateHistory' => null,
             'fetchFundingRates' => null,
             'fetchIndexOHLCV' => null,
-            'fetchIsolatedPositions' => null,
             'fetchL2OrderBook' => true,
             'fetchLedger' => null,
             'fetchLedgerEntry' => null,
@@ -1226,6 +1225,8 @@ class Exchange {
             'fetchTradingLimits' => null,
             'fetchTransactions' => null,
             'fetchTransfers' => null,
+            'fetchWithdrawAddress' => null,
+            'fetchWithdrawAddressesByNetwork' => null,
             'fetchWithdrawal' => null,
             'fetchWithdrawals' => null,
             'loadLeverageBrackets' => null,

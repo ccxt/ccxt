@@ -1135,6 +1135,42 @@ class crex24 extends Exchange {
         return $response;
     }
 
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'id' => $id,
+        );
+        $response = $this->tradingGetOrderTrades (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             "id" => 3005866,
+        //             "orderId" => 468533093,
+        //             "timestamp" => "2018-06-02T16:26:27Z",
+        //             "instrument" => "BCH-ETH",
+        //             "side" => "buy",
+        //             "price" => 1.78882,
+        //             "volume" => 0.027,
+        //             "fee" => 0.0000483,
+        //             "feeCurrency" => "ETH"
+        //         ),
+        //         array(
+        //             "id" => 3005812,
+        //             "orderId" => 468515771,
+        //             "timestamp" => "2018-06-02T16:16:05Z",
+        //             "instrument" => "ETC-BTC",
+        //             "side" => "sell",
+        //             "price" => 0.00210958,
+        //             "volume" => 0.05994006,
+        //             "fee" => -0.000000063224,
+        //             "feeCurrency" => "BTC"
+        //         ),
+        //         ...
+        //     )
+        //
+        return $this->parse_trades($response, null, $since, $limit);
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
