@@ -920,15 +920,20 @@ module.exports = class bitget extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "ts":1595537740466,
+        //         "ch":null,
+        //         "ts":1640189954164,
+        //         "errCode":null,
+        //         "errMsg":null,
         //         "data":[
-        //             "btc",
-        //             "bft",
-        //             "usdt",
-        //             "usdt-omni",
-        //             "usdt-erc20"
-        //         ]
-        //     }
+        //             "KIN",
+        //             "BTC",
+        //             "USDT",
+        //             "OCEAN"
+        //         ],
+        //         "orderId":null,
+        //         "success":true,
+        //         "fail":false
+        //     } 
         //
         const result = {};
         const data = this.safeValue (response, 'data', []);
