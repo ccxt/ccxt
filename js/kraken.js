@@ -1249,12 +1249,30 @@ module.exports = class kraken extends Exchange {
         side = this.safeString (description, 'type', side);
         type = this.safeString (description, 'ordertype', type);
         marketId = this.safeString (description, 'pair', marketId);
+        let symbol = undefined;
         const foundMarket = this.findMarketByAltnameOrId (marketId);
         if (foundMarket !== undefined) {
             market = foundMarket;
         } else if (marketId !== undefined) {
             // delisted market ids go here
             market = this.getDelistedMarketById (marketId);
+        }
+        let fee = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+            if ('fee' in order) {
+                const flags = order['oflags'];
+                const feeCost = this.safeString (order, 'fee');
+                fee = {
+                    'cost': feeCost,
+                    'rate': undefined,
+                };
+                if (flags.indexOf ('fciq') >= 0) {
+                    fee['currency'] = market['quote'];
+                } else if (flags.indexOf ('fcib') >= 0) {
+                    fee['currency'] = market['base'];
+                }
+            }
         }
         const timestamp = this.safeTimestamp (order, 'opentm');
         amount = this.safeString (order, 'vol', amount);
@@ -1269,7 +1287,6 @@ module.exports = class kraken extends Exchange {
             price = this.safeString (order, 'price', price);
         }
         const average = this.safeNumber (order, 'price');
-        const symbol = this.safeSymbol (marketId, market);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let id = this.safeString (order, 'id');
         if (id === undefined) {
