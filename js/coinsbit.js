@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors'); // , BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied
+const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors'); // BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InsufficientFunds, OrderNotFound, PermissionDenied
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 function c(o){console.log(o);}
@@ -15,7 +15,7 @@ module.exports = class coinsbit extends Exchange {
             'id': 'coinsbit',
             'name': 'Coinsbit',
             'countries': [ 'EE' ], // Estonia
-            // 'rateLimit': 50, // default rate limit is 20 times per second
+            'rateLimit': 1000, // No defaults known
             'version': 'v1',
             'certified': false,
             'has': {
@@ -24,7 +24,7 @@ module.exports = class coinsbit extends Exchange {
                 'createOrder': true,
                 'cancelOrder': undefined,
                 'createMarketOrder': undefined,
-                'fetchBalance': undefined,
+                'fetchBalance': true,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrders': undefined,
                 // 'fetchCurrencies' doesn't exist, and will be 'emulated'
@@ -632,79 +632,85 @@ module.exports = class coinsbit extends Exchange {
             const request = {
                 'market': market['id'],
             };
-            if (side === 'buy') {
-                request['side'] = 'BID';
-            } else if (side === 'sell') {
-                request['side'] = 'ASK';
+            if (!(['buy', 'sell'].includes (side))) {
+                throw new InvalidOrder (this.id + ' createOrder side should be either "buy" or "sell"');
             }
+            if (!(['limit', undefined].includes (type))) {
+                throw new InvalidOrder (this.id + ' createOrder only supports limit orders');
+            }
+            if (!price) {
+                throw new InvalidOrder (this.id + ' createOrder needs price field');
+            }
+            request['side'] = side;
             request['amount'] = this.amountToPrecision (symbol, amount);
-            if (price) {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-            // let orderType = type.toUpperCase ();
-            // if (orderType === 'LIMIT') {
-            //     orderType = 'LIMIT_ORDER';
-            // } else if ((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL')) {
-            //     throw new InvalidOrder (this.id + ' createOrder does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
-            // }
-            const response = await this.spotPrivatePostOrderNew (this.extend (request, params));
-            //
-            //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
-            //
-            c(response); return;
-            return this.parseOrder (response, market);
+            request['price'] = this.priceToPrecision (symbol, price);
+            const response = await this.privatePostOrderNew (this.extend (request, params));
+            // {
+            //     success: true,
+            //     message: '',
+            //     result: {
+            //       orderId: '8629354782',
+            //       market: 'ETH_USDT',
+            //       price: '4000',
+            //       side: 'buy',
+            //       type: 'limit',
+            //       timestamp: '1640212275.928',
+            //       dealMoney: '7.98856357',
+            //       dealStock: '0.002',
+            //       amount: '0.002',
+            //       takerFee: '0.002',
+            //       makerFee: '0.002',
+            //       left: '0',
+            //       dealFee: '0'
+            //     },
+            //     code: '200'
+            //   }
+            const data = this.safeValue (response, 'result', {});
+            return this.parseOrder (data, market);
         }
     }
 
     parseOrder (order, market = undefined) {
-        //
-        // createOrder
-        //
-        //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
-        //
-        c();
-        let id = this.safeString2 (order, 'data', 'id');
-        let status = undefined;
-        if (id === undefined) {
-            const keys = Object.keys (order);
-            id = this.safeString (keys, 0);
-            const state = this.safeString (order, id);
-            if (state === 'success') {
-                status = 'canceled';
-            }
-        }
-        const state = this.safeString (order, 'state');
-        const timestamp = this.safeInteger (order, 'create_time');
+        //     {
+        //       orderId: '8629354782',
+        //       market: 'ETH_USDT',
+        //       price: '4000',
+        //       side: 'buy',
+        //       type: 'limit',
+        //       timestamp: '1640212275.928',
+        //       dealMoney: '7.98856357',
+        //       dealStock: '0.002',
+        //       amount: '0.002',
+        //       takerFee: '0.002',
+        //       makerFee: '0.002',
+        //       left: '0',
+        //       dealFee: '0'
+        //     }
+        const id = this.safeString (order, 'orderId');
+        const side = this.safeString (order, 'side');
+        const orderType = this.safeString (order, 'type');
+        const timestamp = this.safeTimestamp (order, 'timestamp');
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'quantity');
-        const remaining = this.safeString (order, 'remain_quantity');
-        const filled = this.safeString (order, 'deal_quantity');
-        const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '_');
-        let side = undefined;
-        const bidOrAsk = this.safeString (order, 'type');
-        if (bidOrAsk === 'BID') {
-            side = 'buy';
-        } else if (bidOrAsk === 'ASK') {
-            side = 'sell';
+        const amount = this.safeString (order, 'amount');
+        const remaining = this.safeString (order, 'left');
+        const filled = this.safeString (order, 'dealStock');
+        const costedQuoteCurrency = this.safeString (order, 'dealMoney');
+        const feeTaker = this.safeString (order, 'takerFee');
+        // const feeMaker = this.safeString (order, 'makerFee'); <<<TODO >>> couldn't find any use from this
+        const marketId = this.safeString (order, 'market');
+        if (market === undefined) {
+            market = this.safeMarket (marketId, market, '_');
         }
-        status = this.parseOrderStatus (state);
-        let clientOrderId = this.safeString (order, 'client_order_id');
-        if (clientOrderId === '') {
-            clientOrderId = undefined;
-        }
-        let orderType = this.safeStringLower (order, 'order_type');
-        if (orderType !== undefined) {
-            orderType = orderType.replace ('_order', '');
-        }
+        const quoteCurrency = market['quote'];
+        const cost = Precise.stringMul (costedQuoteCurrency, feeTaker); // <<< TODO >> as both taker/maker has same fee, probably doesn't matter, and we can calculate cost
         return this.safeOrder2 ({
             'id': id,
-            'clientOrderId': clientOrderId,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
+            'status': undefined,
+            'symbol': market['symbol'],
             'type': orderType,
             'timeInForce': undefined,
             'side': side,
@@ -715,10 +721,31 @@ module.exports = class coinsbit extends Exchange {
             'cost': undefined,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': {
+                'cost': cost,
+                'currency': quoteCurrency,
+            },
             'trades': undefined,
             'info': order,
         }, market);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const request = this.omit (params, 'type');
+        const response = await this.privatePostAccountBalances (request);
+        // {
+        //     success: true,
+        //     message: '',
+        //     result: {
+        //       BTC: { available: '0', freeze: '0' },
+        //       USDT: { available: '0', freeze: '0' },
+        //       ...
+        c (response);
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -731,11 +758,10 @@ module.exports = class coinsbit extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const timestamp = this.seconds ().toString ();
             const request = '/api/' + this.version + '/' + path;
             url += request;
             params['request'] = request;
-            params['nonce'] = timestamp;
+            params['nonce'] = this.nonce ().toString ();
             const auth = this.json (params);
             const auth64 = this.stringToBase64 (auth);
             const signature = this.hmac (auth64, this.encode (this.secret), 'sha512');
