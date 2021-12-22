@@ -89,9 +89,9 @@ try {
     
     // check auth keys in env var
     const requiredCredentials = exchange.requiredCredentials;
-    for( const [credential, isRequired] of Object.entries(requiredCredentials) ) {
+    for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
         if (isRequired && exchange[credential] === undefined) {
-            const credentialEnvName = (exchangeId + '_' + credential).toUpperCase() // example: KRAKEN_APIKEY
+            const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
             const credentialValue = process.env[credentialEnvName]
             if (credentialValue) {
                 exchange[credential] = credentialValue
