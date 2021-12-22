@@ -107,7 +107,6 @@ module.exports = class coinsbit extends Exchange {
                     },
                 },
             },
-            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -191,8 +190,8 @@ module.exports = class coinsbit extends Exchange {
             const symbol = base + '/' + quote;
             const priceScale = this.safeInteger (market, 'moneyPrec');
             const quantityScale = this.safeInteger (market, 'stockPrec');
-            const pricePrecision = Precise.stringDiv (1 / Math.pow (10, priceScale));
-            const quantityPrecision = Precise.stringDiv (1 / Math.pow (10, quantityScale));
+            const pricePrecision = priceScale;
+            const quantityPrecision = quantityScale;
             const minAmount = this.safeNumber (market, 'minAmount');
             const type = 'spot';
             result.push ({
