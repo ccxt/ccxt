@@ -110,7 +110,7 @@ if argv.exchange_id not in ccxt.exchanges:
 if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
 
-# check var env for auth keys
+# check auth keys in env var if not in keys file
 apiKeyID = 'apiKey'
 if apiKeyID not in config:
     apiKeyVar = (argv.exchange_id + '_' + apiKeyID).upper() # example: KRAKEN_APIKEY
