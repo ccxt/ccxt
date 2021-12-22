@@ -8,7 +8,7 @@ const {
     BadRequest, InvalidOrder, ArgumentsRequired,
     OrderNotFound, InsufficientFunds, DDoSProtection,
     PermissionDenied, NullResponse, NetworkError,
-    OrderNotFillable, RateLimitExceeded
+    OrderNotFillable, RateLimitExceeded, OnMaintenance
 } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
