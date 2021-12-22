@@ -57,8 +57,8 @@ module.exports = class bitget extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg',
                 'api': {
-                    'data': 'https://api.{hostname}',
-                    'api': 'https://api.{hostname}',
+                    'data': 'https://capi.{hostname}',
+                    'api': 'https://capi.{hostname}',
                     'capi': 'https://capi.{hostname}',
                     'swap': 'https://capi.{hostname}',
                 },
@@ -67,7 +67,7 @@ module.exports = class bitget extends Exchange {
                     'https://bitgetlimited.github.io/apidoc/en/swap',
                     'https://bitgetlimited.github.io/apidoc/en/spot',
                 ],
-                'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
+                'fees': 'https://www.bitget.com/en/rate',
                 'test': {
                     'rest': 'https://testnet.bitget.com',
                 },
@@ -167,8 +167,8 @@ module.exports = class bitget extends Exchange {
             },
             'fees': {
                 'spot': {
-                    'taker': this.parseNumber ('0.002'),
-                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.001'), // Reduced 20% to 0.0008 if fee is paid with BGB instead
+                    'maker': this.parseNumber ('0.001'), // Reduced 20% to 0.0008 if fee is paid with BGB instead
                 },
                 'swap': {
                     'taker': this.parseNumber ('0.0006'),
@@ -733,8 +733,15 @@ module.exports = class bitget extends Exchange {
         const response = await this.dataGetCommonTimestamp (params);
         //
         //     {
+        //         "ch":"",
+        //         "data":"1640187433920",
+        //         "errCode":"",
+        //         "errMsg":"",
+        //         "fail":"false",
+        //         "orderId":"",
         //         "status":"ok",
-        //         "data":"1595525139400"
+        //         "success":"true",
+        //         "ts":null
         //     }
         //
         return this.safeInteger (response, 'data');
@@ -790,7 +797,9 @@ module.exports = class bitget extends Exchange {
         //         "size_increment":"0",
         //         "tick_size":"1",
         //         "forwardContractFlag":false,
-        //         "priceEndStep":5
+        //         "priceEndStep":5,
+        //         "minLeverage":1,
+        //         "maxLeverage":125
         //     }
         //
         const id = this.safeString (market, 'symbol');
@@ -911,15 +920,20 @@ module.exports = class bitget extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "ts":1595537740466,
+        //         "ch":null,
+        //         "ts":1640189954164,
+        //         "errCode":null,
+        //         "errMsg":null,
         //         "data":[
-        //             "btc",
-        //             "bft",
-        //             "usdt",
-        //             "usdt-omni",
-        //             "usdt-erc20"
-        //         ]
-        //     }
+        //             "KIN",
+        //             "BTC",
+        //             "USDT",
+        //             "OCEAN"
+        //         ],
+        //         "orderId":null,
+        //         "success":true,
+        //         "fail":false
+        //     } 
         //
         const result = {};
         const data = this.safeValue (response, 'data', []);
