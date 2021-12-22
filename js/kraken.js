@@ -1249,15 +1249,28 @@ module.exports = class kraken extends Exchange {
         side = this.safeString (description, 'type', side);
         type = this.safeString (description, 'ordertype', type);
         marketId = this.safeString (description, 'pair', marketId);
-        let symbol = undefined;
         const foundMarket = this.findMarketByAltnameOrId (marketId);
+        let symbol = undefined;
         if (foundMarket !== undefined) {
             market = foundMarket;
         } else if (marketId !== undefined) {
             // delisted market ids go here
             market = this.getDelistedMarketById (marketId);
         }
+        const timestamp = this.safeTimestamp (order, 'opentm');
+        amount = this.safeString (order, 'vol', amount);
+        const filled = this.safeString (order, 'vol_exec');
         let fee = undefined;
+        // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
+        // const cost = this.safeString (order, 'cost');
+        price = this.safeString (description, 'price', price);
+        if ((price === undefined) || Precise.stringEquals (price, '0')) {
+            price = this.safeString (description, 'price2');
+        }
+        if ((price === undefined) || Precise.stringEquals (price, '0')) {
+            price = this.safeString (order, 'price', price);
+        }
+        const average = this.safeNumber (order, 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
@@ -1274,19 +1287,6 @@ module.exports = class kraken extends Exchange {
                 }
             }
         }
-        const timestamp = this.safeTimestamp (order, 'opentm');
-        amount = this.safeString (order, 'vol', amount);
-        const filled = this.safeString (order, 'vol_exec');
-        // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
-        // const cost = this.safeString (order, 'cost');
-        price = this.safeString (description, 'price', price);
-        if ((price === undefined) || Precise.stringEquals (price, '0')) {
-            price = this.safeString (description, 'price2');
-        }
-        if ((price === undefined) || Precise.stringEquals (price, '0')) {
-            price = this.safeString (order, 'price', price);
-        }
-        const average = this.safeNumber (order, 'price');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let id = this.safeString (order, 'id');
         if (id === undefined) {
