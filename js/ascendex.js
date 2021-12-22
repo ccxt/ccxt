@@ -28,7 +28,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingRate': true,
+                'fetchFundingRates': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -1707,13 +1707,31 @@ module.exports = class ascendex extends Exchange {
     parseFundingRate (fundingRate, market = undefined) {
         //
         // {
-        //     time: "1640078764560",
-        //     symbol: "BTC-PERP",
-        //     markPrice: "48499.644083351",
-        //     indexPrice: "48530.35",
-        //     openInterest: "252.1125",
-        //     fundingRate: "-0.000631045",
-        //     nextFundingTime: "1640102400000"
+        //     'EOS/USDT:USDT': {
+        //         info: {
+        //             time: "1640148724831",
+        //             symbol: "EOS-PERP",
+        //             markPrice: "3.358762969",
+        //             indexPrice: "3.3589",
+        //             openInterest: "14147",
+        //             fundingRate: "-0.000041038",
+        //             nextFundingTime: "1640160000000"
+        //         },
+        //             symbol:   "EOS/USDT:USDT",
+        //             markPrice:    3.358762969,
+        //             indexPrice:    3.3589,
+        //             interestRate:    0,
+        //             estimatedSettlePrice:    undefined,
+        //             timestamp:    1640148724831,
+        //             datetime:   "2021-12-22T04:52:04.831Z",
+        //             previousFundingRate:    undefined,
+        //             nextFundingRate:    -0.000041038,
+        //             previousFundingTimestamp:    undefined,
+        //             nextFundingTimestamp:    1640160000000,
+        //             previousFundingDatetime:    undefined,
+        //             nextFundingDatetime:   "2021-12-22T08:00:00.000Z"
+        //     },
+        //                      ...
         // }
         //
         const marketId = this.safeString (fundingRate, 'symbol');
@@ -1740,11 +1758,10 @@ module.exports = class ascendex extends Exchange {
         };
     }
 
-    async fetchFundingRate (symbol, params = {}) {
+    async fetchFundingRates (symbols, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            // 'symbol': market['id'],
         };
         const response = await this.v2PublicGetFuturesPricingData (this.extend (request, params));
         //
@@ -1779,9 +1796,8 @@ module.exports = class ascendex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const contracts = this.safeValue (data, 'contracts', []);
-        const contractsBySymbol = this.indexBy (contracts, 'symbol');
-        const contract = this.safeValue (contractsBySymbol, market['id'], {});
-        return this.parseFundingRate (contract, market);
+        const result = this.parseFundingRates (contracts);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
