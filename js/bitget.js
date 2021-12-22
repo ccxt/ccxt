@@ -167,8 +167,8 @@ module.exports = class bitget extends Exchange {
             },
             'fees': {
                 'spot': {
-                    'taker': this.parseNumber ('0.002'),
-                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.001'), // Reduced 20% to 0.0008 if fee is paid with BGB instead
+                    'maker': this.parseNumber ('0.001'), // Reduced 20% to 0.0008 if fee is paid with BGB instead
                 },
                 'swap': {
                     'taker': this.parseNumber ('0.0006'),
