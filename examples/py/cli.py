@@ -115,14 +115,16 @@ if argv.exchange_id in keys:
 apiKeyID = 'apiKey'
 if apiKeyID not in config:
     apiKeyVar = (argv.exchange_id + '_' + apiKeyID).upper() # example: KRAKEN_APIKEY
-    apiKey = os.environ[apiKeyVar]
-    config[apiKeyID] = apiKey
+    if apiKeyVar in os.environ:
+        apiKey = os.environ[apiKeyVar]
+        config[apiKeyID] = apiKey
 
 secretID = 'secret'
 if secretID not in config:
     secretVar = (argv.exchange_id + '_' + secretID).upper() # example: KRAKEN_SECRET
-    secret = os.environ[secretVar]
-    config[secretID] = secret
+    if secretVar in os.environ:
+        secret = os.environ[secretVar]
+        config[secretID] = secret
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
 
