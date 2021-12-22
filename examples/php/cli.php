@@ -34,6 +34,17 @@ if (count($argv) > 2) {
         $exchange = '\\ccxt\\' . $id;
         $exchange = new $exchange($config);
 
+        // check auth keys in env var
+        foreach ($exchange->requiredCredentials as $credential => $is_required) {
+            if ($is_required && !$exchange->$credential ) {
+                $credential_var = strtoupper($id . '_' . $credential); // example: KRAKEN_SECRET
+                $credential_value = getenv($credential_var);
+                if ($credential_value) {
+                    $exchange->$credential = $credential_value;
+                } 
+            }
+        }
+
         $args = array_map(function ($arg) {
             global $exchange;
             if ($arg[0] === '{' || $arg[0] === '[')
