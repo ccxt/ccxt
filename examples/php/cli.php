@@ -39,7 +39,6 @@ if (count($argv) > 2) {
             if ($is_required && !$exchange->$credential ) {
                 $credential_var = strtoupper($id . '_' . $credential); // example: KRAKEN_SECRET
                 $credential_value = getenv($credential_var);
-            
                 if ($credential_value) {
                     $exchange->$credential = $credential_value;
                 } 
