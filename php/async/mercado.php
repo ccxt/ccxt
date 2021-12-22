@@ -422,21 +422,17 @@ class mercado extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($order, 'created_timestamp');
         $fee = array(
-            'cost' => $this->safe_number($order, 'fee'),
+            'cost' => $this->safe_string($order, 'fee'),
             'currency' => $market['quote'],
         );
-        $price = $this->safe_number($order, 'limit_price');
+        $price = $this->safe_string($order, 'limit_price');
         // $price = $this->safe_number($order, 'executed_price_avg', $price);
-        $average = $this->safe_number($order, 'executed_price_avg');
-        $amount = $this->safe_number($order, 'quantity');
-        $filled = $this->safe_number($order, 'executed_quantity');
+        $average = $this->safe_string($order, 'executed_price_avg');
+        $amount = $this->safe_string($order, 'quantity');
+        $filled = $this->safe_string($order, 'executed_quantity');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'updated_timestamp');
         $rawTrades = $this->safe_value($order, 'operations', array());
-        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-            'side' => $side,
-            'order' => $id,
-        ));
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -457,8 +453,8 @@ class mercado extends Exchange {
             'remaining' => null,
             'status' => $status,
             'fee' => $fee,
-            'trades' => $trades,
-        ));
+            'trades' => $rawTrades,
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
