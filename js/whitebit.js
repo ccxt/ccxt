@@ -343,43 +343,21 @@ module.exports = class whitebit extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // fetchTicker
+        // "BCH_RUB":{
+        //     "base_id":1831,
+        //     "quote_id":0,
+        //     "last_price":"32830.21",
+        //     "quote_volume":"1494659.8024096",
+        //     "base_volume":"46.1083",
+        //     "isFrozen":false,
+        //     "change":"2.12"
+        //  },
         //
-        //     {
-        //         "bid":"0.021979",
-        //         "ask":"0.021996",
-        //         "open":"0.02182",
-        //         "high":"0.022039",
-        //         "low":"0.02161",
-        //         "last":"0.021987",
-        //         "volume":"2810.267",
-        //         "deal":"61.383565474",
-        //         "change":"0.76",
-        //     }
-        //
-        // fetchTickers v1
-        //
-        //     {
-        //         "at":1571022144,
-        //         "ticker": {
-        //             "bid":"0.022024",
-        //             "ask":"0.022042",
-        //             "low":"0.02161",
-        //             "high":"0.022062",
-        //             "last":"0.022036",
-        //             "vol":"2813.503",
-        //             "deal":"61.457279261",
-        //             "change":"0.95"
-        //         }
-        //     }
-        //
-        const timestamp = this.safeTimestamp (ticker, 'at', this.milliseconds ());
-        ticker = this.safeValue (ticker, 'ticker', ticker);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last_price');
         const percentage = this.safeNumber (ticker, 'change');
         let change = undefined;
         if (percentage !== undefined) {
@@ -387,23 +365,23 @@ module.exports = class whitebit extends Exchange {
         }
         return {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'base_volume'),
             'quoteVolume': this.safeNumber (ticker, 'deal'),
             'info': ticker,
         };
@@ -411,35 +389,24 @@ module.exports = class whitebit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PublicGetTickers (params);
+        const response = await this.v4PublicGetTicker (params);
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result": {
-        //             "ETH_BTC": {
-        //                 "at":1571022144,
-        //                 "ticker": {
-        //                     "bid":"0.022024",
-        //                     "ask":"0.022042",
-        //                     "low":"0.02161",
-        //                     "high":"0.022062",
-        //                     "last":"0.022036",
-        //                     "vol":"2813.503",
-        //                     "deal":"61.457279261",
-        //                     "change":"0.95"
-        //                 }
-        //             },
-        //         },
-        //     }
+        // "BCH_RUB":{
+        //     "base_id":1831,
+        //     "quote_id":0,
+        //     "last_price":"32830.21",
+        //     "quote_volume":"1494659.8024096",
+        //     "base_volume":"46.1083",
+        //     "isFrozen":false,
+        //     "change":"2.12"
+        //  },
         //
-        const data = this.safeValue (response, 'result');
-        const marketIds = Object.keys (data);
+        const marketIds = Object.keys (response);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const ticker = this.parseTicker (data[marketId], market);
+            const ticker = this.parseTicker (response[marketId], market);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
