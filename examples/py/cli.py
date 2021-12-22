@@ -87,7 +87,6 @@ keys_global = root + '/keys.json'
 keys_local = root + '/keys.local.json'
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
-
 # load the api keys and other settings from a JSON config
 with open(keys_file) as file:
     keys = json.load(file)
