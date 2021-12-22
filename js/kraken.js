@@ -1316,7 +1316,7 @@ module.exports = class kraken extends Exchange {
             'filled': filled,
             'average': average,
             'remaining': undefined,
-            'fee': undefined,
+            'fee': fee,
             'trades': rawTrades,
         }, market);
     }
