@@ -400,21 +400,17 @@ class mercado(Exchange):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(order, 'created_timestamp')
         fee = {
-            'cost': self.safe_number(order, 'fee'),
+            'cost': self.safe_string(order, 'fee'),
             'currency': market['quote'],
         }
-        price = self.safe_number(order, 'limit_price')
+        price = self.safe_string(order, 'limit_price')
         # price = self.safe_number(order, 'executed_price_avg', price)
-        average = self.safe_number(order, 'executed_price_avg')
-        amount = self.safe_number(order, 'quantity')
-        filled = self.safe_number(order, 'executed_quantity')
+        average = self.safe_string(order, 'executed_price_avg')
+        amount = self.safe_string(order, 'quantity')
+        filled = self.safe_string(order, 'executed_quantity')
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
         rawTrades = self.safe_value(order, 'operations', [])
-        trades = self.parse_trades(rawTrades, market, None, None, {
-            'side': side,
-            'order': id,
-        })
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -435,8 +431,8 @@ class mercado(Exchange):
             'remaining': None,
             'status': status,
             'fee': fee,
-            'trades': trades,
-        })
+            'trades': rawTrades,
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:

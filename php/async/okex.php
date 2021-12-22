@@ -3285,11 +3285,6 @@ class okex extends Exchange {
         // in the response above $nextFundingRate is actually two funding rates from now
         //
         $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'fundingTime');
-        $previousFundingTimestamp = null;
-        if ($nextFundingRateTimestamp !== null) {
-            // eight hours
-            $previousFundingTimestamp = $nextFundingRateTimestamp - 28800000;
-        }
         $marketId = $this->safe_string($fundingRate, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
         $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
@@ -3306,9 +3301,9 @@ class okex extends Exchange {
             'datetime' => null,
             'previousFundingRate' => null,
             'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTimestamp, // subtract 8 hours
+            'previousFundingTimestamp' => null,
             'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'previousFundingDatetime' => null,
             'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
         );
     }

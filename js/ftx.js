@@ -133,8 +133,6 @@ module.exports = class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        // pnl
-                        'pnl/historical_changes',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -204,6 +202,8 @@ module.exports = class ftx extends Exchange {
                         'nft/gallery_settings',
                         // latency statistics
                         'stats/latency_stats',
+                        // pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         // subaccounts
@@ -2255,10 +2255,6 @@ module.exports = class ftx extends Exchange {
         const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
         const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
         const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
-        let previousFundingTimestamp = undefined;
-        if (nextFundingRateTimestamp !== undefined) {
-            previousFundingTimestamp = nextFundingRateTimestamp - 3600000;
-        }
         const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
         return {
             'info': fundingRate,
@@ -2271,9 +2267,9 @@ module.exports = class ftx extends Exchange {
             'datetime': undefined,
             'previousFundingRate': undefined,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'previousFundingTimestamp': undefined,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'previousFundingDatetime': undefined,
             'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }

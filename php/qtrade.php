@@ -842,9 +842,9 @@ class qtrade extends Exchange {
             $side = $this->safe_string($parts, 0);
             $orderType = $this->safe_string($parts, 1);
         }
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'market_amount');
-        $remaining = $this->safe_number($order, 'market_amount_remaining');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'market_amount');
+        $remaining = $this->safe_string($order, 'market_amount_remaining');
         $open = $this->safe_value($order, 'open', false);
         $closeReason = $this->safe_string($order, 'close_reason');
         $status = null;
@@ -859,12 +859,7 @@ class qtrade extends Exchange {
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
         $rawTrades = $this->safe_value($order, 'trades', array());
-        $parsedTrades = $this->parse_trades($rawTrades, $market, null, null, array(
-            'order' => $id,
-            'side' => $side,
-            'type' => $orderType,
-        ));
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -886,8 +881,8 @@ class qtrade extends Exchange {
             'fee' => null,
             'fees' => null,
             'cost' => null,
-            'trades' => $parsedTrades,
-        ));
+            'trades' => $rawTrades,
+        ), $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

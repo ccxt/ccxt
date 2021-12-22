@@ -3140,10 +3140,6 @@ class okex(Exchange):
         # in the response above nextFundingRate is actually two funding rates from now
         #
         nextFundingRateTimestamp = self.safe_integer(fundingRate, 'fundingTime')
-        previousFundingTimestamp = None
-        if nextFundingRateTimestamp is not None:
-            # eight hours
-            previousFundingTimestamp = nextFundingRateTimestamp - 28800000
         marketId = self.safe_string(fundingRate, 'instId')
         symbol = self.safe_symbol(marketId, market)
         nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
@@ -3160,9 +3156,9 @@ class okex(Exchange):
             'datetime': None,
             'previousFundingRate': None,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,  # subtract 8 hours
+            'previousFundingTimestamp': None,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'previousFundingDatetime': None,
             'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
         }
 

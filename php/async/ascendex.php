@@ -33,6 +33,7 @@ class ascendex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRates' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -1706,6 +1707,75 @@ class ascendex extends Exchange {
             'account-group' => $accountGroup,
         );
         return yield $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $params));
+    }
+
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        //      {
+        //          "time" => 1640061364830,
+        //          "symbol" => "EOS-PERP",
+        //          "markPrice" => "3.353854865",
+        //          "indexPrice" => "3.3542",
+        //          "openInterest" => "14242",
+        //          "fundingRate" => "-0.000073026",
+        //          "nextFundingTime" => 1640073600000
+        //      }
+        //
+        $marketId = $this->safe_string($fundingRate, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $currentTime = $this->safe_integer($fundingRate, 'time');
+        $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
+        $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'nextFundingTime');
+        $previousFundingTimestamp = null;
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $symbol,
+            'markPrice' => $this->safe_number($fundingRate, 'markPrice'),
+            'indexPrice' => $this->safe_number($fundingRate, 'indexPrice'),
+            'interestRate' => $this->parse_number('0'),
+            'estimatedSettlePrice' => null,
+            'timestamp' => $currentTime,
+            'datetime' => $this->iso8601($currentTime),
+            'previousFundingRate' => null,
+            'nextFundingRate' => $nextFundingRate,
+            'previousFundingTimestamp' => $previousFundingTimestamp,
+            'nextFundingTimestamp' => $nextFundingRateTimestamp,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+        );
+    }
+
+    public function fetch_funding_rates($symbols, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->v2PublicGetFuturesPricingData ($params);
+        //
+        //     {
+        //          "code" => 0,
+        //          "data" => {
+        //              "contracts" => array(
+        //                  array(
+        //                      "time" => 1640061364830,
+        //                      "symbol" => "EOS-PERP",
+        //                      "markPrice" => "3.353854865",
+        //                      "indexPrice" => "3.3542",
+        //                      "openInterest" => "14242",
+        //                      "fundingRate" => "-0.000073026",
+        //                      "nextFundingTime" => 1640073600000
+        //                  ),
+        //              ),
+        //              "collaterals" => array(
+        //                  array(
+        //                      "asset" => "USDTR",
+        //                      "referencePrice" => "1"
+        //                  ),
+        //              )
+        //          }
+        //      }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $contracts = $this->safe_value($data, 'contracts', array());
+        $result = $this->parse_funding_rates($contracts);
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
