@@ -382,7 +382,7 @@ module.exports = class whitebit extends Exchange {
             'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'base_volume'),
-            'quoteVolume': this.safeNumber (ticker, 'deal'),
+            'quoteVolume': this.safeNumber (ticker, 'quote_volume'),
             'info': ticker,
         };
     }
