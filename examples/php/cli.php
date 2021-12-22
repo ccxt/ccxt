@@ -26,7 +26,6 @@ if (count($argv) > 2) {
 
         $config = json_decode(file_get_contents($keys_file), true);
         $settings = array_key_exists($id, $config) ? $config[$id] : array();
-
         $config = array_merge($settings, array(
             'verbose' => $verbose, // set to true for debugging
         ));

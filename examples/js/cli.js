@@ -65,8 +65,6 @@ let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
 let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
 let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
 
-
-
 //-----------------------------------------------------------------------------
 
 const timeout = 30000
