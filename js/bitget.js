@@ -57,8 +57,8 @@ module.exports = class bitget extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg',
                 'api': {
-                    'data': 'https://api.{hostname}',
-                    'api': 'https://api.{hostname}',
+                    'data': 'https://capi.{hostname}',
+                    'api': 'https://capi.{hostname}',
                     'capi': 'https://capi.{hostname}',
                     'swap': 'https://capi.{hostname}',
                 },
