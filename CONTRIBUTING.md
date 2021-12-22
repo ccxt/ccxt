@@ -915,18 +915,6 @@ node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run b
 
 The build process generates many changes in the transpiled exchange files, e.g. for Python and PHP. **You should NOT commit them to GitHub, commit only the base (JS) file changes please**.
 
-You can hide the changes in the generated files by running this command (after that, the generated files are no longer marked as changed):
-
-```
-npm run git-ignore-generated-files
-```
-
-Previously we had that command implemented as a final build step, but it caused problems with subsequent `git pull` and also branch selection commands (when a conflict occurred in those files that have been marked as ignored). So if you experience an issue with that, you can un-ignore those files by executing:
-
-```
-npm run git-unignore-generated-files
-```
-
 ## Financial Contributions
 
 We also welcome financial contributions in full transparency on our [open collective](https://opencollective.com/ccxt).
