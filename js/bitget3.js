@@ -12,7 +12,7 @@ const Precise = require ('./base/Precise');
 module.exports = class bitget extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bitget',
+            'id': 'bitget3',
             'name': 'Bitget',
             'countries': [ 'SG' ],
             'version': 'v3',
