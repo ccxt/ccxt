@@ -733,8 +733,15 @@ module.exports = class bitget extends Exchange {
         const response = await this.dataGetCommonTimestamp (params);
         //
         //     {
+        //         "ch":"",
+        //         "data":"1640187433920",
+        //         "errCode":"",
+        //         "errMsg":"",
+        //         "fail":"false",
+        //         "orderId":"",
         //         "status":"ok",
-        //         "data":"1595525139400"
+        //         "success":"true",
+        //         "ts":null
         //     }
         //
         return this.safeInteger (response, 'data');
