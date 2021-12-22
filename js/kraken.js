@@ -1259,7 +1259,7 @@ module.exports = class kraken extends Exchange {
         const timestamp = this.safeTimestamp (order, 'opentm');
         amount = this.safeString (order, 'vol', amount);
         const filled = this.safeString (order, 'vol_exec');
-        // kraken truncates the cost in the api response so we will ignore it and calculate it from average + filled
+        // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString (description, 'price', price);
         if ((price === undefined) || Precise.stringEquals (price, '0')) {
