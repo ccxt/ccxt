@@ -797,7 +797,9 @@ module.exports = class bitget extends Exchange {
         //         "size_increment":"0",
         //         "tick_size":"1",
         //         "forwardContractFlag":false,
-        //         "priceEndStep":5
+        //         "priceEndStep":5,
+        //         "minLeverage":1,
+        //         "maxLeverage":125
         //     }
         //
         const id = this.safeString (market, 'symbol');
