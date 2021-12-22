@@ -33,7 +33,6 @@ class mexc extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchDepositAddressByNetwork' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingRateHistory' => true,

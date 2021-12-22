@@ -154,8 +154,6 @@ class ftx(Exchange):
                         'nft/collections',
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        # pnl
-                        'pnl/historical_changes',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -225,6 +223,8 @@ class ftx(Exchange):
                         'nft/gallery_settings',
                         # latency statistics
                         'stats/latency_stats',
+                        # pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         # subaccounts
@@ -2158,9 +2158,6 @@ class ftx(Exchange):
         nextFundingRate = self.safe_number(fundingRate, 'nextFundingRate')
         nextFundingRateDatetimeRaw = self.safe_string(fundingRate, 'nextFundingTime')
         nextFundingRateTimestamp = self.parse8601(nextFundingRateDatetimeRaw)
-        previousFundingTimestamp = None
-        if nextFundingRateTimestamp is not None:
-            previousFundingTimestamp = nextFundingRateTimestamp - 3600000
         estimatedSettlePrice = self.safe_number(fundingRate, 'predictedExpirationPrice')
         return {
             'info': fundingRate,
@@ -2173,9 +2170,9 @@ class ftx(Exchange):
             'datetime': None,
             'previousFundingRate': None,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,  # subtract 8 hours
+            'previousFundingTimestamp': None,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'previousFundingDatetime': None,
             'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
         }
 

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.64.39'
+__version__ = '1.64.55'
 
 # -----------------------------------------------------------------------------
 
@@ -284,8 +284,8 @@ class Exchange(object):
         'fetchDeposit': None,
         'fetchDepositAddress': None,
         'fetchDepositAddresses': None,
+        'fetchDepositAddressesByNetwork': None,
         'fetchDeposits': None,
-        'fetchFees': None,
         'fetchFundingFee': None,
         'fetchFundingFees': None,
         'fetchFundingHistory': None,
@@ -293,7 +293,6 @@ class Exchange(object):
         'fetchFundingRateHistory': None,
         'fetchFundingRates': None,
         'fetchIndexOHLCV': None,
-        'fetchIsolatedPositions': None,
         'fetchL2OrderBook': True,
         'fetchLedger': None,
         'fetchLedgerEntry': None,
@@ -322,6 +321,8 @@ class Exchange(object):
         'fetchTradingLimits': None,
         'fetchTransactions': None,
         'fetchTransfers': None,
+        'fetchWithdrawAddress': None,
+        'fetchWithdrawAddressesByNetwork': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
         'loadLeverageBrackets': None,

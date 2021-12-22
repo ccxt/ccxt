@@ -50,7 +50,6 @@ class binance extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchIsolatedPositions' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -61,6 +60,7 @@ class binance extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -4078,7 +4078,6 @@ class binance extends Exchange {
         $estimatedSettlePrice = $this->safe_number($premiumIndex, 'estimatedSettlePrice');
         $nextFundingRate = $this->safe_number($premiumIndex, 'lastFundingRate');
         $nextFundingTime = $this->safe_integer($premiumIndex, 'nextFundingTime');
-        $previousFundingTime = $nextFundingTime - (8 * 3600000);
         return array(
             'info' => $premiumIndex,
             'symbol' => $symbol,
@@ -4090,9 +4089,9 @@ class binance extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'previousFundingRate' => null,
             'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTime, // subtract 8 hours
+            'previousFundingTimestamp' => null,
             'nextFundingTimestamp' => $nextFundingTime,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTime),
+            'previousFundingDatetime' => null,
             'nextFundingDatetime' => $this->iso8601($nextFundingTime),
         );
     }
@@ -4558,7 +4557,7 @@ class binance extends Exchange {
     public function fetch_positions_risk($symbols = null, $params = array ()) {
         if ($symbols !== null) {
             if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions requires an array argument for symbols');
+                throw new ArgumentsRequired($this->id . ' fetchPositionsRisk requires an array argument for symbols');
             }
         }
         $this->load_markets();
@@ -4574,7 +4573,7 @@ class binance extends Exchange {
         } else if (($type === 'delivery') || ($type === 'inverse')) {
             $method = 'dapiPrivateGetPositionRisk';
         } else {
-            throw NotSupported ($this->id . ' fetchIsolatedPositions() supports linear and inverse contracts only');
+            throw NotSupported ($this->id . ' fetchPositionsRisk() supports linear and inverse contracts only');
         }
         $response = $this->$method (array_merge($request, $params));
         $result = array();

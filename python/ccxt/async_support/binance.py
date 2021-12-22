@@ -62,7 +62,6 @@ class binance(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchIsolatedPositions': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
@@ -73,6 +72,7 @@ class binance(Exchange):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPositions': True,
+                'fetchPositionsRisk': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -3873,7 +3873,6 @@ class binance(Exchange):
         estimatedSettlePrice = self.safe_number(premiumIndex, 'estimatedSettlePrice')
         nextFundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
         nextFundingTime = self.safe_integer(premiumIndex, 'nextFundingTime')
-        previousFundingTime = nextFundingTime - (8 * 3600000)
         return {
             'info': premiumIndex,
             'symbol': symbol,
@@ -3885,9 +3884,9 @@ class binance(Exchange):
             'datetime': self.iso8601(timestamp),
             'previousFundingRate': None,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTime,  # subtract 8 hours
+            'previousFundingTimestamp': None,
             'nextFundingTimestamp': nextFundingTime,
-            'previousFundingDatetime': self.iso8601(previousFundingTime),
+            'previousFundingDatetime': None,
             'nextFundingDatetime': self.iso8601(nextFundingTime),
         }
 
@@ -4314,7 +4313,7 @@ class binance(Exchange):
     async def fetch_positions_risk(self, symbols=None, params={}):
         if symbols is not None:
             if not isinstance(symbols, list):
-                raise ArgumentsRequired(self.id + ' fetchPositions requires an array argument for symbols')
+                raise ArgumentsRequired(self.id + ' fetchPositionsRisk requires an array argument for symbols')
         await self.load_markets()
         await self.load_leverage_brackets()
         request = {}
@@ -4328,7 +4327,7 @@ class binance(Exchange):
         elif (type == 'delivery') or (type == 'inverse'):
             method = 'dapiPrivateGetPositionRisk'
         else:
-            raise NotSupported(self.id + ' fetchIsolatedPositions() supports linear and inverse contracts only')
+            raise NotSupported(self.id + ' fetchPositionsRisk() supports linear and inverse contracts only')
         response = await getattr(self, method)(self.extend(request, params))
         result = []
         for i in range(0, len(response)):

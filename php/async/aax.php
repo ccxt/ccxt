@@ -105,7 +105,8 @@ class aax extends Exchange {
                         'market/markPrice', // Get Current Mark Price
                         'futures/funding/predictedFunding/{symbol}', // Get Predicted Funding Rate
                         'futures/funding/prevFundingRate/{symbol}', // Get Last Funding Rate
-                        'market/candles/index', // Get Current Index Candlestick
+                        'market/candles/index', // * Deprecated
+                        'market/index/candles',
                     ),
                 ),
                 'private' => array(
@@ -370,53 +371,70 @@ class aax extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
+            $settleId = $this->safe_string($market, 'settleCurrency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
             $status = $this->safe_string($market, 'status');
-            $active = ($status === 'enable');
-            $taker = $this->safe_number($market, 'takerFee');
-            $maker = $this->safe_number($market, 'makerFee');
-            $type = $this->safe_string($market, 'type');
+            $marketType = $this->safe_string($market, 'type');
             $inverse = null;
             $linear = null;
             $quanto = null;
-            $spot = ($type === 'spot');
-            $futures = ($type === 'futures');
+            $spot = ($marketType === 'spot');
+            $swap = ($marketType === 'futures');
             $settleType = $this->safe_string_lower($market, 'settleType');
             if ($settleType !== null) {
                 $inverse = ($settleType === 'inverse');
                 $linear = ($settleType === 'vanilla');
                 $quanto = ($settleType === 'quanto');
             }
-            $symbol = $id;
-            if ($type === 'spot') {
-                $symbol = $base . '/' . $quote;
+            $symbol = $base . '/' . $quote;
+            $type = 'spot';
+            $contractSize = null;
+            if ($swap) {
+                $symbol = $symbol . ':' . $settle;
+                $type = 'swap';
+                $contractSize = $this->safe_number($market, 'multiplier');
             }
-            $precision = array(
-                'amount' => $this->safe_number($market, 'lotSize'),
-                'price' => $this->safe_number($market, 'tickSize'),
-            );
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'type' => $type,
                 'spot' => $spot,
-                'futures' => $futures,
-                'inverse' => $inverse,
+                'margin' => false,
+                'swap' => $swap,
+                'future' => false,
+                'option' => false,
+                'derivative' => $swap,
+                'contract' => $swap,
                 'linear' => $linear,
+                'inverse' => $inverse,
+                'taker' => $this->safe_number($market, 'takerFee'),
+                'maker' => $this->safe_number($market, 'makerFee'),
+                'contractSize' => $contractSize,
+                'active' => ($status === 'enable'),
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'quanto' => $quanto,
-                'precision' => $precision,
-                'info' => $market,
-                'active' => $active,
-                'taker' => $taker,
-                'maker' => $maker,
-                'percentage' => false,
-                'tierBased' => true,
+                'percentage' => false, // ? Deprecated?
+                'tierBased' => true, // ? Deprecated?
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'lotSize'),
+                    'price' => $this->safe_number($market, 'tickSize'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_string($market, 'minQuantity'),
                         'max' => $this->safe_string($market, 'maxQuantity'),
@@ -430,6 +448,7 @@ class aax extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;

@@ -1089,6 +1089,41 @@ class crex24(Exchange):
         #
         return response
 
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            'id': id,
+        }
+        response = await self.tradingGetOrderTrades(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": 3005866,
+        #             "orderId": 468533093,
+        #             "timestamp": "2018-06-02T16:26:27Z",
+        #             "instrument": "BCH-ETH",
+        #             "side": "buy",
+        #             "price": 1.78882,
+        #             "volume": 0.027,
+        #             "fee": 0.0000483,
+        #             "feeCurrency": "ETH"
+        #         },
+        #         {
+        #             "id": 3005812,
+        #             "orderId": 468515771,
+        #             "timestamp": "2018-06-02T16:16:05Z",
+        #             "instrument": "ETC-BTC",
+        #             "side": "sell",
+        #             "price": 0.00210958,
+        #             "volume": 0.05994006,
+        #             "fee": -0.000000063224,
+        #             "feeCurrency": "BTC"
+        #         },
+        #         ...
+        #     ]
+        #
+        return self.parse_trades(response, None, since, limit)
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None

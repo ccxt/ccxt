@@ -47,6 +47,8 @@ async function main () {
             let coloredString = '';
 
             const feature = exchange.has[key]
+            const isFunction = (typeof exchange[key] === 'function')
+            const isBasic = basics.includes (key)
 
             if (feature === false) {
                 // if explicitly set to 'false' in exchange.has (to exclude mistake, we check if it's undefined too)
@@ -57,9 +59,20 @@ async function main () {
                 coloredString = exchange.id.yellow
                 emulated += 1
             } else if (feature) {
-                // if neither 'false' nor 'emulated', and if  method exists
-                coloredString = exchange.id.green
-                implemented += 1
+                if (isBasic) {
+                    // if neither 'false' nor 'emulated', and if  method exists
+                    coloredString = exchange.id.green
+                    implemented += 1
+                } else {
+                    if (isFunction) {
+                        coloredString = exchange.id.green
+                        implemented += 1
+                    } else {
+                        // the feature is available in exchange.has and not implemented
+                        // this is an error
+                        coloredString = exchange.id.red.bright
+                    }
+                }
             } else {
                 coloredString = isWindows ? exchange.id.red : exchange.id.red.dim
                 notImplemented += 1

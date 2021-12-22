@@ -14,7 +14,7 @@ class zipmex(ndax):
             'name': 'Zipmex',
             'countries': ['AU', 'SG', 'TH', 'ID'],  # Australia, Singapore, Thailand, Indonesia
             'certified': False,
-            'pro': False,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg',
                 'test': None,
