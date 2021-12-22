@@ -298,7 +298,7 @@ module.exports = class bitcointrade extends Exchange {
         //   }
         // }
         const params = this.extend (params, {
-            'pair': symbol)
+            'pair': symbol
         });
         const response = await this.privateGetMarket(params);
         orderbook = this.parseOrderBook(
@@ -359,7 +359,7 @@ module.exports = class bitcointrade extends Exchange {
         //     ]
         //
         const params = this.extend (params, {
-            'pair': symbol),
+            'pair': symbol
         });
         const response = await this.privateGetMarket(params);
         return this.parseTrades (response, market, since, limit);
