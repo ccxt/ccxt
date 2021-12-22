@@ -358,7 +358,7 @@ module.exports = class bitcointrade extends Exchange {
         //         }
         //     ]
         //
-        const params = this.extend (params, {
+        params = this.extend (params, {
             'pair': symbol
         });
         const response = await this.privateGetMarket(params);
