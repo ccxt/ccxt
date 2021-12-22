@@ -37,6 +37,7 @@ class ascendex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingRates': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -1645,6 +1646,73 @@ class ascendex(Exchange):
             'account-group': accountGroup,
         }
         return self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+
+    def parse_funding_rate(self, fundingRate, market=None):
+        #
+        #      {
+        #          "time": 1640061364830,
+        #          "symbol": "EOS-PERP",
+        #          "markPrice": "3.353854865",
+        #          "indexPrice": "3.3542",
+        #          "openInterest": "14242",
+        #          "fundingRate": "-0.000073026",
+        #          "nextFundingTime": 1640073600000
+        #      }
+        #
+        marketId = self.safe_string(fundingRate, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        currentTime = self.safe_integer(fundingRate, 'time')
+        nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
+        nextFundingRateTimestamp = self.safe_integer(fundingRate, 'nextFundingTime')
+        previousFundingTimestamp = None
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': self.safe_number(fundingRate, 'markPrice'),
+            'indexPrice': self.safe_number(fundingRate, 'indexPrice'),
+            'interestRate': self.parse_number('0'),
+            'estimatedSettlePrice': None,
+            'timestamp': currentTime,
+            'datetime': self.iso8601(currentTime),
+            'previousFundingRate': None,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
+        }
+
+    def fetch_funding_rates(self, symbols, params={}):
+        self.load_markets()
+        response = self.v2PublicGetFuturesPricingData(params)
+        #
+        #     {
+        #          "code": 0,
+        #          "data": {
+        #              "contracts": [
+        #                  {
+        #                      "time": 1640061364830,
+        #                      "symbol": "EOS-PERP",
+        #                      "markPrice": "3.353854865",
+        #                      "indexPrice": "3.3542",
+        #                      "openInterest": "14242",
+        #                      "fundingRate": "-0.000073026",
+        #                      "nextFundingTime": 1640073600000
+        #                  },
+        #              ],
+        #              "collaterals": [
+        #                  {
+        #                      "asset": "USDTR",
+        #                      "referencePrice": "1"
+        #                  },
+        #              ]
+        #          }
+        #      }
+        #
+        data = self.safe_value(response, 'data', {})
+        contracts = self.safe_value(data, 'contracts', [])
+        result = self.parse_funding_rates(contracts)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def set_leverage(self, leverage, symbol=None, params={}):
         if symbol is None:
