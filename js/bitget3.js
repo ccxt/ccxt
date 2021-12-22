@@ -9,7 +9,7 @@ const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitget extends Exchange {
+module.exports = class bitget3 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitget3',
