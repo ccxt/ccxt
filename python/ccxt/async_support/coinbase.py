@@ -788,7 +788,7 @@ class coinbase(Exchange):
                         account['free'] = Precise.string_add(account['free'], total)
                         account['total'] = Precise.string_add(account['total'], total)
                     result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

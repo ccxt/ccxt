@@ -1960,7 +1960,7 @@ class kucoin(Exchange):
             account['free'] = self.safe_string(data, 'availableBalance')
             account['total'] = self.safe_string(data, 'accountEquity')
             result[code] = account
-            return self.parse_balance(result)
+            return self.safe_balance(result)
         else:
             request = {
                 'type': type,
@@ -1993,7 +1993,7 @@ class kucoin(Exchange):
                     account['free'] = self.safe_string(balance, 'available')
                     account['used'] = self.safe_string(balance, 'holds')
                     result[code] = account
-            return self.parse_balance(result)
+            return self.safe_balance(result)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()

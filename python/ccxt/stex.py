@@ -842,7 +842,7 @@ class stex(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'frozen_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order_status(self, status):
         statuses = {

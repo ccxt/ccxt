@@ -1204,7 +1204,7 @@ class mexc extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function safe_network($networkId) {

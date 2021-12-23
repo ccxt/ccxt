@@ -1611,13 +1611,13 @@ class gateio extends Exchange {
                 $subResult = array();
                 $subResult[$baseCode] = $this->fetch_balance_helper($base);
                 $subResult[$quoteCode] = $this->fetch_balance_helper($quote);
-                $result[$symbol] = $this->parse_balance($subResult);
+                $result[$symbol] = $this->safe_balance($subResult);
             } else {
                 $code = $this->safe_currency_code($this->safe_string($entry, 'currency', array()));
                 $result[$code] = $this->fetch_balance_helper($entry);
             }
         }
-        return $margin ? $result : $this->parse_balance($result);
+        return $margin ? $result : $this->safe_balance($result);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

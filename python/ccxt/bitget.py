@@ -1570,7 +1570,7 @@ class bitget(Exchange):
             elif (type == 'frozen') or (type == 'lock'):
                 used = self.safe_string(result[code], 'used')
                 result[code]['used'] = Precise.string_add(used, self.safe_string(balance, 'balance'))
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_swap_balance(self, response):
         #
@@ -1595,7 +1595,7 @@ class bitget(Exchange):
             account['total'] = self.safe_string(balance, 'equity')
             account['free'] = self.safe_string(balance, 'total_avail_balance')
             result[symbol] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_accounts(self, params={}):
         request = {

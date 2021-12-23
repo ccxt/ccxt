@@ -670,7 +670,7 @@ class bigone extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_order($order, $market = null) {

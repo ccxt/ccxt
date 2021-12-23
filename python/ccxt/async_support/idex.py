@@ -626,7 +626,7 @@ class idex(Exchange):
             account['free'] = self.safe_string(entry, 'availableForTrade')
             account['used'] = self.safe_string(entry, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.check_required_credentials()

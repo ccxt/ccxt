@@ -395,7 +395,7 @@ class itbit(Exchange):
             account['free'] = self.safe_string(balance, 'availableBalance')
             account['total'] = self.safe_string(balance, 'totalBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_wallets(self, params={}):
         self.load_markets()

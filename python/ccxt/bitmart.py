@@ -1459,7 +1459,7 @@ class bitmart(Exchange):
             account['free'] = self.safe_string_2(balance, 'available', 'available_vol')
             account['used'] = self.safe_string_2(balance, 'frozen', 'freeze_vol')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order(self, order, market=None):
         #

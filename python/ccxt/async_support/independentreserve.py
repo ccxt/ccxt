@@ -148,7 +148,7 @@ class independentreserve(Exchange):
             account['free'] = self.safe_string(balance, 'AvailableBalance')
             account['total'] = self.safe_string(balance, 'TotalBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

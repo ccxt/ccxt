@@ -276,7 +276,7 @@ class bitso(Exchange):
             account['used'] = self.safe_string(balance, 'locked')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

@@ -857,7 +857,7 @@ class stex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'frozen_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_order_status($status) {

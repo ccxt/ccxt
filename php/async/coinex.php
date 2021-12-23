@@ -561,7 +561,7 @@ class coinex extends Exchange {
         $buyAccount['total'] = $this->safe_string($total, 'buy_type');
         $result[$buyCurrencyCode] = $buyAccount;
         //
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_spot_balance($params = array ()) {
@@ -599,7 +599,7 @@ class coinex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'frozen');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {

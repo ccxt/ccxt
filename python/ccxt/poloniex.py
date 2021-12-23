@@ -368,7 +368,7 @@ class poloniex(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'onOrders')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()

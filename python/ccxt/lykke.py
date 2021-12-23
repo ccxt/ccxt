@@ -252,7 +252,7 @@ class lykke(Exchange):
             account['total'] = self.safe_string(balance, 'Balance')
             account['used'] = self.safe_string(balance, 'Reserved')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def cancel_order(self, id, symbol=None, params={}):
         request = {'id': id}

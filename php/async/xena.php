@@ -615,7 +615,7 @@ class xena extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_trade($trade, $market = null) {

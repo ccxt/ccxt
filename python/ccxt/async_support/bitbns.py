@@ -395,7 +395,7 @@ class bitbns(Exchange):
                     account['free'] = self.safe_string(data, key)
                     account['used'] = self.safe_string(data, 'inorder' + currencyId)
                     result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order_status(self, status):
         statuses = {

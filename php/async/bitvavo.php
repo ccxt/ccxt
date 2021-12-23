@@ -738,7 +738,7 @@ class bitvavo extends Exchange {
             $account['used'] = $this->safe_string($balance, 'inOrder');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

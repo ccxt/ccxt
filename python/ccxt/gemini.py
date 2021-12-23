@@ -634,7 +634,7 @@ class gemini(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['total'] = self.safe_string(balance, 'amount')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order(self, order, market=None):
         timestamp = self.safe_integer(order, 'timestampms')
