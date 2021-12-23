@@ -18,7 +18,7 @@ class ftx extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'ftx',
             'name' => 'FTX',
-            'countries' => array( 'HK' ),
+            'countries' => array( 'BS' ), // Bahamas
             'rateLimit' => 100,
             'certified' => true,
             'pro' => true,
@@ -38,12 +38,16 @@ class ftx extends Exchange {
                 ),
             ),
             'has' => array(
+                'margin' => true,
+                'swap' => true,
+                'future' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => true,
+                'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => true,
                 'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
@@ -63,6 +67,7 @@ class ftx extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -132,8 +137,6 @@ class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        // pnl
-                        'pnl/historical_changes',
                     ),
                     'post' => array(
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -203,6 +206,8 @@ class ftx extends Exchange {
                         'nft/gallery_settings',
                         // latency statistics
                         'stats/latency_stats',
+                        // pnl
+                        'pnl/historical_changes',
                     ),
                     'post' => array(
                         // subaccounts
@@ -277,7 +282,7 @@ class ftx extends Exchange {
                             array( $this->parse_number('2000000'), $this->parse_number('0.0006') ),
                             array( $this->parse_number('5000000'), $this->parse_number('0.00055') ),
                             array( $this->parse_number('10000000'), $this->parse_number('0.0005') ),
-                            array( $this->parse_number('25000000'), $this->parse_number('0.045') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0045') ),
                             array( $this->parse_number('50000000'), $this->parse_number('0.0004') ),
                         ),
                         'maker' => array(
@@ -912,26 +917,23 @@ class ftx extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($trade, 'side');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
-                'rate' => $this->safe_number($trade, 'feeRate'),
+                'rate' => $this->safe_string($trade, 'feeRate'),
             );
         }
         $orderId = $this->safe_string($trade, 'orderId');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -941,11 +943,11 @@ class ftx extends Exchange {
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1699,6 +1701,13 @@ class ftx extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'orderId' => $id,
+        );
+        return yield $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
@@ -1888,7 +1897,7 @@ class ftx extends Exchange {
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentageString),
-            'entryPrice' => null,
+            'entryPrice' => $this->parse_number($entryPriceString),
             'notional' => $this->parse_number($notionalString),
             'leverage' => $leverage,
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
@@ -2250,10 +2259,6 @@ class ftx extends Exchange {
         $nextFundingRate = $this->safe_number($fundingRate, 'nextFundingRate');
         $nextFundingRateDatetimeRaw = $this->safe_string($fundingRate, 'nextFundingTime');
         $nextFundingRateTimestamp = $this->parse8601($nextFundingRateDatetimeRaw);
-        $previousFundingTimestamp = null;
-        if ($nextFundingRateTimestamp !== null) {
-            $previousFundingTimestamp = $nextFundingRateTimestamp - 3600000;
-        }
         $estimatedSettlePrice = $this->safe_number($fundingRate, 'predictedExpirationPrice');
         return array(
             'info' => $fundingRate,
@@ -2266,9 +2271,9 @@ class ftx extends Exchange {
             'datetime' => null,
             'previousFundingRate' => null,
             'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTimestamp, // subtract 8 hours
+            'previousFundingTimestamp' => null,
             'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'previousFundingDatetime' => null,
             'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
         );
     }

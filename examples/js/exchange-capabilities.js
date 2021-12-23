@@ -1,127 +1,108 @@
 "use strict";
 
-/*  ------------------------------------------------------------------------ */
-
-const ccxt        = require ('../../ccxt.js')
-    , asTable     = require ('as-table').configure ({ delimiter: ' | ', /* print: require ('string.ify').noPretty  */ })
-    , log         = require ('ololog').noLocate
-    , ansi        = require ('ansicolor').nice
+const csv = process.argv.includes ('--csv')
+    , delimiter = csv ? ',' : '|'
+    , ccxt = require ('../../ccxt.js')
+    , asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ }
+    , asTable = require ('as-table').configure (asTableConfig)
+    , log = require ('ololog').noLocate
+    , ansi = require ('ansicolor').nice
 
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
+const isWindows = process.platform == 'win32' // fix for windows, as it doesn't show darkred-VS-red well enough
 
-;(async function test () {
+async function main () {
 
     let total = 0
-    let missing = 0
-    let ignored = 0
+    let notImplemented = 0
+    let inexistentApi = 0
     let implemented = 0
     let emulated = 0
 
-    log (asTable (ccxt.exchanges.map (id => new ccxt[id]()).map (exchange => {
-
+    const exchanges = ccxt.exchanges.map (id => new ccxt[id] ())
+    const metainfo = ccxt.flatten (exchanges.map (exchange => Object.keys (exchange.has)))
+    const reduced = metainfo.reduce ((previous, current) => {
+        previous[current] = (previous[current] || 0) + 1
+        return previous
+    }, {})
+    const unified = Object.entries (reduced).filter (([ _, count ]) => count > 1)
+    const methods = unified.map (([ method, _ ]) => method).sort ()
+    const table = asTable (exchanges.map (exchange => {
         let result = {};
-
-        [
+        const basics = [
             'publicAPI',
             'privateAPI',
             'CORS',
-            'fetchCurrencies',
-            'fetchFundingFees',
-            'fetchFundingRate',
-            'fetchFundingRates',
-            'fetchFundingRateHistory',
-            'fetchIndexOHLCV',
-            'fetchMarkOHLCV',
-            'fetchMarkets',
-            'fetchOHLCV',
-            'fetchOrderBook',
-            'fetchOrderBooks',
-            'fetchStatus',
-            'fetchTicker',
-            'fetchTickers',
-            'fetchTime',
-            'fetchTrades',
-            'fetchTradingLimits',
-            'cancelAllOrders',
-            'cancelOrder',
-            'cancelOrders',
-            'createDepositAddress',
-            'createOrder',
-            'deposit',
-            'editOrder',
-            'fetchAccounts',
-            'fetchBalance',
-            'fetchBorrowRate',
-            'fetchBorrowRates',
-            'fetchCanceledOrders',
-            'fetchClosedOrder',
-            'fetchClosedOrders',
-            'fetchDeposit',
-            'fetchDepositAddress',
-            'fetchDepositAddresses',
-            'fetchDeposits',
-            'fetchFees',
-            'fetchFundingFee',
-            'fetchFundingHistory',
-            'fetchIsolatedPositions',
-            'fetchLedger',
-            'fetchLedgerEntry',
-            'fetchMyTrades',
-            'fetchOpenOrder',
-            'fetchOpenOrders',
-            'fetchOrder',
-            'fetchOrderTrades',
-            'fetchOrders',
-            'fetchPosition',
-            'fetchPositions',
-            'fetchPremiumIndexOHLCV',
-            'fetchTradingFee',
-            'fetchTradingFees',
-            'fetchTransactions',
-            'fetchTransfers',
-            'fetchWithdrawal',
-            'fetchWithdrawals',
-            'setLeverage',
-            'setMarginMode',
-            'signIn',
-            'transfer',
-            'withdraw',
-        ].forEach (key => {
+            'margin',
+            'swap',
+            'future',
+            'CORS',
+        ];
+
+        ccxt.unique (basics.concat (methods)).forEach (key => {
 
             total += 1
 
-            let capability = exchange.has[key]
+            let coloredString = '';
 
-            if (capability === undefined) {
-                capability = exchange.id.red
-                missing += 1
-            } else if (capability === false) {
-                capability = exchange.id.red.dim
-                ignored += 1
-            } else if (capability.toString () === 'emulated') {
-                capability = exchange.id.yellow
+            const feature = exchange.has[key]
+            const isFunction = (typeof exchange[key] === 'function')
+            const isBasic = basics.includes (key)
+
+            if (feature === false) {
+                // if explicitly set to 'false' in exchange.has (to exclude mistake, we check if it's undefined too)
+                coloredString = isWindows ? exchange.id.lightMagenta : exchange.id.red
+                inexistentApi += 1
+            } else if (feature === 'emulated') {
+                // if explicitly set to 'emulated' in exchange.has
+                coloredString = exchange.id.yellow
                 emulated += 1
+            } else if (feature) {
+                if (isBasic) {
+                    // if neither 'false' nor 'emulated', and if  method exists
+                    coloredString = exchange.id.green
+                    implemented += 1
+                } else {
+                    if (isFunction) {
+                        coloredString = exchange.id.green
+                        implemented += 1
+                    } else {
+                        // the feature is available in exchange.has and not implemented
+                        // this is an error
+                        coloredString = exchange.id.red.bright
+                    }
+                }
             } else {
-                capability = exchange.id.green
-                implemented += 1
+                coloredString = isWindows ? exchange.id.red : exchange.id.red.dim
+                notImplemented += 1
             }
 
-            result[key] = capability
+            result[key] = coloredString
         })
 
         return result
-    })))
+    }))
 
-    log ('Summary:',
-        ccxt.exchanges.length.toString (), 'exchanges,',
-        implemented.toString ().green, 'methods implemented,',
+    if (csv) {
+        let lines = table.split ("\n")
+        lines = lines.slice (0, 1).concat (lines.slice (2))
+        log (lines.join ("\n"))
+    } else {
+        log (table)
+    }
+
+    log ('Summary: ',
+        ccxt.exchanges.length.toString (), 'exchanges; ',
+        'Methods [' + total.toString () + ' total]: ',
+        implemented.toString ().green, 'implemented,',
         emulated.toString ().yellow, 'emulated,',
-        ignored.toString ().red.dim, 'ignored,',
-        missing.toString ().red, 'missing,',
-        total.toString (), 'total'
+        (isWindows ? inexistentApi.toString ().lightMagenta : inexistentApi.toString ().red), 'inexistentApi,',
+        (isWindows ? notImplemented.toString ().red : notImplemented.toString ().red.dim), 'notImplemented',
     )
 
     log("\nMessy? Try piping to less (e.g. node script.js | less -S -R)\n".red)
 
-}) ()
+}
+
+main ()

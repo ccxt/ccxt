@@ -283,6 +283,7 @@ module.exports = class bitmart extends Exchange {
             'commonCurrencies': {
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
+                'DMS': 'DimSum', // conflict with Dragon Mainland Shards
                 'FOX': 'Fox Finance',
                 'GDT': 'Gorilla Diamond',
                 '$HERO': 'Step Hero',
@@ -292,6 +293,7 @@ module.exports = class bitmart extends Exchange {
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
                 'TCT': 'TacoCat Token',
+                'TRU': 'Truebit', // conflict with TrueFi
             },
             'options': {
                 'networks': {
@@ -1864,6 +1866,8 @@ module.exports = class bitmart extends Exchange {
                 request['status'] = 9;
             } else if (status === 'closed') {
                 request['status'] = 6;
+            } else if (status === 'canceled') {
+                request['status'] = 8;
             } else {
                 request['status'] = status;
             }
@@ -1957,6 +1961,10 @@ module.exports = class bitmart extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatus ('canceled', symbol, since, limit, params);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

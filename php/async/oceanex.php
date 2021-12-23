@@ -16,7 +16,7 @@ class oceanex extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'oceanex',
             'name' => 'OceanEx',
-            'countries' => array( 'LU', 'CN', 'SG' ),
+            'countries' => array( 'BS' ), // Bahamas
             'version' => 'v1',
             'rateLimit' => 3000,
             'urls' => array(
@@ -35,7 +35,6 @@ class oceanex extends Exchange {
                 'fetchAllTradingFees' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => null,
                 'fetchFundingFees' => null,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,

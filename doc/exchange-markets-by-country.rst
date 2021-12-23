@@ -78,6 +78,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://docs.timex.io
           :alt: API Version 1
      
+   * - Australia
+     - .. image:: https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg
+          :target: https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN
+          :alt: zipmex
+     
+     - zipmex
+     - `Zipmex <https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://apidoc.ndax.io/
+          :alt: API Version *
+     
    * - Austria
      - .. image:: https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg
           :target: https://www.bitpanda.com/en/pro
@@ -87,6 +98,28 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `Bitpanda Pro <https://www.bitpanda.com/en/pro>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://developers.bitpanda.com/exchange/
+          :alt: API Version 1
+     
+   * - Bahamas
+     - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
+          :target: https://ftx.com/#a=ccxt
+          :alt: ftx
+     
+     - ftx
+     - `FTX <https://ftx.com/#a=ccxt>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://github.com/ftexchange/ftx
+          :alt: API Version *
+     
+   * - Bahamas
+     - .. image:: https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg
+          :target: https://oceanex.pro/signup?referral=VE24QX
+          :alt: oceanex
+     
+     - oceanex
+     - `OceanEx <https://oceanex.pro/signup?referral=VE24QX>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://api.oceanex.pro/doc/v1
           :alt: API Version 1
      
    * - Belarus
@@ -310,17 +343,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg
-          :target: https://oceanex.pro/signup?referral=VE24QX
-          :alt: oceanex
-     
-     - oceanex
-     - `OceanEx <https://oceanex.pro/signup?referral=VE24QX>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://api.oceanex.pro/doc/v1
-          :alt: API Version 1
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg
           :target: https://www.okcoin.com/account/register?flag=activity&channelId=600001513
           :alt: okcoin
@@ -409,28 +431,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - EU
-     - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
-          :target: https://auth.bitbay.net/ref/jHlbB4mIkdS1
-          :alt: bitbay
-     
-     - bitbay
-     - `BitBay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://bitbay.net/public-api
-          :alt: API Version *
-     
-   * - EU
-     - .. image:: https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg
-          :target: https://bl3p.eu
-          :alt: bl3p
-     
-     - bl3p
-     - `BL3P <https://bl3p.eu>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/BitonicNL/bl3p-api/tree/master/docs
-          :alt: API Version 1
-     
-   * - EU
      - .. image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg
           :target: https://cex.io/r/0/up105393824/0/
           :alt: cex
@@ -496,6 +496,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest
           :alt: API Version 2
      
+   * - Estonia
+     - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
+          :target: https://auth.zondaglobal.com/ref/jHlbB4mIkdS1
+          :alt: zonda
+     
+     - zonda
+     - `Zonda <https://auth.zondaglobal.com/ref/jHlbB4mIkdS1>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.zonda.exchange/
+          :alt: API Version *
+     
    * - France
      - .. image:: https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg
           :target: https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj
@@ -527,17 +538,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `ByteTrade <https://www.byte-trade.com>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.byte-trade.com/#description
-          :alt: API Version *
-     
-   * - Hong Kong
-     - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
-          :target: https://ftx.com/#a=ccxt
-          :alt: ftx
-     
-     - ftx
-     - `FTX <https://ftx.com/#a=ccxt>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://github.com/ftexchange/ftx
           :alt: API Version *
      
    * - Hong Kong
@@ -605,6 +605,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2.0-lightgray
           :target: https://github.com/btcid/indodax-official-api-docs
           :alt: API Version 2.0
+     
+   * - Indonesia
+     - .. image:: https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg
+          :target: https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN
+          :alt: zipmex
+     
+     - zipmex
+     - `Zipmex <https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://apidoc.ndax.io/
+          :alt: API Version *
      
    * - Israel
      - .. image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
@@ -727,16 +738,16 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://techbureau-api-document.readthedocs.io/ja/latest/index.html
           :alt: API Version 1
      
-   * - Luxembourg
-     - .. image:: https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg
-          :target: https://oceanex.pro/signup?referral=VE24QX
-          :alt: oceanex
+   * - Lithuania
+     - .. image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
+          :target: https://exmo.me/?ref=131685
+          :alt: exmo
      
-     - oceanex
-     - `OceanEx <https://oceanex.pro/signup?referral=VE24QX>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://api.oceanex.pro/doc/v1
-          :alt: API Version 1
+     - exmo
+     - `EXMO <https://exmo.me/?ref=131685>`__
+     - .. image:: https://img.shields.io/badge/1.1-lightgray
+          :target: https://exmo.me/en/api_doc?ref=131685
+          :alt: API Version 1.1
      
    * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
@@ -791,17 +802,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `Binance USDⓈ-M <https://www.binance.com>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/futures/en/
-          :alt: API Version *
-     
-   * - Malta
-     - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
-          :target: https://auth.bitbay.net/ref/jHlbB4mIkdS1
-          :alt: bitbay
-     
-     - bitbay
-     - `BitBay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://bitbay.net/public-api
           :alt: API Version *
      
    * - Malta
@@ -902,17 +902,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://cex.io/cex-api
           :alt: API Version *
-     
-   * - Russia
-     - .. image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
-          :target: https://exmo.me/?ref=131685
-          :alt: exmo
-     
-     - exmo
-     - `EXMO <https://exmo.me/?ref=131685>`__
-     - .. image:: https://img.shields.io/badge/1.1-lightgray
-          :target: https://exmo.me/en/api_doc?ref=131685
-          :alt: API Version 1.1
      
    * - Russia
      - .. image:: https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg
@@ -1058,15 +1047,15 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - Singapore
-     - .. image:: https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg
-          :target: https://oceanex.pro/signup?referral=VE24QX
-          :alt: oceanex
+     - .. image:: https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg
+          :target: https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN
+          :alt: zipmex
      
-     - oceanex
-     - `OceanEx <https://oceanex.pro/signup?referral=VE24QX>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://api.oceanex.pro/doc/v1
-          :alt: API Version 1
+     - zipmex
+     - `Zipmex <https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://apidoc.ndax.io/
+          :alt: API Version *
      
    * - South Africa
      - .. image:: https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg
@@ -1167,17 +1156,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C
           :alt: API Version 1
      
-   * - Spain
-     - .. image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
-          :target: https://exmo.me/?ref=131685
-          :alt: exmo
-     
-     - exmo
-     - `EXMO <https://exmo.me/?ref=131685>`__
-     - .. image:: https://img.shields.io/badge/1.1-lightgray
-          :target: https://exmo.me/en/api_doc?ref=131685
-          :alt: API Version 1.1
-     
    * - St. Vincent & Grenadines
      - .. image:: https://user-images.githubusercontent.com/1294454/99450025-3be60a00-2931-11eb-9302-f4fd8d8589aa.jpg
           :target: https://www.delta.exchange/app/signup/?code=IULYNB
@@ -1233,6 +1211,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://developers.liquid.com
           :alt: API Version 2
      
+   * - Thailand
+     - .. image:: https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg
+          :target: https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN
+          :alt: zipmex
+     
+     - zipmex
+     - `Zipmex <https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://apidoc.ndax.io/
+          :alt: API Version *
+     
    * - Turkey
      - .. image:: https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg
           :target: https://www.btcturk.com
@@ -1242,17 +1231,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `BTCTurk <https://www.btcturk.com>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://github.com/BTCTrader/broker-api-docs
-          :alt: API Version *
-     
-   * - UK
-     - .. image:: https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg
-          :target: https://aofex.com/#/register?key=9763840
-          :alt: aofex
-     
-     - aofex
-     - `AOFEX <https://aofex.com/#/register?key=9763840>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://aofex.zendesk.com/hc/en-us/sections/360005576574-API
           :alt: API Version *
      
    * - UK
@@ -1430,17 +1408,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.pro.coinbase.com
           :alt: API Version *
-     
-   * - US
-     - .. image:: https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg
-          :target: https://coinmarketcap.com
-          :alt: coinmarketcap
-     
-     - coinmarketcap
-     - `CoinMarketCap <https://coinmarketcap.com>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://coinmarketcap.com/api
-          :alt: API Version 1
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg

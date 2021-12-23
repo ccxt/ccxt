@@ -288,6 +288,7 @@ class bitmart extends Exchange {
             'commonCurrencies' => array(
                 'COT' => 'Community Coin',
                 'CPC' => 'CPCoin',
+                'DMS' => 'DimSum', // conflict with Dragon Mainland Shards
                 'FOX' => 'Fox Finance',
                 'GDT' => 'Gorilla Diamond',
                 '$HERO' => 'Step Hero',
@@ -297,6 +298,7 @@ class bitmart extends Exchange {
                 'ONE' => 'Menlo One',
                 'PLA' => 'Plair',
                 'TCT' => 'TacoCat Token',
+                'TRU' => 'Truebit', // conflict with TrueFi
             ),
             'options' => array(
                 'networks' => array(
@@ -1869,6 +1871,8 @@ class bitmart extends Exchange {
                 $request['status'] = 9;
             } else if ($status === 'closed') {
                 $request['status'] = 6;
+            } else if ($status === 'canceled') {
+                $request['status'] = 8;
             } else {
                 $request['status'] = $status;
             }
@@ -1962,6 +1966,10 @@ class bitmart extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return yield $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
+    }
+
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return yield $this->fetch_orders_by_status('canceled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -426,7 +426,6 @@ declare module 'ccxt' {
     /* tslint:disable */
 
     export class aax extends Exchange {}
-    export class aofex extends Exchange {}
     export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
     export class bibox extends Exchange {}
@@ -437,7 +436,7 @@ declare module 'ccxt' {
     export class binanceusdm extends binance {}
     export class bit2c extends Exchange {}
     export class bitbank extends Exchange {}
-    export class bitbay extends Exchange {}
+    export class bitbay extends zonda {}
     export class bitbns extends Exchange {}
     export class bitcoincom extends hitbtc {}
     export class bitfinex extends Exchange {}
@@ -473,7 +472,6 @@ declare module 'ccxt' {
     export class coincheck extends Exchange {}
     export class coinex extends Exchange {}
     export class coinfalcon extends Exchange {}
-    export class coinmarketcap extends Exchange {}
     export class coinmate extends Exchange {}
     export class coinone extends Exchange {}
     export class coinspot extends Exchange {}
@@ -537,12 +535,13 @@ declare module 'ccxt' {
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
+    export class zipmex extends ndax {}
+    export class zonda extends Exchange {}
 
     /* tslint:enable */
 
     export type ExchangeId =
         | 'aax'
-        | 'aofex'
         | 'ascendex'
         | 'bequant'
         | 'bibox'
@@ -589,7 +588,6 @@ declare module 'ccxt' {
         | 'coincheck'
         | 'coinex'
         | 'coinfalcon'
-        | 'coinmarketcap'
         | 'coinmate'
         | 'coinone'
         | 'coinspot'
@@ -653,5 +651,7 @@ declare module 'ccxt' {
         | 'yobit'
         | 'zaif'
         | 'zb'
+        | 'zipmex'
+        | 'zonda'
 
 }

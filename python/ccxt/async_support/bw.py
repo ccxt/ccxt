@@ -58,8 +58,6 @@ class bw(Exchange):
                 'fetchTradingLimits': None,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
-                'privateAPI': None,
-                'publicAPI': None,
                 'withdraw': None,
             },
             'timeframes': {

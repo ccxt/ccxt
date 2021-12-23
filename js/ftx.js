@@ -14,7 +14,7 @@ module.exports = class ftx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ftx',
             'name': 'FTX',
-            'countries': [ 'HK' ],
+            'countries': [ 'BS' ], // Bahamas
             'rateLimit': 100,
             'certified': true,
             'pro': true,
@@ -34,12 +34,16 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'has': {
+                'margin': true,
+                'swap': true,
+                'future': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': true,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
@@ -59,6 +63,7 @@ module.exports = class ftx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -128,8 +133,6 @@ module.exports = class ftx extends Exchange {
                         'nft/collections',
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        // pnl
-                        'pnl/historical_changes',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -199,6 +202,8 @@ module.exports = class ftx extends Exchange {
                         'nft/gallery_settings',
                         // latency statistics
                         'stats/latency_stats',
+                        // pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         // subaccounts
@@ -273,7 +278,7 @@ module.exports = class ftx extends Exchange {
                             [ this.parseNumber ('2000000'), this.parseNumber ('0.0006') ],
                             [ this.parseNumber ('5000000'), this.parseNumber ('0.00055') ],
                             [ this.parseNumber ('10000000'), this.parseNumber ('0.0005') ],
-                            [ this.parseNumber ('25000000'), this.parseNumber ('0.045') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0045') ],
                             [ this.parseNumber ('50000000'), this.parseNumber ('0.0004') ],
                         ],
                         'maker': [
@@ -908,26 +913,23 @@ module.exports = class ftx extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const side = this.safeString (trade, 'side');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': this.safeNumber (trade, 'feeRate'),
+                'rate': this.safeString (trade, 'feeRate'),
             };
         }
         const orderId = this.safeString (trade, 'orderId');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -937,11 +939,11 @@ module.exports = class ftx extends Exchange {
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -1695,6 +1697,13 @@ module.exports = class ftx extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'orderId': id,
+        };
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market', params);
@@ -1884,7 +1893,7 @@ module.exports = class ftx extends Exchange {
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
-            'entryPrice': undefined,
+            'entryPrice': this.parseNumber (entryPriceString),
             'notional': this.parseNumber (notionalString),
             'leverage': leverage,
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
@@ -2246,10 +2255,6 @@ module.exports = class ftx extends Exchange {
         const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
         const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
         const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
-        let previousFundingTimestamp = undefined;
-        if (nextFundingRateTimestamp !== undefined) {
-            previousFundingTimestamp = nextFundingRateTimestamp - 3600000;
-        }
         const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
         return {
             'info': fundingRate,
@@ -2262,9 +2267,9 @@ module.exports = class ftx extends Exchange {
             'datetime': undefined,
             'previousFundingRate': undefined,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'previousFundingTimestamp': undefined,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'previousFundingDatetime': undefined,
             'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }

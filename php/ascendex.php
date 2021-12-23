@@ -33,6 +33,7 @@ class ascendex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRates' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -436,26 +437,31 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $futures = $this->v1PublicGetFuturesContracts ($params);
+        $perpetuals = $this->v2PublicGetFuturesContract ($params);
         //
         //     {
         //         "code":0,
         //         "data":array(
         //             {
         //                 "symbol":"BTC-PERP",
+        //                 "status":"Normal",
+        //                 "displayName":"BTCUSDT",
+        //                 "settlementAsset":"USDT",
+        //                 "underlying":"BTC/USDT",
         //                 "tradingStartTime":1579701600000,
-        //                 "collapseDecimals":"1,0.1,0.01",
-        //                 "minQty":"0.000000001",
-        //                 "maxQty":"1000000000",
-        //                 "minNotional":"5",
-        //                 "maxNotional":"1000000",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "tickSize":"0.25",
-        //                 "lotSize":"0.0001",
-        //                 "priceScale":2,
-        //                 "qtyScale":4,
-        //                 "notionalScale":2
+        //                 "priceFilter":array("minPrice":"1","maxPrice":"1000000","tickSize":"1"),
+        //                 "lotSizeFilter":array("minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"),
+        //                 "commissionType":"Quote",
+        //                 "commissionReserveRate":"0.001",
+        //                 "marketOrderPriceMarkup":"0.03",
+        //                 "marginRequirements":array(
+        //                     array("positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"),
+        //                     array("positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"),
+        //                     array("positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"),
+        //                     array("positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"),
+        //                     array("positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"),
+        //                     array("positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2")
+        //                 )
         //             }
         //         )
         //     }
@@ -463,10 +469,10 @@ class ascendex extends Exchange {
         $productsData = $this->safe_value($products, 'data', array());
         $productsById = $this->index_by($productsData, 'symbol');
         $cashData = $this->safe_value($cash, 'data', array());
-        $futuresData = $this->safe_value($futures, 'data', array());
-        $cashAndFuturesData = $this->array_concat($cashData, $futuresData);
-        $cashAndFuturesById = $this->index_by($cashAndFuturesData, 'symbol');
-        $dataById = $this->deep_extend($productsById, $cashAndFuturesById);
+        $perpetualsData = $this->safe_value($perpetuals, 'data', array());
+        $cashAndPerpetualsData = $this->array_concat($cashData, $perpetualsData);
+        $cashAndPerpetualsById = $this->index_by($cashAndPerpetualsData, 'symbol');
+        $dataById = $this->deep_extend($productsById, $cashAndPerpetualsById);
         $ids = is_array($dataById) ? array_keys($dataById) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -474,21 +480,43 @@ class ascendex extends Exchange {
             $market = $dataById[$id];
             $baseId = $this->safe_string($market, 'baseAsset');
             $quoteId = $this->safe_string($market, 'quoteAsset');
+            $settleId = $this->safe_value($market, 'settlementAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
             $precision = array(
                 'amount' => $this->safe_number($market, 'lotSize'),
                 'price' => $this->safe_number($market, 'tickSize'),
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'Normal');
-            $type = (is_array($market) && array_key_exists('useLot', $market)) ? 'spot' : 'future';
+            $type = ($settle !== null) ? 'swap' : 'spot';
             $spot = ($type === 'spot');
-            $future = ($type === 'future');
+            $swap = ($type === 'swap');
             $margin = $this->safe_value($market, 'marginTradable', false);
-            $symbol = $id;
-            if (!$future) {
-                $symbol = $base . '/' . $quote;
+            $contract = $swap;
+            $derivative = $contract;
+            $linear = $contract ? true : null;
+            $contractSize = $contract ? 1 : null;
+            $minQty = $this->safe_number($market, 'minQty');
+            $maxQty = $this->safe_number($market, 'maxQty');
+            $minPrice = $this->safe_number($market, 'tickSize');
+            $maxPrice = null;
+            $symbol = $base . '/' . $quote;
+            if ($contract) {
+                $lotSizeFilter = $this->safe_value($market, 'lotSizeFilter');
+                $minQty = $this->safe_number($lotSizeFilter, 'minQty');
+                $maxQty = $this->safe_number($lotSizeFilter, 'maxQty');
+                $priceFilter = $this->safe_value($market, 'priceFilter');
+                $minPrice = $this->safe_number($priceFilter, 'minPrice');
+                $maxPrice = $this->safe_number($priceFilter, 'maxPrice');
+                $underlying = $this->safe_string($market, 'underlying');
+                $parts = explode('/', $underlying);
+                $baseId = $this->safe_string($parts, 0);
+                $quoteId = $this->safe_string($parts, 1);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote . ':' . $settle;
             }
             $fee = $this->safe_number($market, 'commissionReserveRate');
             $result[] = array(
@@ -496,31 +524,48 @@ class ascendex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => $settleId,
                 'type' => $type,
                 'spot' => $spot,
                 'margin' => $margin,
-                'future' => $future,
+                'swap' => $swap,
+                'future' => false,
+                'option' => false,
                 'active' => $active,
-                'precision' => $precision,
+                'derivative' => $derivative,
+                'contract' => $contract,
+                'linear' => $linear,
+                'inverse' => $contract ? !$linear : null,
                 'taker' => $fee,
                 'maker' => $fee,
+                'contractSize' => $contractSize,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => $precision,
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'minQty'),
-                        'max' => $this->safe_number($market, 'maxQty'),
+                        'min' => $minQty,
+                        'max' => $maxQty,
                     ),
                     'price' => array(
-                        'min' => $this->safe_number($market, 'tickSize'),
-                        'max' => null,
+                        'min' => $minPrice,
+                        'max' => $maxPrice,
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'minNotional'),
                         'max' => $this->safe_number($market, 'maxNotional'),
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -1662,6 +1707,75 @@ class ascendex extends Exchange {
             'account-group' => $accountGroup,
         );
         return $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $params));
+    }
+
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        //      {
+        //          "time" => 1640061364830,
+        //          "symbol" => "EOS-PERP",
+        //          "markPrice" => "3.353854865",
+        //          "indexPrice" => "3.3542",
+        //          "openInterest" => "14242",
+        //          "fundingRate" => "-0.000073026",
+        //          "nextFundingTime" => 1640073600000
+        //      }
+        //
+        $marketId = $this->safe_string($fundingRate, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $currentTime = $this->safe_integer($fundingRate, 'time');
+        $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
+        $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'nextFundingTime');
+        $previousFundingTimestamp = null;
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $symbol,
+            'markPrice' => $this->safe_number($fundingRate, 'markPrice'),
+            'indexPrice' => $this->safe_number($fundingRate, 'indexPrice'),
+            'interestRate' => $this->parse_number('0'),
+            'estimatedSettlePrice' => null,
+            'timestamp' => $currentTime,
+            'datetime' => $this->iso8601($currentTime),
+            'previousFundingRate' => null,
+            'nextFundingRate' => $nextFundingRate,
+            'previousFundingTimestamp' => $previousFundingTimestamp,
+            'nextFundingTimestamp' => $nextFundingRateTimestamp,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+        );
+    }
+
+    public function fetch_funding_rates($symbols, $params = array ()) {
+        $this->load_markets();
+        $response = $this->v2PublicGetFuturesPricingData ($params);
+        //
+        //     {
+        //          "code" => 0,
+        //          "data" => {
+        //              "contracts" => array(
+        //                  array(
+        //                      "time" => 1640061364830,
+        //                      "symbol" => "EOS-PERP",
+        //                      "markPrice" => "3.353854865",
+        //                      "indexPrice" => "3.3542",
+        //                      "openInterest" => "14242",
+        //                      "fundingRate" => "-0.000073026",
+        //                      "nextFundingTime" => 1640073600000
+        //                  ),
+        //              ),
+        //              "collaterals" => array(
+        //                  array(
+        //                      "asset" => "USDTR",
+        //                      "referencePrice" => "1"
+        //                  ),
+        //              )
+        //          }
+        //      }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $contracts = $this->safe_value($data, 'contracts', array());
+        $result = $this->parse_funding_rates($contracts);
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {

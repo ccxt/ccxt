@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\BadResponse;
 use \ccxt\InvalidAddress;
 use \ccxt\OrderNotFound;
-use \ccxt\Precise;
 
 class digifinex extends Exchange {
 
@@ -636,23 +635,20 @@ class digifinex extends Exchange {
         $side = $this->safe_string_2($trade, 'type', 'side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $takerOrMaker = $this->safe_value($trade, 'is_maker');
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -661,12 +657,12 @@ class digifinex extends Exchange {
             'type' => null,
             'order' => $orderId,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_time($params = array ()) {
@@ -939,10 +935,10 @@ class digifinex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $amount = $this->safe_string($order, 'amount');
-        $filled = $this->safe_string($order, 'executed_amount');
-        $price = $this->safe_string($order, 'price');
-        $average = $this->safe_string($order, 'avg_price');
+        $amountString = $this->safe_string($order, 'amount');
+        $filledString = $this->safe_string($order, 'executed_amount');
+        $priceString = $this->safe_string($order, 'price');
+        $averageString = $this->safe_string($order, 'avg_price');
         return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
@@ -955,13 +951,13 @@ class digifinex extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
             'stopPrice' => null,
-            'amount' => $amount,
-            'filled' => $filled,
+            'amount' => $amountString,
+            'filled' => $filledString,
             'remaining' => null,
             'cost' => null,
-            'average' => $average,
+            'average' => $averageString,
             'status' => $status,
             'fee' => null,
             'trades' => null,
@@ -1116,23 +1112,23 @@ class digifinex extends Exchange {
         }
         $response = yield $this->privateGetMarketMytrades (array_merge($request, $params));
         //
-        //     {
-        //         "code" => 0,
-        //         "list" => array(
-        //             {
-        //                 "symbol" => "BTC_USDT",
-        //                 "order_id" => "6707cbdcda0edfaa7f4ab509e4cbf966",
-        //                 "id" => 28457,
-        //                 "price" => 0.1,
-        //                 "amount" => 0,
-        //                 "fee" => 0.096,
-        //                 "fee_currency" => "USDT",
-        //                 "timestamp" => 1499865549,
-        //                 "side" => "buy",
-        //                 "is_maker" => true
-        //             }
-        //         )
-        //     }
+        //      {
+        //          "list":array(
+        //              {
+        //                  "timestamp":1639506068,
+        //                  "is_maker":false,
+        //                  "id":"8975951332",
+        //                  "amount":31.83,
+        //                  "side":"sell_market",
+        //                  "symbol":"DOGE_USDT",
+        //                  "fee_currency":"USDT",
+        //                  "fee":0.01163774826
+        //                  ,"order_id":"32b169792f4a7a19e5907dc29fc123d4",
+        //                  "price":0.182811
+        //                }
+        //             ),
+        //           "code" => 0
+        //      }
         //
         $data = $this->safe_value($response, 'list', array());
         return $this->parse_trades($data, $market, $since, $limit);

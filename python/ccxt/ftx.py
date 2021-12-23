@@ -35,7 +35,7 @@ class ftx(Exchange):
         return self.deep_extend(super(ftx, self).describe(), {
             'id': 'ftx',
             'name': 'FTX',
-            'countries': ['HK'],
+            'countries': ['BS'],  # Bahamas
             'rateLimit': 100,
             'certified': True,
             'pro': True,
@@ -55,12 +55,16 @@ class ftx(Exchange):
                 },
             },
             'has': {
+                'margin': True,
+                'swap': True,
+                'future': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': True,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': True,
                 'fetchClosedOrders': None,
                 'fetchCurrencies': True,
@@ -80,6 +84,7 @@ class ftx(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -149,8 +154,6 @@ class ftx(Exchange):
                         'nft/collections',
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/details',
-                        # pnl
-                        'pnl/historical_changes',
                     ],
                     'post': [
                         'ftxpay/apps/{user_specific_id}/orders',
@@ -220,6 +223,8 @@ class ftx(Exchange):
                         'nft/gallery_settings',
                         # latency statistics
                         'stats/latency_stats',
+                        # pnl
+                        'pnl/historical_changes',
                     ],
                     'post': [
                         # subaccounts
@@ -294,7 +299,7 @@ class ftx(Exchange):
                             [self.parse_number('2000000'), self.parse_number('0.0006')],
                             [self.parse_number('5000000'), self.parse_number('0.00055')],
                             [self.parse_number('10000000'), self.parse_number('0.0005')],
-                            [self.parse_number('25000000'), self.parse_number('0.045')],
+                            [self.parse_number('25000000'), self.parse_number('0.0045')],
                             [self.parse_number('50000000'), self.parse_number('0.0004')],
                         ],
                         'maker': [
@@ -903,24 +908,21 @@ class ftx(Exchange):
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         side = self.safe_string(trade, 'side')
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': self.safe_number(trade, 'feeRate'),
+                'rate': self.safe_string(trade, 'feeRate'),
             }
         orderId = self.safe_string(trade, 'orderId')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -930,11 +932,11 @@ class ftx(Exchange):
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -1640,6 +1642,12 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        request = {
+            'orderId': id,
+        }
+        return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market, marketId = self.get_market_params(symbol, 'market', params)
@@ -1818,7 +1826,7 @@ class ftx(Exchange):
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
-            'entryPrice': None,
+            'entryPrice': self.parse_number(entryPriceString),
             'notional': self.parse_number(notionalString),
             'leverage': leverage,
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
@@ -2150,9 +2158,6 @@ class ftx(Exchange):
         nextFundingRate = self.safe_number(fundingRate, 'nextFundingRate')
         nextFundingRateDatetimeRaw = self.safe_string(fundingRate, 'nextFundingTime')
         nextFundingRateTimestamp = self.parse8601(nextFundingRateDatetimeRaw)
-        previousFundingTimestamp = None
-        if nextFundingRateTimestamp is not None:
-            previousFundingTimestamp = nextFundingRateTimestamp - 3600000
         estimatedSettlePrice = self.safe_number(fundingRate, 'predictedExpirationPrice')
         return {
             'info': fundingRate,
@@ -2165,9 +2170,9 @@ class ftx(Exchange):
             'datetime': None,
             'previousFundingRate': None,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,  # subtract 8 hours
+            'previousFundingTimestamp': None,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'previousFundingDatetime': None,
             'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
         }
 

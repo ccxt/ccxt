@@ -25,6 +25,10 @@ class okex extends Exchange {
             'pro' => true,
             'certified' => true,
             'has' => array(
+                'margin' => true,
+                'swap' => true,
+                'future' => true,
+                'addMargin' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createOrder' => true,
@@ -34,13 +38,16 @@ class okex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchDepositAddressByNetwork' => true,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
                 'fetchMarkets' => true,
+                'fetchMarketsByType' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -50,21 +57,20 @@ class okex extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
-                'fetchLeverage' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTickersByType' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => true,
+                'setLeverage' => true,
+                'setMarginMode' => true,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => true,
-                'setLeverage' => true,
-                'setPositionMode' => true,
-                'setMarginMode' => true,
-                'addMargin' => true,
-                'reduceMargin' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -3278,11 +3284,6 @@ class okex extends Exchange {
         // in the response above $nextFundingRate is actually two funding rates from now
         //
         $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'fundingTime');
-        $previousFundingTimestamp = null;
-        if ($nextFundingRateTimestamp !== null) {
-            // eight hours
-            $previousFundingTimestamp = $nextFundingRateTimestamp - 28800000;
-        }
         $marketId = $this->safe_string($fundingRate, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
         $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
@@ -3299,9 +3300,9 @@ class okex extends Exchange {
             'datetime' => null,
             'previousFundingRate' => null,
             'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTimestamp, // subtract 8 hours
+            'previousFundingTimestamp' => null,
             'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'previousFundingDatetime' => null,
             'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
         );
     }
@@ -3681,6 +3682,14 @@ class okex extends Exchange {
 
     public function add_margin($symbol, $amount, $params = array ()) {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
+    }
+
+    public function set_sandbox_mode($enable) {
+        if ($enable) {
+            $this->headers['x-simulated-trading'] = 1;
+        } else {
+            $this->headers['x-simulated-trading'] = null;
+        }
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

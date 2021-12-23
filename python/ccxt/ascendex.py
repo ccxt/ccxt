@@ -37,6 +37,7 @@ class ascendex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingRates': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -436,26 +437,31 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
-        futures = self.v1PublicGetFuturesContracts(params)
+        perpetuals = self.v2PublicGetFuturesContract(params)
         #
         #     {
         #         "code":0,
         #         "data":[
         #             {
         #                 "symbol":"BTC-PERP",
+        #                 "status":"Normal",
+        #                 "displayName":"BTCUSDT",
+        #                 "settlementAsset":"USDT",
+        #                 "underlying":"BTC/USDT",
         #                 "tradingStartTime":1579701600000,
-        #                 "collapseDecimals":"1,0.1,0.01",
-        #                 "minQty":"0.000000001",
-        #                 "maxQty":"1000000000",
-        #                 "minNotional":"5",
-        #                 "maxNotional":"1000000",
-        #                 "statusCode":"Normal",
-        #                 "statusMessage":"",
-        #                 "tickSize":"0.25",
-        #                 "lotSize":"0.0001",
-        #                 "priceScale":2,
-        #                 "qtyScale":4,
-        #                 "notionalScale":2
+        #                 "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
+        #                 "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
+        #                 "commissionType":"Quote",
+        #                 "commissionReserveRate":"0.001",
+        #                 "marketOrderPriceMarkup":"0.03",
+        #                 "marginRequirements":[
+        #                     {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
+        #                     {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
+        #                     {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+        #                     {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
+        #                     {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+        #                     {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
+        #                 ]
         #             }
         #         ]
         #     }
@@ -463,10 +469,10 @@ class ascendex(Exchange):
         productsData = self.safe_value(products, 'data', [])
         productsById = self.index_by(productsData, 'symbol')
         cashData = self.safe_value(cash, 'data', [])
-        futuresData = self.safe_value(futures, 'data', [])
-        cashAndFuturesData = self.array_concat(cashData, futuresData)
-        cashAndFuturesById = self.index_by(cashAndFuturesData, 'symbol')
-        dataById = self.deep_extend(productsById, cashAndFuturesById)
+        perpetualsData = self.safe_value(perpetuals, 'data', [])
+        cashAndPerpetualsData = self.array_concat(cashData, perpetualsData)
+        cashAndPerpetualsById = self.index_by(cashAndPerpetualsData, 'symbol')
+        dataById = self.deep_extend(productsById, cashAndPerpetualsById)
         ids = list(dataById.keys())
         result = []
         for i in range(0, len(ids)):
@@ -474,52 +480,91 @@ class ascendex(Exchange):
             market = dataById[id]
             baseId = self.safe_string(market, 'baseAsset')
             quoteId = self.safe_string(market, 'quoteAsset')
+            settleId = self.safe_value(market, 'settlementAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
             precision = {
                 'amount': self.safe_number(market, 'lotSize'),
                 'price': self.safe_number(market, 'tickSize'),
             }
             status = self.safe_string(market, 'status')
             active = (status == 'Normal')
-            type = 'spot' if ('useLot' in market) else 'future'
+            type = 'swap' if (settle is not None) else 'spot'
             spot = (type == 'spot')
-            future = (type == 'future')
+            swap = (type == 'swap')
             margin = self.safe_value(market, 'marginTradable', False)
-            symbol = id
-            if not future:
-                symbol = base + '/' + quote
+            contract = swap
+            derivative = contract
+            linear = True if contract else None
+            contractSize = 1 if contract else None
+            minQty = self.safe_number(market, 'minQty')
+            maxQty = self.safe_number(market, 'maxQty')
+            minPrice = self.safe_number(market, 'tickSize')
+            maxPrice = None
+            symbol = base + '/' + quote
+            if contract:
+                lotSizeFilter = self.safe_value(market, 'lotSizeFilter')
+                minQty = self.safe_number(lotSizeFilter, 'minQty')
+                maxQty = self.safe_number(lotSizeFilter, 'maxQty')
+                priceFilter = self.safe_value(market, 'priceFilter')
+                minPrice = self.safe_number(priceFilter, 'minPrice')
+                maxPrice = self.safe_number(priceFilter, 'maxPrice')
+                underlying = self.safe_string(market, 'underlying')
+                parts = underlying.split('/')
+                baseId = self.safe_string(parts, 0)
+                quoteId = self.safe_string(parts, 1)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote + ':' + settle
             fee = self.safe_number(market, 'commissionReserveRate')
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': settleId,
                 'type': type,
                 'spot': spot,
                 'margin': margin,
-                'future': future,
+                'swap': swap,
+                'future': False,
+                'option': False,
                 'active': active,
-                'precision': precision,
+                'derivative': derivative,
+                'contract': contract,
+                'linear': linear,
+                'inverse': not linear if contract else None,
                 'taker': fee,
                 'maker': fee,
+                'contractSize': contractSize,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': precision,
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': self.safe_number(market, 'minQty'),
-                        'max': self.safe_number(market, 'maxQty'),
+                        'min': minQty,
+                        'max': maxQty,
                     },
                     'price': {
-                        'min': self.safe_number(market, 'tickSize'),
-                        'max': None,
+                        'min': minPrice,
+                        'max': maxPrice,
                     },
                     'cost': {
                         'min': self.safe_number(market, 'minNotional'),
                         'max': self.safe_number(market, 'maxNotional'),
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -1601,6 +1646,73 @@ class ascendex(Exchange):
             'account-group': accountGroup,
         }
         return self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+
+    def parse_funding_rate(self, fundingRate, market=None):
+        #
+        #      {
+        #          "time": 1640061364830,
+        #          "symbol": "EOS-PERP",
+        #          "markPrice": "3.353854865",
+        #          "indexPrice": "3.3542",
+        #          "openInterest": "14242",
+        #          "fundingRate": "-0.000073026",
+        #          "nextFundingTime": 1640073600000
+        #      }
+        #
+        marketId = self.safe_string(fundingRate, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        currentTime = self.safe_integer(fundingRate, 'time')
+        nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
+        nextFundingRateTimestamp = self.safe_integer(fundingRate, 'nextFundingTime')
+        previousFundingTimestamp = None
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': self.safe_number(fundingRate, 'markPrice'),
+            'indexPrice': self.safe_number(fundingRate, 'indexPrice'),
+            'interestRate': self.parse_number('0'),
+            'estimatedSettlePrice': None,
+            'timestamp': currentTime,
+            'datetime': self.iso8601(currentTime),
+            'previousFundingRate': None,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
+        }
+
+    def fetch_funding_rates(self, symbols, params={}):
+        self.load_markets()
+        response = self.v2PublicGetFuturesPricingData(params)
+        #
+        #     {
+        #          "code": 0,
+        #          "data": {
+        #              "contracts": [
+        #                  {
+        #                      "time": 1640061364830,
+        #                      "symbol": "EOS-PERP",
+        #                      "markPrice": "3.353854865",
+        #                      "indexPrice": "3.3542",
+        #                      "openInterest": "14242",
+        #                      "fundingRate": "-0.000073026",
+        #                      "nextFundingTime": 1640073600000
+        #                  },
+        #              ],
+        #              "collaterals": [
+        #                  {
+        #                      "asset": "USDTR",
+        #                      "referencePrice": "1"
+        #                  },
+        #              ]
+        #          }
+        #      }
+        #
+        data = self.safe_value(response, 'data', {})
+        contracts = self.safe_value(data, 'contracts', [])
+        result = self.parse_funding_rates(contracts)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def set_leverage(self, leverage, symbol=None, params={}):
         if symbol is None:

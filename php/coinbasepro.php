@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\NotSupported;
@@ -44,6 +45,7 @@ class coinbasepro extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
@@ -93,6 +95,7 @@ class coinbasepro extends Exchange {
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
+                        'products/spark-lines', // experimental
                     ),
                 ),
                 'private' => array(
@@ -433,7 +436,19 @@ class coinbasepro extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        // publicGetProductsIdTicker
+        // fetchTickers
+        //
+        //      array(
+        //         1639472400, // $timestamp
+        //         4.26, // $low
+        //         4.38, // $high
+        //         4.35, // $open
+        //         4.27 // close
+        //      )
+        //
+        // fetchTicker
+        //
+        //     publicGetProductsIdTicker
         //
         //     {
         //         "trade_id":843439,
@@ -445,7 +460,7 @@ class coinbasepro extends Exchange {
         //         "volume":"1903188.03750000"
         //     }
         //
-        // publicGetProductsIdStats
+        //     publicGetProductsIdStats
         //
         //     {
         //         "open" => "34.19000000",
@@ -454,33 +469,88 @@ class coinbasepro extends Exchange {
         //         "volume" => "2.41000000"
         //     }
         //
-        $timestamp = $this->parse8601($this->safe_value($ticker, 'time'));
-        $bid = $this->safe_number($ticker, 'bid');
-        $ask = $this->safe_number($ticker, 'ask');
-        $last = $this->safe_number_2($ticker, 'price', 'last');
+        $timestamp = null;
+        $bid = null;
+        $ask = null;
+        $last = null;
+        $high = null;
+        $low = null;
+        $open = null;
+        $volume = null;
         $symbol = ($market === null) ? null : $market['symbol'];
-        return array(
+        if (gettype($ticker) === 'array' && count(array_filter(array_keys($ticker), 'is_string')) == 0) {
+            $last = $this->safe_number($ticker, 4);
+            $timestamp = $this->milliseconds();
+        } else {
+            $timestamp = $this->parse8601($this->safe_value($ticker, 'time'));
+            $bid = $this->safe_number($ticker, 'bid');
+            $ask = $this->safe_number($ticker, 'ask');
+            $high = $this->safe_number($ticker, 'high');
+            $low = $this->safe_number($ticker, 'low');
+            $open = $this->safe_number($ticker, 'open');
+            $last = $this->safe_number_2($ticker, 'price', 'last');
+            $volume = $this->safe_number($ticker, 'volume');
+        }
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
+            'high' => $high,
+            'low' => $low,
             'bid' => $bid,
             'bidVolume' => null,
             'ask' => $ask,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ));
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $response = $this->publicGetProductsSparkLines (array_merge($request, $params));
+        //
+        //     {
+        //         YYY-USD => array(
+        //             array(
+        //                 1639472400, // timestamp
+        //                 4.26, // low
+        //                 4.38, // high
+        //                 4.35, // open
+        //                 4.27 // close
+        //             ),
+        //             array(
+        //                 1639468800,
+        //                 4.31,
+        //                 4.45,
+        //                 4.35,
+        //                 4.35
+        //             ),
+        //         )
+        //     }
+        //
+        $result = array();
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        $delimiter = '-';
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $entry = $this->safe_value($response, $marketId, array());
+            $first = $this->safe_value($entry, 0, array());
+            $market = $this->safe_market($marketId, null, $delimiter);
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker($first, $market);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1298,7 +1368,12 @@ class coinbasepro extends Exchange {
                 }
             }
             $what = $nonce . $method . $request . $payload;
-            $secret = base64_decode($this->secret);
+            $secret = null;
+            try {
+                $secret = base64_decode($this->secret);
+            } catch (Exception $e) {
+                throw new AuthenticationError($this->id . ' sign() invalid base64 secret');
+            }
             $signature = $this->hmac($this->encode($what), $secret, 'sha256', 'base64');
             $headers = array(
                 'CB-ACCESS-KEY' => $this->apiKey,

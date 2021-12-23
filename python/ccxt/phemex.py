@@ -37,6 +37,7 @@ class phemex(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRates': False,
@@ -53,6 +54,7 @@ class phemex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
@@ -338,7 +340,8 @@ class phemex(Exchange):
     def parse_safe_number(self, value=None):
         if value is None:
             return value
-        value = value.replace(',', '')
+        parts = value.split(',')
+        value = ''.join(parts)
         parts = value.split(' ')
         return self.safe_number(parts, 0)
 
@@ -1584,18 +1587,18 @@ class phemex(Exchange):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        price = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'priceEp'), market)))
-        amount = self.parse_number(self.omit_zero(self.from_ev(self.safe_string(order, 'baseQtyEv'), market)))
-        remaining = self.parse_number(self.omit_zero(self.from_ev(self.safe_string(order, 'leavesBaseQtyEv'), market)))
-        filled = self.parse_number(self.omit_zero(self.from_ev(self.safe_string(order, 'cumBaseQtyEv'), market)))
-        cost = self.parse_number(self.omit_zero(self.from_ev(self.safe_string(order, 'quoteQtyEv'), market)))
-        average = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'avgPriceEp'), market)))
+        price = self.from_ep(self.safe_string(order, 'priceEp'), market)
+        amount = self.from_ev(self.safe_string(order, 'baseQtyEv'), market)
+        remaining = self.omit_zero(self.from_ev(self.safe_string(order, 'leavesBaseQtyEv'), market))
+        filled = self.from_ev(self.safe_string_2(order, 'cumBaseQtyEv', 'cumBaseValueEv'), market)
+        cost = self.from_ev(self.safe_string_2(order, 'cumQuoteValueEv', 'quoteQtyEv'), market)
+        average = self.from_ep(self.safe_string(order, 'avgPriceEp'), market)
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
         type = self.parse_order_type(self.safe_string(order, 'ordType'))
         timestamp = self.safe_integer_product_2(order, 'actionTimeNs', 'createTimeNs', 0.000001)
         fee = None
-        feeCost = self.parse_number(self.from_ev(self.safe_string(order, 'cumFeeEv'), market))
+        feeCost = self.from_ev(self.safe_string(order, 'cumFeeEv'), market)
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -1604,7 +1607,7 @@ class phemex(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp', market))))
         postOnly = (timeInForce == 'PO')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1626,7 +1629,7 @@ class phemex(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     def parse_swap_order(self, order, market=None):
         #
@@ -1856,6 +1859,42 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
+    def edit_order(self, id, symbol, type=None, side=None, amount=None, price=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        if type is not None:
+            raise ArgumentsRequired(self.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order for that purpose')
+        if side is not None:
+            raise ArgumentsRequired(self.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order for that purpose')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdID')
+        params = self.omit(params, ['clientOrderId', 'clOrdID'])
+        if clientOrderId is not None:
+            request['clOrdID'] = clientOrderId
+        else:
+            request['orderID'] = id
+        if price is not None:
+            request['priceEp'] = self.to_ep(price, market)
+        # Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at self moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
+        finalQty = self.safe_string(params, 'baseQtyEv')
+        params = self.omit(params, ['baseQtyEv'])
+        if finalQty is not None:
+            request['baseQtyEV'] = finalQty
+        elif amount is not None:
+            request['baseQtyEV'] = self.to_ev(amount, market)
+        stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
+        if stopPrice is not None:
+            request['stopPxEp'] = self.to_ep(stopPrice, market)
+        params = self.omit(params, ['stopPx', 'stopPrice'])
+        method = 'privatePutSpotOrders' if market['spot'] else 'privatePutOrdersReplace'
+        response = getattr(self, method)(self.extend(request, params))
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
+
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -2018,7 +2057,7 @@ class phemex(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         method = 'privateGetExchangeSpotOrderTrades' if market['spot'] else 'privateGetExchangeOrderTrade'

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.63.55'
+__version__ = '1.64.64'
 
 # -----------------------------------------------------------------------------
 
@@ -175,6 +175,10 @@ class Exchange(object):
     precision = None
     exceptions = None
     limits = {
+        'leverage': {
+            'min': None,
+            'max': None,
+        },
         'amount': {
             'min': None,
             'max': None,
@@ -250,51 +254,86 @@ class Exchange(object):
 
     # API method metainfo
     has = {
-        'loadMarkets': True,
-        'cancelAllOrders': False,
+        'publicAPI': True,
+        'privateAPI': True,
+        'margin': None,
+        'swap': None,
+        'future': None,
+        'addMargin': None,
+        'cancelAllOrders': None,
         'cancelOrder': True,
-        'cancelOrders': False,
-        'CORS': False,
-        'createDepositAddress': False,
+        'cancelOrders': None,
+        'CORS': None,
+        'createDepositAddress': None,
         'createLimitOrder': True,
         'createMarketOrder': True,
         'createOrder': True,
-        'deposit': False,
+        'deposit': None,
         'editOrder': 'emulated',
+        'fetchAccounts': None,
         'fetchBalance': True,
-        'fetchBorrowRate': False,
-        'fetchBorrowRates': False,
-        'fetchClosedOrders': False,
-        'fetchCurrencies': False,
-        'fetchDepositAddress': False,
-        'fetchDeposits': False,
+        'fetchBidsAsks': None,
+        'fetchBorrowRate': None,
+        'fetchBorrowRateHistory': None,
+        'fetchBorrowRatesPerSymbol': None,
+        'fetchBorrowRates': None,
+        'fetchCanceledOrders': None,
+        'fetchClosedOrder': None,
+        'fetchClosedOrders': None,
+        'fetchCurrencies': 'emulated',
+        'fetchDeposit': None,
+        'fetchDepositAddress': None,
+        'fetchDepositAddresses': None,
+        'fetchDepositAddressesByNetwork': None,
+        'fetchDeposits': None,
+        'fetchFundingFee': None,
+        'fetchFundingFees': None,
+        'fetchFundingHistory': None,
+        'fetchFundingRate': None,
+        'fetchFundingRateHistory': None,
+        'fetchFundingRates': None,
+        'fetchIndexOHLCV': None,
         'fetchL2OrderBook': True,
-        'fetchLedger': False,
+        'fetchLedger': None,
+        'fetchLedgerEntry': None,
         'fetchMarkets': True,
-        'fetchMyTrades': False,
+        'fetchMarkOHLCV': None,
+        'fetchMyTrades': None,
         'fetchOHLCV': 'emulated',
-        'fetchOpenOrders': False,
-        'fetchOrder': False,
+        'fetchOpenOrder': None,
+        'fetchOpenOrders': None,
+        'fetchOrder': None,
         'fetchOrderBook': True,
-        'fetchOrderBooks': False,
-        'fetchOrders': False,
-        'fetchOrderTrades': False,
+        'fetchOrderBooks': None,
+        'fetchOrders': None,
+        'fetchOrderTrades': None,
+        'fetchPosition': None,
+        'fetchPositions': None,
+        'fetchPositionsRisk': None,
+        'fetchPremiumIndexOHLCV': None,
         'fetchStatus': 'emulated',
         'fetchTicker': True,
-        'fetchTickers': False,
-        'fetchTime': False,
+        'fetchTickers': None,
+        'fetchTime': None,
         'fetchTrades': True,
-        'fetchTradingFee': False,
-        'fetchTradingFees': False,
-        'fetchFundingFee': False,
-        'fetchFundingFees': False,
-        'fetchTradingLimits': False,
-        'fetchTransactions': False,
-        'fetchWithdrawals': False,
-        'privateAPI': True,
-        'publicAPI': True,
-        'signIn': False,
-        'withdraw': False,
+        'fetchTradingFee': None,
+        'fetchTradingFees': None,
+        'fetchTradingLimits': None,
+        'fetchTransactions': None,
+        'fetchTransfers': None,
+        'fetchWithdrawAddress': None,
+        'fetchWithdrawAddressesByNetwork': None,
+        'fetchWithdrawal': None,
+        'fetchWithdrawals': None,
+        'loadLeverageBrackets': None,
+        'loadMarkets': True,
+        'reduceMargin': None,
+        'setLeverage': None,
+        'setMarginMode': None,
+        'setPositionMode': None,
+        'signIn': None,
+        'transfer': None,
+        'withdraw': None,
     }
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
@@ -912,6 +951,10 @@ class Exchange(object):
         return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
 
     @staticmethod
+    def sort_by_2(array, key1, key2, descending=False):
+        return sorted(array, key=lambda k: (k[key1] if k[key1] is not None else "", k[key2] if k[key2] is not None else ""), reverse=descending)
+
+    @staticmethod
     def array_concat(a, b):
         return a + b
 
@@ -1420,7 +1463,7 @@ class Exchange(object):
                     return self.set_markets(self.markets)
                 return self.markets
         currencies = None
-        if self.has['fetchCurrencies']:
+        if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
         markets = self.fetch_markets(params)
         return self.set_markets(markets, currencies)
@@ -1859,7 +1902,7 @@ class Exchange(object):
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
         array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
-        array = self.sort_by(array, 'timestamp')
+        array = self.sort_by_2(array, 'timestamp', 'id')
         symbol = market['symbol'] if market else None
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)

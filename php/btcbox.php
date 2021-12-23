@@ -283,14 +283,14 @@ class btcbox extends Exchange {
         if ($datetimeString !== null) {
             $timestamp = $this->parse8601($order['datetime'] . '+09:00'); // Tokyo time
         }
-        $amount = $this->safe_number($order, 'amount_original');
-        $remaining = $this->safe_number($order, 'amount_outstanding');
-        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_string($order, 'amount_original');
+        $remaining = $this->safe_string($order, 'amount_outstanding');
+        $price = $this->safe_string($order, 'price');
         // $status is set by fetchOrder method only
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         // fetchOrders do not return $status, use heuristic
         if ($status === null) {
-            if ($remaining !== null && $remaining === 0) {
+            if (Precise::string_equals($remaining, '0')) {
                 $status = 'closed';
             }
         }
@@ -300,7 +300,7 @@ class btcbox extends Exchange {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($order, 'type');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -322,7 +322,7 @@ class btcbox extends Exchange {
             'fee' => null,
             'info' => $order,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

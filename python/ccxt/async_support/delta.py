@@ -15,7 +15,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class delta(Exchange):
@@ -640,9 +639,6 @@ class delta(Exchange):
         timestamp = self.safe_integer_product(trade, 'timestamp', 0.001, timestamp)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         product = self.safe_value(trade, 'product', {})
         marketId = self.safe_string(product, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -658,17 +654,17 @@ class delta(Exchange):
         type = self.safe_string(metaData, 'order_type')
         if type is not None:
             type = type.replace('_order', '')
-        feeCost = self.safe_number(trade, 'commission')
+        feeCostString = self.safe_string(trade, 'commission')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             settlingAsset = self.safe_value(product, 'settling_asset', {})
             feeCurrencyId = self.safe_string(settlingAsset, 'symbol')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
@@ -676,13 +672,13 @@ class delta(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -902,15 +898,15 @@ class delta(Exchange):
         remaining = self.safe_string(order, 'unfilled_size')
         average = self.safe_string(order, 'average_fill_price')
         fee = None
-        feeCost = self.safe_number(order, 'paid_commission')
-        if feeCost is not None:
+        feeCostString = self.safe_string(order, 'paid_commission')
+        if feeCostString is not None:
             feeCurrencyCode = None
             if market is not None:
                 settlingAsset = self.safe_value(market['info'], 'settling_asset', {})
                 feeCurrencyId = self.safe_string(settlingAsset, 'symbol')
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         return self.safe_order2({

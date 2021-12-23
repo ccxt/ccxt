@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.63.55'
+__version__ = '1.64.64'
 
 # -----------------------------------------------------------------------------
 
@@ -180,7 +180,7 @@ class Exchange(BaseExchange):
                     return self.set_markets(self.markets)
                 return self.markets
         currencies = None
-        if self.has['fetchCurrencies']:
+        if self.has['fetchCurrencies'] is True:
             currencies = await self.fetch_currencies()
         markets = await self.fetch_markets(params)
         return self.set_markets(markets, currencies)

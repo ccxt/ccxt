@@ -65,12 +65,12 @@ module.exports = (exchange, ticker, method, symbol) => {
         'bitrue',
         'btcturk',
         'bybit',
-        'coinmarketcap',
         'coss',
         'ftx',
         'gateio', // some ticker bids are greaters than asks
         'idex',
         'mercado',
+        'mexc',
         'okex',
         'poloniex',
         'qtrade',

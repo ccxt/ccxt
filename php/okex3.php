@@ -29,7 +29,7 @@ class okex3 extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => null, // see below
+                'fetchCurrencies' => true, // see below
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchLedger' => true,
@@ -47,7 +47,7 @@ class okex3 extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
-                'futures' => true,
+                'future' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -692,6 +692,7 @@ class okex3 extends Exchange {
                     'rate' => 'public',
                     '{instrument_id}/constituents' => 'public',
                 ),
+                'warnOnFetchCurrenciesWithoutAuthorization' => false,
             ),
             'commonCurrencies' => array(
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
@@ -984,53 +985,59 @@ class okex3 extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        // has['fetchCurrencies'] is currently set to false
         // despite that their docs say these endpoints are public:
         //     https://www.okex.com/api/account/v3/withdrawal/fee
         //     https://www.okex.com/api/account/v3/currencies
         // it will still reply with array( "code":30001, "message" => "OK-ACCESS-KEY header is required" )
         // if you attempt to access it without authentication
-        $response = $this->accountGetCurrencies ($params);
-        //
-        //     array(
-        //         array(
-        //             $name => '',
-        //             $currency => 'BTC',
-        //             can_withdraw => '1',
-        //             can_deposit => '1',
-        //             min_withdrawal => '0.0100000000000000'
-        //         ),
-        //     )
-        //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
-            $id = $this->safe_string($currency, 'currency');
-            $code = $this->safe_currency_code($id);
-            $precision = 0.00000001; // default $precision, todo => fix "magic constants"
-            $name = $this->safe_string($currency, 'name');
-            $canDeposit = $this->safe_integer($currency, 'can_deposit');
-            $canWithdraw = $this->safe_integer($currency, 'can_withdraw');
-            $active = ($canDeposit && $canWithdraw) ? true : false;
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency,
-                'type' => null,
-                'name' => $name,
-                'active' => $active,
-                'fee' => null, // todo => redesign
-                'precision' => $precision,
-                'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'min_withdrawal'),
-                        'max' => null,
+        if (!$this->check_required_credentials(false)) {
+            if ($this->options['warnOnFetchCurrenciesWithoutAuthorization']) {
+                throw new ExchangeError($this->id . ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
+            }
+            return null;
+        } else {
+            $response = $this->accountGetCurrencies ($params);
+            //
+            //     array(
+            //         array(
+            //             $name => '',
+            //             $currency => 'BTC',
+            //             can_withdraw => '1',
+            //             can_deposit => '1',
+            //             min_withdrawal => '0.0100000000000000'
+            //         ),
+            //     )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $currency = $response[$i];
+                $id = $this->safe_string($currency, 'currency');
+                $code = $this->safe_currency_code($id);
+                $precision = 0.00000001; // default $precision, todo => fix "magic constants"
+                $name = $this->safe_string($currency, 'name');
+                $canDeposit = $this->safe_integer($currency, 'can_deposit');
+                $canWithdraw = $this->safe_integer($currency, 'can_withdraw');
+                $active = ($canDeposit && $canWithdraw) ? true : false;
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'info' => $currency,
+                    'type' => null,
+                    'name' => $name,
+                    'active' => $active,
+                    'fee' => null, // todo => redesign
+                    'precision' => $precision,
+                    'limits' => array(
+                        'amount' => array( 'min' => null, 'max' => null ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($currency, 'min_withdrawal'),
+                            'max' => null,
+                        ),
                     ),
-                ),
-            );
+                );
+            }
+            return $result;
         }
-        return $result;
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

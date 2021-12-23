@@ -102,7 +102,8 @@ module.exports = class aax extends Exchange {
                         'market/markPrice', // Get Current Mark Price
                         'futures/funding/predictedFunding/{symbol}', // Get Predicted Funding Rate
                         'futures/funding/prevFundingRate/{symbol}', // Get Last Funding Rate
-                        'market/candles/index', // Get Current Index Candlestick
+                        'market/candles/index', // * Deprecated
+                        'market/index/candles',
                     ],
                 },
                 'private': {
@@ -367,53 +368,70 @@ module.exports = class aax extends Exchange {
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
+            const settleId = this.safeString (market, 'settleCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
-            const active = (status === 'enable');
-            const taker = this.safeNumber (market, 'takerFee');
-            const maker = this.safeNumber (market, 'makerFee');
-            const type = this.safeString (market, 'type');
+            const marketType = this.safeString (market, 'type');
             let inverse = undefined;
             let linear = undefined;
             let quanto = undefined;
-            const spot = (type === 'spot');
-            const futures = (type === 'futures');
+            const spot = (marketType === 'spot');
+            const swap = (marketType === 'futures');
             const settleType = this.safeStringLower (market, 'settleType');
             if (settleType !== undefined) {
                 inverse = (settleType === 'inverse');
                 linear = (settleType === 'vanilla');
                 quanto = (settleType === 'quanto');
             }
-            let symbol = id;
-            if (type === 'spot') {
-                symbol = base + '/' + quote;
+            let symbol = base + '/' + quote;
+            let type = 'spot';
+            let contractSize = undefined;
+            if (swap) {
+                symbol = symbol + ':' + settle;
+                type = 'swap';
+                contractSize = this.safeNumber (market, 'multiplier');
             }
-            const precision = {
-                'amount': this.safeNumber (market, 'lotSize'),
-                'price': this.safeNumber (market, 'tickSize'),
-            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'futures': futures,
-                'inverse': inverse,
+                'margin': false,
+                'swap': swap,
+                'future': false,
+                'option': false,
+                'derivative': swap,
+                'contract': swap,
                 'linear': linear,
+                'inverse': inverse,
+                'taker': this.safeNumber (market, 'takerFee'),
+                'maker': this.safeNumber (market, 'makerFee'),
+                'contractSize': contractSize,
+                'active': (status === 'enable'),
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'quanto': quanto,
-                'precision': precision,
-                'info': market,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'percentage': false,
-                'tierBased': true,
+                'percentage': false, // ? Deprecated?
+                'tierBased': true, // ? Deprecated?
+                'precision': {
+                    'amount': this.safeNumber (market, 'lotSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeString (market, 'minQuantity'),
                         'max': this.safeString (market, 'maxQuantity'),
@@ -427,6 +445,7 @@ module.exports = class aax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;

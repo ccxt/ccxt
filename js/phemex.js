@@ -24,6 +24,7 @@ module.exports = class phemex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRates': false,
@@ -40,6 +41,7 @@ module.exports = class phemex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
@@ -327,8 +329,9 @@ module.exports = class phemex extends Exchange {
         if (value === undefined) {
             return value;
         }
-        value = value.replace (',', '');
-        const parts = value.split (' ');
+        let parts = value.split (',');
+        value = parts.join ('');
+        parts = value.split (' ');
         return this.safeNumber (parts, 0);
     }
 
@@ -1633,18 +1636,18 @@ module.exports = class phemex extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const price = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'priceEp'), market)));
-        const amount = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'baseQtyEv'), market)));
-        const remaining = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market)));
-        const filled = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'cumBaseQtyEv'), market)));
-        const cost = this.parseNumber (this.omitZero (this.fromEv (this.safeString (order, 'quoteQtyEv'), market)));
-        const average = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'avgPriceEp'), market)));
+        const price = this.fromEp (this.safeString (order, 'priceEp'), market);
+        const amount = this.fromEv (this.safeString (order, 'baseQtyEv'), market);
+        const remaining = this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market));
+        const filled = this.fromEv (this.safeString2 (order, 'cumBaseQtyEv', 'cumBaseValueEv'), market);
+        const cost = this.fromEv (this.safeString2 (order, 'cumQuoteValueEv', 'quoteQtyEv'), market);
+        const average = this.fromEp (this.safeString (order, 'avgPriceEp'), market);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const timestamp = this.safeIntegerProduct2 (order, 'actionTimeNs', 'createTimeNs', 0.000001);
         let fee = undefined;
-        const feeCost = this.parseNumber (this.fromEv (this.safeString (order, 'cumFeeEv'), market));
+        const feeCost = this.fromEv (this.safeString (order, 'cumFeeEv'), market);
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1654,7 +1657,7 @@ module.exports = class phemex extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp', market))));
         const postOnly = (timeInForce === 'PO');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1676,7 +1679,7 @@ module.exports = class phemex extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     parseSwapOrder (order, market = undefined) {
@@ -1921,6 +1924,50 @@ module.exports = class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
+        }
+        if (type !== undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order for that purpose');
+        }
+        if (side !== undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order for that purpose');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdID');
+        params = this.omit (params, [ 'clientOrderId', 'clOrdID' ]);
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+        } else {
+            request['orderID'] = id;
+        }
+        if (price !== undefined) {
+            request['priceEp'] = this.toEp (price, market);
+        }
+        // Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
+        const finalQty = this.safeString (params, 'baseQtyEv');
+        params = this.omit (params, [ 'baseQtyEv' ]);
+        if (finalQty !== undefined) {
+            request['baseQtyEV'] = finalQty;
+        } else if (amount !== undefined) {
+            request['baseQtyEV'] = this.toEv (amount, market);
+        }
+        const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPxEp'] = this.toEp (stopPrice, market);
+        }
+        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        const method = market['spot'] ? 'privatePutSpotOrders' : 'privatePutOrdersReplace';
+        const response = await this[method] (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -2109,7 +2156,7 @@ module.exports = class phemex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

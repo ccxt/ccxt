@@ -285,100 +285,137 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $request = array();
-        $response = yield $this->publicGetPublicSymbol (array_merge($request, $params));
-        //
-        // fetches both $spot and future markets
+        $response = yield $this->publicGetPublicSymbol ($params);
         //
         //     {
-        //         "ETHBTC" => {
-        //             "type" => "spot",
-        //             "base_currency" => "ETH",
-        //             "quote_currency" => "BTC",
-        //             "quantity_increment" => "0.001",
-        //             "tick_size" => "0.000001",
-        //             "take_rate" => "0.001",
-        //             "make_rate" => "-0.0001",
-        //             "fee_currency" => "BTC",
-        //             "margin_trading" => true,
-        //             "max_initial_leverage" => "10.00"
-        //         }
+        //         "AAVEUSDT_PERP":array(
+        //             "type":"futures",
+        //             "expiry":null,
+        //             "underlying":"AAVE",
+        //             "base_currency":null,
+        //             "quote_currency":"USDT",
+        //             "quantity_increment":"0.01",
+        //             "tick_size":"0.001",
+        //             "take_rate":"0.0005",
+        //             "make_rate":"0.0002",
+        //             "fee_currency":"USDT",
+        //             "margin_trading":true,
+        //             "max_initial_leverage":"50.00"
+        //         ),
+        //         "MANAUSDT":array(
+        //             "type":"spot",
+        //             "base_currency":"MANA",
+        //             "quote_currency":"USDT",
+        //             "quantity_increment":"1",
+        //             "tick_size":"0.0000001",
+        //             "take_rate":"0.0025",
+        //             "make_rate":"0.001",
+        //             "fee_currency":"USDT",
+        //             "margin_trading":true,
+        //             "max_initial_leverage":"5.00"
+        //         ),
         //     }
         //
-        $marketIds = is_array($response) ? array_keys($response) : array();
         $result = array();
-        for ($i = 0; $i < count($marketIds); $i++) {
-            $id = $marketIds[$i];
-            $entry = $response[$id];
-            $type = $this->safe_string($entry, 'type');
-            $spot = ($type === 'spot');
-            $futures = ($type === 'futures');
-            $baseId = null;
-            if ($spot) {
-                $baseId = $this->safe_string($entry, 'base_currency');
-            } else if ($futures) {
-                $baseId = $this->safe_string($entry, 'underlying');
-            } else {
-                throw new ExchangeError($this->id . ' invalid market $type ' . $type);
-            }
-            $quoteId = $this->safe_string($entry, 'quote_currency');
+        $ids = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            $market = $this->safe_value($response, $id);
+            $marketType = $this->safe_string($market, 'type');
+            $expiry = $this->safe_integer($market, 'expiry');
+            $contract = ($marketType === 'futures');
+            $derivative = $contract;
+            $spot = ($marketType === 'spot');
+            $marginTrading = $this->safe_value($market, 'margin_trading', false);
+            $margin = $spot && $marginTrading;
+            $future = ($expiry !== null);
+            $swap = ($contract && !$future);
+            $option = false;
+            $baseId = $this->safe_string_2($market, 'base_currency', 'underlying');
+            $quoteId = $this->safe_string($market, 'quote_currency');
+            $feeCurrencyId = $this->safe_string($market, 'fee_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $feeCurrency = $this->safe_currency_code($feeCurrencyId);
+            $settleId = null;
+            $settle = null;
             $symbol = $base . '/' . $quote;
-            $minLeverage = null;
-            if ($futures) {
-                $symbol = $symbol . ':' . $quote;
-                $minLeverage = $this->parse_number('1');
+            $type = 'spot';
+            $contractSize = null;
+            $linear = null;
+            $inverse = null;
+            if ($contract) {
+                $contractSize = 1;
+                $settleId = $feeCurrencyId;
+                $settle = $this->safe_currency_code($settleId);
+                $linear = (($quote !== null) && ($quote === $settle));
+                $inverse = !$linear;
+                $symbol = $symbol . ':' . $settle;
+                if ($future) {
+                    $symbol = $symbol . '-' . $expiry;
+                    $type = 'future';
+                } else {
+                    $type = 'swap';
+                }
             }
-            $maker = $this->safe_number($entry, 'make_rate');
-            $taker = $this->safe_number($entry, 'take_rate');
-            $feeCurrency = $this->safe_string($entry, 'fee_currency');
-            $feeSide = ($feeCurrency === $quoteId) ? 'quote' : 'base';
-            $margin = $this->safe_value($entry, 'margin_trading', false);
-            $priceIncrement = $this->safe_number($entry, 'tick_size');
-            $amountIncrement = $this->safe_number($entry, 'quantity_increment');
-            $maxLeverage = $this->safe_number($entry, 'max_initial_leverage');
-            $precision = array(
-                'price' => $priceIncrement,
-                'amount' => $amountIncrement,
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'leverage' => array(
-                    'min' => $minLeverage,
-                    'max' => $maxLeverage,
-                ),
-            );
+            $lotString = $this->safe_string($market, 'quantity_increment');
+            $stepString = $this->safe_string($market, 'tick_size');
+            $lot = $this->parse_number($lotString);
+            $step = $this->parse_number($stepString);
+            $taker = $this->safe_number($market, 'take_rate');
+            $maker = $this->safe_number($market, 'make_rate');
             $result[] = array(
-                'info' => $entry,
-                'symbol' => $symbol,
                 'id' => $id,
+                'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => $settleId,
+                'type' => $type,
                 'spot' => $spot,
                 'margin' => $margin,
-                'futures' => $futures,
-                'type' => $type,
-                'feeSide' => $feeSide,
-                'maker' => $maker,
+                'swap' => $swap,
+                'future' => $future,
+                'futures' => $future, // deprecated, use $future instead
+                'option' => $option,
+                'derivative' => $derivative,
+                'contract' => $contract,
+                'linear' => $linear,
+                'inverse' => $inverse,
                 'taker' => $taker,
-                'precision' => $precision,
-                'limits' => $limits,
-                'expiry' => null,
+                'maker' => $maker,
+                'contractSize' => $contractSize,
+                'active' => true,
+                'expiry' => $expiry,
                 'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'feeCurrency' => $feeCurrency,
+                'precision' => array(
+                    'price' => $step,
+                    'amount' => $lot,
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => 1,
+                        'max' => $this->safe_number($market, 'max_initial_leverage', 1),
+                    ),
+                    'amount' => array(
+                        'min' => $lot,
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => $step,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->parse_number(Precise::string_mul($lotString, $stepString)),
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
             );
         }
         return $result;
@@ -1333,7 +1370,7 @@ class hitbtc3 extends Exchange {
         }
         $filled = $this->safe_string($order, 'quantity_cumulative');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $marketId = $this->safe_string($order, 'marketId');
+        $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $postOnly = $this->safe_value($order, 'post_only');
@@ -1526,7 +1563,7 @@ class hitbtc3 extends Exchange {
             $payloadString = implode('', $payload);
             $signature = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256', 'hex');
             $secondPayload = $this->apiKey . ':' . $signature . ':' . $timestamp;
-            $encoded = base64_encode($secondPayload);
+            $encoded = $this->decode(base64_encode($secondPayload));
             $headers['Authorization'] = 'HS256 ' . $encoded;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

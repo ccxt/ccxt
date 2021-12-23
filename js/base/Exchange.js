@@ -15,6 +15,7 @@ const {
     , unique
     , indexBy
     , sortBy
+    , sortBy2
     , groupBy
     , aggregate
     , uuid
@@ -61,7 +62,12 @@ module.exports = class Exchange {
             'pro': false, // if it is integrated with CCXT Pro for WebSocket support
             'alias': false, // whether this exchange is an alias to another exchange
             'has': {
-                'loadMarkets': true,
+                'publicAPI': true,
+                'privateAPI': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'addMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
@@ -72,26 +78,47 @@ module.exports = class Exchange {
                 'createOrder': true,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': undefined,
+                'fetchBorrowRateHistory': undefined,
+                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchBorrowRates': undefined,
+                'fetchCanceledOrders': undefined,
+                'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchCurrencies': undefined,
+                'fetchCurrencies': 'emulated',
+                'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
+                'fetchDepositAddresses': undefined,
+                'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
+                'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
+                'fetchFundingHistory': undefined,
+                'fetchFundingRate': undefined,
+                'fetchFundingRateHistory': undefined,
+                'fetchFundingRates': undefined,
+                'fetchIndexOHLCV': undefined,
                 'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
+                'fetchLedgerEntry': undefined,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': 'emulated',
+                'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
+                'fetchPosition': undefined,
+                'fetchPositions': undefined,
+                'fetchPositionsRisk': undefined,
+                'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': undefined,
@@ -101,10 +128,19 @@ module.exports = class Exchange {
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
+                'fetchTransfers': undefined,
+                'fetchWithdrawAddress': undefined,
+                'fetchWithdrawAddressesByNetwork': undefined,
+                'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
-                'privateAPI': true,
-                'publicAPI': true,
+                'loadLeverageBrackets': undefined,
+                'loadMarkets': true,
+                'reduceMargin': undefined,
+                'setLeverage': undefined,
+                'setMarginMode': undefined,
+                'setPositionMode': undefined,
                 'signIn': undefined,
+                'transfer': undefined,
                 'withdraw': undefined,
             },
             'urls': {
@@ -185,6 +221,7 @@ module.exports = class Exchange {
             'precisionMode': DECIMAL_PLACES,
             'paddingMode': NO_PADDING,
             'limits': {
+                'leverage': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
@@ -734,7 +771,8 @@ module.exports = class Exchange {
             return this.markets
         }
         let currencies = undefined
-        if (this.has.fetchCurrencies) {
+        // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
+        if (this.has.fetchCurrencies === true) {
             currencies = await this.fetchCurrencies ()
         }
         const markets = await this.fetchMarkets (params)
@@ -1262,7 +1300,7 @@ module.exports = class Exchange {
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
-        result = sortBy (result, 'timestamp')
+        result = sortBy2 (result, 'timestamp', 'id')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         const tail = since === undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)

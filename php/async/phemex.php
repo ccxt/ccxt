@@ -27,6 +27,7 @@ class phemex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRates' => false,
@@ -43,6 +44,7 @@ class phemex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
@@ -330,7 +332,8 @@ class phemex extends Exchange {
         if ($value === null) {
             return $value;
         }
-        $value = str_replace(',', '', $value);
+        $parts = explode(',', $value);
+        $value = implode('', $parts);
         $parts = explode(' ', $value);
         return $this->safe_number($parts, 0);
     }
@@ -1636,18 +1639,18 @@ class phemex extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $price = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'priceEp'), $market)));
-        $amount = $this->parse_number($this->omit_zero($this->from_ev($this->safe_string($order, 'baseQtyEv'), $market)));
-        $remaining = $this->parse_number($this->omit_zero($this->from_ev($this->safe_string($order, 'leavesBaseQtyEv'), $market)));
-        $filled = $this->parse_number($this->omit_zero($this->from_ev($this->safe_string($order, 'cumBaseQtyEv'), $market)));
-        $cost = $this->parse_number($this->omit_zero($this->from_ev($this->safe_string($order, 'quoteQtyEv'), $market)));
-        $average = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'avgPriceEp'), $market)));
+        $price = $this->from_ep($this->safe_string($order, 'priceEp'), $market);
+        $amount = $this->from_ev($this->safe_string($order, 'baseQtyEv'), $market);
+        $remaining = $this->omit_zero($this->from_ev($this->safe_string($order, 'leavesBaseQtyEv'), $market));
+        $filled = $this->from_ev($this->safe_string_2($order, 'cumBaseQtyEv', 'cumBaseValueEv'), $market);
+        $cost = $this->from_ev($this->safe_string_2($order, 'cumQuoteValueEv', 'quoteQtyEv'), $market);
+        $average = $this->from_ep($this->safe_string($order, 'avgPriceEp'), $market);
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->parse_order_type($this->safe_string($order, 'ordType'));
         $timestamp = $this->safe_integer_product_2($order, 'actionTimeNs', 'createTimeNs', 0.000001);
         $fee = null;
-        $feeCost = $this->parse_number($this->from_ev($this->safe_string($order, 'cumFeeEv'), $market));
+        $feeCost = $this->from_ev($this->safe_string($order, 'cumFeeEv'), $market);
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -1657,7 +1660,7 @@ class phemex extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp', $market))));
         $postOnly = ($timeInForce === 'PO');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1679,7 +1682,7 @@ class phemex extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_swap_order($order, $market = null) {
@@ -1924,6 +1927,50 @@ class phemex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
+    public function edit_order($id, $symbol, $type = null, $side = null, $amount = null, $price = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
+        }
+        if ($type !== null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() $type changing is not implemented. Try to cancel & recreate order for that purpose');
+        }
+        if ($side !== null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() $side changing is not implemented. Try to cancel & recreate order for that purpose');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdID');
+        $params = $this->omit($params, array( 'clientOrderId', 'clOrdID' ));
+        if ($clientOrderId !== null) {
+            $request['clOrdID'] = $clientOrderId;
+        } else {
+            $request['orderID'] = $id;
+        }
+        if ($price !== null) {
+            $request['priceEp'] = $this->to_ep($price, $market);
+        }
+        // Note the uppercase 'V' in 'baseQtyEV' $request-> that is exchange's requirement at this moment. However, to avoid mistakes from user $side, let's support lowercased 'baseQtyEv' too
+        $finalQty = $this->safe_string($params, 'baseQtyEv');
+        $params = $this->omit($params, array( 'baseQtyEv' ));
+        if ($finalQty !== null) {
+            $request['baseQtyEV'] = $finalQty;
+        } else if ($amount !== null) {
+            $request['baseQtyEV'] = $this->to_ev($amount, $market);
+        }
+        $stopPrice = $this->safe_string_2($params, 'stopPx', 'stopPrice');
+        if ($stopPrice !== null) {
+            $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
+        }
+        $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
+        $method = $market['spot'] ? 'privatePutSpotOrders' : 'privatePutOrdersReplace';
+        $response = yield $this->$method (array_merge($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order($data, $market);
+    }
+
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -2112,7 +2159,7 @@ class phemex extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

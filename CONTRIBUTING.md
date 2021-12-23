@@ -866,11 +866,11 @@ Upon instantiation the base exchange class takes each URL from its list of endpo
 
 ### Continuous Integration
 
-Builds are automated with [Travis CI](https://travis-ci.org/ccxt/ccxt). The build steps for Travis CI are described in the [`.travis.yml`](https://github.com/ccxt/ccxt/blob/master/.travis.yml) file.
+Builds are automated with [Travis CI](https://app.travis-ci.com/github/ccxt/ccxt). The build steps for Travis CI are described in the [`.travis.yml`](https://github.com/ccxt/ccxt/blob/master/.travis.yml) file.
 
 Windows builds are automated with [Appveyor](https://ci.appveyor.com/project/ccxt/ccxt). The build steps for Appveyor are in the [`appveyor.yml`](https://github.com/ccxt/ccxt/blob/master/appveyor.yml) file.
 
-Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt/ccxt/builds](https://travis-ci.org/ccxt/ccxt/builds).
+Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [app.travis-ci.com/github/ccxt/ccxt/builds](https://app.travis-ci.com/github/ccxt/ccxt/builds).
 
 ### How To Build & Run Tests On Your Local Machine
 
@@ -915,18 +915,6 @@ node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run b
 
 The build process generates many changes in the transpiled exchange files, e.g. for Python and PHP. **You should NOT commit them to GitHub, commit only the base (JS) file changes please**.
 
-You can hide the changes in the generated files by running this command (after that, the generated files are no longer marked as changed):
-
-```
-npm run git-ignore-generated-files
-```
-
-Previously we had that command implemented as a final build step, but it caused problems with subsequent `git pull` and also branch selection commands (when a conflict occurred in those files that have been marked as ignored). So if you experience an issue with that, you can un-ignore those files by executing:
-
-```
-npm run git-unignore-generated-files
-```
-
 ## Financial Contributions
 
 We also welcome financial contributions in full transparency on our [open collective](https://opencollective.com/ccxt).
@@ -937,7 +925,7 @@ We also welcome financial contributions in full transparency on our [open collec
 
 Thank you to all the people who have already contributed to ccxt!
 
-<a href="graphs/contributors"><img src="https://opencollective.com/ccxt/contributors.svg?width=890" /></a>
+<a href="https://github.com/ccxt/ccxt/graphs/contributors"><img src="https://opencollective.com/ccxt/contributors.svg?width=890" /></a>
 
 ### Backers
 

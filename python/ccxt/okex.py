@@ -41,6 +41,10 @@ class okex(Exchange):
             'pro': True,
             'certified': True,
             'has': {
+                'margin': True,
+                'swap': True,
+                'future': True,
+                'addMargin': True,
                 'cancelOrder': True,
                 'CORS': None,
                 'createOrder': True,
@@ -50,13 +54,16 @@ class okex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchDepositAddressByNetwork': True,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingHistory': True,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
+                'fetchLeverage': True,
                 'fetchMarkets': True,
+                'fetchMarketsByType': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -66,21 +73,20 @@ class okex(Exchange):
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
-                'fetchLeverage': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTickersByType': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
+                'setLeverage': True,
+                'setMarginMode': True,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': True,
-                'setLeverage': True,
-                'setPositionMode': True,
-                'setMarginMode': True,
-                'addMargin': True,
-                'reduceMargin': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -3134,10 +3140,6 @@ class okex(Exchange):
         # in the response above nextFundingRate is actually two funding rates from now
         #
         nextFundingRateTimestamp = self.safe_integer(fundingRate, 'fundingTime')
-        previousFundingTimestamp = None
-        if nextFundingRateTimestamp is not None:
-            # eight hours
-            previousFundingTimestamp = nextFundingRateTimestamp - 28800000
         marketId = self.safe_string(fundingRate, 'instId')
         symbol = self.safe_symbol(marketId, market)
         nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
@@ -3154,9 +3156,9 @@ class okex(Exchange):
             'datetime': None,
             'previousFundingRate': None,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,  # subtract 8 hours
+            'previousFundingTimestamp': None,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'previousFundingDatetime': None,
             'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
         }
 
@@ -3515,6 +3517,12 @@ class okex(Exchange):
 
     def add_margin(self, symbol, amount, params={}):
         return self.modify_margin_helper(symbol, amount, 'add', params)
+
+    def set_sandbox_mode(self, enable):
+        if enable:
+            self.headers['x-simulated-trading'] = 1
+        else:
+            self.headers['x-simulated-trading'] = None
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

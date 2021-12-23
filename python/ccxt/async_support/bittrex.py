@@ -43,6 +43,9 @@ class bittrex(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'margin': False,
+                'swap': False,
+                'future': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
@@ -51,6 +54,7 @@ class bittrex(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,

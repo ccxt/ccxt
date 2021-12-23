@@ -308,6 +308,7 @@ class bitmart(Exchange):
             'commonCurrencies': {
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
+                'DMS': 'DimSum',  # conflict with Dragon Mainland Shards
                 'FOX': 'Fox Finance',
                 'GDT': 'Gorilla Diamond',
                 '$HERO': 'Step Hero',
@@ -317,6 +318,7 @@ class bitmart(Exchange):
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
                 'TCT': 'TacoCat Token',
+                'TRU': 'Truebit',  # conflict with TrueFi
             },
             'options': {
                 'networks': {
@@ -1801,6 +1803,8 @@ class bitmart(Exchange):
                 request['status'] = 9
             elif status == 'closed':
                 request['status'] = 6
+            elif status == 'canceled':
+                request['status'] = 8
             else:
                 request['status'] = status
         elif market['swap'] or market['future']:
@@ -1888,6 +1892,9 @@ class bitmart(Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
+
+    def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_status('canceled', symbol, since, limit, params)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

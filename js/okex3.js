@@ -24,7 +24,7 @@ module.exports = class okex3 extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': undefined, // see below
+                'fetchCurrencies': true, // see below
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchLedger': true,
@@ -42,7 +42,7 @@ module.exports = class okex3 extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
-                'futures': true,
+                'future': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -687,6 +687,7 @@ module.exports = class okex3 extends Exchange {
                     'rate': 'public',
                     '{instrument_id}/constituents': 'public',
                 },
+                'warnOnFetchCurrenciesWithoutAuthorization': false,
             },
             'commonCurrencies': {
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
@@ -979,53 +980,59 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        // has['fetchCurrencies'] is currently set to false
         // despite that their docs say these endpoints are public:
         //     https://www.okex.com/api/account/v3/withdrawal/fee
         //     https://www.okex.com/api/account/v3/currencies
         // it will still reply with { "code":30001, "message": "OK-ACCESS-KEY header is required" }
         // if you attempt to access it without authentication
-        const response = await this.accountGetCurrencies (params);
-        //
-        //     [
-        //         {
-        //             name: '',
-        //             currency: 'BTC',
-        //             can_withdraw: '1',
-        //             can_deposit: '1',
-        //             min_withdrawal: '0.0100000000000000'
-        //         },
-        //     ]
-        //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'currency');
-            const code = this.safeCurrencyCode (id);
-            const precision = 0.00000001; // default precision, todo: fix "magic constants"
-            const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeInteger (currency, 'can_deposit');
-            const canWithdraw = this.safeInteger (currency, 'can_withdraw');
-            const active = (canDeposit && canWithdraw) ? true : false;
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': undefined,
-                'name': name,
-                'active': active,
-                'fee': undefined, // todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': {
-                        'min': this.safeNumber (currency, 'min_withdrawal'),
-                        'max': undefined,
+        if (!this.checkRequiredCredentials (false)) {
+            if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
+                throw new ExchangeError (this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
+            }
+            return undefined;
+        } else {
+            const response = await this.accountGetCurrencies (params);
+            //
+            //     [
+            //         {
+            //             name: '',
+            //             currency: 'BTC',
+            //             can_withdraw: '1',
+            //             can_deposit: '1',
+            //             min_withdrawal: '0.0100000000000000'
+            //         },
+            //     ]
+            //
+            const result = {};
+            for (let i = 0; i < response.length; i++) {
+                const currency = response[i];
+                const id = this.safeString (currency, 'currency');
+                const code = this.safeCurrencyCode (id);
+                const precision = 0.00000001; // default precision, todo: fix "magic constants"
+                const name = this.safeString (currency, 'name');
+                const canDeposit = this.safeInteger (currency, 'can_deposit');
+                const canWithdraw = this.safeInteger (currency, 'can_withdraw');
+                const active = (canDeposit && canWithdraw) ? true : false;
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': currency,
+                    'type': undefined,
+                    'name': name,
+                    'active': active,
+                    'fee': undefined, // todo: redesign
+                    'precision': precision,
+                    'limits': {
+                        'amount': { 'min': undefined, 'max': undefined },
+                        'withdraw': {
+                            'min': this.safeNumber (currency, 'min_withdrawal'),
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
+            return result;
         }
-        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

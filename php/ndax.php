@@ -36,8 +36,8 @@ class ndax extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrderTrades' => true,
                 'fetchOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
@@ -195,7 +195,7 @@ class ndax extends Exchange {
                 // these credentials are required for signIn() and withdraw()
                 'login' => true,
                 'password' => true,
-                'twofa' => true,
+                // 'twofa' => true,
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -226,8 +226,8 @@ class ndax extends Exchange {
 
     public function sign_in($params = array ()) {
         $this->check_required_credentials();
-        if ($this->login === null || $this->password === null || $this->twofa === null) {
-            throw new AuthenticationError($this->id . ' signIn() requires exchange.login, exchange.password and exchange.twofa credentials');
+        if ($this->login === null || $this->password === null) {
+            throw new AuthenticationError($this->id . ' signIn() requires exchange.login, exchange.password');
         }
         $request = array(
             'grant_type' => 'client_credentials', // the only supported value
@@ -249,6 +249,9 @@ class ndax extends Exchange {
         }
         $pending2faToken = $this->safe_string($response, 'Pending2FaToken');
         if ($pending2faToken !== null) {
+            if ($this->twofa === null) {
+                throw new AuthenticationError($this->id . ' signIn() requires exchange.twofa credentials');
+            }
             $this->options['pending2faToken'] = $pending2faToken;
             $request = array(
                 'Code' => $this->oath(),
@@ -935,11 +938,13 @@ class ndax extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'Amount');
-            $account['used'] = $this->safe_string($balance, 'Hold');
-            $result[$code] = $account;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['total'] = $this->safe_string($balance, 'Amount');
+                $account['used'] = $this->safe_string($balance, 'Hold');
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
@@ -2021,6 +2026,9 @@ class ndax extends Exchange {
         $sessionToken = $this->safe_string($this->options, 'sessionToken');
         if ($sessionToken === null) {
             throw new AuthenticationError($this->id . ' call signIn() method to obtain a session token');
+        }
+        if ($this->twofa === null) {
+            throw new AuthenticationError($this->id . ' withdraw() requires exchange.twofa credentials');
         }
         $this->check_address($address);
         $omsId = $this->safe_integer($this->options, 'omsId', 1);

@@ -33,7 +33,6 @@ class bitstamp extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchFees' => true,
                 'fetchFundingFees' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
@@ -926,20 +925,6 @@ class bitstamp extends Exchange {
         yield $this->load_markets();
         $balance = yield $this->privatePostBalance ($params);
         return $this->parse_funding_fees($balance);
-    }
-
-    public function fetch_fees($params = array ()) {
-        yield $this->load_markets();
-        $balance = yield $this->privatePostBalance ($params);
-        $tradingFees = $this->parse_trading_fees($balance);
-        unset($tradingFees['info']);
-        $fundingFees = $this->parse_funding_fees($balance);
-        unset($fundingFees['info']);
-        return array(
-            'info' => $balance,
-            'trading' => $tradingFees,
-            'funding' => $fundingFees,
-        );
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

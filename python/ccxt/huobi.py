@@ -49,13 +49,19 @@ class huobi(Exchange):
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
             'has': {
+                # 'margin': True,
+                'swap': True,
+                'future': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'CORS': None,
                 'createOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': True,
                 'fetchBorrowRates': True,
+                'fetchBorrowRatesPerSymbol': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -80,6 +86,8 @@ class huobi(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingLimits': True,
+                'fetchWithdrawAddress': True,
+                'fetchWithdrawAddressesByNetwork': True,
                 'fetchWithdrawals': True,
                 'transfer': True,
                 'withdraw': True,
@@ -790,6 +798,36 @@ class huobi(Exchange):
                     'pro': 'spot',
                     'futures': 'future',
                 },
+                'spot': {
+                    'stopOrderTypes': {
+                        'stop-limit': True,
+                        'buy-stop-limit': True,
+                        'sell-stop-limit': True,
+                        'stop-limit-fok': True,
+                        'buy-stop-limit-fok': True,
+                        'sell-stop-limit-fok': True,
+                    },
+                    'limitOrderTypes': {
+                        'limit': True,
+                        'buy-limit': True,
+                        'sell-limit': True,
+                        'ioc': True,
+                        'buy-ioc': True,
+                        'sell-ioc': True,
+                        'limit-maker': True,
+                        'buy-limit-maker': True,
+                        'sell-limit-maker': True,
+                        'stop-limit': True,
+                        'buy-stop-limit': True,
+                        'sell-stop-limit': True,
+                        'limit-fok': True,
+                        'buy-limit-fok': True,
+                        'sell-limit-fok': True,
+                        'stop-limit-fok': True,
+                        'buy-stop-limit-fok': True,
+                        'sell-stop-limit-fok': True,
+                    },
+                },
             },
             'commonCurrencies': {
                 # https://github.com/ccxt/ccxt/issues/6081
@@ -1327,6 +1365,7 @@ class huobi(Exchange):
         return ticker
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
         options = self.safe_value(self.options, 'fetchTickers', {})
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         type = self.safe_string(options, 'type', defaultType)
@@ -1344,6 +1383,29 @@ class huobi(Exchange):
                 method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged'
         query = self.omit(params, ['type', 'subType'])
         response = getattr(self, method)(query)
+        #
+        # spot
+        #
+        #     {
+        #         "data":[
+        #             {
+        #                 "symbol":"hbcbtc",
+        #                 "open":5.313E-5,
+        #                 "high":5.34E-5,
+        #                 "low":5.112E-5,
+        #                 "close":5.175E-5,
+        #                 "amount":1183.87,
+        #                 "vol":0.0618599229,
+        #                 "count":205,
+        #                 "bid":5.126E-5,
+        #                 "bidSize":5.25,
+        #                 "ask":5.214E-5,
+        #                 "askSize":150.0
+        #             },
+        #         ],
+        #         "status":"ok",
+        #         "ts":1639547261293
+        #     }
         #
         # future
         #
@@ -2121,6 +2183,7 @@ class huobi(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
+        stopPrice = self.safe_string(order, 'stop-price')
         return self.safe_order2({
             'info': order,
             'id': id,
@@ -2134,7 +2197,7 @@ class huobi(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': stopPrice,
             'average': None,
             'cost': cost,
             'amount': amount,
@@ -2147,6 +2210,18 @@ class huobi(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
+        methodType, query = self.handle_market_type_and_params('createOrder', market, params)
+        method = self.get_supported_mapping(methodType, {
+            'spot': 'createSpotOrder',
+            # 'future': 'createContractOrder',
+        })
+        if method is None:
+            raise NotSupported(self.id + ' createOrder does not support ' + type + ' markets yet')
+        return getattr(self, method)(symbol, type, side, amount, price, query)
+
+    def create_spot_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
         accountId = self.fetch_account_id_by_type(market['type'])
@@ -2154,59 +2229,34 @@ class huobi(Exchange):
             # spot -----------------------------------------------------------
             'account-id': accountId,
             'symbol': market['id'],
-            'type': side + '-' + type,  # buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            # 'type': side + '-' + type,  # buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             # 'amount': self.amount_to_precision(symbol, amount),  # for buy market orders it's the order cost
             # 'price': self.price_to_precision(symbol, price),
             # 'source': 'spot-api',  # optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
             # 'client-order-id': clientOrderId,  # optional, max 64 chars, must be unique within 8 hours
             # 'stop-price': self.price_to_precision(symbol, stopPrice),  # trigger price for stop limit orders
             # 'operator': 'gte',  # gte, lte, trigger price condition
-            # futures --------------------------------------------------------
-            # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-            # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
-            # 'contract_code': market['id'],  # optional BTC180914
-            # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
-            # 'price': self.price_to_precision(symbol, price),
-            # 'volume': self.amount_to_precision(symbol, amount),
-            #
-            #     direction buy, offset open = open long
-            #     direction sell, offset close = close long
-            #     direction sell, offset open = open short
-            #     direction buy, offset close = close short
-            #
-            # 'direction': side,  # True Transaction direction
-            # 'offset': 'string',  # open, close
-            # 'lever_rate': 1,  # using Leverage greater than 20x requires prior approval of high-leverage agreement
-            #
-            #     limit
-            #     opponent  # BBO
-            #     post_only
-            #     optimal_5
-            #     optimal_10
-            #     optimal_20
-            #     ioc
-            #     fok
-            #     opponent_ioc  # IOC order using the BBO price
-            #     optimal_5_ioc
-            #     optimal_10_ioc
-            #     optimal_20_ioc
-            #     opponent_fok  # FOR order using the BBO price
-            #     optimal_5_fok
-            #     optimal_10_fok
-            #     optimal_20_fok
-            #
-            # 'order_price_type': 'limit',  # required
-            # 'tp_trigger_price': self.price_to_precision(symbol, triggerPrice),
-            # 'tp_order_price': self.price_to_precision(symbol, price),
-            # 'tp_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
-            # 'sl_trigger_price': self.price_to_precision(symbol, stopLossPrice),
-            # 'sl_order_price': self.price_to_precision(symbol, price),
-            # 'sl_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
-            # swap -----------------------------------------------------------
-            #
-            #     ...
-            #
         }
+        orderType = type.replace('buy-', '')
+        orderType = orderType.replace('sell-', '')
+        options = self.safe_value(self.options, market['type'], {})
+        stopPrice = self.safe_string_2(params, 'stopPrice', 'stop-price')
+        if stopPrice is None:
+            stopOrderTypes = self.safe_value(options, 'stopOrderTypes', {})
+            if orderType in stopOrderTypes:
+                raise ArgumentsRequired(self.id + 'createOrder() requires a stopPrice or a stop-price parameter for a stop order')
+        else:
+            stopOperator = self.safe_string(params, 'operator')
+            if stopOperator is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires an operator parameter "gte" or "lte" for a stop order')
+            params = self.omit(params, ['stopPrice', 'stop-price'])
+            request['stop-price'] = self.price_to_precision(symbol, stopPrice)
+            request['operator'] = stopOperator
+            if (orderType == 'limit') or (orderType == 'limit-fok'):
+                orderType = 'stop-' + orderType
+            elif (orderType != 'stop-limit') and (orderType != 'stop-limit-fok'):
+                raise NotSupported(self.id + 'createOrder() does not support ' + type + ' orders')
+        request['type'] = side + '-' + orderType
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
         if clientOrderId is None:
             broker = self.safe_value(self.options, 'broker', {})
@@ -2215,7 +2265,7 @@ class huobi(Exchange):
         else:
             request['client-order-id'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'client-order-id'])
-        if (type == 'market') and (side == 'buy'):
+        if (orderType == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if price is None:
                     raise InvalidOrder(self.id + " market buy order requires price argument to calculate cost(total amount of quote currency to spend for buying, amount * price). To switch off self warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = False. Make sure you know what you're doing.")
@@ -2231,7 +2281,8 @@ class huobi(Exchange):
                 request['amount'] = self.cost_to_precision(symbol, amount)
         else:
             request['amount'] = self.amount_to_precision(symbol, amount)
-        if type == 'limit' or type == 'ioc' or type == 'limit-maker' or type == 'stop-limit' or type == 'stop-limit-fok':
+        limitOrderTypes = self.safe_value(options, 'limitOrderTypes', {})
+        if orderType in limitOrderTypes:
             request['price'] = self.price_to_precision(symbol, price)
         response = self.spotPrivatePostV1OrderOrdersPlace(self.extend(request, params))
         timestamp = self.milliseconds()
@@ -2256,6 +2307,51 @@ class huobi(Exchange):
             'clientOrderId': None,
             'average': None,
         }
+
+    def create_contract_order(self, symbol, type, side, amount, price=None, params={}):
+        # request = {
+        #     # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+        #     # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
+        #     # 'contract_code': market['id'],  # optional BTC180914
+        #     # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
+        #     # 'price': self.price_to_precision(symbol, price),
+        #     # 'volume': self.amount_to_precision(symbol, amount),
+        #     #
+        #     #     direction buy, offset open = open long
+        #     #     direction sell, offset close = close long
+        #     #     direction sell, offset open = open short
+        #     #     direction buy, offset close = close short
+        #     #
+        #     # 'direction': 'buy'',  # buy, sell
+        #     # 'offset': 'open',  # open, close
+        #     # 'lever_rate': 1,  # using Leverage greater than 20x requires prior approval of high-leverage agreement
+        #     #
+        #     #     limit
+        #     #     opponent  # BBO
+        #     #     post_only
+        #     #     optimal_5
+        #     #     optimal_10
+        #     #     optimal_20
+        #     #     ioc
+        #     #     fok
+        #     #     opponent_ioc  # IOC order using the BBO price
+        #     #     optimal_5_ioc
+        #     #     optimal_10_ioc
+        #     #     optimal_20_ioc
+        #     #     opponent_fok  # FOR order using the BBO price
+        #     #     optimal_5_fok
+        #     #     optimal_10_fok
+        #     #     optimal_20_fok
+        #     #
+        #     # 'order_price_type': 'limit',  # required
+        #     # 'tp_trigger_price': self.price_to_precision(symbol, triggerPrice),
+        #     # 'tp_order_price': self.price_to_precision(symbol, price),
+        #     # 'tp_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+        #     # 'sl_trigger_price': self.price_to_precision(symbol, stopLossPrice),
+        #     # 'sl_order_price': self.price_to_precision(symbol, price),
+        #     # 'sl_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+        # }
+        raise NotSupported(self.id + ' createContractOrder is not supported yet, it is a work in progress')
 
     def cancel_order(self, id, symbol=None, params={}):
         clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
@@ -2381,12 +2477,14 @@ class huobi(Exchange):
         networksById = self.index_by(networks, 'id')
         networkValue = self.safe_value(networksById, networkId, networkId)
         network = self.safe_string(networkValue, 'network')
+        note = self.safe_string(depositAddress, 'note')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
             'network': network,
+            'note': note,
             'info': depositAddress,
         }
 
@@ -2438,6 +2536,57 @@ class huobi(Exchange):
         result = self.safe_value(response, network)
         if result is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
+        return result
+
+    def fetch_withdraw_addresses_by_network(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.spotPrivateGetV2AccountWithdrawAddress(self.extend(request, params))
+        #
+        #     {
+        #         code: 200,
+        #         data: [
+        #             {
+        #                 currency: "eth",
+        #                 chain: "eth"
+        #                 note: "Binance - TRC20",
+        #                 addressTag: "",
+        #                 address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        parsed = self.parse_deposit_addresses(data, [code], False)
+        return self.index_by(parsed, 'network')
+
+    def fetch_withdraw_address(self, code, params={}):
+        rawNetwork = self.safe_string_upper(params, 'network')
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(networks, rawNetwork, rawNetwork)
+        params = self.omit(params, 'network')
+        response = self.fetch_withdraw_addresses_by_network(code, params)
+        result = None
+        if network is None:
+            result = self.safe_value(response, code)
+            if result is None:
+                alias = self.safe_string(networks, code, code)
+                result = self.safe_value(response, alias)
+                if result is None:
+                    defaultNetwork = self.safe_string(self.options, 'defaultNetwork', 'ERC20')
+                    result = self.safe_value(response, defaultNetwork)
+                    if result is None:
+                        values = list(response.values())
+                        result = self.safe_value(values, 0)
+                        if result is None:
+                            raise InvalidAddress(self.id + ' fetchWithdrawAddress() cannot find withdraw address for ' + code)
+            return result
+        result = self.safe_value(response, network)
+        if result is None:
+            raise InvalidAddress(self.id + ' fetchWithdrawAddress() cannot find ' + network + ' withdraw address for ' + code)
         return result
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):

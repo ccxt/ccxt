@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.63.55'
+__version__ = '1.64.64'
 
 # ----------------------------------------------------------------------------
 
@@ -70,7 +70,6 @@ from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 from ccxt.aax import aax                                    # noqa: F401
-from ccxt.aofex import aofex                                # noqa: F401
 from ccxt.ascendex import ascendex                          # noqa: F401
 from ccxt.bequant import bequant                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
@@ -117,7 +116,6 @@ from ccxt.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
 from ccxt.coinfalcon import coinfalcon                      # noqa: F401
-from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
@@ -181,10 +179,11 @@ from ccxt.xena import xena                                  # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
+from ccxt.zipmex import zipmex                              # noqa: F401
+from ccxt.zonda import zonda                                # noqa: F401
 
 exchanges = [
     'aax',
-    'aofex',
     'ascendex',
     'bequant',
     'bibox',
@@ -231,7 +230,6 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
-    'coinmarketcap',
     'coinmate',
     'coinone',
     'coinspot',
@@ -295,6 +293,8 @@ exchanges = [
     'yobit',
     'zaif',
     'zb',
+    'zipmex',
+    'zonda',
 ]
 
 base = [

@@ -29,7 +29,6 @@ class indodax(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchCurrencies': None,
                 'fetchMarkets': True,
                 'fetchMyTrades': None,
                 'fetchOpenOrders': True,

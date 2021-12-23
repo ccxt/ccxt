@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.63.55';
+$version = '1.64.64';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.63.55';
+    const VERSION = '1.64.64';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -63,7 +63,6 @@ class Exchange {
 
     public static $exchanges = array(
         'aax',
-        'aofex',
         'ascendex',
         'bequant',
         'bibox',
@@ -110,7 +109,6 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinfalcon',
-        'coinmarketcap',
         'coinmate',
         'coinone',
         'coinspot',
@@ -174,6 +172,8 @@ class Exchange {
         'yobit',
         'zaif',
         'zb',
+        'zipmex',
+        'zonda',
     );
 
     public static $camelcase_methods = array(
@@ -186,6 +186,7 @@ class Exchange {
         'groupBy' => 'group_by',
         'filterBy' => 'filter_by',
         'sortBy' => 'sort_by',
+        'sortBy2' => 'sort_by2',
         'deepExtend' => 'deep_extend',
         'unCamelCase' => 'un_camel_case',
         'isNumber' => 'is_number',
@@ -668,6 +669,20 @@ class Exchange {
         return $arrayOfArrays;
     }
 
+    public static function sort_by_2($arrayOfArrays, $key1, $key2, $descending = false) {
+        $descending = $descending ? -1 : 1;
+        usort($arrayOfArrays, function ($a, $b) use ($key1, $key2, $descending) {
+            if ($a[$key1] == $b[$key1]) {
+                if ($a[$key2] == $b[$key2]) {
+                    return 0;
+                }
+                return $a[$key2] < $b[$key2] ? -$descending : $descending;
+            }
+            return $a[$key1] < $b[$key1] ? -$descending : $descending;
+        });
+        return $arrayOfArrays;
+    }
+
     public static function flatten($array) {
         return array_reduce($array, function ($acc, $item) {
             return array_merge($acc, is_array($item) ? static::flatten($item) : array($item));
@@ -933,7 +948,7 @@ class Exchange {
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
             // other flags if needed...
         );
-        $flags = 0;
+        $flags = JSON_UNESCAPED_SLASHES;
         foreach ($options as $key => $value) {
             if (array_key_exists($key, $params) && $params[$key]) {
                 $flags |= $options[$key];
@@ -975,7 +990,7 @@ class Exchange {
 
     public function check_address($address) {
         if (empty($address) || !is_string($address)) {
-            throw new InvalidAddress($this->id . ' address is undefined');
+            throw new InvalidAddress($this->id . ' address is null');
         }
 
         if ((count(array_unique(str_split($address))) === 1) ||
@@ -1074,6 +1089,10 @@ class Exchange {
                 'min' => null,
                 'max' => null,
             ),
+            'leverage' => array(
+                'min' => null,
+                'max' => null,
+            ),
         );
         $this->httpExceptions = array(
             '422' => 'ExchangeError',
@@ -1139,49 +1158,86 @@ class Exchange {
 
         // API methods metainfo
         $this->has = array(
-            'loadMarkets' => true,
-            'cancelAllOrders' => false,
+            'publicAPI' => true,
+            'privateAPI' => true,
+            'margin' => null,
+            'swap' => null,
+            'future' => null,
+            'addMargin' => null,
+            'cancelAllOrders' => null,
             'cancelOrder' => true,
-            'cancelOrders' => false,
-            'CORS' => false,
-            'createDepositAddress' => false,
+            'cancelOrders' => null,
+            'CORS' => null,
+            'createDepositAddress' => null,
             'createLimitOrder' => true,
             'createMarketOrder' => true,
             'createOrder' => true,
-            'deposit' => false,
+            'deposit' => null,
+            'editOrder' => 'emulated',
+            'fetchAccounts' => null,
             'fetchBalance' => true,
-            'fetchBorrowRate' => false,
-            'fetchBorrowRates' => false,
-            'fetchClosedOrders' => false,
-            'fetchCurrencies' => false,
-            'fetchDepositAddress' => false,
-            'fetchDeposits' => false,
-            'fetchFundingFees' => false,
+            'fetchBidsAsks' => null,
+            'fetchBorrowRate' => null,
+            'fetchBorrowRateHistory' => null,
+            'fetchBorrowRatesPerSymbol' => null,
+            'fetchBorrowRates' => null,
+            'fetchCanceledOrders' => null,
+            'fetchClosedOrder' => null,
+            'fetchClosedOrders' => null,
+            'fetchCurrencies' => 'emulated',
+            'fetchDeposit' => null,
+            'fetchDepositAddress' => null,
+            'fetchDepositAddresses' => null,
+            'fetchDepositAddressesByNetwork' => null,
+            'fetchDeposits' => null,
+            'fetchFundingFee' => null,
+            'fetchFundingFees' => null,
+            'fetchFundingHistory' => null,
+            'fetchFundingRate' => null,
+            'fetchFundingRateHistory' => null,
+            'fetchFundingRates' => null,
+            'fetchIndexOHLCV' => null,
             'fetchL2OrderBook' => true,
-            'fetchLedger' => false,
+            'fetchLedger' => null,
+            'fetchLedgerEntry' => null,
             'fetchMarkets' => true,
-            'fetchMyTrades' => false,
+            'fetchMarkOHLCV' => null,
+            'fetchMyTrades' => null,
             'fetchOHLCV' => 'emulated',
-            'fetchOpenOrders' => false,
-            'fetchOrder' => false,
-            'fetchOrderTrades' => false,
+            'fetchOpenOrder' => null,
+            'fetchOpenOrders' => null,
+            'fetchOrder' => null,
             'fetchOrderBook' => true,
-            'fetchOrderBooks' => false,
-            'fetchOrders' => false,
+            'fetchOrderBooks' => null,
+            'fetchOrders' => null,
+            'fetchOrderTrades' => null,
+            'fetchPosition' => null,
+            'fetchPositions' => null,
+            'fetchPositionsRisk' => null,
+            'fetchPremiumIndexOHLCV' => null,
             'fetchStatus' => 'emulated',
             'fetchTicker' => true,
-            'fetchTickers' => false,
-            'fetchTime' => false,
+            'fetchTickers' => null,
+            'fetchTime' => null,
             'fetchTrades' => true,
-            'fetchTradingFee' => false,
-            'fetchTradingFees' => false,
-            'fetchTradingLimits' => false,
-            'fetchTransactions' => false,
-            'fetchWithdrawals' => false,
-            'privateAPI' => true,
-            'publicAPI' => true,
-            'signIn' => false,
-            'withdraw' => false,
+            'fetchTradingFee' => null,
+            'fetchTradingFees' => null,
+            'fetchTradingLimits' => null,
+            'fetchTransactions' => null,
+            'fetchTransfers' => null,
+            'fetchWithdrawAddress' => null,
+            'fetchWithdrawAddressesByNetwork' => null,
+            'fetchWithdrawal' => null,
+            'fetchWithdrawals' => null,
+            'loadLeverageBrackets' => null,
+            'loadMarkets' => true,
+            'reduceMargin' => null,
+            'setLeverage' => null,
+            'setMarginMode' => null,
+            'setPositionMode' => null,
+            'signIn' => null,
+            'transfer' => null,
+            'withdraw' => null,
         );
 
         $this->precisionMode = DECIMAL_PLACES;
@@ -1776,7 +1832,7 @@ class Exchange {
             return $this->markets;
         }
         $currencies = null;
-        if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies']) {
+        if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = $this->fetch_currencies();
         }
         $markets = $this->fetch_markets($params);
@@ -2072,7 +2128,7 @@ class Exchange {
         foreach ($array as $trade) {
             $result[] = array_merge($this->parse_trade($trade, $market), $params);
         }
-        $result = $this->sort_by($result, 'timestamp');
+        $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = isset($market) ? $market['symbol'] : null;
         $tail = $since === null;
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);

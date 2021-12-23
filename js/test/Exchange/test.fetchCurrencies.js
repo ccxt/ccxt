@@ -15,7 +15,7 @@ module.exports = async (exchange) => {
         return
     }
 
-    if (exchange.has.fetchCurrencies) {
+    if (exchange.has.fetchCurrencies === true || exchange.has.fetchCurrencies === 'emulated') {
 
         const method = 'fetchCurrencies'
         const currencies = await exchange[method] ()

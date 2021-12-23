@@ -38,6 +38,9 @@ class bybit(Exchange):
             'rateLimit': 100,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
             'has': {
+                'margin': False,
+                'swap': True,
+                'future': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': True,
@@ -69,8 +72,8 @@ class bybit(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
-                'setMarginMode': True,
                 'setLeverage': True,
+                'setMarginMode': True,
             },
             'timeframes': {
                 '1m': '1',

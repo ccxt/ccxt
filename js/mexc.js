@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, NotSupported, PermissionDenied } = require ('./base/errors');
+const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -19,6 +19,7 @@ module.exports = class mexc extends Exchange {
             'version': 'v2',
             'certified': true,
             'has': {
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': false,
@@ -28,22 +29,28 @@ module.exports = class mexc extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDepositAddressByNetwork': true,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
+                'fetchMarketsByType': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrdersByState': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchWIthdrawals': true,
+                'fetchWithdrawals': true,
+                'reduceMargin': true,
+                'setLeverage': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -223,6 +230,8 @@ module.exports = class mexc extends Exchange {
                 'COFI': 'COFIX', // conflict with CoinFi
                 'DFT': 'dFuture',
                 'DRK': 'DRK',
+                'FLUX1': 'FLUX', // switched places
+                'FLUX': 'FLUX1', // switched places
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance', // conflict with Prosper
@@ -334,7 +343,7 @@ module.exports = class mexc extends Exchange {
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'full_name');
-            let currencyActive = undefined;
+            let currencyActive = false;
             let currencyPrecision = undefined;
             let currencyFee = undefined;
             let currencyWithdrawMin = undefined;
@@ -348,7 +357,7 @@ module.exports = class mexc extends Exchange {
                 const isDepositEnabled = this.safeValue (chain, 'is_deposit_enabled', false);
                 const isWithdrawEnabled = this.safeValue (chain, 'is_withdraw_enabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
-                currencyActive = (currencyActive === undefined) ? active : currencyActive;
+                currencyActive = active || currencyActive;
                 const precisionDigits = this.safeInteger (chain, 'precision');
                 const precision = 1 / Math.pow (10, precisionDigits);
                 const withdrawMin = this.safeString (chain, 'withdraw_limit_min');
@@ -483,42 +492,47 @@ module.exports = class mexc extends Exchange {
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCoin');
             const quoteId = this.safeString (market, 'quoteCoin');
+            const settleId = this.safeString (market, 'settleCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = id;
-            const precision = {
-                'price': this.safeNumber (market, 'priceUnit'),
-                'amount': this.safeNumber (market, 'volUnit'),
-            };
-            const taker = this.safeNumber (market, 'takerFeeRate');
-            const maker = this.safeNumber (market, 'makerFeeRate');
+            const settle = this.safeCurrencyCode (settleId);
             const state = this.safeString (market, 'state');
-            const active = (state === '0');
-            const type = 'swap';
-            const swap = true;
-            const spot = false;
-            const contractSize = this.safeString (market, 'contractSize');
-            const linear = true;
-            const inverse = false;
-            result.push (this.extend (this.fees['trading'], {
-                'info': market,
+            result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote + ':' + settle,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'type': type,
-                'swap': swap,
-                'spot': spot,
-                'contractSize': contractSize,
-                'linear': linear,
-                'inverse': inverse,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'precision': precision,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'futures': false,
+                'option': false,
+                'derivative': true,
+                'contract': true,
+                'linear': true,
+                'inverse': false,
+                'taker': this.safeNumber (market, 'takerFeeRate'),
+                'maker': this.safeNumber (market, 'makerFeeRate'),
+                'contractSize': this.safeString (market, 'contractSize'),
+                'active': (state === '0'),
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeNumber (market, 'priceUnit'),
+                    'amount': this.safeNumber (market, 'volUnit'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': this.safeNumber (market, 'minLeverage'),
+                        'max': this.safeNumber (market, 'maxLeverage'),
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minVol'),
                         'max': this.safeNumber (market, 'maxVol'),
@@ -532,7 +546,8 @@ module.exports = class mexc extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+                'info': market,
+            });
         }
         return result;
     }
@@ -575,33 +590,44 @@ module.exports = class mexc extends Exchange {
             const quantityScale = this.safeInteger (market, 'quantity_scale');
             const pricePrecision = 1 / Math.pow (10, priceScale);
             const quantityPrecision = 1 / Math.pow (10, quantityScale);
-            const precision = {
-                'price': pricePrecision,
-                'amount': quantityPrecision,
-            };
-            const taker = this.safeNumber (market, 'taker_fee_rate');
-            const maker = this.safeNumber (market, 'maker_fee_rate');
             const state = this.safeString (market, 'state');
-            const active = (state === 'ENABLED');
             const type = 'spot';
-            const swap = false;
-            const spot = true;
-            result.push (this.extend (this.fees['trading'], {
-                'info': market,
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': type,
-                'swap': swap,
-                'spot': spot,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'precision': precision,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (state === 'ENABLED'),
+                'derivative': false,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'taker_fee_rate'),
+                'maker': this.safeNumber (market, 'maker_fee_rate'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': pricePrecision,
+                    'amount': quantityPrecision,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': undefined,
                         'max': undefined,
@@ -615,7 +641,8 @@ module.exports = class mexc extends Exchange {
                         'max': this.safeNumber (market, 'max_amount'),
                     },
                 },
-            }));
+                'info': market,
+            });
         }
         return result;
     }
@@ -625,10 +652,11 @@ module.exports = class mexc extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        if (type !== 'swap') {
-            throw new NotSupported (this.id + ' fetchTickers() is supported for swap markets only');
+        let method = 'spotPublicGetMarketTicker';
+        if (type === 'swap') {
+            method = 'contractPublicGetTicker';
         }
-        const response = await this.contractPublicGetTicker (query);
+        const response = await this[method] (this.extend (query));
         //
         //     {
         //         "success":true,
@@ -2093,5 +2121,72 @@ module.exports = class mexc extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
         }
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Gets a history of funding rates with their timestamps
+        //  (param) symbol: Future currency pair
+        //  (param) limit: mexc limit is page_size default 20, maximum is 100
+        //  (param) since: not used by mexc
+        //  (param) params: Object containing more params for the request
+        //  return: [{symbol, fundingRate, timestamp, dateTime}]
+        //
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'page_size': limit, // optional
+            // 'page_num': 1, // optional, current page number, default is 1
+        };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.contractPublicGetFundingRateHistory (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "code": 0,
+        //     "data": {
+        //         "pageSize": 2,
+        //         "totalCount": 21,
+        //         "totalPage": 11,
+        //         "currentPage": 1,
+        //         "resultList": [
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "fundingRate": 0.000266,
+        //                 "settleTime": 1609804800000
+        //             },
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "fundingRate": 0.00029,
+        //                 "settleTime": 1609776000000
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = this.safeValue (data, 'resultList');
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.safeString (entry, 'settleTime');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 };

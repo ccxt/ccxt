@@ -2,7 +2,7 @@
 Supported Exchanges
 ===================
 
-The CCXT library currently supports the following 110 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 109 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -31,18 +31,6 @@ The CCXT library currently supports the following 110 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg
-          :target: https://aofex.com/#/register?key=9763840
-          :alt: aofex
-     
-     - aofex
-     - `AOFEX <https://aofex.com/#/register?key=9763840>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://aofex.zendesk.com/hc/en-us/sections/360005576574-API
-          :alt: API Version *
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg
           :target: https://ascendex.com/en-us/register?inviteCode=EL6BXBQM
           :alt: ascendex
@@ -187,18 +175,6 @@ The CCXT library currently supports the following 110 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.bitbank.cc/
           :alt: API Version 1
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
-          :target: https://auth.bitbay.net/ref/jHlbB4mIkdS1
-          :alt: bitbay
-     
-     - bitbay
-     - `BitBay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://bitbay.net/public-api
-          :alt: API Version *
      
      - 
      - 
@@ -651,18 +627,6 @@ The CCXT library currently supports the following 110 cryptocurrency exchange ma
      - `CoinFalcon <https://coinfalcon.com/?ref=CFJSVGTUPASB>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.coinfalcon.com
-          :alt: API Version 1
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg
-          :target: https://coinmarketcap.com
-          :alt: coinmarketcap
-     
-     - coinmarketcap
-     - `CoinMarketCap <https://coinmarketcap.com>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://coinmarketcap.com/api
           :alt: API Version 1
      
      - 
@@ -1486,4 +1450,31 @@ The CCXT library currently supports the following 110 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg
+          :target: https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN
+          :alt: zipmex
+     
+     - zipmex
+     - `Zipmex <https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://apidoc.ndax.io/
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
+          :target: https://auth.zondaglobal.com/ref/jHlbB4mIkdS1
+          :alt: zonda
+     
+     - zonda
+     - `Zonda <https://auth.zondaglobal.com/ref/jHlbB4mIkdS1>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://docs.zonda.exchange/
+          :alt: API Version *
+     
+     - 
+     - 
 
