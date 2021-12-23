@@ -1156,6 +1156,10 @@ module.exports = class ascendex extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
         const options = this.safeValue (this.options, 'fetchOrder', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
@@ -1168,7 +1172,11 @@ module.exports = class ascendex extends Exchange {
             'account-category': accountCategory,
             'orderId': id,
         };
-        const response = await this.v1PrivateAccountCategoryGetOrderStatus (this.extend (request, params));
+        let method = 'v1PrivateAccountCategoryGetOrderStatus';
+        if (market['swap']) {
+            method = 'v2PrivateAccountGroupGetFuturesOrderStatus';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": 0,
