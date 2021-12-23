@@ -176,6 +176,7 @@ module.exports = class timex extends Exchange {
                 },
             },
             'options': {
+                'expireIn': '31536000', // 365 × 24 × 60 × 60
                 'fetchTickers': {
                     'period': '1d',
                 },
@@ -466,7 +467,12 @@ module.exports = class timex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseSide = side.toUpperCase ();
-        const uppercaseType = type.toUpperCase ();
+        let uppercaseType = type.toUpperCase ();
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            uppercaseType = 'POST_ONLY';
+            params = this.omit (params, [ 'postOnly' ]);
+        }
         const request = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
@@ -477,7 +483,7 @@ module.exports = class timex extends Exchange {
             // 'expireTime': 1575523308, // unix timestamp
         };
         let query = params;
-        if (uppercaseType === 'LIMIT') {
+        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'POST_ONLY')) {
             request['price'] = this.priceToPrecision (symbol, price);
             const defaultExpireIn = this.safeInteger (this.options, 'expireIn');
             const expireTime = this.safeValue (params, 'expireTime');
@@ -1141,27 +1147,21 @@ module.exports = class timex extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'quantity');
-        const filled = this.safeNumber (order, 'filledQuantity');
-        const canceledQuantity = this.safeNumber (order, 'cancelledQuantity');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'filledQuantity');
+        const canceledQuantity = this.omitZero (this.safeString (order, 'cancelledQuantity'));
         let status = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
-            if (filled >= amount) {
-                status = 'closed';
-            } else if ((canceledQuantity !== undefined) && (canceledQuantity > 0)) {
-                status = 'canceled';
-            } else {
-                status = 'open';
-            }
+        if (Precise.stringEquals (filled, amount)) {
+            status = 'closed';
+        } else if (canceledQuantity !== undefined) {
+            status = 'canceled';
+        } else {
+            status = 'open';
         }
         const rawTrades = this.safeValue (order, 'trades', []);
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'order': id,
-            'type': type,
-        });
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1182,8 +1182,8 @@ module.exports = class timex extends Exchange {
             'remaining': undefined,
             'status': status,
             'fee': undefined,
-            'trades': trades,
-        });
+            'trades': rawTrades,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
