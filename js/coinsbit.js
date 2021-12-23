@@ -3,10 +3,8 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors'); // BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InsufficientFunds, OrderNotFound, PermissionDenied
-const { TICK_SIZE } = require ('./base/functions/number');
+const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound } = require ('./base/errors'); // BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol,  PermissionDenied
 const Precise = require ('./base/Precise');
-function c(o){console.log(o);}
 // ---------------------------------------------------------------------------
 
 module.exports = class coinsbit extends Exchange {
@@ -14,42 +12,44 @@ module.exports = class coinsbit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinsbit',
             'name': 'Coinsbit',
-            'countries': [ 'EE' ], // Estonia
-            'rateLimit': 1000, // No defaults known
+            'countries': [ 'EE' ], // Estonia <<<TODO>>> they also have .in domain
+            'rateLimit': 1000, // <<<TODO>>> No defaults known
             'version': 'v1',
             'certified': false,
             'has': {
-                'addMargin': undefined,
-                'cancelAllOrders': undefined,
                 'createOrder': true,
-                'cancelOrder': undefined,
-                'createMarketOrder': undefined,
+                'cancelOrder': true,
+                'cancelAllOrders': false,
+                'createMarketOrder': undefined, // <<<TODO>>> in UI there is, but can't do it from API
                 'fetchBalance': true,
-                'fetchCanceledOrders': undefined,
-                'fetchClosedOrders': undefined,
-                // 'fetchCurrencies' doesn't exist, and will be 'emulated'
-                'fetchDepositAddress': undefined,
-                'fetchDeposits': undefined,
-                'fetchFundingRateHistory': undefined,
+                'fetchDepositAddress': false,
+                'fetchDeposits': false,
+                'fetchFundingRateHistory': false,
                 'fetchMarkets': true,
-                // 'fetchMarketsByType': <-- i think fetchMarketsByType makes things complex, and might be totally removed from ccxt. There should be one 'fetchMarkets' imho. you can see another comment related to this matter under 'handleMarketTypeAndParams' function down below.
-                'fetchMyTrades': undefined,
+                'fetchMyTrades': false, // <<<TODO>>> please revise to confirm that this doesn't exist
+                'fetchOrderTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': undefined,
-                'fetchOrder': undefined,
+                'fetchOrder': false,
+                'fetchOrders': false,
+                'fetchOpenOrder': false,
+                'fetchOpenOrders': true,
+                'fetchClosedOrder': true,
+                'fetchClosedOrders': true,
+                'fetchCanceledOrders': false,
                 'fetchOrderBook': true,
-                'fetchOrderTrades': undefined,
-                'fetchPosition': undefined,
-                'fetchPositions': undefined,
+                'fetchPosition': false,
+                'fetchPositions': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchWithdrawals': undefined,
-                'reduceMargin': undefined,
-                'setLeverage': undefined,
-                'withdraw': undefined,
+                'fetchWithdrawals': false,
+                'deposit': false,
+                'withdraw': false,
+                'addMargin': false,
+                'reduceMargin': false,
+                'setLeverage': false,
             },
             'timeframes': {
                 '1m': 60, // works for max 12 hours diapason (between from-to)
@@ -58,7 +58,7 @@ module.exports = class coinsbit extends Exchange {
                 '1d': 86400, // for any diapason
             },
             'urls': {
-                'logo': '  <<< TODO >>>   https://upload.wikimedia.org/wikipedia/commons/8/8c/Coinsbit.png  ',
+                'logo': '  <<<TODO>>>   https://upload.wikimedia.org/wikipedia/commons/8/8c/Coinsbit.png  ',
                 'api': {
                     'public': 'https://coinsbit.io',
                     'private': 'https://coinsbit.io',
@@ -71,7 +71,7 @@ module.exports = class coinsbit extends Exchange {
                 'fees': [
                     'https://coinsbit.io/fee-schedule',
                 ],
-                'referral': '  <<< TODO >>>   ',
+                'referral': '  <<<TODO>>>   ',
             },
             'api': {
                 'public': {
@@ -231,7 +231,7 @@ module.exports = class coinsbit extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeNumber (market, 'feePrec'),     // <<< TODO >>> I am not yet sure this is correct.
+                        'min': this.safeNumber (market, 'feePrec'),     // <<<TODO>>> I am not yet sure this is correct.
                         'max': undefined,
                     },
                 },
@@ -269,10 +269,8 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const request = params;
         await this.loadMarkets ();
-        let tickers = {};
-        const response = await this.publicGetTickers (request);
+        const response = await this.publicGetTickers (params);
         //     {
         //          success: true,
         //          message: "",
@@ -295,14 +293,13 @@ module.exports = class coinsbit extends Exchange {
         //          },
         //          code: "200"
         //     }
-        tickers = this.safeValue (response, 'result', {});
+        const tickers = this.safeValue (response, 'result', {});
         const result = [];
-        const values = Object.values (tickers || []);
-        const keys = Object.keys (tickers);
-        for (let i = 0; i < values.length; i++) {
-            const key = keys[i];
-            const market = this.market (key);
-            result.push (this.extend (this.parseTicker (values[i], market), params));
+        const marketIds = Object.keys (tickers);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId);
+            result.push (this.parseTicker (tickers[marketId], market));
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -330,6 +327,7 @@ module.exports = class coinsbit extends Exchange {
             timestamp = this.milliseconds ();
         }
         const last = this.safeNumber (tickerFinal, 'last');
+        market = this.safeMarket (undefined, market);
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -360,14 +358,16 @@ module.exports = class coinsbit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        let orderbook = {};
         if (limit !== undefined) {
             request['limit'] = Math.min (1000, limit); // this parameter is not required, default 50 will be returned
         }
-        const type = this.safeString (params, 'type', 'depth/result'); // <<< TODO >> maybe a better way to set default unified param name (same param can be used for binance fetchBidsAsks too, if that will get integrated inside binance's fetchOrderbook )
+        const type = this.safeString (params, 'type', 'depth/result'); // <<<TODO>> maybe a better way to set default unified param name (same param can be used for binance fetchBidsAsks too, if that will get integrated inside binance's fetchOrderbook )
         const method = this.safeString (this.options, 'fetchOrderBookMethod', type);
+        let response = undefined;
+        let priceKey = undefined;
+        let amountKey = undefined;
         if (method === 'depth/result') {
-            const response = await this.publicGetDepthResult (this.extend (request, params));
+            response = await this.publicGetDepthResult (this.extend (request, params));
             //     {
             //         asks: [
             //             [  "46809.06069986", "2.651"  ],
@@ -380,17 +380,15 @@ module.exports = class coinsbit extends Exchange {
             //             ...
             //         ]
             //     }
-            const priceKey = 0;
-            const amountKey = 1;
-            orderbook = this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', priceKey, amountKey);
+            priceKey = 0;
+            amountKey = 1;
         } else if (method === 'book') {
             request['offset'] = this.safeString (params, 'offset', 0);
-            // ATM, they need to call separately (unfortunately)
+            // ATM, they need to be called separately (unfortunately)
             request['side'] = this.safeString (params, 'side', 'buy');
-            const requestBids = this.publicGetBook (this.extend (request, params));
+            const requestBids = await this.publicGetBook (this.extend (request, params));
             request['side'] = this.safeString (params, 'side', 'sell');
-            const requestAsks = this.publicGetBook (this.extend (request, params));
-            const responses = await Promise.all ([requestBids, requestAsks]);
+            const requestAsks = await this.publicGetBook (this.extend (request, params));
             // FOR EACH (BUY/SELL) REQUEST, THE RESPONSE IS SIMILAR (JUST 'side' PROPERTY IS DIFFERENT BETWEEN THEM)
             //     {
             //         success: true,
@@ -420,16 +418,16 @@ module.exports = class coinsbit extends Exchange {
             //         },
             //         code: 200
             //     }
-            const resultBids = this.safeValue (responses[0], 'result', {});
-            const resultAsks = this.safeValue (responses[1], 'result', {});
+            const resultBids = this.safeValue (requestBids, 'result', {});
+            const resultAsks = this.safeValue (requestAsks, 'result', {});
             const bids = this.safeValue (resultBids, 'orders', []);
             const asks = this.safeValue (resultAsks, 'orders', []);
-            const response = { 'bids': bids, 'asks': asks };
-            const priceKey = 'price';
-            const amountKey = 'amount';
-            orderbook = this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', priceKey, amountKey);
+            response = { 'bids': bids, 'asks': asks };
+            priceKey = 'price';
+            amountKey = 'amount';
         }
-        // orderbook['nonce']  <<< TODO >>> -- atm I dont know how to handle that, as the response doesn't have right that property
+        const orderbook = this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', priceKey, amountKey);
+        // orderbook['nonce']  <<<TODO>>> -- atm I dont know how to handle that, as the response doesn't have right that property
         return orderbook;
     }
 
@@ -526,11 +524,9 @@ module.exports = class coinsbit extends Exchange {
         }
         const defaultMethod = this.safeString (this.options, 'fetchTradesMethod');
         const method = this.safeString (params, 'method', defaultMethod);
-        let data = {};
+        let data = undefined;
         if (method === 'publicGetHistory') {
-            if (!('lastId' in params)) {
-                throw new ArgumentsRequired (this.id + " fetchTrades() requires 'lastId' id in params");
-            }
+            params['lastId'] = this.safeValue (params, 'lastId', 0);
             const response = await this[method] (this.deepExtend (request, params));
             // {
             //     success: true,
@@ -557,7 +553,7 @@ module.exports = class coinsbit extends Exchange {
             if (!('since' in params)) {
                 throw new ArgumentsRequired (this.id + " fetchTrades() requires 'since' id in params");
             }
-            data = this[method] (this.deepExtend (request, params));
+            data = await this[method] (this.deepExtend (request, params));
             // [
             //     {
             //         tid: 99601,
@@ -580,7 +576,7 @@ module.exports = class coinsbit extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        //         /history
+        //    /history
         //         {
         //             id: 99601,
         //             type: "buy",
@@ -589,8 +585,8 @@ module.exports = class coinsbit extends Exchange {
         //             price: "0.008",
         //             total: "2585.15242021"
         //         },
-
-        //         /history/result
+        //
+        //    /history/result
         //         {
         //             tid: 99601,
         //             type: "buy",
@@ -599,78 +595,290 @@ module.exports = class coinsbit extends Exchange {
         //             price: "0.008",
         //             total: "2585.15242021"
         //         },
-        const symbol = market['symbol'];
+        //
+        //      /account/trades :
+        //      [
+        //         {
+        //           time: '1640258718.402',
+        //           fee: '0.01572657',
+        //           price: '3931.64271609',
+        //           amount: '0.002',
+        //           id: '1595921',
+        //           dealOrderId: '8631729321',
+        //           role: '2',
+        //           deal: '7.86328543'
+        //         },
+        //         ...
+        //       ]
+        const symbol = this.safeValue (market, 'symbol');
         const id = this.safeString2 (trade, 'id', 'tid');
+        const orderId = this.safeString (trade, 'dealOrderId');
         const timestamp = this.safeTimestamp2 (trade, 'time', 'date');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
         const side = this.safeString (trade, 'type');
-        const takerOrMaker = 'taker'; // as no other info
+        const cost = this.safeString (trade, 'deal');
+        const fee = this.safeString (trade, 'fee');
+        let takerOrMaker = '';
+        if ('role' in trade) {
+            takerOrMaker = this.safeString (trade, 'role') === '2' ? 'taker' : 'maker';
+        } else {
+            takerOrMaker = 'taker';
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': undefined,
-            'fee': undefined,
+            'cost': cost,
+            'fee': fee,
         }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot']) {
-            await this.loadMarkets ();
-            const market = this.market (symbol);
-            const request = {
-                'market': market['id'],
-            };
-            if (!(['buy', 'sell'].includes (side))) {
-                throw new InvalidOrder (this.id + ' createOrder side should be either "buy" or "sell"');
-            }
-            if (!(['limit', undefined].includes (type))) {
-                throw new InvalidOrder (this.id + ' createOrder only supports limit orders');
-            }
-            if (!price) {
-                throw new InvalidOrder (this.id + ' createOrder needs price field');
-            }
-            request['side'] = side;
-            request['amount'] = this.amountToPrecision (symbol, amount);
-            request['price'] = this.priceToPrecision (symbol, price);
-            const response = await this.privatePostOrderNew (this.extend (request, params));
+        const request = {
+            'market': market['id'],
+        };
+        if (!price) {
+            throw new InvalidOrder (this.id + ' createOrder needs price field');
+        }
+        request['side'] = side;
+        request['amount'] = this.amountToPrecision (symbol, amount);
+        request['price'] = this.priceToPrecision (symbol, price);
+        const response = await this.privatePostOrderNew (this.extend (request, params));
+        // {
+        //     success: true,
+        //     message: '',
+        //     result: {
+        //       orderId: '8629354782',
+        //       market: 'ETH_USDT',
+        //       price: '4000',
+        //       side: 'buy',
+        //       type: 'limit',
+        //       timestamp: '1640212275.928',
+        //       dealMoney: '7.98856357',
+        //       dealStock: '0.002',
+        //       amount: '0.002',
+        //       takerFee: '0.002',
+        //       makerFee: '0.002',
+        //       left: '0',
+        //       dealFee: '0'
+        //     },
+        //     code: '200'
+        //   }
+        const data = this.safeValue (response, 'result', {});
+        return this.parseOrder (data, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        request['orderId'] = id;
+        const response = await this.privatePostOrderCancel (this.extend (request, params));
+        // {
+        //     success: true,
+        //     message: '',
+        //     result: {
+        //       orderId: '8631519189',
+        //       market: 'ETH_USDT',
+        //       price: '3100',
+        //       side: 'buy',
+        //       type: 'limit',
+        //       timestamp: '1640254497.745',
+        //       dealMoney: '0',
+        //       dealStock: '0',
+        //       amount: '0.002',
+        //       takerFee: '0.002',
+        //       makerFee: '0.002',
+        //       left: '0.002',
+        //       dealFee: '0'
+        //     },
+        //     code: '200'
+        //  }
+        const data = this.safeValue (response, 'result');
+        return this.parseOrder (data);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (since !== undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders does not have an usable since parameter, so please unset it');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const offset = this.safeValue (params, 'offset');
+        if (offset !== undefined) {
+            request['offset'] = offset;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostOrders (this.extend (request, params));
+        // {
+        //     success: true,
+        //     message: '',
+        //     result: {
+        //         limit: '50',
+        //         offset: '0',
+        //         total: '1',
+        //         result: [
+        //            {
+        //               id: '8633074431',
+        //               left: '0.002',
+        //               market: 'ETH_USDT',
+        //               amount: '0.002',
+        //               type: 'limit',
+        //               price: '2000.1892',
+        //               timestamp: '1640284932.136',
+        //               side: 'buy',
+        //               dealFee: '0',
+        //               takerFee: '0.002',
+        //               makerFee: '0.002',
+        //               dealStock: '0',
+        //               dealMoney: '0'
+        //           },
+        //           ...
+        //         ]
+        //     },
+        //     code: '200'
+        // }
+        const data = this.safeValue (response, 'result', []);
+        const orders = this.safeValue (data, 'result', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchClosedOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        request['orderId'] = id;
+        const response = await this.privatePostAccountOrder (this.extend (request, params));
+        // {
+        //     success: true,
+        //     message: '',
+        //     result: {
+        //       offset: '0',
+        //       limit: '50',
+        //       records: {
+        //         time: '1640258718.402',
+        //         fee: '0.01572657',
+        //         price: '3931.64271609',
+        //         amount: '0.002',
+        //         id: '1595921',
+        //         dealOrderId: '8631729321',
+        //         role: '2',
+        //         deal: '7.86328543'
+        //       }
+        //     },
+        //     code: '200'
+        // }
+        const result = this.safeValue (response, 'result', {});
+        const order = this.safeValue (result, 'records');
+        if (order === undefined) {
+            throw new OrderNotFound (this.id + ' fetchOrder() could not find any closed order data for id ' + id);
+        }
+        return this.parseMyTrade ({ 'id': id, 'order': order }, undefined);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const method = this.safeValue (params, 'method', 'account/order_history');  // account/order_history || account/order_history_list
+        if (method === 'account/order_history') {
+            const response = await this.privatePostAccountOrderHistory (this.extend (request, params));
             // {
             //     success: true,
             //     message: '',
             //     result: {
-            //       orderId: '8629354782',
-            //       market: 'ETH_USDT',
-            //       price: '4000',
-            //       side: 'buy',
-            //       type: 'limit',
-            //       timestamp: '1640212275.928',
-            //       dealMoney: '7.98856357',
-            //       dealStock: '0.002',
-            //       amount: '0.002',
-            //       takerFee: '0.002',
-            //       makerFee: '0.002',
-            //       left: '0',
-            //       dealFee: '0'
+            //       BTC_USDT: [
+            //          {
+            //             amount: '0.002',
+            //             price: '3000',
+            //             type: 'limit',
+            //             id: '8629387172',
+            //             side: 'sell',
+            //             ctime: '1640212942.872',
+            //             takerFee: '0.002',
+            //             ftime: '1640212942.874',
+            //             market: 'ETH_USDT',
+            //             makerFee: '0.002',
+            //             dealFee: '0.01598386',
+            //             dealStock: '0.002',
+            //             dealMoney: '7.99193271',
+            //             marketName: 'ETH_USDT'
+            //          },
+            //          ...
+            //       ],
+            //       ETH_USDT: [
+            //          ...
+            //       ]
             //     },
             //     code: '200'
             //   }
             const data = this.safeValue (response, 'result', {});
-            return this.parseOrder (data, market);
+            const records = [];
+            const marketIds = Object.keys (data);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const ordersOfMarket = data[marketId];
+                for (let j = 0; j < ordersOfMarket.length; i++) {
+                    records.push (ordersOfMarket[j]);
+                }
+            }
+            return this.parseOrders (records, undefined, since, limit, params);
+        } else if (method === 'account/order_history_list') {
+            const response = await this.privatePostAccountOrderHistoryList (this.extend (request, params));
+            // {
+            //     success: true,
+            //     message: '',
+            //     result: {
+            //       records:
+            //       [
+            //          {
+            //              amount: '0.002',
+            //              price: '4000',
+            //              type: 'limit',
+            //              id: '8629354787',
+            //              side: 'buy',
+            //              ctime: '1640212275.928',
+            //              takerFee: '0.002',
+            //              ftime: '1640212275.93',
+            //              market: 'ETH_USDT',
+            //              makerFee: '0.002',
+            //              dealFee: '0.01597712',
+            //              dealStock: '0.002',
+            //              dealMoney: '7.98856357',
+            //              marketName: 'ETH_USDT'
+            //          },
+            //          ...
+            //        ]
+            //     },
+            //     code: '200',
+            // }
+            const data = this.safeValue (response, 'result', {});
+            const records = this.safeValue (data, 'records', []);
+            return this.parseOrders (records, undefined, since, limit, params);
         }
     }
 
     parseOrder (order, market = undefined) {
+        // createOrder & cancelOrder  ( & fetchOpenOrders, but 'id' instead of 'orderId')
         //     {
         //       orderId: '8629354782',
         //       market: 'ETH_USDT',
@@ -686,54 +894,145 @@ module.exports = class coinsbit extends Exchange {
         //       left: '0',
         //       dealFee: '0'
         //     }
-        const id = this.safeString (order, 'orderId');
+        //
+        //  fetchClosedOrder
+        //      {
+        //         dealOrderId: '8631729321',
+        //         id: '1595921',
+        //         time: '1640258718.402',
+        //         fee: '0.01572657',
+        //         price: '3931.64271609',
+        //         amount: '0.002',
+        //         role: '2',
+        //         deal: '7.86328543'
+        //      }
+        //
+        //  fetchClosedOrders
+        //      {
+        //         amount: '0.002',
+        //         price: '4000',
+        //         type: 'limit',
+        //         id: '8629354787',
+        //         side: 'buy',
+        //         ctime: '1640212275.928',
+        //         takerFee: '0.002',
+        //         ftime: '1640212275.93',
+        //         market: 'ETH_USDT',
+        //         makerFee: '0.002',
+        //         dealFee: '0.01597712',
+        //         dealStock: '0.002',
+        //         dealMoney: '7.98856357',
+        //         marketName: 'ETH_USDT'
+        //      },
+        const isFromFCO = 'role' in order;
+        const isFromFCOs = 'ctime' in order;
+        let id = undefined;
+        let tradeId = undefined;
+        if (isFromFCOs) {
+            id = this.safeString (order, 'id');
+        } else if (isFromFCO) {
+            id = this.safeString (order, 'dealOrderId');
+            tradeId = this.safeString (order, 'id'); // <<<TODO>>> this 'TRADE-ID' information is only in fetchClosedOrder, so is this correct implementation? or it should be sent to 'parseTrade' (as its structure is more like of 'parseTrade' endpoints)
+        } else {
+            id = this.safeString (order, 'orderId');
+        }
         const side = this.safeString (order, 'side');
         const orderType = this.safeString (order, 'type');
-        const timestamp = this.safeTimestamp (order, 'timestamp');
+        let timestamp = this.safeTimestamp2 (order, 'timestamp', 'time');
+        if (!timestamp) {
+            timestamp = this.safeTimestamp2 (order, 'ctime', 'ftime');
+        }
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'amount');
+        const orderSize = this.safeString (order, 'amount');
         const remaining = this.safeString (order, 'left');
-        const filled = this.safeString (order, 'dealStock');
-        const costedQuoteCurrency = this.safeString (order, 'dealMoney');
-        const feeTaker = this.safeString (order, 'takerFee');
-        // const feeMaker = this.safeString (order, 'makerFee'); <<<TODO >>> couldn't find any use from this
+        const filledSize = this.safeString (order, 'dealStock');
+        const cost = this.safeString2 (order, 'dealMoney', 'deal');
+        const fee = this.safeString2 (order, 'dealFee', 'fee');
         const marketId = this.safeString (order, 'market');
         if (market === undefined) {
             market = this.safeMarket (marketId, market, '_');
         }
+        const symbol = this.safeString (market, 'symbol');
         const quoteCurrency = market['quote'];
-        const cost = Precise.stringMul (costedQuoteCurrency, feeTaker); // <<< TODO >> as both taker/maker has same fee, probably doesn't matter, and we can calculate cost
+        // <<<TODO>>> The below three lines are under question
+        // const feeCoeffTaker = this.safeString (order, 'takerFee');
+        const feeCoeffMaker = this.safeString (order, 'makerFee');
+        const willBeFee = Precise.stringMul (cost, feeCoeffMaker); // <<<TODO>> idk if the below 'willBeFee' & 'isFee' implementations make an useful attempt to calculate the actual fee (when using createOrder for limit order, which wasn't executed at market, and thus, has to be executed still). For example, when submiting limit-order (and it's not filled immediately as taker), then `dealFee` returns 0. however, it is still possible to calculate the 'dealFee' that will be when order will be triggered. (so, for limit orders its seems the only way to calculate the fee). however, I'll remove if this is not useful
         return this.safeOrder2 ({
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': tradeId, // <<<TODO>>> should it be here?
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': undefined,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': orderType,
             'timeInForce': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,
             'average': undefined,
-            'amount': amount,
-            'cost': undefined,
-            'filled': filled,
+            'amount': orderSize,
+            'cost': cost,
+            'filled': filledSize,
             'remaining': remaining,
             'fee': {
-                'cost': cost,
+                'cost': fee,
                 'currency': quoteCurrency,
+                'will_cost': willBeFee,
             },
             'trades': undefined,
             'info': order,
         }, market);
     }
 
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        request['orderId'] = id;
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostAccountTrades (this.extend (request, params));
+        // {
+        //     success: true,
+        //     message: '',
+        //     result: {
+        //       offset: '0',
+        //       limit: '50',
+        //       records: {
+        //         time: '1640258718.402',
+        //         fee: '0.01572657',
+        //         price: '3931.64271609',
+        //         amount: '0.002',
+        //         id: '1595921',
+        //         dealOrderId: '8631729321',
+        //         role: '2',
+        //         deal: '7.86328543'
+        //       }
+        //     },
+        //     code: '200'
+        // }
+        const result = this.safeValue (response, 'result', {});
+        const order = this.safeValue (result, 'records');
+        if (!order) {
+            throw new OrderNotFound (this.id + ' fetchOrderTrades() could not find any trade data for order-id ' + id);
+        }
+        return this.parseTrade ({ 'id': id, 'order': order }, undefined);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const request = this.omit (params, 'type');
-        const response = await this.privatePostAccountBalances (request);
+        const currency = this.safeValue (params, 'currency');
+        let method = '';
+        if (currency !== undefined) {
+            request['currency'] = currency;
+            method = 'privatePostAccountBalance';
+        } else {
+            method = 'privatePostAccountBalances';
+        }
+        const response = await this[method] (request);
         // {
         //     success: true,
         //     message: '',
@@ -741,7 +1040,23 @@ module.exports = class coinsbit extends Exchange {
         //       BTC: { available: '0', freeze: '0' },
         //       USDT: { available: '0', freeze: '0' },
         //       ...
-        c (response);
+        const data = this.safeValue (response, 'result', {});
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const currencyIds = Object.keys (data);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const balance = this.safeValue (data, currencyId, {});
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'freeze');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     nonce () {
