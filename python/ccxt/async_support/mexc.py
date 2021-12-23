@@ -245,6 +245,7 @@ class mexc(Exchange):
                 'DRK': 'DRK',
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
+                'FREE': 'FreeRossDAO',  # conflict with FREE Coin
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
