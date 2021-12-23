@@ -271,7 +271,7 @@ module.exports = class bitcointrade extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        params = this.extend (params, { 'pair':  this.marketId (symbol) });
+        params = this.extend (params, { 'pair': this.marketId (symbol) });
         const response = await this.privateGetMarket (params);
         // {
         //   "data": {
