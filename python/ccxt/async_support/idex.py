@@ -191,25 +191,42 @@ class idex(Exchange):
             minCost = None
             if quote == 'ETH':
                 minCost = minCostETH
-            precision = {
-                'amount': int(basePrecisionString),
-                'price': int(quotePrecisionString),
-            }
             result.append({
-                'symbol': symbol,
                 'id': marketId,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'info': entry,
-                'precision': precision,
+                'margin': False,
+                'swap': False,
+                'futures': False,
+                'option': False,
+                'derivative': False,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': taker,
                 'maker': maker,
+                'contractSize': None,
+                'active': active,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': int(basePrecisionString),
+                    'price': int(quotePrecisionString),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.parse_number(basePrecision),
                         'max': None,
@@ -223,6 +240,7 @@ class idex(Exchange):
                         'max': None,
                     },
                 },
+                'info': entry,
             })
         return result
 
