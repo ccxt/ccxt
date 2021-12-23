@@ -61,7 +61,6 @@ module.exports = class whitebit extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
                 'api': {
-                    'web': 'https://whitebit.com/',
                     'v1': {
                         'public': 'https://whitebit.com/api/v1/public',
                         'private': 'https://whitebit.com/api/v1',
@@ -167,7 +166,6 @@ module.exports = class whitebit extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchTradesMethod': 'fetchTradesV4',
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
             },
             'exceptions': {
@@ -452,66 +450,7 @@ module.exports = class whitebit extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
-    async fetchTradesV1 (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-            'lastId': 1, // todo add since
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 50, maximum = 10000
-        }
-        const response = await this.v1PublicGetHistory (this.extend (request, params));
-        //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":[
-        //             {
-        //                 "id":11887426,
-        //                 "type":"buy",
-        //                 "time":1571023057.413769,
-        //                 "amount":"0.171",
-        //                 "price":"0.022052"
-        //             }
-        //         ],
-        //     }
-        //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
-    }
-
-    async fetchTradesV2 (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 50, maximum = 10000
-        }
-        const response = await this.v2PublicGetTradesMarket (this.extend (request, params));
-        //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result": [
-        //             {
-        //                 "tradeId":11903347,
-        //                 "price":"0.022044",
-        //                 "volume":"0.029",
-        //                 "time":"2019-10-14T06:30:57.000Z",
-        //                 "isBuyerMaker":false
-        //             },
-        //         ],
-        //     }
-        //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
-    }
-
-    async fetchTradesV4 (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -533,41 +472,16 @@ module.exports = class whitebit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'fetchTradesV2');
-        return await this[method] (symbol, since, limit, params);
-    }
-
     parseTrade (trade, market = undefined) {
         // fetchTradesV4
         //     {
-        //       "tradeID": 158056419,             // A unique ID associated with the trade for the currency pair transaction Note: Unix timestamp does not qualify as trade_id.
-        //       "price": "9186.13",               // Transaction price in quote pair volume.
-        //       "quote_volume": "0.0021",         // Transaction amount in quote pair volume.
-        //       "base_volume": "9186.13",         // Transaction amount in base pair volume.
-        //       "trade_timestamp": 1594391747,    // Unix timestamp in milliseconds, identifies when the transaction occurred.
-        //       "type": "sell"                    // Used to determine whether or not the transaction originated as a buy or sell. Buy – Identifies an ask that was removed from the order book. Sell – Identifies a bid that was removed from the order book.
+        //       "tradeID": 158056419,
+        //       "price": "9186.13",
+        //       "quote_volume": "0.0021",
+        //       "base_volume": "9186.13",
+        //       "trade_timestamp": 1594391747,
+        //       "type": "sell"
         //     },
-        //
-        // fetchTradesV1
-        //
-        //     {
-        //         "id":11887426,
-        //         "type":"buy",
-        //         "time":1571023057.413769,
-        //         "amount":"0.171",
-        //         "price":"0.022052"
-        //     }
-        //
-        // fetchTradesV2
-        //
-        //     {
-        //         "tradeId":11903347,
-        //         "price":"0.022044",
-        //         "volume":"0.029",
-        //         "time":"2019-10-14T06:30:57.000Z",
-        //         "isBuyerMaker":false
-        //     }
         //
         // orderTrades (v4Private)
         //
@@ -583,31 +497,13 @@ module.exports = class whitebit extends Exchange {
         //         "deal": "0.00419198" // amount in money
         //     }
         //
-        let timestamp = this.safeTimestamp (trade, 'time');
-        if (timestamp === undefined) {
-            timestamp = this.parse8601 (this.safeString (trade, 'time'));
-        }
-        if (timestamp === undefined) {
-            timestamp = this.safeInteger (trade, 'trade_timestamp');
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'time', 'trade_timestamp');
         const orderId = this.safeString (trade, 'dealOrderId');
         const cost = this.safeString (trade, 'deal');
         const price = this.safeString (trade, 'price');
-        let amount = this.safeString2 (trade, 'amount', 'volume');
-        if (amount === undefined) {
-            amount = this.safeString (trade, 'base_volume');
-        }
-        let id = this.safeString2 (trade, 'id', 'tradeId');
-        if (id === undefined) {
-            id = this.safeString (trade, 'tradeID');
-        }
-        let side = this.safeString (trade, 'type');
-        if (side === undefined) {
-            const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
-            if (side !== undefined) {
-                side = isBuyerMaker ? 'buy' : 'sell';
-            }
-        }
+        const amount = this.safeString2 (trade, 'amount', 'base_volume');
+        const id = this.safeString2 (trade, 'id', 'tradeID');
+        const side = this.safeString (trade, 'type');
         const symbol = this.safeSymbol (undefined, market);
         const role = this.safeInteger (trade, 'role');
         let takerOrMaker = undefined;
