@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -812,7 +813,7 @@ module.exports = class currencycom extends Exchange {
         }
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'origQty');
-        const filled = this.safeString (order, 'executedQty');
+        const filled = Precise.stringAbs (this.safeString (order, 'executedQty'));
         const cost = this.safeString (order, 'cummulativeQuoteQty');
         const id = this.safeString (order, 'orderId');
         const type = this.safeStringLower (order, 'type');
