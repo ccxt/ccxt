@@ -176,7 +176,7 @@ module.exports = class timex extends Exchange {
                 },
             },
             'options': {
-                'expireIn': '31536000', // 365 × 24 × 60 × 60
+                'expireIn': 31536000, // 365 × 24 × 60 × 60
                 'fetchTickers': {
                     'period': '1d',
                 },
