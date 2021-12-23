@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
@@ -345,7 +346,7 @@ module.exports = class whitebit extends Exchange {
         //     "quote_volume":"1494659.8024096",
         //     "base_volume":"46.1083",
         //     "isFrozen":false,
-        //     "change":"2.12"
+        //     "change":"2.12" // in percent
         //  },
         //
         let symbol = undefined;
@@ -353,11 +354,9 @@ module.exports = class whitebit extends Exchange {
             symbol = market['symbol'];
         }
         const last = this.safeNumber (ticker, 'last_price');
-        const percentage = this.safeNumber (ticker, 'change');
-        let change = undefined;
-        if (percentage !== undefined) {
-            change = this.numberToString (percentage * 0.01);
-        }
+        const percentage = this.safeNumber (ticker, 'change') * 0.01;
+        const change = last * percentage;
+        const initial = last - change;
         return {
             'symbol': symbol,
             'timestamp': undefined,
@@ -369,7 +368,7 @@ module.exports = class whitebit extends Exchange {
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': initial,
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -691,7 +690,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.v4publicGetPing (params);
+        const response = await this.v4PublicGetPing (params);
         // [
         //     "pong"
         // ]
