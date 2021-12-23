@@ -67,7 +67,7 @@ module.exports = class bitcointrade extends Exchange {
                         'market/create_order/',
                     ],
                     'delete': [
-                        'market/user_orders/'
+                        'market/user_orders/',
                     ],
                 },
             },
@@ -127,7 +127,6 @@ module.exports = class bitcointrade extends Exchange {
         //            "transactions_number": 10
         //            }
         //        ]
-        //  
         const result = [];
         const results = this.safeValue (response, 'data', []);
         for (let i = 0; i < results.length; i++) {
@@ -220,26 +219,25 @@ module.exports = class bitcointrade extends Exchange {
         return result;
     }
 
-
     async fetchTicker (symbol, params = {}) {
-        //{
-        //  "message": null,
-        //  "data": {
-        //    "high": 15999.12,
-        //    "low": 15000.12,
-        //    "volume": 123.12345678,
-        //    "trades_quantity": 123,
-        //    "last": 15500.12,
-        //    "buy": 15400.12,
-        //    "sell": 15600.12,
-        //    "date": "2017-10-20T00:00:00Z"
+        // {
+        //   "message": null,
+        //   "data": {
+        //     "high": 15999.12,
+        //     "low": 15000.12,
+        //     "volume": 123.12345678,
+        //     "trades_quantity": 123,
+        //     "last": 15500.12,
+        //     "buy": 15400.12,
+        //     "sell": 15600.12,
+        //     "date": "2017-10-20T00:00:00Z"
         //  }
-        //}
+        // }
         const request = { 'pair': symbol };
-        const response = await this.publicGetPairTicker (this.extend(request, params));
-        const ticker = this.safeValue (response, 'ticker', {})
-        const timestamp = this.parseDate (this.safeString (response, 'date'))
-        const last = this.safeNumber (ticker, 'last')
+        const response = await this.publicGetPairTicker (this.extend (request, params));
+        const ticker = this.safeValue (response, 'ticker', {});
+        const timestamp = this.parseDate (this.safeString (response, 'date'));
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -261,9 +259,8 @@ module.exports = class bitcointrade extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }
+        };
     }
-
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         // {
@@ -287,9 +284,9 @@ module.exports = class bitcointrade extends Exchange {
         //     ...
         //   }
         // }
-        params = this.extend (params, {'pair': symbol});
+        params = this.extend (params, { 'pair': symbol });
         const response = await this.privateGetMarket (params);
-        const orderbook = this.parseOrderBook (response["data"], symbol, undefined, 'buying', 'selling', 'unit_price', 'amount');
+        const orderbook = this.parseOrderBook (response['data'], symbol, undefined, 'buying', 'selling', 'unit_price', 'amount');
         return orderbook;
     }
 
@@ -299,7 +296,7 @@ module.exports = class bitcointrade extends Exchange {
         let side = this.safeString (trade, 'type');
         const takerOrMaker = 'taker';
         if (side !== undefined) {
-            side = side.toLowerCase();
+            side = side.toLowerCase ();
         }
         const priceString = this.safeNumber (trade, 'unit_price');
         const amountString = this.safeNumber (trade, 'amount');
@@ -339,8 +336,8 @@ module.exports = class bitcointrade extends Exchange {
         //         }
         //     ]
         //
-        params = this.extend (params, { 'pair': symbol,});
-        const response = await this.privateGetMarket(params);
+        params = this.extend (params, { 'pair': symbol });
+        const response = await this.privateGetMarket (params);
         return this.parseTrades (response, undefined, since, limit);
     }
 
@@ -374,12 +371,12 @@ module.exports = class bitcointrade extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
-            const account = this.account();
+            const account = this.account ();
             account['free'] = this.safeString (balance, 'available_amount');
             account['used'] = this.safeString (balance, 'locked_amount');
             result[code] = account;
         }
-        return this.parseBalance(result);
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -405,7 +402,7 @@ module.exports = class bitcointrade extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const request = { 'code': id,};
+        const request = { 'code': id };
         const response = await this.privateDeleteMarketUserOrders (this.extend (request, params));
         // {
         //   "message": null,
@@ -432,7 +429,7 @@ module.exports = class bitcointrade extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        const request = {'code': id,};
+        const request = { 'code': id };
         const response = await this.privateGetMarketUserOrdersCode (this.extend (request, params));
         // {
         //   "message": null,
@@ -466,7 +463,7 @@ module.exports = class bitcointrade extends Exchange {
         //     ]
         //   }
         // }
-        return this.parseOrder(response);
+        return this.parseOrder (response);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -474,7 +471,7 @@ module.exports = class bitcointrade extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         const request = {
-            'pair':symbol,
+            'pair': symbol,
             // 'status': 'executed_partially,waiting,pending_creation,executed_completely,canceled' ,
             // 'page_size': 200,
             // 'current_page': 1,
@@ -533,16 +530,16 @@ module.exports = class bitcointrade extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'status': 'executed_partially,waiting,pending_creation'
+            'status': 'executed_partially,waiting,pending_creation',
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'status': 'executed_completely,canceled'
+            'status': 'executed_completely,canceled',
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     parseOrderStatus (status) {
