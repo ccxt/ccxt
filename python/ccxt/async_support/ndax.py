@@ -1121,20 +1121,14 @@ class ndax(Exchange):
         side = self.safe_string_lower(order, 'Side')
         type = self.safe_string_lower(order, 'OrderType')
         clientOrderId = self.safe_string_2(order, 'ReplacementClOrdId', 'ClientOrderId')
-        price = self.safe_number(order, 'Price', 0.0)
-        price = price if (price > 0.0) else None
-        amount = self.safe_number(order, 'OrigQuantity')
-        filled = self.safe_number(order, 'QuantityExecuted')
-        cost = self.safe_number(order, 'GrossValueExecuted')
-        average = self.safe_number(order, 'AvgPrice', 0.0)
-        average = average if (average > 0) else None
-        stopPrice = self.safe_number(order, 'StopPrice', 0.0)
-        stopPrice = stopPrice if (stopPrice > 0.0) else None
-        timeInForce = None
+        price = self.safe_string(order, 'Price')
+        amount = self.safe_string(order, 'OrigQuantity')
+        filled = self.safe_string(order, 'QuantityExecuted')
+        cost = self.safe_string(order, 'GrossValueExecuted')
+        average = self.safe_string(order, 'AvgPrice')
+        stopPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice')))
         status = self.parse_order_status(self.safe_string(order, 'OrderState'))
-        fee = None
-        trades = None
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1144,7 +1138,7 @@ class ndax(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': timeInForce,
+            'timeInForce': None,
             'postOnly': None,
             'side': side,
             'price': price,
@@ -1154,9 +1148,9 @@ class ndax(Exchange):
             'filled': filled,
             'average': average,
             'remaining': None,
-            'fee': fee,
-            'trades': trades,
-        })
+            'fee': None,
+            'trades': None,
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
