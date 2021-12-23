@@ -301,11 +301,8 @@ module.exports = class bitcointrade extends Exchange {
     parseTrade (trade, market = undefined) {
         const timestamp = this.parseDate (this.safeString (trade, 'timestamp'));
         const id = timestamp;
-        let side = this.safeString (trade, 'type');
+        const side = this.safeStringLower (trade, 'type');
         const takerOrMaker = 'taker';
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
         const priceString = this.safeNumber (trade, 'unit_price');
         const amountString = this.safeNumber (trade, 'amount');
         const price = this.parseNumber (priceString);
