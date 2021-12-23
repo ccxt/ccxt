@@ -321,8 +321,8 @@ module.exports = class bitvavo extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.parseNumber ('1'),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'minOrderInBaseAsset'),
