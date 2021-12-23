@@ -147,6 +147,7 @@ module.exports = class yobit extends Exchange {
                 'MASK': 'Yobit MASK',
                 'MDT': 'Midnight',
                 'MIS': 'MIScoin',
+                'MM': 'MasterMint', // conflict with MilliMeter
                 'NAV': 'NavajoCoin',
                 'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
