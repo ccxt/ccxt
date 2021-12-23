@@ -1404,7 +1404,13 @@ module.exports = class ascendex extends Exchange {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'id' ]);
         }
-        const response = await this.v1PrivateAccountCategoryDeleteOrder (this.extend (request, params));
+        let method = 'v1PrivateAccountCategoryDeleteOrder';
+        if (market['swap']) {
+            method = 'v2PrivateAccountGroupDeleteFuturesOrder';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // AccountCategoryDeleteOrder
         //
         //     {
         //         "code": 0,
@@ -1419,6 +1425,49 @@ module.exports = class ascendex extends Exchange {
         //                 "orderType": "", // could be empty
         //                 "symbol":    "ETH/USDT",
         //                 "timestamp":  1573594877822
+        //             }
+        //         }
+        //     }
+        //
+        // AccountGroupDeleteFuturesOrder
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "meta": {
+        //                 "id": "foobar",
+        //                 "action": "cancel-order",
+        //                 "respInst": "ACK"
+        //             },
+        //             "order": {
+        //                 "ac": "FUTURES",
+        //                 "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //                 "time": 1640244480476,
+        //                 "orderId": "r17de63086f4U0711043490bbtcpPUF4",
+        //                 "seqNum": 28795959269,
+        //                 "orderType": "Limit",
+        //                 "execInst": "NULL_VAL",
+        //                 "side": "Buy",
+        //                 "symbol": "BTC-PERP",
+        //                 "price": "30000",
+        //                 "orderQty": "0.0021",
+        //                 "stopPrice": "0",
+        //                 "stopBy": "market",
+        //                 "status": "New",
+        //                 "lastExecTime": 1640244480491,
+        //                 "lastQty": "0",
+        //                 "lastPx": "0",
+        //                 "avgFilledPx": "0",
+        //                 "cumFilledQty": "0",
+        //                 "fee": "0",
+        //                 "cumFee": "0",
+        //                 "feeAsset": "BTCPC",
+        //                 "errorCode": "",
+        //                 "posStopLossPrice": "0",
+        //                 "posStopLossTrigger": "market",
+        //                 "posTakeProfitPrice": "0",
+        //                 "posTakeProfitTrigger": "market",
+        //                 "liquidityInd": "n"
         //             }
         //         }
         //     }
