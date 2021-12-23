@@ -152,7 +152,7 @@ module.exports = class zb extends Exchange {
             'api': {
                 'trade': {
                     'get': [
-                        'getFeeInfo',   // Withdrawel fees
+                        'getFeeInfo', // withdrawal fees
                     ],
                 },
                 'public': {
