@@ -1562,6 +1562,8 @@ module.exports = class bitget3 extends Exchange {
         //         "status":"ok",
         //         "ch":"market.btc_usdt.kline.15min",
         //         "ts":1595594183874,
+        //         "errCode":null,
+        //         "errMsg":null,
         //         "data":[
         //             {"id":"1594694700000","amount":"283.6811","count":"234","open":"9230.00","close":"9227.15","low":"9206.66","high":"9232.33","vol":"2618015.032504000000"},
         //             {"id":"1594695600000","amount":"457.2904","count":"238","open":"9227.15","close":"9229.46","low":"9223.80","high":"9235.14","vol":"4220734.684570000000"},
