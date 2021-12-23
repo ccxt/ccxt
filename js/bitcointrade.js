@@ -52,6 +52,7 @@ module.exports = class bitcointrade extends Exchange {
                         '{pair}/orders/', // orderbook
                         '{pair}/trades/',
                         'currencies/',
+                        'pairs/',
                     ],
                 },
                 'private': {
@@ -113,25 +114,28 @@ module.exports = class bitcointrade extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.privateGetMarketSummary (params);
-        //    {
-        //        "message": null,
-        //        "data": [
-        //            {
-        //            "unit_price_24h": 54049,
-        //            "volume_24h": 0,
-        //            "last_transaction_unit_price": 54049,
-        //            "pair": "BTCBRL",
-        //            "max_price": 54049,
-        //            "min_price": 54049,
-        //            "transactions_number": 10
-        //            }
-        //        ]
+        const response = await this.publicGetPairs (params);
+        // {
+        //   "message": null,
+        //   "data": [
+        //     {
+        //       "base": "BTC",
+        //       "base_name": "string",
+        //       "quote": "BRL",
+        //       "quote_name": "string",
+        //       "symbol": "BRLBTC",
+        //       "enabled": true,
+        //       "min_amount": 0,
+        //       "price_tick": 0,
+        //       "min_value": 0
+        //     }
+        //   ]
+        // }
         const result = [];
         const results = this.safeValue (response, 'data', []);
         for (let i = 0; i < results.length; i++) {
             const market = results[i];
-            const id = this.safeString (market, 'pair');
+            const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
@@ -155,7 +159,7 @@ module.exports = class bitcointrade extends Exchange {
                     'max': undefined,
                 },
             };
-            const active = true;
+            const active = this.safeValue (market, 'enabled', true);
             const maker = 0.0025;
             const taker = 0.005;
             result.push ({
@@ -220,6 +224,11 @@ module.exports = class bitcointrade extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'pair': this.marketId (symbol),
+        };
+        const response = await this.publicGetPairTicker (this.extend (request, params));
         // {
         //   "message": null,
         //   "data": {
@@ -233,8 +242,6 @@ module.exports = class bitcointrade extends Exchange {
         //     "date": "2017-10-20T00:00:00Z"
         //  }
         // }
-        const request = { 'pair': symbol };
-        const response = await this.publicGetPairTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'ticker', {});
         const timestamp = this.parseDate (this.safeString (response, 'date'));
         const last = this.safeNumber (ticker, 'last');
@@ -263,6 +270,9 @@ module.exports = class bitcointrade extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        params = this.extend (params, { 'pair':  this.marketId (symbol) });
+        const response = await this.privateGetMarket (params);
         // {
         //   "data": {
         //     "buying": [
@@ -284,8 +294,6 @@ module.exports = class bitcointrade extends Exchange {
         //     ...
         //   }
         // }
-        params = this.extend (params, { 'pair': symbol });
-        const response = await this.privateGetMarket (params);
         const orderbook = this.parseOrderBook (response['data'], symbol, undefined, 'buying', 'selling', 'unit_price', 'amount');
         return orderbook;
     }
@@ -320,28 +328,52 @@ module.exports = class bitcointrade extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        //
-        //     [
-        //         {
-        //             "created_at":1601322501,
-        //             "amount":"0.00276",
-        //             "price":"10850.020000",
-        //             "side":"SELL",
-        //             "pair":"BTC_USDC",
-        //             "taker_fee":"0",
-        //             "taker_side":"SELL",
-        //             "maker_fee":"0",
-        //             "taker":2577953,
-        //             "maker":2577937
-        //         }
-        //     ]
-        //
-        params = this.extend (params, { 'pair': symbol });
-        const response = await this.privateGetMarket (params);
-        return this.parseTrades (response, undefined, since, limit);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        params = this.extend (params, { 'pair': this.marketId (symbol) });
+        const response = await this.publicGetPairTrades (params);
+        // {
+        //   "message": null,
+        //   "data": {
+        //     "trades": [
+        //       {
+        //         "type": "sell",
+        //         "amount": 0.2404764,
+        //         "unit_price": 15160,
+        //         "active_order_code": "Bk0fQxsZV",
+        //         "passive_order_code": "rJEcVyob4",
+        //         "date": "2019-01-03T02:27:33.947Z"
+        //       },
+        //       {
+        //         "type": "sell",
+        //         "amount": 0.00563617,
+        //         "unit_price": 15163,
+        //         "active_order_code": "Bk0fQxsZV",
+        //         "passive_order_code": "B1cl2ys_4",
+        //         "date": "2019-01-03T02:27:33.943Z"
+        //       },
+        //       {
+        //         "type": "sell",
+        //         "amount": 0.00680154,
+        //         "unit_price": 15163.03,
+        //         "active_order_code": "Bk0fQxsZV",
+        //         "passive_order_code": "Synrhyj_V",
+        //         "date": "2019-01-03T02:27:33.940Z"
+        //       }
+        //     ],
+        //     "pagination": {
+        //       "total_pages": 1,
+        //       "current_page": 1,
+        //       "page_size": 100,
+        //       "registers_count": 21
+        //     }
+        //   }
+        // }
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetWalletsBalance (params);
         // {
         //   "message": null,
@@ -380,10 +412,11 @@ module.exports = class bitcointrade extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         const uppercaseType = type.toUpperCase ();
         const uppercaseSide = side.toUpperCase ();
         const request = {
-            'pair': symbol,
+            'pair': this.marketId (symbol),
             'order_type': uppercaseType, // LIMIT, MARKET
             'side': uppercaseSide, // BUY or SELL
             'amount': this.parseNumber (amount),
@@ -402,6 +435,8 @@ module.exports = class bitcointrade extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = { 'code': id };
         const response = await this.privateDeleteMarketUserOrders (this.extend (request, params));
         // {
@@ -422,13 +457,15 @@ module.exports = class bitcointrade extends Exchange {
         //     "update_date": "string"
         //   }
         // }
-        return this.parseOrder (response['data']);
+        return this.parseOrder (response['data'], market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = { 'code': id };
         const response = await this.privateGetMarketUserOrdersCode (this.extend (request, params));
         // {
@@ -463,15 +500,17 @@ module.exports = class bitcointrade extends Exchange {
         //     ]
         //   }
         // }
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': symbol,
+            'pair': this.marketId (symbol),
             // 'status': 'executed_partially,waiting,pending_creation,executed_completely,canceled' ,
             // 'page_size': 200,
             // 'current_page': 1,
@@ -525,7 +564,7 @@ module.exports = class bitcointrade extends Exchange {
         // }
         const results = this.safeValue (response, 'results', {});
         const data = this.safeValue (results, 'data', []);
-        return this.parseOrders (data, undefined, since, limit);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
