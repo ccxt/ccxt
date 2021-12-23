@@ -192,6 +192,8 @@ module.exports = class whitebit extends Exchange {
                 },
                 'broad': {
                     'Given amount is less than min amount': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'Total is less than': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'Total amount + fee must be no less than': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                 },
             },
         });
@@ -1209,7 +1211,7 @@ module.exports = class whitebit extends Exchange {
                     }
                 }
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorInfo, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], errorInfo, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
                 throw new ExchangeError (feedback);
             }
         }
