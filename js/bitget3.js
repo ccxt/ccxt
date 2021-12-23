@@ -2216,7 +2216,7 @@ module.exports = class bitget3 extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "ts":1595897886717,
+        //         "ts":1595897886716,
         //         "data":{
         //             "account_id":"7420922606",
         //             "amount":"0.1000000000000000",
