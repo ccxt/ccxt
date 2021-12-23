@@ -183,25 +183,42 @@ module.exports = class idex extends Exchange {
             if (quote === 'ETH') {
                 minCost = minCostETH;
             }
-            const precision = {
-                'amount': parseInt (basePrecisionString),
-                'price': parseInt (quotePrecisionString),
-            };
             result.push ({
-                'symbol': symbol,
                 'id': marketId,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'info': entry,
-                'precision': precision,
+                'margin': false,
+                'swap': false,
+                'futures': false,
+                'option': false,
+                'derivative': false,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': taker,
                 'maker': maker,
+                'contractSize': undefined,
+                'active': active,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': parseInt (basePrecisionString),
+                    'price': parseInt (quotePrecisionString),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.parseNumber (basePrecision),
                         'max': undefined,
@@ -215,6 +232,7 @@ module.exports = class idex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': entry,
             });
         }
         return result;
