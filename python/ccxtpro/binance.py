@@ -907,7 +907,7 @@ class binance(Exchange, ccxt.binance):
         timestamp = self.safe_integer(message, 'E')
         self.balance[accountType]['timestamp'] = timestamp
         self.balance[accountType]['datetime'] = self.iso8601(timestamp)
-        self.balance[accountType] = self.parse_balance(self.balance[accountType])
+        self.balance[accountType] = self.safe_balance(self.balance[accountType])
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):

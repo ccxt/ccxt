@@ -429,7 +429,7 @@ class gateio extends \ccxt\async\gateio {
             $account['used'] = $this->safe_string($balance, 'freeze');
             $this->balance[$code] = $account;
         }
-        $this->balance = $this->parse_balance($this->balance);
+        $this->balance = $this->safe_balance($this->balance);
         $client->resolve ($this->balance, $messageHash);
     }
 

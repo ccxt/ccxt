@@ -477,7 +477,7 @@ class okex3 extends \ccxt\async\okex3 {
             $balance = $this->parseBalanceByType ($type, $data);
             $oldBalance = $this->safe_value($this->balance, $type, array());
             $newBalance = $this->deep_extend($oldBalance, $balance);
-            $this->balance[$type] = $this->parse_balance($newBalance);
+            $this->balance[$type] = $this->safe_balance($newBalance);
             $client->resolve ($this->balance[$type], $table);
         }
     }

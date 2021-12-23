@@ -528,7 +528,7 @@ class poloniex extends \ccxt\async\poloniex {
             $changeAmount = $this->safe_float($message, 3);
             $this->balance[$code]['free'] = $this->sum($this->balance[$code]['free'], $changeAmount);
             $this->balance[$code]['total'] = null;
-            $this->balance = $this->parse_balance($this->balance);
+            $this->balance = $this->safe_balance($this->balance);
         } else if (($messageType === 'o') || ($messageType === 'p') || ($messageType === 't') || ($messageType === 'n')) {
             $symbol = null;
             $orderId = null;
@@ -581,7 +581,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $this->balance[$orderCode]['used'] = $this->sum($this->balance[$orderCode]['used'], $floatAmount);
             }
             $this->balance[$orderCode]['total'] = null;
-            $this->balance = $this->parse_balance($this->balance);
+            $this->balance = $this->safe_balance($this->balance);
         }
         $client->resolve ($this->balance, $messageHash);
     }

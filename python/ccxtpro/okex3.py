@@ -436,7 +436,7 @@ class okex3(Exchange, ccxt.okex3):
             balance = self.parseBalanceByType(type, data)
             oldBalance = self.safe_value(self.balance, type, {})
             newBalance = self.deep_extend(oldBalance, balance)
-            self.balance[type] = self.parse_balance(newBalance)
+            self.balance[type] = self.safe_balance(newBalance)
             client.resolve(self.balance[type], table)
 
     def handle_subscription_status(self, client, message):

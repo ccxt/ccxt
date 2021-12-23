@@ -976,7 +976,7 @@ class binance extends \ccxt\async\binance {
         $timestamp = $this->safe_integer($message, 'E');
         $this->balance[$accountType]['timestamp'] = $timestamp;
         $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
-        $this->balance[$accountType] = $this->parse_balance($this->balance[$accountType]);
+        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
         $client->resolve ($this->balance[$accountType], $messageHash);
     }
 

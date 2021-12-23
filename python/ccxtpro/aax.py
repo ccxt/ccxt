@@ -394,12 +394,12 @@ class aax(Exchange, ccxt.aax):
         currencyId = self.safe_string(data, 'currency')
         code = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_number(data, 'available')
-        account['used'] = self.safe_number(data, 'unavailable')
+        account['free'] = self.safe_string(data, 'available')
+        account['used'] = self.safe_string(data, 'unavailable')
         if not (accountType in self.balance):
             self.balance[accountType] = {}
         self.balance[accountType][code] = account
-        self.balance[accountType] = self.parse_balance(self.balance[accountType], False)
+        self.balance[accountType] = self.safe_balance(self.balance[accountType])
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):

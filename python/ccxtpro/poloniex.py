@@ -481,7 +481,7 @@ class poloniex(Exchange, ccxt.poloniex):
             changeAmount = self.safe_float(message, 3)
             self.balance[code]['free'] = self.sum(self.balance[code]['free'], changeAmount)
             self.balance[code]['total'] = None
-            self.balance = self.parse_balance(self.balance)
+            self.balance = self.safe_balance(self.balance)
         elif (messageType == 'o') or (messageType == 'p') or (messageType == 't') or (messageType == 'n'):
             symbol = None
             orderId = None
@@ -528,7 +528,7 @@ class poloniex(Exchange, ccxt.poloniex):
             else:
                 self.balance[orderCode]['used'] = self.sum(self.balance[orderCode]['used'], floatAmount)
             self.balance[orderCode]['total'] = None
-            self.balance = self.parse_balance(self.balance)
+            self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
     def handle_order(self, client, message):

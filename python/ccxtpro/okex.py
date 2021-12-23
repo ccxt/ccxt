@@ -453,7 +453,7 @@ class okex(Exchange, ccxt.okex):
         balance = self.parseTradingBalance(message)
         oldBalance = self.safe_value(self.balance, type, {})
         newBalance = self.deep_extend(oldBalance, balance)
-        self.balance[type] = self.parse_balance(newBalance)
+        self.balance[type] = self.safe_balance(newBalance)
         client.resolve(self.balance[type], channel)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):

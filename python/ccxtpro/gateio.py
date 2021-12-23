@@ -402,7 +402,7 @@ class gateio(Exchange, ccxt.gateio):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'freeze')
             self.balance[code] = account
-        self.balance = self.parse_balance(self.balance)
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):

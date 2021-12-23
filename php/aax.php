@@ -415,13 +415,13 @@ class aax extends \ccxt\async\aax {
         $currencyId = $this->safe_string($data, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
-        $account['free'] = $this->safe_number($data, 'available');
-        $account['used'] = $this->safe_number($data, 'unavailable');
+        $account['free'] = $this->safe_string($data, 'available');
+        $account['used'] = $this->safe_string($data, 'unavailable');
         if (!(is_array($this->balance) && array_key_exists($accountType, $this->balance))) {
             $this->balance[$accountType] = array();
         }
         $this->balance[$accountType][$code] = $account;
-        $this->balance[$accountType] = $this->parse_balance($this->balance[$accountType], false);
+        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
         $client->resolve ($this->balance[$accountType], $messageHash);
     }
 
