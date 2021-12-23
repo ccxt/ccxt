@@ -1930,11 +1930,14 @@ module.exports = class binance extends Exchange {
             // It didn't work before without the endTime
             // https://github.com/ccxt/ccxt/issues/8454
             //
-            // if (since > 0) {
-            //     const endTime = this.sum (since, limit * duration * 1000 - 1);
-            //     const now = this.milliseconds ();
-            //     request['endTime'] = Math.min (now, endTime);
-            // }
+            if (market['inverse']) {
+                if (since > 0) {
+                    const duration = this.parseTimeframe (timeframe);
+                    const endTime = this.sum (since, limit * duration * 1000 - 1);
+                    const now = this.milliseconds ();
+                    request['endTime'] = Math.min (now, endTime);
+                }
+            }
         }
         let method = 'publicGetKlines';
         if (price === 'mark') {
