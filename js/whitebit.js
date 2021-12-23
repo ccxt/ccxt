@@ -257,16 +257,16 @@ module.exports = class whitebit extends Exchange {
         const response = await this.v4PublicGetAssets (params);
         // }
         // "BTC": {
-        //     "name": "Bitcoin",                        // Full name of cryptocurrency.
-        //     "unified_cryptoasset_id": 1,              // Unique ID of cryptocurrency assigned by Unified Cryptoasset ID, 0 if unknown
-        //     "can_withdraw": true,                     // Identifies whether withdrawals are enabled or disabled.
-        //     "can_deposit": true,                      // Identifies whether deposits are enabled or disabled.
-        //     "min_withdraw": "0.001",                  // Identifies the single minimum withdrawal amount of a cryptocurrency.
-        //     "max_withdraw": "2",                      // Identifies the single maximum withdrawal amount of a cryptocurrency.
-        //     "maker_fee": "0.1",                       // Maker fee in percentage
-        //     "taker_fee": "0.1",                       // Taker fee in percentage
-        //     "min_deposit": "0.0001",                  // Min deposit amount
-        //     "max_deposit": "0",                       // Max deposit amount, will not be returned if there is no limit, 0 if unlimited
+        //     "name": "Bitcoin",
+        //     "unified_cryptoasset_id": 1,
+        //     "can_withdraw": true,
+        //     "can_deposit": true,
+        //     "min_withdraw": "0.001",
+        //     "max_withdraw": "2",
+        //     "maker_fee": "0.1",
+        //     "taker_fee": "0.1",
+        //     "min_deposit": "0.0001",
+        //     "max_deposit": "0",
         //  },
         // }
         //
@@ -425,18 +425,18 @@ module.exports = class whitebit extends Exchange {
         const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
         //
         // {
-        //     "timestamp": 1594391413,        // Current timestamp
-        //     "asks": [                       // Array of ask orders
+        //     "timestamp": 1594391413,
+        //     "asks": [
         //       [
-        //         "9184.41",                  // Price of lowest ask
-        //         "0.773162"                  // Amount of lowest ask
+        //         "9184.41",
+        //         "0.773162"
         //       ],
         //       [ ... ]
         //     ],
-        //     "bids": [                       // Array of bid orders
+        //     "bids": [
         //       [
-        //         "9181.19",                  // Price of highest bid
-        //         "0.010873"                  // Amount of highest bid
+        //         "9181.19",
+        //         "0.010873"
         //       ],
         //       [ ... ]
         //     ]
@@ -515,12 +515,12 @@ module.exports = class whitebit extends Exchange {
         //
         // [
         //     {
-        //       "tradeID": 158056419,             // A unique ID associated with the trade for the currency pair transaction Note: Unix timestamp does not qualify as trade_id.
-        //       "price": "9186.13",               // Transaction price in quote pair volume.
-        //       "quote_volume": "0.0021",         // Transaction amount in quote pair volume.
-        //       "base_volume": "9186.13",         // Transaction amount in base pair volume.
-        //       "trade_timestamp": 1594391747,    // Unix timestamp in milliseconds, identifies when the transaction occurred.
-        //       "type": "sell"                    // Used to determine whether or not the transaction originated as a buy or sell. Buy – Identifies an ask that was removed from the order book. Sell – Identifies a bid that was removed from the order book.
+        //       "tradeID": 158056419,
+        //       "price": "9186.13",
+        //       "quote_volume": "0.0021",
+        //       "base_volume": "9186.13",
+        //       "trade_timestamp": 1594391747,
+        //       "type": "sell"
         //     },
         // ],
         //
@@ -698,14 +698,14 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.webGetV1Healthcheck (params);
-        const status = this.safeInteger (response, 'status');
-        let formattedStatus = 'ok';
-        if (status === 503) {
-            formattedStatus = 'maintenance';
-        }
+        const response = await this.v4publicGetPing (params);
+        // [
+        //     "pong"
+        // ]
+        let status = this.safeValue (response, 0, undefined);
+        status = status === undefined ? 'maintenance' : 'ok';
         this.status = this.extend (this.status, {
-            'status': formattedStatus,
+            'status': status,
             'updated': this.milliseconds (),
         });
         return this.status;
