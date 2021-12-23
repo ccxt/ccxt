@@ -827,7 +827,7 @@ class bitstamp(Exchange):
             account['used'] = self.safe_string(balance, currencyId + '_reserved')
             account['total'] = self.safe_string(balance, currencyId + '_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_trading_fee(self, symbol, params={}):
         await self.load_markets()

@@ -792,7 +792,7 @@ class delta(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             account['free'] = self.safe_string(balance, 'available_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_position(self, symbol, params=None):
         await self.load_markets()

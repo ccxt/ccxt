@@ -2081,11 +2081,11 @@ class huobi extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $accountsByCode = array();
                 $accountsByCode[$code] = $account;
-                $result[$symbol] = $this->parse_balance($accountsByCode);
+                $result[$symbol] = $this->safe_balance($accountsByCode);
             }
             return $result;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {

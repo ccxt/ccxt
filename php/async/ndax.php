@@ -947,7 +947,7 @@ class ndax extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_ledger_entry_type($type) {

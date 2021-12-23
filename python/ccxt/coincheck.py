@@ -140,7 +140,7 @@ class coincheck(Exchange):
                 account['free'] = self.safe_string(balances, currencyId)
                 account['used'] = self.safe_string(balances, reserved)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

@@ -1423,7 +1423,7 @@ class okex extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_funding_balance($response) {
@@ -1440,7 +1440,7 @@ class okex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'frozenBal');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_trading_fee($fee, $market = null) {

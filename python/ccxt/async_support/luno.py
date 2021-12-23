@@ -229,7 +229,7 @@ class luno(Exchange):
                 account['used'] = reservedUnconfirmed
                 account['total'] = balanceUnconfirmed
                 result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

@@ -1383,7 +1383,7 @@ class okex(Exchange):
             result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_funding_balance(self, response):
         result = {'info': response}
@@ -1398,7 +1398,7 @@ class okex(Exchange):
             account['free'] = self.safe_string(balance, 'availBal')
             account['used'] = self.safe_string(balance, 'frozenBal')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_trading_fee(self, fee, market=None):
         #

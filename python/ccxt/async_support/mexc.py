@@ -1163,7 +1163,7 @@ class mexc(Exchange):
                 account['free'] = self.safe_string(balance, 'availableBalance')
                 account['used'] = self.safe_string(balance, 'frozenBalance')
                 result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def safe_network(self, networkId):
         if networkId.find('BSC') >= 0:
