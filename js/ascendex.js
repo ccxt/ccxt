@@ -1178,6 +1178,8 @@ module.exports = class ascendex extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
+        // AccountCategoryGetOrderStatus
+        //
         //     {
         //         "code": 0,
         //         "accountCategory": "CASH",
@@ -1202,6 +1204,44 @@ module.exports = class ascendex extends Exchange {
         //                 "execInst":     "NULL_VAL"
         //             }
         //         ]
+        //     }
+        //
+        // AccountGroupGetFuturesOrderStatus
+        //
+        //     {
+        //         "code": 0,
+        //         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //         "ac": "FUTURES",
+        //         "data": {
+        //             "ac": "FUTURES",
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "time": 1640247020217,
+        //             "orderId": "r17de65747aeU0711043490bbtcp0cmt",
+        //             "seqNum": 28796162908,
+        //             "orderType": "Limit",
+        //             "execInst": "NULL_VAL",
+        //             "side": "Buy",
+        //             "symbol": "BTC-PERP",
+        //             "price": "30000",
+        //             "orderQty": "0.0021",
+        //             "stopPrice": "0",
+        //             "stopBy": "market",
+        //             "status": "New",
+        //             "lastExecTime": 1640247020232,
+        //             "lastQty": "0",
+        //             "lastPx": "0",
+        //             "avgFilledPx": "0",
+        //             "cumFilledQty": "0",
+        //             "fee": "0",
+        //             "cumFee": "0",
+        //             "feeAsset": "USDT",
+        //             "errorCode": "",
+        //             "posStopLossPrice": "0",
+        //             "posStopLossTrigger": "market",
+        //             "posTakeProfitPrice": "0",
+        //             "posTakeProfitTrigger": "market",
+        //             "liquidityInd": "n"
+        //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
