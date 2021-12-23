@@ -854,7 +854,7 @@ module.exports = class bitstamp extends Exchange {
             account['total'] = this.safeString (balance, currencyId + '_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchTradingFee (symbol, params = {}) {

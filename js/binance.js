@@ -1401,7 +1401,7 @@ module.exports = class binance extends Exchange {
         return result;
     }
 
-    normalizeBalance (response, type) {
+    parseBalance (response, type) {
         const result = {
             'info': response,
         };
@@ -1667,8 +1667,8 @@ module.exports = class binance extends Exchange {
         //       }
         //     ]
         //
-        const result = this.normalizeBalance (response, type);
-        return this.parseBalance (result);
+        const result = this.parseBalance (response, type);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -4077,7 +4077,6 @@ module.exports = class binance extends Exchange {
         const estimatedSettlePrice = this.safeNumber (premiumIndex, 'estimatedSettlePrice');
         const nextFundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
         const nextFundingTime = this.safeInteger (premiumIndex, 'nextFundingTime');
-        const previousFundingTime = nextFundingTime - (8 * 3600000);
         return {
             'info': premiumIndex,
             'symbol': symbol,
@@ -4089,9 +4088,9 @@ module.exports = class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'previousFundingRate': undefined,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTime, // subtract 8 hours
+            'previousFundingTimestamp': undefined,
             'nextFundingTimestamp': nextFundingTime,
-            'previousFundingDatetime': this.iso8601 (previousFundingTime),
+            'previousFundingDatetime': undefined,
             'nextFundingDatetime': this.iso8601 (nextFundingTime),
         };
     }

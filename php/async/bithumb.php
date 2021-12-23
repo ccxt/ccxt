@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class bithumb extends Exchange {
 
@@ -702,17 +703,16 @@ class bithumb extends Exchange {
         $sideProperty = $this->safe_value_2($order, 'type', 'side');
         $side = ($sideProperty === 'bid') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'order_status'));
-        $price = $this->safe_number_2($order, 'order_price', 'price');
+        $price = $this->safe_string_2($order, 'order_price', 'price');
         $type = 'limit';
-        if ($price === 0) {
-            $price = null;
+        if (Precise::string_equals($price, '0')) {
             $type = 'market';
         }
-        $amount = $this->safe_number_2($order, 'order_qty', 'units');
-        $remaining = $this->safe_number($order, 'units_remaining');
+        $amount = $this->safe_string_2($order, 'order_qty', 'units');
+        $remaining = $this->safe_string($order, 'units_remaining');
         if ($remaining === null) {
             if ($status === 'closed') {
-                $remaining = 0;
+                $remaining = '0';
             } else if ($status !== 'canceled') {
                 $remaining = $amount;
             }
@@ -730,12 +730,7 @@ class bithumb extends Exchange {
         }
         $id = $this->safe_string($order, 'order_id');
         $rawTrades = $this->safe_value($order, 'contract', array());
-        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-            'side' => $side,
-            'symbol' => $symbol,
-            'order' => $id,
-        ));
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -756,8 +751,8 @@ class bithumb extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
-            'trades' => $trades,
-        ));
+            'trades' => $rawTrades,
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -887,7 +887,7 @@ module.exports = class bitpanda extends Exchange {
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {

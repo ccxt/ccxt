@@ -710,7 +710,7 @@ module.exports = class qtrade extends Exchange {
             account['used'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -839,9 +839,9 @@ module.exports = class qtrade extends Exchange {
             side = this.safeString (parts, 0);
             orderType = this.safeString (parts, 1);
         }
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'market_amount');
-        const remaining = this.safeNumber (order, 'market_amount_remaining');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'market_amount');
+        const remaining = this.safeString (order, 'market_amount_remaining');
         const open = this.safeValue (order, 'open', false);
         const closeReason = this.safeString (order, 'close_reason');
         let status = undefined;
@@ -856,12 +856,7 @@ module.exports = class qtrade extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const rawTrades = this.safeValue (order, 'trades', []);
-        const parsedTrades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'order': id,
-            'side': side,
-            'type': orderType,
-        });
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -883,8 +878,8 @@ module.exports = class qtrade extends Exchange {
             'fee': undefined,
             'fees': undefined,
             'cost': undefined,
-            'trades': parsedTrades,
-        });
+            'trades': rawTrades,
+        }, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

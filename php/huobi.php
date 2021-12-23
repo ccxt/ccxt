@@ -68,6 +68,8 @@ class huobi extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingLimits' => true,
+                'fetchWithdrawAddress' => true,
+                'fetchWithdrawAddressesByNetwork' => true,
                 'fetchWithdrawals' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -777,6 +779,36 @@ class huobi extends Exchange {
                 'typesByAccount' => array(
                     'pro' => 'spot',
                     'futures' => 'future',
+                ),
+                'spot' => array(
+                    'stopOrderTypes' => array(
+                        'stop-limit' => true,
+                        'buy-stop-limit' => true,
+                        'sell-stop-limit' => true,
+                        'stop-limit-fok' => true,
+                        'buy-stop-limit-fok' => true,
+                        'sell-stop-limit-fok' => true,
+                    ),
+                    'limitOrderTypes' => array(
+                        'limit' => true,
+                        'buy-limit' => true,
+                        'sell-limit' => true,
+                        'ioc' => true,
+                        'buy-ioc' => true,
+                        'sell-ioc' => true,
+                        'limit-maker' => true,
+                        'buy-limit-maker' => true,
+                        'sell-limit-maker' => true,
+                        'stop-limit' => true,
+                        'buy-stop-limit' => true,
+                        'sell-stop-limit' => true,
+                        'limit-fok' => true,
+                        'buy-limit-fok' => true,
+                        'sell-limit-fok' => true,
+                        'stop-limit-fok' => true,
+                        'buy-stop-limit-fok' => true,
+                        'sell-stop-limit-fok' => true,
+                    ),
                 ),
             ),
             'commonCurrencies' => array(
@@ -2240,6 +2272,7 @@ class huobi extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
+        $stopPrice = $this->safe_string($order, 'stop-price');
         return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
@@ -2253,7 +2286,7 @@ class huobi extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
+            'stopPrice' => $stopPrice,
             'average' => null,
             'cost' => $cost,
             'amount' => $amount,
@@ -2267,6 +2300,20 @@ class huobi extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market($symbol);
+        list($methodType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        $method = $this->get_supported_mapping($methodType, array(
+            'spot' => 'createSpotOrder',
+            // 'future' => 'createContractOrder',
+        ));
+        if ($method === null) {
+            throw new NotSupported($this->id . ' createOrder does not support ' . $type . ' markets yet');
+        }
+        return $this->$method ($symbol, $type, $side, $amount, $price, $query);
+    }
+
+    public function create_spot_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
         $this->load_accounts();
         $market = $this->market($symbol);
         $accountId = $this->fetch_account_id_by_type($market['type']);
@@ -2274,59 +2321,38 @@ class huobi extends Exchange {
             // spot -----------------------------------------------------------
             'account-id' => $accountId,
             'symbol' => $market['id'],
-            'type' => $side . '-' . $type, // buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'type' => $side . '-' . $type, // buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount' => $this->amount_to_precision($symbol, $amount), // for buy $market orders it's the order cost
             // 'price' => $this->price_to_precision($symbol, $price),
             // 'source' => 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
             // 'client-order-id' => $clientOrderId, // optional, max 64 chars, must be unique within 8 hours
-            // 'stop-price' => $this->price_to_precision($symbol, stopPrice), // trigger $price for stop limit orders
+            // 'stop-price' => $this->price_to_precision($symbol, $stopPrice), // trigger $price for stop limit orders
             // 'operator' => 'gte', // gte, lte, trigger $price condition
-            // futures --------------------------------------------------------
-            // 'symbol' => 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-            // 'contract_type' => 'this_week', // optional, this_week, next_week, quarter, next_quarter
-            // 'contract_code' => $market['id'], // optional BTC180914
-            // 'client_order_id' => $clientOrderId, // optional, must be less than 9223372036854775807
-            // 'price' => $this->price_to_precision($symbol, $price),
-            // 'volume' => $this->amount_to_precision($symbol, $amount),
-            //
-            //     direction buy, offset open = open long
-            //     direction sell, offset close = close long
-            //     direction sell, offset open = open short
-            //     direction buy, offset close = close short
-            //
-            // 'direction' => $side, // true Transaction direction
-            // 'offset' => 'string', // open, close
-            // 'lever_rate' => 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
-            //
-            //     limit
-            //     opponent // BBO
-            //     post_only
-            //     optimal_5
-            //     optimal_10
-            //     optimal_20
-            //     ioc
-            //     fok
-            //     opponent_ioc // IOC order using the BBO $price
-            //     optimal_5_ioc
-            //     optimal_10_ioc
-            //     optimal_20_ioc
-            //     opponent_fok // FOR order using the BBO $price
-            //     optimal_5_fok
-            //     optimal_10_fok
-            //     optimal_20_fok
-            //
-            // 'order_price_type' => 'limit', // required
-            // 'tp_trigger_price' => $this->price_to_precision($symbol, triggerPrice),
-            // 'tp_order_price' => $this->price_to_precision($symbol, $price),
-            // 'tp_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
-            // 'sl_trigger_price' => $this->price_to_precision($symbol, stopLossPrice),
-            // 'sl_order_price' => $this->price_to_precision($symbol, $price),
-            // 'sl_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
-            // swap -----------------------------------------------------------
-            //
-            //     ...
-            //
         );
+        $orderType = str_replace('buy-', '', $type);
+        $orderType = str_replace('sell-', '', $orderType);
+        $options = $this->safe_value($this->options, $market['type'], array());
+        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'stop-price');
+        if ($stopPrice === null) {
+            $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
+            if (is_array($stopOrderTypes) && array_key_exists($orderType, $stopOrderTypes)) {
+                throw new ArgumentsRequired($this->id . 'createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
+            }
+        } else {
+            $stopOperator = $this->safe_string($params, 'operator');
+            if ($stopOperator === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires an operator parameter "gte" or "lte" for a stop order');
+            }
+            $params = $this->omit($params, array( 'stopPrice', 'stop-price' ));
+            $request['stop-price'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['operator'] = $stopOperator;
+            if (($orderType === 'limit') || ($orderType === 'limit-fok')) {
+                $orderType = 'stop-' . $orderType;
+            } else if (($orderType !== 'stop-limit') && ($orderType !== 'stop-limit-fok')) {
+                throw new NotSupported($this->id . 'createOrder() does not support ' . $type . ' orders');
+            }
+        }
+        $request['type'] = $side . '-' . $orderType;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if ($clientOrderId === null) {
             $broker = $this->safe_value($this->options, 'broker', array());
@@ -2336,7 +2362,7 @@ class huobi extends Exchange {
             $request['client-order-id'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'client-order-id' ));
-        if (($type === 'market') && ($side === 'buy')) {
+        if (($orderType === 'market') && ($side === 'buy')) {
             if ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . " $market buy order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
@@ -2355,7 +2381,8 @@ class huobi extends Exchange {
         } else {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
-        if ($type === 'limit' || $type === 'ioc' || $type === 'limit-maker' || $type === 'stop-limit' || $type === 'stop-limit-fok') {
+        $limitOrderTypes = $this->safe_value($options, 'limitOrderTypes', array());
+        if (is_array($limitOrderTypes) && array_key_exists($orderType, $limitOrderTypes)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->spotPrivatePostV1OrderOrdersPlace (array_merge($request, $params));
@@ -2381,6 +2408,52 @@ class huobi extends Exchange {
             'clientOrderId' => null,
             'average' => null,
         );
+    }
+
+    public function create_contract_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        // $request = array(
+        //     // 'symbol' => 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+        //     // 'contract_type' => 'this_week', // optional, this_week, next_week, quarter, next_quarter
+        //     // 'contract_code' => market['id'], // optional BTC180914
+        //     // 'client_order_id' => clientOrderId, // optional, must be less than 9223372036854775807
+        //     // 'price' => $this->price_to_precision($symbol, $price),
+        //     // 'volume' => $this->amount_to_precision($symbol, $amount),
+        //     //
+        //     //     direction buy, offset open = open long
+        //     //     direction sell, offset close = close long
+        //     //     direction sell, offset open = open short
+        //     //     direction buy, offset close = close short
+        //     //
+        //     // 'direction' => 'buy'', // buy, sell
+        //     // 'offset' => 'open', // open, close
+        //     // 'lever_rate' => 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
+        //     //
+        //     //     limit
+        //     //     opponent // BBO
+        //     //     post_only
+        //     //     optimal_5
+        //     //     optimal_10
+        //     //     optimal_20
+        //     //     ioc
+        //     //     fok
+        //     //     opponent_ioc // IOC order using the BBO $price
+        //     //     optimal_5_ioc
+        //     //     optimal_10_ioc
+        //     //     optimal_20_ioc
+        //     //     opponent_fok // FOR order using the BBO $price
+        //     //     optimal_5_fok
+        //     //     optimal_10_fok
+        //     //     optimal_20_fok
+        //     //
+        //     // 'order_price_type' => 'limit', // required
+        //     // 'tp_trigger_price' => $this->price_to_precision($symbol, triggerPrice),
+        //     // 'tp_order_price' => $this->price_to_precision($symbol, $price),
+        //     // 'tp_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
+        //     // 'sl_trigger_price' => $this->price_to_precision($symbol, stopLossPrice),
+        //     // 'sl_order_price' => $this->price_to_precision($symbol, $price),
+        //     // 'sl_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
+        // );
+        throw new NotSupported($this->id . ' createContractOrder is not supported yet, it is a work in progress');
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -2517,12 +2590,14 @@ class huobi extends Exchange {
         $networksById = $this->index_by($networks, 'id');
         $networkValue = $this->safe_value($networksById, $networkId, $networkId);
         $network = $this->safe_string($networkValue, 'network');
+        $note = $this->safe_string($depositAddress, 'note');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
             'network' => $network,
+            'note' => $note,
             'info' => $depositAddress,
         );
     }
@@ -2581,6 +2656,65 @@ class huobi extends Exchange {
         $result = $this->safe_value($response, $network);
         if ($result === null) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
+        }
+        return $result;
+    }
+
+    public function fetch_withdraw_addresses_by_network($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->spotPrivateGetV2AccountWithdrawAddress (array_merge($request, $params));
+        //
+        //     {
+        //         $code => 200,
+        //         $data => array(
+        //             {
+        //                 $currency => "eth",
+        //                 chain => "eth"
+        //                 note => "Binance - TRC20",
+        //                 addressTag => "",
+        //                 address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $parsed = $this->parse_deposit_addresses($data, array( $code ), false);
+        return $this->index_by($parsed, 'network');
+    }
+
+    public function fetch_withdraw_address($code, $params = array ()) {
+        $rawNetwork = $this->safe_string_upper($params, 'network');
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($networks, $rawNetwork, $rawNetwork);
+        $params = $this->omit($params, 'network');
+        $response = $this->fetch_withdraw_addresses_by_network($code, $params);
+        $result = null;
+        if ($network === null) {
+            $result = $this->safe_value($response, $code);
+            if ($result === null) {
+                $alias = $this->safe_string($networks, $code, $code);
+                $result = $this->safe_value($response, $alias);
+                if ($result === null) {
+                    $defaultNetwork = $this->safe_string($this->options, 'defaultNetwork', 'ERC20');
+                    $result = $this->safe_value($response, $defaultNetwork);
+                    if ($result === null) {
+                        $values = is_array($response) ? array_values($response) : array();
+                        $result = $this->safe_value($values, 0);
+                        if ($result === null) {
+                            throw new InvalidAddress($this->id . ' fetchWithdrawAddress() cannot find withdraw address for ' . $code);
+                        }
+                    }
+                }
+            }
+            return $result;
+        }
+        $result = $this->safe_value($response, $network);
+        if ($result === null) {
+            throw new InvalidAddress($this->id . ' fetchWithdrawAddress() cannot find ' . $network . ' withdraw address for ' . $code);
         }
         return $result;
     }

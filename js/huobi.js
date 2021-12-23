@@ -61,6 +61,8 @@ module.exports = class huobi extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingLimits': true,
+                'fetchWithdrawAddress': true,
+                'fetchWithdrawAddressesByNetwork': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -770,6 +772,36 @@ module.exports = class huobi extends Exchange {
                 'typesByAccount': {
                     'pro': 'spot',
                     'futures': 'future',
+                },
+                'spot': {
+                    'stopOrderTypes': {
+                        'stop-limit': true,
+                        'buy-stop-limit': true,
+                        'sell-stop-limit': true,
+                        'stop-limit-fok': true,
+                        'buy-stop-limit-fok': true,
+                        'sell-stop-limit-fok': true,
+                    },
+                    'limitOrderTypes': {
+                        'limit': true,
+                        'buy-limit': true,
+                        'sell-limit': true,
+                        'ioc': true,
+                        'buy-ioc': true,
+                        'sell-ioc': true,
+                        'limit-maker': true,
+                        'buy-limit-maker': true,
+                        'sell-limit-maker': true,
+                        'stop-limit': true,
+                        'buy-stop-limit': true,
+                        'sell-stop-limit': true,
+                        'limit-fok': true,
+                        'buy-limit-fok': true,
+                        'sell-limit-fok': true,
+                        'stop-limit-fok': true,
+                        'buy-stop-limit-fok': true,
+                        'sell-stop-limit-fok': true,
+                    },
                 },
             },
             'commonCurrencies': {
@@ -2041,11 +2073,11 @@ module.exports = class huobi extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 const accountsByCode = {};
                 accountsByCode[code] = account;
-                result[symbol] = this.parseBalance (accountsByCode);
+                result[symbol] = this.safeBalance (accountsByCode);
             }
             return result;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2233,6 +2265,7 @@ module.exports = class huobi extends Exchange {
                 'currency': feeCurrency,
             };
         }
+        const stopPrice = this.safeString (order, 'stop-price');
         return this.safeOrder2 ({
             'info': order,
             'id': id,
@@ -2246,7 +2279,7 @@ module.exports = class huobi extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': stopPrice,
             'average': undefined,
             'cost': cost,
             'amount': amount,
@@ -2260,6 +2293,20 @@ module.exports = class huobi extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ methodType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const method = this.getSupportedMapping (methodType, {
+            'spot': 'createSpotOrder',
+            // 'future': 'createContractOrder',
+        });
+        if (method === undefined) {
+            throw new NotSupported (this.id + ' createOrder does not support ' + type + ' markets yet');
+        }
+        return await this[method] (symbol, type, side, amount, price, query);
+    }
+
+    async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
         const accountId = await this.fetchAccountIdByType (market['type']);
@@ -2267,59 +2314,38 @@ module.exports = class huobi extends Exchange {
             // spot -----------------------------------------------------------
             'account-id': accountId,
             'symbol': market['id'],
-            'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount': this.amountToPrecision (symbol, amount), // for buy market orders it's the order cost
             // 'price': this.priceToPrecision (symbol, price),
             // 'source': 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
             // 'client-order-id': clientOrderId, // optional, max 64 chars, must be unique within 8 hours
             // 'stop-price': this.priceToPrecision (symbol, stopPrice), // trigger price for stop limit orders
             // 'operator': 'gte', // gte, lte, trigger price condition
-            // futures --------------------------------------------------------
-            // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-            // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
-            // 'contract_code': market['id'], // optional BTC180914
-            // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807
-            // 'price': this.priceToPrecision (symbol, price),
-            // 'volume': this.amountToPrecision (symbol, amount),
-            //
-            //     direction buy, offset open = open long
-            //     direction sell, offset close = close long
-            //     direction sell, offset open = open short
-            //     direction buy, offset close = close short
-            //
-            // 'direction': side, // true Transaction direction
-            // 'offset': 'string', // open, close
-            // 'lever_rate': 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
-            //
-            //     limit
-            //     opponent // BBO
-            //     post_only
-            //     optimal_5
-            //     optimal_10
-            //     optimal_20
-            //     ioc
-            //     fok
-            //     opponent_ioc // IOC order using the BBO price
-            //     optimal_5_ioc
-            //     optimal_10_ioc
-            //     optimal_20_ioc
-            //     opponent_fok // FOR order using the BBO price
-            //     optimal_5_fok
-            //     optimal_10_fok
-            //     optimal_20_fok
-            //
-            // 'order_price_type': 'limit', // required
-            // 'tp_trigger_price': this.priceToPrecision (symbol, triggerPrice),
-            // 'tp_order_price': this.priceToPrecision (symbol, price),
-            // 'tp_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
-            // 'sl_trigger_price': this.priceToPrecision (symbol, stopLossPrice),
-            // 'sl_order_price': this.priceToPrecision (symbol, price),
-            // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
-            // swap -----------------------------------------------------------
-            //
-            //     ...
-            //
         };
+        let orderType = type.replace ('buy-', '');
+        orderType = orderType.replace ('sell-', '');
+        const options = this.safeValue (this.options, market['type'], {});
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
+        if (stopPrice === undefined) {
+            const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
+            if (orderType in stopOrderTypes) {
+                throw new ArgumentsRequired (this.id + 'createOrder() requires a stopPrice or a stop-price parameter for a stop order');
+            }
+        } else {
+            const stopOperator = this.safeString (params, 'operator');
+            if (stopOperator === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires an operator parameter "gte" or "lte" for a stop order');
+            }
+            params = this.omit (params, [ 'stopPrice', 'stop-price' ]);
+            request['stop-price'] = this.priceToPrecision (symbol, stopPrice);
+            request['operator'] = stopOperator;
+            if ((orderType === 'limit') || (orderType === 'limit-fok')) {
+                orderType = 'stop-' + orderType;
+            } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
+                throw new NotSupported (this.id + 'createOrder() does not support ' + type + ' orders');
+            }
+        }
+        request['type'] = side + '-' + orderType;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker', {});
@@ -2329,7 +2355,7 @@ module.exports = class huobi extends Exchange {
             request['client-order-id'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'client-order-id' ]);
-        if ((type === 'market') && (side === 'buy')) {
+        if ((orderType === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
@@ -2348,7 +2374,8 @@ module.exports = class huobi extends Exchange {
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
+        const limitOrderTypes = this.safeValue (options, 'limitOrderTypes', {});
+        if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
@@ -2374,6 +2401,52 @@ module.exports = class huobi extends Exchange {
             'clientOrderId': undefined,
             'average': undefined,
         };
+    }
+
+    async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // const request = {
+        //     // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+        //     // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
+        //     // 'contract_code': market['id'], // optional BTC180914
+        //     // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807
+        //     // 'price': this.priceToPrecision (symbol, price),
+        //     // 'volume': this.amountToPrecision (symbol, amount),
+        //     //
+        //     //     direction buy, offset open = open long
+        //     //     direction sell, offset close = close long
+        //     //     direction sell, offset open = open short
+        //     //     direction buy, offset close = close short
+        //     //
+        //     // 'direction': 'buy'', // buy, sell
+        //     // 'offset': 'open', // open, close
+        //     // 'lever_rate': 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
+        //     //
+        //     //     limit
+        //     //     opponent // BBO
+        //     //     post_only
+        //     //     optimal_5
+        //     //     optimal_10
+        //     //     optimal_20
+        //     //     ioc
+        //     //     fok
+        //     //     opponent_ioc // IOC order using the BBO price
+        //     //     optimal_5_ioc
+        //     //     optimal_10_ioc
+        //     //     optimal_20_ioc
+        //     //     opponent_fok // FOR order using the BBO price
+        //     //     optimal_5_fok
+        //     //     optimal_10_fok
+        //     //     optimal_20_fok
+        //     //
+        //     // 'order_price_type': 'limit', // required
+        //     // 'tp_trigger_price': this.priceToPrecision (symbol, triggerPrice),
+        //     // 'tp_order_price': this.priceToPrecision (symbol, price),
+        //     // 'tp_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
+        //     // 'sl_trigger_price': this.priceToPrecision (symbol, stopLossPrice),
+        //     // 'sl_order_price': this.priceToPrecision (symbol, price),
+        //     // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
+        // };
+        throw new NotSupported (this.id + ' createContractOrder is not supported yet, it is a work in progress');
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -2510,12 +2583,14 @@ module.exports = class huobi extends Exchange {
         const networksById = this.indexBy (networks, 'id');
         const networkValue = this.safeValue (networksById, networkId, networkId);
         const network = this.safeString (networkValue, 'network');
+        const note = this.safeString (depositAddress, 'note');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
             'network': network,
+            'note': note,
             'info': depositAddress,
         };
     }
@@ -2574,6 +2649,65 @@ module.exports = class huobi extends Exchange {
         result = this.safeValue (response, network);
         if (result === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        }
+        return result;
+    }
+
+    async fetchWithdrawAddressesByNetwork (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.spotPrivateGetV2AccountWithdrawAddress (this.extend (request, params));
+        //
+        //     {
+        //         code: 200,
+        //         data: [
+        //             {
+        //                 currency: "eth",
+        //                 chain: "eth"
+        //                 note: "Binance - TRC20",
+        //                 addressTag: "",
+        //                 address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const parsed = this.parseDepositAddresses (data, [ code ], false);
+        return this.indexBy (parsed, 'network');
+    }
+
+    async fetchWithdrawAddress (code, params = {}) {
+        const rawNetwork = this.safeStringUpper (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeStringUpper (networks, rawNetwork, rawNetwork);
+        params = this.omit (params, 'network');
+        const response = await this.fetchWithdrawAddressesByNetwork (code, params);
+        let result = undefined;
+        if (network === undefined) {
+            result = this.safeValue (response, code);
+            if (result === undefined) {
+                const alias = this.safeString (networks, code, code);
+                result = this.safeValue (response, alias);
+                if (result === undefined) {
+                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                    result = this.safeValue (response, defaultNetwork);
+                    if (result === undefined) {
+                        const values = Object.values (response);
+                        result = this.safeValue (values, 0);
+                        if (result === undefined) {
+                            throw new InvalidAddress (this.id + ' fetchWithdrawAddress() cannot find withdraw address for ' + code);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        result = this.safeValue (response, network);
+        if (result === undefined) {
+            throw new InvalidAddress (this.id + ' fetchWithdrawAddress() cannot find ' + network + ' withdraw address for ' + code);
         }
         return result;
     }

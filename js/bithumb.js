@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 const { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -220,7 +221,7 @@ module.exports = class bithumb extends Exchange {
             account['free'] = this.safeString (balances, 'available_' + lowerCurrencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -699,17 +700,16 @@ module.exports = class bithumb extends Exchange {
         const sideProperty = this.safeValue2 (order, 'type', 'side');
         const side = (sideProperty === 'bid') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
-        let price = this.safeNumber2 (order, 'order_price', 'price');
+        const price = this.safeString2 (order, 'order_price', 'price');
         let type = 'limit';
-        if (price === 0) {
-            price = undefined;
+        if (Precise.stringEquals (price, '0')) {
             type = 'market';
         }
-        const amount = this.safeNumber2 (order, 'order_qty', 'units');
-        let remaining = this.safeNumber (order, 'units_remaining');
+        const amount = this.safeString2 (order, 'order_qty', 'units');
+        let remaining = this.safeString (order, 'units_remaining');
         if (remaining === undefined) {
             if (status === 'closed') {
-                remaining = 0;
+                remaining = '0';
             } else if (status !== 'canceled') {
                 remaining = amount;
             }
@@ -727,12 +727,7 @@ module.exports = class bithumb extends Exchange {
         }
         const id = this.safeString (order, 'order_id');
         const rawTrades = this.safeValue (order, 'contract', []);
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'side': side,
-            'symbol': symbol,
-            'order': id,
-        });
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -753,8 +748,8 @@ module.exports = class bithumb extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
-            'trades': trades,
-        });
+            'trades': rawTrades,
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

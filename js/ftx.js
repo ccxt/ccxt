@@ -278,7 +278,7 @@ module.exports = class ftx extends Exchange {
                             [ this.parseNumber ('2000000'), this.parseNumber ('0.0006') ],
                             [ this.parseNumber ('5000000'), this.parseNumber ('0.00055') ],
                             [ this.parseNumber ('10000000'), this.parseNumber ('0.0005') ],
-                            [ this.parseNumber ('25000000'), this.parseNumber ('0.045') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0045') ],
                             [ this.parseNumber ('50000000'), this.parseNumber ('0.0004') ],
                         ],
                         'maker': [
@@ -1122,7 +1122,7 @@ module.exports = class ftx extends Exchange {
             account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -2255,10 +2255,6 @@ module.exports = class ftx extends Exchange {
         const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
         const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
         const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
-        let previousFundingTimestamp = undefined;
-        if (nextFundingRateTimestamp !== undefined) {
-            previousFundingTimestamp = nextFundingRateTimestamp - 3600000;
-        }
         const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
         return {
             'info': fundingRate,
@@ -2271,9 +2267,9 @@ module.exports = class ftx extends Exchange {
             'datetime': undefined,
             'previousFundingRate': undefined,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp, // subtract 8 hours
+            'previousFundingTimestamp': undefined,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'previousFundingDatetime': undefined,
             'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }

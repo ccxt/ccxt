@@ -603,7 +603,7 @@ module.exports = class deribit extends Exchange {
         account['used'] = this.safeString (balance, 'maintenance_margin');
         account['total'] = this.safeString (balance, 'equity');
         result[currencyCode] = account;
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createDepositAddress (code, params = {}) {

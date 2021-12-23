@@ -301,7 +301,7 @@ module.exports = class mercado extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -418,21 +418,17 @@ module.exports = class mercado extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (order, 'created_timestamp');
         const fee = {
-            'cost': this.safeNumber (order, 'fee'),
+            'cost': this.safeString (order, 'fee'),
             'currency': market['quote'],
         };
-        const price = this.safeNumber (order, 'limit_price');
+        const price = this.safeString (order, 'limit_price');
         // price = this.safeNumber (order, 'executed_price_avg', price);
-        const average = this.safeNumber (order, 'executed_price_avg');
-        const amount = this.safeNumber (order, 'quantity');
-        const filled = this.safeNumber (order, 'executed_quantity');
+        const average = this.safeString (order, 'executed_price_avg');
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
         const rawTrades = this.safeValue (order, 'operations', []);
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'side': side,
-            'order': id,
-        });
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -453,8 +449,8 @@ module.exports = class mercado extends Exchange {
             'remaining': undefined,
             'status': status,
             'fee': fee,
-            'trades': trades,
-        });
+            'trades': rawTrades,
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

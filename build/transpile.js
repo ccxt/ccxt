@@ -57,7 +57,7 @@ class Transpiler {
             [ /\.implodeHostname\s/g, '.implode_hostname'],
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
-            [ /\.parseBalance\s/g, '.parse_balance'],
+            [ /\.safeBalance\s/g, '.safe_balance'],
             [ /\.parseBalanceResponse\s/g, '.parse_balance_response'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],

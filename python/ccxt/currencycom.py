@@ -16,6 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class currencycom(Exchange):
@@ -780,20 +781,16 @@ class currencycom(Exchange):
             timestamp = self.safe_integer(order, 'time')
         elif 'transactTime' in order:
             timestamp = self.safe_integer(order, 'transactTime')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'origQty')
-        filled = self.safe_number(order, 'executedQty')
-        remaining = None
-        cost = self.safe_number(order, 'cummulativeQuoteQty')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'origQty')
+        filled = Precise.string_abs(self.safe_string(order, 'executedQty'))
+        cost = self.safe_string(order, 'cummulativeQuoteQty')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        trades = None
         fills = self.safe_value(order, 'fills')
-        if fills is not None:
-            trades = self.parse_trades(fills, market)
         timeInForce = self.safe_string(order, 'timeInForce')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -809,11 +806,11 @@ class currencycom(Exchange):
             'cost': cost,
             'average': None,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': None,
-            'trades': trades,
-        })
+            'trades': fills,
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

@@ -3873,7 +3873,6 @@ class binance(Exchange):
         estimatedSettlePrice = self.safe_number(premiumIndex, 'estimatedSettlePrice')
         nextFundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
         nextFundingTime = self.safe_integer(premiumIndex, 'nextFundingTime')
-        previousFundingTime = nextFundingTime - (8 * 3600000)
         return {
             'info': premiumIndex,
             'symbol': symbol,
@@ -3885,9 +3884,9 @@ class binance(Exchange):
             'datetime': self.iso8601(timestamp),
             'previousFundingRate': None,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTime,  # subtract 8 hours
+            'previousFundingTimestamp': None,
             'nextFundingTimestamp': nextFundingTime,
-            'previousFundingDatetime': self.iso8601(previousFundingTime),
+            'previousFundingDatetime': None,
             'nextFundingDatetime': self.iso8601(nextFundingTime),
         }
 

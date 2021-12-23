@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.64.49'
+__version__ = '1.64.70'
 
 # -----------------------------------------------------------------------------
 
@@ -284,6 +284,7 @@ class Exchange(object):
         'fetchDeposit': None,
         'fetchDepositAddress': None,
         'fetchDepositAddresses': None,
+        'fetchDepositAddressesByNetwork': None,
         'fetchDeposits': None,
         'fetchFundingFee': None,
         'fetchFundingFees': None,
@@ -320,6 +321,8 @@ class Exchange(object):
         'fetchTradingLimits': None,
         'fetchTransactions': None,
         'fetchTransfers': None,
+        'fetchWithdrawAddress': None,
+        'fetchWithdrawAddressesByNetwork': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
         'loadLeverageBrackets': None,
@@ -1650,7 +1653,7 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def parse_balance(self, balance, legacy=False):
+    def safe_balance(self, balance, legacy=False):
         currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}

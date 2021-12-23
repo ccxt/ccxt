@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -93,7 +94,7 @@ module.exports = class btcbox extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -281,14 +282,14 @@ module.exports = class btcbox extends Exchange {
         if (datetimeString !== undefined) {
             timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
         }
-        const amount = this.safeNumber (order, 'amount_original');
-        const remaining = this.safeNumber (order, 'amount_outstanding');
-        const price = this.safeNumber (order, 'price');
+        const amount = this.safeString (order, 'amount_original');
+        const remaining = this.safeString (order, 'amount_outstanding');
+        const price = this.safeString (order, 'price');
         // status is set by fetchOrder method only
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         // fetchOrders do not return status, use heuristic
         if (status === undefined) {
-            if (remaining !== undefined && remaining === 0) {
+            if (Precise.stringEquals (remaining, '0')) {
                 status = 'closed';
             }
         }
@@ -298,7 +299,7 @@ module.exports = class btcbox extends Exchange {
             symbol = market['symbol'];
         }
         const side = this.safeString (order, 'type');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -320,7 +321,7 @@ module.exports = class btcbox extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

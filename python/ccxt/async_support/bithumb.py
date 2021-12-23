@@ -16,6 +16,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.precise import Precise
 
 
 class bithumb(Exchange):
@@ -675,16 +676,15 @@ class bithumb(Exchange):
         sideProperty = self.safe_value_2(order, 'type', 'side')
         side = 'buy' if (sideProperty == 'bid') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'order_status'))
-        price = self.safe_number_2(order, 'order_price', 'price')
+        price = self.safe_string_2(order, 'order_price', 'price')
         type = 'limit'
-        if price == 0:
-            price = None
+        if Precise.string_equals(price, '0'):
             type = 'market'
-        amount = self.safe_number_2(order, 'order_qty', 'units')
-        remaining = self.safe_number(order, 'units_remaining')
+        amount = self.safe_string_2(order, 'order_qty', 'units')
+        remaining = self.safe_string(order, 'units_remaining')
         if remaining is None:
             if status == 'closed':
-                remaining = 0
+                remaining = '0'
             elif status != 'canceled':
                 remaining = amount
         symbol = None
@@ -698,12 +698,7 @@ class bithumb(Exchange):
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
         rawTrades = self.safe_value(order, 'contract', [])
-        trades = self.parse_trades(rawTrades, market, None, None, {
-            'side': side,
-            'symbol': symbol,
-            'order': id,
-        })
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -724,8 +719,8 @@ class bithumb(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
-            'trades': trades,
-        })
+            'trades': rawTrades,
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

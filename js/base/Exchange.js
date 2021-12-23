@@ -92,6 +92,7 @@ module.exports = class Exchange {
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddresses': undefined,
+                'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
@@ -128,6 +129,8 @@ module.exports = class Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
+                'fetchWithdrawAddress': undefined,
+                'fetchWithdrawAddressesByNetwork': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'loadLeverageBrackets': undefined,
@@ -1060,7 +1063,7 @@ module.exports = class Exchange {
         }
     }
 
-    parseBalance (balance, legacy = false) {
+    safeBalance (balance, legacy = false) {
 
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
 

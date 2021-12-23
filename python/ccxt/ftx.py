@@ -299,7 +299,7 @@ class ftx(Exchange):
                             [self.parse_number('2000000'), self.parse_number('0.0006')],
                             [self.parse_number('5000000'), self.parse_number('0.00055')],
                             [self.parse_number('10000000'), self.parse_number('0.0005')],
-                            [self.parse_number('25000000'), self.parse_number('0.045')],
+                            [self.parse_number('25000000'), self.parse_number('0.0045')],
                             [self.parse_number('50000000'), self.parse_number('0.0004')],
                         ],
                         'maker': [
@@ -2158,9 +2158,6 @@ class ftx(Exchange):
         nextFundingRate = self.safe_number(fundingRate, 'nextFundingRate')
         nextFundingRateDatetimeRaw = self.safe_string(fundingRate, 'nextFundingTime')
         nextFundingRateTimestamp = self.parse8601(nextFundingRateDatetimeRaw)
-        previousFundingTimestamp = None
-        if nextFundingRateTimestamp is not None:
-            previousFundingTimestamp = nextFundingRateTimestamp - 3600000
         estimatedSettlePrice = self.safe_number(fundingRate, 'predictedExpirationPrice')
         return {
             'info': fundingRate,
@@ -2173,9 +2170,9 @@ class ftx(Exchange):
             'datetime': None,
             'previousFundingRate': None,
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,  # subtract 8 hours
+            'previousFundingTimestamp': None,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
+            'previousFundingDatetime': None,
             'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
         }
 

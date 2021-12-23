@@ -167,7 +167,7 @@ class zb(Exchange):
             'api': {
                 'trade': {
                     'get': [
-                        'getFeeInfo',
+                        'getFeeInfo',  # withdrawal fees
                     ],
                 },
                 'public': {
@@ -276,22 +276,42 @@ class zb(Exchange):
             amountPrecisionString = self.safe_string(market, 'amountScale')
             pricePrecisionString = self.safe_string(market, 'priceScale')
             priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'amount': int(amountPrecisionString),
-                'price': int(pricePrecisionString),
-            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'futures': False,
+                'option': False,
+                'derivative': False,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': None,
+                'maker': None,
+                'contractSize': None,
                 'active': True,
-                'precision': precision,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': int(amountPrecisionString),
+                    'price': int(pricePrecisionString),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minAmount'),
                         'max': None,

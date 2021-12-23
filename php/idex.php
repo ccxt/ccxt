@@ -186,25 +186,42 @@ class idex extends Exchange {
             if ($quote === 'ETH') {
                 $minCost = $minCostETH;
             }
-            $precision = array(
-                'amount' => intval($basePrecisionString),
-                'price' => intval($quotePrecisionString),
-            );
             $result[] = array(
-                'symbol' => $symbol,
                 'id' => $marketId,
+                'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'info' => $entry,
-                'precision' => $precision,
+                'margin' => false,
+                'swap' => false,
+                'futures' => false,
+                'option' => false,
+                'derivative' => false,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
                 'taker' => $taker,
                 'maker' => $maker,
+                'contractSize' => null,
+                'active' => $active,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => intval($basePrecisionString),
+                    'price' => intval($quotePrecisionString),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->parse_number($basePrecision),
                         'max' => null,
@@ -218,6 +235,7 @@ class idex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $entry,
             );
         }
         return $result;
