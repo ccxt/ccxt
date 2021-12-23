@@ -28,7 +28,7 @@ Current feature list:
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub> **[TabTrader](https://tab-trader.com/?utm_source=ccxt)** – trading on all exchanges in one app. Avaliable on **[Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt)** and **[iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8)**!
 - <sub>[![Freqtrade](https://user-images.githubusercontent.com/1294454/114340585-8e35fa80-9b60-11eb-860f-4379125e2db6.png)](https://www.freqtrade.io)</sub> **[Freqtrade](https://www.freqtrade.io)** – leading opensource cryptocurrency algorithmic trading software!
 - <sub>[![OctoBot](https://user-images.githubusercontent.com/1294454/132113722-007fc092-7530-4b41-b929-b8ed380b7b2e.png)](https://www.octobot.online)</sub> **[OctoBot](https://www.octobot.online)** – cryptocurrency trading bot with an advanced web interface.
-- <sub>[![Huobi](https://gist.githubusercontent.com/frosty00/ab0f905e16ad4b11f08ac562cd28cfc3/raw/5b810529eed493ba8fb250c54c1babd9ff4d4d0e/huobi-resized.png)](https://huobi.com) </sub> **[Weekly Update](https://gist.github.com/frosty00/ab0f905e16ad4b11f08ac562cd28cfc3#file-huobi-weekly-pdf)**
+- <sub>[![Huobi](https://gist.githubusercontent.com/frosty00/ab0f905e16ad4b11f08ac562cd28cfc3/raw/97f0f0facb84be583e618c073a60ce6a1b2d1022/huobi-resized-transparent.png)](https://www.huobi.com/en-us/) </sub> **[Huobi](https://gist.github.com/frosty00/ab0f905e16ad4b11f08ac562cd28cfc3/raw/97f0f0facb84be583e618c073a60ce6a1b2d1022/Huobi-Weekly.pdf)** - Weekly Update
 
 ## Certified Cryptocurrency Exchanges
 
