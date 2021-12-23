@@ -1653,7 +1653,7 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def parse_balance(self, balance, legacy=False):
+    def safe_balance(self, balance, legacy=False):
         currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}

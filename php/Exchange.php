@@ -303,6 +303,7 @@ class Exchange {
         'fetchL2OrderBook' => 'fetch_l2_order_book',
         'parseOrderBook' => 'parse_order_book',
         'parseBalance' => 'parse_balance',
+        'safeBalance' => 'safe_balance',
         'fetchBalance' => 'fetch_balance',
         'fetchPartialBalance' => 'fetch_partial_balance',
         'fetchFreeBalance' => 'fetch_free_balance',
@@ -1926,7 +1927,7 @@ class Exchange {
         );
     }
 
-    public function parse_balance($balance, $legacy = false) {
+    public function safe_balance($balance, $legacy = false) {
         $currencies = $this->omit($balance, array('info', 'timestamp', 'datetime', 'free', 'used', 'total'));
 
         $balance['free'] = array();
