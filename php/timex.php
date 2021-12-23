@@ -182,6 +182,7 @@ class timex extends Exchange {
                 ),
             ),
             'options' => array(
+                'expireIn' => 31536000, // 365 × 24 × 60 × 60
                 'fetchTickers' => array(
                     'period' => '1d',
                 ),
@@ -473,6 +474,11 @@ class timex extends Exchange {
         $market = $this->market($symbol);
         $uppercaseSide = strtoupper($side);
         $uppercaseType = strtoupper($type);
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly) {
+            $uppercaseType = 'POST_ONLY';
+            $params = $this->omit($params, array( 'postOnly' ));
+        }
         $request = array(
             'symbol' => $market['id'],
             'quantity' => $this->amount_to_precision($symbol, $amount),
@@ -483,7 +489,7 @@ class timex extends Exchange {
             // 'expireTime' => 1575523308, // unix timestamp
         );
         $query = $params;
-        if ($uppercaseType === 'LIMIT') {
+        if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'POST_ONLY')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $defaultExpireIn = $this->safe_integer($this->options, 'expireIn');
             $expireTime = $this->safe_value($params, 'expireTime');
@@ -1147,27 +1153,21 @@ class timex extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'quantity');
-        $filled = $this->safe_number($order, 'filledQuantity');
-        $canceledQuantity = $this->safe_number($order, 'cancelledQuantity');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'quantity');
+        $filled = $this->safe_string($order, 'filledQuantity');
+        $canceledQuantity = $this->omit_zero($this->safe_string($order, 'cancelledQuantity'));
         $status = null;
-        if (($amount !== null) && ($filled !== null)) {
-            if ($filled >= $amount) {
-                $status = 'closed';
-            } else if (($canceledQuantity !== null) && ($canceledQuantity > 0)) {
-                $status = 'canceled';
-            } else {
-                $status = 'open';
-            }
+        if (Precise::string_equals($filled, $amount)) {
+            $status = 'closed';
+        } else if ($canceledQuantity !== null) {
+            $status = 'canceled';
+        } else {
+            $status = 'open';
         }
         $rawTrades = $this->safe_value($order, 'trades', array());
-        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-            'order' => $id,
-            'type' => $type,
-        ));
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        return $this->safe_order(array(
+        return $this->safe_order2(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1188,8 +1188,8 @@ class timex extends Exchange {
             'remaining' => null,
             'status' => $status,
             'fee' => null,
-            'trades' => $trades,
-        ));
+            'trades' => $rawTrades,
+        ), $market);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
