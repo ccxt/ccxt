@@ -313,7 +313,7 @@ module.exports = class whitebit extends Exchange {
 
     async fetchFundingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetCurrencyListExtended (params);
+        const response = await this.v4PublicGetFee (params);
         // {
         //     "1INCH":{
         //        "is_depositable":true,
