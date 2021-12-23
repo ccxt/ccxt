@@ -1371,6 +1371,44 @@ module.exports = class ascendex extends Exchange {
         //         }
         //     }
         //
+        // accountGroupGetFuturesOrderHistCurrent
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "ac": "FUTURES",
+        //                 "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //                 "time": 1640245777002,
+        //                 "orderId": "r17de6444fa6U0711043490bbtcpJ2lI",
+        //                 "seqNum": 28796124902,
+        //                 "orderType": "Limit",
+        //                 "execInst": "NULL_VAL",
+        //                 "side": "Buy",
+        //                 "symbol": "BTC-PERP",
+        //                 "price": "30000",
+        //                 "orderQty": "0.0021",
+        //                 "stopPrice": "0",
+        //                 "stopBy": "market",
+        //                 "status": "Canceled",
+        //                 "lastExecTime": 1640246574886,
+        //                 "lastQty": "0",
+        //                 "lastPx": "0",
+        //                 "avgFilledPx": "0",
+        //                 "cumFilledQty": "0",
+        //                 "fee": "0",
+        //                 "cumFee": "0",
+        //                 "feeAsset": "USDT",
+        //                 "errorCode": "",
+        //                 "posStopLossPrice": "0",
+        //                 "posStopLossTrigger": "market",
+        //                 "posTakeProfitPrice": "0",
+        //                 "posTakeProfitTrigger": "market",
+        //                 "liquidityInd": "n"
+        //             }
+        //         ]
+        //     }
+        //
         let data = this.safeValue (response, 'data');
         const isArray = Array.isArray (data);
         if (!isArray) {
