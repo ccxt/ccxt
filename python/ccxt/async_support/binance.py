@@ -1898,11 +1898,12 @@ class binance(Exchange):
             # It didn't work before without the endTime
             # https://github.com/ccxt/ccxt/issues/8454
             #
-            # if since > 0:
-            #     endTime = self.sum(since, limit * duration * 1000 - 1)
-            #     now = self.milliseconds()
-            #     request['endTime'] = min(now, endTime)
-            # }
+            if market['inverse']:
+                if since > 0:
+                    duration = self.parse_timeframe(timeframe)
+                    endTime = self.sum(since, limit * duration * 1000 - 1)
+                    now = self.milliseconds()
+                    request['endTime'] = min(now, endTime)
         method = 'publicGetKlines'
         if price == 'mark':
             if market['inverse']:
