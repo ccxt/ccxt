@@ -168,6 +168,7 @@ class poloniex(Exchange):
                 'ITC': 'Information Coin',
                 'KEY': 'KEYCoin',
                 'MASK': 'NFTX Hashmasks Index',  # conflict with Mask Network
+                'MEME': 'Degenerator Meme',  # Degenerator Meme migrated to Meme Inu, self exchange still has the old price
                 'PLX': 'ParallaxCoin',
                 'REPV2': 'REP',
                 'STR': 'XLM',

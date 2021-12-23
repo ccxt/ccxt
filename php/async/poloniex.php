@@ -156,6 +156,7 @@ class poloniex extends Exchange {
                 'ITC' => 'Information Coin',
                 'KEY' => 'KEYCoin',
                 'MASK' => 'NFTX Hashmasks Index', // conflict with Mask Network
+                'MEME' => 'Degenerator Meme', // Degenerator Meme migrated to Meme Inu, this exchange still has the old price
                 'PLX' => 'ParallaxCoin',
                 'REPV2' => 'REP',
                 'STR' => 'XLM',

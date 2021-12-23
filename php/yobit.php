@@ -148,6 +148,7 @@ class yobit extends Exchange {
                 'LUNA' => 'Luna Coin',
                 'MASK' => 'Yobit MASK',
                 'MDT' => 'Midnight',
+                'MEME' => 'Memez Token', // conflict with Meme Inu / Degenerator Meme
                 'MIS' => 'MIScoin',
                 'MM' => 'MasterMint', // conflict with MilliMeter
                 'NAV' => 'NavajoCoin',

@@ -246,6 +246,7 @@ class bittrex(Exchange):
             },
             'commonCurrencies': {
                 'BIFI': 'Bifrost Finance',
+                'MEME': 'Memetic',  # conflict with Meme Inu
                 'MER': 'Mercury',  # conflict with Mercurial Finance
                 'PROS': 'Pros.Finance',
                 'REPV2': 'REP',
