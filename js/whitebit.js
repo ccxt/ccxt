@@ -36,6 +36,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'privateAPI': true,
@@ -655,6 +656,16 @@ module.exports = class whitebit extends Exchange {
             'updated': this.milliseconds (),
         });
         return this.status;
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.v4PublicGetTime (params);
+        //
+        //     {
+        //         "time":1635467280514
+        //     }
+        //
+        return this.safeInteger (response, 'time');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
