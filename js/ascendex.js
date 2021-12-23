@@ -159,6 +159,7 @@ module.exports = class ascendex extends Exchange {
                                 'futures/position',
                                 'futures/free-margin',
                                 'futures/order/hist/current',
+                                'futures/order/open',
                                 'futures/order/status',
                             ],
                             'post': [
@@ -1218,7 +1219,11 @@ module.exports = class ascendex extends Exchange {
             'account-group': accountGroup,
             'account-category': accountCategory,
         };
-        const response = await this.v1PrivateAccountCategoryGetOrderOpen (this.extend (request, params));
+        let method = 'v1PrivateAccountCategoryGetOrderOpen';
+        if (market['swap']) {
+            method = 'v2PrivateAccountGroupGetFuturesOrderOpen';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "ac": "CASH",
