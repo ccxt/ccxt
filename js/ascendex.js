@@ -1289,7 +1289,10 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.safeValue (options, 'method', 'v1PrivateAccountGroupGetOrderHist');
+        let method = this.safeValue (options, 'method', 'v1PrivateAccountGroupGetOrderHist');
+        if (market['swap']) {
+            method = 'v2PrivateAccountGroupGetFuturesOrderHistCurrent';
+        }
         if (method === 'v1PrivateAccountGroupGetOrderHist') {
             if (accountCategory !== undefined) {
                 request['category'] = accountCategory;
