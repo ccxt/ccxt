@@ -481,7 +481,7 @@ module.exports = class okex extends ccxt.okex {
         const balance = this.parseTradingBalance (message);
         const oldBalance = this.safeValue (this.balance, type, {});
         const newBalance = this.deepExtend (oldBalance, balance);
-        this.balance[type] = this.parseBalance (newBalance);
+        this.balance[type] = this.safeBalance (newBalance);
         client.resolve (this.balance[type], channel);
     }
 

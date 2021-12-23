@@ -525,7 +525,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             const changeAmount = this.safeFloat (message, 3);
             this.balance[code]['free'] = this.sum (this.balance[code]['free'], changeAmount);
             this.balance[code]['total'] = undefined;
-            this.balance = this.parseBalance (this.balance);
+            this.balance = this.safeBalance (this.balance);
         } else if ((messageType === 'o') || (messageType === 'p') || (messageType === 't') || (messageType === 'n')) {
             let symbol = undefined;
             let orderId = undefined;
@@ -578,7 +578,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                 this.balance[orderCode]['used'] = this.sum (this.balance[orderCode]['used'], floatAmount);
             }
             this.balance[orderCode]['total'] = undefined;
-            this.balance = this.parseBalance (this.balance);
+            this.balance = this.safeBalance (this.balance);
         }
         client.resolve (this.balance, messageHash);
     }

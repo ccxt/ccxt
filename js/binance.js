@@ -973,7 +973,7 @@ module.exports = class binance extends ccxt.binance {
         const timestamp = this.safeInteger (message, 'E');
         this.balance[accountType]['timestamp'] = timestamp;
         this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
-        this.balance[accountType] = this.parseBalance (this.balance[accountType]);
+        this.balance[accountType] = this.safeBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
     }
 

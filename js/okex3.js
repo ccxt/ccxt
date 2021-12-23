@@ -473,7 +473,7 @@ module.exports = class okex3 extends ccxt.okex3 {
             const balance = this.parseBalanceByType (type, data);
             const oldBalance = this.safeValue (this.balance, type, {});
             const newBalance = this.deepExtend (oldBalance, balance);
-            this.balance[type] = this.parseBalance (newBalance);
+            this.balance[type] = this.safeBalance (newBalance);
             client.resolve (this.balance[type], table);
         }
     }

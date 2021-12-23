@@ -425,7 +425,7 @@ module.exports = class gateio extends ccxt.gateio {
             account['used'] = this.safeString (balance, 'freeze');
             this.balance[code] = account;
         }
-        this.balance = this.parseBalance (this.balance);
+        this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, messageHash);
     }
 

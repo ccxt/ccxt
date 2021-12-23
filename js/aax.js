@@ -410,13 +410,13 @@ module.exports = class aax extends ccxt.aax {
         const currencyId = this.safeString (data, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeNumber (data, 'available');
-        account['used'] = this.safeNumber (data, 'unavailable');
+        account['free'] = this.safeString (data, 'available');
+        account['used'] = this.safeString (data, 'unavailable');
         if (!(accountType in this.balance)) {
             this.balance[accountType] = {};
         }
         this.balance[accountType][code] = account;
-        this.balance[accountType] = this.parseBalance (this.balance[accountType], false);
+        this.balance[accountType] = this.safeBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
     }
 
