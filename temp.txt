@@ -1,0 +1,48 @@
+GET https://api.zb.team/data/v1/markets
+GET https://api.zb.team/data/v1/allTicker
+GET https://api.zb.team/data/v1/ticker?market=btc_usdt
+GET https://api.zb.team/data/v1/depth?market=btc_usdt&size=3
+GET https://api.zb.team/data/v1/trades?market=btc_usdt
+GET https://api.zb.team/data/v1/kline?market=btc_usdt
+GET https://trade.zb.team/api/getAccountInfo?accesskey=youraccesskey&method=getAccountInfo&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getUserAddress?accesskey=youraccesskey&currency=btc&method=getUserAddress&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getPayinAddress?accesskey=youraccesskey&currency=usdt&method=getPayinAddress&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getWithdrawAddress?accesskey=youraccesskey&currency=btc&method=getWithdrawAddress&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getWithdrawRecord?accesskey=youraccesskey&currency=eth&method=getWithdrawRecord&pageIndex=1&pageSize=10&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getChargeRecord?accesskey=youraccesskey&currency=btc&method=getChargeRecord&pageIndex=1&pageSize=10&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getFeeInfo?currency=btc
+GET https://trade.zb.team/api/withdraw?accesskey=youraccesskey&amount=0.0004&currency=etc&fees=0.0003⁢ransfer=0&method=withdraw&receiveAddr=14fxEPirL9fyfw1i9EF439Pq6gQ5xijUmp&safePwd=Transaction Password&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/order?accesskey=youraccesskey&acctType=0&amount=1.502&currency=qtum_usdt&method=order&price=1.9001&tradeType=1&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/orderMoreV2?accesskey=youraccesskey&acctType=0&tradeParams=[[2,1],[2.2,1]]&market=zb_qc&method=orderMoreV2&tradeType=1&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/cancelOrder?accesskey=youraccesskey&currency=zb_qc&id=201710111625&method=cancelOrder&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getOrder?accesskey=youraccesskey&currency=zb_qc&id=201710122805&method=getOrder&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getOrders?accesskey=youraccesskey&currency=zb_qc&method=getOrders&pageIndex=1&tradeType=1&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getOrdersIgnoreTradeType?accesskey=youraccesskey&currency=zb_qc&method=getOrdersIgnoreTradeType&pageIndex=1&pageSize=1&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getUnfinishedOrdersIgnoreTradeType?accesskey=youraccesskey&currency=zb_qc&method=getUnfinishedOrdersIgnoreTradeType&pageIndex=1&pageSize=10&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getFinishedAndPartialOrders?accesskey=youraccesskey&currency=btc_usdt&method=getFinishedAndPartialOrders&pageIndex=1&pageSize=10&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/addSubUser?accesskey=youraccesskey&memo=xxx&password=xxxx&method=addSubUser⊂UserName=xxxxx&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getSubUserList?accesskey=youraccesskey&method=getSubUserList&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getLeverAssetsInfo?accesskey=youraccesskey&method=getLeverAssetsInfo&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getLeverBills?accesskey=youraccesskey&coin=qc&method=getLeverBills&pageIndex=1&pageSize=10&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/transferInLever?accesskey=youraccesskey&amount=100&coin=qc&marketName=btsqc&method=transferInLever&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/transferOutLever?accesskey=youraccesskey&amount=100&coin=qc&marketName=btsqc&method=transferOutLever&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/loan?accesskey=youraccesskey&amount=100&coin=qc&interestRateOfDay=0.1&isLoop=1&method=loan&repaymentDay=20&safePwd=Transaction Password&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/cancelLoan?accesskey=youraccesskey&loanId=100&method=cancelLoan&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getLoans?accesskey=youraccesskey&coin=qc&method=getLoans&pageIndex=1&pageSize=10&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getLoanRecords?accesskey=youraccesskey&marketName=btsqc&method=getLoanRecords&pageIndex=1&pageSize=10&status=2&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/borrow?accesskey=youraccesskey&amount=100&coin=qc&interestRateOfDay=0.1&isLoop=1&marketName=btcqc&method=borrow&repaymentDay=20&safePwd=Transaction Password&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/autoBorrow?accesskey=youraccesskey&amount=100&coin=qc&interestRateOfDay=0.1&marketName=btsqc&method=autoBorrow&repaymentDay=20&safePwd=Transaction Password&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/repay?accesskey=youraccesskey&loanRecordId=289&method=repay&repayAmount=100&repayType=0&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/doAllRepay?accesskey=ce2a18e0-dshs-4c44-4515-9aca67dd706e&marketName=btsqc&method=doAllRepay&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getRepayments?accesskey=youraccesskey&loanRecordId=50&method=getRepayments&pageIndex=1&pageSize=10&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getFinanceRecords?accesskey=youraccesskey&coin=qc&method=getFinanceRecords&pageIndex=1&pageSize=10&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/changeInvestMark?accesskey=youraccesskey&investMark=1&loanRecordId=Lendingid&method=changeInvestMark&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/changeLoop?accesskey=youraccesskey&isLoop=1&loanId=Lendid&method=changeLoop&sign=Request Encrypted Signature String&reqTime=current time milliseconds
+GET https://trade.zb.team/api/getCrossAssets?accesskey=youraccesskey&method=getCrossAssets&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getCrossBills?accesskey=youraccesskey&coin=qc&dataType=0&method=getCrossBills&pageIndex=1&pageSize=10&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/transferInCross?accesskey=youraccesskey&amount=100&coin=qc&method=transferInCross&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/transferOutCross?accesskey=youraccesskey&amount=100&coin=qc&method=transferOutCross&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/doCrossLoan?accesskey=youraccesskey&amount=100&coin=qc&method=doCrossLoan&safePwd=Transaction Password&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/doCrossRepay?accesskey=youraccesskey&coins=qc,usdt&method=doCrossRepay&repayAmount=100,200&&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://trade.zb.team/api/getCrossRepayRecords?accesskey=youraccesskey&coin=qc&method=getCrossRepayRecords&pageIndex=1&pageSize=10&sign=Request Encrypted Signature String&reqTime=Current time in milliseconds
+GET https://api.zb.team/data/v1/getGroupMarkets
