@@ -419,7 +419,7 @@ module.exports = class itbit extends Exchange {
             account['total'] = this.safeString (balance, 'totalBalance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchWallets (params = {}) {

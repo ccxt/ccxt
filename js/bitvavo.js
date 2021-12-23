@@ -736,7 +736,7 @@ module.exports = class bitvavo extends Exchange {
             account['used'] = this.safeString (balance, 'inOrder');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchDepositAddress (code, params = {}) {

@@ -582,7 +582,7 @@ module.exports = class hitbtc3 extends Exchange {
             account['used'] = this.safeString (entry, 'reserved');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchTicker (symbol, params = {}) {

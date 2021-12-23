@@ -444,7 +444,7 @@ module.exports = class upbit extends Exchange {
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {

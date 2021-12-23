@@ -1200,7 +1200,7 @@ module.exports = class mexc extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     safeNetwork (networkId) {

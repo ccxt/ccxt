@@ -417,7 +417,7 @@ module.exports = class zb extends Exchange {
             account['used'] = this.safeString (balance, 'freez');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {

@@ -810,7 +810,7 @@ module.exports = class delta extends Exchange {
             account['free'] = this.safeString (balance, 'available_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchPosition (symbol, params = undefined) {

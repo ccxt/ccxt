@@ -403,7 +403,7 @@ module.exports = class bitbank extends Exchange {
             account['total'] = this.safeString (balance, 'onhand_amount');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseOrderStatus (status) {

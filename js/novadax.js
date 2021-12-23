@@ -586,7 +586,7 @@ module.exports = class novadax extends Exchange {
             account['used'] = this.safeString (balance, 'hold');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

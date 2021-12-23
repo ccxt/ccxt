@@ -263,7 +263,7 @@ module.exports = class yobit extends Exchange {
             account['total'] = this.safeString (total, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchMarkets (params = {}) {

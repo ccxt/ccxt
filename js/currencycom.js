@@ -435,7 +435,7 @@ module.exports = class currencycom extends Exchange {
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {

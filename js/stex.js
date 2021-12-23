@@ -853,7 +853,7 @@ module.exports = class stex extends Exchange {
             account['used'] = this.safeString (balance, 'frozen_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseOrderStatus (status) {

@@ -1122,7 +1122,7 @@ module.exports = class ftx extends Exchange {
             account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseOrderStatus (status) {

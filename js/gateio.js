@@ -1606,13 +1606,13 @@ module.exports = class gateio extends Exchange {
                 const subResult = {};
                 subResult[baseCode] = this.fetchBalanceHelper (base);
                 subResult[quoteCode] = this.fetchBalanceHelper (quote);
-                result[symbol] = this.parseBalance (subResult);
+                result[symbol] = this.safeBalance (subResult);
             } else {
                 const code = this.safeCurrencyCode (this.safeString (entry, 'currency', {}));
                 result[code] = this.fetchBalanceHelper (entry);
             }
         }
-        return margin ? result : this.parseBalance (result);
+        return margin ? result : this.safeBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
