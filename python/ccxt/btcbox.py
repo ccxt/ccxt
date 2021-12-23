@@ -20,6 +20,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class btcbox(Exchange):
@@ -278,21 +279,21 @@ class btcbox(Exchange):
         timestamp = None
         if datetimeString is not None:
             timestamp = self.parse8601(order['datetime'] + '+09:00')  # Tokyo time
-        amount = self.safe_number(order, 'amount_original')
-        remaining = self.safe_number(order, 'amount_outstanding')
-        price = self.safe_number(order, 'price')
+        amount = self.safe_string(order, 'amount_original')
+        remaining = self.safe_string(order, 'amount_outstanding')
+        price = self.safe_string(order, 'price')
         # status is set by fetchOrder method only
         status = self.parse_order_status(self.safe_string(order, 'status'))
         # fetchOrders do not return status, use heuristic
         if status is None:
-            if remaining is not None and remaining == 0:
+            if Precise.string_equals(remaining, '0'):
                 status = 'closed'
         trades = None  # todo: self.parse_trades(order['trades'])
         symbol = None
         if market is not None:
             symbol = market['symbol']
         side = self.safe_string(order, 'type')
-        return self.safe_order({
+        return self.safe_order2({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -314,7 +315,7 @@ class btcbox(Exchange):
             'fee': None,
             'info': order,
             'average': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

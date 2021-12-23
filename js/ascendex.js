@@ -28,6 +28,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingRates': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -1701,6 +1702,75 @@ module.exports = class ascendex extends Exchange {
             'account-group': accountGroup,
         };
         return await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
+    }
+
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        //      {
+        //          "time": 1640061364830,
+        //          "symbol": "EOS-PERP",
+        //          "markPrice": "3.353854865",
+        //          "indexPrice": "3.3542",
+        //          "openInterest": "14242",
+        //          "fundingRate": "-0.000073026",
+        //          "nextFundingTime": 1640073600000
+        //      }
+        //
+        const marketId = this.safeString (fundingRate, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const currentTime = this.safeInteger (fundingRate, 'time');
+        const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
+        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
+        const previousFundingTimestamp = undefined;
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': this.safeNumber (fundingRate, 'markPrice'),
+            'indexPrice': this.safeNumber (fundingRate, 'indexPrice'),
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
+            'previousFundingRate': undefined,
+            'nextFundingRate': nextFundingRate,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'nextFundingTimestamp': nextFundingRateTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
+            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+        };
+    }
+
+    async fetchFundingRates (symbols, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v2PublicGetFuturesPricingData (params);
+        //
+        //     {
+        //          "code": 0,
+        //          "data": {
+        //              "contracts": [
+        //                  {
+        //                      "time": 1640061364830,
+        //                      "symbol": "EOS-PERP",
+        //                      "markPrice": "3.353854865",
+        //                      "indexPrice": "3.3542",
+        //                      "openInterest": "14242",
+        //                      "fundingRate": "-0.000073026",
+        //                      "nextFundingTime": 1640073600000
+        //                  },
+        //              ],
+        //              "collaterals": [
+        //                  {
+        //                      "asset": "USDTR",
+        //                      "referencePrice": "1"
+        //                  },
+        //              ]
+        //          }
+        //      }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const contracts = this.safeValue (data, 'contracts', []);
+        const result = this.parseFundingRates (contracts);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
