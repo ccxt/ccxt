@@ -38,7 +38,7 @@ class bitfinex2 extends bitfinex {
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => false,
+                'fetchOrder' => true,
                 'fetchOpenOrder' => true,
                 'fetchClosedOrder' => true,
                 'fetchOrderTrades' => true,
@@ -80,6 +80,9 @@ class bitfinex2 extends bitfinex {
             ),
             'api' => array(
                 'v1' => array(
+                    'post' => array(
+                        'private/order/status',
+                    ),
                     'get' => array(
                         'symbols',
                         'symbols_details',
@@ -877,6 +880,65 @@ class bitfinex2 extends bitfinex {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'order_id' => intval ($id),
+        );
+        $response = $this->v1PostPrivateOrderStatus (array_merge($request, $params));
+        $side = $this->safe_string($response, 'side');
+        $open = $this->safe_value($response, 'is_live');
+        $canceled = $this->safe_value($response, 'is_cancelled');
+        $status = null;
+        if ($open) {
+            $status = 'open';
+        } else if ($canceled) {
+            $status = 'canceled';
+        } else {
+            $status = 'closed';
+        }
+        $symbol_copy = null;
+        $market = null;
+        $marketId = $this->safe_string_upper($response, 'symbol');
+        $marketId = 't' . $marketId;
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        if ($market !== null) {
+            $symbol_copy = $market['symbol'];
+        }
+        $orderType = $response['type'];
+        $exchange = mb_strpos($orderType, 'exchange ') !== false;
+        if ($exchange) {
+            $parts = explode(' ', $response['type']);
+            $orderType = $parts[1];
+        }
+        $timestamp = $this->safe_float($response, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp = intval ($timestamp) * 1000;
+        }
+        $order_id = $this->safe_string($response, 'id');
+        return array(
+            'info' => $order_id,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol_copy,
+            'type' => $orderType,
+            'side' => $side,
+            'price' => $this->safe_float($response, 'price'),
+            'average' => $this->safe_float($response, 'avg_execution_price'),
+            'amount' => $this->safe_float($response, 'original_amount'),
+            'remaining' => $this->safe_float($response, 'remaining_amount'),
+            'filled' => $this->safe_float($response, 'executed_amount'),
+            'status' => $status,
+            'fee' => null,
+        );
+    }
+
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         // returns the most recent closed or canceled orders up to circa two weeks ago
         $this->load_markets();
@@ -1110,6 +1172,28 @@ class bitfinex2 extends bitfinex {
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'v1') {
             $request = $api . $request;
+            if (mb_strpos($request, '/private') !== false) {
+                $request = '/' . $request;
+                $request = str_replace('/private', '', $request);
+                $url = $this->urls['api']['private'] . $request;
+                $this->check_required_credentials();
+                $nonce = $this->nonce ();
+                $query = array_merge(array(
+                    'nonce' => (string) $nonce,
+                    'request' => $request,
+                ), $query);
+                $body = $this->json ($query);
+                $query = $this->encode ($body);
+                $payload = base64_encode($query);
+                $secret = $this->encode ($this->secret);
+                $signature = $this->hmac ($payload, $secret, 'sha384');
+                $headers = array(
+                    'X-BFX-APIKEY' => $this->apiKey,
+                    'X-BFX-PAYLOAD' => $this->decode ($payload),
+                    'X-BFX-SIGNATURE' => $signature,
+                );
+                return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+            }
         } else {
             $request = $this->version . $request;
         }
