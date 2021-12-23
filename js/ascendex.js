@@ -1448,7 +1448,13 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.v1PrivateAccountCategoryDeleteOrderAll (this.extend (request, params));
+        let method = 'v1PrivateAccountCategoryDeleteOrderAll';
+        if (market['swap']) {
+            method = 'v2PrivateAccountGroupDeleteFuturesOrderAll';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // AccountCategoryDeleteOrderAll
         //
         //     {
         //         "code": 0,
@@ -1464,6 +1470,20 @@ module.exports = class ascendex extends Exchange {
         //                 "timestamp": 1574118495462
         //             },
         //             "status": "Ack"
+        //         }
+        //     }
+        //
+        // AccountGroupDeleteFuturesOrderAll
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "ac": "FUTURES",
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "action": "cancel-all",
+        //             "info": {
+        //                 "symbol":"BTC-PERP"
+        //             }
         //         }
         //     }
         //
