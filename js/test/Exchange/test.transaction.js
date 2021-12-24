@@ -8,7 +8,7 @@ const assert = require ('assert');
 
 function testTransaction (exchange, transaction, code, now) {
     assert (transaction);
-    assert (typeof transaction['id'] === 'string');
+    assert ((transaction['id'] === undefined) || (typeof transaction['id'] === 'string'));
     assert (typeof transaction['timestamp'] === 'number');
     assert (transaction['timestamp'] > 1230940800000); // 03 Jan 2009 - first block
     assert (transaction['timestamp'] < now);
