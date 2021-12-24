@@ -2729,6 +2729,6 @@ class Exchange(object):
             else:
                 method_type = self.safe_string_2(method_options, 'defaultType', 'type')
         market_type = method_type if market is None else market['type']
-        type = self.safe_string(params, 'type', market_type)
+        type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]

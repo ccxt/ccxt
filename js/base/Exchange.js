@@ -2142,7 +2142,7 @@ module.exports = class Exchange {
             }
         }
         const marketType = (market === undefined) ? methodType : market['type'];
-        const type = this.safeString (params, 'type', marketType);
+        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
         params = this.omit (params, [ 'defaultType', 'type' ]);
         return [ type, params ];
     }
