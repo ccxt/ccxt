@@ -198,6 +198,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
+                'defaultType': 'spot', // 'spot', 'swap'
             },
             'exceptions': {
                 'exact': {
@@ -1431,7 +1432,7 @@ module.exports = class ascendex extends Exchange {
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const defaultAccountCategory = this.safeString (this.options, 'account-category', this.defaultType);
         const options = this.safeValue (this.options, 'cancelAllOrders', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
@@ -1448,11 +1449,12 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let method = 'v1PrivateAccountCategoryDeleteOrderAll';
-        if (market['swap']) {
-            method = 'v2PrivateAccountGroupDeleteFuturesOrderAll';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const [ methodType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const method = this.getSupportedMapping (methodType, {
+            'spot': 'v1PrivateAccountCategoryDeleteOrderAll',
+            'swap': 'v2PrivateAccountGroupDeleteFuturesOrderAll',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryDeleteOrderAll
         //
