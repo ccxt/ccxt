@@ -195,6 +195,9 @@ module.exports = class ascendex extends Exchange {
             'options': {
                 'account-category': 'cash', // 'cash', 'margin', 'futures' // obsolete
                 'account-group': undefined,
+                'fetchClosedOrders': {
+                    'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                },
                 'defaultType': 'spot', // 'spot', 'margin', 'swap'
                 'accountCategories': {
                     'spot': 'cash',
