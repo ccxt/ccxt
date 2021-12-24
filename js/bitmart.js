@@ -580,7 +580,7 @@ module.exports = class bitmart extends Exchange {
             let swap = false;
             let type = 'contract';
             let symbol = base + '/' + quote;
-            const expiry = this.safeValue (contract, 'delive_at');
+            const expiry = this.parse8601 (this.safeString (contract, 'delive_at'));
             if (contractType === 1) {
                 type = 'swap';
                 swap = true;
@@ -588,7 +588,7 @@ module.exports = class bitmart extends Exchange {
             } else if (contractType === 2) {
                 type = 'future';
                 future = true;
-                symbol = symbol + ':' + settle + '-' + expiry;
+                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             const feeConfig = this.safeValue (market, 'fee_config', {});
             result.push ({
@@ -615,8 +615,8 @@ module.exports = class bitmart extends Exchange {
                 'maker': this.safeNumber (feeConfig, 'maker_fee'),
                 'contractSize': this.safeString (market, 'contract_size'),
                 'active': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
