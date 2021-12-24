@@ -198,6 +198,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
+                'defaultType': 'spot', // 'spot', 'swap'
             },
             'exceptions': {
                 'exact': {
@@ -1266,7 +1267,7 @@ module.exports = class ascendex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const defaultAccountCategory = this.safeString (this.options, 'account-category');
+        const defaultAccountCategory = this.safeString (this.options, 'account-category', this.defaultType);
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
@@ -1289,10 +1290,11 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let method = this.safeValue (options, 'method', 'v1PrivateAccountGroupGetOrderHist');
-        if (market['swap']) {
-            method = 'v2PrivateAccountGroupGetFuturesOrderHistCurrent';
-        }
+        const [ methodType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const method = this.getSupportedMapping (methodType, {
+            'spot': 'v1PrivateAccountGroupGetOrderHist',
+            'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
+        });
         if (method === 'v1PrivateAccountGroupGetOrderHist') {
             if (accountCategory !== undefined) {
                 request['category'] = accountCategory;
@@ -1306,7 +1308,7 @@ module.exports = class ascendex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // accountCategoryGetOrderHistCurrent
         //
