@@ -1299,7 +1299,7 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
+        let result = Object.values (trades || []).map ((trade) => this.merge (this.parseTrade (trade, market), params))
         result = sortBy2 (result, 'timestamp', 'id')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         const tail = since === undefined
@@ -1919,6 +1919,19 @@ module.exports = class Exchange {
             });
             this.number = oldNumber;
             if (Array.isArray (trades) && trades.length) {
+                // move properties that are defined in trades up into the order
+                if (order['symbol'] === undefined) {
+                    order['symbol'] = trades[0]['symbol'];
+                }
+                if (order['side'] === undefined) {
+                    order['side'] = trades[0]['side'];
+                }
+                if (order['type'] === undefined) {
+                    order['type'] = trades[0]['type'];
+                }
+                if (order['id'] === undefined) {
+                    order['id'] = trades[0]['order'];
+                }
                 if (parseFilled) {
                     filled = '0';
                 }
