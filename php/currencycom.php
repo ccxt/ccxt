@@ -404,7 +404,11 @@ class currencycom extends Exchange {
         );
     }
 
-    public function parse_balance_response($response) {
+    public function parse_balance_response($response, $type = null) {
+        return $this->parse_balance($response, $type);
+    }
+
+    public function parse_balance($response, $type = null) {
         //
         //     {
         //         "makerCommission":0.20,
@@ -466,7 +470,7 @@ class currencycom extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_balance_response($response);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

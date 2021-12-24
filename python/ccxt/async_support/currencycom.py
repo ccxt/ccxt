@@ -393,7 +393,10 @@ class currencycom(Exchange):
             'taker': self.safe_number(response, 'takerCommission'),
         }
 
-    def parse_balance_response(self, response):
+    def parse_balance_response(self, response, type=None):
+        return self.parse_balance(response, type)
+
+    def parse_balance(self, response, type=None):
         #
         #     {
         #         "makerCommission":0.20,
@@ -453,7 +456,7 @@ class currencycom(Exchange):
         #         ]
         #     }
         #
-        return self.parse_balance_response(response)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
