@@ -1173,7 +1173,7 @@ module.exports = class ascendex extends Exchange {
             'account-category': accountCategory,
             'orderId': id,
         };
-        const [ methodType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ methodType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const method = this.getSupportedMapping (methodType, {
             'spot': 'v1PrivateAccountCategoryGetOrderStatus',
             'swap': 'v2PrivateAccountGroupGetFuturesOrderStatus',
