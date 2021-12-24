@@ -193,9 +193,9 @@ module.exports = class ascendex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'account-category': 'cash', // 'cash'/'margin'/'futures'
+                'account-category': 'cash', // 'cash', 'margin', 'futures' // obsolete
                 'account-group': undefined,
-                'defaultType': 'spot', // 'spot', 'swap'
+                'defaultType': 'spot', // 'spot', 'margin', 'swap'
                 'accountCategories': {
                     'spot': 'cash',
                     'swap': 'futures',
