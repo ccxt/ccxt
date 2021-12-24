@@ -1298,7 +1298,7 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (trades || []).map ((trade) => this.softExtend (this.parseTrade (trade, market), params))
+        let result = Object.values (trades || []).map ((trade) => this.merge (this.parseTrade (trade, market), params))
         result = sortBy2 (result, 'timestamp', 'id')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         const tail = since === undefined
