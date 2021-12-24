@@ -1260,11 +1260,6 @@ module.exports = class ascendex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountCategory = this.safeString (this.options, 'account-category');
-        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
-        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
-        accountCategory = this.safeString (params, 'account-category', accountCategory);
-        params = this.omit (params, 'account-category');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const request = {
@@ -1284,11 +1279,26 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ methodType, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountGroupGetOrderHist');
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const optionsType = this.safeString (options, 'type', defaultType);
+        const marketType = (market === undefined) ? optionsType : market['type'];
+        const methodType = this.safeString (params, 'type', marketType);
+        params = this.omit (params, 'type');
         const method = this.getSupportedMapping (methodType, {
-            'spot': 'v1PrivateAccountGroupGetOrderHist',
+            'spot': defaultMethod,
+            'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         });
+        let accountCategory = 'cash';
+        if (methodType === 'spot') {
+            accountCategory = 'cash';
+        } else if (methodType === 'swap') {
+            accountCategory = 'futures';
+        } else if (methodType === 'margin') {
+            accountCategory = 'margin';
+        }
         if (method === 'v1PrivateAccountGroupGetOrderHist') {
             if (accountCategory !== undefined) {
                 request['category'] = accountCategory;
@@ -1302,7 +1312,7 @@ module.exports = class ascendex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // accountCategoryGetOrderHistCurrent
         //
