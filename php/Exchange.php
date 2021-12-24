@@ -753,7 +753,7 @@ class Exchange {
         return $out;
     }
 
-    public function merge () {
+    public function merge() {
         // doesn't overwrite defined keys with undefined
         $args = func_get_args();
         $target = $args[0];
