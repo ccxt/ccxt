@@ -1263,10 +1263,6 @@ module.exports = class ascendex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
         const defaultAccountCategory = this.safeString (this.options, 'account-category', this.defaultType);
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
@@ -1286,6 +1282,7 @@ module.exports = class ascendex extends Exchange {
             // 'page': 1,
             // 'pageSize': 100,
         };
+        let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
