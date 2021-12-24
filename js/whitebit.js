@@ -81,6 +81,11 @@ module.exports = class whitebit extends Exchange {
                 'referral': 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'v1/healthcheck',
+                    ],
+                },
                 'v1': {
                     'public': {
                         'get': [
