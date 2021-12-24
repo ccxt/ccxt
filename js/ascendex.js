@@ -198,6 +198,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
+                'defaultType': 'spot', // 'spot', 'swap'
             },
             'exceptions': {
                 'exact': {
@@ -1160,7 +1161,7 @@ module.exports = class ascendex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const defaultAccountCategory = this.safeString (this.options, 'account-category', this.defaultType);
         const options = this.safeValue (this.options, 'fetchOrder', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
@@ -1172,11 +1173,12 @@ module.exports = class ascendex extends Exchange {
             'account-category': accountCategory,
             'orderId': id,
         };
-        let method = 'v1PrivateAccountCategoryGetOrderStatus';
-        if (market['swap']) {
-            method = 'v2PrivateAccountGroupGetFuturesOrderStatus';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const [ methodType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const method = this.getSupportedMapping (methodType, {
+            'spot': 'v1PrivateAccountCategoryGetOrderStatus',
+            'swap': 'v2PrivateAccountGroupGetFuturesOrderStatus',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryGetOrderStatus
         //
