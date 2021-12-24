@@ -1432,7 +1432,7 @@ module.exports = class ascendex extends Exchange {
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', this.defaultType);
+        const defaultAccountCategory = this.safeString (this.options, 'account-category');
         const options = this.safeValue (this.options, 'cancelAllOrders', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
