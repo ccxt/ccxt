@@ -897,7 +897,7 @@ class Exchange(object):
         return {}
 
     @staticmethod
-    def soft_extend(*args):
+    def merge(*args):
         if args is not None:
             result = None
             if type(args[0]) is collections.OrderedDict:
