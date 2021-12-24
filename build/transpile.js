@@ -59,6 +59,7 @@ class Transpiler {
             [ /\.extractParams\s/g, '.extract_params'],
             [ /\.safeBalance\s/g, '.safe_balance'],
             [ /\.parseBalanceResponse\s/g, '.parse_balance_response'],
+            [ /\.parseBalance\s/g, '.parse_balance'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
             [ /\.parseDate\s/g, '.parse_date'],
