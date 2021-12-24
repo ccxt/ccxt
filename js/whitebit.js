@@ -654,8 +654,8 @@ module.exports = class whitebit extends Exchange {
         // [
         //     "pong"
         // ]
-        let status = this.safeValue (response, 0, undefined);
-        status = status === undefined ? 'maintenance' : 'ok';
+        let status = this.safeString (response, 0, undefined);
+        status = (status === undefined) ? 'maintenance' : 'ok';
         this.status = this.extend (this.status, {
             'status': status,
             'updated': this.milliseconds (),
