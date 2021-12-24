@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound } = require ('./base/errors'); // BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol,  PermissionDenied
+const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 // ---------------------------------------------------------------------------
 
@@ -318,7 +318,7 @@ module.exports = class coinsbit extends Exchange {
         //         change: '-0'
         //       }
         let tickerFinal = {};
-        let timestamp = null;
+        let timestamp = undefined;
         if ('ticker' in ticker) { // if arrived from fetchTickers
             tickerFinal = this.safeValue (ticker, 'ticker', {});
             timestamp = this.safeTimestamp (ticker, 'at');
@@ -621,7 +621,7 @@ module.exports = class coinsbit extends Exchange {
         const fee = this.safeString (trade, 'fee');
         let takerOrMaker = '';
         if ('role' in trade) {
-            takerOrMaker = this.safeString (trade, 'role') === '2' ? 'taker' : 'maker';
+            takerOrMaker = this.safeInteger (trade, 'role') === 2 ? 'taker' : 'maker';
         } else {
             takerOrMaker = 'taker';
         }
@@ -643,17 +643,17 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit') {
+            throw new InvalidOrder (this.id + ' createOrder supports limit orders only');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
+            'side': side,
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
         };
-        if (!price) {
-            throw new InvalidOrder (this.id + ' createOrder needs price field');
-        }
-        request['side'] = side;
-        request['amount'] = this.amountToPrecision (symbol, amount);
-        request['price'] = this.priceToPrecision (symbol, price);
         const response = await this.privatePostOrderNew (this.extend (request, params));
         // {
         //     success: true,
@@ -680,6 +680,9 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new InvalidOrder (this.id + ' createOrder supports limit orders only');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -713,8 +716,8 @@ module.exports = class coinsbit extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (since !== undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders does not have an usable since parameter, so please unset it');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires symbol parameter');
         }
         const market = this.market (symbol);
         const request = {
@@ -790,7 +793,7 @@ module.exports = class coinsbit extends Exchange {
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find any closed order data for id ' + id);
         }
-        return this.parseMyTrade ({ 'id': id, 'order': order }, undefined);
+        return this.parseTrade ({ 'id': id, 'order': order }, undefined);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -939,7 +942,7 @@ module.exports = class coinsbit extends Exchange {
         const side = this.safeString (order, 'side');
         const orderType = this.safeString (order, 'type');
         let timestamp = this.safeTimestamp2 (order, 'timestamp', 'time');
-        if (!timestamp) {
+        if (timestamp === undefined) {
             timestamp = this.safeTimestamp2 (order, 'ctime', 'ftime');
         }
         const price = this.safeString (order, 'price');
@@ -1021,13 +1024,21 @@ module.exports = class coinsbit extends Exchange {
         return this.parseTrade ({ 'id': id, 'order': order }, undefined);
     }
 
+    codeFromOptions (methodName, params = {}) {
+        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
+        const options = this.safeValue (this.options, methodName, {});
+        const code = this.safeValue (options, 'code', defaultCode);
+        return this.safeValue (params, 'code', code);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const request = this.omit (params, 'type');
-        const currency = this.safeValue (params, 'currency');
-        let method = '';
+        const currencyCode = this.safeValue (params, 'currency');
+        const currency = this.safeValue (this.currencies_by_id, currencyCode);
+        let method = undefined;
         if (currency !== undefined) {
-            request['currency'] = currency;
+            request['currency'] = currency['id'];
             method = 'privatePostAccountBalance';
         } else {
             method = 'privatePostAccountBalances';
