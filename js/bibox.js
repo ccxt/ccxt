@@ -14,7 +14,7 @@ module.exports = class bibox extends Exchange {
             'id': 'bibox',
             'name': 'Bibox',
             'countries': [ 'CN', 'US', 'KR' ],
-            'version': 'v1',
+            'version': 'v3.1',
             'hostname': 'bibox.com',
             'has': {
                 'CORS': undefined,
@@ -71,29 +71,64 @@ module.exports = class bibox extends Exchange {
             },
             'api': {
                 'public': {
-                    'post': [
-                        // TODO: rework for full endpoint/cmd paths here
-                        'mdata',
-                    ],
                     'get': [
-                        'cquery',
-                        'mdata',
-                        'cdata',
-                        'orderpending',
+                        'mdata/ping', // v3
+                        'mdata/pairList', // v3
+                        'mdata/kline', // v3
+                        'mdata/marketAll', // v3
+                        'mdata/market', // v3
+                        'mdata/depth', // v3
+                        'mdata/deals', // v3
+                        'mdata/ticker', // v3
+                        'cquery', // v1
+                        'mdata', // v1
+                        'cdata', // v1
+                        'orderpending', // v1
+                    ],
+                    'post': [
+                        'mdata', // v1
                     ],
                 },
                 'private': {
-                    'post': [
-                        'cquery',
-                        'ctrade',
-                        'user',
-                        'orderpending',
-                        'transfer',
+                    'get': [
+                        'orderpending/tradeLimit',
                     ],
-                },
-                'v2private': {
                     'post': [
+                        'cquery', // v1,
+                        'ctrade', // v1,
+                        'user', // v1,
+                        'orderpending', // v1,
+                        'transfer', // v1,
+                        'transfer/mainAssets',
+                        'spot/account/assets',
+                        'transfer/transferIn',
+                        'transfer/transferOut',
+                        'transfer/transferInList',
+                        'transfer/transferOutList',
+                        'transfer/coinConfig',
+                        'transfer/withdrawInfo',
+                        'orderpending/trade',
+                        'orderpending/cancelTrade',
+                        'orderpending/orderPendingList',
+                        'orderpending/pendingHistoryList',
+                        'orderpending/orderDetail',
+                        'orderpending/order',
+                        'orderpending/orderHistoryList',
+                        'orderpending/orderDetailsLast',
                         'assets/transfer/spot',
+                        'credit/transferAssets/base2credit',
+                        'credit/transferAssets/credit2base',
+                        'credit/lendOrder/get',
+                        'credit/borrowOrder/get',
+                        'credit/lendOrderbook/get',
+                        'credit/transferAssets/lendAssets',
+                        'credit/transferAssets/borrowAssets',
+                        'credit/borrowOrder/autobook',
+                        'credit/borrowOrder/refund',
+                        'credit/lendOrderbook/publish',
+                        'credit/lendOrderbook/cancel',
+                        'credit/trade/trade',
+                        'credit/trade/cancel',
                     ],
                 },
             },
@@ -147,6 +182,32 @@ module.exports = class bibox extends Exchange {
                 'REVO': 'Revo Network',
                 'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
+            },
+            'options': {
+                'versions': {
+                    'public': {
+                        'GET': {
+                            'cquery': 'v1',
+                            'mdata': 'v1',
+                            'cdata': 'v1',
+                            'orderpending': 'v1',
+                        },
+                        'POST': {
+                            // TODO: rework for full endpoint/cmd paths here
+                            'mdata': 'v1',
+                        },
+                    },
+                    'private': {
+                        'POST': {
+                            'cquery': 'v1',
+                            'ctrade': 'v1',
+                            'user': 'v1',
+                            'orderpending': 'v1',
+                            'transfer': 'v1',
+                            'assets/transfer/spot': 'v2',
+                        },
+                    },
+                },
             },
         });
     }
@@ -1374,35 +1435,45 @@ module.exports = class bibox extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeHostname (this.urls['api']) + '/' + this.version + '/' + path;
-        const cmds = this.json ([ params ]);
+        const versions = this.safeValue (this.options, 'versions', {});
+        const apiVersions = this.safeValue (versions, api, {});
+        const methodVersions = this.safeValue (apiVersions, method, {});
+        const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
+        const version = this.safeString (params, 'version', defaultVersion);
+        params = this.omit (params, 'version');
+        let url = this.implodeHostname (this.urls['api']) + '/' + version + '/' + path;
+        const v1 = (version === 'v1');
+        const json_params = v1 ? this.json ([ params ]) : this.json (params);
+        headers = { 'Content-Type': 'application/json' };
         if (api === 'public') {
             if (method !== 'GET') {
-                body = { 'cmds': cmds };
+                body = v1 ? { 'cmds': json_params } : { 'body': json_params };
             } else if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (api === 'v2private') {
-            this.checkRequiredCredentials ();
-            url = this.implodeHostname (this.urls['api']) + '/v2/' + path;
-            const json_params = this.json (params);
-            body = {
-                'body': json_params,
-                'apikey': this.apiKey,
-                'sign': this.hmac (this.encode (json_params), this.encode (this.secret), 'md5'),
-            };
         } else {
             this.checkRequiredCredentials ();
-            body = {
-                'cmds': cmds,
-                'apikey': this.apiKey,
-                'sign': this.hmac (this.encode (cmds), this.encode (this.secret), 'md5'),
-            };
+            const sign = this.hmac (this.encode (json_params), this.encode (this.secret), 'md5');
+            if (version === 'v3') {
+                body = { 'body': json_params };
+                headers['bibox-api-key'] = this.apikey;
+                headers['bibox-api-sign'] = sign;
+                headers['bibox-timestamp'] = this.milliseconds ();
+            } else {
+                body = {
+                    'apikey': this.apiKey,
+                    'sign': sign,
+                };
+                if (v1) {
+                    body['cmds'] = json_params;
+                } else {
+                    body['body'] = json_params;
+                }
+            }
         }
         if (body !== undefined) {
             body = this.json (body, { 'convertArraysToObjects': true });
         }
-        headers = { 'Content-Type': 'application/json' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
