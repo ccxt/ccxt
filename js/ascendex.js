@@ -199,7 +199,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
-                'defaultType': 'spot', // 'spot', 'swap'
+                'defaultType': 'swap', // 'spot'/'swap'
             },
             'exceptions': {
                 'exact': {
