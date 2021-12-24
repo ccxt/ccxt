@@ -199,6 +199,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
+                'defaultType': 'spot', // 'spot', 'swap'
             },
             'exceptions': {
                 'exact': {
@@ -1204,11 +1205,7 @@ module.exports = class ascendex extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const defaultAccountCategory = this.safeString (this.options, 'account-category', this.defaultType);
         const options = this.safeValue (this.options, 'fetchOpenOrders', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
@@ -1219,11 +1216,16 @@ module.exports = class ascendex extends Exchange {
             'account-group': accountGroup,
             'account-category': accountCategory,
         };
-        let method = 'v1PrivateAccountCategoryGetOrderOpen';
-        if (market['swap']) {
-            method = 'v2PrivateAccountGroupGetFuturesOrderOpen';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        const response = await this[method] (this.extend (request, params));
+        const [ methodType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const method = this.getSupportedMapping (methodType, {
+            'spot': 'v1PrivateAccountCategoryGetOrderOpen',
+            'swap': 'v2PrivateAccountGroupGetFuturesOrderOpen',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryGetOrderOpen
         //
