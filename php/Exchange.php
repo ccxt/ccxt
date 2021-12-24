@@ -188,7 +188,6 @@ class Exchange {
         'sortBy' => 'sort_by',
         'sortBy2' => 'sort_by2',
         'deepExtend' => 'deep_extend',
-        'softExtend' => 'soft_extend',
         'unCamelCase' => 'un_camel_case',
         'isNumber' => 'is_number',
         'isInteger' => 'is_integer',
@@ -754,7 +753,7 @@ class Exchange {
         return $out;
     }
 
-    public function soft_extend () {
+    public function merge () {
         // doesn't overwrite defined keys with undefined
         $args = func_get_args();
         $target = $args[0];
