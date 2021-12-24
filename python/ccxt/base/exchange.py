@@ -2718,7 +2718,7 @@ class Exchange(object):
         return rate
 
     def handle_market_type_and_params(self, method_name, market=None, params={}):
-        default_type = self.safe_string(self.options, method_name, 'defaultType', 'spot')
+        default_type = self.safe_string(self.options, 'defaultType', 'spot')
         method_options = self.safe_value(self.options, method_name)
         method_type = None
         if method_options is None:
