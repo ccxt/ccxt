@@ -434,49 +434,66 @@ class bitmart extends Exchange {
             // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#$response-details
             // from the above API doc:
             // quote_increment Minimum order price as well as the price increment
-            // price_min_precision Minimum price $precision (digit) used to query price and kline
-            // price_max_precision Maximum price $precision (digit) used to query price and kline
+            // price_min_precision Minimum price precision (digit) used to query price and kline
+            // price_max_precision Maximum price precision (digit) used to query price and kline
             //
             // the docs are wrong => https://github.com/ccxt/ccxt/issues/5612
             //
             $pricePrecision = $this->safe_integer($market, 'price_max_precision');
-            $precision = array(
-                'amount' => $this->safe_number($market, 'base_min_size'),
-                'price' => $this->parse_number($this->decimal_to_precision(pow(10, -$pricePrecision), ROUND, 14)),
-            );
             $minBuyCost = $this->safe_number($market, 'min_buy_amount');
             $minSellCost = $this->safe_number($market, 'min_sell_amount');
             $minCost = max ($minBuyCost, $minSellCost);
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'base_min_size'),
-                    'max' => $this->safe_number($market, 'base_max_size'),
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $minCost,
-                    'max' => null,
-                ),
-            );
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'future' => false,
+                'margin' => false,
                 'swap' => false,
-                'precision' => $precision,
-                'limits' => $limits,
-                'info' => $market,
+                'future' => false,
+                'option' => false,
+                'derivative' => false,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => null,
+                'maker' => null,
+                'contractSize' => null,
                 'active' => true,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'base_min_size'),
+                    'price' => $this->parse_number($this->decimal_to_precision(pow(10, -$pricePrecision), ROUND, 14)),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'base_min_size'),
+                        'max' => $this->safe_number($market, 'base_max_size'),
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $minCost,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
             );
         }
         return $result;
@@ -548,70 +565,88 @@ class bitmart extends Exchange {
             $numericId = $this->safe_integer($contract, 'contract_id');
             $baseId = $this->safe_string($contract, 'base_coin');
             $quoteId = $this->safe_string($contract, 'quote_coin');
+            $settleId = $this->safe_string($contract, 'price_coin');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $this->safe_string($contract, 'name');
+            $settle = $this->safe_currency_code($settleId);
             //
             // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#$response-details
             // from the above API doc:
             // quote_increment Minimum order price as well as the price increment
-            // price_min_precision Minimum price $precision (digit) used to query price and kline
-            // price_max_precision Maximum price $precision (digit) used to query price and kline
+            // price_min_precision Minimum price precision (digit) used to query price and kline
+            // price_max_precision Maximum price precision (digit) used to query price and kline
             //
             // the docs are wrong => https://github.com/ccxt/ccxt/issues/5612
             //
             $amountPrecision = $this->safe_number($contract, 'vol_unit');
             $pricePrecision = $this->safe_number($contract, 'price_unit');
-            $precision = array(
-                'amount' => $amountPrecision,
-                'price' => $pricePrecision,
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($contract, 'min_vol'),
-                    'max' => $this->safe_number($contract, 'max_vol'),
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
             $contractType = $this->safe_value($contract, 'contract_type');
             $future = false;
             $swap = false;
             $type = 'contract';
+            $symbol = $base . '/' . $quote;
+            $expiry = $this->parse8601($this->safe_string($contract, 'delive_at'));
             if ($contractType === 1) {
                 $type = 'swap';
                 $swap = true;
+                $symbol = $symbol . ':' . $settle;
             } else if ($contractType === 2) {
                 $type = 'future';
                 $future = true;
+                $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry, '');
             }
             $feeConfig = $this->safe_value($market, 'fee_config', array());
-            $maker = $this->safe_number($feeConfig, 'maker_fee');
-            $taker = $this->safe_number($feeConfig, 'taker_fee');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'maker' => $maker,
-                'taker' => $taker,
+                'settleId' => $settleId,
                 'type' => $type,
                 'spot' => false,
-                'future' => $future,
+                'margin' => false,
                 'swap' => $swap,
-                'precision' => $precision,
-                'limits' => $limits,
-                'info' => $market,
+                'future' => $future,
+                'option' => false,
+                'derivative' => true,
+                'contract' => true,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($feeConfig, 'taker_fee'),
+                'maker' => $this->safe_number($feeConfig, 'maker_fee'),
+                'contractSize' => $this->safe_string($market, 'contract_size'),
                 'active' => null,
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->safe_number($contract, 'min_leverage'),
+                        'max' => $this->safe_number($contract, 'max_leverage'),
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($contract, 'min_vol'),
+                        'max' => $this->safe_number($contract, 'max_vol'),
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
             );
         }
         return $result;
