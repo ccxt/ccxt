@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.64.79'
+__version__ = '1.64.81'
 
 # -----------------------------------------------------------------------------
 
@@ -894,6 +894,23 @@ class Exchange(object):
                 result = {}
             for arg in args:
                 result.update(arg)
+            return result
+        return {}
+
+    @staticmethod
+    def merge(*args):
+        if args is not None:
+            result = None
+            if type(args[0]) is collections.OrderedDict:
+                result = collections.OrderedDict()
+            else:
+                result = {}
+            for arg in args:
+                # -- diff --
+                for key in arg:
+                    if result.get(key) is None:
+                        result[key] = arg[key]
+                # -- enddiff --
             return result
         return {}
 
@@ -1901,7 +1918,7 @@ class Exchange(object):
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
-        array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
+        array = [self.merge(self.parse_trade(trade, market), params) for trade in array]
         array = self.sort_by_2(array, 'timestamp', 'id')
         symbol = market['symbol'] if market else None
         tail = since is None
@@ -2537,6 +2554,15 @@ class Exchange(object):
             })
             self.number = oldNumber
             if isinstance(trades, list) and len(trades):
+                # move properties that are defined in trades up into the order
+                if order['symbol'] is None:
+                    order['symbol'] = trades[0]['symbol']
+                if order['side'] is None:
+                    order['side'] = trades[0]['side']
+                if order['type'] is None:
+                    order['type'] = trades[0]['type']
+                if order['id'] is None:
+                    order['id'] = trades[0]['order']
                 if parseFilled:
                     filled = '0'
                 if parseCost:

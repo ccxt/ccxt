@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.64.79';
+$version = '1.64.81';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.64.79';
+    const VERSION = '1.64.81';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -751,6 +751,20 @@ class Exchange {
             }
         }
         return $out;
+    }
+
+    public function merge() {
+        // doesn't overwrite defined keys with undefined
+        $args = func_get_args();
+        $target = $args[0];
+        $overwrite = array();
+        $merged = array_merge(...array_slice($args, 1));
+        foreach ($merged as $key => $value) {
+            if (!isset($target[$key])) {
+                $overwrite[$key] = $value;
+            }
+        }
+        return array_merge($target, $overwrite);
     }
 
     public static function sum() {
@@ -2126,7 +2140,7 @@ class Exchange {
         $array = is_array($trades) ? array_values($trades) : array();
         $result = array();
         foreach ($array as $trade) {
-            $result[] = array_merge($this->parse_trade($trade, $market), $params);
+            $result[] = $this->merge($this->parse_trade($trade, $market), $params);
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = isset($market) ? $market['symbol'] : null;
@@ -3363,6 +3377,19 @@ class Exchange {
             ));
             $this->number = $oldNumber;
             if (is_array($trades) && count($trades)) {
+                // move properties that are defined in trades up into the order
+                if ($order['symbol'] === null) {
+                    $order['symbol'] = $trades[0]['symbol'];
+                }
+                if ($order['side'] === null) {
+                    $order['side'] = $trades[0]['side'];
+                }
+                if ($order['type'] === null) {
+                    $order['type'] = $trades[0]['type'];
+                }
+                if ($order['id'] === null) {
+                    $order['id'] = $trades[0]['order'];
+                }
                 if ($parseFilled) {
                     $filled = '0';
                 }

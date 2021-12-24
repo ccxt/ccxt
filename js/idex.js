@@ -865,15 +865,15 @@ module.exports = class idex extends Exchange {
         const marketId = this.safeString (order, 'market');
         const side = this.safeString (order, 'side');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const trades = this.parseTrades (fills, market);
         const type = this.safeString (order, 'type');
-        const amount = this.safeNumber (order, 'originalQuantity');
-        const filled = this.safeNumber (order, 'executedQuantity');
-        const average = this.safeNumber (order, 'avgExecutionPrice');
-        const price = this.safeNumber (order, 'price');
+        const amount = this.safeString (order, 'originalQuantity');
+        const filled = this.safeString (order, 'executedQuantity');
+        const average = this.safeString (order, 'avgExecutionPrice');
+        const price = this.safeString (order, 'price');
         const rawStatus = this.safeString (order, 'status');
+        const timeInForce = this.safeStringUpper (order, 'timeInForce');
         const status = this.parseOrderStatus (rawStatus);
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -882,7 +882,7 @@ module.exports = class idex extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
+            'timeInForce': timeInForce,
             'postOnly': undefined,
             'side': side,
             'price': price,
@@ -894,8 +894,8 @@ module.exports = class idex extends Exchange {
             'remaining': undefined,
             'status': status,
             'fee': undefined,
-            'trades': trades,
-        });
+            'trades': fills,
+        }, market);
     }
 
     async associateWallet (walletAddress, params = {}) {
@@ -973,7 +973,11 @@ module.exports = class idex extends Exchange {
         const sideEnum = (side === 'buy') ? 0 : 1;
         const walletBytes = this.remove0xPrefix (this.walletAddress);
         const network = this.safeString (this.options, 'network', 'ETH');
-        const orderVersion = (network === 'ETH') ? 1 : 2;
+        const orderVersion = this.getSupportedMapping (network, {
+            'ETH': 1,
+            'BSC': 2,
+            'MATIC': 3,
+        });
         const amountString = this.amountToPrecision (symbol, amount);
         // https://docs.idex.io/#time-in-force
         const timeInForceEnums = {
