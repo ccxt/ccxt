@@ -2139,7 +2139,7 @@ class Exchange {
         $array = is_array($trades) ? array_values($trades) : array();
         $result = array();
         foreach ($array as $trade) {
-            $result[] = $this->soft_extend($this->parse_trade($trade, $market), $params);
+            $result[] = $this->merge($this->parse_trade($trade, $market), $params);
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = isset($market) ? $market['symbol'] : null;
