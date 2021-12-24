@@ -1161,7 +1161,7 @@ module.exports = class ascendex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', this.defaultType);
+        const defaultAccountCategory = this.safeString (this.options, 'account-category');
         const options = this.safeValue (this.options, 'fetchOrder', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
