@@ -274,10 +274,6 @@ module.exports = class bitmex extends Exchange {
         return result;
     }
 
-    parseBalanceResponse (response, type = undefined) {
-        return this.parseBalance (response, type);
-    }
-
     parseBalance (response, type = undefined) {
         //
         //     [

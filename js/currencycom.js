@@ -401,10 +401,6 @@ module.exports = class currencycom extends Exchange {
         };
     }
 
-    parseBalanceResponse (response, type = undefined) {
-        return this.parseBalance (response, type);
-    }
-
     parseBalance (response, type = undefined) {
         //
         //     {
