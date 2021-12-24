@@ -199,7 +199,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
-                'defaultType': 'swap', // 'spot'/'swap'
+                'defaultType': 'spot', // 'spot'/'swap'
             },
             'exceptions': {
                 'exact': {
@@ -1205,7 +1205,7 @@ module.exports = class ascendex extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', this.defaultType);
+        const defaultAccountCategory = this.safeString (this.options, 'account-category');
         const options = this.safeValue (this.options, 'fetchOpenOrders', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
