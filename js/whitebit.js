@@ -268,20 +268,19 @@ module.exports = class whitebit extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.v4PublicGetAssets (params);
-        // }
-        // "BTC": {
-        //     "name": "Bitcoin",
-        //     "unified_cryptoasset_id": 1,
-        //     "can_withdraw": true,
-        //     "can_deposit": true,
-        //     "min_withdraw": "0.001",
-        //     "max_withdraw": "2",
-        //     "maker_fee": "0.1",
-        //     "taker_fee": "0.1",
-        //     "min_deposit": "0.0001",
-        //     "max_deposit": "0",
-        //  },
-        // }
+        //
+        //      "BTC": {
+        //          "name": "Bitcoin",
+        //          "unified_cryptoasset_id": 1,
+        //          "can_withdraw": true,
+        //          "can_deposit": true,
+        //          "min_withdraw": "0.001",
+        //          "max_withdraw": "2",
+        //          "maker_fee": "0.1",
+        //          "taker_fee": "0.1",
+        //          "min_deposit": "0.0001",
+        //           "max_deposit": "0",
+        //       },
         //
         const ids = Object.keys (response);
         const result = {};
@@ -320,29 +319,31 @@ module.exports = class whitebit extends Exchange {
     async fetchFundingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.v4PublicGetFee (params);
-        // {
-        //     "1INCH":{
-        //        "is_depositable":true,
-        //        "is_withdrawal":true,
-        //        "ticker":"1INCH",
-        //        "name":"1inch",
-        //        "providers":[
-        //        ],
-        //        "withdraw":{
-        //           "max_amount":"0",
-        //           "min_amount":"21.5",
-        //           "fixed":"17.5",
-        //           "flex":null
-        //        },
-        //        "deposit":{
-        //           "max_amount":"0",
-        //           "min_amount":"19.5",
-        //           "fixed":null,
-        //           "flex":null
-        //        }
-        //     },
-        //     {...}
-        // }
+        //
+        //      {
+        //          "1INCH":{
+        //              "is_depositable":true,
+        //              "is_withdrawal":true,
+        //              "ticker":"1INCH",
+        //              "name":"1inch",
+        //              "providers":[
+        //              ],
+        //              "withdraw":{
+        //                   "max_amount":"0",
+        //                  "min_amount":"21.5",
+        //                  "fixed":"17.5",
+        //                  "flex":null
+        //              },
+        //              "deposit":{
+        //                  "max_amount":"0",
+        //                  "min_amount":"19.5",
+        //                  "fixed":null,
+        //                  "flex":null
+        //               }
+        //          },
+        //           {...}
+        //      }
+        //
         const currenciesIds = Object.keys (response);
         const withdrawFees = {};
         const depositFees = {};
@@ -379,7 +380,7 @@ module.exports = class whitebit extends Exchange {
         };
         const response = await this.v1PublicGetTicker (this.extend (request, params));
         //
-        //     {
+        //      {
         //         "success":true,
         //         "message":"",
         //         "result": {
@@ -400,16 +401,31 @@ module.exports = class whitebit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //  FetchTicker (v1)
         //
-        // "BCH_RUB":{
-        //     "base_id":1831,
-        //     "quote_id":0,
-        //     "last_price":"32830.21",
-        //     "quote_volume":"1494659.8024096",
-        //     "base_volume":"46.1083",
-        //     "isFrozen":false,
-        //     "change":"2.12" // in percent
-        //  },
+        //      {
+        //          "bid":"0.021979",
+        //          "ask":"0.021996",
+        //          "open":"0.02182",
+        //          "high":"0.022039",
+        //          "low":"0.02161",
+        //          "last":"0.021987",
+        //          "volume":"2810.267",
+        //          "deal":"61.383565474",
+        //          "change":"0.76",
+        //      }
+        //
+        // FetchTickers (v4)
+        //
+        //      "BCH_RUB":{
+        //          "base_id":1831,
+        //          "quote_id":0,
+        //          "last_price":"32830.21",
+        //          "quote_volume":"1494659.8024096",
+        //          "base_volume":"46.1083",
+        //          "isFrozen":false,
+        //          "change":"2.12" // in percent
+        //      },
         //
         let symbol = undefined;
         if (market !== undefined) {
@@ -417,45 +433,43 @@ module.exports = class whitebit extends Exchange {
         }
         const last = this.safeNumber (ticker, 'last_price');
         const percentage = this.safeNumber (ticker, 'change') * 0.01;
-        const change = last * percentage;
-        const initial = last - change;
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': undefined,
-            'low': undefined,
-            'bid': undefined,
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': initial,
+            'open': this.safeNumber (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'base_volume'),
-            'quoteVolume': this.safeNumber (ticker, 'quote_volume'),
+            'baseVolume': this.safeNumber2 (ticker, 'base_volume', 'volume'),
+            'quoteVolume': this.safeNumber2 (ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.v4PublicGetTicker (params);
         //
-        // "BCH_RUB":{
-        //     "base_id":1831,
-        //     "quote_id":0,
-        //     "last_price":"32830.21",
-        //     "quote_volume":"1494659.8024096",
-        //     "base_volume":"46.1083",
-        //     "isFrozen":false,
-        //     "change":"2.12"
-        //  },
+        //      "BCH_RUB": {
+        //          "base_id":1831,
+        //          "quote_id":0,
+        //          "last_price":"32830.21",
+        //          "quote_volume":"1494659.8024096",
+        //          "base_volume":"46.1083",
+        //          "isFrozen":false,
+        //          "change":"2.12"
+        //      },
         //
         const marketIds = Object.keys (response);
         const result = {};
@@ -480,23 +494,23 @@ module.exports = class whitebit extends Exchange {
         }
         const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
         //
-        // {
-        //     "timestamp": 1594391413,
-        //     "asks": [
-        //       [
-        //         "9184.41",
-        //         "0.773162"
-        //       ],
-        //       [ ... ]
-        //     ],
-        //     "bids": [
-        //       [
-        //         "9181.19",
-        //         "0.010873"
-        //       ],
-        //       [ ... ]
-        //     ]
-        //   }
+        //      {
+        //          "timestamp": 1594391413,
+        //          "asks": [
+        //              [
+        //                  "9184.41",
+        //                  "0.773162"
+        //              ],
+        //              [ ... ]
+        //          ],
+        //          "bids": [
+        //              [
+        //                  "9181.19",
+        //                  "0.010873"
+        //              ],
+        //              [ ... ]
+        //          ]
+        //      }
         //
         const timestamp = this.safeString (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
@@ -510,16 +524,16 @@ module.exports = class whitebit extends Exchange {
         };
         const response = await this.v4PublicGetTradesMarket (this.extend (request, params));
         //
-        // [
-        //     {
-        //       "tradeID": 158056419,
-        //       "price": "9186.13",
-        //       "quote_volume": "0.0021",
-        //       "base_volume": "9186.13",
-        //       "trade_timestamp": 1594391747,
-        //       "type": "sell"
-        //     },
-        // ],
+        //      [
+        //          {
+        //              "tradeID": 158056419,
+        //              "price": "9186.13",
+        //              "quote_volume": "0.0021",
+        //              "base_volume": "9186.13",
+        //              "trade_timestamp": 1594391747,
+        //              "type": "sell"
+        //          },
+        //      ],
         //
         return this.parseTrades (response, market, since, limit);
     }
