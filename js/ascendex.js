@@ -195,9 +195,6 @@ module.exports = class ascendex extends Exchange {
             'options': {
                 'account-category': 'cash', // 'cash'/'margin'/'futures'
                 'account-group': undefined,
-                'fetchClosedOrders': {
-                    'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
-                },
                 'defaultType': 'spot', // 'spot', 'swap'
             },
             'exceptions': {
@@ -1287,7 +1284,7 @@ module.exports = class ascendex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ methodType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ methodType, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const method = this.getSupportedMapping (methodType, {
             'spot': 'v1PrivateAccountGroupGetOrderHist',
             'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
