@@ -1163,6 +1163,71 @@ base currency ↓
                     ↑ quote currency
 ```
 
+#### Contract Naming Conventions
+
+We currently load spot markets with the unified `BASE/QUOTE` symbol schema into the `.markets` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the `.markets` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
+
+**Please, check this announcement: https://github.com/ccxt/ccxt/issues/10931**
+
+##### Futures Contracts
+
+A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in `YYMMDD` format:
+
+```JavaScript
+//
+// base asset or currency
+// ↓
+// ↓  quote asset or currency
+// ↓  ↓
+// ↓  ↓    settlement asset or currency
+// ↓  ↓    ↓
+// ↓  ↓    ↓     identifier (settlement date)
+// ↓  ↓    ↓     ↓
+// ↓  ↓    ↓     ↓
+'BTC/USDT:BTC-211225'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
+'BTC/USDT:USDT-211225' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
+'ETH/USDT:ETH-210625'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
+'ETH/USDT:USDT-210625' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
+```
+
+##### Perpetual Swaps (Perpetual Futures)
+
+```JavaScript
+// base asset or currency
+// ↓
+// ↓  quote asset or currency
+// ↓  ↓
+// ↓  ↓    settlement asset or currency
+// ↓  ↓    ↓
+// ↓  ↓    ↓
+'BTC/USDT:BTC'  // BTC/USDT inverse perpetual swap contract funded in BTC
+'BTC/USDT:USDT' // BTC/USDT linear perpetual swap contract funded in USDT
+'ETH/USDT:ETH'  // ETH/USDT inverse perpetual swap contract funded in ETH
+'ETH/USDT:USDT' // ETH/USDT linear perpetual swap contract funded in USDT
+```
+
+##### Options
+
+```JavaScript
+//
+// base asset or currency
+// ↓
+// ↓  quote asset or currency
+// ↓  ↓
+// ↓  ↓    settlement asset or currency
+// ↓  ↓    ↓
+// ↓  ↓    ↓       identifier (settlement date)
+// ↓  ↓    ↓       ↓
+// ↓  ↓    ↓       ↓   strike price
+// ↓  ↓    ↓       ↓   ↓
+// ↓  ↓    ↓       ↓   ↓   type, put (P) or call (C)
+// ↓  ↓    ↓       ↓   ↓   ↓
+'BTC/USDT:BTC-211225-60000-P'  // BTC/USDT put option contract strike price 60000 USDT settled in BTC (inverse) on 2021-12-25
+'ETH/USDT:USDT-211225-40000-C' // BTC/USDT call option contract strike price 40000 USDT settled in USDT (linear, vanilla) on 2021-12-25
+'ETH/USDT:ETH-210625-5000-P'   // ETH/USDT put option contract strike price 5000 USDT settled in ETH (inverse) on 2021-06-25
+'ETH/USDT:USDT-210625-5000-C'  // ETH/USDT call option contract strike price 5000 USDT settled in USDT (linear, vanilla) on 2021-06-25
+```
+
 ## Market Cache Force Reload
 
 The `loadMarkets () / load_markets ()` is also a dirty method with a side effect of saving the array of markets on the exchange instance. You only need to call it once per exchange. All subsequent calls to the same method will return the locally saved (cached) array of markets.
@@ -3461,69 +3526,6 @@ await binancecoinm.fetchPositions ()
 
 // for isolated positions
 await binancecoinm.fetchIsolatedPositions ()
-```
-
-### Contract Naming Conventions
-
-We currently load spot markets with the unified `BASE/QUOTE` symbol schema into the `.markets` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the `.markets` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
-
-#### Futures Contracts
-
-A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in `YYMMDD` format:
-
-```JavaScript
-//
-// base asset or currency
-// ↓
-// ↓  quote asset or currency
-// ↓  ↓
-// ↓  ↓    settlement asset or currency
-// ↓  ↓    ↓
-// ↓  ↓    ↓     identifier (settlement date)
-// ↓  ↓    ↓     ↓
-// ↓  ↓    ↓     ↓
-'BTC/USDT:BTC-211225'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
-'BTC/USDT:USDT-211225' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
-'ETH/USDT:ETH-210625'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
-'ETH/USDT:USDT-210625' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
-```
-
-#### Perpetual Swaps (Perpetual Futures)
-
-```JavaScript
-// base asset or currency
-// ↓
-// ↓  quote asset or currency
-// ↓  ↓
-// ↓  ↓    settlement asset or currency
-// ↓  ↓    ↓
-// ↓  ↓    ↓
-'BTC/USDT:BTC'  // BTC/USDT inverse perpetual swap contract funded in BTC
-'BTC/USDT:USDT' // BTC/USDT linear perpetual swap contract funded in USDT
-'ETH/USDT:ETH'  // ETH/USDT inverse perpetual swap contract funded in ETH
-'ETH/USDT:USDT' // ETH/USDT linear perpetual swap contract funded in USDT
-```
-
-#### Options
-
-```JavaScript
-//
-// base asset or currency
-// ↓
-// ↓  quote asset or currency
-// ↓  ↓
-// ↓  ↓    settlement asset or currency
-// ↓  ↓    ↓
-// ↓  ↓    ↓       identifier (settlement date)
-// ↓  ↓    ↓       ↓
-// ↓  ↓    ↓       ↓   strike price
-// ↓  ↓    ↓       ↓   ↓
-// ↓  ↓    ↓       ↓   ↓   type, put (P) or call (C)
-// ↓  ↓    ↓       ↓   ↓   ↓
-'BTC/USDT:BTC-211225-60000-P'  // BTC/USDT put option contract strike price 60000 USDT settled in BTC (inverse) on 2021-12-25
-'ETH/USDT:USDT-211225-40000-C' // BTC/USDT call option contract strike price 40000 USDT settled in USDT (linear, vanilla) on 2021-12-25
-'ETH/USDT:ETH-210625-5000-P'   // ETH/USDT put option contract strike price 5000 USDT settled in ETH (inverse) on 2021-06-25
-'ETH/USDT:USDT-210625-5000-C'  // ETH/USDT call option contract strike price 5000 USDT settled in USDT (linear, vanilla) on 2021-06-25
 ```
 
 ## Deposit
