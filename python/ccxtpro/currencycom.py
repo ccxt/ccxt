@@ -102,7 +102,7 @@ class currencycom(Exchange, ccxt.currencycom):
         #     }
         #
         payload = self.safe_value(message, 'payload')
-        balance = self.parse_balance_response(payload)
+        balance = self.parse_balance(payload)
         self.balance = self.extend(self.balance, balance)
         messageHash = self.safe_string(subscription, 'messageHash')
         client.resolve(self.balance, messageHash)
