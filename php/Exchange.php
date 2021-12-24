@@ -3597,10 +3597,18 @@ class Exchange {
     }
 
     public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
-        $default_type = $this->safe_string_2($this->options, $method_name, 'defaultType', 'spot');
-        $market_type = isset($market) ? market['type'] : $default_type;
+        $default_type = $this->safe_string($this->options, $method_name, 'defaultType', 'spot');
+        $method_options = $this->safe_value($this->options, $method_name);
+        if (isset($method_options)) {
+            if (is_string($method_options)) {
+                $method_type = $method_options;
+            } else {
+                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type');
+            }
+        }
+        $market_type = isset($market) ? market['type'] : $method_type;
         $type = $this->safe_string($params, 'type', $market_type);
-        $params = $this->omit($params, $type);
+        $params = $this->omit($params, [ 'defaultType', 'type' ]);
         return array($type, $params);
     }
 }
