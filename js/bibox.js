@@ -191,6 +191,14 @@ module.exports = class bibox extends Exchange {
                             'mdata': 'v1',
                             'cdata': 'v1',
                             'orderpending': 'v1',
+                            'mdata/ping': 'v3',
+                            'mdata/pairList': 'v3',
+                            'mdata/kline': 'v3',
+                            'mdata/marketAll': 'v3',
+                            'mdata/market': 'v3',
+                            'mdata/depth': 'v3',
+                            'mdata/deals': 'v3',
+                            'mdata/ticker': 'v3',
                         },
                         'POST': {
                             // TODO: rework for full endpoint/cmd paths here
@@ -1438,7 +1446,7 @@ module.exports = class bibox extends Exchange {
         const versions = this.safeValue (this.options, 'versions', {});
         const apiVersions = this.safeValue (versions, api, {});
         const methodVersions = this.safeValue (apiVersions, method, {});
-        const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
+        const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
         let url = this.implodeHostname (this.urls['api']) + '/' + version + '/' + path;
@@ -1454,11 +1462,15 @@ module.exports = class bibox extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const sign = this.hmac (this.encode (json_params), this.encode (this.secret), 'md5');
-            if (version === 'v3') {
-                body = { 'body': json_params };
+            if (version === 'v3' || version === 'v3.1') {
                 headers['bibox-api-key'] = this.apikey;
                 headers['bibox-api-sign'] = sign;
                 headers['bibox-timestamp'] = this.milliseconds ();
+                if (method === 'GET') {
+                    url += '?' + this.urlencode (params);
+                } else {
+                    body = { 'body': json_params };
+                }
             } else {
                 body = {
                     'apikey': this.apiKey,
