@@ -2129,10 +2129,21 @@ module.exports = class Exchange {
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
-        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'spot');
-        const marketType = (market === undefined) ? defaultType : market['type'];
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'spot');
+        const methodOptions = this.safeValue (this.options, methodName);
+        let methodType = undefined;
+        if (methodOptions === undefined) {
+            methodType = defaultType;
+        } else {
+            if (typeof methodOptions === 'string') {
+                methodType = methodOptions;
+            } else {
+                methodType = this.safeString2 (methodOptions, 'defaultType', 'type');
+            }
+        }
+        const marketType = (market === undefined) ? methodType : market['type'];
         const type = this.safeString (params, 'type', marketType);
-        params = this.omit (params, 'type');
+        params = this.omit (params, [ 'defaultType', 'type' ]);
         return [ type, params ];
     }
 }
