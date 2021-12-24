@@ -187,6 +187,7 @@ class binance extends Exchange {
                         'futures/loan/calcMaxAdjustAmount' => 1,
                         'futures/loan/adjustCollateral/history' => 1,
                         'futures/loan/liquidationHistory' => 1,
+                        'rebate/taxQuery' => 1,
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall' => 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address' => 1,
@@ -212,6 +213,7 @@ class binance extends Exchange {
                         'sub-account/sub/transfer/history' => 1,
                         'sub-account/transfer/subUserHistory' => 1,
                         'sub-account/universalTransfer' => 1,
+                        'managed-subaccount/asset' => 1,
                         // lending endpoints
                         'lending/daily/product/list' => 1,
                         'lending/daily/userLeftQuota' => 1,
@@ -274,8 +276,6 @@ class binance extends Exchange {
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
                         'account/apiRestrictions' => 1,
-                        // subaccounts
-                        'managed-subaccount/asset' => 1,
                         // c2c / p2p
                         'c2c/orderMatch/listUserOrderHistory' => 1,
                     ),
