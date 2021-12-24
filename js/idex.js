@@ -973,7 +973,11 @@ module.exports = class idex extends Exchange {
         const sideEnum = (side === 'buy') ? 0 : 1;
         const walletBytes = this.remove0xPrefix (this.walletAddress);
         const network = this.safeString (this.options, 'network', 'ETH');
-        const orderVersion = (network === 'ETH') ? 1 : 2;
+        const orderVersion = this.getSupportedMapping (network, {
+            'ETH': 1,
+            'BSC': 2,
+            'MATIC': 3,
+        });
         const amountString = this.amountToPrecision (symbol, amount);
         // https://docs.idex.io/#time-in-force
         const timeInForceEnums = {
