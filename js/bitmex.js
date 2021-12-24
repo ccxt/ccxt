@@ -423,7 +423,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         //     }
         //
         const data = this.safeValue (message, 'data');
-        const balance = this.parseBalanceResponse (data);
+        const balance = this.parseBalance (data);
         this.balance = this.extend (this.balance, balance);
         const messageHash = this.safeString (message, 'table');
         client.resolve (this.balance, messageHash);

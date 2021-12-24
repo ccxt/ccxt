@@ -103,7 +103,7 @@ module.exports = class currencycom extends ccxt.currencycom {
         //     }
         //
         const payload = this.safeValue (message, 'payload');
-        const balance = this.parseBalanceResponse (payload);
+        const balance = this.parseBalance (payload);
         this.balance = this.extend (this.balance, balance);
         const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (this.balance, messageHash);
