@@ -665,9 +665,11 @@ module.exports = class whitebit extends Exchange {
 
     async fetchStatus (params = {}) {
         const response = await this.v4PublicGetPing (params);
-        // [
-        //     "pong"
-        // ]
+        //
+        //      [
+        //          "pong"
+        //      ]
+        //
         let status = this.safeString (response, 0, undefined);
         status = (status === undefined) ? 'maintenance' : 'ok';
         this.status = this.extend (this.status, {
