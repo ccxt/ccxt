@@ -759,11 +759,9 @@ class Exchange {
         $target = $args[0];
         $overwrite = array();
         $merged = array_merge(...array_slice($args, 1));
-        $keys = array_keys($merged);
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($target[$key] === null) {
-                $overwrite[$key] = $merged[$key];
+        foreach ($merged as $key => $value) {
+            if (!isset($target[$key])) {
+                $overwrite[$key] = $value;
             }
         }
         return array_merge($target, $overwrite);
