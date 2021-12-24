@@ -250,7 +250,7 @@ module.exports = {
 
     // ------------------------------------------------------------------------
 
-    , softExtend (target, ...args) {
+    , merge (target, ...args) {
         // doesn't overwrite defined keys with undefined
         const overwrite = {}
         const merged = Object.assign ({}, ...args)
