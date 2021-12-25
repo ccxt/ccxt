@@ -1206,7 +1206,7 @@ class bitmart(Exchange):
                 request['from'] = start
                 request['to'] = end
             else:
-                start = int(since / 1000)
+                start = int(since / 1000) - 1
                 end = self.sum(start, limit * duration)
                 request['from'] = start
                 request['to'] = end
@@ -1222,7 +1222,7 @@ class bitmart(Exchange):
                 request['startTime'] = start
                 request['endTime'] = end
             else:
-                start = int(since / 1000)
+                start = int(since / 1000) - 1
                 end = self.sum(start, limit * duration)
                 request['startTime'] = start
                 request['endTime'] = end

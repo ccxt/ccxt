@@ -1228,7 +1228,7 @@ class bitmart extends Exchange {
                 $request['from'] = $start;
                 $request['to'] = $end;
             } else {
-                $start = intval($since / 1000);
+                $start = intval($since / 1000) - 1;
                 $end = $this->sum($start, $limit * $duration);
                 $request['from'] = $start;
                 $request['to'] = $end;
@@ -1246,7 +1246,7 @@ class bitmart extends Exchange {
                 $request['startTime'] = $start;
                 $request['endTime'] = $end;
             } else {
-                $start = intval($since / 1000);
+                $start = intval($since / 1000) - 1;
                 $end = $this->sum($start, $limit * $duration);
                 $request['startTime'] = $start;
                 $request['endTime'] = $end;
