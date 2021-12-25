@@ -616,7 +616,7 @@ module.exports = class coinmate extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,

@@ -299,7 +299,7 @@ module.exports = class btcbox extends Exchange {
             symbol = market['symbol'];
         }
         const side = this.safeString (order, 'type');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,

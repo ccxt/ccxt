@@ -798,7 +798,7 @@ module.exports = class crex24 extends Exchange {
         const side = this.safeString (order, 'side');
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

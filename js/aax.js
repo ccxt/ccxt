@@ -1680,7 +1680,7 @@ module.exports = class aax extends Exchange {
                 'cost': feeCost,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,

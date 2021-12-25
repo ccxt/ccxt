@@ -1165,7 +1165,7 @@ module.exports = class ndax extends Exchange {
         const average = this.safeString (order, 'AvgPrice');
         const stopPrice = this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice')));
         const status = this.parseOrderStatus (this.safeString (order, 'OrderState'));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

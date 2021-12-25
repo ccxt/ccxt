@@ -1433,7 +1433,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fee': this.parseNumber (this.currencyFromPrecision (currency, this.safeString (order, 'matcherFee'))),
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

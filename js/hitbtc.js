@@ -970,7 +970,7 @@ module.exports = class hitbtc extends Exchange {
         const fee = undefined;
         const average = this.safeString (order, 'avgPrice');
         const timeInForce = this.safeString (order, 'timeInForce');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
             'timestamp': created,

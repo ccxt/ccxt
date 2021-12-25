@@ -1017,7 +1017,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const price = this.safeString (order, 16);
         const average = this.safeString (order, 17);
         const clientOrderId = this.safeString (order, 2);
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

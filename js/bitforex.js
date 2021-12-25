@@ -397,7 +397,7 @@ module.exports = class bitforex extends Exchange {
             'cost': this.safeNumber (order, 'tradeFee'),
             'currency': feeCurrency,
         };
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

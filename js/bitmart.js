@@ -1612,7 +1612,7 @@ module.exports = class bitmart extends Exchange {
         } else if (category === 2) {
             type = 'market';
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,

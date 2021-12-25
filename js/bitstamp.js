@@ -1316,7 +1316,7 @@ module.exports = class bitstamp extends Exchange {
         const amount = this.safeString (order, 'amount');
         const transactions = this.safeValue (order, 'transactions', []);
         const price = this.safeString (order, 'price');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),

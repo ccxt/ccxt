@@ -507,7 +507,7 @@ module.exports = class bitso extends Exchange {
         const amount = this.safeString (order, 'original_amount');
         const remaining = this.safeString (order, 'unfilled_amount');
         const clientOrderId = this.safeString (order, 'client_id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

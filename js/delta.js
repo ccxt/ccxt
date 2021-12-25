@@ -933,7 +933,7 @@ module.exports = class delta extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

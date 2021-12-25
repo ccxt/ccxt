@@ -586,7 +586,7 @@ module.exports = class buda extends Exchange {
                 'code': feeCurrencyCode,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

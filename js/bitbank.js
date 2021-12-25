@@ -436,7 +436,7 @@ module.exports = class bitbank extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),

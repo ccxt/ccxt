@@ -1161,7 +1161,7 @@ module.exports = class timex extends Exchange {
         }
         const rawTrades = this.safeValue (order, 'trades', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

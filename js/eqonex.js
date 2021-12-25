@@ -1338,7 +1338,7 @@ module.exports = class eqonex extends Exchange {
         }
         const stopPriceScale = this.safeInteger (order, 'stopPx_scale', 0);
         const stopPrice = this.parseNumber (this.convertFromScale (this.safeString (order, 'stopPx'), stopPriceScale));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

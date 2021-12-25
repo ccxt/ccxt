@@ -625,7 +625,7 @@ module.exports = class yobit extends Exchange {
         const fee = undefined;
         const type = 'limit';
         const side = this.safeString (order, 'type');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

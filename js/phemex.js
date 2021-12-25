@@ -1657,7 +1657,7 @@ module.exports = class phemex extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp', market))));
         const postOnly = (timeInForce === 'PO');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

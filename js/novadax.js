@@ -881,7 +881,7 @@ module.exports = class novadax extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,

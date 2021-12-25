@@ -364,7 +364,7 @@ module.exports = class zaif extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'amount');
         const id = this.safeString (order, 'id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,

@@ -1263,7 +1263,7 @@ module.exports = class bitmex extends Exchange {
         const stopPrice = this.safeNumber (order, 'stopPx');
         const execInst = this.safeString (order, 'execInst');
         const postOnly = (execInst === 'ParticipateDoNotInitiate');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

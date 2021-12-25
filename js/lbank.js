@@ -443,7 +443,7 @@ module.exports = class lbank extends Exchange {
         const id = this.safeString (order, 'order_id');
         const type = this.safeString (order, 'order_type');
         const side = this.safeString (order, 'type');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
