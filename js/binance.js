@@ -1461,7 +1461,7 @@ module.exports = class binance extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return result;
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -1667,8 +1667,7 @@ module.exports = class binance extends Exchange {
         //       }
         //     ]
         //
-        const result = this.parseBalance (response, type);
-        return this.safeBalance (result);
+        return this.parseBalance (response, type);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
