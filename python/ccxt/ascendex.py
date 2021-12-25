@@ -202,10 +202,16 @@ class ascendex(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'account-category': 'cash',  # 'cash'/'margin'/'futures'
+                'account-category': 'cash',  # 'cash', 'margin', 'futures'  # obsolete
                 'account-group': None,
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist',  # 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                },
+                'defaultType': 'spot',  # 'spot', 'margin', 'swap'
+                'accountCategories': {
+                    'spot': 'cash',
+                    'swap': 'futures',
+                    'margin': 'margin',
                 },
             },
             'exceptions': {
@@ -1231,14 +1237,6 @@ class ascendex(Exchange):
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         self.load_accounts()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        defaultAccountCategory = self.safe_string(self.options, 'account-category')
-        options = self.safe_value(self.options, 'fetchClosedOrders', {})
-        accountCategory = self.safe_string(options, 'account-category', defaultAccountCategory)
-        accountCategory = self.safe_string(params, 'account-category', accountCategory)
-        params = self.omit(params, 'account-category')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         request = {
@@ -1253,10 +1251,20 @@ class ascendex(Exchange):
             # 'page': 1,
             # 'pageSize': 100,
         }
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = self.safe_value(options, 'method', 'v1PrivateAccountGroupGetOrderHist')
+        type, query = self.handle_market_type_and_params('fetchCLosedOrders', market, params)
+        options = self.safe_value(self.options, 'fetchClosedOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountGroupGetOrderHist')
+        method = self.get_supported_mapping(type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
+        })
+        accountCategories = self.safe_value(self.options, 'accountCategories', {})
+        accountCategory = self.safe_string(accountCategories, type, 'cash')
         if method == 'v1PrivateAccountGroupGetOrderHist':
             if accountCategory is not None:
                 request['category'] = accountCategory
@@ -1266,7 +1274,7 @@ class ascendex(Exchange):
             request['startTime'] = since
         if limit is not None:
             request['pageSize'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         # accountCategoryGetOrderHistCurrent
         #
@@ -1329,6 +1337,44 @@ class ascendex(Exchange):
         #             "page": 1,
         #             "pageSize": 20
         #         }
+        #     }
+        #
+        # accountGroupGetFuturesOrderHistCurrent
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "ac": "FUTURES",
+        #                 "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #                 "time": 1640245777002,
+        #                 "orderId": "r17de6444fa6U0711043490bbtcpJ2lI",
+        #                 "seqNum": 28796124902,
+        #                 "orderType": "Limit",
+        #                 "execInst": "NULL_VAL",
+        #                 "side": "Buy",
+        #                 "symbol": "BTC-PERP",
+        #                 "price": "30000",
+        #                 "orderQty": "0.0021",
+        #                 "stopPrice": "0",
+        #                 "stopBy": "market",
+        #                 "status": "Canceled",
+        #                 "lastExecTime": 1640246574886,
+        #                 "lastQty": "0",
+        #                 "lastPx": "0",
+        #                 "avgFilledPx": "0",
+        #                 "cumFilledQty": "0",
+        #                 "fee": "0",
+        #                 "cumFee": "0",
+        #                 "feeAsset": "USDT",
+        #                 "errorCode": "",
+        #                 "posStopLossPrice": "0",
+        #                 "posStopLossTrigger": "market",
+        #                 "posTakeProfitPrice": "0",
+        #                 "posTakeProfitTrigger": "market",
+        #                 "liquidityInd": "n"
+        #             }
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data')
@@ -1755,30 +1801,29 @@ class ascendex(Exchange):
         access = api[1]
         type = self.safe_string(api, 2)
         url = ''
-        query = params
         accountCategory = (type == 'accountCategory')
         if accountCategory or (type == 'accountGroup'):
             url += self.implode_params('/{account-group}', params)
-            query = self.omit(params, 'account-group')
-        request = self.implode_params(path, query)
+            params = self.omit(params, 'account-group')
+        request = self.implode_params(path, params)
         url += '/api/pro/'
         if version == 'v2':
             request = version + '/' + request
         else:
-            url += version
+            url += version + '/'
         if accountCategory:
-            url += self.implode_params('/{account-category}', query)
-            query = self.omit(query, 'account-category')
-        url += '/' + request
+            url += self.implode_params('/{account-category}', params)
+        params = self.omit(params, 'account-category')
+        url += request
         if (version == 'v1') and (request == 'cash/balance') or (request == 'margin/balance'):
             request = 'balance'
         if request.find('subuser') >= 0:
             parts = request.split('/')
             request = parts[2]
-        query = self.omit(query, self.extract_params(path))
+        params = self.omit(params, self.extract_params(path))
         if access == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
+            if params:
+                url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
@@ -1790,11 +1835,11 @@ class ascendex(Exchange):
                 'x-auth-signature': hmac,
             }
             if method == 'GET':
-                if query:
-                    url += '?' + self.urlencode(query)
+                if params:
+                    url += '?' + self.urlencode(params)
             else:
                 headers['Content-Type'] = 'application/json'
-                body = self.json(query)
+                body = self.json(params)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
