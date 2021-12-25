@@ -1063,7 +1063,7 @@ module.exports = class Exchange {
         }
     }
 
-    safeBalance (balance, legacy = false) {
+    safeBalance (balance) {
 
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
 
@@ -1075,29 +1075,17 @@ module.exports = class Exchange {
             const code = codes[i]
             if (balance[code].total === undefined) {
                 if (balance[code].free !== undefined && balance[code].used !== undefined) {
-                    if (legacy) {
-                        balance[code].total = this.sum (balance[code].free, balance[code].used)
-                    } else {
-                        balance[code].total = Precise.stringAdd (balance[code].free, balance[code].used)
-                    }
+                    balance[code].total = Precise.stringAdd (balance[code].free, balance[code].used)
                 }
             }
             if (balance[code].free === undefined) {
                 if (balance[code].total !== undefined && balance[code].used !== undefined) {
-                    if (legacy) {
-                        balance[code].free = this.sum (balance[code].total, -balance[code].used)
-                    } else {
-                        balance[code].free = Precise.stringSub (balance[code].total, balance[code].used)
-                    }
+                    balance[code].free = Precise.stringSub (balance[code].total, balance[code].used)
                 }
             }
             if (balance[code].used === undefined) {
                 if (balance[code].total !== undefined && balance[code].free !== undefined) {
-                    if (legacy) {
-                        balance[code].used = this.sum (balance[code].total, -balance[code].free)
-                    } else {
-                        balance[code].used = Precise.stringSub (balance[code].total, balance[code].free)
-                    }
+                    balance[code].used = Precise.stringSub (balance[code].total, balance[code].free)
                 }
             }
             balance[code].free = this.parseNumber (balance[code].free)
@@ -1107,7 +1095,6 @@ module.exports = class Exchange {
             balance.used[code] = balance[code].used
             balance.total[code] = balance[code].total
         }
-
         return balance
     }
 

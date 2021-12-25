@@ -1670,7 +1670,7 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def safe_balance(self, balance, legacy=False):
+    def safe_balance(self, balance):
         currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}
@@ -1678,22 +1678,13 @@ class Exchange(object):
         for currency in currencies:
             if balance[currency].get('total') is None:
                 if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
-                    if legacy:
-                        balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
-                    else:
-                        balance[currency]['total'] = Precise.string_add(balance[currency]['free'], balance[currency]['used'])
+                    balance[currency]['total'] = Precise.string_add(balance[currency]['free'], balance[currency]['used'])
             if balance[currency].get('free') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('used') is not None:
-                    if legacy:
-                        balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
-                    else:
-                        balance[currency]['free'] = Precise.string_sub(balance[currency]['total'], balance[currency]['used'])
+                    balance[currency]['free'] = Precise.string_sub(balance[currency]['total'], balance[currency]['used'])
             if balance[currency].get('used') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
-                    if legacy:
-                        balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
-                    else:
-                        balance[currency]['used'] = Precise.string_sub(balance[currency]['total'], balance[currency]['free'])
+                    balance[currency]['used'] = Precise.string_sub(balance[currency]['total'], balance[currency]['free'])
             balance[currency]['free'] = self.parse_number(balance[currency]['free'])
             balance[currency]['used'] = self.parse_number(balance[currency]['used'])
             balance[currency]['total'] = self.parse_number(balance[currency]['total'])
