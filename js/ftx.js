@@ -362,6 +362,8 @@ module.exports = class ftx extends Exchange {
                     'OMNI': 'omni',
                     'BEP2': 'bep2',
                     'BNB': 'bep2',
+                    'BEP20': 'bsc',
+                    'BSC': 'bsc',
                 },
             },
         });
@@ -1928,11 +1930,15 @@ module.exports = class ftx extends Exchange {
         //         "success": true,
         //         "result": {
         //             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //             "tag": "null"
+        //             "tag": null,
+        //             "method": "erc20",
+        //             "coin": null
         //         }
         //     }
         //
         const result = this.safeValue (response, 'result', {});
+        const networkId = this.safeString (result, 'method');
+        const responseNetwork = this.safeNetwork (networkId);
         const address = this.safeString (result, 'address');
         const tag = this.safeString (result, 'tag');
         this.checkAddress (address);
@@ -1940,9 +1946,20 @@ module.exports = class ftx extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': responseNetwork,
             'info': response,
         };
+    }
+
+    safeNetwork (networkId) {
+        const networksById = {
+            'trx': 'TRC20',
+            'erc20': 'ERC20',
+            'sol': 'SOL',
+            'bsc': 'BSC',
+            'bep2': 'BEP2',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     parseTransactionStatus (status) {
