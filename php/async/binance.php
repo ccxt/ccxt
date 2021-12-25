@@ -1408,6 +1408,69 @@ class binance extends Exchange {
         return $result;
     }
 
+    public function parse_balance($response, $type = null) {
+        $result = array(
+            'info' => $response,
+        );
+        $timestamp = null;
+        if (($type === 'spot') || ($type === 'margin')) {
+            $timestamp = $this->safe_integer($response, 'updateTime');
+            $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
+            for ($i = 0; $i < count($balances); $i++) {
+                $balance = $balances[$i];
+                $currencyId = $this->safe_string($balance, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'free');
+                $account['used'] = $this->safe_string($balance, 'locked');
+                $result[$code] = $account;
+            }
+        } else if ($type === 'savings') {
+            $positionAmountVos = $this->safe_value($response, 'positionAmountVos');
+            for ($i = 0; $i < count($positionAmountVos); $i++) {
+                $entry = $positionAmountVos[$i];
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $usedAndTotal = $this->safe_string($entry, 'amount');
+                $account['total'] = $usedAndTotal;
+                $account['used'] = $usedAndTotal;
+                $result[$code] = $account;
+            }
+        } else if ($type === 'funding') {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $account = $this->account();
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account['free'] = $this->safe_string($entry, 'free');
+                $frozen = $this->safe_string($entry, 'freeze');
+                $withdrawing = $this->safe_string($entry, 'withdrawing');
+                $locked = $this->safe_string($entry, 'locked');
+                $account['used'] = Precise::string_add($frozen, Precise::string_add($locked, $withdrawing));
+                $result[$code] = $account;
+            }
+        } else {
+            $balances = $response;
+            if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
+                $balances = $this->safe_value($response, 'assets', array());
+            }
+            for ($i = 0; $i < count($balances); $i++) {
+                $balance = $balances[$i];
+                $currencyId = $this->safe_string($balance, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'availableBalance');
+                $account['used'] = $this->safe_string($balance, 'initialMargin');
+                $account['total'] = $this->safe_string_2($balance, 'marginBalance', 'balance');
+                $result[$code] = $account;
+            }
+        }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
@@ -1443,8 +1506,8 @@ class binance extends Exchange {
         //         canDeposit => true,
         //         updateTime => 1575357359602,
         //         accountType => "MARGIN",
-        //         $balances => array(
-        //             array( asset => "BTC", free => "0.00219821", $locked => "0.00000000"  ),
+        //         balances => array(
+        //             array( asset => "BTC", free => "0.00219821", locked => "0.00000000"  ),
         //         )
         //     }
         //
@@ -1611,66 +1674,7 @@ class binance extends Exchange {
         //       }
         //     )
         //
-        $result = array(
-            'info' => $response,
-        );
-        $timestamp = null;
-        if (($type === 'spot') || ($type === 'margin')) {
-            $timestamp = $this->safe_integer($response, 'updateTime');
-            $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
-            for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
-                $currencyId = $this->safe_string($balance, 'asset');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'free');
-                $account['used'] = $this->safe_string($balance, 'locked');
-                $result[$code] = $account;
-            }
-        } else if ($type === 'savings') {
-            $positionAmountVos = $this->safe_value($response, 'positionAmountVos');
-            for ($i = 0; $i < count($positionAmountVos); $i++) {
-                $entry = $positionAmountVos[$i];
-                $currencyId = $this->safe_string($entry, 'asset');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $usedAndTotal = $this->safe_string($entry, 'amount');
-                $account['total'] = $usedAndTotal;
-                $account['used'] = $usedAndTotal;
-                $result[$code] = $account;
-            }
-        } else if ($type === 'funding') {
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $account = $this->account();
-                $currencyId = $this->safe_string($entry, 'asset');
-                $code = $this->safe_currency_code($currencyId);
-                $account['free'] = $this->safe_string($entry, 'free');
-                $frozen = $this->safe_string($entry, 'freeze');
-                $withdrawing = $this->safe_string($entry, 'withdrawing');
-                $locked = $this->safe_string($entry, 'locked');
-                $account['used'] = Precise::string_add($frozen, Precise::string_add($locked, $withdrawing));
-                $result[$code] = $account;
-            }
-        } else {
-            $balances = $response;
-            if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
-                $balances = $this->safe_value($response, 'assets', array());
-            }
-            for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
-                $currencyId = $this->safe_string($balance, 'asset');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'availableBalance');
-                $account['used'] = $this->safe_string($balance, 'initialMargin');
-                $account['total'] = $this->safe_string_2($balance, 'marginBalance', 'balance');
-                $result[$code] = $account;
-            }
-        }
-        $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp);
-        return $this->safe_balance($result);
+        return $this->parse_balance($response, $type);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

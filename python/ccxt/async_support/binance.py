@@ -1393,6 +1393,62 @@ class binance(Exchange):
             result.append(entry)
         return result
 
+    def parse_balance(self, response, type=None):
+        result = {
+            'info': response,
+        }
+        timestamp = None
+        if (type == 'spot') or (type == 'margin'):
+            timestamp = self.safe_integer(response, 'updateTime')
+            balances = self.safe_value_2(response, 'balances', 'userAssets', [])
+            for i in range(0, len(balances)):
+                balance = balances[i]
+                currencyId = self.safe_string(balance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'free')
+                account['used'] = self.safe_string(balance, 'locked')
+                result[code] = account
+        elif type == 'savings':
+            positionAmountVos = self.safe_value(response, 'positionAmountVos')
+            for i in range(0, len(positionAmountVos)):
+                entry = positionAmountVos[i]
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                usedAndTotal = self.safe_string(entry, 'amount')
+                account['total'] = usedAndTotal
+                account['used'] = usedAndTotal
+                result[code] = account
+        elif type == 'funding':
+            for i in range(0, len(response)):
+                entry = response[i]
+                account = self.account()
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account['free'] = self.safe_string(entry, 'free')
+                frozen = self.safe_string(entry, 'freeze')
+                withdrawing = self.safe_string(entry, 'withdrawing')
+                locked = self.safe_string(entry, 'locked')
+                account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
+                result[code] = account
+        else:
+            balances = response
+            if not isinstance(response, list):
+                balances = self.safe_value(response, 'assets', [])
+            for i in range(0, len(balances)):
+                balance = balances[i]
+                currencyId = self.safe_string(balance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'availableBalance')
+                account['used'] = self.safe_string(balance, 'initialMargin')
+                account['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
+                result[code] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
@@ -1595,60 +1651,7 @@ class binance(Exchange):
         #       }
         #     ]
         #
-        result = {
-            'info': response,
-        }
-        timestamp = None
-        if (type == 'spot') or (type == 'margin'):
-            timestamp = self.safe_integer(response, 'updateTime')
-            balances = self.safe_value_2(response, 'balances', 'userAssets', [])
-            for i in range(0, len(balances)):
-                balance = balances[i]
-                currencyId = self.safe_string(balance, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'free')
-                account['used'] = self.safe_string(balance, 'locked')
-                result[code] = account
-        elif type == 'savings':
-            positionAmountVos = self.safe_value(response, 'positionAmountVos')
-            for i in range(0, len(positionAmountVos)):
-                entry = positionAmountVos[i]
-                currencyId = self.safe_string(entry, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                usedAndTotal = self.safe_string(entry, 'amount')
-                account['total'] = usedAndTotal
-                account['used'] = usedAndTotal
-                result[code] = account
-        elif type == 'funding':
-            for i in range(0, len(response)):
-                entry = response[i]
-                account = self.account()
-                currencyId = self.safe_string(entry, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account['free'] = self.safe_string(entry, 'free')
-                frozen = self.safe_string(entry, 'freeze')
-                withdrawing = self.safe_string(entry, 'withdrawing')
-                locked = self.safe_string(entry, 'locked')
-                account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
-                result[code] = account
-        else:
-            balances = response
-            if not isinstance(response, list):
-                balances = self.safe_value(response, 'assets', [])
-            for i in range(0, len(balances)):
-                balance = balances[i]
-                currencyId = self.safe_string(balance, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'availableBalance')
-                account['used'] = self.safe_string(balance, 'initialMargin')
-                account['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
-                result[code] = account
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        return self.safe_balance(result)
+        return self.parse_balance(response, type)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
