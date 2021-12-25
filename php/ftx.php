@@ -365,6 +365,8 @@ class ftx extends Exchange {
                     'OMNI' => 'omni',
                     'BEP2' => 'bep2',
                     'BNB' => 'bep2',
+                    'BEP20' => 'bsc',
+                    'BSC' => 'bsc',
                 ),
             ),
         ));
@@ -1931,21 +1933,34 @@ class ftx extends Exchange {
         //         "success" => true,
         //         "result" => {
         //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //             "tag" => "null"
+        //             "tag" => null,
+        //             "method" => "erc20",
+        //             "coin" => null
         //         }
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
+        $networkId = $this->safe_string($result, 'method');
         $address = $this->safe_string($result, 'address');
-        $tag = $this->safe_string($result, 'tag');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
-            'tag' => $tag,
-            'network' => null,
+            'tag' => $this->safe_string($result, 'tag'),
+            'network' => $this->safe_network($networkId),
             'info' => $response,
         );
+    }
+
+    public function safe_network($networkId) {
+        $networksById = array(
+            'trx' => 'TRC20',
+            'erc20' => 'ERC20',
+            'sol' => 'SOL',
+            'bsc' => 'BSC',
+            'bep2' => 'BEP2',
+        );
+        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function parse_transaction_status($status) {

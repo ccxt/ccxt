@@ -383,6 +383,8 @@ class ftx(Exchange):
                     'OMNI': 'omni',
                     'BEP2': 'bep2',
                     'BNB': 'bep2',
+                    'BEP20': 'bsc',
+                    'BSC': 'bsc',
                 },
             },
         })
@@ -1859,21 +1861,33 @@ class ftx(Exchange):
         #         "success": True,
         #         "result": {
         #             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        #             "tag": "null"
+        #             "tag": null,
+        #             "method": "erc20",
+        #             "coin": null
         #         }
         #     }
         #
         result = self.safe_value(response, 'result', {})
+        networkId = self.safe_string(result, 'method')
         address = self.safe_string(result, 'address')
-        tag = self.safe_string(result, 'tag')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
-            'network': None,
+            'tag': self.safe_string(result, 'tag'),
+            'network': self.safe_network(networkId),
             'info': response,
         }
+
+    def safe_network(self, networkId):
+        networksById = {
+            'trx': 'TRC20',
+            'erc20': 'ERC20',
+            'sol': 'SOL',
+            'bsc': 'BSC',
+            'bep2': 'BEP2',
+        }
+        return self.safe_string(networksById, networkId, networkId)
 
     def parse_transaction_status(self, status):
         statuses = {
