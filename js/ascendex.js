@@ -1488,7 +1488,7 @@ module.exports = class ascendex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const order = this.safeValue2 (data, 'order', 'info', {});
-        return this.parseOrder (info, market);
+        return this.parseOrder (order, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
