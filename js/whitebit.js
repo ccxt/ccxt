@@ -986,7 +986,7 @@ module.exports = class whitebit extends Exchange {
         }
         const timestamp = this.safeTimestamp2 (order, 'ctime', 'timestamp');
         const lastTradeTimestamp = this.safeTimestamp (order, 'ftime');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': orderId,
             'symbol': symbol,

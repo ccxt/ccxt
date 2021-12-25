@@ -599,7 +599,7 @@ module.exports = class latoken1 extends Exchange {
             lastTradeTimestamp = timeFilled;
         }
         const clientOrderId = this.safeString (order, 'cliOrdId');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

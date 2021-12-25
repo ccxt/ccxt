@@ -927,7 +927,7 @@ module.exports = class probit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,

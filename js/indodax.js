@@ -422,7 +422,7 @@ module.exports = class indodax extends Exchange {
         const timestamp = this.safeInteger (order, 'submit_time');
         const fee = undefined;
         const id = this.safeString (order, 'order_id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

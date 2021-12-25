@@ -901,7 +901,7 @@ module.exports = class zb extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

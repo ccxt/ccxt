@@ -2446,7 +2446,7 @@ module.exports = class gateio extends Exchange {
                 'cost': tkfr,
             });
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': id,
             'timestamp': timestamp,

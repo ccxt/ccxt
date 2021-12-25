@@ -820,7 +820,7 @@ module.exports = class currencycom extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const fills = this.safeValue (order, 'fills');
         const timeInForce = this.safeString (order, 'timeInForce');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'timestamp': timestamp,

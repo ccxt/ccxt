@@ -583,7 +583,7 @@ module.exports = class bytetrade extends Exchange {
             'cost': feeCost,
             'rate': feeRate,
         };
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

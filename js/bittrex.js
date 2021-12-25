@@ -1044,7 +1044,7 @@ module.exports = class bittrex extends Exchange {
         const status = this.safeStringLower (order, 'status');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const postOnly = (timeInForce === 'PO');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,

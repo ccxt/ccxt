@@ -889,7 +889,7 @@ module.exports = class poloniex extends Exchange {
             };
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1108,7 +1108,7 @@ module.exports = class poloniex extends Exchange {
             throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
         }
         id = this.safeValue (firstTrade, 'globalTradeID', id);
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': response,
             'id': id,
             'clientOrderId': this.safeValue (firstTrade, 'clientOrderId'),

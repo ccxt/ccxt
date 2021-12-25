@@ -352,7 +352,7 @@ module.exports = class btcalpha extends Exchange {
         const id = this.safeString2 (order, 'oid', 'id');
         const trades = this.safeValue (order, 'trades');
         const side = this.safeString2 (order, 'my_side', 'type');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),

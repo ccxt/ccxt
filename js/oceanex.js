@@ -613,7 +613,7 @@ module.exports = class oceanex extends Exchange {
         const amount = this.safeString (order, 'volume');
         const remaining = this.safeString (order, 'remaining_volume');
         const filled = this.safeString (order, 'executed_volume');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,

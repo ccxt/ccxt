@@ -993,7 +993,7 @@ module.exports = class bibox extends Exchange {
                 'currency': undefined,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

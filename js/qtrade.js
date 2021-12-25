@@ -856,7 +856,7 @@ module.exports = class qtrade extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const rawTrades = this.safeValue (order, 'trades', []);
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

@@ -1927,7 +1927,7 @@ module.exports = class bitget extends Exchange {
             };
         }
         const clientOrderId = this.safeString (order, 'client_oid');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

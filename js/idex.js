@@ -873,7 +873,7 @@ module.exports = class idex extends Exchange {
         const rawStatus = this.safeString (order, 'status');
         const timeInForce = this.safeStringUpper (order, 'timeInForce');
         const status = this.parseOrderStatus (rawStatus);
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

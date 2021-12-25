@@ -2266,7 +2266,7 @@ module.exports = class huobi extends Exchange {
             };
         }
         const stopPrice = this.safeString (order, 'stop-price');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

@@ -554,7 +554,7 @@ module.exports = class kuna extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const id = this.safeString (order, 'id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,

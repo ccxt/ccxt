@@ -1191,7 +1191,7 @@ module.exports = class bitvavo extends Exchange {
         const postOnly = this.safeValue (order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         const stopPrice = this.safeNumber (order, 'triggerPrice');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
