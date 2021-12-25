@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, BadSymbol, DDoSProtection, InvalidOrder } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, BadSymbol, DDoSProtection, InvalidOrder, AccountSuspended } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -239,6 +239,7 @@ module.exports = class stex extends Exchange {
                     'Selected Pair is disabled': BadSymbol, // {"success":false,"message":"Selected Pair is disabled"}
                     'Invalid scope(s) provided.': PermissionDenied, // { "message": "Invalid scope(s) provided." }
                     'The maximum amount of open orders with the same price cannot exceed 10': InvalidOrder, // { "success":false,"message":"The maximum amount of open orders with the same price cannot exceed 10" }
+                    'Your account not verified!': AccountSuspended, // {"success":false,"message":"Your account not verified!","unified_message":{"message_id":"verification_required_to_continue","substitutions":null},"notice":"Please be informed that parameter `message` is deprecated and will be removed. Use unified_message instead."}
                 },
                 'broad': {
                     'Not enough': InsufficientFunds, // {"success":false,"message":"Not enough  ETH"}
