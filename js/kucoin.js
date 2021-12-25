@@ -594,7 +594,8 @@ module.exports = class kucoin extends ccxt.kucoin {
             timestamp = parseInt (timestamp / 1000000);
         }
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeSymbol (marketId, market);
+        const symbol = market['symbol'];
         const side = this.safeStringLower (order, 'side');
         return this.safeOrder2 ({
             'info': order,
@@ -609,7 +610,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,
@@ -618,7 +619,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        });
+        }, market);
     }
 
     handleOrder (client, message) {
