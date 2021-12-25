@@ -279,10 +279,6 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function parse_balance_response($response, $type = null) {
-        return $this->parse_balance($response, $type);
-    }
-
     public function parse_balance($response, $type = null) {
         //
         //     array(
