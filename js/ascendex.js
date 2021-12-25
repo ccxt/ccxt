@@ -1969,7 +1969,7 @@ module.exports = class ascendex extends Exchange {
             url += version + '/';
         }
         if (accountCategory) {
-            url += this.implodeParams ('/{account-category}', params);
+            url += this.implodeParams ('{account-category}/', params);
         }
         params = this.omit (params, 'account-category');
         url += request;
