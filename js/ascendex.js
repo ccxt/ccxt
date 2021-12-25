@@ -1163,11 +1163,14 @@ module.exports = class ascendex extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const options = this.safeValue (this.options, 'fetchOrder', {});
-        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
-        accountCategory = this.safeString (params, 'account-category', accountCategory);
-        params = this.omit (params, 'account-category');
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        const accountCategory = this.safeString (accountCategories, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const request = {
@@ -1175,7 +1178,22 @@ module.exports = class ascendex extends Exchange {
             'account-category': accountCategory,
             'orderId': id,
         };
-        const response = await this.v1PrivateAccountCategoryGetOrderStatus (this.extend (request, params));
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetOrderStatus');
+        const method = this.getSupportedMapping (type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupGetFuturesOrderStatus',
+        });
+        if (method === 'v1PrivateAccountCategoryGetOrderStatus') {
+            if (accountCategory !== undefined) {
+                request['category'] = accountCategory;
+            }
+        } else {
+            request['account-category'] = accountCategory;
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // AccountCategoryGetOrderStatus
         //
         //     {
         //         "code": 0,
@@ -1203,8 +1221,46 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
+        // AccountGroupGetFuturesOrderStatus
+        //
+        //     {
+        //         "code": 0,
+        //         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //         "ac": "FUTURES",
+        //         "data": {
+        //             "ac": "FUTURES",
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "time": 1640247020217,
+        //             "orderId": "r17de65747aeU0711043490bbtcp0cmt",
+        //             "seqNum": 28796162908,
+        //             "orderType": "Limit",
+        //             "execInst": "NULL_VAL",
+        //             "side": "Buy",
+        //             "symbol": "BTC-PERP",
+        //             "price": "30000",
+        //             "orderQty": "0.0021",
+        //             "stopPrice": "0",
+        //             "stopBy": "market",
+        //             "status": "New",
+        //             "lastExecTime": 1640247020232,
+        //             "lastQty": "0",
+        //             "lastPx": "0",
+        //             "avgFilledPx": "0",
+        //             "cumFilledQty": "0",
+        //             "fee": "0",
+        //             "cumFee": "0",
+        //             "feeAsset": "USDT",
+        //             "errorCode": "",
+        //             "posStopLossPrice": "0",
+        //             "posStopLossTrigger": "market",
+        //             "posTakeProfitPrice": "0",
+        //             "posTakeProfitTrigger": "market",
+        //             "liquidityInd": "n"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data);
+        return this.parseOrder (data, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
