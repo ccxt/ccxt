@@ -270,7 +270,7 @@ class bittrex(Exchange, ccxt.bittrex):
         account['free'] = self.safe_string(delta, 'available')
         account['total'] = self.safe_string(delta, 'total')
         self.balance[code] = account
-        self.balance = self.safe_balance(self.balance, False)
+        self.balance = self.safe_balance(self.balance)
         messageHash = 'balance'
         client.resolve(self.balance, messageHash)
 

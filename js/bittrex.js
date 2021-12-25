@@ -291,7 +291,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         account['free'] = this.safeString (delta, 'available');
         account['total'] = this.safeString (delta, 'total');
         this.balance[code] = account;
-        this.balance = this.safeBalance (this.balance, false);
+        this.balance = this.safeBalance (this.balance);
         const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
     }

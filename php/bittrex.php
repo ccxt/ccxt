@@ -295,7 +295,7 @@ class bittrex extends \ccxt\async\bittrex {
         $account['free'] = $this->safe_string($delta, 'available');
         $account['total'] = $this->safe_string($delta, 'total');
         $this->balance[$code] = $account;
-        $this->balance = $this->safe_balance($this->balance, false);
+        $this->balance = $this->safe_balance($this->balance);
         $messageHash = 'balance';
         $client->resolve ($this->balance, $messageHash);
     }
