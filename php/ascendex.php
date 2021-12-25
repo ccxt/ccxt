@@ -1974,7 +1974,7 @@ class ascendex extends Exchange {
             $url .= $version . '/';
         }
         if ($accountCategory) {
-            $url .= $this->implode_params('/{account-category}', $params);
+            $url .= $this->implode_params('{account-category}/', $params);
         }
         $params = $this->omit($params, 'account-category');
         $url .= $request;

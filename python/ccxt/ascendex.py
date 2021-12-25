@@ -1896,7 +1896,7 @@ class ascendex(Exchange):
         else:
             url += version + '/'
         if accountCategory:
-            url += self.implode_params('/{account-category}', params)
+            url += self.implode_params('{account-category}/', params)
         params = self.omit(params, 'account-category')
         url += request
         if (version == 'v1') and (request == 'cash/balance') or (request == 'margin/balance'):
