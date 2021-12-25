@@ -1534,11 +1534,14 @@ class ascendex extends Exchange {
     public function cancel_all_orders($symbol = null, $params = array ()) {
         yield $this->load_markets();
         yield $this->load_accounts();
-        $defaultAccountCategory = $this->safe_string($this->options, 'account-category', 'cash');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         $options = $this->safe_value($this->options, 'cancelAllOrders', array());
-        $accountCategory = $this->safe_string($options, 'account-category', $defaultAccountCategory);
-        $accountCategory = $this->safe_string($params, 'account-category', $accountCategory);
-        $params = $this->omit($params, 'account-category');
+        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
+        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $request = array(
@@ -1546,12 +1549,25 @@ class ascendex extends Exchange {
             'account-category' => $accountCategory,
             'time' => $this->milliseconds(),
         );
-        $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = yield $this->v1PrivateAccountCategoryDeleteOrderAll (array_merge($request, $params));
+        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryDeleteOrderAll');
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => $defaultMethod,
+            'margin' => $defaultMethod,
+            'swap' => 'v2PrivateAccountGroupDeleteFuturesOrderAll',
+        ));
+        if ($method === 'v1PrivateAccountCategoryDeleteOrderAll') {
+            if ($accountCategory !== null) {
+                $request['category'] = $accountCategory;
+            }
+        } else {
+            $request['account-category'] = $accountCategory;
+        }
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // AccountCategoryDeleteOrderAll
         //
         //     {
         //         "code" => 0,
@@ -1567,6 +1583,20 @@ class ascendex extends Exchange {
         //                 "timestamp" => 1574118495462
         //             ),
         //             "status" => "Ack"
+        //         }
+        //     }
+        //
+        // AccountGroupDeleteFuturesOrderAll
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "ac" => "FUTURES",
+        //             "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "action" => "cancel-all",
+        //             "info" => {
+        //                 "symbol":"BTC-PERP"
+        //             }
         //         }
         //     }
         //

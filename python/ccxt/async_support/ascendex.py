@@ -1486,11 +1486,13 @@ class ascendex(Exchange):
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
         await self.load_accounts()
-        defaultAccountCategory = self.safe_string(self.options, 'account-category', 'cash')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         options = self.safe_value(self.options, 'cancelAllOrders', {})
-        accountCategory = self.safe_string(options, 'account-category', defaultAccountCategory)
-        accountCategory = self.safe_string(params, 'account-category', accountCategory)
-        params = self.omit(params, 'account-category')
+        accountCategories = self.safe_value(self.options, 'accountCategories', {})
+        accountCategory = self.safe_string(accountCategories, type, 'cash')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         request = {
@@ -1498,11 +1500,22 @@ class ascendex(Exchange):
             'account-category': accountCategory,
             'time': self.milliseconds(),
         }
-        market = None
         if symbol is not None:
-            market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.v1PrivateAccountCategoryDeleteOrderAll(self.extend(request, params))
+        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryDeleteOrderAll')
+        method = self.get_supported_mapping(type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupDeleteFuturesOrderAll',
+        })
+        if method == 'v1PrivateAccountCategoryDeleteOrderAll':
+            if accountCategory is not None:
+                request['category'] = accountCategory
+        else:
+            request['account-category'] = accountCategory
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # AccountCategoryDeleteOrderAll
         #
         #     {
         #         "code": 0,
@@ -1518,6 +1531,20 @@ class ascendex(Exchange):
         #                 "timestamp": 1574118495462
         #             },
         #             "status": "Ack"
+        #         }
+        #     }
+        #
+        # AccountGroupDeleteFuturesOrderAll
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "ac": "FUTURES",
+        #             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #             "action": "cancel-all",
+        #             "info": {
+        #                 "symbol":"BTC-PERP"
+        #             }
         #         }
         #     }
         #
