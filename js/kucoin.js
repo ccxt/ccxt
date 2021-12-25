@@ -584,9 +584,9 @@ module.exports = class kucoin extends ccxt.kucoin {
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOid');
         const orderType = this.safeStringLower (order, 'orderType');
-        const price = this.safeNumber (order, 'price');
-        const filled = this.safeNumber (order, 'filledSize');
-        const amount = this.safeNumber (order, 'size');
+        const price = this.safeString (order, 'price');
+        const filled = this.safeString (order, 'filledSize');
+        const amount = this.safeString (order, 'size');
         const rawType = this.safeString (order, 'type');
         const status = this.parseWsOrderStatus (rawType);
         let timestamp = this.safeInteger (order, 'ts');
@@ -596,7 +596,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeStringLower (order, 'side');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'info': order,
             'symbol': symbol,
             'id': id,
