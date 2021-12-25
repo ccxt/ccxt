@@ -1106,28 +1106,24 @@ class poloniex extends Exchange {
         //         }
         //     )
         //
-        $trades = $this->parse_trades($response);
-        $firstTrade = $this->safe_value($trades, 0);
+        $firstTrade = $this->safe_value($response, 0);
         if ($firstTrade === null) {
             throw new OrderNotFound($this->id . ' order $id ' . $id . ' not found');
         }
-        $symbol = $this->safe_string($firstTrade, 'symbol', $symbol);
-        $side = $this->safe_string($firstTrade, 'side');
-        $timestamp = $this->safe_number($firstTrade, 'timestamp');
-        $id = $this->safe_value($firstTrade['info'], 'globalTradeID', $id);
-        return $this->safe_order(array(
+        $id = $this->safe_value($firstTrade, 'globalTradeID', $id);
+        return $this->safe_order2(array(
             'info' => $response,
             'id' => $id,
             'clientOrderId' => $this->safe_value($firstTrade, 'clientOrderId'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'lastTradeTimestamp' => null,
             'status' => 'closed',
-            'symbol' => $symbol,
-            'type' => $this->safe_string($firstTrade, 'type'),
+            'symbol' => null,
+            'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $side,
+            'side' => null,
             'price' => null,
             'stopPrice' => null,
             'cost' => null,
@@ -1135,7 +1131,7 @@ class poloniex extends Exchange {
             'amount' => null,
             'filled' => null,
             'remaining' => null,
-            'trades' => $trades,
+            'trades' => $response,
             'fee' => null,
         ));
     }

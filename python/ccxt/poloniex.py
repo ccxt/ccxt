@@ -1048,27 +1048,23 @@ class poloniex(Exchange):
         #         }
         #     ]
         #
-        trades = self.parse_trades(response)
-        firstTrade = self.safe_value(trades, 0)
+        firstTrade = self.safe_value(response, 0)
         if firstTrade is None:
             raise OrderNotFound(self.id + ' order id ' + id + ' not found')
-        symbol = self.safe_string(firstTrade, 'symbol', symbol)
-        side = self.safe_string(firstTrade, 'side')
-        timestamp = self.safe_number(firstTrade, 'timestamp')
-        id = self.safe_value(firstTrade['info'], 'globalTradeID', id)
-        return self.safe_order({
+        id = self.safe_value(firstTrade, 'globalTradeID', id)
+        return self.safe_order2({
             'info': response,
             'id': id,
             'clientOrderId': self.safe_value(firstTrade, 'clientOrderId'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'lastTradeTimestamp': None,
             'status': 'closed',
-            'symbol': symbol,
-            'type': self.safe_string(firstTrade, 'type'),
+            'symbol': None,
+            'type': None,
             'timeInForce': None,
             'postOnly': None,
-            'side': side,
+            'side': None,
             'price': None,
             'stopPrice': None,
             'cost': None,
@@ -1076,7 +1072,7 @@ class poloniex(Exchange):
             'amount': None,
             'filled': None,
             'remaining': None,
-            'trades': trades,
+            'trades': response,
             'fee': None,
         })
 
