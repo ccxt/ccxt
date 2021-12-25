@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound } = require ('./base/errors');
 const Precise = require ('./base/Precise');
+
 // ---------------------------------------------------------------------------
 
 module.exports = class coinsbit extends Exchange {
@@ -33,7 +34,7 @@ module.exports = class coinsbit extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
-                'fetchClosedOrder': true,
+                'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
                 'fetchCanceledOrders': false,
                 'fetchOrderBook': true,
@@ -95,7 +96,7 @@ module.exports = class coinsbit extends Exchange {
                         'orders': 1,
                         'account/balances': 1,
                         'account/balance': 1,
-                        'account/order': 1,
+                        'account/order': 1, // theoretically, this might got implemented in fetchClosedOrder, but API is broken
                         'account/trades': 1,
                         'account/order_history': 1,
                         'account/order_history_list': 1,
@@ -604,7 +605,7 @@ module.exports = class coinsbit extends Exchange {
         //           price: '3931.64271609',
         //           amount: '0.002',
         //           id: '1595921',
-        //           dealOrderId: '8631729321',
+        //           dealOrderId: '8631729321', //<--- this is different than passed order-id
         //           role: '2',
         //           deal: '7.86328543'
         //         },
@@ -684,7 +685,7 @@ module.exports = class coinsbit extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder supports limit orders only');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.safeMarket (undefined, symbol);
         const request = {
             'market': market['id'],
         };
@@ -764,38 +765,6 @@ module.exports = class coinsbit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        request['orderId'] = id;
-        const response = await this.privatePostAccountOrder (this.extend (request, params));
-        // {
-        //     success: true,
-        //     message: '',
-        //     result: {
-        //       offset: '0',
-        //       limit: '50',
-        //       records: {
-        //         time: '1640258718.402',
-        //         fee: '0.01572657',
-        //         price: '3931.64271609',
-        //         amount: '0.002',
-        //         id: '1595921',
-        //         dealOrderId: '8631729321',
-        //         role: '2',
-        //         deal: '7.86328543'
-        //       }
-        //     },
-        //     code: '200'
-        // }
-        const result = this.safeValue (response, 'result', {});
-        const order = this.safeValue (result, 'records');
-        if (order === undefined) {
-            throw new OrderNotFound (this.id + ' fetchOrder() could not find any closed order data for id ' + id);
-        }
-        return this.parseTrade ({ 'id': id, 'order': order }, undefined);
-    }
-
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -840,7 +809,7 @@ module.exports = class coinsbit extends Exchange {
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const ordersOfMarket = data[marketId];
-                for (let j = 0; j < ordersOfMarket.length; i++) {
+                for (let j = 0; j < ordersOfMarket.length; j++) {
                     records.push (ordersOfMarket[j]);
                 }
             }
@@ -900,7 +869,7 @@ module.exports = class coinsbit extends Exchange {
         //
         //  fetchClosedOrder
         //      {
-        //         dealOrderId: '8631729321',
+        //         dealOrderId: '8631729321', //<--- this is different than passed order-id
         //         id: '1595921',
         //         time: '1640258718.402',
         //         fee: '0.01572657',
@@ -1009,7 +978,7 @@ module.exports = class coinsbit extends Exchange {
         //         price: '3931.64271609',
         //         amount: '0.002',
         //         id: '1595921',
-        //         dealOrderId: '8631729321',
+        //         dealOrderId: '8631729321',  //<--- this is different than passed order-id
         //         role: '2',
         //         deal: '7.86328543'
         //       }
@@ -1033,17 +1002,22 @@ module.exports = class coinsbit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const request = this.omit (params, 'type');
-        const currencyCode = this.safeValue (params, 'currency');
-        const currency = this.safeValue (this.currencies_by_id, currencyCode);
-        let method = undefined;
-        if (currency !== undefined) {
-            request['currency'] = currency['id'];
-            method = 'privatePostAccountBalance';
-        } else {
-            method = 'privatePostAccountBalances';
+        let currencyId = this.safeString (params, 'currency');
+        if (currencyId === undefined) {
+            const code = this.safeString (params, 'code');
+            if (code !== undefined) {
+                params = this.omit (params, 'code');
+                const currency = this.currency (code);
+                currencyId = currency['id'];
+            }
         }
-        const response = await this[method] (request);
+        let method = 'privatePostAccountBalances';
+        const request = {};
+        if (currencyId !== undefined) {
+            request['currency'] = currencyId;
+            method = 'privatePostAccountBalance';
+        }
+        const response = await this[method] (this.extend (request, params));
         // {
         //     success: true,
         //     message: '',
