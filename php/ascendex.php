@@ -1527,7 +1527,7 @@ class ascendex extends Exchange {
         //         destTag => "",
         //         tagType => "",
         //         $tagId => "",
-        //         chainName => "ERC20",
+        //         $chainName => "ERC20",
         //         numConfirmations => 20,
         //         withdrawalFee => 1,
         //         nativeScale => 4,
@@ -1539,13 +1539,20 @@ class ascendex extends Exchange {
         $tag = $this->safe_string($depositAddress, $tagId);
         $this->check_address($address);
         $code = ($currency === null) ? null : $currency['code'];
+        $chainName = $this->safe_string($depositAddress, 'chainName');
+        $network = $this->safe_network($chainName);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => null, // TODO => parse network
+            'network' => $network,
             'info' => $depositAddress,
         );
+    }
+
+    public function safe_network($networkId) {
+        // TODO => parse network
+        return $networkId;
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

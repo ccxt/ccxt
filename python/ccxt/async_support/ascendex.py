@@ -1491,13 +1491,19 @@ class ascendex(Exchange):
         tag = self.safe_string(depositAddress, tagId)
         self.check_address(address)
         code = None if (currency is None) else currency['code']
+        chainName = self.safe_string(depositAddress, 'chainName')
+        network = self.safe_network(chainName)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,  # TODO: parse network
+            'network': network,
             'info': depositAddress,
         }
+
+    def safe_network(self, networkId):
+        # TODO: parse network
+        return networkId
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
