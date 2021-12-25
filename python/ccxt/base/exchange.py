@@ -2415,7 +2415,7 @@ class Exchange(object):
         trade['cost'] = self.parse_number(cost)
         return trade
 
-    def safe_order2(self, order, market=None):
+    def safe_order(self, order, market=None):
         # parses numbers as strings
         # it is important pass the trades as unparsed rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))
