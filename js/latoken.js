@@ -448,7 +448,7 @@ module.exports = class latoken extends Exchange {
         }
         result['timestamp'] = maxTimestamp;
         result['datetime'] = this.iso8601 (maxTimestamp);
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

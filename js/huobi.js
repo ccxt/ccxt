@@ -2073,11 +2073,11 @@ module.exports = class huobi extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 const accountsByCode = {};
                 accountsByCode[code] = account;
-                result[symbol] = this.parseBalance (accountsByCode);
+                result[symbol] = this.safeBalance (accountsByCode);
             }
             return result;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {

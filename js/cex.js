@@ -371,7 +371,7 @@ module.exports = class cex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

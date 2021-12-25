@@ -234,7 +234,7 @@ module.exports = class btcturk extends Exchange {
             account['used'] = this.safeString (entry, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

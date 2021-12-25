@@ -454,43 +454,60 @@ class bitmart(Exchange):
             # the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             #
             pricePrecision = self.safe_integer(market, 'price_max_precision')
-            precision = {
-                'amount': self.safe_number(market, 'base_min_size'),
-                'price': self.parse_number(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 14)),
-            }
             minBuyCost = self.safe_number(market, 'min_buy_amount')
             minSellCost = self.safe_number(market, 'min_sell_amount')
             minCost = max(minBuyCost, minSellCost)
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'base_min_size'),
-                    'max': self.safe_number(market, 'base_max_size'),
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': None,
-                },
-            }
             result.append({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'future': False,
+                'margin': False,
                 'swap': False,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'future': False,
+                'option': False,
+                'derivative': False,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': None,
+                'maker': None,
+                'contractSize': None,
                 'active': True,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'base_min_size'),
+                    'price': self.parse_number(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 14)),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'base_min_size'),
+                        'max': self.safe_number(market, 'base_max_size'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': minCost,
+                        'max': None,
+                    },
+                },
+                'info': market,
             })
         return result
 
@@ -560,9 +577,10 @@ class bitmart(Exchange):
             numericId = self.safe_integer(contract, 'contract_id')
             baseId = self.safe_string(contract, 'base_coin')
             quoteId = self.safe_string(contract, 'quote_coin')
+            settleId = self.safe_string(contract, 'price_coin')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = self.safe_string(contract, 'name')
+            settle = self.safe_currency_code(settleId)
             #
             # https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
             # from the above API doc:
@@ -574,55 +592,72 @@ class bitmart(Exchange):
             #
             amountPrecision = self.safe_number(contract, 'vol_unit')
             pricePrecision = self.safe_number(contract, 'price_unit')
-            precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(contract, 'min_vol'),
-                    'max': self.safe_number(contract, 'max_vol'),
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             contractType = self.safe_value(contract, 'contract_type')
             future = False
             swap = False
             type = 'contract'
+            symbol = base + '/' + quote
+            expiry = self.parse8601(self.safe_string(contract, 'delive_at'))
             if contractType == 1:
                 type = 'swap'
                 swap = True
+                symbol = symbol + ':' + settle
             elif contractType == 2:
                 type = 'future'
                 future = True
+                symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry, '')
             feeConfig = self.safe_value(market, 'fee_config', {})
-            maker = self.safe_number(feeConfig, 'maker_fee')
-            taker = self.safe_number(feeConfig, 'taker_fee')
             result.append({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'maker': maker,
-                'taker': taker,
+                'settleId': settleId,
                 'type': type,
                 'spot': False,
-                'future': future,
+                'margin': False,
                 'swap': swap,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'future': future,
+                'option': False,
+                'derivative': True,
+                'contract': True,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(feeConfig, 'taker_fee'),
+                'maker': self.safe_number(feeConfig, 'maker_fee'),
+                'contractSize': self.safe_string(market, 'contract_size'),
                 'active': None,
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': self.safe_number(contract, 'min_leverage'),
+                        'max': self.safe_number(contract, 'max_leverage'),
+                    },
+                    'amount': {
+                        'min': self.safe_number(contract, 'min_vol'),
+                        'max': self.safe_number(contract, 'max_vol'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': market,
             })
         return result
 
@@ -1459,7 +1494,7 @@ class bitmart(Exchange):
             account['free'] = self.safe_string_2(balance, 'available', 'available_vol')
             account['used'] = self.safe_string_2(balance, 'frozen', 'freeze_vol')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order(self, order, market=None):
         #

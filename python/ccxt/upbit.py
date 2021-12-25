@@ -443,7 +443,7 @@ class upbit(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()

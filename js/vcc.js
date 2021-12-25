@@ -317,7 +317,7 @@ module.exports = class vcc extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

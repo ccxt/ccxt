@@ -588,7 +588,7 @@ class novadax extends Exchange {
             $account['used'] = $this->safe_string($balance, 'hold');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

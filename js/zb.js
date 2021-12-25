@@ -152,7 +152,7 @@ module.exports = class zb extends Exchange {
             'api': {
                 'trade': {
                     'get': [
-                        'getFeeInfo',
+                        'getFeeInfo', // withdrawal fees
                     ],
                 },
                 'public': {
@@ -262,22 +262,42 @@ module.exports = class zb extends Exchange {
             const amountPrecisionString = this.safeString (market, 'amountScale');
             const pricePrecisionString = this.safeString (market, 'priceScale');
             const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'amount': parseInt (amountPrecisionString),
-                'price': parseInt (pricePrecisionString),
-            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'futures': false,
+                'option': false,
+                'derivative': false,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': undefined,
+                'maker': undefined,
+                'contractSize': undefined,
                 'active': true,
-                'precision': precision,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': parseInt (amountPrecisionString),
+                    'price': parseInt (pricePrecisionString),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minAmount'),
                         'max': undefined,
@@ -397,7 +417,7 @@ module.exports = class zb extends Exchange {
             account['used'] = this.safeString (balance, 'freez');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {

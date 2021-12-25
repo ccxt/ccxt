@@ -299,7 +299,7 @@ class bytetrade(Exchange):
             account['free'] = self.safe_string(balance, 'free')
             account['used'] = self.safe_string(balance, 'used')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.safe_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -11,7 +11,7 @@ except NameError:
 
 def test_transaction(exchange, transaction, code, now):
     assert transaction
-    assert isinstance(transaction['id'], basestring)
+    assert(transaction['id'] is None) or (isinstance(transaction['id'], basestring))
     assert isinstance(transaction['timestamp'], numbers.Real)
     assert transaction['timestamp'] > 1230940800000  # 03 Jan 2009 - first block
     assert transaction['timestamp'] < now

@@ -613,7 +613,7 @@ class bitfinex2 extends bitfinex {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

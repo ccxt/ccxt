@@ -1063,7 +1063,7 @@ module.exports = class Exchange {
         }
     }
 
-    parseBalance (balance, legacy = false) {
+    safeBalance (balance) {
 
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
 
@@ -1075,29 +1075,17 @@ module.exports = class Exchange {
             const code = codes[i]
             if (balance[code].total === undefined) {
                 if (balance[code].free !== undefined && balance[code].used !== undefined) {
-                    if (legacy) {
-                        balance[code].total = this.sum (balance[code].free, balance[code].used)
-                    } else {
-                        balance[code].total = Precise.stringAdd (balance[code].free, balance[code].used)
-                    }
+                    balance[code].total = Precise.stringAdd (balance[code].free, balance[code].used)
                 }
             }
             if (balance[code].free === undefined) {
                 if (balance[code].total !== undefined && balance[code].used !== undefined) {
-                    if (legacy) {
-                        balance[code].free = this.sum (balance[code].total, -balance[code].used)
-                    } else {
-                        balance[code].free = Precise.stringSub (balance[code].total, balance[code].used)
-                    }
+                    balance[code].free = Precise.stringSub (balance[code].total, balance[code].used)
                 }
             }
             if (balance[code].used === undefined) {
                 if (balance[code].total !== undefined && balance[code].free !== undefined) {
-                    if (legacy) {
-                        balance[code].used = this.sum (balance[code].total, -balance[code].free)
-                    } else {
-                        balance[code].used = Precise.stringSub (balance[code].total, balance[code].free)
-                    }
+                    balance[code].used = Precise.stringSub (balance[code].total, balance[code].free)
                 }
             }
             balance[code].free = this.parseNumber (balance[code].free)
@@ -1107,7 +1095,6 @@ module.exports = class Exchange {
             balance.used[code] = balance[code].used
             balance.total[code] = balance[code].total
         }
-
         return balance
     }
 
@@ -1299,7 +1286,7 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
+        let result = Object.values (trades || []).map ((trade) => this.merge (this.parseTrade (trade, market), params))
         result = sortBy2 (result, 'timestamp', 'id')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         const tail = since === undefined
@@ -1919,6 +1906,19 @@ module.exports = class Exchange {
             });
             this.number = oldNumber;
             if (Array.isArray (trades) && trades.length) {
+                // move properties that are defined in trades up into the order
+                if (order['symbol'] === undefined) {
+                    order['symbol'] = trades[0]['symbol'];
+                }
+                if (order['side'] === undefined) {
+                    order['side'] = trades[0]['side'];
+                }
+                if (order['type'] === undefined) {
+                    order['type'] = trades[0]['type'];
+                }
+                if (order['id'] === undefined) {
+                    order['id'] = trades[0]['order'];
+                }
                 if (parseFilled) {
                     filled = '0';
                 }
@@ -2116,10 +2116,21 @@ module.exports = class Exchange {
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
-        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'spot');
-        const marketType = (market === undefined) ? defaultType : market['type'];
-        const type = this.safeString (params, 'type', marketType);
-        params = this.omit (params, 'type');
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
+        const methodOptions = this.safeValue (this.options, methodName);
+        let methodType = undefined;
+        if (methodOptions === undefined) {
+            methodType = defaultType;
+        } else {
+            if (typeof methodOptions === 'string') {
+                methodType = methodOptions;
+            } else {
+                methodType = this.safeString2 (methodOptions, 'defaultType', 'type');
+            }
+        }
+        const marketType = (market === undefined) ? methodType : market['type'];
+        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
+        params = this.omit (params, [ 'defaultType', 'type' ]);
         return [ type, params ];
     }
 }

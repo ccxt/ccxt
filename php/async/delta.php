@@ -812,7 +812,7 @@ class delta extends Exchange {
             $account['free'] = $this->safe_string($balance, 'available_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_position($symbol, $params = null) {

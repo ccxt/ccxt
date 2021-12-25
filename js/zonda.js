@@ -414,7 +414,7 @@ module.exports = class zonda extends Exchange {
             account['free'] = this.safeString (balance, 'availableFunds');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

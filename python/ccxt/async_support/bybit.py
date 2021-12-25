@@ -1152,7 +1152,7 @@ class bybit(Exchange):
             account['used'] = self.safe_string(balance, 'used_margin')
             account['total'] = self.safe_string(balance, 'equity')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order_status(self, status):
         statuses = {

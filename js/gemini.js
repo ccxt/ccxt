@@ -638,7 +638,7 @@ module.exports = class gemini extends Exchange {
             account['total'] = this.safeString (balance, 'amount');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseOrder (order, market = undefined) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.64.62'
+__version__ = '1.64.94'
 
 # -----------------------------------------------------------------------------
 
@@ -898,6 +898,23 @@ class Exchange(object):
         return {}
 
     @staticmethod
+    def merge(*args):
+        if args is not None:
+            result = None
+            if type(args[0]) is collections.OrderedDict:
+                result = collections.OrderedDict()
+            else:
+                result = {}
+            for arg in args:
+                # -- diff --
+                for key in arg:
+                    if result.get(key) is None:
+                        result[key] = arg[key]
+                # -- enddiff --
+            return result
+        return {}
+
+    @staticmethod
     def deep_extend(*args):
         result = None
         for arg in args:
@@ -1653,7 +1670,7 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def parse_balance(self, balance, legacy=False):
+    def safe_balance(self, balance):
         currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}
@@ -1661,22 +1678,13 @@ class Exchange(object):
         for currency in currencies:
             if balance[currency].get('total') is None:
                 if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
-                    if legacy:
-                        balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
-                    else:
-                        balance[currency]['total'] = Precise.string_add(balance[currency]['free'], balance[currency]['used'])
+                    balance[currency]['total'] = Precise.string_add(balance[currency]['free'], balance[currency]['used'])
             if balance[currency].get('free') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('used') is not None:
-                    if legacy:
-                        balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
-                    else:
-                        balance[currency]['free'] = Precise.string_sub(balance[currency]['total'], balance[currency]['used'])
+                    balance[currency]['free'] = Precise.string_sub(balance[currency]['total'], balance[currency]['used'])
             if balance[currency].get('used') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
-                    if legacy:
-                        balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
-                    else:
-                        balance[currency]['used'] = Precise.string_sub(balance[currency]['total'], balance[currency]['free'])
+                    balance[currency]['used'] = Precise.string_sub(balance[currency]['total'], balance[currency]['free'])
             balance[currency]['free'] = self.parse_number(balance[currency]['free'])
             balance[currency]['used'] = self.parse_number(balance[currency]['used'])
             balance[currency]['total'] = self.parse_number(balance[currency]['total'])
@@ -1901,7 +1909,7 @@ class Exchange(object):
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
-        array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
+        array = [self.merge(self.parse_trade(trade, market), params) for trade in array]
         array = self.sort_by_2(array, 'timestamp', 'id')
         symbol = market['symbol'] if market else None
         tail = since is None
@@ -2537,6 +2545,15 @@ class Exchange(object):
             })
             self.number = oldNumber
             if isinstance(trades, list) and len(trades):
+                # move properties that are defined in trades up into the order
+                if order['symbol'] is None:
+                    order['symbol'] = trades[0]['symbol']
+                if order['side'] is None:
+                    order['side'] = trades[0]['side']
+                if order['type'] is None:
+                    order['type'] = trades[0]['type']
+                if order['id'] is None:
+                    order['id'] = trades[0]['order']
                 if parseFilled:
                     filled = '0'
                 if parseCost:
@@ -2692,8 +2709,17 @@ class Exchange(object):
         return rate
 
     def handle_market_type_and_params(self, method_name, market=None, params={}):
-        default_type = self.safe_string_2(self.options, method_name, 'defaultType', 'spot')
-        market_type = default_type if market is None else market['type']
-        type = self.safe_string(params, 'type', market_type)
-        params = self.omit(params, 'type')
+        default_type = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+        method_options = self.safe_value(self.options, method_name)
+        method_type = None
+        if method_options is None:
+            method_type = default_type
+        else:
+            if isinstance(method_options, str):
+                method_type = method_options
+            else:
+                method_type = self.safe_string_2(method_options, 'defaultType', 'type')
+        market_type = method_type if market is None else market['type']
+        type = self.safe_string_2(params, 'defaultType', 'type', market_type)
+        params = self.omit(params, ['defaultType', 'type'])
         return [type, params]

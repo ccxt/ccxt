@@ -522,7 +522,7 @@ module.exports = class liquid extends Exchange {
             account['used'] = this.safeString (balance, 'reserved_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

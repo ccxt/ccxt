@@ -585,7 +585,7 @@ class hitbtc3(Exchange):
             account['free'] = self.safe_string(entry, 'available')
             account['used'] = self.safe_string(entry, 'reserved')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_ticker(self, symbol, params={}):
         response = self.fetch_tickers([symbol], params)

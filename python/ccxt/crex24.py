@@ -479,7 +479,7 @@ class crex24(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'reserved')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -773,19 +773,16 @@ class crex24(Exchange):
         marketId = self.safe_string(order, 'instrument')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'volume')
-        remaining = self.safe_number(order, 'remainingVolume')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'volume')
+        remaining = self.safe_string(order, 'remainingVolume')
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'lastUpdate'))
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
-        fee = None
-        trades = None
-        average = None
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -800,13 +797,13 @@ class crex24(Exchange):
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': None,
-            'average': average,
+            'average': None,
             'filled': None,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
-            'trades': trades,
-        })
+            'fee': None,
+            'trades': None,
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

@@ -265,7 +265,7 @@ class bitforex(Exchange):
             account['free'] = self.safe_string(balance, 'active')
             account['total'] = self.safe_string(balance, 'fix')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

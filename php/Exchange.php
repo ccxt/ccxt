@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.64.62';
+$version = '1.64.94';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.64.62';
+    const VERSION = '1.64.94';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -302,7 +302,7 @@ class Exchange {
         'parseBidsAsks' => 'parse_bids_asks',
         'fetchL2OrderBook' => 'fetch_l2_order_book',
         'parseOrderBook' => 'parse_order_book',
-        'parseBalance' => 'parse_balance',
+        'safeBalance' => 'safe_balance',
         'fetchBalance' => 'fetch_balance',
         'fetchPartialBalance' => 'fetch_partial_balance',
         'fetchFreeBalance' => 'fetch_free_balance',
@@ -751,6 +751,20 @@ class Exchange {
             }
         }
         return $out;
+    }
+
+    public function merge() {
+        // doesn't overwrite defined keys with undefined
+        $args = func_get_args();
+        $target = $args[0];
+        $overwrite = array();
+        $merged = array_merge(...array_slice($args, 1));
+        foreach ($merged as $key => $value) {
+            if (!isset($target[$key])) {
+                $overwrite[$key] = $value;
+            }
+        }
+        return array_merge($target, $overwrite);
     }
 
     public static function sum() {
@@ -1926,7 +1940,7 @@ class Exchange {
         );
     }
 
-    public function parse_balance($balance, $legacy = false) {
+    public function safe_balance($balance) {
         $currencies = $this->omit($balance, array('info', 'timestamp', 'datetime', 'free', 'used', 'total'));
 
         $balance['free'] = array();
@@ -1936,29 +1950,17 @@ class Exchange {
         foreach ($currencies as $code => $value) {
             if (!isset($value['total'])) {
                 if (isset($value['free']) && isset($value['used'])) {
-                    if ($legacy) {
-                        $balance[$code]['total'] = static::sum($value['free'], $value['used']);
-                    } else {
-                        $balance[$code]['total'] = Precise::string_add($value['free'], $value['used']);
-                    }
+                    $balance[$code]['total'] = Precise::string_add($value['free'], $value['used']);
                 }
             }
             if (!isset($value['used'])) {
                 if (isset($value['total']) && isset($value['free'])) {
-                    if ($legacy) {
-                        $balance[$code]['used'] = static::sum($value['total'], -$value['free']);
-                    } else {
-                        $balance[$code]['used'] = Precise::string_sub($value['total'], $value['free']);
-                    }
+                    $balance[$code]['used'] = Precise::string_sub($value['total'], $value['free']);
                 }
             }
             if (!isset($value['free'])) {
                 if (isset($value['total']) && isset($value['used'])) {
-                    if ($legacy) {
-                        $balance[$code]['free'] = static::sum($value['total'], -$value['used']);
-                    } else {
-                        $balance[$code]['free'] = Precise::string_sub($value['total'], $value['used']);
-                    }
+                    $balance[$code]['free'] = Precise::string_sub($value['total'], $value['used']);
                 }
             }
             $balance[$code]['free'] = $this->parse_number($balance[$code]['free']);
@@ -2126,7 +2128,7 @@ class Exchange {
         $array = is_array($trades) ? array_values($trades) : array();
         $result = array();
         foreach ($array as $trade) {
-            $result[] = array_merge($this->parse_trade($trade, $market), $params);
+            $result[] = $this->merge($this->parse_trade($trade, $market), $params);
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = isset($market) ? $market['symbol'] : null;
@@ -3363,6 +3365,19 @@ class Exchange {
             ));
             $this->number = $oldNumber;
             if (is_array($trades) && count($trades)) {
+                // move properties that are defined in trades up into the order
+                if ($order['symbol'] === null) {
+                    $order['symbol'] = $trades[0]['symbol'];
+                }
+                if ($order['side'] === null) {
+                    $order['side'] = $trades[0]['side'];
+                }
+                if ($order['type'] === null) {
+                    $order['type'] = $trades[0]['type'];
+                }
+                if ($order['id'] === null) {
+                    $order['id'] = $trades[0]['order'];
+                }
                 if ($parseFilled) {
                     $filled = '0';
                 }
@@ -3533,7 +3548,7 @@ class Exchange {
 
     public function handle_withdraw_tag_and_params($tag, $params) {
         if (gettype($tag) === 'array') {
-            $params = $this->extend($tag, $params);
+            $params = array_merge($tag, $params);
             $tag = null;
         }
         if ($tag === null) {
@@ -3570,10 +3585,18 @@ class Exchange {
     }
 
     public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
-        $default_type = $this->safe_string_2($this->options, $method_name, 'defaultType', 'spot');
-        $market_type = isset($market) ? market['type'] : $default_type;
-        $type = $this->safe_string($params, 'type', $market_type);
-        $params = $this->omit($params, $type);
+        $default_type = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
+        $method_options = $this->safe_value($this->options, $method_name);
+        if (isset($method_options)) {
+            if (is_string($method_options)) {
+                $method_type = $method_options;
+            } else {
+                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type');
+            }
+        }
+        $market_type = isset($market) ? market['type'] : $method_type;
+        $type = $this->safe_string_2($params, 'defaultType', 'type', $market_type);
+        $params = $this->omit($params, [ 'defaultType', 'type' ]);
         return array($type, $params);
     }
 }

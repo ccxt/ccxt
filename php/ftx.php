@@ -281,7 +281,7 @@ class ftx extends Exchange {
                             array( $this->parse_number('2000000'), $this->parse_number('0.0006') ),
                             array( $this->parse_number('5000000'), $this->parse_number('0.00055') ),
                             array( $this->parse_number('10000000'), $this->parse_number('0.0005') ),
-                            array( $this->parse_number('25000000'), $this->parse_number('0.045') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0045') ),
                             array( $this->parse_number('50000000'), $this->parse_number('0.0004') ),
                         ),
                         'maker' => array(
@@ -1125,7 +1125,7 @@ class ftx extends Exchange {
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_order_status($status) {

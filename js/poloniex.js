@@ -153,6 +153,7 @@ module.exports = class poloniex extends Exchange {
                 'ITC': 'Information Coin',
                 'KEY': 'KEYCoin',
                 'MASK': 'NFTX Hashmasks Index', // conflict with Mask Network
+                'MEME': 'Degenerator Meme', // Degenerator Meme migrated to Meme Inu, this exchange still has the old price
                 'PLX': 'ParallaxCoin',
                 'REPV2': 'REP',
                 'STR': 'XLM',
@@ -364,7 +365,7 @@ module.exports = class poloniex extends Exchange {
             account['used'] = this.safeString (balance, 'onOrders');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchTradingFees (params = {}) {

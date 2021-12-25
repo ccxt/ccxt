@@ -279,7 +279,7 @@ class btcalpha(Exchange):
             account['used'] = self.safe_string(balance, 'reserve')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order_status(self, status):
         statuses = {

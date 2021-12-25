@@ -158,7 +158,7 @@ class zb extends Exchange {
             'api' => array(
                 'trade' => array(
                     'get' => array(
-                        'getFeeInfo',
+                        'getFeeInfo', // withdrawal fees
                     ),
                 ),
                 'public' => array(
@@ -268,22 +268,42 @@ class zb extends Exchange {
             $amountPrecisionString = $this->safe_string($market, 'amountScale');
             $pricePrecisionString = $this->safe_string($market, 'priceScale');
             $priceLimit = $this->parse_precision($pricePrecisionString);
-            $precision = array(
-                'amount' => intval($amountPrecisionString),
-                'price' => intval($pricePrecisionString),
-            );
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'futures' => false,
+                'option' => false,
+                'derivative' => false,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => null,
+                'maker' => null,
+                'contractSize' => null,
                 'active' => true,
-                'precision' => $precision,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => intval($amountPrecisionString),
+                    'price' => intval($pricePrecisionString),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
@@ -403,7 +423,7 @@ class zb extends Exchange {
             $account['used'] = $this->safe_string($balance, 'freez');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {

@@ -282,31 +282,48 @@ module.exports = class bitvavo extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const status = this.safeString (market, 'status');
-            const active = (status === 'trading');
             const baseCurrency = this.safeValue (currenciesById, baseId);
             let amountPrecision = undefined;
             if (baseCurrency !== undefined) {
                 amountPrecision = this.safeInteger (baseCurrency, 'decimals', 8);
             }
-            const precision = {
-                'price': this.safeInteger (market, 'pricePrecision'),
-                'amount': amountPrecision,
-            };
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'derivative': false,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': undefined,
+                'maker': undefined,
+                'contractSize': undefined,
+                'active': (status === 'trading'),
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'pricePrecision'),
+                    'amount': amountPrecision,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minOrderInBaseAsset'),
                         'max': undefined,
@@ -320,6 +337,7 @@ module.exports = class bitvavo extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -736,7 +754,7 @@ module.exports = class bitvavo extends Exchange {
             account['used'] = this.safeString (balance, 'inOrder');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchDepositAddress (code, params = {}) {

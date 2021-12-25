@@ -232,6 +232,7 @@ module.exports = class mexc extends Exchange {
                 'DRK': 'DRK',
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
+                'FREE': 'FreeRossDAO', // conflict with FREE Coin
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance', // conflict with Prosper
@@ -1200,7 +1201,7 @@ module.exports = class mexc extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     safeNetwork (networkId) {

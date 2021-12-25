@@ -294,30 +294,47 @@ class bitvavo(Exchange):
             quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             status = self.safe_string(market, 'status')
-            active = (status == 'trading')
             baseCurrency = self.safe_value(currenciesById, baseId)
             amountPrecision = None
             if baseCurrency is not None:
                 amountPrecision = self.safe_integer(baseCurrency, 'decimals', 8)
-            precision = {
-                'price': self.safe_integer(market, 'pricePrecision'),
-                'amount': amountPrecision,
-            }
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'derivative': False,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': None,
+                'maker': None,
+                'contractSize': None,
+                'active': (status == 'trading'),
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(market, 'pricePrecision'),
+                    'amount': amountPrecision,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minOrderInBaseAsset'),
                         'max': None,
@@ -331,6 +348,7 @@ class bitvavo(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -724,7 +742,7 @@ class bitvavo(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'inOrder')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()

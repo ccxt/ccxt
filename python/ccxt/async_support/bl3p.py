@@ -86,7 +86,7 @@ class bl3p(Exchange):
             account['free'] = self.safe_string(available, 'value')
             account['total'] = self.safe_string(balance, 'value')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         price = self.safe_number(bidask, priceKey)

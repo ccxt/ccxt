@@ -258,7 +258,7 @@ class indodax(Exchange):
             account['free'] = self.safe_string(free, currencyId)
             account['used'] = self.safe_string(used, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

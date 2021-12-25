@@ -278,7 +278,7 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function parse_balance_response($response) {
+    public function parse_balance($response, $type = null) {
         //
         //     array(
         //         {
@@ -342,7 +342,7 @@ class bitmex extends Exchange {
             $account['total'] = $total;
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
@@ -398,7 +398,7 @@ class bitmex extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_balance_response($response);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

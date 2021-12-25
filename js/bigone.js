@@ -667,7 +667,7 @@ module.exports = class bigone extends Exchange {
             account['used'] = this.safeString (balance, 'locked_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseOrder (order, market = undefined) {

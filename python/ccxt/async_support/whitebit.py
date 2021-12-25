@@ -4,20 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class whitebit(Exchange):
@@ -191,11 +190,23 @@ class whitebit(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'Unauthorized request.': AuthenticationError,  # {"code":10,"message":"Unauthorized request."}
+                    'The market format is invalid.': BadSymbol,  # {"code":0,"message":"Validation failed","errors":{"market":["The market format is invalid."]}}
+                    'Market is not available': BadSymbol,  # {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                    'Invalid payload.': BadRequest,  # {"code":9,"message":"Invalid payload."}
+                    'Amount must be greater than 0': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+                    'The order id field is required.': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
+                    'Not enough balance': InsufficientFunds,  # {"code":0,"message":"Validation failed","errors":{"amount":["Not enough balance"]}}
+                    'This action is unauthorized.': PermissionDenied,  # {"code":0,"message":"This action is unauthorized."}
+                    'This API Key is not authorized to perform self action.': PermissionDenied,  # {"code":4,"message":"This API Key is not authorized to perform self action."}
+                    'Unexecuted order was not found.': OrderNotFound,  # {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
                     '503': ExchangeNotAvailable,  # {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
-                    '422': InvalidOrder,  # {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
+                    '422': OrderNotFound,  # {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
-                    'Market is not available': BadSymbol,  # {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                    'Given amount is less than min amount': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'Total is less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'fee must be no less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
                 },
             },
         })
@@ -576,7 +587,7 @@ class whitebit(Exchange):
         #         "amount": "598",
         #         "id": 149156519,  # trade id
         #         "dealOrderId": 3134995325,  # orderId
-        #         "clientOrderId": "customId11",  # empty string if not specified
+        #         "clientOrderId": "customId11",
         #         "role": 2,  # 1 = maker, 2 = taker
         #         "deal": "0.00419198"  # amount in money
         #     }
@@ -771,7 +782,7 @@ class whitebit(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -787,24 +798,24 @@ class whitebit(Exchange):
         #
         #     [
         #         {
-        #             "orderId": 3686033640,            # unexecuted order ID
-        #             "clientOrderId": "customId11",    # custom order id; "clientOrderId": "" - if not specified.
-        #             "market": "BTC_USDT",             # currency market
-        #             "side": "buy",                    # order side
-        #             "type": "limit",                  # unexecuted order type
+        #             "orderId": 3686033640,
+        #             "clientOrderId": "customId11",
+        #             "market": "BTC_USDT",
+        #             "side": "buy",
+        #             "type": "limit",
         #             "timestamp": 1594605801.49815,    # current timestamp of unexecuted order
         #             "dealMoney": "0",                 # executed amount in money
         #             "dealStock": "0",                 # executed amount in stock
         #             "amount": "2.241379",             # active order amount
-        #             "takerFee": "0.001",              # taker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        #             "makerFee": "0.001",              # maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        #             "takerFee": "0.001",
+        #             "makerFee": "0.001",
         #             "left": "2.241379",               # unexecuted amount in stock
         #             "dealFee": "0",                   # executed fee by deal
-        #             "price": "40000"                  # unexecuted order price
+        #             "price": "40000"
         #         },
         #     ]
         #
-        return self.parse_orders(response, market, since, limit)
+        return self.parse_orders(response, market, since, limit, {'status': 'open'})
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -843,44 +854,44 @@ class whitebit(Exchange):
                 order = orders[j]
                 order['market'] = marketKey
                 closedOrdersParsed.append(order)
-        return self.parse_orders(closedOrdersParsed, market, since, limit)
+        return self.parse_orders(closedOrdersParsed, market, since, limit, {'status': 'filled'})
 
     def parse_order(self, order, market=None):
         #
         # createOrder, fetchOpenOrders
         #
         #     {
-        #         "orderId": 4180284841,             # order id
-        #         "clientOrderId": "order1987111",   # empty string if not specified.
-        #         "market": "BTC_USDT",              # deal market
-        #         "side": "buy",                     # order side
-        #         "type": "stop limit",              # order type
-        #         "timestamp": 1595792396.165973,    # current timestamp
+        #         "orderId": 4180284841,
+        #         "clientOrderId": "order1987111",
+        #         "market": "BTC_USDT",
+        #         "side": "buy",
+        #         "type": "stop limit",
+        #         "timestamp": 1595792396.165973,
         #         "dealMoney": "0",                  # if order finished - amount in money currency that finished
         #         "dealStock": "0",                  # if order finished - amount in stock currency that finished
-        #         "amount": "0.001",                 # amount
-        #         "takerFee": "0.001",               # rounded to zero if less than 0.0001
-        #         "makerFee": "0.001",               # rounded to zero if less than 0.0001
+        #         "amount": "0.001",
+        #         "takerFee": "0.001",
+        #         "makerFee": "0.001",
         #         "left": "0.001",                   # remaining amount
         #         "dealFee": "0",                    # fee in money that you pay if order is finished
-        #         "price": "40000",                  # price
+        #         "price": "40000",
         #         "activation_price": "40000"        # activation price -> only for stopLimit, stopMarket
         #     }
         #
         # fetchClosedOrders
         #
         #     {
-        #         "market": "BTC_USDT"              # artificial field
-        #         "amount": "0.0009",               # amount of trade
-        #         "price": "40000",                 # price
-        #         "type": "limit",                  # order type
-        #         "id": 4986126152,                 # order id
-        #         "clientOrderId": "customId11",    # empty string if not specified.
-        #         "side": "sell",                   # order side
+        #         "market": "BTC_USDT"
+        #         "amount": "0.0009",
+        #         "price": "40000",
+        #         "type": "limit",
+        #         "id": 4986126152,
+        #         "clientOrderId": "customId11",
+        #         "side": "sell",
         #         "ctime": 1597486960.311311,       # timestamp of order creation
-        #         "takerFee": "0.001",              # rounded to zero if less than 0.0001
+        #         "takerFee": "0.001",
         #         "ftime": 1597486960.311332,       # executed order timestamp
-        #         "makerFee": "0.001",              # rounded to zero if less than 0.0001
+        #         "makerFee": "0.001",
         #         "dealFee": "0.041258268",         # paid fee if order is finished
         #         "dealStock": "0.0009",            # amount in stock currency that finished
         #         "dealMoney": "41.258268"          # amount in money currency that finished
@@ -891,7 +902,6 @@ class whitebit(Exchange):
         symbol = market['symbol']
         side = self.safe_string(order, 'side')
         filled = self.safe_string(order, 'dealStock')
-        amount = self.safe_string(order, 'amount')
         remaining = self.safe_string(order, 'left')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         if clientOrderId == '':
@@ -900,6 +910,19 @@ class whitebit(Exchange):
         stopPrice = self.safe_string(order, 'activation_price')
         orderId = self.safe_string_2(order, 'orderId', 'id')
         type = self.safe_string(order, 'type')
+        amount = self.safe_string(order, 'amount')
+        cost = None
+        if price == '0':
+            # api error to be solved
+            price = None
+        if side == 'buy' and type.find('market') >= 0:
+            # in these cases the amount is in the quote currency meaning it's the cost
+            cost = amount
+            amount = None
+            if price is not None:
+                # if the price is available we can do self conversion
+                # from amount in quote currency to base currency
+                amount = Precise.string_div(cost, price)
         dealFee = self.safe_string(order, 'dealFee')
         fee = None
         if dealFee is not None:
@@ -931,7 +954,7 @@ class whitebit(Exchange):
             'filled': filled,
             'remaining': remaining,
             'average': None,
-            'cost': None,
+            'cost': cost,
             'fee': fee,
             'trades': None,
         }, market)
@@ -995,25 +1018,25 @@ class whitebit(Exchange):
         # fiat
         #
         #     {
-        #         "url": "https://someaddress.com"  # address for depositing
+        #         "url": "https://someaddress.com"
         #     }
         #
         # crypto
         #
         #     {
         #         "account": {
-        #             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",  # deposit address
-        #             "memo": "48565488244493"  # memo if currency requires memo
+        #             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        #             "memo": "48565488244493"
         #         },
         #         "required": {
-        #             "fixedFee": "0",  # fixed deposit fee
-        #             "flexFee": { # flexible fee - is fee that use percent rate
-        #                 "maxFee": "0",  # maximum fixed fee that you will pay
-        #                 "minFee": "0",  # minimum fixed fee that you will pay
-        #                 "percent": "0"  # percent of deposit that you will pay
+        #             "fixedFee": "0",
+        #             "flexFee": {
+        #                 "maxFee": "0",
+        #                 "minFee": "0",
+        #                 "percent": "0"
         #             },
-        #             "maxAmount": "0",  # max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange
-        #             "minAmount": "1"  # min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange
+        #             "maxAmount": "0",
+        #             "minAmount": "1"
         #         }
         #     }
         #
@@ -1077,7 +1100,7 @@ class whitebit(Exchange):
         if accessibility == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
-            secret = self.secret
+            secret = self.encode(self.secret)
             request = '/' + 'api' + '/' + version + pathWithParams
             body = self.json(self.extend({'request': request, 'nonce': nonce}, params))
             payload = self.string_to_base64(body)
@@ -1096,11 +1119,24 @@ class whitebit(Exchange):
         if code == 404:
             raise ExchangeError(self.id + ' ' + str(code) + ' endpoint not found')
         if response is not None:
-            status = self.safe_value(response, 'status')
-            if (status is not None and status != '200'):
+            # For cases where we have a meaningful status
+            # {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
+            status = self.safe_integer(response, 'status')
+            # For these cases where we have a generic code variable error key
+            # {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+            code = self.safe_integer(response, 'code')
+            hasErrorStatus = status is not None and status != '200'
+            if hasErrorStatus or code is not None:
                 feedback = self.id + ' ' + body
-                status = self.safe_string(response, 'status')
-                if isinstance(status, basestring):
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
+                errorInfo = None
+                if hasErrorStatus:
+                    errorInfo = status
+                else:
+                    errorObject = self.safe_value(response, 'errors')
+                    if errorObject is not None:
+                        errorKey = list(errorObject.keys())[0]
+                        errorMessageArray = self.safe_value(errorObject, errorKey, [])
+                        errorInfo = len(errorMessageArray) > errorMessageArray[0] if 0 else body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
                 raise ExchangeError(feedback)

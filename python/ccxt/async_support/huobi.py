@@ -2011,9 +2011,9 @@ class huobi(Exchange):
                 code = self.safe_currency_code(currencyId)
                 accountsByCode = {}
                 accountsByCode[code] = account
-                result[symbol] = self.parse_balance(accountsByCode)
+                result[symbol] = self.safe_balance(accountsByCode)
             return result
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

@@ -611,7 +611,7 @@ class hollaex extends Exchange {
             $account['total'] = $this->safe_string($response, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_open_order($id, $symbol = null, $params = array ()) {
