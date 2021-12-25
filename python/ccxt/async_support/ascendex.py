@@ -1493,14 +1493,12 @@ class ascendex(Exchange):
         await self.load_markets()
         await self.load_accounts()
         market = self.market(symbol)
-        defaultAccountCategory = self.safe_string(self.options, 'account-category', 'cash')
+        type, query = self.handle_market_type_and_params('cancelOrder', market, params)
         options = self.safe_value(self.options, 'cancelOrder', {})
-        accountCategory = self.safe_string(options, 'account-category', defaultAccountCategory)
-        accountCategory = self.safe_string(params, 'account-category', accountCategory)
-        params = self.omit(params, 'account-category')
+        accountCategories = self.safe_value(self.options, 'accountCategories', {})
+        accountCategory = self.safe_string(accountCategories, type, 'cash')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
         request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1508,12 +1506,26 @@ class ascendex(Exchange):
             'time': self.milliseconds(),
             'id': 'foobar',
         }
+        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryDeleteOrder')
+        method = self.get_supported_mapping(type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupDeleteFuturesOrder',
+        })
+        if method == 'v1PrivateAccountCategoryDeleteOrder':
+            if accountCategory is not None:
+                request['category'] = accountCategory
+        else:
+            request['account-category'] = accountCategory
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
         if clientOrderId is None:
             request['orderId'] = id
         else:
             request['id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'id'])
-        response = await self.v1PrivateAccountCategoryDeleteOrder(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # AccountCategoryDeleteOrder
         #
         #     {
         #         "code": 0,
@@ -1532,9 +1544,52 @@ class ascendex(Exchange):
         #         }
         #     }
         #
+        # AccountGroupDeleteFuturesOrder
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "meta": {
+        #                 "id": "foobar",
+        #                 "action": "cancel-order",
+        #                 "respInst": "ACK"
+        #             },
+        #             "order": {
+        #                 "ac": "FUTURES",
+        #                 "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #                 "time": 1640244480476,
+        #                 "orderId": "r17de63086f4U0711043490bbtcpPUF4",
+        #                 "seqNum": 28795959269,
+        #                 "orderType": "Limit",
+        #                 "execInst": "NULL_VAL",
+        #                 "side": "Buy",
+        #                 "symbol": "BTC-PERP",
+        #                 "price": "30000",
+        #                 "orderQty": "0.0021",
+        #                 "stopPrice": "0",
+        #                 "stopBy": "market",
+        #                 "status": "New",
+        #                 "lastExecTime": 1640244480491,
+        #                 "lastQty": "0",
+        #                 "lastPx": "0",
+        #                 "avgFilledPx": "0",
+        #                 "cumFilledQty": "0",
+        #                 "fee": "0",
+        #                 "cumFee": "0",
+        #                 "feeAsset": "BTCPC",
+        #                 "errorCode": "",
+        #                 "posStopLossPrice": "0",
+        #                 "posStopLossTrigger": "market",
+        #                 "posTakeProfitPrice": "0",
+        #                 "posTakeProfitTrigger": "market",
+        #                 "liquidityInd": "n"
+        #             }
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        info = self.safe_value(data, 'info', {})
-        return self.parse_order(info, market)
+        order = self.safe_value_2(data, 'order', 'info', {})
+        return self.parse_order(order, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()

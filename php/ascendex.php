@@ -1542,14 +1542,12 @@ class ascendex extends Exchange {
         $this->load_markets();
         $this->load_accounts();
         $market = $this->market($symbol);
-        $defaultAccountCategory = $this->safe_string($this->options, 'account-category', 'cash');
+        list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         $options = $this->safe_value($this->options, 'cancelOrder', array());
-        $accountCategory = $this->safe_string($options, 'account-category', $defaultAccountCategory);
-        $accountCategory = $this->safe_string($params, 'account-category', $accountCategory);
-        $params = $this->omit($params, 'account-category');
+        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
+        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'id');
         $request = array(
             'account-group' => $accountGroup,
             'account-category' => $accountCategory,
@@ -1557,20 +1555,36 @@ class ascendex extends Exchange {
             'time' => $this->milliseconds(),
             'id' => 'foobar',
         );
+        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryDeleteOrder');
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => $defaultMethod,
+            'margin' => $defaultMethod,
+            'swap' => 'v2PrivateAccountGroupDeleteFuturesOrder',
+        ));
+        if ($method === 'v1PrivateAccountCategoryDeleteOrder') {
+            if ($accountCategory !== null) {
+                $request['category'] = $accountCategory;
+            }
+        } else {
+            $request['account-category'] = $accountCategory;
+        }
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'id');
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
         } else {
             $request['id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'id' ));
         }
-        $response = $this->v1PrivateAccountCategoryDeleteOrder (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // AccountCategoryDeleteOrder
         //
         //     {
         //         "code" => 0,
         //         "data" => {
         //             "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
         //             "ac" => "CASH",
-        //             "action" => "cancel-order",
+        //             "action" => "cancel-$order",
         //             "status" => "Ack",
         //             "info" => {
         //                 "id" =>        "wv8QGquoeamhssvQBeHOHGQCGlcBjj23",
@@ -1582,9 +1596,52 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
+        // AccountGroupDeleteFuturesOrder
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "meta" => array(
+        //                 "id" => "foobar",
+        //                 "action" => "cancel-$order",
+        //                 "respInst" => "ACK"
+        //             ),
+        //             "order" => {
+        //                 "ac" => "FUTURES",
+        //                 "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //                 "time" => 1640244480476,
+        //                 "orderId" => "r17de63086f4U0711043490bbtcpPUF4",
+        //                 "seqNum" => 28795959269,
+        //                 "orderType" => "Limit",
+        //                 "execInst" => "NULL_VAL",
+        //                 "side" => "Buy",
+        //                 "symbol" => "BTC-PERP",
+        //                 "price" => "30000",
+        //                 "orderQty" => "0.0021",
+        //                 "stopPrice" => "0",
+        //                 "stopBy" => "market",
+        //                 "status" => "New",
+        //                 "lastExecTime" => 1640244480491,
+        //                 "lastQty" => "0",
+        //                 "lastPx" => "0",
+        //                 "avgFilledPx" => "0",
+        //                 "cumFilledQty" => "0",
+        //                 "fee" => "0",
+        //                 "cumFee" => "0",
+        //                 "feeAsset" => "BTCPC",
+        //                 "errorCode" => "",
+        //                 "posStopLossPrice" => "0",
+        //                 "posStopLossTrigger" => "market",
+        //                 "posTakeProfitPrice" => "0",
+        //                 "posTakeProfitTrigger" => "market",
+        //                 "liquidityInd" => "n"
+        //             }
+        //         }
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
-        $info = $this->safe_value($data, 'info', array());
-        return $this->parse_order($info, $market);
+        $order = $this->safe_value_2($data, 'order', 'info', array());
+        return $this->parse_order($order, $market);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
