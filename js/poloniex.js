@@ -1103,28 +1103,24 @@ module.exports = class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const trades = this.parseTrades (response);
-        const firstTrade = this.safeValue (trades, 0);
+        const firstTrade = this.safeValue (response, 0);
         if (firstTrade === undefined) {
             throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
         }
-        symbol = this.safeString (firstTrade, 'symbol', symbol);
-        const side = this.safeString (firstTrade, 'side');
-        const timestamp = this.safeNumber (firstTrade, 'timestamp');
-        id = this.safeValue (firstTrade['info'], 'globalTradeID', id);
-        return this.safeOrder ({
+        id = this.safeValue (response, 'globalTradeID', id);
+        return this.safeOrder2 ({
             'info': response,
             'id': id,
             'clientOrderId': this.safeValue (firstTrade, 'clientOrderId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': 'closed',
-            'symbol': symbol,
-            'type': this.safeString (firstTrade, 'type'),
+            'symbol': undefined,
+            'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
+            'side': undefined,
             'price': undefined,
             'stopPrice': undefined,
             'cost': undefined,
@@ -1132,7 +1128,7 @@ module.exports = class poloniex extends Exchange {
             'amount': undefined,
             'filled': undefined,
             'remaining': undefined,
-            'trades': trades,
+            'trades': response,
             'fee': undefined,
         });
     }
