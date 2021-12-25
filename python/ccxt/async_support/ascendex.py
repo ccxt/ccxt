@@ -1137,11 +1137,13 @@ class ascendex(Exchange):
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         await self.load_accounts()
-        defaultAccountCategory = self.safe_string(self.options, 'account-category', 'cash')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type, query = self.handle_market_type_and_params('fetchOrder', market, params)
         options = self.safe_value(self.options, 'fetchOrder', {})
-        accountCategory = self.safe_string(options, 'account-category', defaultAccountCategory)
-        accountCategory = self.safe_string(params, 'account-category', accountCategory)
-        params = self.omit(params, 'account-category')
+        accountCategories = self.safe_value(self.options, 'accountCategories', {})
+        accountCategory = self.safe_string(accountCategories, type, 'cash')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         request = {
@@ -1149,7 +1151,20 @@ class ascendex(Exchange):
             'account-category': accountCategory,
             'orderId': id,
         }
-        response = await self.v1PrivateAccountCategoryGetOrderStatus(self.extend(request, params))
+        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryGetOrderStatus')
+        method = self.get_supported_mapping(type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupGetFuturesOrderStatus',
+        })
+        if method == 'v1PrivateAccountCategoryGetOrderStatus':
+            if accountCategory is not None:
+                request['category'] = accountCategory
+        else:
+            request['account-category'] = accountCategory
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # AccountCategoryGetOrderStatus
         #
         #     {
         #         "code": 0,
@@ -1177,8 +1192,46 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
+        # AccountGroupGetFuturesOrderStatus
+        #
+        #     {
+        #         "code": 0,
+        #         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #         "ac": "FUTURES",
+        #         "data": {
+        #             "ac": "FUTURES",
+        #             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #             "time": 1640247020217,
+        #             "orderId": "r17de65747aeU0711043490bbtcp0cmt",
+        #             "seqNum": 28796162908,
+        #             "orderType": "Limit",
+        #             "execInst": "NULL_VAL",
+        #             "side": "Buy",
+        #             "symbol": "BTC-PERP",
+        #             "price": "30000",
+        #             "orderQty": "0.0021",
+        #             "stopPrice": "0",
+        #             "stopBy": "market",
+        #             "status": "New",
+        #             "lastExecTime": 1640247020232,
+        #             "lastQty": "0",
+        #             "lastPx": "0",
+        #             "avgFilledPx": "0",
+        #             "cumFilledQty": "0",
+        #             "fee": "0",
+        #             "cumFee": "0",
+        #             "feeAsset": "USDT",
+        #             "errorCode": "",
+        #             "posStopLossPrice": "0",
+        #             "posStopLossTrigger": "market",
+        #             "posTakeProfitPrice": "0",
+        #             "posTakeProfitTrigger": "market",
+        #             "liquidityInd": "n"
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        return self.parse_order(data)
+        return self.parse_order(data, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

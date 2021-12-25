@@ -1168,11 +1168,14 @@ class ascendex extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
         yield $this->load_accounts();
-        $defaultAccountCategory = $this->safe_string($this->options, 'account-category', 'cash');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         $options = $this->safe_value($this->options, 'fetchOrder', array());
-        $accountCategory = $this->safe_string($options, 'account-category', $defaultAccountCategory);
-        $accountCategory = $this->safe_string($params, 'account-category', $accountCategory);
-        $params = $this->omit($params, 'account-category');
+        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
+        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $request = array(
@@ -1180,7 +1183,22 @@ class ascendex extends Exchange {
             'account-category' => $accountCategory,
             'orderId' => $id,
         );
-        $response = yield $this->v1PrivateAccountCategoryGetOrderStatus (array_merge($request, $params));
+        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryGetOrderStatus');
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => $defaultMethod,
+            'margin' => $defaultMethod,
+            'swap' => 'v2PrivateAccountGroupGetFuturesOrderStatus',
+        ));
+        if ($method === 'v1PrivateAccountCategoryGetOrderStatus') {
+            if ($accountCategory !== null) {
+                $request['category'] = $accountCategory;
+            }
+        } else {
+            $request['account-category'] = $accountCategory;
+        }
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // AccountCategoryGetOrderStatus
         //
         //     {
         //         "code" => 0,
@@ -1208,8 +1226,46 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
+        // AccountGroupGetFuturesOrderStatus
+        //
+        //     {
+        //         "code" => 0,
+        //         "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //         "ac" => "FUTURES",
+        //         "data" => {
+        //             "ac" => "FUTURES",
+        //             "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "time" => 1640247020217,
+        //             "orderId" => "r17de65747aeU0711043490bbtcp0cmt",
+        //             "seqNum" => 28796162908,
+        //             "orderType" => "Limit",
+        //             "execInst" => "NULL_VAL",
+        //             "side" => "Buy",
+        //             "symbol" => "BTC-PERP",
+        //             "price" => "30000",
+        //             "orderQty" => "0.0021",
+        //             "stopPrice" => "0",
+        //             "stopBy" => "market",
+        //             "status" => "New",
+        //             "lastExecTime" => 1640247020232,
+        //             "lastQty" => "0",
+        //             "lastPx" => "0",
+        //             "avgFilledPx" => "0",
+        //             "cumFilledQty" => "0",
+        //             "fee" => "0",
+        //             "cumFee" => "0",
+        //             "feeAsset" => "USDT",
+        //             "errorCode" => "",
+        //             "posStopLossPrice" => "0",
+        //             "posStopLossTrigger" => "market",
+        //             "posTakeProfitPrice" => "0",
+        //             "posTakeProfitTrigger" => "market",
+        //             "liquidityInd" => "n"
+        //         }
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order($data);
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
