@@ -164,6 +164,7 @@ class ascendex extends Exchange {
                                 'futures/position',
                                 'futures/free-margin',
                                 'futures/order/hist/current',
+                                'futures/order/open',
                                 'futures/order/status',
                             ),
                             'post' => array(
@@ -1218,18 +1219,32 @@ class ascendex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $defaultAccountCategory = $this->safe_string($this->options, 'account-category', 'cash');
-        $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
-        $accountCategory = $this->safe_string($options, 'account-category', $defaultAccountCategory);
-        $accountCategory = $this->safe_string($params, 'account-category', $accountCategory);
-        $params = $this->omit($params, 'account-category');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
+        list($type, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
+        $accountCategory = $this->safe_string($accountCategories, $type, 'cash');
         $request = array(
             'account-group' => $accountGroup,
             'account-category' => $accountCategory,
         );
-        $response = yield $this->v1PrivateAccountCategoryGetOrderOpen (array_merge($request, $params));
+        $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryGetOrderOpen');
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => $defaultMethod,
+            'margin' => $defaultMethod,
+            'swap' => 'v2PrivateAccountGroupGetFuturesOrderOpen',
+        ));
+        if ($method === 'v1PrivateAccountCategoryGetOrderOpen') {
+            if ($accountCategory !== null) {
+                $request['category'] = $accountCategory;
+            }
+        } else {
+            $request['account-category'] = $accountCategory;
+        }
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // AccountCategoryGetOrderOpen
         //
         //     {
         //         "ac" => "CASH",
@@ -1245,7 +1260,7 @@ class ascendex extends Exchange {
         //                 "lastExecTime" => 1576019723550, //  The last execution time of the $order
         //                 "orderId" => "s16ef21882ea0866943712034f36d83", // server provided orderId
         //                 "orderQty" => "0.0083",  // $order quantity
-        //                 "orderType" => "Limit",  // $order type
+        //                 "orderType" => "Limit",  // $order $type
         //                 "price" => "7105",       // $order price
         //                 "seqNum" => 8193258,     // sequence number
         //                 "side" => "Buy",         // $order side
@@ -1256,6 +1271,44 @@ class ascendex extends Exchange {
         //             ),
         //         )
         //     }
+        //
+        // AccountGroupGetFuturesOrderOpen
+        //
+        // {
+        //     "code" => 0,
+        //     "data" => array(
+        //         {
+        //             "ac" => "FUTURES",
+        //             "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "time" => 1640247020217,
+        //             "orderId" => "r17de65747aeU0711043490bbtcp0cmt",
+        //             "seqNum" => 28796162908,
+        //             "orderType" => "Limit",
+        //             "execInst" => "NULL_VAL",
+        //             "side" => "Buy",
+        //             "symbol" => "BTC-PERP",
+        //             "price" => "30000",
+        //             "orderQty" => "0.0021",
+        //             "stopPrice" => "0",
+        //             "stopBy" => "market",
+        //             "status" => "New",
+        //             "lastExecTime" => 1640247020232,
+        //             "lastQty" => "0",
+        //             "lastPx" => "0",
+        //             "avgFilledPx" => "0",
+        //             "cumFilledQty" => "0",
+        //             "fee" => "0",
+        //             "cumFee" => "0",
+        //             "feeAsset" => "USDT",
+        //             "errorCode" => "",
+        //             "posStopLossPrice" => "0",
+        //             "posStopLossTrigger" => "market",
+        //             "posTakeProfitPrice" => "0",
+        //             "posTakeProfitTrigger" => "market",
+        //             "liquidityInd" => "n"
+        //         }
+        //     )
+        // }
         //
         $data = $this->safe_value($response, 'data', array());
         if ($accountCategory === 'futures') {

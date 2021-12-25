@@ -168,6 +168,7 @@ class ascendex(Exchange):
                                 'futures/position',
                                 'futures/free-margin',
                                 'futures/order/hist/current',
+                                'futures/order/open',
                                 'futures/order/status',
                             ],
                             'post': [
@@ -1185,18 +1186,30 @@ class ascendex(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        defaultAccountCategory = self.safe_string(self.options, 'account-category', 'cash')
-        options = self.safe_value(self.options, 'fetchOpenOrders', {})
-        accountCategory = self.safe_string(options, 'account-category', defaultAccountCategory)
-        accountCategory = self.safe_string(params, 'account-category', accountCategory)
-        params = self.omit(params, 'account-category')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
+        type, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        accountCategories = self.safe_value(self.options, 'accountCategories', {})
+        accountCategory = self.safe_string(accountCategories, type, 'cash')
         request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
         }
-        response = await self.v1PrivateAccountCategoryGetOrderOpen(self.extend(request, params))
+        options = self.safe_value(self.options, 'fetchOpenOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryGetOrderOpen')
+        method = self.get_supported_mapping(type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupGetFuturesOrderOpen',
+        })
+        if method == 'v1PrivateAccountCategoryGetOrderOpen':
+            if accountCategory is not None:
+                request['category'] = accountCategory
+        else:
+            request['account-category'] = accountCategory
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # AccountCategoryGetOrderOpen
         #
         #     {
         #         "ac": "CASH",
@@ -1223,6 +1236,44 @@ class ascendex(Exchange):
         #             },
         #         ]
         #     }
+        #
+        # AccountGroupGetFuturesOrderOpen
+        #
+        # {
+        #     "code": 0,
+        #     "data": [
+        #         {
+        #             "ac": "FUTURES",
+        #             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #             "time": 1640247020217,
+        #             "orderId": "r17de65747aeU0711043490bbtcp0cmt",
+        #             "seqNum": 28796162908,
+        #             "orderType": "Limit",
+        #             "execInst": "NULL_VAL",
+        #             "side": "Buy",
+        #             "symbol": "BTC-PERP",
+        #             "price": "30000",
+        #             "orderQty": "0.0021",
+        #             "stopPrice": "0",
+        #             "stopBy": "market",
+        #             "status": "New",
+        #             "lastExecTime": 1640247020232,
+        #             "lastQty": "0",
+        #             "lastPx": "0",
+        #             "avgFilledPx": "0",
+        #             "cumFilledQty": "0",
+        #             "fee": "0",
+        #             "cumFee": "0",
+        #             "feeAsset": "USDT",
+        #             "errorCode": "",
+        #             "posStopLossPrice": "0",
+        #             "posStopLossTrigger": "market",
+        #             "posTakeProfitPrice": "0",
+        #             "posTakeProfitTrigger": "market",
+        #             "liquidityInd": "n"
+        #         }
+        #     ]
+        # }
         #
         data = self.safe_value(response, 'data', [])
         if accountCategory == 'futures':
