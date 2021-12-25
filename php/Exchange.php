@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.64.92';
+$version = '1.64.93';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.64.92';
+    const VERSION = '1.64.93';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1940,7 +1940,7 @@ class Exchange {
         );
     }
 
-    public function safe_balance($balance, $legacy = false) {
+    public function safe_balance($balance) {
         $currencies = $this->omit($balance, array('info', 'timestamp', 'datetime', 'free', 'used', 'total'));
 
         $balance['free'] = array();
@@ -1950,29 +1950,17 @@ class Exchange {
         foreach ($currencies as $code => $value) {
             if (!isset($value['total'])) {
                 if (isset($value['free']) && isset($value['used'])) {
-                    if ($legacy) {
-                        $balance[$code]['total'] = static::sum($value['free'], $value['used']);
-                    } else {
-                        $balance[$code]['total'] = Precise::string_add($value['free'], $value['used']);
-                    }
+                    $balance[$code]['total'] = Precise::string_add($value['free'], $value['used']);
                 }
             }
             if (!isset($value['used'])) {
                 if (isset($value['total']) && isset($value['free'])) {
-                    if ($legacy) {
-                        $balance[$code]['used'] = static::sum($value['total'], -$value['free']);
-                    } else {
-                        $balance[$code]['used'] = Precise::string_sub($value['total'], $value['free']);
-                    }
+                    $balance[$code]['used'] = Precise::string_sub($value['total'], $value['free']);
                 }
             }
             if (!isset($value['free'])) {
                 if (isset($value['total']) && isset($value['used'])) {
-                    if ($legacy) {
-                        $balance[$code]['free'] = static::sum($value['total'], -$value['used']);
-                    } else {
-                        $balance[$code]['free'] = Precise::string_sub($value['total'], $value['used']);
-                    }
+                    $balance[$code]['free'] = Precise::string_sub($value['total'], $value['used']);
                 }
             }
             $balance[$code]['free'] = $this->parse_number($balance[$code]['free']);
