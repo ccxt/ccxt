@@ -1223,7 +1223,7 @@ module.exports = class bitmart extends Exchange {
                 request['from'] = start;
                 request['to'] = end;
             } else {
-                const start = parseInt (since / 1000 - 1);
+                const start = parseInt (since / 1000) - 1;
                 const end = this.sum (start, limit * duration);
                 request['from'] = start;
                 request['to'] = end;
@@ -1241,7 +1241,7 @@ module.exports = class bitmart extends Exchange {
                 request['startTime'] = start;
                 request['endTime'] = end;
             } else {
-                const start = parseInt (since / 1000 - 1);
+                const start = parseInt (since / 1000) - 1;
                 const end = this.sum (start, limit * duration);
                 request['startTime'] = start;
                 request['endTime'] = end;
