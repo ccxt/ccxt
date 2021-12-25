@@ -1107,7 +1107,7 @@ module.exports = class poloniex extends Exchange {
         if (firstTrade === undefined) {
             throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
         }
-        id = this.safeValue (response, 'globalTradeID', id);
+        id = this.safeValue (firstTrade, 'globalTradeID', id);
         return this.safeOrder2 ({
             'info': response,
             'id': id,
