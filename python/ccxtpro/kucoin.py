@@ -552,7 +552,7 @@ class kucoin(Exchange, ccxt.kucoin):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         side = self.safe_string_lower(order, 'side')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'symbol': symbol,
             'id': id,

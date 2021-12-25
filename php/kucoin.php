@@ -601,7 +601,7 @@ class kucoin extends \ccxt\async\kucoin {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $side = $this->safe_string_lower($order, 'side');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
             'id' => $id,
