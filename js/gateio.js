@@ -1624,6 +1624,8 @@ module.exports = class gateio extends Exchange {
         request['interval'] = this.timeframes[timeframe];
         let method = 'publicSpotGetCandlesticks';
         if (market['contract']) {
+            const maxLimit = 1999;
+            limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
             if (market['future']) {
                 method = 'publicDeliveryGetSettleCandlesticks';
             } else if (market['swap']) {
@@ -1635,20 +1637,15 @@ module.exports = class gateio extends Exchange {
                 request['contract'] = price + '_' + market['id'];
                 params = this.omit (params, 'price');
             }
-        }
-        if (since === undefined) {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
         } else {
-            const timeframeSeconds = this.parseTimeframe (timeframe);
-            const timeframeMilliseconds = timeframeSeconds * 1000;
-            // align forward to the next timeframe alignment
-            since = this.sum (since - (since % timeframeMilliseconds), timeframeMilliseconds);
+            const maxLimit = 1000;
+            limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            const duration = this.parseTimeframe (timeframe);
             request['from'] = parseInt (since / 1000);
-            if (limit !== undefined) {
-                request['to'] = this.sum (request['from'], limit * timeframeSeconds - 1);
-            }
+            request['to'] = this.sum (request['from'], limit * duration - 1);
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
