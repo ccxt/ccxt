@@ -159,6 +159,7 @@ module.exports = class ascendex extends Exchange {
                                 'futures/position',
                                 'futures/free-margin',
                                 'futures/order/hist/current',
+                                'futures/order/open',
                                 'futures/order/status',
                             ],
                             'post': [
@@ -1213,18 +1214,32 @@ module.exports = class ascendex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
-        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
-        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
-        accountCategory = this.safeString (params, 'account-category', accountCategory);
-        params = this.omit (params, 'account-category');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        const accountCategory = this.safeString (accountCategories, type, 'cash');
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
         };
-        const response = await this.v1PrivateAccountCategoryGetOrderOpen (this.extend (request, params));
+        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetOrderOpen');
+        const method = this.getSupportedMapping (type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupGetFuturesOrderOpen',
+        });
+        if (method === 'v1PrivateAccountCategoryGetOrderOpen') {
+            if (accountCategory !== undefined) {
+                request['category'] = accountCategory;
+            }
+        } else {
+            request['account-category'] = accountCategory;
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // AccountCategoryGetOrderOpen
         //
         //     {
         //         "ac": "CASH",
@@ -1251,6 +1266,44 @@ module.exports = class ascendex extends Exchange {
         //             },
         //         ]
         //     }
+        //
+        // AccountGroupGetFuturesOrderOpen
+        //
+        // {
+        //     "code": 0,
+        //     "data": [
+        //         {
+        //             "ac": "FUTURES",
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "time": 1640247020217,
+        //             "orderId": "r17de65747aeU0711043490bbtcp0cmt",
+        //             "seqNum": 28796162908,
+        //             "orderType": "Limit",
+        //             "execInst": "NULL_VAL",
+        //             "side": "Buy",
+        //             "symbol": "BTC-PERP",
+        //             "price": "30000",
+        //             "orderQty": "0.0021",
+        //             "stopPrice": "0",
+        //             "stopBy": "market",
+        //             "status": "New",
+        //             "lastExecTime": 1640247020232,
+        //             "lastQty": "0",
+        //             "lastPx": "0",
+        //             "avgFilledPx": "0",
+        //             "cumFilledQty": "0",
+        //             "fee": "0",
+        //             "cumFee": "0",
+        //             "feeAsset": "USDT",
+        //             "errorCode": "",
+        //             "posStopLossPrice": "0",
+        //             "posStopLossTrigger": "market",
+        //             "posTakeProfitPrice": "0",
+        //             "posTakeProfitTrigger": "market",
+        //             "liquidityInd": "n"
+        //         }
+        //     ]
+        // }
         //
         const data = this.safeValue (response, 'data', []);
         if (accountCategory === 'futures') {
