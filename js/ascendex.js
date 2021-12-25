@@ -193,10 +193,16 @@ module.exports = class ascendex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'account-category': 'cash', // 'cash'/'margin'/'futures'
+                'account-category': 'cash', // 'cash', 'margin', 'futures' // obsolete
                 'account-group': undefined,
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                },
+                'defaultType': 'spot', // 'spot', 'margin', 'swap'
+                'accountCategories': {
+                    'spot': 'cash',
+                    'swap': 'futures',
+                    'margin': 'margin',
                 },
             },
             'exceptions': {
@@ -1262,15 +1268,6 @@ module.exports = class ascendex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const defaultAccountCategory = this.safeString (this.options, 'account-category');
-        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
-        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
-        accountCategory = this.safeString (params, 'account-category', accountCategory);
-        params = this.omit (params, 'account-category');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const request = {
@@ -1285,11 +1282,21 @@ module.exports = class ascendex extends Exchange {
             // 'page': 1,
             // 'pageSize': 100,
         };
+        let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.safeValue (options, 'method', 'v1PrivateAccountGroupGetOrderHist');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchCLosedOrders', market, params);
+        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountGroupGetOrderHist');
+        const method = this.getSupportedMapping (type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
+        });
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        const accountCategory = this.safeString (accountCategories, type, 'cash');
         if (method === 'v1PrivateAccountGroupGetOrderHist') {
             if (accountCategory !== undefined) {
                 request['category'] = accountCategory;
@@ -1303,7 +1310,7 @@ module.exports = class ascendex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // accountCategoryGetOrderHistCurrent
         //
@@ -1366,6 +1373,44 @@ module.exports = class ascendex extends Exchange {
         //             "page": 1,
         //             "pageSize": 20
         //         }
+        //     }
+        //
+        // accountGroupGetFuturesOrderHistCurrent
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "ac": "FUTURES",
+        //                 "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //                 "time": 1640245777002,
+        //                 "orderId": "r17de6444fa6U0711043490bbtcpJ2lI",
+        //                 "seqNum": 28796124902,
+        //                 "orderType": "Limit",
+        //                 "execInst": "NULL_VAL",
+        //                 "side": "Buy",
+        //                 "symbol": "BTC-PERP",
+        //                 "price": "30000",
+        //                 "orderQty": "0.0021",
+        //                 "stopPrice": "0",
+        //                 "stopBy": "market",
+        //                 "status": "Canceled",
+        //                 "lastExecTime": 1640246574886,
+        //                 "lastQty": "0",
+        //                 "lastPx": "0",
+        //                 "avgFilledPx": "0",
+        //                 "cumFilledQty": "0",
+        //                 "fee": "0",
+        //                 "cumFee": "0",
+        //                 "feeAsset": "USDT",
+        //                 "errorCode": "",
+        //                 "posStopLossPrice": "0",
+        //                 "posStopLossTrigger": "market",
+        //                 "posTakeProfitPrice": "0",
+        //                 "posTakeProfitTrigger": "market",
+        //                 "liquidityInd": "n"
+        //             }
+        //         ]
         //     }
         //
         let data = this.safeValue (response, 'data');
@@ -1821,24 +1866,23 @@ module.exports = class ascendex extends Exchange {
         const access = api[1];
         const type = this.safeString (api, 2);
         let url = '';
-        let query = params;
         const accountCategory = (type === 'accountCategory');
         if (accountCategory || (type === 'accountGroup')) {
             url += this.implodeParams ('/{account-group}', params);
-            query = this.omit (params, 'account-group');
+            params = this.omit (params, 'account-group');
         }
-        let request = this.implodeParams (path, query);
+        let request = this.implodeParams (path, params);
         url += '/api/pro/';
         if (version === 'v2') {
             request = version + '/' + request;
         } else {
-            url += version;
+            url += version + '/';
         }
         if (accountCategory) {
-            url += this.implodeParams ('/{account-category}', query);
-            query = this.omit (query, 'account-category');
+            url += this.implodeParams ('/{account-category}', params);
         }
-        url += '/' + request;
+        params = this.omit (params, 'account-category');
+        url += request;
         if ((version === 'v1') && (request === 'cash/balance') || (request === 'margin/balance')) {
             request = 'balance';
         }
@@ -1846,10 +1890,10 @@ module.exports = class ascendex extends Exchange {
             const parts = request.split ('/');
             request = parts[2];
         }
-        query = this.omit (query, this.extractParams (path));
+        params = this.omit (params, this.extractParams (path));
         if (access === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
@@ -1862,12 +1906,12 @@ module.exports = class ascendex extends Exchange {
                 'x-auth-signature': hmac,
             };
             if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+                if (Object.keys (params).length) {
+                    url += '?' + this.urlencode (params);
                 }
             } else {
                 headers['Content-Type'] = 'application/json';
-                body = this.json (query);
+                body = this.json (params);
             }
         }
         url = this.urls['api'] + url;
