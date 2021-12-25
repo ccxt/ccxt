@@ -1938,15 +1938,12 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const networkId = this.safeString (result, 'method');
-        const responseNetwork = this.safeNetwork (networkId);
-        const address = this.safeString (result, 'address');
-        const tag = this.safeString (result, 'tag');
         this.checkAddress (address);
         return {
             'currency': code,
-            'address': address,
-            'tag': tag,
-            'network': responseNetwork,
+            'address': this.safeString (result, 'address'),
+            'tag': this.safeString (result, 'tag'),
+            'network': this.safeNetwork (networkId),
             'info': response,
         };
     }
