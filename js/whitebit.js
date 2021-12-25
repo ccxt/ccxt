@@ -873,7 +873,7 @@ module.exports = class whitebit extends Exchange {
         //         "BTC_USDT": [
         //             {
         //                 "id": 160305483,
-        //                 "clientOrderId": "customId11", // empty string if not specified
+        //                 "clientOrderId": "customId11",
         //                 "time": 1594667731.724403,
         //                 "side": "sell",
         //                 "role": 2, // 1 = maker, 2 = taker
@@ -885,19 +885,20 @@ module.exports = class whitebit extends Exchange {
         //         ],
         //     }
         //
-        // flattening orders and injecting the market
-        const keys = Object.keys (response);
-        const closedOrdersParsed = [];
-        for (let i = 0; i < keys.length; i++) {
-            const marketKey = keys[i];
-            const orders = response[marketKey];
+        const marketIds = Object.keys (response);
+        let results = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId, undefined, '_');
+            const orders = response[marketId];
             for (let j = 0; j < orders.length; j++) {
-                const order = orders[j];
-                order['market'] = marketKey;
-                closedOrdersParsed.push (order);
+                const order = this.parseOrder (orders[j], market);
+                results.push (this.extend (order, { 'status': 'filled' }));
             }
         }
-        return this.parseOrders (closedOrdersParsed, market, since, limit, { 'status': 'filled' });
+        results = this.sortBy (results, 'timestamp');
+        results = this.filterBySymbolSinceLimit (results, symbol, since, limit, since === undefined);
+        return results;
     }
 
     parseOrder (order, market = undefined) {
