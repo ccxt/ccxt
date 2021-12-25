@@ -955,25 +955,22 @@ module.exports = class hitbtc extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const amount = this.safeNumber (order, 'quantity');
-        const filled = this.safeNumber (order, 'cumQuantity');
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         const clientOrderId = id;
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        let trades = this.safeValue (order, 'tradesReport');
+        const trades = this.safeValue (order, 'tradesReport');
         const fee = undefined;
-        const average = this.safeNumber (order, 'avgPrice');
-        if (trades !== undefined) {
-            trades = this.parseTrades (trades, market);
-        }
+        const average = this.safeString (order, 'avgPrice');
         const timeInForce = this.safeString (order, 'timeInForce');
-        return this.safeOrder ({
+        return this.safeOrder2 ({
             'id': id,
             'clientOrderId': clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
             'timestamp': created,
@@ -994,7 +991,7 @@ module.exports = class hitbtc extends Exchange {
             'fee': fee,
             'trades': trades,
             'info': order,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
