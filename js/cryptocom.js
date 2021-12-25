@@ -49,7 +49,8 @@ module.exports = class cryptocom extends Exchange {
                 'fetchWithdrawals': false,
                 'setLeverage': false,
                 'setMarginMode': false,
-                'withdraw': false,
+                'withdraw': true,
+                'fetchDepositAddressesByNetwork': true,
                 'transfer': false,
                 'fetchTransfers': false,
             },
@@ -218,7 +219,6 @@ module.exports = class cryptocom extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const id = '1';
             const nonce = this.nonce ().toString ();
             const requestParams = this.extend ({}, params);
             const paramsKeys = Object.keys (this.keysort (requestParams));
@@ -226,10 +226,10 @@ module.exports = class cryptocom extends Exchange {
             for (let i = 0; i < paramsKeys.length; i++) {
                 strSortKey = strSortKey + paramsKeys[i].toString () + requestParams[paramsKeys[i]].toString ();
             }
-            const payload = path + id + this.apiKey + strSortKey + nonce;
+            const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret));
             body = this.json ({
-                'id': id,
+                'id': nonce,
                 'method': path,
                 'params': params,
                 'api_key': this.apiKey,
@@ -374,10 +374,10 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a `symbol` argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
@@ -551,6 +551,9 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a `symbol` argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -605,7 +608,7 @@ module.exports = class cryptocom extends Exchange {
         const request = {
             'instrument_name': market['id'],
             'side': side.toUpperCase (),
-            'type': type.toUpperCase (),
+            'type': uppercaseType,
             'quantity': amount,
         };
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
@@ -632,10 +635,10 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
@@ -644,10 +647,10 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
