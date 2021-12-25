@@ -2136,14 +2136,26 @@ module.exports = class bitmart extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
         const tag = this.safeString (data, 'address_memo');
+        const chain = this.safeString (data, 'chain');
+        let network = undefined;
+        if (chain !== undefined) {
+            const parts = chain.split ('-');
+            const networkId = this.safeString (parts, 1);
+            network = this.safeNetwork (networkId);
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined, // TODO: parse
+            'network': network,
             'info': response,
         };
+    }
+
+    safeNetwork (networkId) {
+        // TODO: parse
+        return networkId;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
