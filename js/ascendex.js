@@ -198,6 +198,12 @@ module.exports = class ascendex extends Exchange {
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
+                'defaultType': 'spot', // 'spot', 'margin', 'swap'
+                'accountCategories': {
+                    'spot': 'cash',
+                    'swap': 'futures',
+                    'margin': 'margin',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1383,14 +1389,12 @@ module.exports = class ascendex extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const options = this.safeValue (this.options, 'cancelOrder', {});
-        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
-        accountCategory = this.safeString (params, 'account-category', accountCategory);
-        params = this.omit (params, 'account-category');
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        const accountCategory = this.safeString (accountCategories, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1398,17 +1402,27 @@ module.exports = class ascendex extends Exchange {
             'time': this.milliseconds (),
             'id': 'foobar',
         };
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryDeleteOrder');
+        const method = this.getSupportedMapping (type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupDeleteFuturesOrder',
+        });
+        if (method === 'v1PrivateAccountCategoryDeleteOrder') {
+            if (accountCategory !== undefined) {
+                request['category'] = accountCategory;
+            }
+        } else {
+            request['account-category'] = accountCategory;
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         } else {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'id' ]);
         }
-        let method = 'v1PrivateAccountCategoryDeleteOrder';
-        if (market['swap']) {
-            method = 'v2PrivateAccountGroupDeleteFuturesOrder';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryDeleteOrder
         //
