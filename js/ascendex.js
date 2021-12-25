@@ -1534,13 +1534,20 @@ module.exports = class ascendex extends Exchange {
         const tag = this.safeString (depositAddress, tagId);
         this.checkAddress (address);
         const code = (currency === undefined) ? undefined : currency['code'];
+        const chainName = this.safeString (depositAddress, 'chainName');
+        const network = this.safeNetwork (chainName);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined, // TODO: parse network
+            'network': network,
             'info': depositAddress,
         };
+    }
+
+    safeNetwork (networkId) {
+        // TODO: parse network
+        return networkId;
     }
 
     async fetchDepositAddress (code, params = {}) {
