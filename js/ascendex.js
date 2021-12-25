@@ -194,12 +194,17 @@ module.exports = class ascendex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'account-category': 'cash', // 'cash'/'margin'/'futures'
+                'account-category': 'cash', // 'cash', 'margin', 'futures'
                 'account-group': undefined,
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
-                'defaultType': 'spot', // 'spot'/'swap'
+                'defaultType': 'spot', // 'spot', 'margin', 'swap'
+                'accountCategories': {
+                    'spot': 'cash',
+                    'swap': 'futures',
+                    'margin': 'margin',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1205,26 +1210,33 @@ module.exports = class ascendex extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountCategory = this.safeString (this.options, 'account-category');
-        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
-        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
-        accountCategory = this.safeString (params, 'account-category', accountCategory);
-        params = this.omit (params, 'account-category');
-        const account = this.safeValue (this.accounts, 0, {});
-        const accountGroup = this.safeValue (account, 'id');
-        const request = {
-            'account-group': accountGroup,
-            'account-category': accountCategory,
-        };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ methodType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const method = this.getSupportedMapping (methodType, {
-            'spot': 'v1PrivateAccountCategoryGetOrderOpen',
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeValue (account, 'id');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        const accountCategory = this.safeString (accountCategories, type, 'cash');
+        const request = {
+            'account-group': accountGroup,
+            'account-category': accountCategory,
+        };
+        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetOrderOpen');
+        const method = this.getSupportedMapping (type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderOpen',
         });
+        if (method === 'v1PrivateAccountCategoryGetOrderOpen') {
+            if (accountCategory !== undefined) {
+                request['category'] = accountCategory;
+            }
+        } else {
+            request['account-category'] = accountCategory;
+        }
         const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryGetOrderOpen
