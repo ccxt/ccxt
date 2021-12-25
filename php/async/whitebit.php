@@ -879,7 +879,7 @@ class whitebit extends Exchange {
         //         "BTC_USDT" => array(
         //             array(
         //                 "id" => 160305483,
-        //                 "clientOrderId" => "customId11", // empty string if not specified
+        //                 "clientOrderId" => "customId11",
         //                 "time" => 1594667731.724403,
         //                 "side" => "sell",
         //                 "role" => 2, // 1 = maker, 2 = taker
@@ -891,19 +891,20 @@ class whitebit extends Exchange {
         //         ),
         //     }
         //
-        // flattening $orders and injecting the $market
-        $keys = is_array($response) ? array_keys($response) : array();
-        $closedOrdersParsed = array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $marketKey = $keys[$i];
-            $orders = $response[$marketKey];
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        $results = array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $market = $this->safe_market($marketId, null, '_');
+            $orders = $response[$marketId];
             for ($j = 0; $j < count($orders); $j++) {
-                $order = $orders[$j];
-                $order['market'] = $marketKey;
-                $closedOrdersParsed[] = $order;
+                $order = $this->parse_order($orders[$j], $market);
+                $results[] = array_merge($order, array( 'status' => 'filled' ));
             }
         }
-        return $this->parse_orders($closedOrdersParsed, $market, $since, $limit, array( 'status' => 'filled' ));
+        $results = $this->sort_by($results, 'timestamp');
+        $results = $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit, $since === null);
+        return $results;
     }
 
     public function parse_order($order, $market = null) {

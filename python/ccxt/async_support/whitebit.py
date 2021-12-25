@@ -832,7 +832,7 @@ class whitebit(Exchange):
         #         "BTC_USDT": [
         #             {
         #                 "id": 160305483,
-        #                 "clientOrderId": "customId11",  # empty string if not specified
+        #                 "clientOrderId": "customId11",
         #                 "time": 1594667731.724403,
         #                 "side": "sell",
         #                 "role": 2,  # 1 = maker, 2 = taker
@@ -844,17 +844,18 @@ class whitebit(Exchange):
         #         ],
         #     }
         #
-        # flattening orders and injecting the market
-        keys = list(response.keys())
-        closedOrdersParsed = []
-        for i in range(0, len(keys)):
-            marketKey = keys[i]
-            orders = response[marketKey]
+        marketIds = list(response.keys())
+        results = []
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId, None, '_')
+            orders = response[marketId]
             for j in range(0, len(orders)):
-                order = orders[j]
-                order['market'] = marketKey
-                closedOrdersParsed.append(order)
-        return self.parse_orders(closedOrdersParsed, market, since, limit, {'status': 'filled'})
+                order = self.parse_order(orders[j], market)
+                results.append(self.extend(order, {'status': 'filled'}))
+        results = self.sort_by(results, 'timestamp')
+        results = self.filter_by_symbol_since_limit(results, symbol, since, limit, since is None)
+        return results
 
     def parse_order(self, order, market=None):
         #
