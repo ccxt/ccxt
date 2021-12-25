@@ -534,8 +534,8 @@ module.exports = class ftx extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'name');
             const future = this.safeValue (allFuturesDict, id);
-            const ftxType = this.safeString (market, 'type');
-            const contract = (ftxType === 'future');
+            const marketType = this.safeString (market, 'type');
+            const contract = (marketType === 'future');
             const baseId = this.safeString2 (market, 'baseCurrency', 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency', 'USD');
             const settleId = contract ? 'USD' : undefined;
