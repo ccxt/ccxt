@@ -2054,14 +2054,24 @@ class bitmart(Exchange):
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         tag = self.safe_string(data, 'address_memo')
+        chain = self.safe_string(data, 'chain')
+        network = None
+        if chain is not None:
+            parts = chain.split('-')
+            networkId = self.safe_string(parts, 1)
+            network = self.safe_network(networkId)
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,  # TODO: parse
+            'network': network,
             'info': response,
         }
+
+    def safe_network(self, networkId):
+        # TODO: parse
+        return networkId
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

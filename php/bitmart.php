@@ -2141,14 +2141,26 @@ class bitmart extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         $tag = $this->safe_string($data, 'address_memo');
+        $chain = $this->safe_string($data, 'chain');
+        $network = null;
+        if ($chain !== null) {
+            $parts = explode('-', $chain);
+            $networkId = $this->safe_string($parts, 1);
+            $network = $this->safe_network($networkId);
+        }
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => null, // TODO => parse
+            'network' => $network,
             'info' => $response,
         );
+    }
+
+    public function safe_network($networkId) {
+        // TODO => parse
+        return $networkId;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
