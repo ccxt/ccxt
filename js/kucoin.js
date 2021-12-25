@@ -597,7 +597,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const side = this.safeStringLower (order, 'side');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'symbol': symbol,
             'id': id,
