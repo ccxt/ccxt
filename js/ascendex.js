@@ -1259,7 +1259,7 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data);
+        return this.parseOrder (data, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
