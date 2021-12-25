@@ -1442,7 +1442,7 @@ class kucoin extends Exchange {
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
             'symbol' => $symbol,

@@ -1156,7 +1156,7 @@ class deribit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_value($order, 'stop_price');
         $postOnly = $this->safe_value($order, 'post_only');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

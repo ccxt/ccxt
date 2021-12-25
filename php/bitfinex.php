@@ -945,7 +945,7 @@ class bitfinex extends Exchange {
         }
         $timestamp = $this->safe_timestamp($order, 'timestamp');
         $id = $this->safe_string($order, 'id');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

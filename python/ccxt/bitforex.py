@@ -394,7 +394,7 @@ class bitforex(Exchange):
             'cost': self.safe_number(order, 'tradeFee'),
             'currency': feeCurrency,
         }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

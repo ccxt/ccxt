@@ -276,7 +276,7 @@ class independentreserve(Exchange):
         cost = self.safe_string(order, 'Value')
         average = self.safe_string(order, 'AvgPrice')
         price = self.safe_string(order, 'Price')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

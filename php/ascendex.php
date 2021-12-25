@@ -1074,7 +1074,7 @@ class ascendex extends Exchange {
             );
         }
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

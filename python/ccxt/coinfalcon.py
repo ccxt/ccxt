@@ -361,7 +361,7 @@ class coinfalcon(Exchange):
             type = type[0]
         side = self.safe_string(order, 'order_type')
         postOnly = self.safe_value(order, 'post_only')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),

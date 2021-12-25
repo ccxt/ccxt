@@ -399,7 +399,7 @@ class bitforex extends Exchange {
             'cost' => $this->safe_number($order, 'tradeFee'),
             'currency' => $feeCurrency,
         );
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

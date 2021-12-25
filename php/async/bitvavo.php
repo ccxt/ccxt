@@ -1193,7 +1193,7 @@ class bitvavo extends Exchange {
         $postOnly = $this->safe_value($order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         $stopPrice = $this->safe_number($order, 'triggerPrice');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

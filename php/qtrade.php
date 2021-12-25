@@ -859,7 +859,7 @@ class qtrade extends Exchange {
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
         $rawTrades = $this->safe_value($order, 'trades', array());
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

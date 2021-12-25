@@ -1052,7 +1052,7 @@ class bittrex extends Exchange {
         $status = $this->safe_string_lower($order, 'status');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $postOnly = ($timeInForce === 'PO');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,

@@ -1134,7 +1134,7 @@ class deribit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_value(order, 'stop_price')
         postOnly = self.safe_value(order, 'post_only')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

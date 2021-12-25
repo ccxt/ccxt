@@ -933,7 +933,7 @@ class probit extends Exchange {
             $clientOrderId = null;
         }
         $timeInForce = $this->safe_string_upper($order, 'time_in_force');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,

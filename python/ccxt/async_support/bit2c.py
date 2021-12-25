@@ -294,7 +294,7 @@ class bit2c(Exchange):
             side = 'sell'
         id = self.safe_string(order, 'id')
         status = self.safe_string(order, 'status')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

@@ -946,7 +946,7 @@ class xena extends Exchange {
         } else if ($type === '4') {
             $type = 'stop-limit';
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,

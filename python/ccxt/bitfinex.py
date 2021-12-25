@@ -906,7 +906,7 @@ class bitfinex(Exchange):
             orderType = parts[1]
         timestamp = self.safe_timestamp(order, 'timestamp')
         id = self.safe_string(order, 'id')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

@@ -1907,7 +1907,7 @@ class okex extends Exchange {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
         $stopPrice = $this->safe_number($order, 'slTriggerPx');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

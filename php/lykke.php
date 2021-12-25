@@ -493,7 +493,7 @@ class lykke extends Exchange {
         }
         $remaining = Precise::string_abs($this->safe_string($order, 'RemainingVolume'));
         $id = $this->safe_string($order, 'Id');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

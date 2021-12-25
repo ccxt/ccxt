@@ -495,7 +495,7 @@ class bitso(Exchange):
         amount = self.safe_string(order, 'original_amount')
         remaining = self.safe_string(order, 'unfilled_amount')
         clientOrderId = self.safe_string(order, 'client_id')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

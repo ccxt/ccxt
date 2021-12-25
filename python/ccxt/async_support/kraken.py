@@ -1238,7 +1238,7 @@ class kraken(Exchange):
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades')
         stopPrice = self.safe_number(order, 'stopprice')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

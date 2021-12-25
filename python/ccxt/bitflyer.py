@@ -353,7 +353,7 @@ class bitflyer(Exchange):
                 'rate': None,
             }
         id = self.safe_string(order, 'child_order_acceptance_id')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,

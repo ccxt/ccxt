@@ -580,7 +580,7 @@ class latoken1(Exchange):
         if (timeFilled is not None) and (timeFilled > 0):
             lastTradeTimestamp = timeFilled
         clientOrderId = self.safe_string(order, 'cliOrdId')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

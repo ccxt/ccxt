@@ -1239,7 +1239,7 @@ class bitpanda(Exchange):
         stopPrice = self.safe_number(rawOrder, 'trigger_price')
         postOnly = self.safe_value(rawOrder, 'is_post_only')
         rawTrades = self.safe_value(order, 'trades', [])
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

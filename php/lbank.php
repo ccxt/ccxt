@@ -444,7 +444,7 @@ class lbank extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $type = $this->safe_string($order, 'order_type');
         $side = $this->safe_string($order, 'type');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),

@@ -891,7 +891,7 @@ class probit(Exchange):
         if clientOrderId == '':
             clientOrderId = None
         timeInForce = self.safe_string_upper(order, 'time_in_force')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,

@@ -1623,7 +1623,7 @@ class aax(Exchange):
                 'currency': feeCurrency,
                 'cost': feeCost,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,

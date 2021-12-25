@@ -293,7 +293,7 @@ class btcbox(Exchange):
         if market is not None:
             symbol = market['symbol']
         side = self.safe_string(order, 'type')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

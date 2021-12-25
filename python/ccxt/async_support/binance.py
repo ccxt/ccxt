@@ -2307,7 +2307,7 @@ class binance(Exchange):
             type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
         stopPrice = self.parse_number(self.omit_zero(stopPriceString))
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

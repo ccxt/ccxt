@@ -836,7 +836,7 @@ class idex(Exchange):
         rawStatus = self.safe_string(order, 'status')
         timeInForce = self.safe_string_upper(order, 'timeInForce')
         status = self.parse_order_status(rawStatus)
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

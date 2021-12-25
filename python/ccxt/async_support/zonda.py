@@ -343,7 +343,7 @@ class zonda(Exchange):
         amount = self.safe_string(order, 'startAmount')
         remaining = self.safe_string(order, 'currentAmount')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'info': order,

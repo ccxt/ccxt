@@ -852,7 +852,7 @@ class novadax(Exchange):
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,

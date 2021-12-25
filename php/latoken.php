@@ -823,7 +823,7 @@ class latoken extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'condition'));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,

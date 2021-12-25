@@ -1166,7 +1166,7 @@ class ndax extends Exchange {
         $average = $this->safe_string($order, 'AvgPrice');
         $stopPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'StopPrice')));
         $status = $this->parse_order_status($this->safe_string($order, 'OrderState'));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,

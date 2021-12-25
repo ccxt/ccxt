@@ -2352,7 +2352,7 @@ class gateio(Exchange):
                 'currency': self.safe_currency_code(self.safe_string(market, 'settleId')),
                 'cost': tkfr,
             })
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': id,
             'timestamp': timestamp,

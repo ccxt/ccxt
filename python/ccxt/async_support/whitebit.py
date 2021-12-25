@@ -936,7 +936,7 @@ class whitebit(Exchange):
             }
         timestamp = self.safe_timestamp_2(order, 'ctime', 'timestamp')
         lastTradeTimestamp = self.safe_timestamp(order, 'ftime')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': orderId,
             'symbol': symbol,

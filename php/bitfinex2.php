@@ -1022,7 +1022,7 @@ class bitfinex2 extends bitfinex {
         $price = $this->safe_string($order, 16);
         $average = $this->safe_string($order, 17);
         $clientOrderId = $this->safe_string($order, 2);
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

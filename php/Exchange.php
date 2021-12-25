@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.65.10';
+$version = '1.65.11';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.65.10';
+    const VERSION = '1.65.11';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -358,7 +358,7 @@ class Exchange {
         'signMessageString' => 'sign_message_string',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeTrade' => 'safe_trade',
-        'safeOrder2' => 'safe_order2',
+        'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
         'safeNumber' => 'safe_number',
         'safeNumber2' => 'safe_number2',

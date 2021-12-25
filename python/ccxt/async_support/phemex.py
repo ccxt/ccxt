@@ -1607,7 +1607,7 @@ class phemex(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp', market))))
         postOnly = (timeInForce == 'PO')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

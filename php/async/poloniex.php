@@ -892,7 +892,7 @@ class poloniex extends Exchange {
             );
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1111,7 +1111,7 @@ class poloniex extends Exchange {
             throw new OrderNotFound($this->id . ' order $id ' . $id . ' not found');
         }
         $id = $this->safe_value($firstTrade, 'globalTradeID', $id);
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $id,
             'clientOrderId' => $this->safe_value($firstTrade, 'clientOrderId'),

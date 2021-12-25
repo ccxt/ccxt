@@ -853,7 +853,7 @@ class btcmarkets extends Exchange {
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'triggerPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

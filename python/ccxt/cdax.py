@@ -1058,7 +1058,7 @@ class cdax(Exchange):
                 'cost': feeCostString,
                 'currency': feeCurrency,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

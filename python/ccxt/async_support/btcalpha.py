@@ -335,7 +335,7 @@ class btcalpha(Exchange):
         id = self.safe_string_2(order, 'oid', 'id')
         trades = self.safe_value(order, 'trades')
         side = self.safe_string_2(order, 'my_side', 'type')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),

@@ -1617,7 +1617,7 @@ class bitmart extends Exchange {
         } else if ($category === 2) {
             $type = 'market';
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,

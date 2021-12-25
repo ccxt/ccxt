@@ -980,7 +980,7 @@ class bitfinex2(bitfinex):
         price = self.safe_string(order, 16)
         average = self.safe_string(order, 17)
         clientOrderId = self.safe_string(order, 2)
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

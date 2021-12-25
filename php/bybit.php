@@ -1343,7 +1343,7 @@ class bybit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_number_2($order, 'trigger_price', 'stop_px');
         $postOnly = ($timeInForce === 'PO');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

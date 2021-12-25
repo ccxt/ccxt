@@ -1575,7 +1575,7 @@ class bitmart(Exchange):
             type = 'limit'
         elif category == 2:
             type = 'market'
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,

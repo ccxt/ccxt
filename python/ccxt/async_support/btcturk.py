@@ -570,7 +570,7 @@ class btcturk(Exchange):
         timestamp = self.safe_integer_2(order, 'updateTime', 'datetime')
         rawStatus = self.safe_string(order, 'status')
         status = self.parse_order_status(rawStatus)
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'price': price,

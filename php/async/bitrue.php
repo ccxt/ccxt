@@ -1095,7 +1095,7 @@ class bitrue extends Exchange {
         }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

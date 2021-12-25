@@ -931,7 +931,7 @@ class hitbtc(Exchange):
         fee = None
         average = self.safe_string(order, 'avgPrice')
         timeInForce = self.safe_string(order, 'timeInForce')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,  # https://github.com/ccxt/ccxt/issues/5674
             'timestamp': created,

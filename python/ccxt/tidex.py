@@ -545,7 +545,7 @@ class tidex(Exchange):
             filledString = self.safe_string(returnResult, 'received', filledString)
             remainingString = self.safe_string(returnResult, 'remains', amountString)
         timestamp = self.milliseconds()
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -598,7 +598,7 @@ class tidex(Exchange):
         else:
             remaining = self.safe_string(order, 'amount')
         fee = None
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

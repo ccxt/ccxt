@@ -558,7 +558,7 @@ class kuna extends Exchange {
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $id = $this->safe_string($order, 'id');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,

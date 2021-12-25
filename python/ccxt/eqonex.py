@@ -1275,7 +1275,7 @@ class eqonex(Exchange):
             timeInForce = None
         stopPriceScale = self.safe_integer(order, 'stopPx_scale', 0)
         stopPrice = self.parse_number(self.convert_from_scale(self.safe_string(order, 'stopPx'), stopPriceScale))
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

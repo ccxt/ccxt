@@ -426,7 +426,7 @@ class bitbank(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),

@@ -508,7 +508,7 @@ class bitso extends Exchange {
         $amount = $this->safe_string($order, 'original_amount');
         $remaining = $this->safe_string($order, 'unfilled_amount');
         $clientOrderId = $this->safe_string($order, 'client_id');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

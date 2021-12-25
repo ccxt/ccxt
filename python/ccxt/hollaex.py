@@ -785,7 +785,7 @@ class hollaex(Exchange):
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'filled')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

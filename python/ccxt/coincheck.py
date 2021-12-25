@@ -180,7 +180,7 @@ class coincheck(Exchange):
         status = None
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

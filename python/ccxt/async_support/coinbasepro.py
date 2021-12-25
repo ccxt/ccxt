@@ -806,7 +806,7 @@ class coinbasepro(Exchange):
         postOnly = self.safe_value(order, 'post_only')
         stopPrice = self.safe_number(order, 'stop_price')
         clientOrderId = self.safe_string(order, 'client_oid')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

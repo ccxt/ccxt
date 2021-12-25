@@ -393,7 +393,7 @@ class tidebit(Exchange):
         filled = self.safe_string(order, 'executed_volume')
         remaining = self.safe_string(order, 'remaining_volume')
         average = self.safe_string(order, 'avg_price')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

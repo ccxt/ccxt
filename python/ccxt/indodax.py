@@ -411,7 +411,7 @@ class indodax(Exchange):
         timestamp = self.safe_integer(order, 'submit_time')
         fee = None
         id = self.safe_string(order, 'order_id')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

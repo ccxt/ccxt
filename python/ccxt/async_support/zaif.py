@@ -351,7 +351,7 @@ class zaif(Exchange):
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'amount')
         id = self.safe_string(order, 'id')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

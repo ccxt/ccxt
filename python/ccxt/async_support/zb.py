@@ -870,7 +870,7 @@ class zb(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

@@ -301,7 +301,7 @@ class btcbox extends Exchange {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($order, 'type');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,

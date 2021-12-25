@@ -698,7 +698,7 @@ class bithumb(Exchange):
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
         rawTrades = self.safe_value(order, 'contract', [])
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

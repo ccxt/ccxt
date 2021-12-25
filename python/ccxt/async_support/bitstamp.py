@@ -1248,7 +1248,7 @@ class bitstamp(Exchange):
         amount = self.safe_string(order, 'amount')
         transactions = self.safe_value(order, 'transactions', [])
         price = self.safe_string(order, 'price')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),

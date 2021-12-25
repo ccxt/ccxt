@@ -884,7 +884,7 @@ class novadax extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,

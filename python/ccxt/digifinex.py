@@ -913,7 +913,7 @@ class digifinex(Exchange):
         filledString = self.safe_string(order, 'executed_amount')
         priceString = self.safe_string(order, 'price')
         averageString = self.safe_string(order, 'avg_price')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

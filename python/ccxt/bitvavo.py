@@ -1150,7 +1150,7 @@ class bitvavo(Exchange):
         postOnly = self.safe_value(order, 'postOnly')
         # https://github.com/ccxt/ccxt/issues/8489
         stopPrice = self.safe_number(order, 'triggerPrice')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

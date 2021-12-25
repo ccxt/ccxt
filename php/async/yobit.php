@@ -628,7 +628,7 @@ class yobit extends Exchange {
         $fee = null;
         $type = 'limit';
         $side = $this->safe_string($order, 'type');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

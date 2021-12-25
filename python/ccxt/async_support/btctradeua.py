@@ -316,7 +316,7 @@ class btctradeua(Exchange):
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'amnt_trade')
         remaining = self.safe_string(order, 'amnt_trade')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'timestamp': timestamp,  # until they fix their timestamp

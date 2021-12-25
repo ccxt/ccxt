@@ -802,7 +802,7 @@ class btcmarkets(Exchange):
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

@@ -617,7 +617,7 @@ class oceanex extends Exchange {
         $amount = $this->safe_string($order, 'volume');
         $remaining = $this->safe_string($order, 'remaining_volume');
         $filled = $this->safe_string($order, 'executed_volume');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,

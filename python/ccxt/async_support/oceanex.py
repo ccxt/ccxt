@@ -577,7 +577,7 @@ class oceanex(Exchange):
         amount = self.safe_string(order, 'volume')
         remaining = self.safe_string(order, 'remaining_volume')
         filled = self.safe_string(order, 'executed_volume')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,

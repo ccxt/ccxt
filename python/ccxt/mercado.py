@@ -410,7 +410,7 @@ class mercado(Exchange):
         filled = self.safe_string(order, 'executed_quantity')
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
         rawTrades = self.safe_value(order, 'operations', [])
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

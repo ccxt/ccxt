@@ -676,7 +676,7 @@ class bigone(Exchange):
         else:
             side = 'sell'
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'updated_at'))
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

@@ -1209,7 +1209,7 @@ class bitmex(Exchange):
         stopPrice = self.safe_number(order, 'stopPx')
         execInst = self.safe_string(order, 'execInst')
         postOnly = (execInst == 'ParticipateDoNotInitiate')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

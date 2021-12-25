@@ -470,7 +470,7 @@ class lykke(Exchange):
             side = 'buy'
         remaining = Precise.string_abs(self.safe_string(order, 'RemainingVolume'))
         id = self.safe_string(order, 'Id')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

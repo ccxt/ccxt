@@ -1123,7 +1123,7 @@ class timex(Exchange):
             status = 'open'
         rawTrades = self.safe_value(order, 'trades', [])
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

@@ -1014,7 +1014,7 @@ class bittrex(Exchange):
         status = self.safe_string_lower(order, 'status')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         postOnly = (timeInForce == 'PO')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,

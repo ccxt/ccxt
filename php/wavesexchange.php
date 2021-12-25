@@ -1438,7 +1438,7 @@ class wavesexchange extends Exchange {
                 'fee' => $this->parse_number($this->currency_from_precision($currency, $this->safe_string($order, 'matcherFee'))),
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

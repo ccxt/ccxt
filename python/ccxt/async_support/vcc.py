@@ -963,7 +963,7 @@ class vcc(Exchange):
         if updated != created:
             lastTradeTimestamp = updated
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': id,
             'timestamp': created,

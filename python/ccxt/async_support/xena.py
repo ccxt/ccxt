@@ -905,7 +905,7 @@ class xena(Exchange):
             type = 'stop'
         elif type == '4':
             type = 'stop-limit'
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

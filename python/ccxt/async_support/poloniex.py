@@ -852,7 +852,7 @@ class poloniex(Exchange):
                 'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1052,7 +1052,7 @@ class poloniex(Exchange):
         if firstTrade is None:
             raise OrderNotFound(self.id + ' order id ' + id + ' not found')
         id = self.safe_value(firstTrade, 'globalTradeID', id)
-        return self.safe_order2({
+        return self.safe_order({
             'info': response,
             'id': id,
             'clientOrderId': self.safe_value(firstTrade, 'clientOrderId'),

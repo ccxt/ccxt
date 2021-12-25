@@ -1168,7 +1168,7 @@ class timex extends Exchange {
         }
         $rawTrades = $this->safe_value($order, 'trades', array());
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

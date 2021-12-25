@@ -1364,7 +1364,7 @@ class wavesexchange(Exchange):
                 'currency': currency,
                 'fee': self.parse_number(self.currency_from_precision(currency, self.safe_string(order, 'matcherFee'))),
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

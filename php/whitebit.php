@@ -991,7 +991,7 @@ class whitebit extends Exchange {
         }
         $timestamp = $this->safe_timestamp_2($order, 'ctime', 'timestamp');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'ftime');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $orderId,
             'symbol' => $symbol,

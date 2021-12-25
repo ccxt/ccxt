@@ -1267,7 +1267,7 @@ class bitmex extends Exchange {
         $stopPrice = $this->safe_number($order, 'stopPx');
         $execInst = $this->safe_string($order, 'execInst');
         $postOnly = ($execInst === 'ParticipateDoNotInitiate');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

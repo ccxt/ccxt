@@ -553,7 +553,7 @@ class buda(Exchange):
                 'cost': feeCost,
                 'code': feeCurrencyCode,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

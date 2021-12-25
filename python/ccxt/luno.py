@@ -296,7 +296,7 @@ class luno(Exchange):
             if market is not None:
                 fee['currency'] = market['base']
         id = self.safe_string(order, 'order_id')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),

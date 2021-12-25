@@ -491,7 +491,7 @@ class coinone extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

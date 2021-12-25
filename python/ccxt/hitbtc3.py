@@ -1303,7 +1303,7 @@ class hitbtc3(Exchange):
         postOnly = self.safe_value(order, 'post_only')
         timeInForce = self.safe_string(order, 'time_in_force')
         rawTrades = self.safe_value(order, 'trades')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': id,

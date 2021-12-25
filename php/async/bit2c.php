@@ -303,7 +303,7 @@ class bit2c extends Exchange {
         }
         $id = $this->safe_string($order, 'id');
         $status = $this->safe_string($order, 'status');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,

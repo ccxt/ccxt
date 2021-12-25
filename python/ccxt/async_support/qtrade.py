@@ -840,7 +840,7 @@ class qtrade(Exchange):
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
         rawTrades = self.safe_value(order, 'trades', [])
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

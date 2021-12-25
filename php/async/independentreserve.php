@@ -291,7 +291,7 @@ class independentreserve extends Exchange {
         $cost = $this->safe_string($order, 'Value');
         $average = $this->safe_string($order, 'AvgPrice');
         $price = $this->safe_string($order, 'Price');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

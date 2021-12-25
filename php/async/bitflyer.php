@@ -377,7 +377,7 @@ class bitflyer extends Exchange {
             );
         }
         $id = $this->safe_string($order, 'child_order_acceptance_id');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,

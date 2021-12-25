@@ -552,7 +552,7 @@ class bytetrade(Exchange):
             'cost': feeCost,
             'rate': feeRate,
         }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

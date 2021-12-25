@@ -1049,7 +1049,7 @@ class ascendex(Exchange):
                 'currency': feeCurrencyCode,
             }
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

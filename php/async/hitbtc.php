@@ -974,7 +974,7 @@ class hitbtc extends Exchange {
         $fee = null;
         $average = $this->safe_string($order, 'avgPrice');
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
             'timestamp' => $created,

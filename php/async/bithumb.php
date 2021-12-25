@@ -730,7 +730,7 @@ class bithumb extends Exchange {
         }
         $id = $this->safe_string($order, 'order_id');
         $rawTrades = $this->safe_value($order, 'contract', array());
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

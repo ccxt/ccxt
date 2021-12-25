@@ -825,7 +825,7 @@ class coinbasepro extends Exchange {
         $postOnly = $this->safe_value($order, 'post_only');
         $stopPrice = $this->safe_number($order, 'stop_price');
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,

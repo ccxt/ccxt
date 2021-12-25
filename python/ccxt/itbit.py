@@ -485,7 +485,7 @@ class itbit(Exchange):
         id = self.safe_string(order, 'id')
         postOnlyString = self.safe_string(order, 'postOnly')
         postOnly = (postOnlyString == 'True')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

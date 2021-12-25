@@ -704,7 +704,7 @@ class bigone extends Exchange {
             $side = 'sell';
         }
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'updated_at'));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

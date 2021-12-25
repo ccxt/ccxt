@@ -876,7 +876,7 @@ class idex extends Exchange {
         $rawStatus = $this->safe_string($order, 'status');
         $timeInForce = $this->safe_string_upper($order, 'timeInForce');
         $status = $this->parse_order_status($rawStatus);
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

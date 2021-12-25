@@ -1375,7 +1375,7 @@ class hitbtc3 extends Exchange {
         $postOnly = $this->safe_value($order, 'post_only');
         $timeInForce = $this->safe_string($order, 'time_in_force');
         $rawTrades = $this->safe_value($order, 'trades');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $id,

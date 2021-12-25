@@ -1305,7 +1305,7 @@ class kraken extends Exchange {
         $clientOrderId = $this->safe_string($order, 'userref');
         $rawTrades = $this->safe_value($order, 'trades');
         $stopPrice = $this->safe_number($order, 'stopprice');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,

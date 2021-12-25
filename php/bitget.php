@@ -1930,7 +1930,7 @@ class bitget extends Exchange {
             );
         }
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

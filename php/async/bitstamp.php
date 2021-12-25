@@ -1321,7 +1321,7 @@ class bitstamp extends Exchange {
         $amount = $this->safe_string($order, 'amount');
         $transactions = $this->safe_value($order, 'transactions', array());
         $price = $this->safe_string($order, 'price');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'datetime' => $this->iso8601($timestamp),

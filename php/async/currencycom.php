@@ -824,7 +824,7 @@ class currencycom extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $fills = $this->safe_value($order, 'fills');
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,

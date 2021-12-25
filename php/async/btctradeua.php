@@ -351,7 +351,7 @@ class btctradeua extends Exchange {
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'amnt_trade');
         $remaining = $this->safe_string($order, 'amnt_trade');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'timestamp' => $timestamp, // until they fix their $timestamp

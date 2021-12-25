@@ -999,7 +999,7 @@ class vcc extends Exchange {
             $lastTradeTimestamp = $updated;
         }
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $id,
             'timestamp' => $created,

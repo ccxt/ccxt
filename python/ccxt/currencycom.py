@@ -790,7 +790,7 @@ class currencycom(Exchange):
         side = self.safe_string_lower(order, 'side')
         fills = self.safe_value(order, 'fills')
         timeInForce = self.safe_string(order, 'timeInForce')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'timestamp': timestamp,

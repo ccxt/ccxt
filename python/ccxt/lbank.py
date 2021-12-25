@@ -420,7 +420,7 @@ class lbank(Exchange):
         id = self.safe_string(order, 'order_id')
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),

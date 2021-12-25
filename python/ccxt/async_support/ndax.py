@@ -1128,7 +1128,7 @@ class ndax(Exchange):
         average = self.safe_string(order, 'AvgPrice')
         stopPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice')))
         status = self.parse_order_status(self.safe_string(order, 'OrderState'))
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

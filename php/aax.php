@@ -1682,7 +1682,7 @@ class aax extends Exchange {
                 'cost' => $feeCost,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,

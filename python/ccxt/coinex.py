@@ -648,7 +648,7 @@ class coinex(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),

@@ -2452,7 +2452,7 @@ class gateio extends Exchange {
                 'cost' => $tkfr,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $id,
             'timestamp' => $timestamp,

@@ -1867,7 +1867,7 @@ class bitget(Exchange):
                 'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'client_oid')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

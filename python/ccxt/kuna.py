@@ -529,7 +529,7 @@ class kuna(Exchange):
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         id = self.safe_string(order, 'id')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

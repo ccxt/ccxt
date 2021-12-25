@@ -661,7 +661,7 @@ class gemini(Exchange):
         id = self.safe_string(order, 'order_id')
         side = self.safe_string_lower(order, 'side')
         clientOrderId = self.safe_string(order, 'client_order_id')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

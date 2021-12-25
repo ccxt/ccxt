@@ -782,7 +782,7 @@ class crex24(Exchange):
         side = self.safe_string(order, 'side')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

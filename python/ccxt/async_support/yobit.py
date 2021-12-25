@@ -608,7 +608,7 @@ class yobit(Exchange):
         fee = None
         type = 'limit'
         side = self.safe_string(order, 'type')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

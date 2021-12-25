@@ -1668,7 +1668,7 @@ class mexc(Exchange):
         orderType = self.safe_string_lower(order, 'order_type')
         if orderType is not None:
             orderType = orderType.replace('_order', '')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,

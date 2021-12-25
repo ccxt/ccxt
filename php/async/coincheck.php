@@ -187,7 +187,7 @@ class coincheck extends Exchange {
         $status = null;
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,

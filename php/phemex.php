@@ -1659,7 +1659,7 @@ class phemex extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp', $market))));
         $postOnly = ($timeInForce === 'PO');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

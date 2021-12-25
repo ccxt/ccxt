@@ -464,7 +464,7 @@ class coinone(Exchange):
                 'rate': self.safe_string(order, 'feeRate'),
                 'currency': feeCurrencyCode,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

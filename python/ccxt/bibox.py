@@ -955,7 +955,7 @@ class bibox(Exchange):
                 'cost': feeCost,
                 'currency': None,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

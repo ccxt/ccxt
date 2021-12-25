@@ -793,7 +793,7 @@ class latoken(Exchange):
                 status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

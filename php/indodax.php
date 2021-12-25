@@ -424,7 +424,7 @@ class indodax extends Exchange {
         $timestamp = $this->safe_integer($order, 'submit_time');
         $fee = null;
         $id = $this->safe_string($order, 'order_id');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

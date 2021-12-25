@@ -1312,7 +1312,7 @@ class bybit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_number_2(order, 'trigger_price', 'stop_px')
         postOnly = (timeInForce == 'PO')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

@@ -2184,7 +2184,7 @@ class huobi(Exchange):
                 'currency': feeCurrency,
             }
         stopPrice = self.safe_string(order, 'stop-price')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

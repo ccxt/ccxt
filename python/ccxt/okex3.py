@@ -2147,7 +2147,7 @@ class okex3(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
         stopPrice = self.safe_number(order, 'trigger_price')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
