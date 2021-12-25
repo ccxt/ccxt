@@ -540,18 +540,19 @@ class kucoin(Exchange, ccxt.kucoin):
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOid')
         orderType = self.safe_string_lower(order, 'orderType')
-        price = self.safe_number(order, 'price')
-        filled = self.safe_number(order, 'filledSize')
-        amount = self.safe_number(order, 'size')
+        price = self.safe_string(order, 'price')
+        filled = self.safe_string(order, 'filledSize')
+        amount = self.safe_string(order, 'size')
         rawType = self.safe_string(order, 'type')
         status = self.parse_ws_order_status(rawType)
         timestamp = self.safe_integer(order, 'ts')
         if timestamp is not None:
             timestamp = int(timestamp / 1000000)
         marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         side = self.safe_string_lower(order, 'side')
-        return self.safe_order({
+        return self.safe_order2({
             'info': order,
             'symbol': symbol,
             'id': id,
@@ -564,7 +565,7 @@ class kucoin(Exchange, ccxt.kucoin):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,
@@ -573,7 +574,7 @@ class kucoin(Exchange, ccxt.kucoin):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     def handle_order(self, client, message):
         messageHash = '/spotMarket/tradeOrders'
