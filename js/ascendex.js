@@ -198,7 +198,12 @@ module.exports = class ascendex extends Exchange {
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
-                'defaultType': 'spot', // 'spot', 'swap'
+                'defaultType': 'spot', // 'spot', 'margin', 'swap'
+                'accountCategories': {
+                    'spot': 'cash',
+                    'swap': 'futures',
+                    'margin': 'margin',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1161,11 +1166,10 @@ module.exports = class ascendex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const defaultAccountCategory = this.safeString (this.options, 'account-category');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const options = this.safeValue (this.options, 'fetchOrder', {});
-        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
-        accountCategory = this.safeString (params, 'account-category', accountCategory);
-        params = this.omit (params, 'account-category');
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        const accountCategory = this.safeString (accountCategories, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const request = {
@@ -1173,11 +1177,19 @@ module.exports = class ascendex extends Exchange {
             'account-category': accountCategory,
             'orderId': id,
         };
-        const [ methodType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const method = this.getSupportedMapping (methodType, {
-            'spot': 'v1PrivateAccountCategoryGetOrderStatus',
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetOrderStatus');
+        const method = this.getSupportedMapping (type, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderStatus',
         });
+        if (method === 'v1PrivateAccountCategoryGetOrderStatus') {
+            if (accountCategory !== undefined) {
+                request['category'] = accountCategory;
+            }
+        } else {
+            request['account-category'] = accountCategory;
+        }
         const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryGetOrderStatus
