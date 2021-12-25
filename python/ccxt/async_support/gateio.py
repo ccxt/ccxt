@@ -1594,6 +1594,8 @@ class gateio(Exchange):
         request['interval'] = self.timeframes[timeframe]
         method = 'publicSpotGetCandlesticks'
         if market['contract']:
+            maxLimit = 1999
+            limit = maxLimit if (limit is None) else min(limit, maxLimit)
             if market['future']:
                 method = 'publicDeliveryGetSettleCandlesticks'
             elif market['swap']:
@@ -1603,17 +1605,14 @@ class gateio(Exchange):
             if isMark or isIndex:
                 request['contract'] = price + '_' + market['id']
                 params = self.omit(params, 'price')
-        if since is None:
-            if limit is not None:
-                request['limit'] = limit
         else:
-            timeframeSeconds = self.parse_timeframe(timeframe)
-            timeframeMilliseconds = timeframeSeconds * 1000
-            # align forward to the next timeframe alignment
-            since = self.sum(since - (since % timeframeMilliseconds), timeframeMilliseconds)
+            maxLimit = 1000
+            limit = maxLimit if (limit is None) else min(limit, maxLimit)
+            request['limit'] = limit
+        if since is not None:
+            duration = self.parse_timeframe(timeframe)
             request['from'] = int(since / 1000)
-            if limit is not None:
-                request['to'] = self.sum(request['from'], limit * timeframeSeconds - 1)
+            request['to'] = self.sum(request['from'], limit * duration - 1)
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

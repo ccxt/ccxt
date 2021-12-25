@@ -1630,6 +1630,8 @@ class gateio extends Exchange {
         $request['interval'] = $this->timeframes[$timeframe];
         $method = 'publicSpotGetCandlesticks';
         if ($market['contract']) {
+            $maxLimit = 1999;
+            $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
             if ($market['future']) {
                 $method = 'publicDeliveryGetSettleCandlesticks';
             } else if ($market['swap']) {
@@ -1641,20 +1643,15 @@ class gateio extends Exchange {
                 $request['contract'] = $price . '_' . $market['id'];
                 $params = $this->omit($params, 'price');
             }
-        }
-        if ($since === null) {
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
         } else {
-            $timeframeSeconds = $this->parse_timeframe($timeframe);
-            $timeframeMilliseconds = $timeframeSeconds * 1000;
-            // align forward to the next $timeframe alignment
-            $since = $this->sum($since - (fmod($since, $timeframeMilliseconds)), $timeframeMilliseconds);
+            $maxLimit = 1000;
+            $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $duration = $this->parse_timeframe($timeframe);
             $request['from'] = intval($since / 1000);
-            if ($limit !== null) {
-                $request['to'] = $this->sum($request['from'], $limit * $timeframeSeconds - 1);
-            }
+            $request['to'] = $this->sum($request['from'], $limit * $duration - 1);
         }
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
