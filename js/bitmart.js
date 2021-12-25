@@ -2137,12 +2137,9 @@ module.exports = class bitmart extends Exchange {
         const address = this.safeString (data, 'address');
         const tag = this.safeString (data, 'address_memo');
         const chain = this.safeString (data, 'chain');
-        let network = undefined;
-        if (chain.indexOf ('-') > 0) {
-            const splitted = chain.split ('-');
-            const networkId = splitted[1];
-            network = this.safeNetwork (networkId);
-        }
+        const parts = chain.split ('-');
+        const networkId = this.safeString (parts, 1);
+        const network = this.safeNetwork (networkId);
         this.checkAddress (address);
         return {
             'currency': code,
