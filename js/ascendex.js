@@ -1487,12 +1487,7 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        let info = undefined;
-        if (market['swap']) {
-            info = this.safeValue (data, 'order', {});
-        } else {
-            info = this.safeValue (data, 'info', {});
-        }
+        const order = this.safeValue2 (data, 'order', 'info', {});
         return this.parseOrder (info, market);
     }
 
