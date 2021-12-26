@@ -1041,7 +1041,7 @@ module.exports = class coinsbit extends Exchange {
             account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     nonce () {
