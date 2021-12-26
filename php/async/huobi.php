@@ -1985,7 +1985,21 @@ class huobi extends Exchange {
             if ($subType === 'inverse') {
                 $method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
             } else if ($subType === 'linear') {
-                $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                $currencyId = $this->safe_string($params, 'margin_account');
+                if ($currencyId === null) {
+                    $code = $this->safe_string($params, 'code');
+                    if ($code !== null) {
+                        $params = $this->omit($params, 'code');
+                        $currency = $this->currency($code);
+                        $currencyId = $currency['id'];
+                    }
+                }
+                if ($currencyId === null) {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                } else {
+                    $request['margin_account'] = $currencyId;
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+                }
             }
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -2007,7 +2021,7 @@ class huobi extends Exchange {
         //         "ts":1637644827566
         //     }
         //
-        // $future, $swap
+        // $future, $swap isolated
         //
         //     {
         //         "status":"ok",
@@ -2035,6 +2049,45 @@ class huobi extends Exchange {
         //             ),
         //         ),
         //         "ts":1637644827566
+        //     }
+        //
+        // $swap cross
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             {
+        //                 "margin_mode":"cross",
+        //                 "margin_account":"USDT",
+        //                 "margin_asset":"USDT",
+        //                 "margin_balance":200,
+        //                 "margin_static":200,
+        //                 "margin_position":0,
+        //                 "margin_frozen":0,
+        //                 "profit_real":0,
+        //                 "profit_unreal":0,
+        //                 "withdraw_available":2E+2,
+        //                 "risk_rate":null,
+        //                 "contract_detail":array(
+        //                     array(
+        //                         "symbol":"MANA",
+        //                         "contract_code":"MANA-USDT",
+        //                         "margin_position":0,
+        //                         "margin_frozen":0,
+        //                         "margin_available":200.000000000000000000,
+        //                         "profit_unreal":0E-18,
+        //                         "liquidation_price":null,
+        //                         "lever_rate":5,
+        //                         "adjust_factor":0.100000000000000000,
+        //                         "contract_type":"swap",
+        //                         "pair":"MANA-USDT",
+        //                         "business_type":"swap"
+        //                     ),
+        //                     ...
+        //                 )
+        //             }
+        //         ),
+        //         "ts":1640493207964
         //     }
         //
         $result = array( 'info' => $response );
@@ -2075,10 +2128,15 @@ class huobi extends Exchange {
                 $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
                 $symbol = $this->safe_symbol($marketId);
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'margin_available');
+                $account['free'] = $this->safe_string($balance, 'margin_balance', 'margin_available');
                 $account['used'] = $this->safe_string($balance, 'margin_frozen');
                 $currencyId = $this->safe_string_2($balance, 'margin_asset', 'symbol');
                 $code = $this->safe_currency_code($currencyId);
+                $marginMode = $this->safe_string($balance, 'margin_mode');
+                if ($marginMode === 'cross') {
+                    $result[$code] = $account;
+                    return $this->safe_balance($result);
+                }
                 $accountsByCode = array();
                 $accountsByCode[$code] = $account;
                 $result[$symbol] = $this->safe_balance($accountsByCode);
@@ -2305,7 +2363,8 @@ class huobi extends Exchange {
         list($methodType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $method = $this->get_supported_mapping($methodType, array(
             'spot' => 'createSpotOrder',
-            // 'future' => 'createContractOrder',
+            'swap' => 'createContractOrder',
+            'future' => 'createContractOrder',
         ));
         if ($method === null) {
             throw new NotSupported($this->id . ' createOrder does not support ' . $type . ' markets yet');
@@ -2412,49 +2471,112 @@ class huobi extends Exchange {
     }
 
     public function create_contract_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        // $request = array(
-        //     // 'symbol' => 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-        //     // 'contract_type' => 'this_week', // optional, this_week, next_week, quarter, next_quarter
-        //     // 'contract_code' => market['id'], // optional BTC180914
-        //     // 'client_order_id' => clientOrderId, // optional, must be less than 9223372036854775807
-        //     // 'price' => $this->price_to_precision($symbol, $price),
-        //     // 'volume' => $this->amount_to_precision($symbol, $amount),
-        //     //
-        //     //     direction buy, offset open = open long
-        //     //     direction sell, offset close = close long
-        //     //     direction sell, offset open = open short
-        //     //     direction buy, offset close = close short
-        //     //
-        //     // 'direction' => 'buy'', // buy, sell
-        //     // 'offset' => 'open', // open, close
-        //     // 'lever_rate' => 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
-        //     //
-        //     //     limit
-        //     //     opponent // BBO
-        //     //     post_only
-        //     //     optimal_5
-        //     //     optimal_10
-        //     //     optimal_20
-        //     //     ioc
-        //     //     fok
-        //     //     opponent_ioc // IOC order using the BBO $price
-        //     //     optimal_5_ioc
-        //     //     optimal_10_ioc
-        //     //     optimal_20_ioc
-        //     //     opponent_fok // FOR order using the BBO $price
-        //     //     optimal_5_fok
-        //     //     optimal_10_fok
-        //     //     optimal_20_fok
-        //     //
-        //     // 'order_price_type' => 'limit', // required
-        //     // 'tp_trigger_price' => $this->price_to_precision($symbol, triggerPrice),
-        //     // 'tp_order_price' => $this->price_to_precision($symbol, $price),
-        //     // 'tp_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
-        //     // 'sl_trigger_price' => $this->price_to_precision($symbol, stopLossPrice),
-        //     // 'sl_order_price' => $this->price_to_precision($symbol, $price),
-        //     // 'sl_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
-        // );
-        throw new NotSupported($this->id . ' createContractOrder is not supported yet, it is a work in progress');
+        $offset = $this->safe_string($params, 'offset');
+        if ($offset === null) {
+            throw new ArgumentsRequired($this->id . ' createContractOrder() requires a string $offset parameter, open or close');
+        }
+        $stopPrice = $this->safe_string($params, 'stopPrice');
+        if ($stopPrice !== null) {
+            throw new NotSupported($this->id . ' createContractOrder() supports tp_trigger_price . tp_order_price for take profit orders and/or sl_trigger_price . sl_order $price for stop loss orders, stop orders are supported only with open long orders and open short orders');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            // 'symbol' => 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            // 'contract_type' => 'this_week', // optional, this_week, next_week, quarter, next_quarter
+            'contract_code' => $market['id'], // optional BTC180914
+            // 'client_order_id' => $clientOrderId, // optional, must be less than 9223372036854775807
+            // 'price' => $this->price_to_precision($symbol, $price), // optional
+            'volume' => $this->amount_to_precision($symbol, $amount),
+            'direction' => $side, // buy, sell
+            'offset' => $offset, // open, close
+            //
+            //     direction buy, $offset open = open long
+            //     direction sell, $offset close = close long
+            //     direction sell, $offset open = open short
+            //     direction buy, $offset close = close short
+            //
+            // 'lever_rate' => 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
+            // 'order_price_type' => 'limit', // required
+            //
+            //     order_price_type can be:
+            //
+            //     limit
+            //     opponent // BBO
+            //     post_only
+            //     optimal_5
+            //     optimal_10
+            //     optimal_20
+            //     ioc
+            //     fok
+            //     opponent_ioc // IOC order using the BBO $price
+            //     optimal_5_ioc
+            //     optimal_10_ioc
+            //     optimal_20_ioc
+            //     opponent_fok // FOR order using the BBO $price
+            //     optimal_5_fok
+            //     optimal_10_fok
+            //     optimal_20_fok
+            //
+            // 'tp_trigger_price' => $this->price_to_precision($symbol, triggerPrice),
+            // 'tp_order_price' => $this->price_to_precision($symbol, $price),
+            // 'tp_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
+            // 'sl_trigger_price' => $this->price_to_precision($symbol, stopLossPrice),
+            // 'sl_order_price' => $this->price_to_precision($symbol, $price),
+            // 'sl_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
+        );
+        $stopLossOrderPrice = $this->safe_string($params, 'sl_order_price');
+        $stopLossTriggerPrice = $this->safe_string($params, 'sl_trigger_price');
+        $takeProfitOrderPrice = $this->safe_string($params, 'tp_order_price');
+        $takeProfitTriggerPrice = $this->safe_string($params, 'tp_trigger_price');
+        $isOpenOrder = ($offset === 'open');
+        $isStopOrder = false;
+        if ($stopLossTriggerPrice !== null) {
+            $request['sl_trigger_price'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+            $isStopOrder = true;
+            if ($price !== null) {
+                $request['sl_order_price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
+        if ($stopLossOrderPrice !== null) {
+            $request['sl_order_price'] = $this->price_to_precision($symbol, $stopLossOrderPrice);
+            $isStopOrder = true;
+        }
+        if ($takeProfitTriggerPrice !== null) {
+            $request['tp_trigger_price'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+            $isStopOrder = true;
+            if ($price !== null) {
+                $request['tp_order_price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
+        if ($takeProfitOrderPrice !== null) {
+            $request['tp_order_price'] = $this->price_to_precision($symbol, $takeProfitOrderPrice);
+            $isStopOrder = true;
+        }
+        if ($isStopOrder && !$isOpenOrder) {
+            throw new NotSupported($this->id . ' createContractOrder() supports tp_trigger_price . tp_order_price for take profit orders and/or sl_trigger_price . sl_order $price for stop loss orders, stop orders are supported only with open long orders and open short orders');
+        }
+        $params = $this->omit($params, array( 'sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price' ));
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly) {
+            $type = 'post_only';
+        }
+        if ($type === 'limit' || $type === 'ioc' || $type === 'fok' || $type === 'post_only') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $request['order_price_type'] = $type;
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id'); // must be 64 chars max and unique within 24 hours
+        // if ($clientOrderId === null) {
+        //     $broker = $this->safe_value($this->options, 'broker', array());
+        //     $brokerId = $this->safe_string($broker, 'id');
+        //     $request['client_order_id'] = $brokerId . $this->uuid();
+        // } else {
+        //     $request['client_order_id'] = $clientOrderId;
+        // }
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
+        }
+        throw new NotSupported($this->id . ' createContractOrder() is not supported yet, it is a work in progress');
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
