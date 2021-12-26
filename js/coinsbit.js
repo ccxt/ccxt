@@ -224,6 +224,9 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchTicker (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTicker requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -684,7 +687,7 @@ module.exports = class coinsbit extends Exchange {
             throw new InvalidOrder (this.id + ' cancelOrder needs symbol parameter');
         }
         await this.loadMarkets ();
-        const market = this.safeMarket (undefined, symbol);
+        const market = this.market (symbol);
         const request = {
             'market': market['id'],
         };
@@ -715,10 +718,10 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires symbol parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
