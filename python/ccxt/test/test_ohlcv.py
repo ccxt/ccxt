@@ -25,6 +25,7 @@ def test_ohlcv(exchange, ohlcv, symbol, now):
     skippedExchanges = [
         'bitmex',  # BitMEX API docs: also note the open price is equal to the close price of the previous timeframe bucket.
         'vcc',  # same as BitMEX, the open price is equal to the close price of the previous timeframe bucket.
+        'delta',
     ]
 
     if not exchange.in_array(exchange.id, skippedExchanges):

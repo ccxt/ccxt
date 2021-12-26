@@ -310,7 +310,7 @@ class bytetrade extends Exchange {
             $account['used'] = $this->safe_string($balance, 'used');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -588,7 +588,7 @@ class bytetrade extends Exchange {
             'cost' => $feeCost,
             'rate' => $feeRate,
         );
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

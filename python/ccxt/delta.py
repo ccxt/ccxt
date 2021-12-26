@@ -792,7 +792,7 @@ class delta(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             account['free'] = self.safe_string(balance, 'available_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_position(self, symbol, params=None):
         self.load_markets()
@@ -909,7 +909,7 @@ class delta(Exchange):
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

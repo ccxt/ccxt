@@ -387,6 +387,34 @@ class wavesexchange(Exchange):
 
     def fetch_markets(self, params={}):
         response = self.marketGetTickers()
+        #
+        #   [
+        #       {
+        #           "symbol": "WAVES/BTC",
+        #           "amountAssetID": "WAVES",
+        #           "amountAssetName": "Waves",
+        #           "amountAssetDecimals": 8,
+        #           "amountAssetTotalSupply": "106908766.00000000",
+        #           "amountAssetMaxSupply": "106908766.00000000",
+        #           "amountAssetCirculatingSupply": "106908766.00000000",
+        #           "priceAssetID": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        #           "priceAssetName": "WBTC",
+        #           "priceAssetDecimals": 8,
+        #           "priceAssetTotalSupply": "20999999.96007507",
+        #           "priceAssetMaxSupply": "20999999.96007507",
+        #           "priceAssetCirculatingSupply": "20999999.66019601",
+        #           "24h_open": "0.00032688",
+        #           "24h_high": "0.00033508",
+        #           "24h_low": "0.00032443",
+        #           "24h_close": "0.00032806",
+        #           "24h_vwap": "0.00032988",
+        #           "24h_volume": "42349.69440104",
+        #           "24h_priceVolume": "13.97037207",
+        #           "timestamp":1640232379124
+        #       }
+        #       ...
+        #   ]
+        #
         result = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -396,22 +424,56 @@ class wavesexchange(Exchange):
             marketId = self.safe_string(entry, 'symbol')
             base, quote = marketId.split('/')
             symbol = self.safe_currency_code(base) + '/' + self.safe_currency_code(quote)
-            precision = {
-                'amount': self.safe_integer(entry, 'amountAssetDecimals'),
-                'price': self.safe_integer(entry, 'priceAssetDecimals'),
-            }
             result.append({
-                'symbol': symbol,
                 'id': id,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'futures': False,
+                'option': False,
+                'derivative': False,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': None,
+                'maker': None,
+                'contractSize': None,
                 'active': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(entry, 'amountAssetDecimals'),
+                    'price': self.safe_integer(entry, 'priceAssetDecimals'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': entry,
-                'precision': precision,
             })
         return result
 
@@ -1302,7 +1364,7 @@ class wavesexchange(Exchange):
                 'currency': currency,
                 'fee': self.parse_number(self.currency_from_precision(currency, self.safe_string(order, 'matcherFee'))),
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -1469,7 +1531,7 @@ class wavesexchange(Exchange):
                 result[code]['used'] = '0'
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

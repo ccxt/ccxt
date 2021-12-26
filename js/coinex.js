@@ -558,7 +558,7 @@ module.exports = class coinex extends Exchange {
         buyAccount['total'] = this.safeString (total, 'buy_type');
         result[buyCurrencyCode] = buyAccount;
         //
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchSpotBalance (params = {}) {
@@ -596,7 +596,7 @@ module.exports = class coinex extends Exchange {
             account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -665,7 +665,7 @@ module.exports = class coinex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.safeString (order, 'order_type');
         const side = this.safeString (order, 'type');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),

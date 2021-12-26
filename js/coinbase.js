@@ -813,7 +813,7 @@ module.exports = class coinbase extends Exchange {
                 }
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {

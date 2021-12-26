@@ -644,7 +644,7 @@ class bigone(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order(self, order, market=None):
         #
@@ -676,7 +676,7 @@ class bigone(Exchange):
         else:
             side = 'sell'
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'updated_at'))
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

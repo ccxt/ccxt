@@ -148,7 +148,9 @@ class yobit extends Exchange {
                 'LUNA' => 'Luna Coin',
                 'MASK' => 'Yobit MASK',
                 'MDT' => 'Midnight',
+                'MEME' => 'Memez Token', // conflict with Meme Inu / Degenerator Meme
                 'MIS' => 'MIScoin',
+                'MM' => 'MasterMint', // conflict with MilliMeter
                 'NAV' => 'NavajoCoin',
                 'NBT' => 'NiceBytes',
                 'OMG' => 'OMGame',
@@ -265,7 +267,7 @@ class yobit extends Exchange {
             $account['total'] = $this->safe_string($total, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_markets($params = array ()) {
@@ -625,7 +627,7 @@ class yobit extends Exchange {
         $fee = null;
         $type = 'limit';
         $side = $this->safe_string($order, 'type');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

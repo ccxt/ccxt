@@ -458,7 +458,7 @@ class digifinex extends Exchange {
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -939,7 +939,7 @@ class digifinex extends Exchange {
         $filledString = $this->safe_string($order, 'executed_amount');
         $priceString = $this->safe_string($order, 'price');
         $averageString = $this->safe_string($order, 'avg_price');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

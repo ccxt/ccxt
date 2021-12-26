@@ -609,7 +609,7 @@ class bitfinex2(bitfinex):
                 account['total'] = self.safe_string(balance, 2)
                 account['free'] = self.safe_string(balance, 4)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         # transferring between derivatives wallet and regular wallet is not documented in their API
@@ -980,7 +980,7 @@ class bitfinex2(bitfinex):
         price = self.safe_string(order, 16)
         average = self.safe_string(order, 17)
         clientOrderId = self.safe_string(order, 2)
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

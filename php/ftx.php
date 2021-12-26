@@ -306,6 +306,7 @@ class ftx extends Exchange {
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)
                     'Size too large' => '\\ccxt\\InvalidOrder', // array("error":"Size too large","success":false)
+                    'Invalid price' => '\\ccxt\\InvalidOrder', // array("success":false,"error":"Invalid price")
                     'Missing parameter price' => '\\ccxt\\InvalidOrder', // array("error":"Missing parameter price","success":false)
                     'Order not found' => '\\ccxt\\OrderNotFound', // array("error":"Order not found","success":false)
                     'Order already closed' => '\\ccxt\\InvalidOrder', // array("error":"Order already closed","success":false)
@@ -365,6 +366,8 @@ class ftx extends Exchange {
                     'OMNI' => 'omni',
                     'BEP2' => 'bep2',
                     'BNB' => 'bep2',
+                    'BEP20' => 'bsc',
+                    'BSC' => 'bsc',
                 ),
             ),
         ));
@@ -1125,7 +1128,7 @@ class ftx extends Exchange {
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -1280,7 +1283,7 @@ class ftx extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientId');
         $stopPrice = $this->safe_number($order, 'triggerPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1931,21 +1934,34 @@ class ftx extends Exchange {
         //         "success" => true,
         //         "result" => {
         //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //             "tag" => "null"
+        //             "tag" => null,
+        //             "method" => "erc20",
+        //             "coin" => null
         //         }
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
+        $networkId = $this->safe_string($result, 'method');
         $address = $this->safe_string($result, 'address');
-        $tag = $this->safe_string($result, 'tag');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
-            'tag' => $tag,
-            'network' => null,
+            'tag' => $this->safe_string($result, 'tag'),
+            'network' => $this->safe_network($networkId),
             'info' => $response,
         );
+    }
+
+    public function safe_network($networkId) {
+        $networksById = array(
+            'trx' => 'TRC20',
+            'erc20' => 'ERC20',
+            'sol' => 'SOL',
+            'bsc' => 'BSC',
+            'bep2' => 'BEP2',
+        );
+        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function parse_transaction_status($status) {

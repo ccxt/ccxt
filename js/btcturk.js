@@ -234,7 +234,7 @@ module.exports = class btcturk extends Exchange {
             account['used'] = this.safeString (entry, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -593,7 +593,7 @@ module.exports = class btcturk extends Exchange {
         const timestamp = this.safeInteger2 (order, 'updateTime', 'datetime');
         const rawStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (rawStatus);
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'price': price,

@@ -322,7 +322,7 @@ class vcc(Exchange):
             account['free'] = self.safe_string(balance, 'available_balance')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -963,7 +963,7 @@ class vcc(Exchange):
         if updated != created:
             lastTradeTimestamp = updated
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': id,
             'timestamp': created,

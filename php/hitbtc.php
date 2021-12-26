@@ -498,7 +498,7 @@ class hitbtc extends Exchange {
             $account['used'] = $this->safe_string($balance, 'reserved');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -958,23 +958,20 @@ class hitbtc extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $amount = $this->safe_number($order, 'quantity');
-        $filled = $this->safe_number($order, 'cumQuantity');
+        $amount = $this->safe_string($order, 'quantity');
+        $filled = $this->safe_string($order, 'cumQuantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         // we use $clientOrderId as the $order $id with this exchange intentionally
         // because most of their endpoints will require $clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $id = $this->safe_string($order, 'clientOrderId');
         $clientOrderId = $id;
-        $price = $this->safe_number($order, 'price');
+        $price = $this->safe_string($order, 'price');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $trades = $this->safe_value($order, 'tradesReport');
         $fee = null;
-        $average = $this->safe_number($order, 'avgPrice');
-        if ($trades !== null) {
-            $trades = $this->parse_trades($trades, $market);
-        }
+        $average = $this->safe_string($order, 'avgPrice');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         return $this->safe_order(array(
             'id' => $id,
@@ -997,7 +994,7 @@ class hitbtc extends Exchange {
             'fee' => $fee,
             'trades' => $trades,
             'info' => $order,
-        ));
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

@@ -626,7 +626,7 @@ class bw extends Exchange {
             $account['used'] = $this->safe_string($balance, 'freeze');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -728,7 +728,7 @@ class bw extends Exchange {
         $remaining = $this->safe_string_2($order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
         $cost = $this->safe_string($order, 'totalMoney');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'entrustId'),
             'clientOrderId' => null,

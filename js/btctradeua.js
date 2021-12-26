@@ -110,7 +110,7 @@ module.exports = class btctradeua extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -348,7 +348,7 @@ module.exports = class btctradeua extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'amnt_trade');
         const remaining = this.safeString (order, 'amnt_trade');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'timestamp': timestamp, // until they fix their timestamp

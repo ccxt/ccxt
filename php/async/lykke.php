@@ -262,7 +262,7 @@ class lykke extends Exchange {
             $account['used'] = $this->safe_string($balance, 'Reserved');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -494,7 +494,7 @@ class lykke extends Exchange {
         }
         $remaining = Precise::string_abs($this->safe_string($order, 'RemainingVolume'));
         $id = $this->safe_string($order, 'Id');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

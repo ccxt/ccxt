@@ -1442,7 +1442,7 @@ class kucoin extends Exchange {
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
             'symbol' => $symbol,
@@ -2052,7 +2052,7 @@ class kucoin extends Exchange {
             $account['free'] = $this->safe_string($data, 'availableBalance');
             $account['total'] = $this->safe_string($data, 'accountEquity');
             $result[$code] = $account;
-            return $this->parse_balance($result);
+            return $this->safe_balance($result);
         } else {
             $request = array(
                 'type' => $type,
@@ -2087,7 +2087,7 @@ class kucoin extends Exchange {
                     $result[$code] = $account;
                 }
             }
-            return $this->parse_balance($result);
+            return $this->safe_balance($result);
         }
     }
 

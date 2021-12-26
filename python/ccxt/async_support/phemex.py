@@ -1279,7 +1279,7 @@ class phemex(Exchange):
             result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_swap_balance(self, response):
         #
@@ -1369,7 +1369,7 @@ class phemex(Exchange):
         account['total'] = self.from_en(accountBalanceEv, valueScale)
         account['used'] = self.from_en(totalUsedBalanceEv, valueScale)
         result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -1607,7 +1607,7 @@ class phemex(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp', market))))
         postOnly = (timeInForce == 'PO')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

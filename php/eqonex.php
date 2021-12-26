@@ -596,7 +596,7 @@ class eqonex extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1340,7 +1340,7 @@ class eqonex extends Exchange {
         }
         $stopPriceScale = $this->safe_integer($order, 'stopPx_scale', 0);
         $stopPrice = $this->parse_number($this->convert_from_scale($this->safe_string($order, 'stopPx'), $stopPriceScale));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

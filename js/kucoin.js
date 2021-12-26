@@ -1437,7 +1437,7 @@ module.exports = class kucoin extends Exchange {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
@@ -2047,7 +2047,7 @@ module.exports = class kucoin extends Exchange {
             account['free'] = this.safeString (data, 'availableBalance');
             account['total'] = this.safeString (data, 'accountEquity');
             result[code] = account;
-            return this.parseBalance (result);
+            return this.safeBalance (result);
         } else {
             const request = {
                 'type': type,
@@ -2082,7 +2082,7 @@ module.exports = class kucoin extends Exchange {
                     result[code] = account;
                 }
             }
-            return this.parseBalance (result);
+            return this.safeBalance (result);
         }
     }
 

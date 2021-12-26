@@ -1059,7 +1059,7 @@ class kraken(Exchange):
             account = self.account()
             account['total'] = self.safe_string(balances, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -1238,7 +1238,7 @@ class kraken(Exchange):
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades')
         stopPrice = self.safe_number(order, 'stopprice')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

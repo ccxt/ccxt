@@ -739,7 +739,13 @@ class huobi(Exchange):
                 },
                 'exact': {
                     # err-code
+                    '1017': OrderNotFound,  # {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
+                    '1066': BadSymbol,  # {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
+                    '1013': BadSymbol,  # {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
+                    '1094': InvalidOrder,  # {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
                     'bad-request': BadRequest,
+                    'validation-format-error': BadRequest,  # {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
+                    'validation-constraints-required': BadRequest,  # {"status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing: client-order-id.","data":null}
                     'base-date-limit-error': BadRequest,  # {"status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null}
                     'api-not-support-temp-addr': PermissionDenied,  # {"status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null}
                     'timeout': RequestTimeout,  # {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
@@ -1922,7 +1928,18 @@ class huobi(Exchange):
             if subType == 'inverse':
                 method = 'contractPrivatePostSwapApiV1SwapAccountInfo'
             elif subType == 'linear':
-                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
+                currencyId = self.safe_string(params, 'margin_account')
+                if currencyId is None:
+                    code = self.safe_string(params, 'code')
+                    if code is not None:
+                        params = self.omit(params, 'code')
+                        currency = self.currency(code)
+                        currencyId = currency['id']
+                if currencyId is None:
+                    method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
+                else:
+                    request['margin_account'] = currencyId
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -1942,7 +1959,7 @@ class huobi(Exchange):
         #         "ts":1637644827566
         #     }
         #
-        # future, swap
+        # future, swap isolated
         #
         #     {
         #         "status":"ok",
@@ -1970,6 +1987,45 @@ class huobi(Exchange):
         #             },
         #         ],
         #         "ts":1637644827566
+        #     }
+        #
+        # swap cross
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":[
+        #             {
+        #                 "margin_mode":"cross",
+        #                 "margin_account":"USDT",
+        #                 "margin_asset":"USDT",
+        #                 "margin_balance":200,
+        #                 "margin_static":200,
+        #                 "margin_position":0,
+        #                 "margin_frozen":0,
+        #                 "profit_real":0,
+        #                 "profit_unreal":0,
+        #                 "withdraw_available":2E+2,
+        #                 "risk_rate":null,
+        #                 "contract_detail":[
+        #                     {
+        #                         "symbol":"MANA",
+        #                         "contract_code":"MANA-USDT",
+        #                         "margin_position":0,
+        #                         "margin_frozen":0,
+        #                         "margin_available":200.000000000000000000,
+        #                         "profit_unreal":0E-18,
+        #                         "liquidation_price":null,
+        #                         "lever_rate":5,
+        #                         "adjust_factor":0.100000000000000000,
+        #                         "contract_type":"swap",
+        #                         "pair":"MANA-USDT",
+        #                         "business_type":"swap"
+        #                     },
+        #                     ...
+        #                 ]
+        #             }
+        #         ],
+        #         "ts":1640493207964
         #     }
         #
         result = {'info': response}
@@ -2005,15 +2061,19 @@ class huobi(Exchange):
                 marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
                 symbol = self.safe_symbol(marketId)
                 account = self.account()
-                account['free'] = self.safe_string(balance, 'margin_available')
+                account['free'] = self.safe_string(balance, 'margin_balance', 'margin_available')
                 account['used'] = self.safe_string(balance, 'margin_frozen')
                 currencyId = self.safe_string_2(balance, 'margin_asset', 'symbol')
                 code = self.safe_currency_code(currencyId)
+                marginMode = self.safe_string(balance, 'margin_mode')
+                if marginMode == 'cross':
+                    result[code] = account
+                    return self.safe_balance(result)
                 accountsByCode = {}
                 accountsByCode[code] = account
-                result[symbol] = self.parse_balance(accountsByCode)
+                result[symbol] = self.safe_balance(accountsByCode)
             return result
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -2047,16 +2107,59 @@ class huobi(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {}
-        clientOrderId = self.safe_string(params, 'clientOrderId')
-        method = 'spotPrivateGetV1OrderOrdersOrderId'
-        if clientOrderId is not None:
-            method = 'spotPrivateGetV1OrderOrdersGetClientOrder'
-            # will be filled below in self.extend()
-            # request['clientOrderId'] = clientOrderId
+        methodType = None
+        methodType, params = self.handle_market_type_and_params('fetchOrder', None, params)
+        request = {
+            # spot -----------------------------------------------------------
+            # 'order-id': 'id',
+            # 'symbol': market['id'],
+            # 'client-order-id': clientOrderId,
+            # 'clientOrderId': clientOrderId,
+            # contracts ------------------------------------------------------
+            # 'order_id': id,
+            # 'client_order_id': clientOrderId,
+            # 'contract_code': market['id'],
+            # 'pair': 'BTC-USDT',
+            # 'contract_type': 'this_week',  # swap, self_week, next_week, quarter, next_ quarter
+        }
+        method = None
+        if methodType == 'spot':
+            clientOrderId = self.safe_string(params, 'clientOrderId')
+            method = 'spotPrivateGetV1OrderOrdersOrderId'
+            if clientOrderId is not None:
+                method = 'spotPrivateGetV1OrderOrdersGetClientOrder'
+                # will be filled below in self.extend()
+                # they expect clientOrderId instead of client-order-id
+                # request['clientOrderId'] = clientOrderId
+            else:
+                request['order-id'] = id
         else:
-            request['order-id'] = id
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol for ' + methodType + ' orders')
+            market = self.market(symbol)
+            request['contract_code'] = market['id']
+            if methodType == 'future':
+                method = 'contractPrivatePostApiV1ContractOrderInfo'
+                request['symbol'] = market['settleId']
+            elif methodType == 'swap':
+                if market['linear']:
+                    method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo'
+                elif market['inverse']:
+                    method = 'contractPrivatePostSwapApiV1SwapOrderInfo'
+            else:
+                raise NotSupported(self.id + ' cancelOrder() does not support ' + methodType + ' markets')
+            clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+            if clientOrderId is None:
+                request['order_id'] = id
+            else:
+                request['client_order_id'] = clientOrderId
+                params = self.omit(params, ['client_order_id', 'clientOrderId'])
         response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
+        #
+        #     {"status":"ok","data":"438398393065481"}
+        #
         order = self.safe_value(response, 'data')
         return self.parse_order(order)
 
@@ -2125,37 +2228,50 @@ class huobi(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        #     {                 id:  13997833014,
-        #                    symbol: "ethbtc",
-        #              'account-id':  3398321,
-        #                    amount: "0.045000000000000000",
-        #                     price: "0.034014000000000000",
-        #              'created-at':  1545836976871,
-        #                      type: "sell-limit",
-        #            'field-amount': "0.045000000000000000",  # they have fixed it for filled-amount
-        #       'field-cash-amount': "0.001530630000000000",  # they have fixed it for filled-cash-amount
-        #              'field-fees': "0.000003061260000000",  # they have fixed it for filled-fees
-        #             'finished-at':  1545837948214,
-        #                    source: "spot-api",
-        #                     state: "filled",
-        #             'canceled-at':  0                      }
+        # spot
         #
-        #     {                 id:  20395337822,
-        #                    symbol: "ethbtc",
-        #              'account-id':  5685075,
-        #                    amount: "0.001000000000000000",
-        #                     price: "0.0",
-        #              'created-at':  1545831584023,
-        #                      type: "buy-market",
-        #            'field-amount': "0.029100000000000000",  # they have fixed it for filled-amount
-        #       'field-cash-amount': "0.000999788700000000",  # they have fixed it for filled-cash-amount
-        #              'field-fees': "0.000058200000000000",  # they have fixed it for filled-fees
-        #             'finished-at':  1545831584181,
-        #                    source: "spot-api",
-        #                     state: "filled",
-        #             'canceled-at':  0                      }
+        #     {
+        #         id:  13997833014,
+        #         symbol: "ethbtc",
+        #         'account-id':  3398321,
+        #         amount: "0.045000000000000000",
+        #         price: "0.034014000000000000",
+        #         'created-at':  1545836976871,
+        #         type: "sell-limit",
+        #         'field-amount': "0.045000000000000000",  # they have fixed it for filled-amount
+        #         'field-cash-amount': "0.001530630000000000",  # they have fixed it for filled-cash-amount
+        #         'field-fees': "0.000003061260000000",  # they have fixed it for filled-fees
+        #         'finished-at':  1545837948214,
+        #         source: "spot-api",
+        #         state: "filled",
+        #         'canceled-at':  0
+        #     }
         #
-        id = self.safe_string(order, 'id')
+        #     {
+        #         id:  20395337822,
+        #         symbol: "ethbtc",
+        #         'account-id':  5685075,
+        #         amount: "0.001000000000000000",
+        #         price: "0.0",
+        #         'created-at':  1545831584023,
+        #         type: "buy-market",
+        #         'field-amount': "0.029100000000000000",  # they have fixed it for filled-amount
+        #         'field-cash-amount': "0.000999788700000000",  # they have fixed it for filled-cash-amount
+        #         'field-fees': "0.000058200000000000",  # they have fixed it for filled-fees
+        #         'finished-at':  1545831584181,
+        #         source: "spot-api",
+        #         state: "filled",
+        #         'canceled-at':  0
+        #     }
+        #
+        # linear swap cross margin createOrder
+        #
+        #     {
+        #         "order_id":924660854912552960,
+        #         "order_id_str":"924660854912552960"
+        #     }
+        #
+        id = self.safe_string_2(order, 'id', 'order_id_str')
         side = None
         type = None
         status = None
@@ -2184,7 +2300,7 @@ class huobi(Exchange):
                 'currency': feeCurrency,
             }
         stopPrice = self.safe_string(order, 'stop-price')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2214,7 +2330,8 @@ class huobi(Exchange):
         methodType, query = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(methodType, {
             'spot': 'createSpotOrder',
-            # 'future': 'createContractOrder',
+            'swap': 'createContractOrder',
+            'future': 'createContractOrder',
         })
         if method is None:
             raise NotSupported(self.id + ' createOrder does not support ' + type + ' markets yet')
@@ -2309,65 +2426,187 @@ class huobi(Exchange):
         }
 
     async def create_contract_order(self, symbol, type, side, amount, price=None, params={}):
-        # request = {
-        #     # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-        #     # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
-        #     # 'contract_code': market['id'],  # optional BTC180914
-        #     # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
-        #     # 'price': self.price_to_precision(symbol, price),
-        #     # 'volume': self.amount_to_precision(symbol, amount),
-        #     #
-        #     #     direction buy, offset open = open long
-        #     #     direction sell, offset close = close long
-        #     #     direction sell, offset open = open short
-        #     #     direction buy, offset close = close short
-        #     #
-        #     # 'direction': 'buy'',  # buy, sell
-        #     # 'offset': 'open',  # open, close
-        #     # 'lever_rate': 1,  # using Leverage greater than 20x requires prior approval of high-leverage agreement
-        #     #
-        #     #     limit
-        #     #     opponent  # BBO
-        #     #     post_only
-        #     #     optimal_5
-        #     #     optimal_10
-        #     #     optimal_20
-        #     #     ioc
-        #     #     fok
-        #     #     opponent_ioc  # IOC order using the BBO price
-        #     #     optimal_5_ioc
-        #     #     optimal_10_ioc
-        #     #     optimal_20_ioc
-        #     #     opponent_fok  # FOR order using the BBO price
-        #     #     optimal_5_fok
-        #     #     optimal_10_fok
-        #     #     optimal_20_fok
-        #     #
-        #     # 'order_price_type': 'limit',  # required
-        #     # 'tp_trigger_price': self.price_to_precision(symbol, triggerPrice),
-        #     # 'tp_order_price': self.price_to_precision(symbol, price),
-        #     # 'tp_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
-        #     # 'sl_trigger_price': self.price_to_precision(symbol, stopLossPrice),
-        #     # 'sl_order_price': self.price_to_precision(symbol, price),
-        #     # 'sl_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+        offset = self.safe_string(params, 'offset')
+        if offset is None:
+            raise ArgumentsRequired(self.id + ' createContractOrder() requires a string offset parameter, open or close')
+        stopPrice = self.safe_string(params, 'stopPrice')
+        if stopPrice is not None:
+            raise NotSupported(self.id + ' createContractOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
+        market = self.market(symbol)
+        request = {
+            # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
+            'contract_code': market['id'],  # optional BTC180914
+            # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
+            # 'price': self.price_to_precision(symbol, price),  # optional
+            'volume': self.amount_to_precision(symbol, amount),
+            'direction': side,  # buy, sell
+            'offset': offset,  # open, close
+            #
+            #     direction buy, offset open = open long
+            #     direction sell, offset close = close long
+            #     direction sell, offset open = open short
+            #     direction buy, offset close = close short
+            #
+            'lever_rate': 1,  # required, using leverage greater than 20x requires prior approval of high-leverage agreement
+            # 'order_price_type': 'limit',  # required
+            #
+            #     order_price_type can be:
+            #
+            #     limit
+            #     opponent  # BBO
+            #     post_only
+            #     optimal_5
+            #     optimal_10
+            #     optimal_20
+            #     ioc
+            #     fok
+            #     opponent_ioc  # IOC order using the BBO price
+            #     optimal_5_ioc
+            #     optimal_10_ioc
+            #     optimal_20_ioc
+            #     opponent_fok  # FOR order using the BBO price
+            #     optimal_5_fok
+            #     optimal_10_fok
+            #     optimal_20_fok
+            #
+            # 'tp_trigger_price': self.price_to_precision(symbol, triggerPrice),
+            # 'tp_order_price': self.price_to_precision(symbol, price),
+            # 'tp_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+            # 'sl_trigger_price': self.price_to_precision(symbol, stopLossPrice),
+            # 'sl_order_price': self.price_to_precision(symbol, price),
+            # 'sl_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+        }
+        stopLossOrderPrice = self.safe_string(params, 'sl_order_price')
+        stopLossTriggerPrice = self.safe_string(params, 'sl_trigger_price')
+        takeProfitOrderPrice = self.safe_string(params, 'tp_order_price')
+        takeProfitTriggerPrice = self.safe_string(params, 'tp_trigger_price')
+        isOpenOrder = (offset == 'open')
+        isStopOrder = False
+        if stopLossTriggerPrice is not None:
+            request['sl_trigger_price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+            isStopOrder = True
+            if price is not None:
+                request['sl_order_price'] = self.price_to_precision(symbol, price)
+        if stopLossOrderPrice is not None:
+            request['sl_order_price'] = self.price_to_precision(symbol, stopLossOrderPrice)
+            isStopOrder = True
+        if takeProfitTriggerPrice is not None:
+            request['tp_trigger_price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+            isStopOrder = True
+            if price is not None:
+                request['tp_order_price'] = self.price_to_precision(symbol, price)
+        if takeProfitOrderPrice is not None:
+            request['tp_order_price'] = self.price_to_precision(symbol, takeProfitOrderPrice)
+            isStopOrder = True
+        if isStopOrder and not isOpenOrder:
+            raise NotSupported(self.id + ' createContractOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
+        params = self.omit(params, ['sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price'])
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            type = 'post_only'
+        if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
+            request['price'] = self.price_to_precision(symbol, price)
+        request['order_price_type'] = type
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')  # must be 64 chars max and unique within 24 hours
+        # if clientOrderId is None:
+        #     broker = self.safe_value(self.options, 'broker', {})
+        #     brokerId = self.safe_string(broker, 'id')
+        #     request['client_order_id'] = brokerId + self.uuid()
+        # else:
+        #     request['client_order_id'] = clientOrderId
         # }
-        raise NotSupported(self.id + ' createContractOrder is not supported yet, it is a work in progress')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'client_order_id'])
+        method = None
+        if market['swap']:
+            if market['linear']:
+                method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
+            else:
+                method = 'contractPrivatePostSwapApiV1SwapOrder'
+        elif market['future']:
+            method = 'contractPrivatePostApiV1ContractOrder'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # linear swap cross margin
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":{
+        #             "order_id":924660854912552960,
+        #             "order_id_str":"924660854912552960"
+        #         },
+        #         "ts":1640497927185
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
-        clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
-        request = {}
-        method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel'
-        if clientOrderId is None:
-            request['order-id'] = id
+        await self.load_markets()
+        methodType = None
+        methodType, params = self.handle_market_type_and_params('cancelOrder', None, params)
+        request = {
+            # spot -----------------------------------------------------------
+            # 'order-id': 'id',
+            # 'symbol': market['id'],
+            # 'client-order-id': clientOrderId,
+            # contracts ------------------------------------------------------
+            # 'order_id': id,
+            # 'client_order_id': clientOrderId,
+            # 'contract_code': market['id'],
+            # 'pair': 'BTC-USDT',
+            # 'contract_type': 'this_week',  # swap, self_week, next_week, quarter, next_ quarter
+        }
+        method = None
+        if methodType == 'spot':
+            clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
+            method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel'
+            if clientOrderId is None:
+                request['order-id'] = id
+            else:
+                request['client-order-id'] = clientOrderId
+                method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder'
+                params = self.omit(params, ['client-order-id', 'clientOrderId'])
         else:
-            request['client-order-id'] = clientOrderId
-            method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder'
-            params = self.omit(params, ['client-order-id', 'clientOrderId'])
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol for ' + methodType + ' orders')
+            market = self.market(symbol)
+            request['contract_code'] = market['id']
+            if methodType == 'future':
+                method = 'contractPrivatePostApiV1ContractCancel'
+            elif methodType == 'swap':
+                if market['linear']:
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
+                elif market['inverse']:
+                    method = 'contractPrivatePostSwapApiV1SwapCancel'
+            else:
+                raise NotSupported(self.id + ' cancelOrder() does not support ' + methodType + ' markets')
+            clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+            if clientOrderId is None:
+                request['order_id'] = id
+            else:
+                request['client_order_id'] = clientOrderId
+                params = self.omit(params, ['client_order_id', 'clientOrderId'])
         response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         'status': 'ok',
         #         'data': '10138899000',
+        #     }
+        #
+        # linear swap cross margin
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":{
+        #             "errors":[],
+        #             "successes":"924660854912552960"
+        #         },
+        #         "ts":1640504486089
         #     }
         #
         return self.extend(self.parse_order(response), {
@@ -2911,113 +3150,6 @@ class huobi(Exchange):
                 }
         return rates
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/'
-        query = self.omit(params, self.extract_params(path))
-        if isinstance(api, basestring):
-            # signing implementation for the old endpoints
-            if api == 'market':
-                url += api
-            elif (api == 'public') or (api == 'private'):
-                url += self.version
-            elif (api == 'v2Public') or (api == 'v2Private'):
-                url += 'v2'
-            url += '/' + self.implode_params(path, params)
-            if api == 'private' or api == 'v2Private':
-                self.check_required_credentials()
-                timestamp = self.ymdhms(self.milliseconds(), 'T')
-                request = {
-                    'SignatureMethod': 'HmacSHA256',
-                    'SignatureVersion': '2',
-                    'AccessKeyId': self.apiKey,
-                    'Timestamp': timestamp,
-                }
-                if method != 'POST':
-                    request = self.extend(request, query)
-                request = self.keysort(request)
-                auth = self.urlencode(request)
-                # unfortunately, PHP demands double quotes for the escaped newline symbol
-                payload = "\n".join([method, self.hostname, url, auth])  # eslint-disable-line quotes
-                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-                auth += '&' + self.urlencode({'Signature': signature})
-                url += '?' + auth
-                if method == 'POST':
-                    body = self.json(query)
-                    headers = {
-                        'Content-Type': 'application/json',
-                    }
-                else:
-                    headers = {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    }
-            else:
-                if query:
-                    url += '?' + self.urlencode(query)
-            url = self.implode_params(self.urls['api'][api], {
-                'hostname': self.hostname,
-            }) + url
-        else:
-            # signing implementation for the new endpoints
-            # type, access = api
-            type = self.safe_string(api, 0)
-            access = self.safe_string(api, 1)
-            url += self.implode_params(path, params)
-            hostname = self.safe_string(self.urls['hostnames'], type)
-            if access == 'public':
-                if query:
-                    url += '?' + self.urlencode(query)
-            elif access == 'private':
-                self.check_required_credentials()
-                timestamp = self.ymdhms(self.milliseconds(), 'T')
-                request = {
-                    'SignatureMethod': 'HmacSHA256',
-                    'SignatureVersion': '2',
-                    'AccessKeyId': self.apiKey,
-                    'Timestamp': timestamp,
-                }
-                if method != 'POST':
-                    request = self.extend(request, query)
-                request = self.keysort(request)
-                auth = self.urlencode(request)
-                # unfortunately, PHP demands double quotes for the escaped newline symbol
-                payload = "\n".join([method, hostname, url, auth])  # eslint-disable-line quotes
-                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-                auth += '&' + self.urlencode({'Signature': signature})
-                url += '?' + auth
-                if method == 'POST':
-                    body = self.json(query)
-                    headers = {
-                        'Content-Type': 'application/json',
-                    }
-                else:
-                    headers = {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    }
-            url = self.implode_params(self.urls['api'][type], {
-                'hostname': hostname,
-            }) + url
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
-        return self.safe_integer(config, 'cost', 1)
-
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if response is None:
-            return  # fallback to default error handler
-        if 'status' in response:
-            #
-            #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
-            #
-            status = self.safe_string(response, 'status')
-            if status == 'error':
-                code = self.safe_string(response, 'err-code')
-                feedback = self.id + ' ' + body
-                self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-                message = self.safe_string(response, 'err-msg')
-                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                raise ExchangeError(feedback)
-
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         #
         # Gets a history of funding rates with their timestamps
@@ -3151,3 +3283,110 @@ class huobi(Exchange):
         #
         result = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(result, market)
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = '/'
+        query = self.omit(params, self.extract_params(path))
+        if isinstance(api, basestring):
+            # signing implementation for the old endpoints
+            if api == 'market':
+                url += api
+            elif (api == 'public') or (api == 'private'):
+                url += self.version
+            elif (api == 'v2Public') or (api == 'v2Private'):
+                url += 'v2'
+            url += '/' + self.implode_params(path, params)
+            if api == 'private' or api == 'v2Private':
+                self.check_required_credentials()
+                timestamp = self.ymdhms(self.milliseconds(), 'T')
+                request = {
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'AccessKeyId': self.apiKey,
+                    'Timestamp': timestamp,
+                }
+                if method != 'POST':
+                    request = self.extend(request, query)
+                request = self.keysort(request)
+                auth = self.urlencode(request)
+                # unfortunately, PHP demands double quotes for the escaped newline symbol
+                payload = "\n".join([method, self.hostname, url, auth])  # eslint-disable-line quotes
+                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
+                auth += '&' + self.urlencode({'Signature': signature})
+                url += '?' + auth
+                if method == 'POST':
+                    body = self.json(query)
+                    headers = {
+                        'Content-Type': 'application/json',
+                    }
+                else:
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+            else:
+                if query:
+                    url += '?' + self.urlencode(query)
+            url = self.implode_params(self.urls['api'][api], {
+                'hostname': self.hostname,
+            }) + url
+        else:
+            # signing implementation for the new endpoints
+            # type, access = api
+            type = self.safe_string(api, 0)
+            access = self.safe_string(api, 1)
+            url += self.implode_params(path, params)
+            hostname = self.safe_string(self.urls['hostnames'], type)
+            if access == 'public':
+                if query:
+                    url += '?' + self.urlencode(query)
+            elif access == 'private':
+                self.check_required_credentials()
+                timestamp = self.ymdhms(self.milliseconds(), 'T')
+                request = {
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'AccessKeyId': self.apiKey,
+                    'Timestamp': timestamp,
+                }
+                if method != 'POST':
+                    request = self.extend(request, query)
+                request = self.keysort(request)
+                auth = self.urlencode(request)
+                # unfortunately, PHP demands double quotes for the escaped newline symbol
+                payload = "\n".join([method, hostname, url, auth])  # eslint-disable-line quotes
+                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
+                auth += '&' + self.urlencode({'Signature': signature})
+                url += '?' + auth
+                if method == 'POST':
+                    body = self.json(query)
+                    headers = {
+                        'Content-Type': 'application/json',
+                    }
+                else:
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+            url = self.implode_params(self.urls['api'][type], {
+                'hostname': hostname,
+            }) + url
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        return self.safe_integer(config, 'cost', 1)
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return  # fallback to default error handler
+        if 'status' in response:
+            #
+            #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            #
+            status = self.safe_string(response, 'status')
+            if status == 'error':
+                code = self.safe_string_2(response, 'err-code', 'err_code')
+                feedback = self.id + ' ' + body
+                self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                message = self.safe_string_2(response, 'err-msg', 'err_msg')
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                raise ExchangeError(feedback)

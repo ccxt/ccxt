@@ -721,7 +721,13 @@ class huobi extends Exchange {
                 ),
                 'exact' => array(
                     // err-code
+                    '1017' => '\\ccxt\\OrderNotFound', // array("status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242)
+                    '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
+                    '1013' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583)
+                    '1094' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243)
                     'bad-request' => '\\ccxt\\BadRequest',
+                    'validation-format-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-format-error","err-msg":"Format Error => order-id.","data":null)
+                    'validation-constraints-required' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing => client-order-id.","data":null)
                     'base-date-limit-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null)
                     'api-not-support-temp-addr' => '\\ccxt\\PermissionDenied', // array("status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null)
                     'timeout' => '\\ccxt\\RequestTimeout', // array("ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout")
@@ -1984,7 +1990,21 @@ class huobi extends Exchange {
             if ($subType === 'inverse') {
                 $method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
             } else if ($subType === 'linear') {
-                $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                $currencyId = $this->safe_string($params, 'margin_account');
+                if ($currencyId === null) {
+                    $code = $this->safe_string($params, 'code');
+                    if ($code !== null) {
+                        $params = $this->omit($params, 'code');
+                        $currency = $this->currency($code);
+                        $currencyId = $currency['id'];
+                    }
+                }
+                if ($currencyId === null) {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                } else {
+                    $request['margin_account'] = $currencyId;
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+                }
             }
         }
         $response = $this->$method (array_merge($request, $params));
@@ -2006,7 +2026,7 @@ class huobi extends Exchange {
         //         "ts":1637644827566
         //     }
         //
-        // $future, $swap
+        // $future, $swap isolated
         //
         //     {
         //         "status":"ok",
@@ -2034,6 +2054,45 @@ class huobi extends Exchange {
         //             ),
         //         ),
         //         "ts":1637644827566
+        //     }
+        //
+        // $swap cross
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             {
+        //                 "margin_mode":"cross",
+        //                 "margin_account":"USDT",
+        //                 "margin_asset":"USDT",
+        //                 "margin_balance":200,
+        //                 "margin_static":200,
+        //                 "margin_position":0,
+        //                 "margin_frozen":0,
+        //                 "profit_real":0,
+        //                 "profit_unreal":0,
+        //                 "withdraw_available":2E+2,
+        //                 "risk_rate":null,
+        //                 "contract_detail":array(
+        //                     array(
+        //                         "symbol":"MANA",
+        //                         "contract_code":"MANA-USDT",
+        //                         "margin_position":0,
+        //                         "margin_frozen":0,
+        //                         "margin_available":200.000000000000000000,
+        //                         "profit_unreal":0E-18,
+        //                         "liquidation_price":null,
+        //                         "lever_rate":5,
+        //                         "adjust_factor":0.100000000000000000,
+        //                         "contract_type":"swap",
+        //                         "pair":"MANA-USDT",
+        //                         "business_type":"swap"
+        //                     ),
+        //                     ...
+        //                 )
+        //             }
+        //         ),
+        //         "ts":1640493207964
         //     }
         //
         $result = array( 'info' => $response );
@@ -2074,17 +2133,22 @@ class huobi extends Exchange {
                 $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
                 $symbol = $this->safe_symbol($marketId);
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'margin_available');
+                $account['free'] = $this->safe_string($balance, 'margin_balance', 'margin_available');
                 $account['used'] = $this->safe_string($balance, 'margin_frozen');
                 $currencyId = $this->safe_string_2($balance, 'margin_asset', 'symbol');
                 $code = $this->safe_currency_code($currencyId);
+                $marginMode = $this->safe_string($balance, 'margin_mode');
+                if ($marginMode === 'cross') {
+                    $result[$code] = $account;
+                    return $this->safe_balance($result);
+                }
                 $accountsByCode = array();
                 $accountsByCode[$code] = $account;
-                $result[$symbol] = $this->parse_balance($accountsByCode);
+                $result[$symbol] = $this->safe_balance($accountsByCode);
             }
             return $result;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2121,17 +2185,65 @@ class huobi extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array();
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $method = 'spotPrivateGetV1OrderOrdersOrderId';
-        if ($clientOrderId !== null) {
-            $method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
-            // will be filled below in extend ()
-            // $request['clientOrderId'] = $clientOrderId;
+        $methodType = null;
+        list($methodType, $params) = $this->handle_market_type_and_params('fetchOrder', null, $params);
+        $request = array(
+            // spot -----------------------------------------------------------
+            // 'order-id' => 'id',
+            // 'symbol' => $market['id'],
+            // 'client-$order-id' => $clientOrderId,
+            // 'clientOrderId' => $clientOrderId,
+            // contracts ------------------------------------------------------
+            // 'order_id' => $id,
+            // 'client_order_id' => $clientOrderId,
+            // 'contract_code' => $market['id'],
+            // 'pair' => 'BTC-USDT',
+            // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
+        );
+        $method = null;
+        if ($methodType === 'spot') {
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            $method = 'spotPrivateGetV1OrderOrdersOrderId';
+            if ($clientOrderId !== null) {
+                $method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
+                // will be filled below in extend ()
+                // they expect $clientOrderId instead of client-$order-$id
+                // $request['clientOrderId'] = $clientOrderId;
+            } else {
+                $request['order-id'] = $id;
+            }
         } else {
-            $request['order-id'] = $id;
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol for ' . $methodType . ' orders');
+            }
+            $market = $this->market($symbol);
+            $request['contract_code'] = $market['id'];
+            if ($methodType === 'future') {
+                $method = 'contractPrivatePostApiV1ContractOrderInfo';
+                $request['symbol'] = $market['settleId'];
+            } else if ($methodType === 'swap') {
+                if ($market['linear']) {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
+                } else if ($market['inverse']) {
+                    $method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
+                }
+            } else {
+                throw new NotSupported($this->id . ' cancelOrder() does not support ' . $methodType . ' markets');
+            }
+            $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
+            if ($clientOrderId === null) {
+                $request['order_id'] = $id;
+            } else {
+                $request['client_order_id'] = $clientOrderId;
+                $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+            }
         }
         $response = $this->$method (array_merge($request, $params));
+        //
+        // spot
+        //
+        //     array("status":"ok","data":"438398393065481")
+        //
         $order = $this->safe_value($response, 'data');
         return $this->parse_order($order);
     }
@@ -2211,37 +2323,50 @@ class huobi extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        //     {                  $id =>  13997833014,
-        //                    $symbol => "ethbtc",
-        //              'account-id' =>  3398321,
-        //                    $amount => "0.045000000000000000",
-        //                     $price => "0.034014000000000000",
-        //              'created-at' =>  1545836976871,
-        //                      $type => "sell-limit",
-        //            'field-amount' => "0.045000000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
-        //             'finished-at' =>  1545837948214,
-        //                    source => "spot-api",
-        //                     state => "filled",
-        //             'canceled-at' =>  0                      }
+        // spot
         //
-        //     {                  $id =>  20395337822,
-        //                    $symbol => "ethbtc",
-        //              'account-id' =>  5685075,
-        //                    $amount => "0.001000000000000000",
-        //                     $price => "0.0",
-        //              'created-at' =>  1545831584023,
-        //                      $type => "buy-$market",
-        //            'field-amount' => "0.029100000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
-        //             'finished-at' =>  1545831584181,
-        //                    source => "spot-api",
-        //                     state => "filled",
-        //             'canceled-at' =>  0                      }
+        //     {
+        //         $id =>  13997833014,
+        //         $symbol => "ethbtc",
+        //         'account-id' =>  3398321,
+        //         $amount => "0.045000000000000000",
+        //         $price => "0.034014000000000000",
+        //         'created-at' =>  1545836976871,
+        //         $type => "sell-limit",
+        //         'field-amount' => "0.045000000000000000", // they have fixed it for $filled-$amount
+        //         'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
+        //         'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
+        //         'finished-at' =>  1545837948214,
+        //         source => "spot-api",
+        //         state => "filled",
+        //         'canceled-at' =>  0
+        //     }
         //
-        $id = $this->safe_string($order, 'id');
+        //     {
+        //         $id =>  20395337822,
+        //         $symbol => "ethbtc",
+        //         'account-id' =>  5685075,
+        //         $amount => "0.001000000000000000",
+        //         $price => "0.0",
+        //         'created-at' =>  1545831584023,
+        //         $type => "buy-$market",
+        //         'field-amount' => "0.029100000000000000", // they have fixed it for $filled-$amount
+        //         'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
+        //         'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
+        //         'finished-at' =>  1545831584181,
+        //         source => "spot-api",
+        //         state => "filled",
+        //         'canceled-at' =>  0
+        //     }
+        //
+        // linear swap cross margin createOrder
+        //
+        //     {
+        //         "order_id":924660854912552960,
+        //         "order_id_str":"924660854912552960"
+        //     }
+        //
+        $id = $this->safe_string_2($order, 'id', 'order_id_str');
         $side = null;
         $type = null;
         $status = null;
@@ -2273,7 +2398,7 @@ class huobi extends Exchange {
             );
         }
         $stopPrice = $this->safe_string($order, 'stop-price');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -2304,7 +2429,8 @@ class huobi extends Exchange {
         list($methodType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $method = $this->get_supported_mapping($methodType, array(
             'spot' => 'createSpotOrder',
-            // 'future' => 'createContractOrder',
+            'swap' => 'createContractOrder',
+            'future' => 'createContractOrder',
         ));
         if ($method === null) {
             throw new NotSupported($this->id . ' createOrder does not support ' . $type . ' markets yet');
@@ -2411,67 +2537,208 @@ class huobi extends Exchange {
     }
 
     public function create_contract_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        // $request = array(
-        //     // 'symbol' => 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-        //     // 'contract_type' => 'this_week', // optional, this_week, next_week, quarter, next_quarter
-        //     // 'contract_code' => market['id'], // optional BTC180914
-        //     // 'client_order_id' => clientOrderId, // optional, must be less than 9223372036854775807
-        //     // 'price' => $this->price_to_precision($symbol, $price),
-        //     // 'volume' => $this->amount_to_precision($symbol, $amount),
-        //     //
-        //     //     direction buy, offset open = open long
-        //     //     direction sell, offset close = close long
-        //     //     direction sell, offset open = open short
-        //     //     direction buy, offset close = close short
-        //     //
-        //     // 'direction' => 'buy'', // buy, sell
-        //     // 'offset' => 'open', // open, close
-        //     // 'lever_rate' => 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
-        //     //
-        //     //     limit
-        //     //     opponent // BBO
-        //     //     post_only
-        //     //     optimal_5
-        //     //     optimal_10
-        //     //     optimal_20
-        //     //     ioc
-        //     //     fok
-        //     //     opponent_ioc // IOC order using the BBO $price
-        //     //     optimal_5_ioc
-        //     //     optimal_10_ioc
-        //     //     optimal_20_ioc
-        //     //     opponent_fok // FOR order using the BBO $price
-        //     //     optimal_5_fok
-        //     //     optimal_10_fok
-        //     //     optimal_20_fok
-        //     //
-        //     // 'order_price_type' => 'limit', // required
-        //     // 'tp_trigger_price' => $this->price_to_precision($symbol, triggerPrice),
-        //     // 'tp_order_price' => $this->price_to_precision($symbol, $price),
-        //     // 'tp_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
-        //     // 'sl_trigger_price' => $this->price_to_precision($symbol, stopLossPrice),
-        //     // 'sl_order_price' => $this->price_to_precision($symbol, $price),
-        //     // 'sl_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
-        // );
-        throw new NotSupported($this->id . ' createContractOrder is not supported yet, it is a work in progress');
+        $offset = $this->safe_string($params, 'offset');
+        if ($offset === null) {
+            throw new ArgumentsRequired($this->id . ' createContractOrder() requires a string $offset parameter, open or close');
+        }
+        $stopPrice = $this->safe_string($params, 'stopPrice');
+        if ($stopPrice !== null) {
+            throw new NotSupported($this->id . ' createContractOrder() supports tp_trigger_price . tp_order_price for take profit orders and/or sl_trigger_price . sl_order $price for stop loss orders, stop orders are supported only with open long orders and open short orders');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            // 'symbol' => 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            // 'contract_type' => 'this_week', // optional, this_week, next_week, quarter, next_quarter
+            'contract_code' => $market['id'], // optional BTC180914
+            // 'client_order_id' => $clientOrderId, // optional, must be less than 9223372036854775807
+            // 'price' => $this->price_to_precision($symbol, $price), // optional
+            'volume' => $this->amount_to_precision($symbol, $amount),
+            'direction' => $side, // buy, sell
+            'offset' => $offset, // open, close
+            //
+            //     direction buy, $offset open = open long
+            //     direction sell, $offset close = close long
+            //     direction sell, $offset open = open short
+            //     direction buy, $offset close = close short
+            //
+            'lever_rate' => 1, // required, using leverage greater than 20x requires prior approval of high-leverage agreement
+            // 'order_price_type' => 'limit', // required
+            //
+            //     order_price_type can be:
+            //
+            //     limit
+            //     opponent // BBO
+            //     post_only
+            //     optimal_5
+            //     optimal_10
+            //     optimal_20
+            //     ioc
+            //     fok
+            //     opponent_ioc // IOC order using the BBO $price
+            //     optimal_5_ioc
+            //     optimal_10_ioc
+            //     optimal_20_ioc
+            //     opponent_fok // FOR order using the BBO $price
+            //     optimal_5_fok
+            //     optimal_10_fok
+            //     optimal_20_fok
+            //
+            // 'tp_trigger_price' => $this->price_to_precision($symbol, triggerPrice),
+            // 'tp_order_price' => $this->price_to_precision($symbol, $price),
+            // 'tp_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
+            // 'sl_trigger_price' => $this->price_to_precision($symbol, stopLossPrice),
+            // 'sl_order_price' => $this->price_to_precision($symbol, $price),
+            // 'sl_order_price_type' => 'limit', // limit，optimal_5，optimal_10，optimal_20
+        );
+        $stopLossOrderPrice = $this->safe_string($params, 'sl_order_price');
+        $stopLossTriggerPrice = $this->safe_string($params, 'sl_trigger_price');
+        $takeProfitOrderPrice = $this->safe_string($params, 'tp_order_price');
+        $takeProfitTriggerPrice = $this->safe_string($params, 'tp_trigger_price');
+        $isOpenOrder = ($offset === 'open');
+        $isStopOrder = false;
+        if ($stopLossTriggerPrice !== null) {
+            $request['sl_trigger_price'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+            $isStopOrder = true;
+            if ($price !== null) {
+                $request['sl_order_price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
+        if ($stopLossOrderPrice !== null) {
+            $request['sl_order_price'] = $this->price_to_precision($symbol, $stopLossOrderPrice);
+            $isStopOrder = true;
+        }
+        if ($takeProfitTriggerPrice !== null) {
+            $request['tp_trigger_price'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+            $isStopOrder = true;
+            if ($price !== null) {
+                $request['tp_order_price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
+        if ($takeProfitOrderPrice !== null) {
+            $request['tp_order_price'] = $this->price_to_precision($symbol, $takeProfitOrderPrice);
+            $isStopOrder = true;
+        }
+        if ($isStopOrder && !$isOpenOrder) {
+            throw new NotSupported($this->id . ' createContractOrder() supports tp_trigger_price . tp_order_price for take profit orders and/or sl_trigger_price . sl_order $price for stop loss orders, stop orders are supported only with open long orders and open short orders');
+        }
+        $params = $this->omit($params, array( 'sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price' ));
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly) {
+            $type = 'post_only';
+        }
+        if ($type === 'limit' || $type === 'ioc' || $type === 'fok' || $type === 'post_only') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $request['order_price_type'] = $type;
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id'); // must be 64 chars max and unique within 24 hours
+        // if ($clientOrderId === null) {
+        //     $broker = $this->safe_value($this->options, 'broker', array());
+        //     $brokerId = $this->safe_string($broker, 'id');
+        //     $request['client_order_id'] = $brokerId . $this->uuid();
+        // } else {
+        //     $request['client_order_id'] = $clientOrderId;
+        // }
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
+        }
+        $method = null;
+        if ($market['swap']) {
+            if ($market['linear']) {
+                $method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
+            } else {
+                $method = 'contractPrivatePostSwapApiV1SwapOrder';
+            }
+        } else if ($market['future']) {
+            $method = 'contractPrivatePostApiV1ContractOrder';
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // linear swap cross margin
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             "order_id":924660854912552960,
+        //             "order_id_str":"924660854912552960"
+        //         ),
+        //         "ts":1640497927185
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        $clientOrderId = $this->safe_string_2($params, 'client-order-id', 'clientOrderId');
-        $request = array();
-        $method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
-        if ($clientOrderId === null) {
-            $request['order-id'] = $id;
+        $this->load_markets();
+        $methodType = null;
+        list($methodType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
+        $request = array(
+            // spot -----------------------------------------------------------
+            // 'order-id' => 'id',
+            // 'symbol' => $market['id'],
+            // 'client-order-id' => $clientOrderId,
+            // contracts ------------------------------------------------------
+            // 'order_id' => $id,
+            // 'client_order_id' => $clientOrderId,
+            // 'contract_code' => $market['id'],
+            // 'pair' => 'BTC-USDT',
+            // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
+        );
+        $method = null;
+        if ($methodType === 'spot') {
+            $clientOrderId = $this->safe_string_2($params, 'client-order-id', 'clientOrderId');
+            $method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
+            if ($clientOrderId === null) {
+                $request['order-id'] = $id;
+            } else {
+                $request['client-order-id'] = $clientOrderId;
+                $method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
+                $params = $this->omit($params, array( 'client-order-id', 'clientOrderId' ));
+            }
         } else {
-            $request['client-order-id'] = $clientOrderId;
-            $method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
-            $params = $this->omit($params, array( 'client-order-id', 'clientOrderId' ));
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol for ' . $methodType . ' orders');
+            }
+            $market = $this->market($symbol);
+            $request['contract_code'] = $market['id'];
+            if ($methodType === 'future') {
+                $method = 'contractPrivatePostApiV1ContractCancel';
+            } else if ($methodType === 'swap') {
+                if ($market['linear']) {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
+                } else if ($market['inverse']) {
+                    $method = 'contractPrivatePostSwapApiV1SwapCancel';
+                }
+            } else {
+                throw new NotSupported($this->id . ' cancelOrder() does not support ' . $methodType . ' markets');
+            }
+            $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
+            if ($clientOrderId === null) {
+                $request['order_id'] = $id;
+            } else {
+                $request['client_order_id'] = $clientOrderId;
+                $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+            }
         }
         $response = $this->$method (array_merge($request, $params));
+        //
+        // spot
         //
         //     {
         //         'status' => 'ok',
         //         'data' => '10138899000',
+        //     }
+        //
+        // linear swap cross margin
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             "errors":array(),
+        //             "successes":"924660854912552960"
+        //         ),
+        //         "ts":1640504486089
         //     }
         //
         return array_merge($this->parse_order($response), array(
@@ -3070,129 +3337,6 @@ class huobi extends Exchange {
         return $rates;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/';
-        $query = $this->omit($params, $this->extract_params($path));
-        if (gettype($api) === 'string') {
-            // signing implementation for the old endpoints
-            if ($api === 'market') {
-                $url .= $api;
-            } else if (($api === 'public') || ($api === 'private')) {
-                $url .= $this->version;
-            } else if (($api === 'v2Public') || ($api === 'v2Private')) {
-                $url .= 'v2';
-            }
-            $url .= '/' . $this->implode_params($path, $params);
-            if ($api === 'private' || $api === 'v2Private') {
-                $this->check_required_credentials();
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
-                $request = array(
-                    'SignatureMethod' => 'HmacSHA256',
-                    'SignatureVersion' => '2',
-                    'AccessKeyId' => $this->apiKey,
-                    'Timestamp' => $timestamp,
-                );
-                if ($method !== 'POST') {
-                    $request = array_merge($request, $query);
-                }
-                $request = $this->keysort($request);
-                $auth = $this->urlencode($request);
-                // unfortunately, PHP demands double quotes for the escaped newline symbol
-                $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
-                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-                $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
-                $url .= '?' . $auth;
-                if ($method === 'POST') {
-                    $body = $this->json($query);
-                    $headers = array(
-                        'Content-Type' => 'application/json',
-                    );
-                } else {
-                    $headers = array(
-                        'Content-Type' => 'application/x-www-form-urlencoded',
-                    );
-                }
-            } else {
-                if ($query) {
-                    $url .= '?' . $this->urlencode($query);
-                }
-            }
-            $url = $this->implode_params($this->urls['api'][$api], array(
-                'hostname' => $this->hostname,
-            )) . $url;
-        } else {
-            // signing implementation for the new endpoints
-            // list($type, $access) = $api;
-            $type = $this->safe_string($api, 0);
-            $access = $this->safe_string($api, 1);
-            $url .= $this->implode_params($path, $params);
-            $hostname = $this->safe_string($this->urls['hostnames'], $type);
-            if ($access === 'public') {
-                if ($query) {
-                    $url .= '?' . $this->urlencode($query);
-                }
-            } else if ($access === 'private') {
-                $this->check_required_credentials();
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
-                $request = array(
-                    'SignatureMethod' => 'HmacSHA256',
-                    'SignatureVersion' => '2',
-                    'AccessKeyId' => $this->apiKey,
-                    'Timestamp' => $timestamp,
-                );
-                if ($method !== 'POST') {
-                    $request = array_merge($request, $query);
-                }
-                $request = $this->keysort($request);
-                $auth = $this->urlencode($request);
-                // unfortunately, PHP demands double quotes for the escaped newline symbol
-                $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
-                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-                $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
-                $url .= '?' . $auth;
-                if ($method === 'POST') {
-                    $body = $this->json($query);
-                    $headers = array(
-                        'Content-Type' => 'application/json',
-                    );
-                } else {
-                    $headers = array(
-                        'Content-Type' => 'application/x-www-form-urlencoded',
-                    );
-                }
-            }
-            $url = $this->implode_params($this->urls['api'][$type], array(
-                'hostname' => $hostname,
-            )) . $url;
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
-        return $this->safe_integer($config, 'cost', 1);
-    }
-
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        if ($response === null) {
-            return; // fallback to default error handler
-        }
-        if (is_array($response) && array_key_exists('status', $response)) {
-            //
-            //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
-            //
-            $status = $this->safe_string($response, 'status');
-            if ($status === 'error') {
-                $code = $this->safe_string($response, 'err-code');
-                $feedback = $this->id . ' ' . $body;
-                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-                $message = $this->safe_string($response, 'err-msg');
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-                throw new ExchangeError($feedback);
-            }
-        }
-    }
-
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         //
         // Gets a history of funding $rates with their timestamps
@@ -3332,5 +3476,128 @@ class huobi extends Exchange {
         //
         $result = $this->safe_value($response, 'data', array());
         return $this->parse_funding_rate($result, $market);
+    }
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = '/';
+        $query = $this->omit($params, $this->extract_params($path));
+        if (gettype($api) === 'string') {
+            // signing implementation for the old endpoints
+            if ($api === 'market') {
+                $url .= $api;
+            } else if (($api === 'public') || ($api === 'private')) {
+                $url .= $this->version;
+            } else if (($api === 'v2Public') || ($api === 'v2Private')) {
+                $url .= 'v2';
+            }
+            $url .= '/' . $this->implode_params($path, $params);
+            if ($api === 'private' || $api === 'v2Private') {
+                $this->check_required_credentials();
+                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $request = array(
+                    'SignatureMethod' => 'HmacSHA256',
+                    'SignatureVersion' => '2',
+                    'AccessKeyId' => $this->apiKey,
+                    'Timestamp' => $timestamp,
+                );
+                if ($method !== 'POST') {
+                    $request = array_merge($request, $query);
+                }
+                $request = $this->keysort($request);
+                $auth = $this->urlencode($request);
+                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+                $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
+                $url .= '?' . $auth;
+                if ($method === 'POST') {
+                    $body = $this->json($query);
+                    $headers = array(
+                        'Content-Type' => 'application/json',
+                    );
+                } else {
+                    $headers = array(
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                    );
+                }
+            } else {
+                if ($query) {
+                    $url .= '?' . $this->urlencode($query);
+                }
+            }
+            $url = $this->implode_params($this->urls['api'][$api], array(
+                'hostname' => $this->hostname,
+            )) . $url;
+        } else {
+            // signing implementation for the new endpoints
+            // list($type, $access) = $api;
+            $type = $this->safe_string($api, 0);
+            $access = $this->safe_string($api, 1);
+            $url .= $this->implode_params($path, $params);
+            $hostname = $this->safe_string($this->urls['hostnames'], $type);
+            if ($access === 'public') {
+                if ($query) {
+                    $url .= '?' . $this->urlencode($query);
+                }
+            } else if ($access === 'private') {
+                $this->check_required_credentials();
+                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $request = array(
+                    'SignatureMethod' => 'HmacSHA256',
+                    'SignatureVersion' => '2',
+                    'AccessKeyId' => $this->apiKey,
+                    'Timestamp' => $timestamp,
+                );
+                if ($method !== 'POST') {
+                    $request = array_merge($request, $query);
+                }
+                $request = $this->keysort($request);
+                $auth = $this->urlencode($request);
+                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+                $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
+                $url .= '?' . $auth;
+                if ($method === 'POST') {
+                    $body = $this->json($query);
+                    $headers = array(
+                        'Content-Type' => 'application/json',
+                    );
+                } else {
+                    $headers = array(
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                    );
+                }
+            }
+            $url = $this->implode_params($this->urls['api'][$type], array(
+                'hostname' => $hostname,
+            )) . $url;
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+        return $this->safe_integer($config, 'cost', 1);
+    }
+
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return; // fallback to default error handler
+        }
+        if (is_array($response) && array_key_exists('status', $response)) {
+            //
+            //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //
+            $status = $this->safe_string($response, 'status');
+            if ($status === 'error') {
+                $code = $this->safe_string_2($response, 'err-code', 'err_code');
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $message = $this->safe_string_2($response, 'err-msg', 'err_msg');
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                throw new ExchangeError($feedback);
+            }
+        }
     }
 }

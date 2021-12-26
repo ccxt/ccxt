@@ -1565,7 +1565,7 @@ module.exports = class okex3 extends Exchange {
             account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseMarginBalance (response) {
@@ -1644,7 +1644,7 @@ module.exports = class okex3 extends Exchange {
                     throw new NotSupported (this.id + ' margin balance response format has changed!');
                 }
             }
-            result[symbol] = this.parseBalance (accounts);
+            result[symbol] = this.safeBalance (accounts);
         }
         return result;
     }
@@ -1721,7 +1721,7 @@ module.exports = class okex3 extends Exchange {
             account['total'] = this.safeString (balance, 'equity');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseSwapBalance (response) {
@@ -1765,7 +1765,7 @@ module.exports = class okex3 extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -2215,7 +2215,7 @@ module.exports = class okex3 extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumber (order, 'trigger_price');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

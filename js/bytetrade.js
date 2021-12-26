@@ -305,7 +305,7 @@ module.exports = class bytetrade extends Exchange {
             account['used'] = this.safeString (balance, 'used');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -583,7 +583,7 @@ module.exports = class bytetrade extends Exchange {
             'cost': feeCost,
             'rate': feeRate,
         };
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

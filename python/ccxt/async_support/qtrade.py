@@ -699,7 +699,7 @@ class qtrade(Exchange):
             account = result[code] if (code in result) else self.account()
             account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -840,7 +840,7 @@ class qtrade(Exchange):
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
         rawTrades = self.safe_value(order, 'trades', [])
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

@@ -397,7 +397,7 @@ class bitbank(Exchange):
             account['used'] = self.safe_string(balance, 'locked_amount')
             account['total'] = self.safe_string(balance, 'onhand_amount')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -426,7 +426,7 @@ class bitbank(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),

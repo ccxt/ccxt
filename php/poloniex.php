@@ -155,6 +155,7 @@ class poloniex extends Exchange {
                 'ITC' => 'Information Coin',
                 'KEY' => 'KEYCoin',
                 'MASK' => 'NFTX Hashmasks Index', // conflict with Mask Network
+                'MEME' => 'Degenerator Meme', // Degenerator Meme migrated to Meme Inu, this exchange still has the old price
                 'PLX' => 'ParallaxCoin',
                 'REPV2' => 'REP',
                 'STR' => 'XLM',
@@ -366,7 +367,7 @@ class poloniex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'onOrders');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -866,7 +867,7 @@ class poloniex extends Exchange {
         }
         $price = $this->safe_string_2($order, 'price', 'rate');
         $remaining = $this->safe_string($order, 'amount');
-        $amount = $this->safe_string_2($order, 'startingAmount');
+        $amount = $this->safe_string($order, 'startingAmount');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'type');
         $id = $this->safe_string($order, 'orderNumber');
@@ -890,7 +891,7 @@ class poloniex extends Exchange {
             );
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1104,28 +1105,24 @@ class poloniex extends Exchange {
         //         }
         //     )
         //
-        $trades = $this->parse_trades($response);
-        $firstTrade = $this->safe_value($trades, 0);
+        $firstTrade = $this->safe_value($response, 0);
         if ($firstTrade === null) {
             throw new OrderNotFound($this->id . ' order $id ' . $id . ' not found');
         }
-        $symbol = $this->safe_string($firstTrade, 'symbol', $symbol);
-        $side = $this->safe_string($firstTrade, 'side');
-        $timestamp = $this->safe_number($firstTrade, 'timestamp');
-        $id = $this->safe_value($firstTrade['info'], 'globalTradeID', $id);
+        $id = $this->safe_value($firstTrade, 'globalTradeID', $id);
         return $this->safe_order(array(
             'info' => $response,
             'id' => $id,
             'clientOrderId' => $this->safe_value($firstTrade, 'clientOrderId'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'lastTradeTimestamp' => null,
             'status' => 'closed',
-            'symbol' => $symbol,
-            'type' => $this->safe_string($firstTrade, 'type'),
+            'symbol' => null,
+            'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $side,
+            'side' => null,
             'price' => null,
             'stopPrice' => null,
             'cost' => null,
@@ -1133,7 +1130,7 @@ class poloniex extends Exchange {
             'amount' => null,
             'filled' => null,
             'remaining' => null,
-            'trades' => $trades,
+            'trades' => $response,
             'fee' => null,
         ));
     }

@@ -1418,7 +1418,7 @@ module.exports = class okex extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseFundingBalance (response) {
@@ -1435,7 +1435,7 @@ module.exports = class okex extends Exchange {
             account['used'] = this.safeString (balance, 'frozenBal');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseTradingFee (fee, market = undefined) {
@@ -1901,7 +1901,7 @@ module.exports = class okex extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumber (order, 'slTriggerPx');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

@@ -381,7 +381,7 @@ class lbank(Exchange):
             account['used'] = self.safe_string(freeze, currencyId)
             account['total'] = self.safe_string(asset, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -420,7 +420,7 @@ class lbank(Exchange):
         id = self.safe_string(order, 'order_id')
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),

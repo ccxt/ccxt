@@ -335,7 +335,7 @@ module.exports = class zonda extends Exchange {
         const amount = this.safeString (order, 'startAmount');
         const remaining = this.safeString (order, 'currentAmount');
         const postOnly = this.safeValue (order, 'postOnly');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'info': order,
@@ -414,7 +414,7 @@ module.exports = class zonda extends Exchange {
             account['free'] = this.safeString (balance, 'availableFunds');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

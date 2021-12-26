@@ -324,7 +324,7 @@ class bitstamp extends Exchange {
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
-            $symbolId = $baseId . '_' . $quoteId;
+            $marketId = $baseId . '_' . $quoteId;
             $id = $this->safe_string($market, 'url_symbol');
             $amountPrecisionString = $this->safe_string($market, 'base_decimals');
             $pricePrecisionString = $this->safe_string($market, 'counter_decimals');
@@ -347,7 +347,7 @@ class bitstamp extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'symbolId' => $symbolId,
+                'marketId' => $marketId,
                 'info' => $market,
                 'type' => 'spot',
                 'spot' => true,
@@ -664,7 +664,7 @@ class bitstamp extends Exchange {
         $feeCostString = $this->safe_string($trade, 'fee');
         $feeCurrency = null;
         if ($market !== null) {
-            $priceString = $this->safe_string($trade, $market['symbolId'], $priceString);
+            $priceString = $this->safe_string($trade, $market['marketId'], $priceString);
             $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
             $costString = $this->safe_string($trade, $market['quoteId'], $costString);
             $feeCurrency = $market['quote'];
@@ -698,6 +698,8 @@ class bitstamp extends Exchange {
                 $side = 'sell';
             } else if ($side === '0') {
                 $side = 'buy';
+            } else {
+                $side = null;
             }
         }
         if ($costString !== null) {
@@ -858,7 +860,7 @@ class bitstamp extends Exchange {
             $account['total'] = $this->safe_string($balance, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
@@ -1315,14 +1317,9 @@ class bitstamp extends Exchange {
         $marketId = $this->safe_string_lower($order, 'currency_pair');
         $symbol = $this->safe_symbol($marketId, $market, '/');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $amount = $this->safe_number($order, 'amount');
+        $amount = $this->safe_string($order, 'amount');
         $transactions = $this->safe_value($order, 'transactions', array());
-        $trades = $this->parse_trades($transactions, $market);
-        $length = is_array($trades) ? count($trades) : 0;
-        if ($length) {
-            $symbol = $trades[0]['symbol'];
-        }
-        $price = $this->safe_number($order, 'price');
+        $price = $this->safe_string($order, 'price');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1341,11 +1338,11 @@ class bitstamp extends Exchange {
             'amount' => $amount,
             'filled' => null,
             'remaining' => null,
-            'trades' => $trades,
+            'trades' => $transactions,
             'fee' => null,
             'info' => $order,
             'average' => null,
-        ));
+        ), $market);
     }
 
     public function parse_ledger_entry_type($type) {

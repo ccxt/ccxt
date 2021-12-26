@@ -301,7 +301,7 @@ module.exports = class mercado extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -428,7 +428,7 @@ module.exports = class mercado extends Exchange {
         const filled = this.safeString (order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
         const rawTrades = this.safeValue (order, 'operations', []);
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

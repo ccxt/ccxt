@@ -152,7 +152,7 @@ module.exports = class independentreserve extends Exchange {
             account['total'] = this.safeString (balance, 'TotalBalance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -289,7 +289,7 @@ module.exports = class independentreserve extends Exchange {
         const cost = this.safeString (order, 'Value');
         const average = this.safeString (order, 'AvgPrice');
         const price = this.safeString (order, 'Price');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

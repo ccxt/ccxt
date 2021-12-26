@@ -1394,7 +1394,7 @@ class kucoin(Exchange):
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order2({
+        return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
@@ -1960,7 +1960,7 @@ class kucoin(Exchange):
             account['free'] = self.safe_string(data, 'availableBalance')
             account['total'] = self.safe_string(data, 'accountEquity')
             result[code] = account
-            return self.parse_balance(result)
+            return self.safe_balance(result)
         else:
             request = {
                 'type': type,
@@ -1993,7 +1993,7 @@ class kucoin(Exchange):
                     account['free'] = self.safe_string(balance, 'available')
                     account['used'] = self.safe_string(balance, 'holds')
                     result[code] = account
-            return self.parse_balance(result)
+            return self.safe_balance(result)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()

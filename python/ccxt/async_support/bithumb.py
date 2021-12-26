@@ -223,7 +223,7 @@ class bithumb(Exchange):
             account['used'] = self.safe_string(balances, 'in_use_' + lowerCurrencyId)
             account['free'] = self.safe_string(balances, 'available_' + lowerCurrencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -698,7 +698,7 @@ class bithumb(Exchange):
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
         rawTrades = self.safe_value(order, 'contract', [])
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

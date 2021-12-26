@@ -307,6 +307,7 @@ class gateio(Exchange):
                 'GTC_HT': 'Game.com HT',
                 'GTC_BSC': 'Game.com BSC',
                 'HIT': 'HitChain',
+                'MM': 'Million',  # conflict with MilliMeter
                 'MPH': 'Morpher',  # conflict with 88MPH
                 'RAI': 'Rai Reflex Index',  # conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
@@ -1579,11 +1580,11 @@ class gateio(Exchange):
                 subResult = {}
                 subResult[baseCode] = self.fetch_balance_helper(base)
                 subResult[quoteCode] = self.fetch_balance_helper(quote)
-                result[symbol] = self.parse_balance(subResult)
+                result[symbol] = self.safe_balance(subResult)
             else:
                 code = self.safe_currency_code(self.safe_string(entry, 'currency', {}))
                 result[code] = self.fetch_balance_helper(entry)
-        return result if margin else self.parse_balance(result)
+        return result if margin else self.safe_balance(result)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
@@ -1593,6 +1594,8 @@ class gateio(Exchange):
         request['interval'] = self.timeframes[timeframe]
         method = 'publicSpotGetCandlesticks'
         if market['contract']:
+            maxLimit = 1999
+            limit = maxLimit if (limit is None) else min(limit, maxLimit)
             if market['future']:
                 method = 'publicDeliveryGetSettleCandlesticks'
             elif market['swap']:
@@ -1602,17 +1605,14 @@ class gateio(Exchange):
             if isMark or isIndex:
                 request['contract'] = price + '_' + market['id']
                 params = self.omit(params, 'price')
-        if since is None:
-            if limit is not None:
-                request['limit'] = limit
         else:
-            timeframeSeconds = self.parse_timeframe(timeframe)
-            timeframeMilliseconds = timeframeSeconds * 1000
-            # align forward to the next timeframe alignment
-            since = self.sum(since - (since % timeframeMilliseconds), timeframeMilliseconds)
+            maxLimit = 1000
+            limit = maxLimit if (limit is None) else min(limit, maxLimit)
+            request['limit'] = limit
+        if since is not None:
+            duration = self.parse_timeframe(timeframe)
             request['from'] = int(since / 1000)
-            if limit is not None:
-                request['to'] = self.sum(request['from'], limit * timeframeSeconds - 1)
+            request['to'] = self.sum(request['from'], limit * duration - 1)
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -2352,7 +2352,7 @@ class gateio(Exchange):
                 'currency': self.safe_currency_code(self.safe_string(market, 'settleId')),
                 'cost': tkfr,
             })
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': id,
             'timestamp': timestamp,

@@ -561,7 +561,7 @@ class coinex extends Exchange {
         $buyAccount['total'] = $this->safe_string($total, 'buy_type');
         $result[$buyCurrencyCode] = $buyAccount;
         //
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_spot_balance($params = array ()) {
@@ -599,7 +599,7 @@ class coinex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'frozen');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
@@ -668,7 +668,7 @@ class coinex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'order_type');
         $side = $this->safe_string($order, 'type');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),

@@ -243,6 +243,7 @@ class stex extends Exchange {
                     'Selected Pair is disabled' => '\\ccxt\\BadSymbol', // array("success":false,"message":"Selected Pair is disabled")
                     'Invalid scope(s) provided.' => '\\ccxt\\PermissionDenied', // array( "message" => "Invalid scope(s) provided." )
                     'The maximum amount of open orders with the same price cannot exceed 10' => '\\ccxt\\InvalidOrder', // array( "success":false,"message":"The maximum amount of open orders with the same price cannot exceed 10" )
+                    'Your account not verified!' => '\\ccxt\\AccountSuspended', // array("success":false,"message":"Your account not verified!","unified_message":array("message_id":"verification_required_to_continue","substitutions":null),"notice":"Please be informed that parameter `message` is deprecated and will be removed. Use unified_message instead.")
                 ),
                 'broad' => array(
                     'Not enough' => '\\ccxt\\InsufficientFunds', // array("success":false,"message":"Not enough  ETH")
@@ -857,7 +858,7 @@ class stex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'frozen_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_order_status($status) {

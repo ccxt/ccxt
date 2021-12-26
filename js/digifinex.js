@@ -454,7 +454,7 @@ module.exports = class digifinex extends Exchange {
             account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -935,7 +935,7 @@ module.exports = class digifinex extends Exchange {
         const filledString = this.safeString (order, 'executed_amount');
         const priceString = this.safeString (order, 'price');
         const averageString = this.safeString (order, 'avg_price');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

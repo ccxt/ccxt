@@ -324,6 +324,7 @@ class ftx(Exchange):
                     'InvalidPrice': InvalidOrder,  # {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder,  # {"error":"Size too small","success":false}
                     'Size too large': InvalidOrder,  # {"error":"Size too large","success":false}
+                    'Invalid price': InvalidOrder,  # {"success":false,"error":"Invalid price"}
                     'Missing parameter price': InvalidOrder,  # {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound,  # {"error":"Order not found","success":false}
                     'Order already closed': InvalidOrder,  # {"error":"Order already closed","success":false}
@@ -383,6 +384,8 @@ class ftx(Exchange):
                     'OMNI': 'omni',
                     'BEP2': 'bep2',
                     'BNB': 'bep2',
+                    'BEP20': 'bsc',
+                    'BSC': 'bsc',
                 },
             },
         })
@@ -1104,7 +1107,7 @@ class ftx(Exchange):
             account['free'] = self.safe_string_2(balance, 'availableWithoutBorrow', 'free')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1252,7 +1255,7 @@ class ftx(Exchange):
         clientOrderId = self.safe_string(order, 'clientId')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1859,21 +1862,33 @@ class ftx(Exchange):
         #         "success": True,
         #         "result": {
         #             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        #             "tag": "null"
+        #             "tag": null,
+        #             "method": "erc20",
+        #             "coin": null
         #         }
         #     }
         #
         result = self.safe_value(response, 'result', {})
+        networkId = self.safe_string(result, 'method')
         address = self.safe_string(result, 'address')
-        tag = self.safe_string(result, 'tag')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
-            'network': None,
+            'tag': self.safe_string(result, 'tag'),
+            'network': self.safe_network(networkId),
             'info': response,
         }
+
+    def safe_network(self, networkId):
+        networksById = {
+            'trx': 'TRC20',
+            'erc20': 'ERC20',
+            'sol': 'SOL',
+            'bsc': 'BSC',
+            'bep2': 'BEP2',
+        }
+        return self.safe_string(networksById, networkId, networkId)
 
     def parse_transaction_status(self, status):
         statuses = {

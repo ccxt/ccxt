@@ -623,7 +623,7 @@ module.exports = class bw extends Exchange {
             account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -725,7 +725,7 @@ module.exports = class bw extends Exchange {
         const remaining = this.safeString2 (order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
         const cost = this.safeString (order, 'totalMoney');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'entrustId'),
             'clientOrderId': undefined,

@@ -945,7 +945,7 @@ module.exports = class ndax extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseLedgerEntryType (type) {
@@ -1158,19 +1158,13 @@ module.exports = class ndax extends Exchange {
         const side = this.safeStringLower (order, 'Side');
         const type = this.safeStringLower (order, 'OrderType');
         const clientOrderId = this.safeString2 (order, 'ReplacementClOrdId', 'ClientOrderId');
-        let price = this.safeNumber (order, 'Price', 0.0);
-        price = (price > 0.0) ? price : undefined;
-        const amount = this.safeNumber (order, 'OrigQuantity');
-        const filled = this.safeNumber (order, 'QuantityExecuted');
-        const cost = this.safeNumber (order, 'GrossValueExecuted');
-        let average = this.safeNumber (order, 'AvgPrice', 0.0);
-        average = (average > 0) ? average : undefined;
-        let stopPrice = this.safeNumber (order, 'StopPrice', 0.0);
-        stopPrice = (stopPrice > 0.0) ? stopPrice : undefined;
-        const timeInForce = undefined;
+        const price = this.safeString (order, 'Price');
+        const amount = this.safeString (order, 'OrigQuantity');
+        const filled = this.safeString (order, 'QuantityExecuted');
+        const cost = this.safeString (order, 'GrossValueExecuted');
+        const average = this.safeString (order, 'AvgPrice');
+        const stopPrice = this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice')));
         const status = this.parseOrderStatus (this.safeString (order, 'OrderState'));
-        const fee = undefined;
-        const trades = undefined;
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1181,7 +1175,7 @@ module.exports = class ndax extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': timeInForce,
+            'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
@@ -1191,9 +1185,9 @@ module.exports = class ndax extends Exchange {
             'filled': filled,
             'average': average,
             'remaining': undefined,
-            'fee': fee,
-            'trades': trades,
-        });
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -609,7 +609,7 @@ module.exports = class hollaex extends Exchange {
             account['total'] = this.safeString (response, currencyId + '_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
@@ -812,7 +812,7 @@ module.exports = class hollaex extends Exchange {
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'filled');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,

@@ -164,7 +164,9 @@ class yobit(Exchange):
                 'LUNA': 'Luna Coin',
                 'MASK': 'Yobit MASK',
                 'MDT': 'Midnight',
+                'MEME': 'Memez Token',  # conflict with Meme Inu / Degenerator Meme
                 'MIS': 'MIScoin',
+                'MM': 'MasterMint',  # conflict with MilliMeter
                 'NAV': 'NavajoCoin',
                 'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
@@ -279,7 +281,7 @@ class yobit(Exchange):
             account['free'] = self.safe_string(free, currencyId)
             account['total'] = self.safe_string(total, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetInfo(params)
@@ -606,7 +608,7 @@ class yobit(Exchange):
         fee = None
         type = 'limit'
         side = self.safe_string(order, 'type')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

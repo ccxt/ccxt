@@ -458,7 +458,7 @@ class digifinex(Exchange):
             account['free'] = self.safe_string(balance, 'free')
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -913,7 +913,7 @@ class digifinex(Exchange):
         filledString = self.safe_string(order, 'executed_amount')
         priceString = self.safe_string(order, 'price')
         averageString = self.safe_string(order, 'avg_price')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
