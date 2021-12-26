@@ -1977,7 +1977,21 @@ module.exports = class huobi extends Exchange {
             if (subType === 'inverse') {
                 method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
             } else if (subType === 'linear') {
-                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                let currencyId = this.safeString (params, 'margin_account');
+                if (currencyId === undefined) {
+                    const code = this.safeString (params, 'code');
+                    if (code !== undefined) {
+                        params = this.omit (params, 'code');
+                        const currency = this.currency (code);
+                        currencyId = currency['id'];
+                    }
+                }
+                if (currencyId === undefined) {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                } else {
+                    request['margin_account'] = currencyId;
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+                }
             }
         }
         const response = await this[method] (this.extend (request, params));
@@ -1999,7 +2013,7 @@ module.exports = class huobi extends Exchange {
         //         "ts":1637644827566
         //     }
         //
-        // future, swap
+        // future, swap isolated
         //
         //     {
         //         "status":"ok",
@@ -2027,6 +2041,45 @@ module.exports = class huobi extends Exchange {
         //             },
         //         ],
         //         "ts":1637644827566
+        //     }
+        //
+        // swap cross
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "margin_mode":"cross",
+        //                 "margin_account":"USDT",
+        //                 "margin_asset":"USDT",
+        //                 "margin_balance":200,
+        //                 "margin_static":200,
+        //                 "margin_position":0,
+        //                 "margin_frozen":0,
+        //                 "profit_real":0,
+        //                 "profit_unreal":0,
+        //                 "withdraw_available":2E+2,
+        //                 "risk_rate":null,
+        //                 "contract_detail":[
+        //                     {
+        //                         "symbol":"MANA",
+        //                         "contract_code":"MANA-USDT",
+        //                         "margin_position":0,
+        //                         "margin_frozen":0,
+        //                         "margin_available":200.000000000000000000,
+        //                         "profit_unreal":0E-18,
+        //                         "liquidation_price":null,
+        //                         "lever_rate":5,
+        //                         "adjust_factor":0.100000000000000000,
+        //                         "contract_type":"swap",
+        //                         "pair":"MANA-USDT",
+        //                         "business_type":"swap"
+        //                     },
+        //                     ...
+        //                 ]
+        //             }
+        //         ],
+        //         "ts":1640493207964
         //     }
         //
         const result = { 'info': response };
@@ -2067,10 +2120,15 @@ module.exports = class huobi extends Exchange {
                 const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
                 const symbol = this.safeSymbol (marketId);
                 const account = this.account ();
-                account['free'] = this.safeString (balance, 'margin_available');
+                account['free'] = this.safeString (balance, 'margin_balance', 'margin_available');
                 account['used'] = this.safeString (balance, 'margin_frozen');
                 const currencyId = this.safeString2 (balance, 'margin_asset', 'symbol');
                 const code = this.safeCurrencyCode (currencyId);
+                const marginMode = this.safeString (balance, 'margin_mode');
+                if (marginMode === 'cross') {
+                    result[code] = account;
+                    return this.safeBalance (result);
+                }
                 const accountsByCode = {};
                 accountsByCode[code] = account;
                 result[symbol] = this.safeBalance (accountsByCode);
@@ -2297,7 +2355,8 @@ module.exports = class huobi extends Exchange {
         const [ methodType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const method = this.getSupportedMapping (methodType, {
             'spot': 'createSpotOrder',
-            // 'future': 'createContractOrder',
+            'swap': 'createContractOrder',
+            'future': 'createContractOrder',
         });
         if (method === undefined) {
             throw new NotSupported (this.id + ' createOrder does not support ' + type + ' markets yet');
@@ -2404,49 +2463,112 @@ module.exports = class huobi extends Exchange {
     }
 
     async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // const request = {
-        //     // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-        //     // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
-        //     // 'contract_code': market['id'], // optional BTC180914
-        //     // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807
-        //     // 'price': this.priceToPrecision (symbol, price),
-        //     // 'volume': this.amountToPrecision (symbol, amount),
-        //     //
-        //     //     direction buy, offset open = open long
-        //     //     direction sell, offset close = close long
-        //     //     direction sell, offset open = open short
-        //     //     direction buy, offset close = close short
-        //     //
-        //     // 'direction': 'buy'', // buy, sell
-        //     // 'offset': 'open', // open, close
-        //     // 'lever_rate': 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
-        //     //
-        //     //     limit
-        //     //     opponent // BBO
-        //     //     post_only
-        //     //     optimal_5
-        //     //     optimal_10
-        //     //     optimal_20
-        //     //     ioc
-        //     //     fok
-        //     //     opponent_ioc // IOC order using the BBO price
-        //     //     optimal_5_ioc
-        //     //     optimal_10_ioc
-        //     //     optimal_20_ioc
-        //     //     opponent_fok // FOR order using the BBO price
-        //     //     optimal_5_fok
-        //     //     optimal_10_fok
-        //     //     optimal_20_fok
-        //     //
-        //     // 'order_price_type': 'limit', // required
-        //     // 'tp_trigger_price': this.priceToPrecision (symbol, triggerPrice),
-        //     // 'tp_order_price': this.priceToPrecision (symbol, price),
-        //     // 'tp_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
-        //     // 'sl_trigger_price': this.priceToPrecision (symbol, stopLossPrice),
-        //     // 'sl_order_price': this.priceToPrecision (symbol, price),
-        //     // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
-        // };
-        throw new NotSupported (this.id + ' createContractOrder is not supported yet, it is a work in progress');
+        const offset = this.safeString (params, 'offset');
+        if (offset === undefined) {
+            throw new ArgumentsRequired (this.id + ' createContractOrder() requires a string offset parameter, open or close');
+        }
+        const stopPrice = this.safeString (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            throw new NotSupported (this.id + ' createContractOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
+        }
+        const market = this.market (symbol);
+        const request = {
+            // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
+            'contract_code': market['id'], // optional BTC180914
+            // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807
+            // 'price': this.priceToPrecision (symbol, price), // optional
+            'volume': this.amountToPrecision (symbol, amount),
+            'direction': side, // buy, sell
+            'offset': offset, // open, close
+            //
+            //     direction buy, offset open = open long
+            //     direction sell, offset close = close long
+            //     direction sell, offset open = open short
+            //     direction buy, offset close = close short
+            //
+            // 'lever_rate': 1, // using Leverage greater than 20x requires prior approval of high-leverage agreement
+            // 'order_price_type': 'limit', // required
+            //
+            //     order_price_type can be:
+            //
+            //     limit
+            //     opponent // BBO
+            //     post_only
+            //     optimal_5
+            //     optimal_10
+            //     optimal_20
+            //     ioc
+            //     fok
+            //     opponent_ioc // IOC order using the BBO price
+            //     optimal_5_ioc
+            //     optimal_10_ioc
+            //     optimal_20_ioc
+            //     opponent_fok // FOR order using the BBO price
+            //     optimal_5_fok
+            //     optimal_10_fok
+            //     optimal_20_fok
+            //
+            // 'tp_trigger_price': this.priceToPrecision (symbol, triggerPrice),
+            // 'tp_order_price': this.priceToPrecision (symbol, price),
+            // 'tp_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
+            // 'sl_trigger_price': this.priceToPrecision (symbol, stopLossPrice),
+            // 'sl_order_price': this.priceToPrecision (symbol, price),
+            // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
+        };
+        const stopLossOrderPrice = this.safeString (params, 'sl_order_price');
+        const stopLossTriggerPrice = this.safeString (params, 'sl_trigger_price');
+        const takeProfitOrderPrice = this.safeString (params, 'tp_order_price');
+        const takeProfitTriggerPrice = this.safeString (params, 'tp_trigger_price');
+        const isOpenOrder = (offset === 'open');
+        let isStopOrder = false;
+        if (stopLossTriggerPrice !== undefined) {
+            request['sl_trigger_price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+            isStopOrder = true;
+            if (price !== undefined) {
+                request['sl_order_price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        if (stopLossOrderPrice !== undefined) {
+            request['sl_order_price'] = this.priceToPrecision (symbol, stopLossOrderPrice);
+            isStopOrder = true;
+        }
+        if (takeProfitTriggerPrice !== undefined) {
+            request['tp_trigger_price'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+            isStopOrder = true;
+            if (price !== undefined) {
+                request['tp_order_price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        if (takeProfitOrderPrice !== undefined) {
+            request['tp_order_price'] = this.priceToPrecision (symbol, takeProfitOrderPrice);
+            isStopOrder = true;
+        }
+        if (isStopOrder && !isOpenOrder) {
+            throw new NotSupported (this.id + ' createContractOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
+        }
+        params = this.omit (params, [ 'sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price' ]);
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            type = 'post_only';
+        }
+        if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        request['order_price_type'] = type;
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id'); // must be 64 chars max and unique within 24 hours
+        // if (clientOrderId === undefined) {
+        //     const broker = this.safeValue (this.options, 'broker', {});
+        //     const brokerId = this.safeString (broker, 'id');
+        //     request['client_order_id'] = brokerId + this.uuid ();
+        // } else {
+        //     request['client_order_id'] = clientOrderId;
+        // }
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+        }
+        throw new NotSupported (this.id + ' createContractOrder() is not supported yet, it is a work in progress');
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
