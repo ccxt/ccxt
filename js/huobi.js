@@ -2610,21 +2610,71 @@ module.exports = class huobi extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const clientOrderId = this.safeString2 (params, 'client-order-id', 'clientOrderId');
-        const request = {};
-        let method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
-        if (clientOrderId === undefined) {
-            request['order-id'] = id;
+        await this.loadMarkets ();
+        let methodType = undefined;
+        [ methodType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
+        const request = {
+            // ---------------------------------------------------- linear swap
+            // 'order_id': id,
+            // 'client_order_id': clientOrderId,
+            // 'contract_code': market['id'],
+            // 'pair': 'BTC-USDT',
+            // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
+        };
+        let method = undefined;
+        if (methodType === 'spot') {
+            const clientOrderId = this.safeString2 (params, 'client-order-id', 'clientOrderId');
+            method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
+            if (clientOrderId === undefined) {
+                request['order-id'] = id;
+            } else {
+                request['client-order-id'] = clientOrderId;
+                method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
+                params = this.omit (params, [ 'client-order-id', 'clientOrderId' ]);
+            }
         } else {
-            request['client-order-id'] = clientOrderId;
-            method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
-            params = this.omit (params, [ 'client-order-id', 'clientOrderId' ]);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol for ' + methodType + ' orders');
+            }
+            const market = this.market (symbol);
+            request['contract_code'] = market['id'];
+            if (methodType === 'future') {
+                method = 'contractPrivatePostApiV1ContractCancel';
+            } else if (methodType === 'swap') {
+                if (market['linear']) {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
+                } else if (market['inverse']) {
+                    method = 'contractPrivatePostSwapApiV1SwapCancel';
+                }
+            } else {
+                throw new NotSupported (this.id + ' cancelOrder() does not support ' + methodType + ' markets');
+            }
+            const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+            if (clientOrderId === undefined) {
+                request['order_id'] = id;
+            } else {
+                request['client_order_id'] = clientOrderId;
+                params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+            }
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         'status': 'ok',
         //         'data': '10138899000',
+        //     }
+        //
+        // linear swap cross margin
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":{
+        //             "errors":[],
+        //             "successes":"924660854912552960"
+        //         },
+        //         "ts":1640504486089
         //     }
         //
         return this.extend (this.parseOrder (response), {
