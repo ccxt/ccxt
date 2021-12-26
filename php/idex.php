@@ -979,7 +979,7 @@ class idex extends Exchange {
         $orderVersion = $this->get_supported_mapping($network, array(
             'ETH' => 1,
             'BSC' => 2,
-            'MATIC' => 3,
+            'MATIC' => 4,
         ));
         $amountString = $this->amount_to_precision($symbol, $amount);
         // https://docs.idex.io/#time-in-force
