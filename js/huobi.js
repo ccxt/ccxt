@@ -714,8 +714,13 @@ module.exports = class huobi extends Exchange {
                 },
                 'exact': {
                     // err-code
+                    '1017': OrderNotFound, // {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
+                    '1066': BadSymbol, // {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
+                    '1013': BadSymbol, // {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
                     '1094': InvalidOrder, // {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
                     'bad-request': BadRequest,
+                    'validation-format-error': BadRequest, // {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
+                    'validation-constraints-required': BadRequest, // {"status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing: client-order-id.","data":null}
                     'base-date-limit-error': BadRequest, // {"status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null}
                     'api-not-support-temp-addr': PermissionDenied, // {"status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null}
                     'timeout': RequestTimeout, // {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
@@ -2173,17 +2178,65 @@ module.exports = class huobi extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        let method = 'spotPrivateGetV1OrderOrdersOrderId';
-        if (clientOrderId !== undefined) {
-            method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
-            // will be filled below in extend ()
-            // request['clientOrderId'] = clientOrderId;
+        let methodType = undefined;
+        [ methodType, params ] = this.handleMarketTypeAndParams ('fetchOrder', undefined, params);
+        const request = {
+            // spot -----------------------------------------------------------
+            // 'order-id': 'id',
+            // 'symbol': market['id'],
+            // 'client-order-id': clientOrderId,
+            // 'clientOrderId': clientOrderId,
+            // contracts ------------------------------------------------------
+            // 'order_id': id,
+            // 'client_order_id': clientOrderId,
+            // 'contract_code': market['id'],
+            // 'pair': 'BTC-USDT',
+            // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
+        };
+        let method = undefined;
+        if (methodType === 'spot') {
+            const clientOrderId = this.safeString (params, 'clientOrderId');
+            method = 'spotPrivateGetV1OrderOrdersOrderId';
+            if (clientOrderId !== undefined) {
+                method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
+                // will be filled below in extend ()
+                // they expect clientOrderId instead of client-order-id
+                // request['clientOrderId'] = clientOrderId;
+            } else {
+                request['order-id'] = id;
+            }
         } else {
-            request['order-id'] = id;
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol for ' + methodType + ' orders');
+            }
+            const market = this.market (symbol);
+            request['contract_code'] = market['id'];
+            if (methodType === 'future') {
+                method = 'contractPrivatePostApiV1ContractOrderInfo';
+                request['symbol'] = market['settleId'];
+            } else if (methodType === 'swap') {
+                if (market['linear']) {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
+                } else if (market['inverse']) {
+                    method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
+                }
+            } else {
+                throw new NotSupported (this.id + ' cancelOrder() does not support ' + methodType + ' markets');
+            }
+            const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+            if (clientOrderId === undefined) {
+                request['order_id'] = id;
+            } else {
+                request['client_order_id'] = clientOrderId;
+                params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+            }
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {"status":"ok","data":"438398393065481"}
+        //
         const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
@@ -3277,129 +3330,6 @@ module.exports = class huobi extends Exchange {
         return rates;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/';
-        const query = this.omit (params, this.extractParams (path));
-        if (typeof api === 'string') {
-            // signing implementation for the old endpoints
-            if (api === 'market') {
-                url += api;
-            } else if ((api === 'public') || (api === 'private')) {
-                url += this.version;
-            } else if ((api === 'v2Public') || (api === 'v2Private')) {
-                url += 'v2';
-            }
-            url += '/' + this.implodeParams (path, params);
-            if (api === 'private' || api === 'v2Private') {
-                this.checkRequiredCredentials ();
-                const timestamp = this.ymdhms (this.milliseconds (), 'T');
-                let request = {
-                    'SignatureMethod': 'HmacSHA256',
-                    'SignatureVersion': '2',
-                    'AccessKeyId': this.apiKey,
-                    'Timestamp': timestamp,
-                };
-                if (method !== 'POST') {
-                    request = this.extend (request, query);
-                }
-                request = this.keysort (request);
-                let auth = this.urlencode (request);
-                // unfortunately, PHP demands double quotes for the escaped newline symbol
-                const payload = [ method, this.hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
-                auth += '&' + this.urlencode ({ 'Signature': signature });
-                url += '?' + auth;
-                if (method === 'POST') {
-                    body = this.json (query);
-                    headers = {
-                        'Content-Type': 'application/json',
-                    };
-                } else {
-                    headers = {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    };
-                }
-            } else {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            }
-            url = this.implodeParams (this.urls['api'][api], {
-                'hostname': this.hostname,
-            }) + url;
-        } else {
-            // signing implementation for the new endpoints
-            // const [ type, access ] = api;
-            const type = this.safeString (api, 0);
-            const access = this.safeString (api, 1);
-            url += this.implodeParams (path, params);
-            const hostname = this.safeString (this.urls['hostnames'], type);
-            if (access === 'public') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            } else if (access === 'private') {
-                this.checkRequiredCredentials ();
-                const timestamp = this.ymdhms (this.milliseconds (), 'T');
-                let request = {
-                    'SignatureMethod': 'HmacSHA256',
-                    'SignatureVersion': '2',
-                    'AccessKeyId': this.apiKey,
-                    'Timestamp': timestamp,
-                };
-                if (method !== 'POST') {
-                    request = this.extend (request, query);
-                }
-                request = this.keysort (request);
-                let auth = this.urlencode (request);
-                // unfortunately, PHP demands double quotes for the escaped newline symbol
-                const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
-                auth += '&' + this.urlencode ({ 'Signature': signature });
-                url += '?' + auth;
-                if (method === 'POST') {
-                    body = this.json (query);
-                    headers = {
-                        'Content-Type': 'application/json',
-                    };
-                } else {
-                    headers = {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    };
-                }
-            }
-            url = this.implodeParams (this.urls['api'][type], {
-                'hostname': hostname,
-            }) + url;
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
-        return this.safeInteger (config, 'cost', 1);
-    }
-
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined) {
-            return; // fallback to default error handler
-        }
-        if ('status' in response) {
-            //
-            //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
-            //
-            const status = this.safeString (response, 'status');
-            if (status === 'error') {
-                const code = this.safeString (response, 'err-code');
-                const feedback = this.id + ' ' + body;
-                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                const message = this.safeString (response, 'err-msg');
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                throw new ExchangeError (feedback);
-            }
-        }
-    }
-
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         //
         // Gets a history of funding rates with their timestamps
@@ -3539,5 +3469,128 @@ module.exports = class huobi extends Exchange {
         //
         const result = this.safeValue (response, 'data', {});
         return this.parseFundingRate (result, market);
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = '/';
+        const query = this.omit (params, this.extractParams (path));
+        if (typeof api === 'string') {
+            // signing implementation for the old endpoints
+            if (api === 'market') {
+                url += api;
+            } else if ((api === 'public') || (api === 'private')) {
+                url += this.version;
+            } else if ((api === 'v2Public') || (api === 'v2Private')) {
+                url += 'v2';
+            }
+            url += '/' + this.implodeParams (path, params);
+            if (api === 'private' || api === 'v2Private') {
+                this.checkRequiredCredentials ();
+                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                let request = {
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'AccessKeyId': this.apiKey,
+                    'Timestamp': timestamp,
+                };
+                if (method !== 'POST') {
+                    request = this.extend (request, query);
+                }
+                request = this.keysort (request);
+                let auth = this.urlencode (request);
+                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                const payload = [ method, this.hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+                auth += '&' + this.urlencode ({ 'Signature': signature });
+                url += '?' + auth;
+                if (method === 'POST') {
+                    body = this.json (query);
+                    headers = {
+                        'Content-Type': 'application/json',
+                    };
+                } else {
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                }
+            } else {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            }
+            url = this.implodeParams (this.urls['api'][api], {
+                'hostname': this.hostname,
+            }) + url;
+        } else {
+            // signing implementation for the new endpoints
+            // const [ type, access ] = api;
+            const type = this.safeString (api, 0);
+            const access = this.safeString (api, 1);
+            url += this.implodeParams (path, params);
+            const hostname = this.safeString (this.urls['hostnames'], type);
+            if (access === 'public') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else if (access === 'private') {
+                this.checkRequiredCredentials ();
+                const timestamp = this.ymdhms (this.milliseconds (), 'T');
+                let request = {
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'AccessKeyId': this.apiKey,
+                    'Timestamp': timestamp,
+                };
+                if (method !== 'POST') {
+                    request = this.extend (request, query);
+                }
+                request = this.keysort (request);
+                let auth = this.urlencode (request);
+                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+                auth += '&' + this.urlencode ({ 'Signature': signature });
+                url += '?' + auth;
+                if (method === 'POST') {
+                    body = this.json (query);
+                    headers = {
+                        'Content-Type': 'application/json',
+                    };
+                } else {
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                }
+            }
+            url = this.implodeParams (this.urls['api'][type], {
+                'hostname': hostname,
+            }) + url;
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        return this.safeInteger (config, 'cost', 1);
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        if ('status' in response) {
+            //
+            //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //
+            const status = this.safeString (response, 'status');
+            if (status === 'error') {
+                const code = this.safeString2 (response, 'err-code', 'err_code');
+                const feedback = this.id + ' ' + body;
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                const message = this.safeString2 (response, 'err-msg', 'err_msg');
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                throw new ExchangeError (feedback);
+            }
+        }
     }
 };
