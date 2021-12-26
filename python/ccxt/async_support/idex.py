@@ -932,7 +932,7 @@ class idex(Exchange):
         orderVersion = self.get_supported_mapping(network, {
             'ETH': 1,
             'BSC': 2,
-            'MATIC': 3,
+            'MATIC': 4,
         })
         amountString = self.amount_to_precision(symbol, amount)
         # https://docs.idex.io/#time-in-force
