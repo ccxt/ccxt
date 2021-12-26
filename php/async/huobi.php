@@ -722,8 +722,13 @@ class huobi extends Exchange {
                 ),
                 'exact' => array(
                     // err-code
+                    '1017' => '\\ccxt\\OrderNotFound', // array("status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242)
+                    '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
+                    '1013' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583)
                     '1094' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243)
                     'bad-request' => '\\ccxt\\BadRequest',
+                    'validation-format-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-format-error","err-msg":"Format Error => order-id.","data":null)
+                    'validation-constraints-required' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing => client-order-id.","data":null)
                     'base-date-limit-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null)
                     'api-not-support-temp-addr' => '\\ccxt\\PermissionDenied', // array("status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null)
                     'timeout' => '\\ccxt\\RequestTimeout', // array("ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout")
@@ -2181,17 +2186,65 @@ class huobi extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
-        $request = array();
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $method = 'spotPrivateGetV1OrderOrdersOrderId';
-        if ($clientOrderId !== null) {
-            $method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
-            // will be filled below in extend ()
-            // $request['clientOrderId'] = $clientOrderId;
+        $methodType = null;
+        list($methodType, $params) = $this->handle_market_type_and_params('fetchOrder', null, $params);
+        $request = array(
+            // spot -----------------------------------------------------------
+            // 'order-id' => 'id',
+            // 'symbol' => $market['id'],
+            // 'client-$order-id' => $clientOrderId,
+            // 'clientOrderId' => $clientOrderId,
+            // contracts ------------------------------------------------------
+            // 'order_id' => $id,
+            // 'client_order_id' => $clientOrderId,
+            // 'contract_code' => $market['id'],
+            // 'pair' => 'BTC-USDT',
+            // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
+        );
+        $method = null;
+        if ($methodType === 'spot') {
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            $method = 'spotPrivateGetV1OrderOrdersOrderId';
+            if ($clientOrderId !== null) {
+                $method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
+                // will be filled below in extend ()
+                // they expect $clientOrderId instead of client-$order-$id
+                // $request['clientOrderId'] = $clientOrderId;
+            } else {
+                $request['order-id'] = $id;
+            }
         } else {
-            $request['order-id'] = $id;
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol for ' . $methodType . ' orders');
+            }
+            $market = $this->market($symbol);
+            $request['contract_code'] = $market['id'];
+            if ($methodType === 'future') {
+                $method = 'contractPrivatePostApiV1ContractOrderInfo';
+                $request['symbol'] = $market['settleId'];
+            } else if ($methodType === 'swap') {
+                if ($market['linear']) {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
+                } else if ($market['inverse']) {
+                    $method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
+                }
+            } else {
+                throw new NotSupported($this->id . ' cancelOrder() does not support ' . $methodType . ' markets');
+            }
+            $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
+            if ($clientOrderId === null) {
+                $request['order_id'] = $id;
+            } else {
+                $request['client_order_id'] = $clientOrderId;
+                $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+            }
         }
         $response = yield $this->$method (array_merge($request, $params));
+        //
+        // spot
+        //
+        //     array("status":"ok","data":"438398393065481")
+        //
         $order = $this->safe_value($response, 'data');
         return $this->parse_order($order);
     }
@@ -3285,129 +3338,6 @@ class huobi extends Exchange {
         return $rates;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/';
-        $query = $this->omit($params, $this->extract_params($path));
-        if (gettype($api) === 'string') {
-            // signing implementation for the old endpoints
-            if ($api === 'market') {
-                $url .= $api;
-            } else if (($api === 'public') || ($api === 'private')) {
-                $url .= $this->version;
-            } else if (($api === 'v2Public') || ($api === 'v2Private')) {
-                $url .= 'v2';
-            }
-            $url .= '/' . $this->implode_params($path, $params);
-            if ($api === 'private' || $api === 'v2Private') {
-                $this->check_required_credentials();
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
-                $request = array(
-                    'SignatureMethod' => 'HmacSHA256',
-                    'SignatureVersion' => '2',
-                    'AccessKeyId' => $this->apiKey,
-                    'Timestamp' => $timestamp,
-                );
-                if ($method !== 'POST') {
-                    $request = array_merge($request, $query);
-                }
-                $request = $this->keysort($request);
-                $auth = $this->urlencode($request);
-                // unfortunately, PHP demands double quotes for the escaped newline symbol
-                $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
-                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-                $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
-                $url .= '?' . $auth;
-                if ($method === 'POST') {
-                    $body = $this->json($query);
-                    $headers = array(
-                        'Content-Type' => 'application/json',
-                    );
-                } else {
-                    $headers = array(
-                        'Content-Type' => 'application/x-www-form-urlencoded',
-                    );
-                }
-            } else {
-                if ($query) {
-                    $url .= '?' . $this->urlencode($query);
-                }
-            }
-            $url = $this->implode_params($this->urls['api'][$api], array(
-                'hostname' => $this->hostname,
-            )) . $url;
-        } else {
-            // signing implementation for the new endpoints
-            // list($type, $access) = $api;
-            $type = $this->safe_string($api, 0);
-            $access = $this->safe_string($api, 1);
-            $url .= $this->implode_params($path, $params);
-            $hostname = $this->safe_string($this->urls['hostnames'], $type);
-            if ($access === 'public') {
-                if ($query) {
-                    $url .= '?' . $this->urlencode($query);
-                }
-            } else if ($access === 'private') {
-                $this->check_required_credentials();
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
-                $request = array(
-                    'SignatureMethod' => 'HmacSHA256',
-                    'SignatureVersion' => '2',
-                    'AccessKeyId' => $this->apiKey,
-                    'Timestamp' => $timestamp,
-                );
-                if ($method !== 'POST') {
-                    $request = array_merge($request, $query);
-                }
-                $request = $this->keysort($request);
-                $auth = $this->urlencode($request);
-                // unfortunately, PHP demands double quotes for the escaped newline symbol
-                $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
-                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-                $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
-                $url .= '?' . $auth;
-                if ($method === 'POST') {
-                    $body = $this->json($query);
-                    $headers = array(
-                        'Content-Type' => 'application/json',
-                    );
-                } else {
-                    $headers = array(
-                        'Content-Type' => 'application/x-www-form-urlencoded',
-                    );
-                }
-            }
-            $url = $this->implode_params($this->urls['api'][$type], array(
-                'hostname' => $hostname,
-            )) . $url;
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
-        return $this->safe_integer($config, 'cost', 1);
-    }
-
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        if ($response === null) {
-            return; // fallback to default error handler
-        }
-        if (is_array($response) && array_key_exists('status', $response)) {
-            //
-            //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
-            //
-            $status = $this->safe_string($response, 'status');
-            if ($status === 'error') {
-                $code = $this->safe_string($response, 'err-code');
-                $feedback = $this->id . ' ' . $body;
-                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-                $message = $this->safe_string($response, 'err-msg');
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-                throw new ExchangeError($feedback);
-            }
-        }
-    }
-
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         //
         // Gets a history of funding $rates with their timestamps
@@ -3547,5 +3477,128 @@ class huobi extends Exchange {
         //
         $result = $this->safe_value($response, 'data', array());
         return $this->parse_funding_rate($result, $market);
+    }
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = '/';
+        $query = $this->omit($params, $this->extract_params($path));
+        if (gettype($api) === 'string') {
+            // signing implementation for the old endpoints
+            if ($api === 'market') {
+                $url .= $api;
+            } else if (($api === 'public') || ($api === 'private')) {
+                $url .= $this->version;
+            } else if (($api === 'v2Public') || ($api === 'v2Private')) {
+                $url .= 'v2';
+            }
+            $url .= '/' . $this->implode_params($path, $params);
+            if ($api === 'private' || $api === 'v2Private') {
+                $this->check_required_credentials();
+                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $request = array(
+                    'SignatureMethod' => 'HmacSHA256',
+                    'SignatureVersion' => '2',
+                    'AccessKeyId' => $this->apiKey,
+                    'Timestamp' => $timestamp,
+                );
+                if ($method !== 'POST') {
+                    $request = array_merge($request, $query);
+                }
+                $request = $this->keysort($request);
+                $auth = $this->urlencode($request);
+                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+                $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
+                $url .= '?' . $auth;
+                if ($method === 'POST') {
+                    $body = $this->json($query);
+                    $headers = array(
+                        'Content-Type' => 'application/json',
+                    );
+                } else {
+                    $headers = array(
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                    );
+                }
+            } else {
+                if ($query) {
+                    $url .= '?' . $this->urlencode($query);
+                }
+            }
+            $url = $this->implode_params($this->urls['api'][$api], array(
+                'hostname' => $this->hostname,
+            )) . $url;
+        } else {
+            // signing implementation for the new endpoints
+            // list($type, $access) = $api;
+            $type = $this->safe_string($api, 0);
+            $access = $this->safe_string($api, 1);
+            $url .= $this->implode_params($path, $params);
+            $hostname = $this->safe_string($this->urls['hostnames'], $type);
+            if ($access === 'public') {
+                if ($query) {
+                    $url .= '?' . $this->urlencode($query);
+                }
+            } else if ($access === 'private') {
+                $this->check_required_credentials();
+                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $request = array(
+                    'SignatureMethod' => 'HmacSHA256',
+                    'SignatureVersion' => '2',
+                    'AccessKeyId' => $this->apiKey,
+                    'Timestamp' => $timestamp,
+                );
+                if ($method !== 'POST') {
+                    $request = array_merge($request, $query);
+                }
+                $request = $this->keysort($request);
+                $auth = $this->urlencode($request);
+                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+                $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
+                $url .= '?' . $auth;
+                if ($method === 'POST') {
+                    $body = $this->json($query);
+                    $headers = array(
+                        'Content-Type' => 'application/json',
+                    );
+                } else {
+                    $headers = array(
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                    );
+                }
+            }
+            $url = $this->implode_params($this->urls['api'][$type], array(
+                'hostname' => $hostname,
+            )) . $url;
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+        return $this->safe_integer($config, 'cost', 1);
+    }
+
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return; // fallback to default error handler
+        }
+        if (is_array($response) && array_key_exists('status', $response)) {
+            //
+            //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //
+            $status = $this->safe_string($response, 'status');
+            if ($status === 'error') {
+                $code = $this->safe_string_2($response, 'err-code', 'err_code');
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $message = $this->safe_string_2($response, 'err-msg', 'err_msg');
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                throw new ExchangeError($feedback);
+            }
+        }
     }
 }
