@@ -2400,7 +2400,7 @@ class Exchange(object):
             for i in range(0, reducedLength):
                 reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
                 if 'rate' in reducedFees[i]:
-                    reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate');
+                    reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
             if not parseFee and (reducedLength == 0):
                 fee['cost'] = self.safe_number(fee, 'cost')
                 if 'rate' in fee:
