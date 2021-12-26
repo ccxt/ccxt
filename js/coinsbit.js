@@ -1085,13 +1085,20 @@ module.exports = class coinsbit extends Exchange {
         //        code: "200",
         //        result: [ .... ]
         //    }
-        const success = this.safeValue (response, 'success', true);
+        let success = this.safeValue (response, 'success', true);
         const code = this.safeString (response, 'code');
         if ((code !== undefined && code !== '200') || !success) {
             const feedback = this.id + ' ' + body;
             // Just to keep notes: history/result & depth/result endpoints only return pure ARRAY as response, without any code/messages
             let responseCode = 0;
-            if (success === false) { // If success is not 'false' strictly, then probably response didnt contain expected JSON format at all. Maybe 404 or any outage
+            if (typeof success === 'string') {
+                if ((success === 'true') || (success === '1')) {
+                    success = true;
+                } else {
+                    success = false;
+                }
+            }
+            if (!success) { // If success is not 'false' strictly, then probably response didnt contain expected JSON format at all. Maybe 404 or any outage
                 responseCode = this.safeString (response, 'code');
             }
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
