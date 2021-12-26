@@ -41,6 +41,7 @@ class whitebit(Exchange):
                 'fetchBidsAsks': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchFundingFees': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOrderBook': True,
@@ -48,6 +49,7 @@ class whitebit(Exchange):
                 'fetchOpenOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
                 'privateAPI': True,
@@ -74,7 +76,6 @@ class whitebit(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
                 'api': {
-                    'web': 'https://whitebit.com/',
                     'v1': {
                         'public': 'https://whitebit.com/api/v1/public',
                         'private': 'https://whitebit.com/api/v1',
@@ -139,10 +140,10 @@ class whitebit(Exchange):
                     'public': {
                         'get': [
                             'assets',
+                            'fee',
+                            'orderbook/{market}',
                             'ticker',
                             'trades/{market}',
-                            'fee',
-                            'assets',
                             'time',
                             'ping',
                         ],
@@ -185,7 +186,6 @@ class whitebit(Exchange):
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
-                'fetchTradesMethod': 'fetchTradesV1',
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
             },
             'exceptions': {
@@ -277,36 +277,30 @@ class whitebit(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
-        response = self.v2PublicGetAssets(params)
+        response = self.v4PublicGetAssets(params)
         #
-        #     {
-        #         "success":true,
-        #         "message":"",
-        #         "result":{
-        #             "BTC":{
-        #                 "id":"4f37bc79-f612-4a63-9a81-d37f7f9ff622",
-        #                 "lastUpdateTimestamp":"2019-10-12T04:40:05.000Z",
-        #                 "name":"Bitcoin",
-        #                 "canWithdraw":true,
-        #                 "canDeposit":true,
-        #                 "minWithdrawal":"0.001",
-        #                 "maxWithdrawal":"0",
-        #                 "makerFee":"0.1",
-        #                 "takerFee":"0.1"
-        #             }
-        #         }
-        #     }
+        #      "BTC": {
+        #          "name": "Bitcoin",
+        #          "unified_cryptoasset_id": 1,
+        #          "can_withdraw": True,
+        #          "can_deposit": True,
+        #          "min_withdraw": "0.001",
+        #          "max_withdraw": "2",
+        #          "maker_fee": "0.1",
+        #          "taker_fee": "0.1",
+        #          "min_deposit": "0.0001",
+        #           "max_deposit": "0",
+        #       },
         #
-        currencies = self.safe_value(response, 'result')
-        ids = list(currencies.keys())
+        ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            currency = currencies[id]
+            currency = response[id]
             # breaks down in Python due to utf8 encoding issues on the exchange side
             # name = self.safe_string(currency, 'name')
-            canDeposit = self.safe_value(currency, 'canDeposit', True)
-            canWithdraw = self.safe_value(currency, 'canWithdraw', True)
+            canDeposit = self.safe_value(currency, 'can_deposit', True)
+            canWithdraw = self.safe_value(currency, 'can_withdraw', True)
             active = canDeposit and canWithdraw
             code = self.safe_currency_code(id)
             result[code] = {
@@ -323,12 +317,57 @@ class whitebit(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_number(currency, 'minWithdrawal'),
-                        'max': self.safe_number(currency, 'maxWithdrawal'),
+                        'min': self.safe_number(currency, 'min_withdraw'),
+                        'max': self.safe_number(currency, 'max_withdraw'),
                     },
                 },
             }
         return result
+
+    def fetch_funding_fees(self, params={}):
+        self.load_markets()
+        response = self.v4PublicGetFee(params)
+        #
+        #      {
+        #          "1INCH":{
+        #              "is_depositable":true,
+        #              "is_withdrawal":true,
+        #              "ticker":"1INCH",
+        #              "name":"1inch",
+        #              "providers":[
+        #              ],
+        #              "withdraw":{
+        #                   "max_amount":"0",
+        #                  "min_amount":"21.5",
+        #                  "fixed":"17.5",
+        #                  "flex":null
+        #              },
+        #              "deposit":{
+        #                  "max_amount":"0",
+        #                  "min_amount":"19.5",
+        #                  "fixed":null,
+        #                  "flex":null
+        #               }
+        #          },
+        #           {...}
+        #      }
+        #
+        currenciesIds = list(response.keys())
+        withdrawFees = {}
+        depositFees = {}
+        for i in range(0, len(currenciesIds)):
+            currency = currenciesIds[i]
+            data = response[currency]
+            code = self.safe_currency_code(currency)
+            withdraw = self.safe_value(data, 'withdraw', {})
+            withdrawFees[code] = self.safe_string(withdraw, 'fixed')
+            deposit = self.safe_value(data, 'deposit', {})
+            depositFees[code] = self.safe_string(deposit, 'fixed')
+        return {
+            'withdraw': withdrawFees,
+            'deposit': depositFees,
+            'info': response,
+        }
 
     def fetch_trading_fees(self, params={}):
         response = self.v2PublicGetFee(params)
@@ -346,7 +385,7 @@ class whitebit(Exchange):
         }
         response = self.v1PublicGetTicker(self.extend(request, params))
         #
-        #     {
+        #      {
         #         "success":true,
         #         "message":"",
         #         "result": {
@@ -366,51 +405,41 @@ class whitebit(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
+        #  FetchTicker(v1)
         #
-        # fetchTicker
+        #      {
+        #          "bid":"0.021979",
+        #          "ask":"0.021996",
+        #          "open":"0.02182",
+        #          "high":"0.022039",
+        #          "low":"0.02161",
+        #          "last":"0.021987",
+        #          "volume":"2810.267",
+        #          "deal":"61.383565474",
+        #          "change":"0.76",
+        #      }
         #
-        #     {
-        #         "bid":"0.021979",
-        #         "ask":"0.021996",
-        #         "open":"0.02182",
-        #         "high":"0.022039",
-        #         "low":"0.02161",
-        #         "last":"0.021987",
-        #         "volume":"2810.267",
-        #         "deal":"61.383565474",
-        #         "change":"0.76",
-        #     }
+        # FetchTickers(v4)
         #
-        # fetchTickers v1
+        #      "BCH_RUB":{
+        #          "base_id":1831,
+        #          "quote_id":0,
+        #          "last_price":"32830.21",
+        #          "quote_volume":"1494659.8024096",
+        #          "base_volume":"46.1083",
+        #          "isFrozen":false,
+        #          "change":"2.12"  # in percent
+        #      },
         #
-        #     {
-        #         "at":1571022144,
-        #         "ticker": {
-        #             "bid":"0.022024",
-        #             "ask":"0.022042",
-        #             "low":"0.02161",
-        #             "high":"0.022062",
-        #             "last":"0.022036",
-        #             "vol":"2813.503",
-        #             "deal":"61.457279261",
-        #             "change":"0.95"
-        #         }
-        #     }
-        #
-        timestamp = self.safe_timestamp(ticker, 'at', self.milliseconds())
-        ticker = self.safe_value(ticker, 'ticker', ticker)
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_number(ticker, 'last')
-        percentage = self.safe_number(ticker, 'change')
-        change = None
-        if percentage is not None:
-            change = self.number_to_string(percentage * 0.01)
-        return {
+        last = self.safe_number(ticker, 'last_price')
+        percentage = self.safe_number(ticker, 'change') * 0.01
+        return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_number(ticker, 'high'),
             'low': self.safe_number(ticker, 'low'),
             'bid': self.safe_number(ticker, 'bid'),
@@ -422,45 +451,34 @@ class whitebit(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
+            'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
-            'quoteVolume': self.safe_number(ticker, 'deal'),
+            'baseVolume': self.safe_number_2(ticker, 'base_volume', 'volume'),
+            'quoteVolume': self.safe_number_2(ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        }
+        })
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.v1PublicGetTickers(params)
+        response = self.v4PublicGetTicker(params)
         #
-        #     {
-        #         "success":true,
-        #         "message":"",
-        #         "result": {
-        #             "ETH_BTC": {
-        #                 "at":1571022144,
-        #                 "ticker": {
-        #                     "bid":"0.022024",
-        #                     "ask":"0.022042",
-        #                     "low":"0.02161",
-        #                     "high":"0.022062",
-        #                     "last":"0.022036",
-        #                     "vol":"2813.503",
-        #                     "deal":"61.457279261",
-        #                     "change":"0.95"
-        #                 }
-        #             },
-        #         },
-        #     }
+        #      "BCH_RUB": {
+        #          "base_id":1831,
+        #          "quote_id":0,
+        #          "last_price":"32830.21",
+        #          "quote_volume":"1494659.8024096",
+        #          "base_volume":"46.1083",
+        #          "isFrozen":false,
+        #          "change":"2.12"
+        #      },
         #
-        data = self.safe_value(response, 'result')
-        marketIds = list(data.keys())
+        marketIds = list(response.keys())
         result = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            ticker = self.parse_ticker(data[marketId], market)
+            ticker = self.parse_ticker(response[marketId], market)
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
@@ -472,111 +490,61 @@ class whitebit(Exchange):
             'market': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit  # default = 50, maximum = 100
-        response = self.v2PublicGetDepthMarket(self.extend(request, params))
+            request['depth'] = limit  # default = 50, maximum = 100
+        response = self.v4PublicGetOrderbookMarket(self.extend(request, params))
         #
-        #     {
-        #         "success":true,
-        #         "message":"",
-        #         "result":{
-        #             "lastUpdateTimestamp":"2019-10-14T03:15:47.000Z",
-        #             "asks":[
-        #                 ["0.02204","2.03"],
-        #                 ["0.022041","2.492"],
-        #                 ["0.022042","2.254"],
-        #             ],
-        #             "bids":[
-        #                 ["0.022018","2.327"],
-        #                 ["0.022017","1.336"],
-        #                 ["0.022015","2.089"],
-        #             ],
-        #         }
-        #     }
+        #      {
+        #          "timestamp": 1594391413,
+        #          "asks": [
+        #              [
+        #                  "9184.41",
+        #                  "0.773162"
+        #              ],
+        #              [...]
+        #          ],
+        #          "bids": [
+        #              [
+        #                  "9181.19",
+        #                  "0.010873"
+        #              ],
+        #              [...]
+        #          ]
+        #      }
         #
-        result = self.safe_value(response, 'result', {})
-        timestamp = self.parse8601(self.safe_string(result, 'lastUpdateTimestamp'))
-        return self.parse_order_book(result, symbol, timestamp)
-
-    def fetch_trades_v1(self, symbol, since=None, limit=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-            'lastId': 1,  # todo add since
-        }
-        if limit is not None:
-            request['limit'] = limit  # default = 50, maximum = 10000
-        response = self.v1PublicGetHistory(self.extend(request, params))
-        #
-        #     {
-        #         "success":true,
-        #         "message":"",
-        #         "result":[
-        #             {
-        #                 "id":11887426,
-        #                 "type":"buy",
-        #                 "time":1571023057.413769,
-        #                 "amount":"0.171",
-        #                 "price":"0.022052"
-        #             }
-        #         ],
-        #     }
-        #
-        result = self.safe_value(response, 'result', [])
-        return self.parse_trades(result, market, since, limit)
-
-    def fetch_trades_v2(self, symbol, since=None, limit=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-        }
-        if limit is not None:
-            request['limit'] = limit  # default = 50, maximum = 10000
-        response = self.v2PublicGetTradesMarket(self.extend(request, params))
-        #
-        #     {
-        #         "success":true,
-        #         "message":"",
-        #         "result": [
-        #             {
-        #                 "tradeId":11903347,
-        #                 "price":"0.022044",
-        #                 "volume":"0.029",
-        #                 "time":"2019-10-14T06:30:57.000Z",
-        #                 "isBuyerMaker":false
-        #             },
-        #         ],
-        #     }
-        #
-        result = self.safe_value(response, 'result', [])
-        return self.parse_trades(result, market, since, limit)
+        timestamp = self.safe_string(response, 'timestamp')
+        return self.parse_order_book(response, symbol, timestamp)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        method = self.safe_string(self.options, 'fetchTradesMethod', 'fetchTradesV2')
-        return getattr(self, method)(symbol, since, limit, params)
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        response = self.v4PublicGetTradesMarket(self.extend(request, params))
+        #
+        #      [
+        #          {
+        #              "tradeID": 158056419,
+        #              "price": "9186.13",
+        #              "quote_volume": "0.0021",
+        #              "base_volume": "9186.13",
+        #              "trade_timestamp": 1594391747,
+        #              "type": "sell"
+        #          },
+        #      ],
+        #
+        return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
-        #
-        # fetchTradesV1
-        #
+        # fetchTradesV4
         #     {
-        #         "id":11887426,
-        #         "type":"buy",
-        #         "time":1571023057.413769,
-        #         "amount":"0.171",
-        #         "price":"0.022052"
-        #     }
-        #
-        # fetchTradesV2
-        #
-        #     {
-        #         "tradeId":11903347,
-        #         "price":"0.022044",
-        #         "volume":"0.029",
-        #         "time":"2019-10-14T06:30:57.000Z",
-        #         "isBuyerMaker":false
-        #     }
+        #       "tradeID": 158056419,
+        #       "price": "9186.13",
+        #       "quote_volume": "0.0021",
+        #       "base_volume": "9186.13",
+        #       "trade_timestamp": 1594391747,
+        #       "type": "sell"
+        #     },
         #
         # orderTrades(v4Private)
         #
@@ -592,19 +560,13 @@ class whitebit(Exchange):
         #         "deal": "0.00419198"  # amount in money
         #     }
         #
-        timestamp = self.safe_timestamp(trade, 'time')
-        if timestamp is None:
-            timestamp = self.parse8601(self.safe_string(trade, 'time'))
+        timestamp = self.safe_timestamp_2(trade, 'time', 'trade_timestamp')
         orderId = self.safe_string(trade, 'dealOrderId')
         cost = self.safe_string(trade, 'deal')
         price = self.safe_string(trade, 'price')
-        amount = self.safe_string_2(trade, 'amount', 'volume')
-        id = self.safe_string_2(trade, 'id', 'tradeId')
+        amount = self.safe_string_2(trade, 'amount', 'base_volume')
+        id = self.safe_string_2(trade, 'id', 'tradeID')
         side = self.safe_string(trade, 'type')
-        if side is None:
-            isBuyerMaker = self.safe_value(trade, 'isBuyerMaker')
-            if side is not None:
-                side = 'buy' if isBuyerMaker else 'sell'
         symbol = self.safe_symbol(None, market)
         role = self.safe_integer(trade, 'role')
         takerOrMaker = None
@@ -691,16 +653,28 @@ class whitebit(Exchange):
         ]
 
     def fetch_status(self, params={}):
-        response = self.webGetV1Healthcheck(params)
-        status = self.safe_integer(response, 'status')
-        formattedStatus = 'ok'
-        if status == 503:
-            formattedStatus = 'maintenance'
+        response = self.v4PublicGetPing(params)
+        #
+        #      [
+        #          "pong"
+        #      ]
+        #
+        status = self.safe_string(response, 0, None)
+        status = 'maintenance' if (status is None) else 'ok'
         self.status = self.extend(self.status, {
-            'status': formattedStatus,
+            'status': status,
             'updated': self.milliseconds(),
         })
         return self.status
+
+    def fetch_time(self, params={}):
+        response = self.v4PublicGetTime(params)
+        #
+        #     {
+        #         "time":1635467280514
+        #     }
+        #
+        return self.safe_integer(response, 'time')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = None
