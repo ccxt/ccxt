@@ -976,7 +976,7 @@ module.exports = class idex extends Exchange {
         const orderVersion = this.getSupportedMapping (network, {
             'ETH': 1,
             'BSC': 2,
-            'MATIC': 3,
+            'MATIC': 4,
         });
         const amountString = this.amountToPrecision (symbol, amount);
         // https://docs.idex.io/#time-in-force
