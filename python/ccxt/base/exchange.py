@@ -2399,8 +2399,12 @@ class Exchange(object):
             reducedLength = len(reducedFees)
             for i in range(0, reducedLength):
                 reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
+                if 'rate' in reducedFees[i]:
+                    reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate');
             if not parseFee and (reducedLength == 0):
                 fee['cost'] = self.safe_number(fee, 'cost')
+                if 'rate' in fee:
+                    fee['rate'] = self.safe_number(fee, 'rate')
                 reducedFees.append(fee)
             if parseFees:
                 trade['fees'] = reducedFees
@@ -2409,6 +2413,8 @@ class Exchange(object):
             tradeFee = self.safe_value(trade, 'fee')
             if tradeFee is not None:
                 tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
+                if 'rate' in tradeFee:
+                    tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
                 trade['fee'] = tradeFee
         trade['amount'] = self.parse_number(amount)
         trade['price'] = self.parse_number(price)
@@ -2489,8 +2495,12 @@ class Exchange(object):
             reducedLength = len(reducedFees)
             for i in range(0, reducedLength):
                 reducedFees[i]['cost'] = self.parse_number(reducedFees[i]['cost'])
+                if 'rate' in reducedFees[i]:
+                    reducedFees[i]['rate'] = self.parse_number(reducedFees[i]['rate'])
             if not parseFee and (reducedLength == 0):
                 fee['cost'] = self.safe_number(fee, 'cost')
+                if 'rate' in fee:
+                    fee['rate'] = self.parse_number(fee['rate'])
                 reducedFees.append(fee)
             if parseFees:
                 order['fees'] = reducedFees
@@ -2541,6 +2551,9 @@ class Exchange(object):
             entry['cost'] = self.safe_number(entry, 'cost')
             fee = self.safe_value(entry, 'fee', {})
             fee['cost'] = self.safe_number(fee, 'cost')
+            if 'rate' in fee:
+                fee['rate'] = self.safe_number(fee, 'rate')
+            entry['fee'] = fee
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),

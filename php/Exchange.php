@@ -3183,9 +3183,15 @@ class Exchange {
             $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
+                if (array_key_exists('rate', $reducedFees[$i])) {
+                    $reducedFees[$i]['rate'] = $this->safe_number($reducedFees[$i], 'rate');
+                }
             }
             if (!$parseFee && ($reducedLength === 0)) {
                 $fee['cost'] = $this->safe_number($fee, 'cost');
+                if (array_key_exists('rate', $fee)) {
+                    $fee['rate'] = $this->safe_number($fee, 'rate');
+                }
                 $reducedFees[] = $fee;
             }
             if ($parseFees) {
@@ -3197,6 +3203,9 @@ class Exchange {
             $tradeFee = $this->safe_value($trade, 'fee');
             if ($tradeFee !== null) {
                 $tradeFee['cost'] = $this->safe_number($tradeFee, 'cost');
+                if (array_key_exists('rate', $tradeFee)) {
+                    $tradeFee['rate'] = $this->safe_number($tradeFee, 'rate');
+                }
                 $trade['fee'] = $tradeFee;
             }
         }
@@ -3297,9 +3306,15 @@ class Exchange {
             $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->parse_number($reducedFees[$i]['cost']);
+                if (array_key_exists('rate', $reducedFees[$i])) {
+                    $reducedFees[$i]['rate'] = $this->safe_number($reducedFees[$i], 'rate');
+                }
             }
             if (!$parseFee && ($reducedLength === 0)) {
                 $fee['cost'] = $this->safe_number($fee, 'cost');
+                if (array_key_exists('rate', $fee)) {
+                    $fee['rate'] = $this->safe_number($fee, 'rate');
+                }
                 $reducedFees[] = $fee;
             }
             if ($parseFees) {
@@ -3367,6 +3382,10 @@ class Exchange {
             $entry['cost'] = $this->safe_number($entry, 'cost');
             $fee = $this->safe_value($entry, 'fee', array());
             $fee['cost'] = $this->safe_number($fee, 'cost');
+            if (array_key_exists('rate', $fee)) {
+                $fee['rate'] = $this->safe_number($fee, 'rate');
+            }
+            $entry['fee'] = $fee;
         }
         return array_merge($order, array(
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,

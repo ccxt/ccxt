@@ -1725,9 +1725,15 @@ module.exports = class Exchange {
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
+                if ('rate' in reducedFees[i]) {
+                    reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
+                }
             }
             if (!parseFee && (reducedLength === 0)) {
                 fee['cost'] = this.safeNumber (fee, 'cost');
+                if ('rate' in fee) {
+                    fee['rate'] = this.safeNumber (fee, 'rate');
+                }
                 reducedFees.push (fee);
             }
             if (parseFees) {
@@ -1739,6 +1745,9 @@ module.exports = class Exchange {
             const tradeFee = this.safeValue (trade, 'fee');
             if (tradeFee !== undefined) {
                 tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
+                if ('rate' in tradeFee) {
+                    tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
+                }
                 trade['fee'] = tradeFee;
             }
         }
@@ -1839,9 +1848,15 @@ module.exports = class Exchange {
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
+                if ('rate' in reducedFees[i]) {
+                    reducedFees[i]['rate'] = this.parseNumber (reducedFees['i']['rate'])
+                }
             }
             if (!parseFee && (reducedLength === 0)) {
                 fee['cost'] = this.safeNumber (fee, 'cost');
+                if ('rate' in fee) {
+                    fee['rate'] = this.parseNumber (fee['rate'])
+                }
                 reducedFees.push (fee);
             }
             if (parseFees) {
@@ -1909,6 +1924,10 @@ module.exports = class Exchange {
             entry['cost'] = this.safeNumber (entry, 'cost');
             const fee = this.safeValue (entry, 'fee', {});
             fee['cost'] = this.safeNumber (fee, 'cost');
+            if ('rate' in fee) {
+                fee['rate'] = this.safeNumber (fee, 'rate');
+            }
+            entry['fee'] = fee;
         }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
