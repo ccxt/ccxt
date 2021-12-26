@@ -1167,7 +1167,7 @@ base currency ↓
 
 We currently load spot markets with the unified `BASE/QUOTE` symbol schema into the `.markets` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the `.markets` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
 
-**Please, check this announcement: https://github.com/ccxt/ccxt/issues/10931**
+**Please, check this announcement: [Unified contract naming conventions](https://github.com/ccxt/ccxt/issues/10931)**
 
 ##### Futures Contracts
 
