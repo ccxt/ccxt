@@ -681,7 +681,7 @@ module.exports = class coinsbit extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new InvalidOrder (this.id + ' createOrder supports limit orders only');
+            throw new InvalidOrder (this.id + ' cancelOrder needs symbol parameter');
         }
         await this.loadMarkets ();
         const market = this.safeMarket (undefined, symbol);
