@@ -2474,7 +2474,7 @@ class huobi(Exchange):
         method = None
         if market['swap']:
             if market['linear']:
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder'
+                method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
             else:
                 method = 'contractPrivatePostSwapApiV1SwapOrder'
         elif market['future']:
@@ -2496,20 +2496,69 @@ class huobi(Exchange):
         return self.parse_order(data, market)
 
     def cancel_order(self, id, symbol=None, params={}):
-        clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
-        request = {}
-        method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel'
-        if clientOrderId is None:
-            request['order-id'] = id
+        self.load_markets()
+        methodType = None
+        methodType, params = self.handle_market_type_and_params('cancelOrder', None, params)
+        request = {
+            # spot -----------------------------------------------------------
+            # 'order-id': 'id',
+            # 'symbol': market['id'],
+            # 'client-order-id': clientOrderId,
+            # contracts ------------------------------------------------------
+            # 'order_id': id,
+            # 'client_order_id': clientOrderId,
+            # 'contract_code': market['id'],
+            # 'pair': 'BTC-USDT',
+            # 'contract_type': 'this_week',  # swap, self_week, next_week, quarter, next_ quarter
+        }
+        method = None
+        if methodType == 'spot':
+            clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
+            method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel'
+            if clientOrderId is None:
+                request['order-id'] = id
+            else:
+                request['client-order-id'] = clientOrderId
+                method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder'
+                params = self.omit(params, ['client-order-id', 'clientOrderId'])
         else:
-            request['client-order-id'] = clientOrderId
-            method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder'
-            params = self.omit(params, ['client-order-id', 'clientOrderId'])
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol for ' + methodType + ' orders')
+            market = self.market(symbol)
+            request['contract_code'] = market['id']
+            if methodType == 'future':
+                method = 'contractPrivatePostApiV1ContractCancel'
+            elif methodType == 'swap':
+                if market['linear']:
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
+                elif market['inverse']:
+                    method = 'contractPrivatePostSwapApiV1SwapCancel'
+            else:
+                raise NotSupported(self.id + ' cancelOrder() does not support ' + methodType + ' markets')
+            clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+            if clientOrderId is None:
+                request['order_id'] = id
+            else:
+                request['client_order_id'] = clientOrderId
+                params = self.omit(params, ['client_order_id', 'clientOrderId'])
         response = getattr(self, method)(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         'status': 'ok',
         #         'data': '10138899000',
+        #     }
+        #
+        # linear swap cross margin
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":{
+        #             "errors":[],
+        #             "successes":"924660854912552960"
+        #         },
+        #         "ts":1640504486089
         #     }
         #
         return self.extend(self.parse_order(response), {

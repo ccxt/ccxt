@@ -2592,7 +2592,7 @@ class huobi extends Exchange {
         $method = null;
         if ($market['swap']) {
             if ($market['linear']) {
-                $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
+                $method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
             } else {
                 $method = 'contractPrivatePostSwapApiV1SwapOrder';
             }
@@ -2617,21 +2617,75 @@ class huobi extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        $clientOrderId = $this->safe_string_2($params, 'client-order-id', 'clientOrderId');
-        $request = array();
-        $method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
-        if ($clientOrderId === null) {
-            $request['order-id'] = $id;
+        $this->load_markets();
+        $methodType = null;
+        list($methodType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
+        $request = array(
+            // spot -----------------------------------------------------------
+            // 'order-id' => 'id',
+            // 'symbol' => $market['id'],
+            // 'client-order-id' => $clientOrderId,
+            // contracts ------------------------------------------------------
+            // 'order_id' => $id,
+            // 'client_order_id' => $clientOrderId,
+            // 'contract_code' => $market['id'],
+            // 'pair' => 'BTC-USDT',
+            // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
+        );
+        $method = null;
+        if ($methodType === 'spot') {
+            $clientOrderId = $this->safe_string_2($params, 'client-order-id', 'clientOrderId');
+            $method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
+            if ($clientOrderId === null) {
+                $request['order-id'] = $id;
+            } else {
+                $request['client-order-id'] = $clientOrderId;
+                $method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
+                $params = $this->omit($params, array( 'client-order-id', 'clientOrderId' ));
+            }
         } else {
-            $request['client-order-id'] = $clientOrderId;
-            $method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
-            $params = $this->omit($params, array( 'client-order-id', 'clientOrderId' ));
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol for ' . $methodType . ' orders');
+            }
+            $market = $this->market($symbol);
+            $request['contract_code'] = $market['id'];
+            if ($methodType === 'future') {
+                $method = 'contractPrivatePostApiV1ContractCancel';
+            } else if ($methodType === 'swap') {
+                if ($market['linear']) {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
+                } else if ($market['inverse']) {
+                    $method = 'contractPrivatePostSwapApiV1SwapCancel';
+                }
+            } else {
+                throw new NotSupported($this->id . ' cancelOrder() does not support ' . $methodType . ' markets');
+            }
+            $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
+            if ($clientOrderId === null) {
+                $request['order_id'] = $id;
+            } else {
+                $request['client_order_id'] = $clientOrderId;
+                $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+            }
         }
         $response = $this->$method (array_merge($request, $params));
+        //
+        // spot
         //
         //     {
         //         'status' => 'ok',
         //         'data' => '10138899000',
+        //     }
+        //
+        // linear swap cross margin
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             "errors":array(),
+        //             "successes":"924660854912552960"
+        //         ),
+        //         "ts":1640504486089
         //     }
         //
         return array_merge($this->parse_order($response), array(
