@@ -2271,37 +2271,50 @@ class huobi extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        //     {                  $id =>  13997833014,
-        //                    $symbol => "ethbtc",
-        //              'account-id' =>  3398321,
-        //                    $amount => "0.045000000000000000",
-        //                     $price => "0.034014000000000000",
-        //              'created-at' =>  1545836976871,
-        //                      $type => "sell-limit",
-        //            'field-amount' => "0.045000000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
-        //             'finished-at' =>  1545837948214,
-        //                    source => "spot-api",
-        //                     state => "filled",
-        //             'canceled-at' =>  0                      }
+        // spot
         //
-        //     {                  $id =>  20395337822,
-        //                    $symbol => "ethbtc",
-        //              'account-id' =>  5685075,
-        //                    $amount => "0.001000000000000000",
-        //                     $price => "0.0",
-        //              'created-at' =>  1545831584023,
-        //                      $type => "buy-$market",
-        //            'field-amount' => "0.029100000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
-        //             'finished-at' =>  1545831584181,
-        //                    source => "spot-api",
-        //                     state => "filled",
-        //             'canceled-at' =>  0                      }
+        //     {
+        //         $id =>  13997833014,
+        //         $symbol => "ethbtc",
+        //         'account-id' =>  3398321,
+        //         $amount => "0.045000000000000000",
+        //         $price => "0.034014000000000000",
+        //         'created-at' =>  1545836976871,
+        //         $type => "sell-limit",
+        //         'field-amount' => "0.045000000000000000", // they have fixed it for $filled-$amount
+        //         'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
+        //         'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
+        //         'finished-at' =>  1545837948214,
+        //         source => "spot-api",
+        //         state => "filled",
+        //         'canceled-at' =>  0
+        //     }
         //
-        $id = $this->safe_string($order, 'id');
+        //     {
+        //         $id =>  20395337822,
+        //         $symbol => "ethbtc",
+        //         'account-id' =>  5685075,
+        //         $amount => "0.001000000000000000",
+        //         $price => "0.0",
+        //         'created-at' =>  1545831584023,
+        //         $type => "buy-$market",
+        //         'field-amount' => "0.029100000000000000", // they have fixed it for $filled-$amount
+        //         'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
+        //         'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
+        //         'finished-at' =>  1545831584181,
+        //         source => "spot-api",
+        //         state => "filled",
+        //         'canceled-at' =>  0
+        //     }
+        //
+        // linear swap cross margin createOrder
+        //
+        //     {
+        //         "order_id":924660854912552960,
+        //         "order_id_str":"924660854912552960"
+        //     }
+        //
+        $id = $this->safe_string_2($order, 'id', 'order_id_str');
         $side = null;
         $type = null;
         $status = null;
@@ -2577,16 +2590,31 @@ class huobi extends Exchange {
             $request['client_order_id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
         }
-        // $method = null;
-        // if ($market['swap']) {
-        //     if ($market['linear']) {
-        //         $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
-        //     } else {
-        //         $method = '';
+        $method = null;
+        if ($market['swap']) {
+            if ($market['linear']) {
+                $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
+            } else {
+                $method = 'contractPrivatePostSwapApiV1SwapOrder';
+            }
+        } else if ($market['future']) {
+            $method = 'contractPrivatePostApiV1ContractOrder';
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // linear swap cross margin
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             "order_id":924660854912552960,
+        //             "order_id_str":"924660854912552960"
+        //         ),
+        //         "ts":1640497927185
         //     }
-        // }
-        // $response = yield $this->$method (array_merge($request, $params));
-        throw new NotSupported($this->id . ' createContractOrder() is not supported yet, it is a work in progress');
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
