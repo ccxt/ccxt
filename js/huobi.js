@@ -2585,7 +2585,7 @@ module.exports = class huobi extends Exchange {
         let method = undefined;
         if (market['swap']) {
             if (market['linear']) {
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
+                method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
             } else {
                 method = 'contractPrivatePostSwapApiV1SwapOrder';
             }
