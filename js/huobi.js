@@ -2614,7 +2614,11 @@ module.exports = class huobi extends Exchange {
         let methodType = undefined;
         [ methodType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         const request = {
-            // ---------------------------------------------------- linear swap
+            // spot -----------------------------------------------------------
+            // 'order-id': 'id',
+            // 'symbol': market['id'],
+            // 'client-order-id': clientOrderId,
+            // contracts ------------------------------------------------------
             // 'order_id': id,
             // 'client_order_id': clientOrderId,
             // 'contract_code': market['id'],
