@@ -92,6 +92,7 @@ module.exports = class coinsbit extends Exchange {
                 'private': {
                     'post': {
                         'order/new': 1,
+                        'order/new_market': 1,
                         'order/cancel': 1,
                         'orders': 1,
                         'account/balances': 1,
@@ -112,6 +113,7 @@ module.exports = class coinsbit extends Exchange {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchTradesMethod': 'publicGetHistory', // publicGetHistory | publicGetHistoryResult
                 'maxDiapasonsForTimeframes': {
                     '1m': 43200,
@@ -125,27 +127,6 @@ module.exports = class coinsbit extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    // '400': BadRequest, // Invalid parameter
-                    // '401': AuthenticationError, // Invalid signature, fail to pass the validation
-                    // '429': RateLimitExceeded, // too many requests, rate limit rule is violated
-                    // '1000': PermissionDenied, // {"success":false,"code":1000,"message":"Please open contract account first!"}
-                    // '1002': InvalidOrder, // {"success":false,"code":1002,"message":"Contract not allow place order!"}
-                    // '10072': AuthenticationError, // Invalid access key
-                    // '10073': AuthenticationError, // Invalid request time
-                    // '10216': InvalidAddress, // {"code":10216,"msg":"No available deposit address"}
-                    // '10232': BadSymbol, // {"code":10232,"msg":"The currency not exist"}
-                    // '30000': BadSymbol, // Trading is suspended for the requested symbol
-                    // '30001': InvalidOrder, // Current trading type (bid or ask) is not allowed
-                    // '30002': InvalidOrder, // Invalid trading amount, smaller than the symbol minimum trading amount
-                    // '30003': InvalidOrder, // Invalid trading amount, greater than the symbol maximum trading amount
-                    // '30004': InsufficientFunds, // Insufficient balance
-                    // '30005': InvalidOrder, // Oversell error
-                    // '30010': InvalidOrder, // Price out of allowed range
-                    // '30016': BadSymbol, // Market is closed
-                    // '30019': InvalidOrder, // Orders count over limit for batch processing
-                    // '30020': BadSymbol, // Restricted symbol, API access is not allowed for the time being
-                    // '30021': BadSymbol, // Invalid symbol
-                    // '33333': BadSymbol, // {"code":33333,"msg":"currency can not be null"}
                 },
                 'broad': {
                 },
@@ -440,13 +421,12 @@ module.exports = class coinsbit extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const maxAllowedDiapason = this.options['maxDiapasonsForTimeframes'][timeframe];
-        let maxRequestedMilliSeconds = null;
+        let maxRequestedMilliSeconds = undefined;
         if (limit === undefined) {
             maxRequestedMilliSeconds = maxAllowedDiapason * 1000;
         } else {
             maxRequestedMilliSeconds = Math.min (this.sum (limit, 1) * duration, maxAllowedDiapason) * 1000;
         }
-        let response = null;
         request['interval'] = this.timeframes[timeframe];
         const now = this.milliseconds ();
         let startTime = since;
@@ -460,7 +440,7 @@ module.exports = class coinsbit extends Exchange {
         endTime = endTime / 1000;
         request['start'] = parseInt (startTime);
         request['end'] = parseInt (endTime);
-        response = await this.publicGetKline (this.extend (request, params));
+        const response = await this.publicGetKline (this.extend (request, params));
         // {
         //     success: true,
         //     message: "",
@@ -644,18 +624,37 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new InvalidOrder (this.id + ' createOrder supports limit orders only');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'side': side,
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
         };
-        const response = await this.privatePostOrderNew (this.extend (request, params));
+        let method = undefined;
+        if (type === 'limit') {
+            request['side'] = side;
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            method = 'privatePostOrderNew';
+        } else if (type === 'market') {
+            request['direction'] = side;
+            method = 'privatePostOrderNewMarket';
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                let cost = undefined;
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (price === undefined || amount === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'amount' extra parameter (the exchange-specific behaviour)");
+                    }
+                    cost = amount * price;
+                } else {
+                    cost = amount;
+                }
+                request['amount'] = this.costToPrecision (symbol, cost);
+            } else if (side === 'sell') {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
         // {
         //     success: true,
         //     message: '',
