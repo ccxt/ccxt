@@ -865,7 +865,7 @@ module.exports = class poloniex extends Exchange {
         }
         const price = this.safeString2 (order, 'price', 'rate');
         const remaining = this.safeString (order, 'amount');
-        const amount = this.safeString2 (order, 'startingAmount');
+        const amount = this.safeString (order, 'startingAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'type');
         const id = this.safeString (order, 'orderNumber');
