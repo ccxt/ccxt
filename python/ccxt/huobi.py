@@ -1922,7 +1922,18 @@ class huobi(Exchange):
             if subType == 'inverse':
                 method = 'contractPrivatePostSwapApiV1SwapAccountInfo'
             elif subType == 'linear':
-                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
+                currencyId = self.safe_string(params, 'margin_account')
+                if currencyId is None:
+                    code = self.safe_string(params, 'code')
+                    if code is not None:
+                        params = self.omit(params, 'code')
+                        currency = self.currency(code)
+                        currencyId = currency['id']
+                if currencyId is None:
+                    method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
+                else:
+                    request['margin_account'] = currencyId
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -1942,7 +1953,7 @@ class huobi(Exchange):
         #         "ts":1637644827566
         #     }
         #
-        # future, swap
+        # future, swap isolated
         #
         #     {
         #         "status":"ok",
@@ -1970,6 +1981,45 @@ class huobi(Exchange):
         #             },
         #         ],
         #         "ts":1637644827566
+        #     }
+        #
+        # swap cross
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":[
+        #             {
+        #                 "margin_mode":"cross",
+        #                 "margin_account":"USDT",
+        #                 "margin_asset":"USDT",
+        #                 "margin_balance":200,
+        #                 "margin_static":200,
+        #                 "margin_position":0,
+        #                 "margin_frozen":0,
+        #                 "profit_real":0,
+        #                 "profit_unreal":0,
+        #                 "withdraw_available":2E+2,
+        #                 "risk_rate":null,
+        #                 "contract_detail":[
+        #                     {
+        #                         "symbol":"MANA",
+        #                         "contract_code":"MANA-USDT",
+        #                         "margin_position":0,
+        #                         "margin_frozen":0,
+        #                         "margin_available":200.000000000000000000,
+        #                         "profit_unreal":0E-18,
+        #                         "liquidation_price":null,
+        #                         "lever_rate":5,
+        #                         "adjust_factor":0.100000000000000000,
+        #                         "contract_type":"swap",
+        #                         "pair":"MANA-USDT",
+        #                         "business_type":"swap"
+        #                     },
+        #                     ...
+        #                 ]
+        #             }
+        #         ],
+        #         "ts":1640493207964
         #     }
         #
         result = {'info': response}
@@ -2005,10 +2055,14 @@ class huobi(Exchange):
                 marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
                 symbol = self.safe_symbol(marketId)
                 account = self.account()
-                account['free'] = self.safe_string(balance, 'margin_available')
+                account['free'] = self.safe_string(balance, 'margin_balance', 'margin_available')
                 account['used'] = self.safe_string(balance, 'margin_frozen')
                 currencyId = self.safe_string_2(balance, 'margin_asset', 'symbol')
                 code = self.safe_currency_code(currencyId)
+                marginMode = self.safe_string(balance, 'margin_mode')
+                if marginMode == 'cross':
+                    result[code] = account
+                    return self.safe_balance(result)
                 accountsByCode = {}
                 accountsByCode[code] = account
                 result[symbol] = self.safe_balance(accountsByCode)
@@ -2214,7 +2268,8 @@ class huobi(Exchange):
         methodType, query = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(methodType, {
             'spot': 'createSpotOrder',
-            # 'future': 'createContractOrder',
+            'swap': 'createContractOrder',
+            'future': 'createContractOrder',
         })
         if method is None:
             raise NotSupported(self.id + ' createOrder does not support ' + type + ' markets yet')
@@ -2309,49 +2364,100 @@ class huobi(Exchange):
         }
 
     def create_contract_order(self, symbol, type, side, amount, price=None, params={}):
-        # request = {
-        #     # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-        #     # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
-        #     # 'contract_code': market['id'],  # optional BTC180914
-        #     # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
-        #     # 'price': self.price_to_precision(symbol, price),
-        #     # 'volume': self.amount_to_precision(symbol, amount),
-        #     #
-        #     #     direction buy, offset open = open long
-        #     #     direction sell, offset close = close long
-        #     #     direction sell, offset open = open short
-        #     #     direction buy, offset close = close short
-        #     #
-        #     # 'direction': 'buy'',  # buy, sell
-        #     # 'offset': 'open',  # open, close
-        #     # 'lever_rate': 1,  # using Leverage greater than 20x requires prior approval of high-leverage agreement
-        #     #
-        #     #     limit
-        #     #     opponent  # BBO
-        #     #     post_only
-        #     #     optimal_5
-        #     #     optimal_10
-        #     #     optimal_20
-        #     #     ioc
-        #     #     fok
-        #     #     opponent_ioc  # IOC order using the BBO price
-        #     #     optimal_5_ioc
-        #     #     optimal_10_ioc
-        #     #     optimal_20_ioc
-        #     #     opponent_fok  # FOR order using the BBO price
-        #     #     optimal_5_fok
-        #     #     optimal_10_fok
-        #     #     optimal_20_fok
-        #     #
-        #     # 'order_price_type': 'limit',  # required
-        #     # 'tp_trigger_price': self.price_to_precision(symbol, triggerPrice),
-        #     # 'tp_order_price': self.price_to_precision(symbol, price),
-        #     # 'tp_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
-        #     # 'sl_trigger_price': self.price_to_precision(symbol, stopLossPrice),
-        #     # 'sl_order_price': self.price_to_precision(symbol, price),
-        #     # 'sl_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+        offset = self.safe_string(params, 'offset')
+        if offset is None:
+            raise ArgumentsRequired(self.id + ' createContractOrder() requires a string offset parameter, open or close')
+        stopPrice = self.safe_string(params, 'stopPrice')
+        if stopPrice is not None:
+            raise NotSupported(self.id + ' createContractOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
+        market = self.market(symbol)
+        request = {
+            # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
+            'contract_code': market['id'],  # optional BTC180914
+            # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
+            # 'price': self.price_to_precision(symbol, price),  # optional
+            'volume': self.amount_to_precision(symbol, amount),
+            'direction': side,  # buy, sell
+            'offset': offset,  # open, close
+            #
+            #     direction buy, offset open = open long
+            #     direction sell, offset close = close long
+            #     direction sell, offset open = open short
+            #     direction buy, offset close = close short
+            #
+            # 'lever_rate': 1,  # using Leverage greater than 20x requires prior approval of high-leverage agreement
+            # 'order_price_type': 'limit',  # required
+            #
+            #     order_price_type can be:
+            #
+            #     limit
+            #     opponent  # BBO
+            #     post_only
+            #     optimal_5
+            #     optimal_10
+            #     optimal_20
+            #     ioc
+            #     fok
+            #     opponent_ioc  # IOC order using the BBO price
+            #     optimal_5_ioc
+            #     optimal_10_ioc
+            #     optimal_20_ioc
+            #     opponent_fok  # FOR order using the BBO price
+            #     optimal_5_fok
+            #     optimal_10_fok
+            #     optimal_20_fok
+            #
+            # 'tp_trigger_price': self.price_to_precision(symbol, triggerPrice),
+            # 'tp_order_price': self.price_to_precision(symbol, price),
+            # 'tp_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+            # 'sl_trigger_price': self.price_to_precision(symbol, stopLossPrice),
+            # 'sl_order_price': self.price_to_precision(symbol, price),
+            # 'sl_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+        }
+        stopLossOrderPrice = self.safe_string(params, 'sl_order_price')
+        stopLossTriggerPrice = self.safe_string(params, 'sl_trigger_price')
+        takeProfitOrderPrice = self.safe_string(params, 'tp_order_price')
+        takeProfitTriggerPrice = self.safe_string(params, 'tp_trigger_price')
+        isOpenOrder = (offset == 'open')
+        isStopOrder = False
+        if stopLossTriggerPrice is not None:
+            request['sl_trigger_price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+            isStopOrder = True
+            if price is not None:
+                request['sl_order_price'] = self.price_to_precision(symbol, price)
+        if stopLossOrderPrice is not None:
+            request['sl_order_price'] = self.price_to_precision(symbol, stopLossOrderPrice)
+            isStopOrder = True
+        if takeProfitTriggerPrice is not None:
+            request['tp_trigger_price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+            isStopOrder = True
+            if price is not None:
+                request['tp_order_price'] = self.price_to_precision(symbol, price)
+        if takeProfitOrderPrice is not None:
+            request['tp_order_price'] = self.price_to_precision(symbol, takeProfitOrderPrice)
+            isStopOrder = True
+        if isStopOrder and not isOpenOrder:
+            raise NotSupported(self.id + ' createContractOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
+        params = self.omit(params, ['sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price'])
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            type = 'post_only'
+        if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
+            request['price'] = self.price_to_precision(symbol, price)
+        request['order_price_type'] = type
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')  # must be 64 chars max and unique within 24 hours
+        # if clientOrderId is None:
+        #     broker = self.safe_value(self.options, 'broker', {})
+        #     brokerId = self.safe_string(broker, 'id')
+        #     request['client_order_id'] = brokerId + self.uuid()
+        # else:
+        #     request['client_order_id'] = clientOrderId
         # }
-        raise NotSupported(self.id + ' createContractOrder is not supported yet, it is a work in progress')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'client_order_id'])
+        raise NotSupported(self.id + ' createContractOrder() is not supported yet, it is a work in progress')
 
     def cancel_order(self, id, symbol=None, params={}):
         clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
