@@ -739,6 +739,7 @@ class huobi(Exchange):
                 },
                 'exact': {
                     # err-code
+                    '1094': InvalidOrder,  # {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
                     'bad-request': BadRequest,
                     'base-date-limit-error': BadRequest,  # {"status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null}
                     'api-not-support-temp-addr': PermissionDenied,  # {"status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null}
@@ -2386,7 +2387,7 @@ class huobi(Exchange):
             #     direction sell, offset open = open short
             #     direction buy, offset close = close short
             #
-            # 'lever_rate': 1,  # using Leverage greater than 20x requires prior approval of high-leverage agreement
+            'lever_rate': 1,  # required, using leverage greater than 20x requires prior approval of high-leverage agreement
             # 'order_price_type': 'limit',  # required
             #
             #     order_price_type can be:
@@ -2457,6 +2458,15 @@ class huobi(Exchange):
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_order_id'])
+        # method = None
+        # if market['swap']:
+        #     if market['linear']:
+        #         method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder'
+        #     else:
+        #         method = ''
+        #     }
+        # }
+        # response = getattr(self, method)(self.extend(request, params))
         raise NotSupported(self.id + ' createContractOrder() is not supported yet, it is a work in progress')
 
     def cancel_order(self, id, symbol=None, params={}):
