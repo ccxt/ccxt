@@ -868,7 +868,7 @@ class poloniex extends Exchange {
         }
         $price = $this->safe_string_2($order, 'price', 'rate');
         $remaining = $this->safe_string($order, 'amount');
-        $amount = $this->safe_string_2($order, 'startingAmount');
+        $amount = $this->safe_string($order, 'startingAmount');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'type');
         $id = $this->safe_string($order, 'orderNumber');

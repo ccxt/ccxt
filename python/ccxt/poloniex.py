@@ -830,7 +830,7 @@ class poloniex(Exchange):
             resultingTrades = self.safe_value(resultingTrades, self.safe_string(market, 'id', marketId))
         price = self.safe_string_2(order, 'price', 'rate')
         remaining = self.safe_string(order, 'amount')
-        amount = self.safe_string_2(order, 'startingAmount')
+        amount = self.safe_string(order, 'startingAmount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
         id = self.safe_string(order, 'orderNumber')
