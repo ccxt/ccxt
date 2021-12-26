@@ -28,6 +28,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchBidsAsks': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchFundingFees': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
@@ -35,6 +36,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'privateAPI': true,
@@ -61,7 +63,6 @@ module.exports = class whitebit extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
                 'api': {
-                    'web': 'https://whitebit.com/',
                     'v1': {
                         'public': 'https://whitebit.com/api/v1/public',
                         'private': 'https://whitebit.com/api/v1',
@@ -126,10 +127,10 @@ module.exports = class whitebit extends Exchange {
                     'public': {
                         'get': [
                             'assets',
+                            'fee',
+                            'orderbook/{market}',
                             'ticker',
                             'trades/{market}',
-                            'fee',
-                            'assets',
                             'time',
                             'ping',
                         ],
@@ -172,7 +173,6 @@ module.exports = class whitebit extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchTradesMethod': 'fetchTradesV1',
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
             },
             'exceptions': {
@@ -267,36 +267,30 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.v2PublicGetAssets (params);
+        const response = await this.v4PublicGetAssets (params);
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":{
-        //             "BTC":{
-        //                 "id":"4f37bc79-f612-4a63-9a81-d37f7f9ff622",
-        //                 "lastUpdateTimestamp":"2019-10-12T04:40:05.000Z",
-        //                 "name":"Bitcoin",
-        //                 "canWithdraw":true,
-        //                 "canDeposit":true,
-        //                 "minWithdrawal":"0.001",
-        //                 "maxWithdrawal":"0",
-        //                 "makerFee":"0.1",
-        //                 "takerFee":"0.1"
-        //             }
-        //         }
-        //     }
+        //      "BTC": {
+        //          "name": "Bitcoin",
+        //          "unified_cryptoasset_id": 1,
+        //          "can_withdraw": true,
+        //          "can_deposit": true,
+        //          "min_withdraw": "0.001",
+        //          "max_withdraw": "2",
+        //          "maker_fee": "0.1",
+        //          "taker_fee": "0.1",
+        //          "min_deposit": "0.0001",
+        //           "max_deposit": "0",
+        //       },
         //
-        const currencies = this.safeValue (response, 'result');
-        const ids = Object.keys (currencies);
+        const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const currency = currencies[id];
+            const currency = response[id];
             // breaks down in Python due to utf8 encoding issues on the exchange side
             // const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeValue (currency, 'canDeposit', true);
-            const canWithdraw = this.safeValue (currency, 'canWithdraw', true);
+            const canDeposit = this.safeValue (currency, 'can_deposit', true);
+            const canWithdraw = this.safeValue (currency, 'can_withdraw', true);
             const active = canDeposit && canWithdraw;
             const code = this.safeCurrencyCode (id);
             result[code] = {
@@ -313,13 +307,60 @@ module.exports = class whitebit extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber (currency, 'minWithdrawal'),
-                        'max': this.safeNumber (currency, 'maxWithdrawal'),
+                        'min': this.safeNumber (currency, 'min_withdraw'),
+                        'max': this.safeNumber (currency, 'max_withdraw'),
                     },
                 },
             };
         }
         return result;
+    }
+
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v4PublicGetFee (params);
+        //
+        //      {
+        //          "1INCH":{
+        //              "is_depositable":true,
+        //              "is_withdrawal":true,
+        //              "ticker":"1INCH",
+        //              "name":"1inch",
+        //              "providers":[
+        //              ],
+        //              "withdraw":{
+        //                   "max_amount":"0",
+        //                  "min_amount":"21.5",
+        //                  "fixed":"17.5",
+        //                  "flex":null
+        //              },
+        //              "deposit":{
+        //                  "max_amount":"0",
+        //                  "min_amount":"19.5",
+        //                  "fixed":null,
+        //                  "flex":null
+        //               }
+        //          },
+        //           {...}
+        //      }
+        //
+        const currenciesIds = Object.keys (response);
+        const withdrawFees = {};
+        const depositFees = {};
+        for (let i = 0; i < currenciesIds.length; i++) {
+            const currency = currenciesIds[i];
+            const data = response[currency];
+            const code = this.safeCurrencyCode (currency);
+            const withdraw = this.safeValue (data, 'withdraw', {});
+            withdrawFees[code] = this.safeString (withdraw, 'fixed');
+            const deposit = this.safeValue (data, 'deposit', {});
+            depositFees[code] = this.safeString (deposit, 'fixed');
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': depositFees,
+            'info': response,
+        };
     }
 
     async fetchTradingFees (params = {}) {
@@ -339,7 +380,7 @@ module.exports = class whitebit extends Exchange {
         };
         const response = await this.v1PublicGetTicker (this.extend (request, params));
         //
-        //     {
+        //      {
         //         "success":true,
         //         "message":"",
         //         "result": {
@@ -360,53 +401,42 @@ module.exports = class whitebit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //  FetchTicker (v1)
         //
-        // fetchTicker
+        //      {
+        //          "bid":"0.021979",
+        //          "ask":"0.021996",
+        //          "open":"0.02182",
+        //          "high":"0.022039",
+        //          "low":"0.02161",
+        //          "last":"0.021987",
+        //          "volume":"2810.267",
+        //          "deal":"61.383565474",
+        //          "change":"0.76",
+        //      }
         //
-        //     {
-        //         "bid":"0.021979",
-        //         "ask":"0.021996",
-        //         "open":"0.02182",
-        //         "high":"0.022039",
-        //         "low":"0.02161",
-        //         "last":"0.021987",
-        //         "volume":"2810.267",
-        //         "deal":"61.383565474",
-        //         "change":"0.76",
-        //     }
+        // FetchTickers (v4)
         //
-        // fetchTickers v1
+        //      "BCH_RUB":{
+        //          "base_id":1831,
+        //          "quote_id":0,
+        //          "last_price":"32830.21",
+        //          "quote_volume":"1494659.8024096",
+        //          "base_volume":"46.1083",
+        //          "isFrozen":false,
+        //          "change":"2.12" // in percent
+        //      },
         //
-        //     {
-        //         "at":1571022144,
-        //         "ticker": {
-        //             "bid":"0.022024",
-        //             "ask":"0.022042",
-        //             "low":"0.02161",
-        //             "high":"0.022062",
-        //             "last":"0.022036",
-        //             "vol":"2813.503",
-        //             "deal":"61.457279261",
-        //             "change":"0.95"
-        //         }
-        //     }
-        //
-        const timestamp = this.safeTimestamp (ticker, 'at', this.milliseconds ());
-        ticker = this.safeValue (ticker, 'ticker', ticker);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeNumber (ticker, 'last');
-        const percentage = this.safeNumber (ticker, 'change');
-        let change = undefined;
-        if (percentage !== undefined) {
-            change = this.numberToString (percentage * 0.01);
-        }
-        return {
+        const last = this.safeNumber (ticker, 'last_price');
+        const percentage = this.safeNumber (ticker, 'change') * 0.01;
+        return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeNumber (ticker, 'high'),
             'low': this.safeNumber (ticker, 'low'),
             'bid': this.safeNumber (ticker, 'bid'),
@@ -418,46 +448,35 @@ module.exports = class whitebit extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
-            'quoteVolume': this.safeNumber (ticker, 'deal'),
+            'baseVolume': this.safeNumber2 (ticker, 'base_volume', 'volume'),
+            'quoteVolume': this.safeNumber2 (ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PublicGetTickers (params);
+        const response = await this.v4PublicGetTicker (params);
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result": {
-        //             "ETH_BTC": {
-        //                 "at":1571022144,
-        //                 "ticker": {
-        //                     "bid":"0.022024",
-        //                     "ask":"0.022042",
-        //                     "low":"0.02161",
-        //                     "high":"0.022062",
-        //                     "last":"0.022036",
-        //                     "vol":"2813.503",
-        //                     "deal":"61.457279261",
-        //                     "change":"0.95"
-        //                 }
-        //             },
-        //         },
-        //     }
+        //      "BCH_RUB": {
+        //          "base_id":1831,
+        //          "quote_id":0,
+        //          "last_price":"32830.21",
+        //          "quote_volume":"1494659.8024096",
+        //          "base_volume":"46.1083",
+        //          "isFrozen":false,
+        //          "change":"2.12"
+        //      },
         //
-        const data = this.safeValue (response, 'result');
-        const marketIds = Object.keys (data);
+        const marketIds = Object.keys (response);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const ticker = this.parseTicker (data[marketId], market);
+            const ticker = this.parseTicker (response[marketId], market);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -471,118 +490,64 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default = 50, maximum = 100
+            request['depth'] = limit; // default = 50, maximum = 100
         }
-        const response = await this.v2PublicGetDepthMarket (this.extend (request, params));
+        const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":{
-        //             "lastUpdateTimestamp":"2019-10-14T03:15:47.000Z",
-        //             "asks":[
-        //                 ["0.02204","2.03"],
-        //                 ["0.022041","2.492"],
-        //                 ["0.022042","2.254"],
-        //             ],
-        //             "bids":[
-        //                 ["0.022018","2.327"],
-        //                 ["0.022017","1.336"],
-        //                 ["0.022015","2.089"],
-        //             ],
-        //         }
-        //     }
+        //      {
+        //          "timestamp": 1594391413,
+        //          "asks": [
+        //              [
+        //                  "9184.41",
+        //                  "0.773162"
+        //              ],
+        //              [ ... ]
+        //          ],
+        //          "bids": [
+        //              [
+        //                  "9181.19",
+        //                  "0.010873"
+        //              ],
+        //              [ ... ]
+        //          ]
+        //      }
         //
-        const result = this.safeValue (response, 'result', {});
-        const timestamp = this.parse8601 (this.safeString (result, 'lastUpdateTimestamp'));
-        return this.parseOrderBook (result, symbol, timestamp);
-    }
-
-    async fetchTradesV1 (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-            'lastId': 1, // todo add since
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 50, maximum = 10000
-        }
-        const response = await this.v1PublicGetHistory (this.extend (request, params));
-        //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":[
-        //             {
-        //                 "id":11887426,
-        //                 "type":"buy",
-        //                 "time":1571023057.413769,
-        //                 "amount":"0.171",
-        //                 "price":"0.022052"
-        //             }
-        //         ],
-        //     }
-        //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
-    }
-
-    async fetchTradesV2 (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 50, maximum = 10000
-        }
-        const response = await this.v2PublicGetTradesMarket (this.extend (request, params));
-        //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result": [
-        //             {
-        //                 "tradeId":11903347,
-        //                 "price":"0.022044",
-        //                 "volume":"0.029",
-        //                 "time":"2019-10-14T06:30:57.000Z",
-        //                 "isBuyerMaker":false
-        //             },
-        //         ],
-        //     }
-        //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
+        const timestamp = this.safeString (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'fetchTradesV2');
-        return await this[method] (symbol, since, limit, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.v4PublicGetTradesMarket (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "tradeID": 158056419,
+        //              "price": "9186.13",
+        //              "quote_volume": "0.0021",
+        //              "base_volume": "9186.13",
+        //              "trade_timestamp": 1594391747,
+        //              "type": "sell"
+        //          },
+        //      ],
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        //
-        // fetchTradesV1
-        //
+        // fetchTradesV4
         //     {
-        //         "id":11887426,
-        //         "type":"buy",
-        //         "time":1571023057.413769,
-        //         "amount":"0.171",
-        //         "price":"0.022052"
-        //     }
-        //
-        // fetchTradesV2
-        //
-        //     {
-        //         "tradeId":11903347,
-        //         "price":"0.022044",
-        //         "volume":"0.029",
-        //         "time":"2019-10-14T06:30:57.000Z",
-        //         "isBuyerMaker":false
-        //     }
+        //       "tradeID": 158056419,
+        //       "price": "9186.13",
+        //       "quote_volume": "0.0021",
+        //       "base_volume": "9186.13",
+        //       "trade_timestamp": 1594391747,
+        //       "type": "sell"
+        //     },
         //
         // orderTrades (v4Private)
         //
@@ -598,22 +563,13 @@ module.exports = class whitebit extends Exchange {
         //         "deal": "0.00419198" // amount in money
         //     }
         //
-        let timestamp = this.safeTimestamp (trade, 'time');
-        if (timestamp === undefined) {
-            timestamp = this.parse8601 (this.safeString (trade, 'time'));
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'time', 'trade_timestamp');
         const orderId = this.safeString (trade, 'dealOrderId');
         const cost = this.safeString (trade, 'deal');
         const price = this.safeString (trade, 'price');
-        const amount = this.safeString2 (trade, 'amount', 'volume');
-        const id = this.safeString2 (trade, 'id', 'tradeId');
-        let side = this.safeString (trade, 'type');
-        if (side === undefined) {
-            const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
-            if (side !== undefined) {
-                side = isBuyerMaker ? 'buy' : 'sell';
-            }
-        }
+        const amount = this.safeString2 (trade, 'amount', 'base_volume');
+        const id = this.safeString2 (trade, 'id', 'tradeID');
+        const side = this.safeString (trade, 'type');
         const symbol = this.safeSymbol (undefined, market);
         const role = this.safeInteger (trade, 'role');
         let takerOrMaker = undefined;
@@ -708,17 +664,29 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.webGetV1Healthcheck (params);
-        const status = this.safeInteger (response, 'status');
-        let formattedStatus = 'ok';
-        if (status === 503) {
-            formattedStatus = 'maintenance';
-        }
+        const response = await this.v4PublicGetPing (params);
+        //
+        //      [
+        //          "pong"
+        //      ]
+        //
+        let status = this.safeString (response, 0, undefined);
+        status = (status === undefined) ? 'maintenance' : 'ok';
         this.status = this.extend (this.status, {
-            'status': formattedStatus,
+            'status': status,
             'updated': this.milliseconds (),
         });
         return this.status;
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.v4PublicGetTime (params);
+        //
+        //     {
+        //         "time":1635467280514
+        //     }
+        //
+        return this.safeInteger (response, 'time');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
