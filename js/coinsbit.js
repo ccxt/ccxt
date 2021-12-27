@@ -898,15 +898,11 @@ module.exports = class coinsbit extends Exchange {
         //         dealMoney: '7.98856357',
         //         marketName: 'ETH_USDT'
         //      },
-        const isFromFCO = ('role' in order);
         const isFromFCOs = ('ctime' in order);
         let id = undefined;
         let tradeId = undefined;
         if (isFromFCOs) {
             id = this.safeString (order, 'id');
-        } else if (isFromFCO) {
-            id = this.safeString (order, 'dealOrderId');
-            tradeId = this.safeString (order, 'id'); // <<<TODO>>> this 'TRADE-ID' information is only in fetchClosedOrder, so is this correct implementation? or it should be sent to 'parseTrade' (as its structure is more like of 'parseTrade' endpoints)
         } else {
             id = this.safeString (order, 'orderId');
         }
