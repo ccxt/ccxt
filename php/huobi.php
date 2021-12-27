@@ -3101,15 +3101,63 @@ class huobi extends Exchange {
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $clientOrderIds = $this->safe_value_2($params, 'clientOrderIds', 'client-order-ids');
-        $params = $this->omit($params, array( 'clientOrderIds', 'client-order-ids' ));
-        $request = array();
-        if ($clientOrderIds === null) {
-            $request['order-ids'] = $ids;
+        $methodType = null;
+        list($methodType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
+        $request = array(
+            // spot -----------------------------------------------------------
+            'order-ids' => array(), // max 50 $ids
+            'client-order-ids' => array(), // max 50 $ids
+            // contracts ------------------------------------------------------
+            // 'order_id' => id, // comma separated, max 10
+            // 'client_order_id' => clientOrderId, // comma separated, max 10
+            // 'contract_code' => $market['id'],
+            // 'symbol' => $market['settleId'],
+        );
+        $method = null;
+        if ($methodType === 'spot') {
+            $clientOrderIds = $this->safe_string_2($params, 'client-order-id', 'clientOrderId');
+            $clientOrderIds = $this->safe_string_2($params, 'client-order-ids', 'clientOrderIds', $clientOrderIds);
+            if ($clientOrderIds === null) {
+                $request['order-ids'] = $ids;
+            } else {
+                $request['client-order-ids'] = $clientOrderIds;
+                $params = $this->omit($params, array( 'client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds' ));
+            }
+            $method = 'spotPrivatePostV1OrderOrdersBatchcancel';
         } else {
-            $request['client-order-ids'] = $clientOrderIds;
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol for ' . $methodType . ' orders');
+            }
+            $market = $this->market($symbol);
+            $request['contract_code'] = $market['id'];
+            if ($methodType === 'future') {
+                $method = 'contractPrivatePostApiV1ContractCancel';
+            } else if ($methodType === 'swap') {
+                if ($market['linear']) {
+                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                    if ($marginType === 'isolated') {
+                        $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
+                    } else if ($marginType === 'cross') {
+                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
+                    }
+                } else if ($market['inverse']) {
+                    $method = 'contractPrivatePostSwapApiV1SwapCancel';
+                }
+            } else {
+                throw new NotSupported($this->id . ' cancelOrders() does not support ' . $methodType . ' markets');
+            }
+            $clientOrderIds = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
+            $clientOrderIds = $this->safe_string_2($params, 'client_order_ids', 'clientOrderIds', $clientOrderIds);
+            if ($clientOrderIds === null) {
+                $request['order_id'] = $ids;
+            } else {
+                $request['client_order_id'] = $clientOrderIds;
+                $params = $this->omit($params, array( 'client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds' ));
+            }
         }
-        $response = $this->spotPrivatePostV1OrderOrdersBatchcancel (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // spot
         //
         //     {
         //         "status" => "ok",
@@ -3140,6 +3188,23 @@ class huobi extends Exchange {
         //                 }
         //             )
         //         }
+        //     }
+        //
+        // contracts
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => {
+        //             "errors" => array(
+        //                 array(
+        //                     "order_id" => "769206471845261312",
+        //                     "err_code" => 1061,
+        //                     "err_msg" => "This order doesnt exist."
+        //                 }
+        //             ),
+        //             "successes" => "773120304138219520"
+        //         ),
+        //         "ts" => 1604367997451
         //     }
         //
         return $response;

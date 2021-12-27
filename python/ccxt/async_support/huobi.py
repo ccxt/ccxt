@@ -2950,14 +2950,56 @@ class huobi(Exchange):
 
     async def cancel_orders(self, ids, symbol=None, params={}):
         await self.load_markets()
-        clientOrderIds = self.safe_value_2(params, 'clientOrderIds', 'client-order-ids')
-        params = self.omit(params, ['clientOrderIds', 'client-order-ids'])
-        request = {}
-        if clientOrderIds is None:
-            request['order-ids'] = ids
+        methodType = None
+        methodType, params = self.handle_market_type_and_params('cancelOrder', None, params)
+        request = {
+            # spot -----------------------------------------------------------
+            'order-ids': [],  # max 50 ids
+            'client-order-ids': [],  # max 50 ids
+            # contracts ------------------------------------------------------
+            # 'order_id': id,  # comma separated, max 10
+            # 'client_order_id': clientOrderId,  # comma separated, max 10
+            # 'contract_code': market['id'],
+            # 'symbol': market['settleId'],
+        }
+        method = None
+        if methodType == 'spot':
+            clientOrderIds = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
+            clientOrderIds = self.safe_string_2(params, 'client-order-ids', 'clientOrderIds', clientOrderIds)
+            if clientOrderIds is None:
+                request['order-ids'] = ids
+            else:
+                request['client-order-ids'] = clientOrderIds
+                params = self.omit(params, ['client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds'])
+            method = 'spotPrivatePostV1OrderOrdersBatchcancel'
         else:
-            request['client-order-ids'] = clientOrderIds
-        response = await self.spotPrivatePostV1OrderOrdersBatchcancel(self.extend(request, params))
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol for ' + methodType + ' orders')
+            market = self.market(symbol)
+            request['contract_code'] = market['id']
+            if methodType == 'future':
+                method = 'contractPrivatePostApiV1ContractCancel'
+            elif methodType == 'swap':
+                if market['linear']:
+                    marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+                    if marginType == 'isolated':
+                        method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
+                    elif marginType == 'cross':
+                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel'
+                elif market['inverse']:
+                    method = 'contractPrivatePostSwapApiV1SwapCancel'
+            else:
+                raise NotSupported(self.id + ' cancelOrders() does not support ' + methodType + ' markets')
+            clientOrderIds = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+            clientOrderIds = self.safe_string_2(params, 'client_order_ids', 'clientOrderIds', clientOrderIds)
+            if clientOrderIds is None:
+                request['order_id'] = ids
+            else:
+                request['client_order_id'] = clientOrderIds
+                params = self.omit(params, ['client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds'])
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "status": "ok",
@@ -2988,6 +3030,23 @@ class huobi(Exchange):
         #                 }
         #             ]
         #         }
+        #     }
+        #
+        # contracts
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": {
+        #             "errors": [
+        #                 {
+        #                     "order_id": "769206471845261312",
+        #                     "err_code": 1061,
+        #                     "err_msg": "This order doesnt exist."
+        #                 }
+        #             ],
+        #             "successes": "773120304138219520"
+        #         },
+        #         "ts": 1604367997451
         #     }
         #
         return response
