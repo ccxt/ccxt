@@ -726,7 +726,6 @@ module.exports = class coinsbit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        console.log(response);
         // {
         //     success: true,
         //     message: '',
