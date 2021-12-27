@@ -948,6 +948,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - Seychelles
+     - .. image:: https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg
+          :target: https://futures.kucoin.com/?rcode=E5wkqe
+          :alt: kucoinfutures
+     
+     - kucoinfutures
+     - `Kucoin Futures <https://futures.kucoin.com/?rcode=E5wkqe>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.kucoin.com/futures
+          :alt: API Version 1
+     
+   * - Seychelles
      - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg
           :target: https://m.mexc.com/auth/signup?inviteCode=1FQ1G
           :alt: mexc

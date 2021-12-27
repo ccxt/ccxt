@@ -2,7 +2,7 @@
 Supported Exchanges
 ===================
 
-The CCXT library currently supports the following 109 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 110 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1003,6 +1003,18 @@ The CCXT library currently supports the following 109 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg
+          :target: https://futures.kucoin.com/?rcode=E5wkqe
+          :alt: kucoinfutures
+     
+     - kucoinfutures
+     - `Kucoin Futures <https://futures.kucoin.com/?rcode=E5wkqe>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.kucoin.com/futures
+          :alt: API Version 1
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg
           :target: https://kuna.io?r=kunaid-gvfihe8az7o4
           :alt: kuna
