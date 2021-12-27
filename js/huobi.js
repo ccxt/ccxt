@@ -1666,10 +1666,10 @@ module.exports = class huobi extends Exchange {
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
+            request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if (methodType === 'future') {
                 method = 'contractPrivatePostApiV1ContractMatchresultsExact';
                 request['symbol'] = market['settleId'];
-                request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             } else if (methodType === 'swap') {
                 if (market['linear']) {
                     const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
@@ -2438,33 +2438,81 @@ module.exports = class huobi extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        let methodType = undefined;
+        [ methodType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
+        const request = {
+            // spot -----------------------------------------------------------
+            // 'account-id': account['id'],
+            // 'symbol': market['id'],
+            // 'side': 'buy', // buy, sell
+            // 'from': 'id', // order id to begin with
+            // 'direct': 'prev', // prev, next, mandatory if from is defined
+            // 'size': 100, // default 100, max 500
+            // futures --------------------------------------------------------
+            // 'symbol': market['settleId'],
+            // 'page_index': 1, // default 1
+            // 'page_size': limit, // default 20, max 50
+            // 'sort_by': 'created_at', // created_at, update_time, descending sorting field
+            // 'trade_type': 0, // 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long
+        };
+        let method = undefined;
         let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        // todo replace with fetchAccountIdByType
-        let accountId = this.safeString (params, 'account-id');
-        if (accountId === undefined) {
-            // pick the first account
-            await this.loadAccounts ();
-            for (let i = 0; i < this.accounts.length; i++) {
-                const account = this.accounts[i];
-                if (account['type'] === 'spot') {
-                    accountId = this.safeString (account, 'id');
-                    if (accountId !== undefined) {
-                        break;
+        if (methodType === 'spot') {
+            method = 'spotPrivateGetV1OrderOpenOrders';
+            if (symbol !== undefined) {
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
+            }
+            // todo replace with fetchAccountIdByType
+            let accountId = this.safeString (params, 'account-id');
+            if (accountId === undefined) {
+                // pick the first account
+                await this.loadAccounts ();
+                for (let i = 0; i < this.accounts.length; i++) {
+                    const account = this.accounts[i];
+                    if (account['type'] === 'spot') {
+                        accountId = this.safeString (account, 'id');
+                        if (accountId !== undefined) {
+                            break;
+                        }
                     }
                 }
             }
+            request['account-id'] = accountId;
+            if (limit !== undefined) {
+                request['size'] = limit;
+            }
+            params = this.omit (params, 'account-id');
+        } else {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol for ' + methodType + ' orders');
+            }
+            const market = this.market (symbol);
+            request['contract_code'] = market['id'];
+            if (methodType === 'future') {
+                method = 'contractPrivatePostApiV1ContractOpenorders';
+                request['symbol'] = market['settleId'];
+            } else if (methodType === 'swap') {
+                if (market['linear']) {
+                    const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+                    if (marginType === 'isolated') {
+                        method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders';
+                    } else if (marginType === 'cross') {
+                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders';
+                    }
+                } else if (market['inverse']) {
+                    method = 'contractPrivatePostSwapApiV1SwapOpenorders';
+                }
+            } else {
+                throw new NotSupported (this.id + ' cancelOrder() does not support ' + methodType + ' markets');
+            }
+            if (limit !== undefined) {
+                request['page_size'] = limit;
+            }
         }
-        request['account-id'] = accountId;
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const omitted = this.omit (params, 'account-id');
-        const response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, omitted));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "status":"ok",
@@ -2486,8 +2534,55 @@ module.exports = class huobi extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        // futures
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "symbol": "ADA",
+        //                     "contract_code": "ADA201225",
+        //                     "contract_type": "quarter",
+        //                     "volume": 1,
+        //                     "price": 0.0925,
+        //                     "order_price_type": "post_only",
+        //                     "order_type": 1,
+        //                     "direction": "buy",
+        //                     "offset": "close",
+        //                     "lever_rate": 20,
+        //                     "order_id": 773131315209248768,
+        //                     "client_order_id": null,
+        //                     "created_at": 1604370469629,
+        //                     "trade_volume": 0,
+        //                     "trade_turnover": 0,
+        //                     "fee": 0,
+        //                     "trade_avg_price": null,
+        //                     "margin_frozen": 0,
+        //                     "profit": 0,
+        //                     "status": 3,
+        //                     "order_source": "web",
+        //                     "order_id_str": "773131315209248768",
+        //                     "fee_asset": "ADA",
+        //                     "liquidation_type": null,
+        //                     "canceled_at": null,
+        //                     "is_tpsl": 0,
+        //                     "update_time": 1606975980467,
+        //                     "real_profit": 0
+        //                 }
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 1
+        //         },
+        //         "ts": 1604370488518
+        //     }
+        //
+        let orders = this.safeValue (response, 'data');
+        if (!Array.isArray (orders)) {
+            orders = this.safeValue (orders, 'orders', []);
+        }
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseOrderStatus (status) {
