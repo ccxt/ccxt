@@ -4582,7 +4582,7 @@ module.exports = class binance extends Exchange {
             //             "isolatedMargin": "0.00000000",
             //             "leverage": "10",
             //             "liquidationPrice": "0",
-            //             "markPrice": "6679.50671178",  
+            //             "markPrice": "6679.50671178",
             //             "maxNotionalValue": "20000000",
             //             "positionAmt": "0.000",
             //             "symbol": "BTCUSDT",
@@ -4620,7 +4620,7 @@ module.exports = class binance extends Exchange {
             //             "maxNotionalValue": "20000000",
             //             "positionAmt": "-10.000",
             //             "symbol": "BTCUSDT",
-            //             "unRealizedProfit": "-1156.46711780" 
+            //             "unRealizedProfit": "-1156.46711780",
             //             "positionSide": "SHORT",
             //             "updateTime": 0
             //         }
