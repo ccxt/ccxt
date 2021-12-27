@@ -25,21 +25,21 @@ exchange.set_sandbox_mode(True)  # uncomment to use the testnet sandbox
 
 markets = exchange.load_markets()
 
-amount = 10
+amount = 20
 symbol = 'BTC/USD:USD'
 
-# Opening and Canceling a pending contract (limit) order (unrealistic price)
+# Opening and Canceling a pending contract (limit) order
 order = exchange.create_order(symbol, 'limit', 'buy', amount, '20000')
 response = exchange.cancel_order(order['id'], symbol)
 pprint(response)
 
-# Opening and Canceling a pending contract (stop-market) order (unrealistic price)
-stopMarketOrder = exchange.create_order(symbol, 'MarketIfTouched', 'buy', amount, None, {'stopPx': 20000})
+# Opening and Canceling a pending contract (stop-market) order 
+stopMarketOrder = exchange.create_order(symbol, 'Stop', 'buy', amount, None, {'stopPx': 70000, "triggerType": "ByLastPrice"})
 stopMarketResponse = exchange.cancel_order(stopMarketOrder['id'], symbol)
 pprint(stopMarketResponse)
 
-# Opening and Canceling a pending contract (stop-limit) order (unrealistic price)
-stopLimitOrder = exchange.create_order(symbol, 'LimitIfTouched', 'buy', amount, 20000, {'stopPx': 20000})
+# Opening and Canceling a pending contract (stop-limit) order 
+stopLimitOrder = exchange.create_order(symbol, 'StopLimit', 'buy', amount, 20000, {'stopPx': 70000, "triggerType": "ByLastPrice"})
 stopLimitResponse = exchange.cancel_order(stopLimitOrder['id'], symbol)
 pprint(stopLimitResponse)
 
