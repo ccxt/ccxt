@@ -12,10 +12,11 @@ module.exports = class coinsbit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinsbit',
             'name': 'Coinsbit',
-            'countries': [ 'EE' ], // Estonia <<<TODO>>> they also have .in domain
+            'countries': [ 'EE' ], // Estonia
             'rateLimit': 1000, // No defaults known
             'version': 'v1',
             'certified': false,
+            'hostname': 'coinsbit.io', // or coinsbit.in
             'has': {
                 'createOrder': true,
                 'cancelOrder': true,
@@ -60,16 +61,16 @@ module.exports = class coinsbit extends Exchange {
             'urls': {
                 'logo': '  <<<TODO>>>   https://upload.wikimedia.org/wikipedia/commons/8/8c/Coinsbit.png  ',
                 'api': {
-                    'public': 'https://coinsbit.io',
-                    'private': 'https://coinsbit.io',
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
                 },
-                'www': 'https://coinsbit.io/',
+                'www': 'https://{hostname}/',
                 'doc': [
                     'https://www.notion.so/coinsbitwsapi/API-COINSBIT-WS-API-COINSBIT-cf1044cff30646d49a0bab0e28f27a87',
                     'https://github.com/Coinsbit-connect/api/wiki/API',
                 ],
                 'fees': [
-                    'https://coinsbit.io/fee-schedule',
+                    'https://{hostname}/fee-schedule',
                 ],
                 'referral': '  <<<TODO>>>   ',
             },
