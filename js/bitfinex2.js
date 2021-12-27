@@ -1385,30 +1385,28 @@ module.exports = class bitfinex2 extends bitfinex {
         // fetchTransactions
         //
         //     [
-        //         [
-        //             13293039, // ID
-        //             'ETH', // CURRENCY
-        //             'ETHEREUM', // CURRENCY_NAME
-        //             null,
-        //             null,
-        //             1574175052000, // MTS_STARTED
-        //             1574181326000, // MTS_UPDATED
-        //             null,
-        //             null,
-        //             'CANCELED', // STATUS
-        //             null,
-        //             null,
-        //             -0.24, // AMOUNT, negative for withdrawals
-        //             -0.00135, // FEES
-        //             null,
-        //             null,
-        //             '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
-        //             null,
-        //             null,
-        //             null,
-        //             '0x523ec8945500.....................................', // TRANSACTION_ID
-        //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
-        //         ]
+        //         13293039, // ID
+        //         'ETH', // CURRENCY
+        //         'ETHEREUM', // CURRENCY_NAME
+        //         null,
+        //         null,
+        //         1574175052000, // MTS_STARTED
+        //         1574181326000, // MTS_UPDATED
+        //         null,
+        //         null,
+        //         'CANCELED', // STATUS
+        //         null,
+        //         null,
+        //         -0.24, // AMOUNT, negative for withdrawals
+        //         -0.00135, // FEES
+        //         null,
+        //         null,
+        //         '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
+        //         null,
+        //         null,
+        //         null,
+        //         '0x523ec8945500.....................................', // TRANSACTION_ID
+        //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
         const transactionLength = transaction.length;
