@@ -1084,7 +1084,7 @@ module.exports = class coinsbit extends Exchange {
         const code = this.safeString (response, 'code');
         if ((code !== undefined && code !== '200') || !success) {
             const feedback = this.id + ' ' + body;
-            // Just to keep notes: history/result & depth/result endpoints only return pure ARRAY as response, without any code/messages
+            // Note: history/result & depth/result endpoints only return pure ARRAY as response, without any code/messages
             let responseCode = 0;
             if (typeof success === 'string') {
                 if ((success === 'true') || (success === '1')) {
