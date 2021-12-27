@@ -3094,15 +3094,63 @@ module.exports = class huobi extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const clientOrderIds = this.safeValue2 (params, 'clientOrderIds', 'client-order-ids');
-        params = this.omit (params, [ 'clientOrderIds', 'client-order-ids' ]);
-        const request = {};
-        if (clientOrderIds === undefined) {
-            request['order-ids'] = ids;
+        let methodType = undefined;
+        [ methodType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
+        const request = {
+            // spot -----------------------------------------------------------
+            'order-ids': [], // max 50 ids
+            'client-order-ids': [], // max 50 ids
+            // contracts ------------------------------------------------------
+            // 'order_id': id, // comma separated, max 10
+            // 'client_order_id': clientOrderId, // comma separated, max 10
+            // 'contract_code': market['id'],
+            // 'symbol': market['settleId'],
+        };
+        let method = undefined;
+        if (methodType === 'spot') {
+            let clientOrderIds = this.safeString2 (params, 'client-order-id', 'clientOrderId');
+            clientOrderIds = this.safeString2 (params, 'client-order-ids', 'clientOrderIds', clientOrderIds);
+            if (clientOrderIds === undefined) {
+                request['order-ids'] = ids;
+            } else {
+                request['client-order-ids'] = clientOrderIds;
+                params = this.omit (params, [ 'client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds' ]);
+            }
+            method = 'spotPrivatePostV1OrderOrdersBatchcancel';
         } else {
-            request['client-order-ids'] = clientOrderIds;
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol for ' + methodType + ' orders');
+            }
+            const market = this.market (symbol);
+            request['contract_code'] = market['id'];
+            if (methodType === 'future') {
+                method = 'contractPrivatePostApiV1ContractCancel';
+            } else if (methodType === 'swap') {
+                if (market['linear']) {
+                    const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+                    if (marginType === 'isolated') {
+                        method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
+                    } else if (marginType === 'cross') {
+                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
+                    }
+                } else if (market['inverse']) {
+                    method = 'contractPrivatePostSwapApiV1SwapCancel';
+                }
+            } else {
+                throw new NotSupported (this.id + ' cancelOrders() does not support ' + methodType + ' markets');
+            }
+            let clientOrderIds = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+            clientOrderIds = this.safeString2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
+            if (clientOrderIds === undefined) {
+                request['order_id'] = ids;
+            } else {
+                request['client_order_id'] = clientOrderIds;
+                params = this.omit (params, [ 'client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds' ]);
+            }
         }
-        const response = await this.spotPrivatePostV1OrderOrdersBatchcancel (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "status": "ok",
@@ -3133,6 +3181,23 @@ module.exports = class huobi extends Exchange {
         //                 }
         //             ]
         //         }
+        //     }
+        //
+        // contracts
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "errors": [
+        //                 {
+        //                     "order_id": "769206471845261312",
+        //                     "err_code": 1061,
+        //                     "err_msg": "This order doesnt exist."
+        //                 }
+        //             ],
+        //             "successes": "773120304138219520"
+        //         },
+        //         "ts": 1604367997451
         //     }
         //
         return response;
