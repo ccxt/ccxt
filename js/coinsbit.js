@@ -898,8 +898,8 @@ module.exports = class coinsbit extends Exchange {
         //         dealMoney: '7.98856357',
         //         marketName: 'ETH_USDT'
         //      },
-        const isFromFCO = 'role' in order;
-        const isFromFCOs = 'ctime' in order;
+        const isFromFCO = ('role' in order);
+        const isFromFCOs = ('ctime' in order);
         let id = undefined;
         let tradeId = undefined;
         if (isFromFCOs) {
