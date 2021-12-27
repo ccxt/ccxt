@@ -900,7 +900,6 @@ module.exports = class coinsbit extends Exchange {
         //      },
         const isFromFCOs = ('ctime' in order);
         let id = undefined;
-        let tradeId = undefined;
         if (isFromFCOs) {
             id = this.safeString (order, 'id');
         } else {
@@ -930,7 +929,7 @@ module.exports = class coinsbit extends Exchange {
         const willBeFee = Precise.stringMul (cost, feeCoeffMaker); // <<<TODO>> idk if the below 'willBeFee' & 'isFee' implementations make an useful attempt to calculate the actual fee (when using createOrder for limit order, which wasn't executed at market, and thus, has to be executed still). For example, when submiting limit-order (and it's not filled immediately as taker), then `dealFee` returns 0. however, it is still possible to calculate the 'dealFee' that will be when order will be triggered. (so, for limit orders its seems the only way to calculate the fee). however, I'll remove if this is not useful
         return this.safeOrder2 ({
             'id': id,
-            'clientOrderId': tradeId, // <<<TODO>>> should it be here?
+            'clientOrderId': undefined, // <<<TODO>>> should it be here?
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
