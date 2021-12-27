@@ -3125,6 +3125,7 @@ module.exports = class huobi extends Exchange {
             request['contract_code'] = market['id'];
             if (methodType === 'future') {
                 method = 'contractPrivatePostApiV1ContractCancel';
+                request['symbol'] = market['settleId'];
             } else if (methodType === 'swap') {
                 if (market['linear']) {
                     const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
