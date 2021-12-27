@@ -1833,7 +1833,7 @@ module.exports = class phemex extends Exchange {
         } else if (market['swap']) {
             request['orderQty'] = parseInt (amount);
         }
-        if (type === 'Limit') {
+        if ((type === 'Limit') || (type === 'StopLimit') || (type === 'LimitIfTouched')) {
             const priceString = price.toString ();
             request['priceEp'] = this.toEp (priceString, market);
         }
