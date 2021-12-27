@@ -26,9 +26,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
-                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrder': true,
@@ -1261,14 +1259,6 @@ module.exports = class wavesexchange extends Exchange {
         };
         const response = await this.matcherGetMatcherOrderbookPublicKeyOrderId (this.extend (request, params));
         return this.parseOrder (response, market);
-    }
-
-    async fetchOpenOrder (id, symbol = undefined, params = {}) {
-        return this.fetchOrder (id, symbol, params);
-    }
-
-    async fetchClosedOrder (id, symbol = undefined, params = {}) {
-        return this.fetchOrder (id, symbol, params);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
