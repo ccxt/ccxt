@@ -65,7 +65,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'withdraw': undefined,
             },
             'urls': {
-                'logo': 'https://docs.kucoin.com/futures/images/logo_en.svg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg',
                 'doc': [
                     'https://docs.kucoin.com/futures',
                     'https://docs.kucoin.com',
