@@ -1624,21 +1624,138 @@ module.exports = class huobi extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let methodType = undefined;
+        [ methodType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
+        const request = {
+            // spot -----------------------------------------------------------
+            // 'symbol': market['id'],
+            // 'types': 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-limit-maker,sell-limit-maker,buy-stop-limit,sell-stop-limit',
+            // 'start-time': since, // max 48 hours within 120 days
+            // 'end-time': this.milliseconds (), // max 48 hours within 120 days
+            // 'from': 'id', // tring false N/A Search internal id to begin with if search next page, then this should be the last id (not trade-id) of last page; if search previous page, then this should be the first id (not trade-id) of last page
+            // 'direct': 'next', // next, prev
+            // 'size': limit, // default 100, max 500 The number of orders to return [1-500]
+            // contracts ------------------------------------------------------
+            // 'symbol': market['settleId'], // required
+            // 'trade_type': 0, // required, 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
+            // 'contract_code': market['id'],
+            // 'start_time': since, // max 48 hours within 120 days
+            // 'end_time': this.milliseconds (), // max 48 hours within 120 days
+            // 'from_id': 'id', // tring false N/A Search internal id to begin with if search next page, then this should be the last id (not trade-id) of last page; if search previous page, then this should be the first id (not trade-id) of last page
+            // 'direct': 'prev', // next, prev
+            // 'size': limit, // default 20, max 50
+        };
+        let method = undefined;
         let market = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+        if (methodType === 'spot') {
+            if (symbol !== undefined) {
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
+            }
+            if (limit !== undefined) {
+                request['size'] = limit; // default 100, max 500
+            }
+            if (since !== undefined) {
+                request['start-time'] = since; // a date within 120 days from today
+                // request['end-time'] = this.sum (since, 172800000); // 48 hours window
+            }
+            method = 'spotPrivateGetV1OrderMatchresults';
+        } else {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol for ' + methodType + ' orders');
+            }
+            const market = this.market (symbol);
+            request['contract_code'] = market['id'];
+            if (methodType === 'future') {
+                method = 'contractPrivatePostApiV1ContractMatchresultsExact';
+                request['symbol'] = market['settleId'];
+                request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
+            } else if (methodType === 'swap') {
+                if (market['linear']) {
+                    const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+                    if (marginType === 'isolated') {
+                        method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
+                    } else if (marginType === 'cross') {
+                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
+                    }
+                } else if (market['inverse']) {
+                    method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
+                }
+            } else {
+                throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + methodType + ' markets');
+            }
         }
-        if (limit !== undefined) {
-            request['size'] = limit; // 1-100 orders, default is 100
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "symbol": "polyusdt",
+        //                 "fee-currency": "poly",
+        //                 "source": "spot-web",
+        //                 "price": "0.338",
+        //                 "created-at": 1629443051839,
+        //                 "role": "taker",
+        //                 "order-id": 345487249132375,
+        //                 "match-id": 5014,
+        //                 "trade-id": 1085,
+        //                 "filled-amount": "147.928994082840236",
+        //                 "filled-fees": "0",
+        //                 "filled-points": "0.1",
+        //                 "fee-deduct-currency": "hbpoint",
+        //                 "fee-deduct-state": "done",
+        //                 "id": 313288753120940,
+        //                 "type": "buy-market"
+        //             }
+        //         ]
+        //     }
+        //
+        // contracts
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "query_id": 2424420723,
+        //                     "match_id": 113891764710,
+        //                     "order_id": 773135295142658048,
+        //                     "symbol": "ADA",
+        //                     "contract_type": "quarter", // futures only
+        //                     "business_type": "futures", // usdt-m linear swaps only
+        //                     "contract_code": "ADA201225",
+        //                     "direction": "buy",
+        //                     "offset": "open",
+        //                     "trade_volume": 1,
+        //                     "trade_price": 0.092,
+        //                     "trade_turnover": 10,
+        //                     "trade_fee": -0.021739130434782608,
+        //                     "offset_profitloss": 0,
+        //                     "create_date": 1604371703183,
+        //                     "role": "Maker",
+        //                     "order_source": "web",
+        //                     "order_id_str": "773135295142658048",
+        //                     "fee_asset": "ADA",
+        //                     "margin_mode": "isolated", // usdt-m linear swaps only
+        //                     "margin_account": "BTC-USDT", // usdt-m linear swaps only
+        //                     "real_profit": 0,
+        //                     "id": "113891764710-773135295142658048-1"
+        //                 }
+        //             ],
+        //             "remain_size": 15,
+        //             "next_id": 2424413094
+        //         },
+        //         "ts": 1604372202243
+        //     }
+        //
+        let trades = this.safeValue (response, 'data');
+        if (!Array.isArray (trades)) {
+            trades = this.safeValue (trades, 'trades');
         }
-        if (since !== undefined) {
-            request['start-time'] = since; // a date within 120 days from today
-            // request['end-time'] = this.sum (since, 172800000); // 48 hours window
-        }
-        const response = await this.spotPrivateGetV1OrderMatchresults (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
