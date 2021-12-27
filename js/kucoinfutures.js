@@ -17,7 +17,7 @@ module.exports = class kucoinfutures extends kucoin {
             'rateLimit': 75,
             'version': 'v1',
             'certified': false,
-            // 'pro': false,
+            'pro': false,
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': false,
             'has': {
