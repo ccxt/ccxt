@@ -21,7 +21,7 @@ exchange = ccxt.phemex({
     },
 })
 
-exchange.set_sandbox_mode(True)  # uncomment to use the testnet sandbox
+# exchange.set_sandbox_mode(True)  # uncomment to use the testnet sandbox
 
 markets = exchange.load_markets()
 
