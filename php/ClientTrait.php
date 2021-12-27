@@ -2,6 +2,8 @@
 
 namespace ccxtpro;
 
+use \ccxt\async\Throttle;
+
 trait ClientTrait {
 
     public $clients = array();
@@ -51,8 +53,9 @@ trait ClientTrait {
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
                 'loop' => static::$loop, // reactphp-specific
+                'throttle' => new Throttle($this->tokenBucket, static::get_kernel()),
             ), $this->streaming, $ws_options);
-            $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
+            $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);;
         }
         return $this->clients[$url];
     }
@@ -83,11 +86,11 @@ trait ClientTrait {
                     $options = $this->safe_value($this->options, 'ws');
                     $cost = $this->safe_value ($options, 'cost', 1);
                     if ($message) {
-                        if ($this->enableRateLimit && $client->throttle) {
+                        if ($this->enableRateLimit) {
                             // add cost here |
                             //               |
                             //               V
-                            $client->throttle($cost)->then(function ($result) use ($client, $message) {
+                            \call_user_func($client->throttle, $cost)->then(function ($result) use ($client, $message) {
                                 $client->send($message);
                             });
                         } else {
