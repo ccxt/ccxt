@@ -2711,10 +2711,10 @@ class huobi extends Exchange {
         $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-$order-id');
         $amount = $this->safe_string_2($order, 'volume', 'amount');
         $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
-        $filled = $this->safe_string($order, 'trade_volume');
+        $filled = $this->safe_string($order, 'trade_volume', $filled);
         $price = $this->safe_string($order, 'price');
         $cost = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        $cost = $this->safe_string($order, 'trade_turnover');
+        $cost = $this->safe_string($order, 'trade_turnover', $cost);
         $feeCost = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled feeSide
         $feeCost = $this->safe_string($order, 'fee', $feeCost);
         $fee = null;
@@ -3132,6 +3132,7 @@ class huobi extends Exchange {
             $request['contract_code'] = $market['id'];
             if ($methodType === 'future') {
                 $method = 'contractPrivatePostApiV1ContractCancel';
+                $request['symbol'] = $market['settleId'];
             } else if ($methodType === 'swap') {
                 if ($market['linear']) {
                     $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');

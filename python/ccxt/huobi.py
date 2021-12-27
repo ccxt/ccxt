@@ -2600,10 +2600,10 @@ class huobi(Exchange):
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-order-id')
         amount = self.safe_string_2(order, 'volume', 'amount')
         filled = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
-        filled = self.safe_string(order, 'trade_volume')
+        filled = self.safe_string(order, 'trade_volume', filled)
         price = self.safe_string(order, 'price')
         cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
-        cost = self.safe_string(order, 'trade_turnover')
+        cost = self.safe_string(order, 'trade_turnover', cost)
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled feeSide
         feeCost = self.safe_string(order, 'fee', feeCost)
         fee = None
@@ -2979,6 +2979,7 @@ class huobi(Exchange):
             request['contract_code'] = market['id']
             if methodType == 'future':
                 method = 'contractPrivatePostApiV1ContractCancel'
+                request['symbol'] = market['settleId']
             elif methodType == 'swap':
                 if market['linear']:
                     marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
