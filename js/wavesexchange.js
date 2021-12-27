@@ -1400,7 +1400,7 @@ module.exports = class wavesexchange extends Exchange {
         //         ]
         //     }
         //
-        //     fetchOrder(s) & fetchOpenOrder(s) & fetchClosedOrder(s)
+        //     fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
