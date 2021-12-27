@@ -55,7 +55,7 @@ trait ClientTrait {
                 'loop' => static::$loop, // reactphp-specific
                 'throttle' => new Throttle($this->tokenBucket, static::get_kernel()),
             ), $this->streaming, $ws_options);
-            $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);;
+            $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }
         return $this->clients[$url];
     }
