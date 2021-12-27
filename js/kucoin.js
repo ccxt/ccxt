@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -37,7 +37,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFee': true,
-                'fetchFundingHistory': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': false,
                 'fetchL3OrderBook': true,
@@ -719,73 +719,6 @@ module.exports = class kucoin extends Exchange {
         }
         params = this.omit (params, 'type');
         return (type === 'contract') || (type === 'futures');
-    }
-
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // Private
-        // @param symbol (string): The pair for which the contract was traded
-        // @param since (number): The unix start time of the first funding payment requested
-        // @param limit (number): The number of results to return
-        // @param params (dict): Additional parameters to send to the API
-        // @param return: Data for the history of the accounts funding payments for futures contracts
-        //
-        if (this.isFuturesMethod ('fetchFundingHistory', params)) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
-            }
-            await this.loadMarkets ();
-            const market = this.market (symbol);
-            const request = {
-                'symbol': market['id'],
-            };
-            if (since !== undefined) {
-                request['startAt'] = since;
-            }
-            if (limit !== undefined) {
-                request['maxCount'] = limit;
-            }
-            const method = 'futuresPrivateGetFundingHistory';
-            const response = await this[method] (this.extend (request, params));
-            // {
-            //  "data": {
-            //     "dataList": [
-            //       {
-            //         "id": 36275152660006,                // id
-            //         "symbol": "XBTUSDM",                 // Symbol
-            //         "timePoint": 1557918000000,          // Time point (milisecond)
-            //         "fundingRate": 0.000013,             // Funding rate
-            //         "markPrice": 8058.27,                // Mark price
-            //         "positionQty": 10,                   // Position size
-            //         "positionCost": -0.001241,           // Position value at settlement period
-            //         "funding": -0.00000464,              // Settled funding fees. A positive number means that the user received the funding fee, and vice versa.
-            //         "settleCurrency": "XBT"              // Settlement currency
-            //       },
-            //  }
-            // }
-            const data = this.safeValue (response, 'data');
-            const dataList = this.safeValue (data, 'dataList');
-            const fees = [];
-            for (let i = 0; i < dataList.length; i++) {
-                const timestamp = this.safeInteger (dataList[i], 'timePoint');
-                fees.push ({
-                    'info': dataList[i],
-                    'symbol': this.safeSymbol (dataList[i], 'symbol'),
-                    'code': this.safeCurrencyCode (dataList[i], 'settleCurrency'),
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                    'id': this.safeNumber (dataList[i], 'id'),
-                    'amount': this.safeNumber (dataList[i], 'funding'),
-                    'fundingRate': this.safeNumber (dataList[i], 'fundingRate'),
-                    'markPrice': this.safeNumber (dataList[i], 'markPrice'),
-                    'positionQty': this.safeNumber (dataList[i], 'positionQty'),
-                    'positionCost': this.safeNumber (dataList[i], 'positionCost'),
-                });
-            }
-            return fees;
-        } else {
-            throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
-        }
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1837,7 +1770,7 @@ module.exports = class kucoin extends Exchange {
         }
         const tag = this.safeString (transaction, 'memo');
         let timestamp = this.safeInteger2 (transaction, 'createdAt', 'createAt');
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString2 (transaction, 'id', 'withdrawalId');
         let updated = this.safeInteger (transaction, 'updatedAt');
         const isV1 = !('createdAt' in transaction);
         // if it's a v1 structure
@@ -2013,77 +1946,40 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');
-        if ((type === 'contract') || (type === 'futures')) {
-            // futures api requires a futures apiKey
-            // only fetches one balance at a time
-            // by default it will only fetch the BTC balance of the futures account
-            // you can send 'currency' in params to fetch other currencies
-            // fetchBalance ({ 'type': 'futures', 'currency': 'USDT' })
-            const response = await this.futuresPrivateGetAccountOverview (params);
-            //
-            //     {
-            //         code: '200000',
-            //         data: {
-            //             accountEquity: 0.00005,
-            //             unrealisedPNL: 0,
-            //             marginBalance: 0.00005,
-            //             positionMargin: 0,
-            //             orderMargin: 0,
-            //             frozenFunds: 0,
-            //             availableBalance: 0.00005,
-            //             currency: 'XBT'
-            //         }
-            //     }
-            //
-            const result = {
-                'info': response,
-                'timestamp': undefined,
-                'datetime': undefined,
-            };
-            const data = this.safeValue (response, 'data');
-            const currencyId = this.safeString (data, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (data, 'availableBalance');
-            account['total'] = this.safeString (data, 'accountEquity');
-            result[code] = account;
-            return this.safeBalance (result);
-        } else {
-            const request = {
-                'type': type,
-            };
-            const response = await this.privateGetAccounts (this.extend (request, params));
-            //
-            //     {
-            //         "code":"200000",
-            //         "data":[
-            //             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
-            //             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
-            //             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
-            //         ]
-            //     }
-            //
-            const data = this.safeValue (response, 'data', []);
-            const result = {
-                'info': response,
-                'timestamp': undefined,
-                'datetime': undefined,
-            };
-            for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
-                const balanceType = this.safeString (balance, 'type');
-                if (balanceType === type) {
-                    const currencyId = this.safeString (balance, 'currency');
-                    const code = this.safeCurrencyCode (currencyId);
-                    const account = this.account ();
-                    account['total'] = this.safeString (balance, 'balance');
-                    account['free'] = this.safeString (balance, 'available');
-                    account['used'] = this.safeString (balance, 'holds');
-                    result[code] = account;
-                }
+        const request = {
+            'type': type,
+        };
+        const response = await this.privateGetAccounts (this.extend (request, params));
+        //
+        //     {
+        //         "code":"200000",
+        //         "data":[
+        //             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
+        //             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
+        //             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const balanceType = this.safeString (balance, 'type');
+            if (balanceType === type) {
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeString (balance, 'balance');
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'holds');
+                result[code] = account;
             }
-            return this.safeBalance (result);
         }
+        return this.safeBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -2372,94 +2268,6 @@ module.exports = class kucoin extends Exchange {
         const data = this.safeValue (response, 'data');
         const items = this.safeValue (data, 'items');
         return this.parseLedger (items, currency, since, limit);
-    }
-
-    async fetchPositions (symbols = undefined, params = {}) {
-        const response = await this.futuresPrivateGetPositions (params);
-        //
-        //     {
-        //         code: '200000',
-        //         data: [
-        //             {
-        //                 id: '605a9772a229ab0006408258',
-        //                 symbol: 'XBTUSDTM',
-        //                 autoDeposit: false,
-        //                 maintMarginReq: 0.005,
-        //                 riskLimit: 200,
-        //                 realLeverage: 0,
-        //                 crossMode: false,
-        //                 delevPercentage: 0,
-        //                 currentTimestamp: 1616549746099,
-        //                 currentQty: 0,
-        //                 currentCost: 0,
-        //                 currentComm: 0,
-        //                 unrealisedCost: 0,
-        //                 realisedGrossCost: 0,
-        //                 realisedCost: 0,
-        //                 isOpen: false,
-        //                 markPrice: 54371.92,
-        //                 markValue: 0,
-        //                 posCost: 0,
-        //                 posCross: 0,
-        //                 posInit: 0,
-        //                 posComm: 0,
-        //                 posLoss: 0,
-        //                 posMargin: 0,
-        //                 posMaint: 0,
-        //                 maintMargin: 0,
-        //                 realisedGrossPnl: 0,
-        //                 realisedPnl: 0,
-        //                 unrealisedPnl: 0,
-        //                 unrealisedPnlPcnt: 0,
-        //                 unrealisedRoePcnt: 0,
-        //                 avgEntryPrice: 0,
-        //                 liquidationPrice: 0,
-        //                 bankruptPrice: 0,
-        //                 settleCurrency: 'USDT',
-        //                 isInverse: false
-        //             },
-        //             {
-        //                 id: '605a9772026ac900066550df',
-        //                 symbol: 'XBTUSDM',
-        //                 autoDeposit: false,
-        //                 maintMarginReq: 0.005,
-        //                 riskLimit: 200,
-        //                 realLeverage: 0,
-        //                 crossMode: false,
-        //                 delevPercentage: 0,
-        //                 currentTimestamp: 1616549746110,
-        //                 currentQty: 0,
-        //                 currentCost: 0,
-        //                 currentComm: 0,
-        //                 unrealisedCost: 0,
-        //                 realisedGrossCost: 0,
-        //                 realisedCost: 0,
-        //                 isOpen: false,
-        //                 markPrice: 54354.76,
-        //                 markValue: 0,
-        //                 posCost: 0,
-        //                 posCross: 0,
-        //                 posInit: 0,
-        //                 posComm: 0,
-        //                 posLoss: 0,
-        //                 posMargin: 0,
-        //                 posMaint: 0,
-        //                 maintMargin: 0,
-        //                 realisedGrossPnl: 0,
-        //                 realisedPnl: 0,
-        //                 unrealisedPnl: 0,
-        //                 unrealisedPnlPcnt: 0,
-        //                 unrealisedRoePcnt: 0,
-        //                 avgEntryPrice: 0,
-        //                 liquidationPrice: 0,
-        //                 bankruptPrice: 0,
-        //                 settleCurrency: 'XBT',
-        //                 isInverse: true
-        //             }
-        //         ]
-        //     }
-        //
-        return this.safeValue (response, 'data', response);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
