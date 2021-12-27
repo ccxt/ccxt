@@ -35,6 +35,7 @@ class wavesexchange extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
@@ -1240,6 +1241,32 @@ class wavesexchange extends Exchange {
         );
     }
 
+    public function fetch_order($id, $symbol = null, $params = array ()) {
+        $this->check_required_dependencies();
+        $this->check_required_keys();
+        yield $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $timestamp = $this->milliseconds();
+        $byteArray = array(
+            $this->base58_to_binary($this->apiKey),
+            $this->number_to_be($timestamp, 8),
+        );
+        $binary = $this->binary_concat_array($byteArray);
+        $hexSecret = bin2hex($this->base58_to_binary($this->secret));
+        $signature = $this->eddsa(bin2hex($binary), $hexSecret, 'ed25519');
+        $request = array(
+            'Timestamp' => (string) $timestamp,
+            'Signature' => $signature,
+            'publicKey' => $this->apiKey,
+            'orderId' => $id,
+        );
+        $response = yield $this->matcherGetMatcherOrderbookPublicKeyOrderId (array_merge($request, $params));
+        return $this->parse_order($response, $market);
+    }
+
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1379,7 +1406,7 @@ class wavesexchange extends Exchange {
         //         )
         //     }
         //
-        //     fetchClosedOrders
+        //     fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         $id => '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
@@ -1398,7 +1425,8 @@ class wavesexchange extends Exchange {
         //             priceAsset => 'WAVES'
         //         ),
         //         avgWeighedPrice => 0,
-        //         version => 3
+        //         version => 3,
+        //         totalExecutedPriceAssets => 0,  // in fetchOpenOrder/s
         //     }
         //
         $timestamp = $this->safe_integer($order, 'timestamp');
