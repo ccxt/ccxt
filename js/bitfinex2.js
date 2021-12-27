@@ -1442,13 +1442,9 @@ module.exports = class bitfinex2 extends bitfinex {
             type = 'withdrawal';
         } else if (transactionLength === 22) {
             id = this.safeString (transaction, 0);
-            if (currency !== undefined) {
-                code = currency['code'];
-            } else {
-                const currencyId = this.safeString (transaction, 1);
-                currency = this.safeCurrency (currencyId, currency);
-                code = currency['code'];
-            }
+            const currencyId = this.safeString (transaction, 1);
+            currency = this.safeCurrency (currencyId, currency);
+            code = currency['code'];
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
