@@ -21,13 +21,13 @@ module.exports = class coinsbit extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelAllOrders': false,
-                'createMarketOrder': undefined, // <<<TODO>>> in UI there is, but can't do it from API
+                'createMarketOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchFundingRateHistory': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false, // <<<TODO>>> please revise to confirm that this doesn't exist
+                'fetchMyTrades': false,
                 'fetchOrderTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrder': false,
