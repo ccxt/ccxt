@@ -46,7 +46,7 @@ module.exports = class cryptocom extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'withdraw': true,
@@ -382,6 +382,13 @@ module.exports = class cryptocom extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
+        if (since !== undefined) {
+            // maximum date range is one day
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
         const response = await this.privatePostPrivateGetOrderHistory (this.extend (request, params));
         // {
         //     "id": 11,
@@ -442,6 +449,13 @@ module.exports = class cryptocom extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
+        if (since !== undefined) {
+            // maximum date range is one day
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
         const response = await this.publicGetPublicGetTrades (this.extend (request, params));
         // {
         //     "code":0,
@@ -551,11 +565,11 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request = {
             'order_id': id,
         };
@@ -628,10 +642,8 @@ module.exports = class cryptocom extends Exchange {
         //       "client_oid": "my_order_0002"
         //     }
         // }
-        const data = this.safeValue (response, 'result', {});
-        const value = this.safeValue (data, 'order_id');
-        const order = await this.fetchOrder (value, symbol);
-        return order;
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -669,6 +681,9 @@ module.exports = class cryptocom extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
         const response = await this.privatePostPrivateGetOpenOrders (this.extend (request, params));
         // {
         //     "id": 11,
@@ -726,6 +741,13 @@ module.exports = class cryptocom extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
+        }
+        if (since !== undefined) {
+            // maximum date range is one day
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
         }
         const response = await this.privatePostPrivateGetTrades (this.extend (request, params));
         // {
@@ -889,12 +911,11 @@ module.exports = class cryptocom extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
+            // 90 days date range
             request['start_ts'] = since;
-            // max 3 months range https://exchange-docs.crypto.com/spot/index.html#private-get-withdrawal-history
-            request['end_ts'] = this.sum (since, 7776000000);
         }
         if (limit !== undefined) {
-            request['end_ts'] = limit;
+            request['page_size'] = limit;
         }
         const response = await this.privatePostPrivateGetDepositHistory (this.extend (request, params));
         // {
@@ -919,6 +940,50 @@ module.exports = class cryptocom extends Exchange {
         const data = this.safeValue (response, 'result', {});
         const depositList = this.safeValue (data, 'deposit_list', []);
         return this.parseTransactions (depositList, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            // 90 days date range
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.privatePostPrivateGetWithdrawalHistory (this.extend (request, params));
+        //
+        //     {
+        //       id: 1640704829096,
+        //       method: 'private/get-withdrawal-history',
+        //       code: 0,
+        //       result: {
+        //         withdrawal_list: [
+        //           {
+        //             currency: 'DOGE',
+        //             client_wid: '',
+        //             fee: 50,
+        //             create_time: 1640425168000,
+        //             id: '3180557',
+        //             update_time: 1640425168000,
+        //             amount: 1102.64092,
+        //             address: 'DDrGGqmp5Ddo1QH9tUvDfoL4u4rqys5975',
+        //             status: '5',
+        //             txid: 'ce23e9e21b6c38eef953070a05110e6dca2fd2bcc76d3381000547b9ff5290b2/0'
+        //           }
+        //         ]
+        //       }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const withdrawalList = this.safeValue (data, 'withdrawal_list', []);
+        return this.parseTransactions (withdrawalList, currency, since, limit);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -1132,6 +1197,9 @@ module.exports = class cryptocom extends Exchange {
             '1': 'ok',
             '2': 'failed',
             '3': 'pending',
+            '4': 'failed',
+            '5': 'ok',
+            '6': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
