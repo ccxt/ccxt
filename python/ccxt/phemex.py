@@ -1779,6 +1779,14 @@ class phemex(Exchange):
         if stopPrice is not None:
             request['stopPxEp'] = self.to_ep(stopPrice, market)
         params = self.omit(params, ['stopPx', 'stopPrice'])
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        if takeProfitPrice is not None:
+            request['takeProfitEp'] = self.to_ep(takeProfitPrice, market)
+            params = self.omit(params, 'takeProfitPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        if stopLossPrice is not None:
+            request['stopLossEp'] = self.to_ep(stopLossPrice, market)
+            params = self.omit(params, 'stopLossPrice')
         method = 'privatePostSpotOrders' if market['spot'] else 'privatePostOrders'
         response = getattr(self, method)(self.extend(request, params))
         #
