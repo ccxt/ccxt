@@ -9,8 +9,8 @@ date_default_timezone_set ('UTC');
 $exchange = new \ccxt\vaultoro (array (
     // 'verbose' => true, // for debugging
     // 'timeout' => 30000,
-    "apiKey" => "CEwxqNb3GzixcrhzrPkn47JkdsDpff6z",
-    "secret" => "ZXRBWURDN3NSVFNJSmFIRHlOWUVfd1d6UjZwSFdiTGI=",
+    "apiKey" => "YOUR_API_KEY",
+    "secret" => "YOUR_API_SECRET",
 ));
 
 try {
