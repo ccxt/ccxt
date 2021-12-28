@@ -48,3 +48,6 @@ order = exchange.create_order(symbol, 'market', 'buy', amount)
 # closing the previous position by issuing the exact same order but in the opposite direction
 # with reduceOnly option to prevent an unwanted exposure increase
 orderClose = exchange.create_order(symbol, 'market', 'sell', amount, None, {'reduceOnly': True})
+
+# Opening a contract position (market order) with TakeProfit and StopLoss defined
+order = exchange.create_order(symbol, 'market', 'buy', amount, {'stopLoss': 5000, 'takeProfit': 100000})
