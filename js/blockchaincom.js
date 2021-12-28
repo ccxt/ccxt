@@ -13,7 +13,7 @@ module.exports = class blockchaincom extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'blockchaincom',
             'secret': undefined,
-            'name': 'blockchain.com',
+            'name': 'Blockchain.com',
             'countries': ['LX'],
             'rateLimit': 10000,
             'version': 'v3',
