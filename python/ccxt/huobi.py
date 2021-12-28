@@ -3054,18 +3054,49 @@ class huobi(Exchange):
 
     def cancel_all_orders(self, symbol=None, params={}):
         self.load_markets()
+        methodType = None
+        methodType, params = self.handle_market_type_and_params('cancelOrder', None, params)
         request = {
-            # 'account-id' string False NA The account id used for self cancel Refer to GET /v1/account/accounts
+            # spot -----------------------------------------------------------
+            # 'account-id': account['id'],
             # 'symbol': market['id'],  # a list of comma-separated symbols, all symbols by default
             # 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             # 'side': 'buy',  # or 'sell'
             # 'size': 100,  # the number of orders to cancel 1-100
+            # contract -------------------------------------------------------
+            # 'symbol': market['settleId'],  # required
+            # 'contract_code': market['id'],
+            # 'contract_type': 'this_week',  # swap, self_week, next_week, quarter, next_ quarter
+            # 'direction': 'buy':  # buy, sell
+            # 'offset': 'open',  # open, close
         }
         market = None
-        if symbol is not None:
+        method = None
+        if methodType == 'spot':
+            if symbol is not None:
+                market = self.market(symbol)
+                request['symbol'] = market['id']
+            method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders'
+        else:
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol for ' + methodType + ' orders')
             market = self.market(symbol)
-            request['symbol'] = market['id']
-        response = self.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(self.extend(request, params))
+            request['contract_code'] = market['id']
+            if methodType == 'future':
+                method = 'contractPrivatePostApiV1ContractCancelall'
+                request['symbol'] = market['settleId']
+            elif methodType == 'swap':
+                if market['linear']:
+                    marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+                    if marginType == 'isolated':
+                        method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall'
+                    elif marginType == 'cross':
+                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall'
+                elif market['inverse']:
+                    method = 'contractPrivatePostSwapApiV1SwapCancelall'
+            else:
+                raise NotSupported(self.id + ' cancelOrders() does not support ' + methodType + ' markets')
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         code: 200,

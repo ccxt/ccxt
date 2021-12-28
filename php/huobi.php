@@ -3213,19 +3213,55 @@ class huobi extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         $this->load_markets();
+        $methodType = null;
+        list($methodType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
         $request = array(
-            // 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
+            // spot -----------------------------------------------------------
+            // 'account-id' => account['id'],
             // 'symbol' => $market['id'], // a list of comma-separated symbols, all symbols by default
             // 'types' 'string', buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'side' => 'buy', // or 'sell'
             // 'size' => 100, // the number of orders to cancel 1-100
+            // contract -------------------------------------------------------
+            // 'symbol' => $market['settleId'], // required
+            // 'contract_code' => $market['id'],
+            // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
+            // 'direction' => 'buy' => // buy, sell
+            // 'offset' => 'open', // open, close
         );
         $market = null;
-        if ($symbol !== null) {
+        $method = null;
+        if ($methodType === 'spot') {
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders';
+        } else {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol for ' . $methodType . ' orders');
+            }
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['contract_code'] = $market['id'];
+            if ($methodType === 'future') {
+                $method = 'contractPrivatePostApiV1ContractCancelall';
+                $request['symbol'] = $market['settleId'];
+            } else if ($methodType === 'swap') {
+                if ($market['linear']) {
+                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                    if ($marginType === 'isolated') {
+                        $method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
+                    } else if ($marginType === 'cross') {
+                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
+                    }
+                } else if ($market['inverse']) {
+                    $method = 'contractPrivatePostSwapApiV1SwapCancelall';
+                }
+            } else {
+                throw new NotSupported($this->id . ' cancelOrders() does not support ' . $methodType . ' markets');
+            }
         }
-        $response = $this->spotPrivatePostV1OrderOrdersBatchCancelOpenOrders (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         code => 200,
