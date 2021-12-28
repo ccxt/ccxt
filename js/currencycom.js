@@ -305,7 +305,7 @@ module.exports = class currencycom extends Exchange {
             }
             let precisionAmount = Precise.stringDiv ('1', this.parsePrecision (this.safeString (market, 'baseAssetPrecision')));
             let limitAmount = {
-                'min': this.parsePrecision (precisionAmount),
+                'min': undefined,
                 'max': undefined,
             };
             if ('LOT_SIZE' in filtersByType) {
