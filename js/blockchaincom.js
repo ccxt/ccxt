@@ -290,12 +290,14 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        // {
-        //   "symbol": "BTC-USD",
-        //   "price_24h": 47791.86,
-        //   "volume_24h": 362.88635738,
-        //   "last_trade_price": 47587.75
-        // }
+        //
+        //     {
+        //     "symbol": "BTC-USD",
+        //     "price_24h": 47791.86,
+        //     "volume_24h": 362.88635738,
+        //     "last_trade_price": 47587.75
+        //     }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-');
         const last = this.safeNumber (ticker, 'last_trade_price');
@@ -354,22 +356,23 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // {
-        // clOrdId: '00001',
-        // ordType: 'MARKET',
-        // ordStatus: 'FILLED',
-        // side: 'BUY',
-        // symbol: 'USDC-USDT',
-        // exOrdId: '281775861306290',
-        // price: null,
-        // text: 'Fill',
-        // lastShares: '30.0',
-        // lastPx: '0.9999',
-        // leavesQty: '0.0',
-        // cumQty: '30.0',
-        // avgPx: '0.9999',
-        // timestamp: '1633940339619'
-        // }
+        //
+        //     {
+        //         clOrdId: '00001',
+        //         ordType: 'MARKET',
+        //         ordStatus: 'FILLED',
+        //         side: 'BUY',
+        //         symbol: 'USDC-USDT',
+        //         exOrdId: '281775861306290',
+        //         price: null,
+        //         text: 'Fill',
+        //         lastShares: '30.0',
+        //         lastPx: '0.9999',
+        //         leavesQty: '0.0',
+        //         cumQty: '30.0',
+        //         avgPx: '0.9999',
+        //         timestamp: '1633940339619'
+        //     }
         //
         const clientOrderId = this.safeString (order, 'clOrdId');
         const type = this.safeStringLower (order, 'ordType');
@@ -402,7 +405,7 @@ module.exports = class blockchaincom extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'cost': undefined,
-            'trades': [], // "a list of order trades/executions"
+            'trades': [],
             'fees': {},
             'info': order,
         });
@@ -413,13 +416,12 @@ module.exports = class blockchaincom extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const id = market['id'];
         const request = {
             // 'stopPx' : limit price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
             // 'expireDate' : expiry date in the format YYYYMMDD
             // 'minQty' : The minimum quantity required for an IOC fill
-            'symbol': id,
+            'symbol': market['id'],
             'side': side.toUpperCase (),
             'orderQty': this.amountToPrecision (symbol, amount),
             'ordType': type.toUpperCase (), // LIMIT, MARKET, STOP, STOPLIMIT
@@ -468,9 +470,11 @@ module.exports = class blockchaincom extends Exchange {
 
     async fetchTradingFees (params = {}) {
         //
-        // {   makerRate: "0.002",
-        // takerRate: "0.004",
-        // volumeInUSD: "0.0"    }
+        //     {
+        //         makerRate: "0.002",
+        //         takerRate: "0.004",
+        //         volumeInUSD: "0.0"
+        //     }
         //
         await this.loadMarkets ();
         const response = await this.privateGetFees ();
@@ -515,15 +519,17 @@ module.exports = class blockchaincom extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // {"exOrdId":281685751028507,
-        //   "tradeId":281685434947633,
-        //   "execId":8847494003,
-        //   "side":"BUY",
-        //   "symbol":"AAVE-USDT",
-        //   "price":405.34,
-        //   "qty":0.1,
-        //   "fee":0.162136,
-        //   "timestamp":1634559249687}
+        //     {
+        //         "exOrdId":281685751028507,
+        //         "tradeId":281685434947633,
+        //         "execId":8847494003,
+        //         "side":"BUY",
+        //         "symbol":"AAVE-USDT",
+        //         "price":405.34,
+        //         "qty":0.1,
+        //         "fee":0.162136,
+        //         "timestamp":1634559249687
+        //     }
         //
         const id = this.safeString (trade, 'exOrdId');
         const order = this.safeString (trade, 'tradeId');
@@ -622,24 +628,29 @@ module.exports = class blockchaincom extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // Deposit
-        //  {
-        //      "depositId":"748e9180-be0d-4a80-e175-0156150efc95",
-        //      "amount":0.009,
-        //      "currency":"ETH",
-        //      "address":"0xEC6B5929D454C8D9546d4221ace969E1810Fa92c",
-        //      "state":"COMPLETED",
-        //      "txHash":"582114562140e51a80b481c2dfebaf62b4ab9769b8ff54820bb67e34d4a3ab0c",
-        //      "timestamp":1633697196241},
+        // deposit
         //
-        // Withdrawal
-        // { "amount":30.0,
-        //   "currency":"USDT",
-        //   "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa", // blockchain specific id
-        //   "withdrawalId":"99df5ef7-eab6-4033-be49-312930fbd1ea",
-        //   "fee":34.005078,
-        //   "state":"COMPLETED",
-        //   "timestamp":1634218452549 }
+        //     {
+        //         "depositId":"748e9180-be0d-4a80-e175-0156150efc95",
+        //         "amount":0.009,
+        //         "currency":"ETH",
+        //         "address":"0xEC6B5929D454C8D9546d4221ace969E1810Fa92c",
+        //         "state":"COMPLETED",
+        //         "txHash":"582114562140e51a80b481c2dfebaf62b4ab9769b8ff54820bb67e34d4a3ab0c",
+        //         "timestamp":1633697196241
+        //     }
+        //
+        // withdrawal
+        //
+        //     {
+        //         "amount":30.0,
+        //         "currency":"USDT",
+        //         "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa", // blockchain specific id
+        //         "withdrawalId":"99df5ef7-eab6-4033-be49-312930fbd1ea",
+        //         "fee":34.005078,
+        //         "state":"COMPLETED",
+        //         "timestamp":1634218452549
+        //     }
         //
         let type = undefined;
         let id = undefined;
@@ -660,15 +671,17 @@ module.exports = class blockchaincom extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
+        const address = this.safeString (transaction, 'address');
+        const txid = this.safeString (transaction, 'txhash');
         const result = {
             'info': transaction,
             'id': id,
-            'txid': (type === 'deposit') ? this.safeString (transaction, 'txhash') : undefined,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined,
-            'address': (type === 'deposit') ? this.safeString (transaction, 'address') : undefined,
-            'addressTo': (type === 'deposit') ? this.safeString (transaction, 'address') : undefined,
+            'address': address,
+            'addressTo': address,
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
@@ -729,14 +742,15 @@ module.exports = class blockchaincom extends Exchange {
         };
         const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
-        // response:
-        // {               amount: "30.0",
-        //               currency: "USDT",
-        //            beneficiary: "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-        //           withdrawalId: "99df5ef7-eab6-4033-be49-312930fbd1ea",
-        //                    fee: "34.005078",
-        //                  state: "PENDING",
-        //              timestamp: "1634218452595"               },
+        //     {
+        //         amount: "30.0",
+        //         currency: "USDT",
+        //         beneficiary: "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
+        //         withdrawalId: "99df5ef7-eab6-4033-be49-312930fbd1ea",
+        //         fee: "34.005078",
+        //         state: "PENDING",
+        //         timestamp: "1634218452595"
+        //     },
         //
         const withdrawalId = this.safeString (response, 'withdrawalId');
         const result = {
@@ -799,13 +813,20 @@ module.exports = class blockchaincom extends Exchange {
             'account': accountName,
         };
         const response = await this.privateGetAccounts (this.extend (request, params));
-        // {"primary":
-        //  [ {"currency":"ETH",
-        //      "balance":0.009,
-        //      "available":0.009,
-        //      "balance_local":30.82869,
-        //      "available_local":30.82869,
-        //      "rate":3425.41}, ... ]
+        //
+        //     {
+        //         "primary": [
+        //             {
+        //                 "currency":"ETH",
+        //                 "balance":0.009,
+        //                 "available":0.009,
+        //                 "balance_local":30.82869,
+        //                 "available_local":30.82869,
+        //                 "rate":3425.41
+        //             },
+        //             ...
+        //         ]
+        //     }
         //
         const balances = this.safeValue (response, accountName);
         if (balances === undefined) {
@@ -833,22 +854,22 @@ module.exports = class blockchaincom extends Exchange {
         };
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         //
-        // {
-        // "exOrdId": 11111111,
-        // "clOrdId": "ABC",
-        // "ordType": "MARKET",
-        // "ordStatus": "FILLED",
-        // "side": "BUY",
-        // "price": 0.12345,
-        // "text": "string",
-        // "symbol": "BTC-USD",
-        // "lastShares": 0.5678,
-        // "lastPx": 3500.12,
-        // "leavesQty": 10,
-        // "cumQty": 0.123345,
-        // "avgPx": 345.33,
-        // "timestamp": 1592830770594
-        // }
+        //     {
+        //         "exOrdId": 11111111,
+        //         "clOrdId": "ABC",
+        //         "ordType": "MARKET",
+        //         "ordStatus": "FILLED",
+        //         "side": "BUY",
+        //         "price": 0.12345,
+        //         "text": "string",
+        //         "symbol": "BTC-USD",
+        //         "lastShares": 0.5678,
+        //         "lastPx": 3500.12,
+        //         "leavesQty": 10,
+        //         "cumQty": 0.123345,
+        //         "avgPx": 345.33,
+        //         "timestamp": 1592830770594
+        //     }
         //
         return this.parseOrder (response);
     }
