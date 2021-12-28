@@ -177,13 +177,6 @@ module.exports = class currencycom extends Exchange {
         return this.options['timeDifference'];
     }
 
-    parsePrecision (precision) {
-        if (precision === undefined) {
-            return undefined;
-        }
-        return '1e' + Precise.stringNeg (precision);
-    }
-
     async fetchMarkets (params = {}) {
         const response = await this.publicGetExchangeInfo (params);
         //
