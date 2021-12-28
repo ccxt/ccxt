@@ -475,7 +475,7 @@ The CCXT library currently supports the following 111 cryptocurrency exchange ma
           :alt: blockchaincom
      
      - blockchaincom
-     - `blockchain.com <https://blockchain.com>`__
+     - `Blockchain.com <https://blockchain.com>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://api.blockchain.com/v3
           :alt: API Version 3

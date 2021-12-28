@@ -15,7 +15,7 @@ class blockchaincom extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'blockchaincom',
             'secret' => null,
-            'name' => 'blockchain.com',
+            'name' => 'Blockchain.com',
             'countries' => ['LX'],
             'rateLimit' => 10000,
             'version' => 'v3',
