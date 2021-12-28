@@ -10,7 +10,7 @@ module.exports = class coinsbitin extends coinsbit {
             'id': 'coinsbitin',
             'name': 'Coinsbit India',
             'countries': ['IN'],
-            'hostname': 'coinsbit.io',
+            'hostname': 'coinsbit.in',
             'urls': {
                 'logo': '<<<TODO>>>',
             },
