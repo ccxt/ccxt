@@ -2262,35 +2262,48 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders');
+        if (method === 'spot_private_get_v1_order_orders') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrdersByStates() requires a symbol argument');
+            }
+        }
         await this.loadMarkets ();
+        let market = undefined;
         const request = {
             'states': states,
+            // 'symbol': market['id'],
         };
-        let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders');
         const response = await this[method] (this.extend (request, params));
         //
-        //     { status:   "ok",
-        //         data: [ {                  id:  13997833014,
-        //                                symbol: "ethbtc",
-        //                          'account-id':  3398321,
-        //                                amount: "0.045000000000000000",
-        //                                 price: "0.034014000000000000",
-        //                          'created-at':  1545836976871,
-        //                                  type: "sell-limit",
-        //                        'field-amount': "0.045000000000000000",
-        //                   'field-cash-amount': "0.001530630000000000",
-        //                          'field-fees': "0.000003061260000000",
-        //                         'finished-at':  1545837948214,
-        //                                source: "spot-api",
-        //                                 state: "filled",
-        //                         'canceled-at':  0                      }  ] }
+        //     {
+        //         status: "ok",
+        //         data: [
+        //             {
+        //                 id: 13997833014,
+        //                 symbol: "ethbtc",
+        //                 'account-id': 3398321,
+        //                 amount: "0.045000000000000000",
+        //                 price: "0.034014000000000000",
+        //                 'created-at': 1545836976871,
+        //                 type: "sell-limit",
+        //                 'field-amount': "0.045000000000000000",
+        //                 'field-cash-amount': "0.001530630000000000",
+        //                 'field-fees': "0.000003061260000000",
+        //                 'finished-at': 1545837948214,
+        //                 source: "spot-api",
+        //                 state: "filled",
+        //                 'canceled-at': 0
+        //             }
+        //         ]
+        //     }
         //
-        return this.parseOrders (response['data'], market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
