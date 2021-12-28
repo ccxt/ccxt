@@ -292,12 +292,14 @@ class blockchaincom extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        // {
-        //   "symbol" => "BTC-USD",
-        //   "price_24h" => 47791.86,
-        //   "volume_24h" => 362.88635738,
-        //   "last_trade_price" => 47587.75
-        // }
+        //
+        //     {
+        //     "symbol" => "BTC-USD",
+        //     "price_24h" => 47791.86,
+        //     "volume_24h" => 362.88635738,
+        //     "last_trade_price" => 47587.75
+        //     }
+        //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $last = $this->safe_number($ticker, 'last_trade_price');
@@ -356,22 +358,23 @@ class blockchaincom extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        // {
-        // clOrdId => '00001',
-        // ordType => 'MARKET',
-        // ordStatus => 'FILLED',
-        // $side => 'BUY',
-        // $symbol => 'USDC-USDT',
-        // exOrdId => '281775861306290',
-        // $price => null,
-        // text => 'Fill',
-        // lastShares => '30.0',
-        // lastPx => '0.9999',
-        // leavesQty => '0.0',
-        // cumQty => '30.0',
-        // avgPx => '0.9999',
-        // $timestamp => '1633940339619'
-        // }
+        //
+        //     {
+        //         clOrdId => '00001',
+        //         ordType => 'MARKET',
+        //         ordStatus => 'FILLED',
+        //         $side => 'BUY',
+        //         $symbol => 'USDC-USDT',
+        //         exOrdId => '281775861306290',
+        //         $price => null,
+        //         text => 'Fill',
+        //         lastShares => '30.0',
+        //         lastPx => '0.9999',
+        //         leavesQty => '0.0',
+        //         cumQty => '30.0',
+        //         avgPx => '0.9999',
+        //         $timestamp => '1633940339619'
+        //     }
         //
         $clientOrderId = $this->safe_string($order, 'clOrdId');
         $type = $this->safe_string_lower($order, 'ordType');
@@ -404,7 +407,7 @@ class blockchaincom extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'cost' => null,
-            'trades' => array(), // "a list of $order trades/executions"
+            'trades' => array(),
             'fees' => array(),
             'info' => $order,
         ));
@@ -415,13 +418,12 @@ class blockchaincom extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId', $this->uuid16());
         $this->load_markets();
         $market = $this->market($symbol);
-        $id = $market['id'];
         $request = array(
             // 'stopPx' : limit $price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
             // 'expireDate' : expiry date in the format YYYYMMDD
             // 'minQty' : The minimum quantity required for an IOC fill
-            'symbol' => $id,
+            'symbol' => $market['id'],
             'side' => strtoupper($side),
             'orderQty' => $this->amount_to_precision($symbol, $amount),
             'ordType' => strtoupper($type), // LIMIT, MARKET, STOP, STOPLIMIT
@@ -470,9 +472,11 @@ class blockchaincom extends Exchange {
 
     public function fetch_trading_fees($params = array ()) {
         //
-        // {   makerRate => "0.002",
-        // takerRate => "0.004",
-        // volumeInUSD => "0.0"    }
+        //     {
+        //         makerRate => "0.002",
+        //         takerRate => "0.004",
+        //         volumeInUSD => "0.0"
+        //     }
         //
         $this->load_markets();
         $response = $this->privateGetFees ();
@@ -517,15 +521,17 @@ class blockchaincom extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
-        // {"exOrdId":281685751028507,
-        //   "tradeId":281685434947633,
-        //   "execId":8847494003,
-        //   "side":"BUY",
-        //   "symbol":"AAVE-USDT",
-        //   "price":405.34,
-        //   "qty":0.1,
-        //   "fee":0.162136,
-        //   "timestamp":1634559249687}
+        //     {
+        //         "exOrdId":281685751028507,
+        //         "tradeId":281685434947633,
+        //         "execId":8847494003,
+        //         "side":"BUY",
+        //         "symbol":"AAVE-USDT",
+        //         "price":405.34,
+        //         "qty":0.1,
+        //         "fee":0.162136,
+        //         "timestamp":1634559249687
+        //     }
         //
         $id = $this->safe_string($trade, 'exOrdId');
         $order = $this->safe_string($trade, 'tradeId');
@@ -624,24 +630,29 @@ class blockchaincom extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
-        // Deposit
-        //  array(
-        //      "depositId":"748e9180-be0d-4a80-e175-0156150efc95",
-        //      "amount":0.009,
-        //      "currency":"ETH",
-        //      "address":"0xEC6B5929D454C8D9546d4221ace969E1810Fa92c",
-        //      "state":"COMPLETED",
-        //      "txHash":"582114562140e51a80b481c2dfebaf62b4ab9769b8ff54820bb67e34d4a3ab0c",
-        //      "timestamp":1633697196241),
+        // deposit
         //
-        // Withdrawal
-        // { "amount":30.0,
-        //   "currency":"USDT",
-        //   "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa", // blockchain specific $id
-        //   "withdrawalId":"99df5ef7-eab6-4033-be49-312930fbd1ea",
-        //   "fee":34.005078,
-        //   "state":"COMPLETED",
-        //   "timestamp":1634218452549 }
+        //     {
+        //         "depositId":"748e9180-be0d-4a80-e175-0156150efc95",
+        //         "amount":0.009,
+        //         "currency":"ETH",
+        //         "address":"0xEC6B5929D454C8D9546d4221ace969E1810Fa92c",
+        //         "state":"COMPLETED",
+        //         "txHash":"582114562140e51a80b481c2dfebaf62b4ab9769b8ff54820bb67e34d4a3ab0c",
+        //         "timestamp":1633697196241
+        //     }
+        //
+        // withdrawal
+        //
+        //     {
+        //         "amount":30.0,
+        //         "currency":"USDT",
+        //         "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa", // blockchain specific $id
+        //         "withdrawalId":"99df5ef7-eab6-4033-be49-312930fbd1ea",
+        //         "fee":34.005078,
+        //         "state":"COMPLETED",
+        //         "timestamp":1634218452549
+        //     }
         //
         $type = null;
         $id = null;
@@ -662,15 +673,17 @@ class blockchaincom extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
+        $address = $this->safe_string($transaction, 'address');
+        $txid = $this->safe_string($transaction, 'txhash');
         $result = array(
             'info' => $transaction,
             'id' => $id,
-            'txid' => ($type === 'deposit') ? $this->safe_string($transaction, 'txhash') : null,
+            'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'addressFrom' => null,
-            'address' => ($type === 'deposit') ? $this->safe_string($transaction, 'address') : null,
-            'addressTo' => ($type === 'deposit') ? $this->safe_string($transaction, 'address') : null,
+            'address' => $address,
+            'addressTo' => $address,
             'tagFrom' => null,
             'tag' => null,
             'tagTo' => null,
@@ -731,14 +744,15 @@ class blockchaincom extends Exchange {
         );
         $response = $this->privatePostWithdrawals (array_merge($request, $params));
         //
-        // $response:
-        // array(               $amount => "30.0",
-        //               currency => "USDT",
-        //            beneficiary => "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-        //           $withdrawalId => "99df5ef7-eab6-4033-be49-312930fbd1ea",
-        //                    fee => "34.005078",
-        //                  state => "PENDING",
-        //              timestamp => "1634218452595"               ),
+        //     array(
+        //         $amount => "30.0",
+        //         currency => "USDT",
+        //         beneficiary => "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
+        //         $withdrawalId => "99df5ef7-eab6-4033-be49-312930fbd1ea",
+        //         fee => "34.005078",
+        //         state => "PENDING",
+        //         timestamp => "1634218452595"
+        //     ),
         //
         $withdrawalId = $this->safe_string($response, 'withdrawalId');
         $result = array(
@@ -801,13 +815,20 @@ class blockchaincom extends Exchange {
             'account' => $accountName,
         );
         $response = $this->privateGetAccounts (array_merge($request, $params));
-        // {"primary":
-        //  array( array("currency":"ETH",
-        //      "balance":0.009,
-        //      "available":0.009,
-        //      "balance_local":30.82869,
-        //      "available_local":30.82869,
-        //      "rate":3425.41), ... )
+        //
+        //     {
+        //         "primary" => array(
+        //             array(
+        //                 "currency":"ETH",
+        //                 "balance":0.009,
+        //                 "available":0.009,
+        //                 "balance_local":30.82869,
+        //                 "available_local":30.82869,
+        //                 "rate":3425.41
+        //             ),
+        //             ...
+        //         )
+        //     }
         //
         $balances = $this->safe_value($response, $accountName);
         if ($balances === null) {
@@ -835,22 +856,22 @@ class blockchaincom extends Exchange {
         );
         $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
         //
-        // {
-        // "exOrdId" => 11111111,
-        // "clOrdId" => "ABC",
-        // "ordType" => "MARKET",
-        // "ordStatus" => "FILLED",
-        // "side" => "BUY",
-        // "price" => 0.12345,
-        // "text" => "string",
-        // "symbol" => "BTC-USD",
-        // "lastShares" => 0.5678,
-        // "lastPx" => 3500.12,
-        // "leavesQty" => 10,
-        // "cumQty" => 0.123345,
-        // "avgPx" => 345.33,
-        // "timestamp" => 1592830770594
-        // }
+        //     {
+        //         "exOrdId" => 11111111,
+        //         "clOrdId" => "ABC",
+        //         "ordType" => "MARKET",
+        //         "ordStatus" => "FILLED",
+        //         "side" => "BUY",
+        //         "price" => 0.12345,
+        //         "text" => "string",
+        //         "symbol" => "BTC-USD",
+        //         "lastShares" => 0.5678,
+        //         "lastPx" => 3500.12,
+        //         "leavesQty" => 10,
+        //         "cumQty" => 0.123345,
+        //         "avgPx" => 345.33,
+        //         "timestamp" => 1592830770594
+        //     }
         //
         return $this->parse_order($response);
     }
