@@ -1126,7 +1126,8 @@ module.exports = class kucoinfutures extends kucoin {
 
     parseOrder (order, market = undefined) {
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const orderId = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
@@ -1140,7 +1141,11 @@ module.exports = class kucoinfutures extends kucoin {
         const feeCost = this.safeNumber (order, 'fee');
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'dealSize');
-        const cost = this.safeString2 (order, 'dealFunds', 'filledValue');
+        const rawCost = this.safeString2 (order, 'dealFunds', 'filledValue');
+        const leverage = this.safeString (order, 'leverage');
+        const cost = Precise.stringDiv (rawCost, leverage);
+        // precision reported by their api is 8 d.p.
+        const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
@@ -1174,7 +1179,7 @@ module.exports = class kucoinfutures extends kucoin {
             'status': status,
             'info': order,
             'lastTradeTimestamp': undefined,
-            'average': undefined,
+            'average': average,
             'trades': undefined,
         }, market);
     }
