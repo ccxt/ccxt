@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -176,6 +177,13 @@ module.exports = class currencycom extends Exchange {
         return this.options['timeDifference'];
     }
 
+    parsePrecision (precision) {
+        if (precision === undefined) {
+            return undefined;
+        }
+        return '1e' + Precise.stringNeg (precision);
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetExchangeInfo (params);
         //
@@ -295,9 +303,9 @@ module.exports = class currencycom extends Exchange {
                     limitPriceMax = maxPrice;
                 }
             }
-            let precisionAmount = 1 / Math.pow (1, this.safeInteger (market, 'baseAssetPrecision'));
+            let precisionAmount = Precise.stringDiv ('1', this.parsePrecision (this.safeString (market, 'baseAssetPrecision')));
             let limitAmount = {
-                'min': Math.pow (10, -precisionAmount),
+                'min': this.parsePrecision ('-' + precisionAmount),
                 'max': undefined,
             };
             if ('LOT_SIZE' in filtersByType) {
@@ -319,7 +327,7 @@ module.exports = class currencycom extends Exchange {
                     'max': this.safeNumber (filter, 'maxQty'),
                 };
             }
-            let costMin = -Math.log10 (precisionAmount);
+            let costMin = undefined;
             if ('MIN_NOTIONAL' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
                 costMin = this.safeNumber (filter, 'minNotional');
