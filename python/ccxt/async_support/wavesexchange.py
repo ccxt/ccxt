@@ -41,6 +41,7 @@ class wavesexchange(Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
+                'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
@@ -1176,6 +1177,30 @@ class wavesexchange(Exchange):
             'trades': None,
         }
 
+    async def fetch_order(self, id, symbol=None, params={}):
+        self.check_required_dependencies()
+        self.check_required_keys()
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        timestamp = self.milliseconds()
+        byteArray = [
+            self.base58_to_binary(self.apiKey),
+            self.number_to_be(timestamp, 8),
+        ]
+        binary = self.binary_concat_array(byteArray)
+        hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
+        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        request = {
+            'Timestamp': str(timestamp),
+            'Signature': signature,
+            'publicKey': self.apiKey,
+            'orderId': id,
+        }
+        response = await self.matcherGetMatcherOrderbookPublicKeyOrderId(self.extend(request, params))
+        return self.parse_order(response, market)
+
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1307,7 +1332,7 @@ class wavesexchange(Exchange):
         #         ]
         #     }
         #
-        #     fetchClosedOrders
+        #     fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         #
         #     {
         #         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
@@ -1326,7 +1351,8 @@ class wavesexchange(Exchange):
         #             priceAsset: 'WAVES'
         #         },
         #         avgWeighedPrice: 0,
-        #         version: 3
+        #         version: 3,
+        #         totalExecutedPriceAssets: 0,  # in fetchOpenOrder/s
         #     }
         #
         timestamp = self.safe_integer(order, 'timestamp')

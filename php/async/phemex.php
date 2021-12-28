@@ -1836,7 +1836,7 @@ class phemex extends Exchange {
         } else if ($market['swap']) {
             $request['orderQty'] = intval($amount);
         }
-        if ($type === 'Limit') {
+        if (($type === 'Limit') || ($type === 'StopLimit') || ($type === 'LimitIfTouched')) {
             $priceString = (string) $price;
             $request['priceEp'] = $this->to_ep($priceString, $market);
         }

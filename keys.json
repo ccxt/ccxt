@@ -9,7 +9,7 @@
     "bitget":        { "skip": true },
     "bitmart":       { "skip": true },
     "btcmarkets":    { "skip": true },
-    "braziliex":     { "skip":  true },
+    "braziliex":     { "skip": true },
     "buda":          { "skip": true },
     "coinegg":       { "skip": true },
     "coinfalcon":    { "skip": true },

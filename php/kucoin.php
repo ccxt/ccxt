@@ -7,9 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
 
 class kucoin extends Exchange {
 
@@ -41,7 +39,7 @@ class kucoin extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFee' => true,
-                'fetchFundingHistory' => true,
+                'fetchFundingHistory' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => true,
@@ -723,73 +721,6 @@ class kucoin extends Exchange {
         }
         $params = $this->omit($params, 'type');
         return ($type === 'contract') || ($type === 'futures');
-    }
-
-    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        //
-        // Private
-        // @param $symbol (string) => The pair for which the contract was traded
-        // @param $since (number) => The unix start time of the first funding payment requested
-        // @param $limit (number) => The number of results to return
-        // @param $params (dict) => Additional parameters to send to the API
-        // @param return => Data for the history of the accounts funding payments for futures contracts
-        //
-        if ($this->is_futures_method('fetchFundingHistory', $params)) {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
-            }
-            $this->load_markets();
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if ($since !== null) {
-                $request['startAt'] = $since;
-            }
-            if ($limit !== null) {
-                $request['maxCount'] = $limit;
-            }
-            $method = 'futuresPrivateGetFundingHistory';
-            $response = $this->$method (array_merge($request, $params));
-            // {
-            //  "data" => {
-            //     "dataList" => [
-            //       array(
-            //         "id" => 36275152660006,                // id
-            //         "symbol" => "XBTUSDM",                 // Symbol
-            //         "timePoint" => 1557918000000,          // Time point (milisecond)
-            //         "fundingRate" => 0.000013,             // Funding rate
-            //         "markPrice" => 8058.27,                // Mark price
-            //         "positionQty" => 10,                   // Position size
-            //         "positionCost" => -0.001241,           // Position value at settlement period
-            //         "funding" => -0.00000464,              // Settled funding $fees-> A positive number means that the user received the funding fee, and vice versa.
-            //         "settleCurrency" => "XBT"              // Settlement currency
-            //       ),
-            //  }
-            // }
-            $data = $this->safe_value($response, 'data');
-            $dataList = $this->safe_value($data, 'dataList');
-            $fees = array();
-            for ($i = 0; $i < count($dataList); $i++) {
-                $timestamp = $this->safe_integer($dataList[$i], 'timePoint');
-                $fees[] = array(
-                    'info' => $dataList[$i],
-                    'symbol' => $this->safe_symbol($dataList[$i], 'symbol'),
-                    'code' => $this->safe_currency_code($dataList[$i], 'settleCurrency'),
-                    'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601($timestamp),
-                    'id' => $this->safe_number($dataList[$i], 'id'),
-                    'amount' => $this->safe_number($dataList[$i], 'funding'),
-                    'fundingRate' => $this->safe_number($dataList[$i], 'fundingRate'),
-                    'markPrice' => $this->safe_number($dataList[$i], 'markPrice'),
-                    'positionQty' => $this->safe_number($dataList[$i], 'positionQty'),
-                    'positionCost' => $this->safe_number($dataList[$i], 'positionCost'),
-                );
-            }
-            return $fees;
-        } else {
-            throw new NotSupported($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
-        }
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1841,7 +1772,7 @@ class kucoin extends Exchange {
         }
         $tag = $this->safe_string($transaction, 'memo');
         $timestamp = $this->safe_integer_2($transaction, 'createdAt', 'createAt');
-        $id = $this->safe_string($transaction, 'id');
+        $id = $this->safe_string_2($transaction, 'id', 'withdrawalId');
         $updated = $this->safe_integer($transaction, 'updatedAt');
         $isV1 = !(is_array($transaction) && array_key_exists('createdAt', $transaction));
         // if it's a v1 structure
@@ -2017,77 +1948,40 @@ class kucoin extends Exchange {
             throw new ExchangeError($this->id . ' $type must be one of ' . implode(', ', $keys));
         }
         $params = $this->omit($params, 'type');
-        if (($type === 'contract') || ($type === 'futures')) {
-            // futures api requires a futures apiKey
-            // only fetches one $balance at a time
-            // by default it will only fetch the BTC $balance of the futures $account
-            // you can send 'currency' in $params to fetch other currencies
-            // fetchBalance (array( 'type' => 'futures', 'currency' => 'USDT' ))
-            $response = $this->futuresPrivateGetAccountOverview ($params);
-            //
-            //     {
-            //         $code => '200000',
-            //         $data => {
-            //             accountEquity => 0.00005,
-            //             unrealisedPNL => 0,
-            //             marginBalance => 0.00005,
-            //             positionMargin => 0,
-            //             orderMargin => 0,
-            //             frozenFunds => 0,
-            //             availableBalance => 0.00005,
-            //             currency => 'XBT'
-            //         }
-            //     }
-            //
-            $result = array(
-                'info' => $response,
-                'timestamp' => null,
-                'datetime' => null,
-            );
-            $data = $this->safe_value($response, 'data');
-            $currencyId = $this->safe_string($data, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($data, 'availableBalance');
-            $account['total'] = $this->safe_string($data, 'accountEquity');
-            $result[$code] = $account;
-            return $this->safe_balance($result);
-        } else {
-            $request = array(
-                'type' => $type,
-            );
-            $response = $this->privateGetAccounts (array_merge($request, $params));
-            //
-            //     {
-            //         "code":"200000",
-            //         "data":array(
-            //             array("balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"),
-            //             array("balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"),
-            //             array("balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"),
-            //         )
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            $result = array(
-                'info' => $response,
-                'timestamp' => null,
-                'datetime' => null,
-            );
-            for ($i = 0; $i < count($data); $i++) {
-                $balance = $data[$i];
-                $balanceType = $this->safe_string($balance, 'type');
-                if ($balanceType === $type) {
-                    $currencyId = $this->safe_string($balance, 'currency');
-                    $code = $this->safe_currency_code($currencyId);
-                    $account = $this->account();
-                    $account['total'] = $this->safe_string($balance, 'balance');
-                    $account['free'] = $this->safe_string($balance, 'available');
-                    $account['used'] = $this->safe_string($balance, 'holds');
-                    $result[$code] = $account;
-                }
+        $request = array(
+            'type' => $type,
+        );
+        $response = $this->privateGetAccounts (array_merge($request, $params));
+        //
+        //     {
+        //         "code":"200000",
+        //         "data":array(
+        //             array("balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"),
+        //             array("balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"),
+        //             array("balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        for ($i = 0; $i < count($data); $i++) {
+            $balance = $data[$i];
+            $balanceType = $this->safe_string($balance, 'type');
+            if ($balanceType === $type) {
+                $currencyId = $this->safe_string($balance, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['total'] = $this->safe_string($balance, 'balance');
+                $account['free'] = $this->safe_string($balance, 'available');
+                $account['used'] = $this->safe_string($balance, 'holds');
+                $result[$code] = $account;
             }
-            return $this->safe_balance($result);
         }
+        return $this->safe_balance($result);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
@@ -2376,94 +2270,6 @@ class kucoin extends Exchange {
         $data = $this->safe_value($response, 'data');
         $items = $this->safe_value($data, 'items');
         return $this->parse_ledger($items, $currency, $since, $limit);
-    }
-
-    public function fetch_positions($symbols = null, $params = array ()) {
-        $response = $this->futuresPrivateGetPositions ($params);
-        //
-        //     {
-        //         code => '200000',
-        //         data => array(
-        //             array(
-        //                 id => '605a9772a229ab0006408258',
-        //                 symbol => 'XBTUSDTM',
-        //                 autoDeposit => false,
-        //                 maintMarginReq => 0.005,
-        //                 riskLimit => 200,
-        //                 realLeverage => 0,
-        //                 crossMode => false,
-        //                 delevPercentage => 0,
-        //                 currentTimestamp => 1616549746099,
-        //                 currentQty => 0,
-        //                 currentCost => 0,
-        //                 currentComm => 0,
-        //                 unrealisedCost => 0,
-        //                 realisedGrossCost => 0,
-        //                 realisedCost => 0,
-        //                 isOpen => false,
-        //                 markPrice => 54371.92,
-        //                 markValue => 0,
-        //                 posCost => 0,
-        //                 posCross => 0,
-        //                 posInit => 0,
-        //                 posComm => 0,
-        //                 posLoss => 0,
-        //                 posMargin => 0,
-        //                 posMaint => 0,
-        //                 maintMargin => 0,
-        //                 realisedGrossPnl => 0,
-        //                 realisedPnl => 0,
-        //                 unrealisedPnl => 0,
-        //                 unrealisedPnlPcnt => 0,
-        //                 unrealisedRoePcnt => 0,
-        //                 avgEntryPrice => 0,
-        //                 liquidationPrice => 0,
-        //                 bankruptPrice => 0,
-        //                 settleCurrency => 'USDT',
-        //                 isInverse => false
-        //             ),
-        //             {
-        //                 id => '605a9772026ac900066550df',
-        //                 symbol => 'XBTUSDM',
-        //                 autoDeposit => false,
-        //                 maintMarginReq => 0.005,
-        //                 riskLimit => 200,
-        //                 realLeverage => 0,
-        //                 crossMode => false,
-        //                 delevPercentage => 0,
-        //                 currentTimestamp => 1616549746110,
-        //                 currentQty => 0,
-        //                 currentCost => 0,
-        //                 currentComm => 0,
-        //                 unrealisedCost => 0,
-        //                 realisedGrossCost => 0,
-        //                 realisedCost => 0,
-        //                 isOpen => false,
-        //                 markPrice => 54354.76,
-        //                 markValue => 0,
-        //                 posCost => 0,
-        //                 posCross => 0,
-        //                 posInit => 0,
-        //                 posComm => 0,
-        //                 posLoss => 0,
-        //                 posMargin => 0,
-        //                 posMaint => 0,
-        //                 maintMargin => 0,
-        //                 realisedGrossPnl => 0,
-        //                 realisedPnl => 0,
-        //                 unrealisedPnl => 0,
-        //                 unrealisedPnlPcnt => 0,
-        //                 unrealisedRoePcnt => 0,
-        //                 avgEntryPrice => 0,
-        //                 liquidationPrice => 0,
-        //                 bankruptPrice => 0,
-        //                 settleCurrency => 'XBT',
-        //                 isInverse => true
-        //             }
-        //         )
-        //     }
-        //
-        return $this->safe_value($response, 'data', $response);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

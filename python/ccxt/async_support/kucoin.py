@@ -11,7 +11,6 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -54,7 +53,7 @@ class kucoin(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFee': True,
-                'fetchFundingHistory': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRateHistory': False,
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
@@ -721,67 +720,6 @@ class kucoin(Exchange):
             raise ExchangeError(self.id + ' type must be one of ' + ', '.join(keys))
         params = self.omit(params, 'type')
         return(type == 'contract') or (type == 'futures')
-
-    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
-        #
-        # Private
-        # @param symbol(string): The pair for which the contract was traded
-        # @param since(number): The unix start time of the first funding payment requested
-        # @param limit(number): The number of results to return
-        # @param params(dict): Additional parameters to send to the API
-        # @param return: Data for the history of the accounts funding payments for futures contracts
-        #
-        if self.is_futures_method('fetchFundingHistory', params):
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
-            await self.load_markets()
-            market = self.market(symbol)
-            request = {
-                'symbol': market['id'],
-            }
-            if since is not None:
-                request['startAt'] = since
-            if limit is not None:
-                request['maxCount'] = limit
-            method = 'futuresPrivateGetFundingHistory'
-            response = await getattr(self, method)(self.extend(request, params))
-            # {
-            #  "data": {
-            #     "dataList": [
-            #       {
-            #         "id": 36275152660006,                # id
-            #         "symbol": "XBTUSDM",                 # Symbol
-            #         "timePoint": 1557918000000,          # Time point(milisecond)
-            #         "fundingRate": 0.000013,             # Funding rate
-            #         "markPrice": 8058.27,                # Mark price
-            #         "positionQty": 10,                   # Position size
-            #         "positionCost": -0.001241,           # Position value at settlement period
-            #         "funding": -0.00000464,              # Settled funding fees. A positive number means that the user received the funding fee, and vice versa.
-            #         "settleCurrency": "XBT"              # Settlement currency
-            #       },
-            #  }
-            # }
-            data = self.safe_value(response, 'data')
-            dataList = self.safe_value(data, 'dataList')
-            fees = []
-            for i in range(0, len(dataList)):
-                timestamp = self.safe_integer(dataList[i], 'timePoint')
-                fees.append({
-                    'info': dataList[i],
-                    'symbol': self.safe_symbol(dataList[i], 'symbol'),
-                    'code': self.safe_currency_code(dataList[i], 'settleCurrency'),
-                    'timestamp': timestamp,
-                    'datetime': self.iso8601(timestamp),
-                    'id': self.safe_number(dataList[i], 'id'),
-                    'amount': self.safe_number(dataList[i], 'funding'),
-                    'fundingRate': self.safe_number(dataList[i], 'fundingRate'),
-                    'markPrice': self.safe_number(dataList[i], 'markPrice'),
-                    'positionQty': self.safe_number(dataList[i], 'positionQty'),
-                    'positionCost': self.safe_number(dataList[i], 'positionCost'),
-                })
-            return fees
-        else:
-            raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1765,7 +1703,7 @@ class kucoin(Exchange):
             }
         tag = self.safe_string(transaction, 'memo')
         timestamp = self.safe_integer_2(transaction, 'createdAt', 'createAt')
-        id = self.safe_string(transaction, 'id')
+        id = self.safe_string_2(transaction, 'id', 'withdrawalId')
         updated = self.safe_integer(transaction, 'updatedAt')
         isV1 = not ('createdAt' in transaction)
         # if it's a v1 structure
@@ -1926,74 +1864,38 @@ class kucoin(Exchange):
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' type must be one of ' + ', '.join(keys))
         params = self.omit(params, 'type')
-        if (type == 'contract') or (type == 'futures'):
-            # futures api requires a futures apiKey
-            # only fetches one balance at a time
-            # by default it will only fetch the BTC balance of the futures account
-            # you can send 'currency' in params to fetch other currencies
-            # fetchBalance({'type': 'futures', 'currency': 'USDT'})
-            response = await self.futuresPrivateGetAccountOverview(params)
-            #
-            #     {
-            #         code: '200000',
-            #         data: {
-            #             accountEquity: 0.00005,
-            #             unrealisedPNL: 0,
-            #             marginBalance: 0.00005,
-            #             positionMargin: 0,
-            #             orderMargin: 0,
-            #             frozenFunds: 0,
-            #             availableBalance: 0.00005,
-            #             currency: 'XBT'
-            #         }
-            #     }
-            #
-            result = {
-                'info': response,
-                'timestamp': None,
-                'datetime': None,
-            }
-            data = self.safe_value(response, 'data')
-            currencyId = self.safe_string(data, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(data, 'availableBalance')
-            account['total'] = self.safe_string(data, 'accountEquity')
-            result[code] = account
-            return self.safe_balance(result)
-        else:
-            request = {
-                'type': type,
-            }
-            response = await self.privateGetAccounts(self.extend(request, params))
-            #
-            #     {
-            #         "code":"200000",
-            #         "data":[
-            #             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
-            #             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
-            #             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
-            #         ]
-            #     }
-            #
-            data = self.safe_value(response, 'data', [])
-            result = {
-                'info': response,
-                'timestamp': None,
-                'datetime': None,
-            }
-            for i in range(0, len(data)):
-                balance = data[i]
-                balanceType = self.safe_string(balance, 'type')
-                if balanceType == type:
-                    currencyId = self.safe_string(balance, 'currency')
-                    code = self.safe_currency_code(currencyId)
-                    account = self.account()
-                    account['total'] = self.safe_string(balance, 'balance')
-                    account['free'] = self.safe_string(balance, 'available')
-                    account['used'] = self.safe_string(balance, 'holds')
-                    result[code] = account
-            return self.safe_balance(result)
+        request = {
+            'type': type,
+        }
+        response = await self.privateGetAccounts(self.extend(request, params))
+        #
+        #     {
+        #         "code":"200000",
+        #         "data":[
+        #             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
+        #             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
+        #             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(data)):
+            balance = data[i]
+            balanceType = self.safe_string(balance, 'type')
+            if balanceType == type:
+                currencyId = self.safe_string(balance, 'currency')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['total'] = self.safe_string(balance, 'balance')
+                account['free'] = self.safe_string(balance, 'available')
+                account['used'] = self.safe_string(balance, 'holds')
+                result[code] = account
+        return self.safe_balance(result)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
@@ -2266,93 +2168,6 @@ class kucoin(Exchange):
         data = self.safe_value(response, 'data')
         items = self.safe_value(data, 'items')
         return self.parse_ledger(items, currency, since, limit)
-
-    async def fetch_positions(self, symbols=None, params={}):
-        response = await self.futuresPrivateGetPositions(params)
-        #
-        #     {
-        #         code: '200000',
-        #         data: [
-        #             {
-        #                 id: '605a9772a229ab0006408258',
-        #                 symbol: 'XBTUSDTM',
-        #                 autoDeposit: False,
-        #                 maintMarginReq: 0.005,
-        #                 riskLimit: 200,
-        #                 realLeverage: 0,
-        #                 crossMode: False,
-        #                 delevPercentage: 0,
-        #                 currentTimestamp: 1616549746099,
-        #                 currentQty: 0,
-        #                 currentCost: 0,
-        #                 currentComm: 0,
-        #                 unrealisedCost: 0,
-        #                 realisedGrossCost: 0,
-        #                 realisedCost: 0,
-        #                 isOpen: False,
-        #                 markPrice: 54371.92,
-        #                 markValue: 0,
-        #                 posCost: 0,
-        #                 posCross: 0,
-        #                 posInit: 0,
-        #                 posComm: 0,
-        #                 posLoss: 0,
-        #                 posMargin: 0,
-        #                 posMaint: 0,
-        #                 maintMargin: 0,
-        #                 realisedGrossPnl: 0,
-        #                 realisedPnl: 0,
-        #                 unrealisedPnl: 0,
-        #                 unrealisedPnlPcnt: 0,
-        #                 unrealisedRoePcnt: 0,
-        #                 avgEntryPrice: 0,
-        #                 liquidationPrice: 0,
-        #                 bankruptPrice: 0,
-        #                 settleCurrency: 'USDT',
-        #                 isInverse: False
-        #             },
-        #             {
-        #                 id: '605a9772026ac900066550df',
-        #                 symbol: 'XBTUSDM',
-        #                 autoDeposit: False,
-        #                 maintMarginReq: 0.005,
-        #                 riskLimit: 200,
-        #                 realLeverage: 0,
-        #                 crossMode: False,
-        #                 delevPercentage: 0,
-        #                 currentTimestamp: 1616549746110,
-        #                 currentQty: 0,
-        #                 currentCost: 0,
-        #                 currentComm: 0,
-        #                 unrealisedCost: 0,
-        #                 realisedGrossCost: 0,
-        #                 realisedCost: 0,
-        #                 isOpen: False,
-        #                 markPrice: 54354.76,
-        #                 markValue: 0,
-        #                 posCost: 0,
-        #                 posCross: 0,
-        #                 posInit: 0,
-        #                 posComm: 0,
-        #                 posLoss: 0,
-        #                 posMargin: 0,
-        #                 posMaint: 0,
-        #                 maintMargin: 0,
-        #                 realisedGrossPnl: 0,
-        #                 realisedPnl: 0,
-        #                 unrealisedPnl: 0,
-        #                 unrealisedPnlPcnt: 0,
-        #                 unrealisedRoePcnt: 0,
-        #                 avgEntryPrice: 0,
-        #                 liquidationPrice: 0,
-        #                 bankruptPrice: 0,
-        #                 settleCurrency: 'XBT',
-        #                 isInverse: True
-        #             }
-        #         ]
-        #     }
-        #
-        return self.safe_value(response, 'data', response)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         #

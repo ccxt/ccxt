@@ -29,6 +29,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
@@ -1234,6 +1235,32 @@ module.exports = class wavesexchange extends Exchange {
         };
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        this.checkRequiredDependencies ();
+        this.checkRequiredKeys ();
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const timestamp = this.milliseconds ();
+        const byteArray = [
+            this.base58ToBinary (this.apiKey),
+            this.numberToBE (timestamp, 8),
+        ];
+        const binary = this.binaryConcatArray (byteArray);
+        const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
+        const signature = this.eddsa (this.binaryToBase16 (binary), hexSecret, 'ed25519');
+        const request = {
+            'Timestamp': timestamp.toString (),
+            'Signature': signature,
+            'publicKey': this.apiKey,
+            'orderId': id,
+        };
+        const response = await this.matcherGetMatcherOrderbookPublicKeyOrderId (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
@@ -1373,7 +1400,7 @@ module.exports = class wavesexchange extends Exchange {
         //         ]
         //     }
         //
-        //     fetchClosedOrders
+        //     fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
@@ -1392,7 +1419,8 @@ module.exports = class wavesexchange extends Exchange {
         //             priceAsset: 'WAVES'
         //         },
         //         avgWeighedPrice: 0,
-        //         version: 3
+        //         version: 3,
+        //         totalExecutedPriceAssets: 0,  // in fetchOpenOrder/s
         //     }
         //
         const timestamp = this.safeInteger (order, 'timestamp');

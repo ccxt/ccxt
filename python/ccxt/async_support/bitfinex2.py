@@ -1332,12 +1332,12 @@ class bitfinex2(bitfinex):
         #         -0.00135,  # FEES
         #         null,
         #         null,
-        #         'DESTINATION_ADDRESS',
+        #         '0x38110e0Fc932CB2BE...........',  # DESTINATION_ADDRESS
         #         null,
         #         null,
         #         null,
-        #         'TRANSACTION_ID',
-        #         "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE
+        #         '0x523ec8945500.....................................',  # TRANSACTION_ID
+        #         "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE, might also be: null
         #     ]
         #
         transactionLength = len(transaction)
@@ -1352,7 +1352,7 @@ class bitfinex2(bitfinex):
         feeCost = None
         txid = None
         addressTo = None
-        if transactionLength < 9:
+        if transactionLength == 8:
             data = self.safe_value(transaction, 4, [])
             timestamp = self.safe_integer(transaction, 0)
             if currency is not None:
@@ -1368,8 +1368,11 @@ class bitfinex2(bitfinex):
                 status = 'failed'
             tag = self.safe_string(data, 3)
             type = 'withdrawal'
-        else:
+        elif transactionLength == 22:
             id = self.safe_string(transaction, 0)
+            currencyId = self.safe_string(transaction, 1)
+            currency = self.safe_currency(currencyId, currency)
+            code = currency['code']
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
@@ -1441,12 +1444,12 @@ class bitfinex2(bitfinex):
         #             -0.00135,  # FEES
         #             null,
         #             null,
-        #             'DESTINATION_ADDRESS',
+        #             '0x38110e0Fc932CB2BE...........',  # DESTINATION_ADDRESS
         #             null,
         #             null,
         #             null,
-        #             'TRANSACTION_ID',
-        #             "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE
+        #             '0x523ec8945500.....................................',  # TRANSACTION_ID
+        #             "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE, might also be: null
         #         ]
         #     ]
         #
