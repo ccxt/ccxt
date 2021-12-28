@@ -1353,6 +1353,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
+            'COMPLETED': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
