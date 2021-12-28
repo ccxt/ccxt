@@ -2270,35 +2270,48 @@ class huobi extends Exchange {
     }
 
     public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders');
+        if ($method === 'spot_private_get_v1_order_orders') {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrdersByStates() requires a $symbol argument');
+            }
+        }
         yield $this->load_markets();
+        $market = null;
         $request = array(
             'states' => $states,
+            // 'symbol' => $market['id'],
         );
-        $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders');
         $response = yield $this->$method (array_merge($request, $params));
         //
-        //     { status =>   "ok",
-        //         data => array( {                  id =>  13997833014,
-        //                                $symbol => "ethbtc",
-        //                          'account-id' =>  3398321,
-        //                                amount => "0.045000000000000000",
-        //                                 price => "0.034014000000000000",
-        //                          'created-at' =>  1545836976871,
-        //                                  type => "sell-$limit",
-        //                        'field-amount' => "0.045000000000000000",
-        //                   'field-cash-amount' => "0.001530630000000000",
-        //                          'field-fees' => "0.000003061260000000",
-        //                         'finished-at' =>  1545837948214,
-        //                                source => "spot-api",
-        //                                 state => "filled",
-        //                         'canceled-at' =>  0                      }  ) }
+        //     {
+        //         status => "ok",
+        //         $data => array(
+        //             {
+        //                 id => 13997833014,
+        //                 $symbol => "ethbtc",
+        //                 'account-id' => 3398321,
+        //                 amount => "0.045000000000000000",
+        //                 price => "0.034014000000000000",
+        //                 'created-at' => 1545836976871,
+        //                 type => "sell-$limit",
+        //                 'field-amount' => "0.045000000000000000",
+        //                 'field-cash-amount' => "0.001530630000000000",
+        //                 'field-fees' => "0.000003061260000000",
+        //                 'finished-at' => 1545837948214,
+        //                 source => "spot-api",
+        //                 state => "filled",
+        //                 'canceled-at' => 0
+        //             }
+        //         )
+        //     }
         //
-        return $this->parse_orders($response['data'], $market, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

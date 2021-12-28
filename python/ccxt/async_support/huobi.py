@@ -2187,34 +2187,45 @@ class huobi(Exchange):
         return self.safe_balance(result)
 
     async def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
+        method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')
+        if method == 'spot_private_get_v1_order_orders':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchOrdersByStates() requires a symbol argument')
         await self.load_markets()
+        market = None
         request = {
             'states': states,
+            # 'symbol': market['id'],
         }
-        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')
         response = await getattr(self, method)(self.extend(request, params))
         #
-        #     {status:   "ok",
-        #         data: [{                 id:  13997833014,
-        #                                symbol: "ethbtc",
-        #                          'account-id':  3398321,
-        #                                amount: "0.045000000000000000",
-        #                                 price: "0.034014000000000000",
-        #                          'created-at':  1545836976871,
-        #                                  type: "sell-limit",
-        #                        'field-amount': "0.045000000000000000",
-        #                   'field-cash-amount': "0.001530630000000000",
-        #                          'field-fees': "0.000003061260000000",
-        #                         'finished-at':  1545837948214,
-        #                                source: "spot-api",
-        #                                 state: "filled",
-        #                         'canceled-at':  0                      }  ]}
+        #     {
+        #         status: "ok",
+        #         data: [
+        #             {
+        #                 id: 13997833014,
+        #                 symbol: "ethbtc",
+        #                 'account-id': 3398321,
+        #                 amount: "0.045000000000000000",
+        #                 price: "0.034014000000000000",
+        #                 'created-at': 1545836976871,
+        #                 type: "sell-limit",
+        #                 'field-amount': "0.045000000000000000",
+        #                 'field-cash-amount': "0.001530630000000000",
+        #                 'field-fees': "0.000003061260000000",
+        #                 'finished-at': 1545837948214,
+        #                 source: "spot-api",
+        #                 state: "filled",
+        #                 'canceled-at': 0
+        #             }
+        #         ]
+        #     }
         #
-        return self.parse_orders(response['data'], market, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
