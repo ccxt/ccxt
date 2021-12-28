@@ -54,6 +54,7 @@ class Transpiler {
             [ /\.binaryConcatArray\s/g, '.binary_concat_array'],
             [ /\.binaryToString\s/g, '.binary_to_string' ],
             [ /\.precisionFromString\s/g, '.precision_from_string'],
+            [ /\.parsePrecision\s/g, '.parse_precision'],
             [ /\.implodeHostname\s/g, '.implode_hostname'],
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
