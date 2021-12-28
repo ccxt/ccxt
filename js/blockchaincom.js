@@ -48,7 +48,7 @@ module.exports = class blockchaincom extends Exchange {
             },
             'timeframes': undefined,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/99450025-3be60a00-2931-11eb-9302-f4fd8d8589aa.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg',
                 'test': {
                     'public': 'https://testnet-api.delta.exchange',
                     'private': 'https://testnet-api.delta.exchange',
