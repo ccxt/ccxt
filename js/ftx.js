@@ -524,12 +524,7 @@ module.exports = class ftx extends Exchange {
         const result = [];
         const markets = this.safeValue (response, 'result', []);
         const allFutures = this.safeValue (allFuturesResponse, 'result', []);
-        const allFuturesDict = {};
-        for (let i = 0; i < allFutures.length; i++) {
-            const futureDict = allFutures[i];
-            const id = this.safeString (futureDict, 'name');
-            allFuturesDict[id] = futureDict;
-        }
+        const allFuturesDict = this.indexBy (allFutures, 'name');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
@@ -545,7 +540,7 @@ module.exports = class ftx extends Exchange {
             const spot = !contract;
             const margin = !contract;
             const perpetual = this.safeValue (future, 'perpetual');
-            const swap = (perpetual === true);
+            const swap = perpetual;
             const option = false;
             const isFuture = contract && !swap;
             let expiry = undefined;
