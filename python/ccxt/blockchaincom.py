@@ -285,12 +285,14 @@ class blockchaincom(Exchange):
         return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'px', 'qty')
 
     def parse_ticker(self, ticker, market=None):
-        # {
-        #   "symbol": "BTC-USD",
-        #   "price_24h": 47791.86,
-        #   "volume_24h": 362.88635738,
-        #   "last_trade_price": 47587.75
-        # }
+        #
+        #     {
+        #     "symbol": "BTC-USD",
+        #     "price_24h": 47791.86,
+        #     "volume_24h": 362.88635738,
+        #     "last_trade_price": 47587.75
+        #     }
+        #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '-')
         last = self.safe_number(ticker, 'last_trade_price')
@@ -345,22 +347,23 @@ class blockchaincom(Exchange):
         return self.safe_string(states, state, state)
 
     def parse_order(self, order, market=None):
-        # {
-        # clOrdId: '00001',
-        # ordType: 'MARKET',
-        # ordStatus: 'FILLED',
-        # side: 'BUY',
-        # symbol: 'USDC-USDT',
-        # exOrdId: '281775861306290',
-        # price: null,
-        # text: 'Fill',
-        # lastShares: '30.0',
-        # lastPx: '0.9999',
-        # leavesQty: '0.0',
-        # cumQty: '30.0',
-        # avgPx: '0.9999',
-        # timestamp: '1633940339619'
-        # }
+        #
+        #     {
+        #         clOrdId: '00001',
+        #         ordType: 'MARKET',
+        #         ordStatus: 'FILLED',
+        #         side: 'BUY',
+        #         symbol: 'USDC-USDT',
+        #         exOrdId: '281775861306290',
+        #         price: null,
+        #         text: 'Fill',
+        #         lastShares: '30.0',
+        #         lastPx: '0.9999',
+        #         leavesQty: '0.0',
+        #         cumQty: '30.0',
+        #         avgPx: '0.9999',
+        #         timestamp: '1633940339619'
+        #     }
         #
         clientOrderId = self.safe_string(order, 'clOrdId')
         type = self.safe_string_lower(order, 'ordType')
@@ -393,7 +396,7 @@ class blockchaincom(Exchange):
             'filled': filled,
             'remaining': remaining,
             'cost': None,
-            'trades': [],  # "a list of order trades/executions"
+            'trades': [],
             'fees': {},
             'info': order,
         })
@@ -403,13 +406,12 @@ class blockchaincom(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid16())
         self.load_markets()
         market = self.market(symbol)
-        id = market['id']
         request = {
             # 'stopPx' : limit price
             # 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
             # 'expireDate' : expiry date in the format YYYYMMDD
             # 'minQty' : The minimum quantity required for an IOC fill
-            'symbol': id,
+            'symbol': market['id'],
             'side': side.upper(),
             'orderQty': self.amount_to_precision(symbol, amount),
             'ordType': type.upper(),  # LIMIT, MARKET, STOP, STOPLIMIT
@@ -452,9 +454,11 @@ class blockchaincom(Exchange):
 
     def fetch_trading_fees(self, params={}):
         #
-        # {  makerRate: "0.002",
-        # takerRate: "0.004",
-        # volumeInUSD: "0.0"    }
+        #     {
+        #         makerRate: "0.002",
+        #         takerRate: "0.004",
+        #         volumeInUSD: "0.0"
+        #     }
         #
         self.load_markets()
         response = self.privateGetFees()
@@ -493,15 +497,17 @@ class blockchaincom(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # {"exOrdId":281685751028507,
-        #   "tradeId":281685434947633,
-        #   "execId":8847494003,
-        #   "side":"BUY",
-        #   "symbol":"AAVE-USDT",
-        #   "price":405.34,
-        #   "qty":0.1,
-        #   "fee":0.162136,
-        #   "timestamp":1634559249687}
+        #     {
+        #         "exOrdId":281685751028507,
+        #         "tradeId":281685434947633,
+        #         "execId":8847494003,
+        #         "side":"BUY",
+        #         "symbol":"AAVE-USDT",
+        #         "price":405.34,
+        #         "qty":0.1,
+        #         "fee":0.162136,
+        #         "timestamp":1634559249687
+        #     }
         #
         id = self.safe_string(trade, 'exOrdId')
         order = self.safe_string(trade, 'tradeId')
@@ -589,24 +595,29 @@ class blockchaincom(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
-        # Deposit
-        #  {
-        #      "depositId":"748e9180-be0d-4a80-e175-0156150efc95",
-        #      "amount":0.009,
-        #      "currency":"ETH",
-        #      "address":"0xEC6B5929D454C8D9546d4221ace969E1810Fa92c",
-        #      "state":"COMPLETED",
-        #      "txHash":"582114562140e51a80b481c2dfebaf62b4ab9769b8ff54820bb67e34d4a3ab0c",
-        #      "timestamp":1633697196241},
+        # deposit
         #
-        # Withdrawal
-        # {"amount":30.0,
-        #   "currency":"USDT",
-        #   "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa",  # blockchain specific id
-        #   "withdrawalId":"99df5ef7-eab6-4033-be49-312930fbd1ea",
-        #   "fee":34.005078,
-        #   "state":"COMPLETED",
-        #   "timestamp":1634218452549}
+        #     {
+        #         "depositId":"748e9180-be0d-4a80-e175-0156150efc95",
+        #         "amount":0.009,
+        #         "currency":"ETH",
+        #         "address":"0xEC6B5929D454C8D9546d4221ace969E1810Fa92c",
+        #         "state":"COMPLETED",
+        #         "txHash":"582114562140e51a80b481c2dfebaf62b4ab9769b8ff54820bb67e34d4a3ab0c",
+        #         "timestamp":1633697196241
+        #     }
+        #
+        # withdrawal
+        #
+        #     {
+        #         "amount":30.0,
+        #         "currency":"USDT",
+        #         "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa",  # blockchain specific id
+        #         "withdrawalId":"99df5ef7-eab6-4033-be49-312930fbd1ea",
+        #         "fee":34.005078,
+        #         "state":"COMPLETED",
+        #         "timestamp":1634218452549
+        #     }
         #
         type = None
         id = None
@@ -625,15 +636,17 @@ class blockchaincom(Exchange):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
+        address = self.safe_string(transaction, 'address')
+        txid = self.safe_string(transaction, 'txhash')
         result = {
             'info': transaction,
             'id': id,
-            'txid': self.safe_string(transaction, 'txhash') if (type == 'deposit') else None,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'addressFrom': None,
-            'address': self.safe_string(transaction, 'address') if (type == 'deposit') else None,
-            'addressTo': self.safe_string(transaction, 'address') if (type == 'deposit') else None,
+            'address': address,
+            'addressTo': address,
             'tagFrom': None,
             'tag': None,
             'tagTo': None,
@@ -689,14 +702,15 @@ class blockchaincom(Exchange):
         }
         response = self.privatePostWithdrawals(self.extend(request, params))
         #
-        # response:
-        # {              amount: "30.0",
-        #               currency: "USDT",
-        #            beneficiary: "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-        #           withdrawalId: "99df5ef7-eab6-4033-be49-312930fbd1ea",
-        #                    fee: "34.005078",
-        #                  state: "PENDING",
-        #              timestamp: "1634218452595"               },
+        #     {
+        #         amount: "30.0",
+        #         currency: "USDT",
+        #         beneficiary: "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
+        #         withdrawalId: "99df5ef7-eab6-4033-be49-312930fbd1ea",
+        #         fee: "34.005078",
+        #         state: "PENDING",
+        #         timestamp: "1634218452595"
+        #     },
         #
         withdrawalId = self.safe_string(response, 'withdrawalId')
         result = {
@@ -752,13 +766,20 @@ class blockchaincom(Exchange):
             'account': accountName,
         }
         response = self.privateGetAccounts(self.extend(request, params))
-        # {"primary":
-        #  [{"currency":"ETH",
-        #      "balance":0.009,
-        #      "available":0.009,
-        #      "balance_local":30.82869,
-        #      "available_local":30.82869,
-        #      "rate":3425.41}, ...]
+        #
+        #     {
+        #         "primary": [
+        #             {
+        #                 "currency":"ETH",
+        #                 "balance":0.009,
+        #                 "available":0.009,
+        #                 "balance_local":30.82869,
+        #                 "available_local":30.82869,
+        #                 "rate":3425.41
+        #             },
+        #             ...
+        #         ]
+        #     }
         #
         balances = self.safe_value(response, accountName)
         if balances is None:
@@ -783,22 +804,22 @@ class blockchaincom(Exchange):
         }
         response = self.privateGetOrdersOrderId(self.extend(request, params))
         #
-        # {
-        # "exOrdId": 11111111,
-        # "clOrdId": "ABC",
-        # "ordType": "MARKET",
-        # "ordStatus": "FILLED",
-        # "side": "BUY",
-        # "price": 0.12345,
-        # "text": "string",
-        # "symbol": "BTC-USD",
-        # "lastShares": 0.5678,
-        # "lastPx": 3500.12,
-        # "leavesQty": 10,
-        # "cumQty": 0.123345,
-        # "avgPx": 345.33,
-        # "timestamp": 1592830770594
-        # }
+        #     {
+        #         "exOrdId": 11111111,
+        #         "clOrdId": "ABC",
+        #         "ordType": "MARKET",
+        #         "ordStatus": "FILLED",
+        #         "side": "BUY",
+        #         "price": 0.12345,
+        #         "text": "string",
+        #         "symbol": "BTC-USD",
+        #         "lastShares": 0.5678,
+        #         "lastPx": 3500.12,
+        #         "leavesQty": 10,
+        #         "cumQty": 0.123345,
+        #         "avgPx": 345.33,
+        #         "timestamp": 1592830770594
+        #     }
         #
         return self.parse_order(response)
 
