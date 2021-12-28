@@ -772,6 +772,7 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.futuresPrivateGetPositions (params);
         //
         //    {
@@ -890,9 +891,11 @@ module.exports = class kucoinfutures extends kucoin {
         const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
         const initialMargin = this.safeString (position, 'posMargin');
         const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
-        const leverage = Precise.stringDiv ('1', initialMarginPercentage);  // TODO: Not quite right
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
+        const crossMode = this.safeValue (position, 'crossMode');
+        // currently crossMode is always set to false and only isolated positions are supported
+        const marginType = crossMode ? 'cross' : 'isolated';
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
@@ -900,11 +903,11 @@ module.exports = class kucoinfutures extends kucoin {
             'datetime': this.iso8601 (timestamp),
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
-            'maintenanceMargin': this.safeNumber (position, 'maintMargin'),
-            'maintenanceMarginPercentage': this.safeString (position, 'maintMarginReq'),
+            'maintenanceMargin': this.safeNumber (position, 'posMaint'),
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             'notional': this.parseNumber (notional),
-            'leverage': this.parseNumber (leverage),
+            'leverage': this.safeNumber (position, 'realLeverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeNumber (market, 'contractSize'),
@@ -912,8 +915,8 @@ module.exports = class kucoinfutures extends kucoin {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
-            'collateral': this.safeNumber (position, 'posInit'),
-            'marginType': undefined,
+            'collateral': this.safeNumber (position, 'maintMargin'),
+            'marginType': marginType,
             'side': side,
             'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
         };
@@ -1068,6 +1071,18 @@ module.exports = class kucoinfutures extends kucoin {
         //   }
         //
         return this.safeValue (response, 'data');
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const uuid = this.uuid ();
+        const request = {
+            'symbol': market['id'],
+            'margin': amount,
+            'bizNo': uuid,
+        };
+        return await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1237,7 +1252,7 @@ module.exports = class kucoinfutures extends kucoin {
         account['free'] = this.safeString (data, 'availableBalance');
         account['total'] = this.safeString (data, 'accountEquity');
         result[code] = account;
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
