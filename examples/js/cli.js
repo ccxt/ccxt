@@ -86,7 +86,7 @@ try {
         httpsAgent,
         ... settings,
     })
-    
+
     // check auth keys in env var
     const requiredCredentials = exchange.requiredCredentials;
     for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
@@ -178,13 +178,13 @@ const printHumanReadable = (exchange, result) => {
                 })) : result)
                 log (result.length, 'objects');
             } else {
-                log (result)
+                console.dir (result, { depth: null })
                 log (result.length, 'objects');
             }
 
     } else {
 
-        log (result)
+        console.dir (result, { depth: null})
     }
 }
 
