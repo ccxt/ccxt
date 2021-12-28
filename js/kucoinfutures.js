@@ -1145,7 +1145,7 @@ module.exports = class kucoinfutures extends kucoin {
         const leverage = this.safeString (order, 'leverage');
         const cost = Precise.stringDiv (rawCost, leverage);
         // precision reported by their api is 8 d.p.
-        const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
+        // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
@@ -1179,7 +1179,7 @@ module.exports = class kucoinfutures extends kucoin {
             'status': status,
             'info': order,
             'lastTradeTimestamp': undefined,
-            'average': average,
+            'average': undefined,
             'trades': undefined,
         }, market);
     }
