@@ -1843,6 +1843,16 @@ module.exports = class phemex extends Exchange {
             request['stopPxEp'] = this.toEp (stopPrice, market);
         }
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if (takeProfitPrice !== undefined) {
+            request['takeProfitEp'] = this.toEp (takeProfitPrice, market);
+            params = this.omit (params, 'takeProfitPrice');
+        }
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        if (stopLossPrice !== undefined) {
+            request['stopLossEp'] = this.toEp (stopLossPrice, market);
+            params = this.omit (params, 'stopLossPrice');
+        }
         const method = market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
         const response = await this[method] (this.extend (request, params));
         //
