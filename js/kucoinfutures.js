@@ -889,7 +889,7 @@ module.exports = class kucoinfutures extends kucoin {
             side = 'sell';
         }
         const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
-        const initialMargin = this.safeString (position, 'posMargin');
+        const initialMargin = this.safeString (position, 'posInit');
         const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
