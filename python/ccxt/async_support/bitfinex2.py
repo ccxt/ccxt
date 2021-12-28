@@ -1285,6 +1285,7 @@ class bitfinex2(bitfinex):
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
+            'COMPLETED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 

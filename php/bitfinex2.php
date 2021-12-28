@@ -1358,6 +1358,7 @@ class bitfinex2 extends bitfinex {
             'ERROR' => 'failed',
             'FAILURE' => 'failed',
             'CANCELED' => 'canceled',
+            'COMPLETED' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
