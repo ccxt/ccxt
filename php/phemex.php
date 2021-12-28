@@ -1846,6 +1846,16 @@ class phemex extends Exchange {
             $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
         }
         $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        if ($takeProfitPrice !== null) {
+            $request['takeProfitEp'] = $this->to_ep($takeProfitPrice, $market);
+            $params = $this->omit($params, 'takeProfitPrice');
+        }
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        if ($stopLossPrice !== null) {
+            $request['stopLossEp'] = $this->to_ep($stopLossPrice, $market);
+            $params = $this->omit($params, 'stopLossPrice');
+        }
         $method = $market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
         $response = $this->$method (array_merge($request, $params));
         //
