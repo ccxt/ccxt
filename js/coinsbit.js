@@ -341,8 +341,8 @@ module.exports = class coinsbit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (1000, limit); // this parameter is not required, default 50 will be returned
         }
-        const type = this.safeString (params, 'type', 'depth/result'); // <<<TODO>> maybe a better way to set default unified param name (same param can be used for binance fetchBidsAsks too, if that will get integrated inside binance's fetchOrderbook )
-        const method = this.safeString (this.options, 'fetchOrderBookMethod', type);
+        let method = this.safeString (params, 'method', 'publicGetDepthResult');
+        method = this.safeString (this.options, 'fetchOrderBookMethod', method);
         let response = undefined;
         let priceKey = undefined;
         let amountKey = undefined;
@@ -362,7 +362,7 @@ module.exports = class coinsbit extends Exchange {
             //     }
             priceKey = 0;
             amountKey = 1;
-        } else if (method === 'book') {
+        } else if (method === 'publicGetBook') {
             request['offset'] = this.safeString (params, 'offset', 0);
             // ATM, they need to be called separately (unfortunately)
             request['side'] = this.safeString (params, 'side', 'buy');
