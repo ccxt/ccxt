@@ -1497,7 +1497,9 @@ class mexc(Exchange):
         if orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
         elif (orderType != 'POST_ONLY') and (orderType != 'IMMEDIATE_OR_CANCEL'):
-            raise InvalidOrder(self.id + ' createOrder does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL')
+            raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL')
+        else:
+            raise InvalidOrder(self.id + ' createOrder() allows limit orders only')
         request = {
             'symbol': market['id'],
             'price': self.price_to_precision(symbol, price),

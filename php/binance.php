@@ -933,6 +933,7 @@ class binance extends Exchange {
                     '-5013' => '\\ccxt\\InsufficientFunds', // Asset transfer failed => insufficient balance"
                     '-11008' => '\\ccxt\\InsufficientFunds', // array("code":-11008,"msg":"Exceeding the account's maximum borrowable limit.")
                     '-4051' => '\\ccxt\\InsufficientFunds', // array("code":-4051,"msg":"Isolated balance insufficient.")
+                    '100001003' => '\\ccxt\\BadRequest', // array("code":100001003,"msg":"Verification failed")
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
