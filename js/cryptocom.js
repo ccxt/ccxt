@@ -1191,10 +1191,20 @@ module.exports = class cryptocom extends Exchange {
         }, market);
     }
 
-    parseTransactionStatusByType (status) {
+    parseDepositStatus (status) {
         const statuses = {
             '0': 'pending',
             '1': 'ok',
+            '2': 'failed',
+            '3': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseWithdrawalStatus (status) {
+        const statuses = {
+            '0': 'pending',
+            '1': 'pending',
             '2': 'failed',
             '3': 'pending',
             '4': 'failed',
@@ -1234,10 +1244,14 @@ module.exports = class cryptocom extends Exchange {
         // }
         //
         let type = undefined;
+        const rawStatus = this.safeString (transaction, 'status');
+        let status = undefined;
         if ('client_wid' in transaction) {
             type = 'withdrawal';
+            status = this.parseWithdrawalStatus (rawStatus);
         } else {
             type = 'deposit';
+            status = this.parseDepositStatus (rawStatus);
         }
         const id = this.safeString (transaction, 'id');
         const addressString = this.safeString (transaction, 'address');
@@ -1245,7 +1259,6 @@ module.exports = class cryptocom extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeInteger (transaction, 'create_time');
-        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'));
         const amount = this.safeNumber (transaction, 'amount');
         const txId = this.safeString (transaction, 'txid');
         const feeCost = this.safeNumber (transaction, 'fee');
