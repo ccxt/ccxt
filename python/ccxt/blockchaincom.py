@@ -18,7 +18,7 @@ class blockchaincom(Exchange):
         return self.deep_extend(super(blockchaincom, self).describe(), {
             'id': 'blockchaincom',
             'secret': None,
-            'name': 'blockchain.com',
+            'name': 'Blockchain.com',
             'countries': ['LX'],
             'rateLimit': 10000,
             'version': 'v3',
