@@ -380,7 +380,7 @@ module.exports = class blockchaincom extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '-');
         const exchangeOrderId = this.safeString (order, 'exOrdId');
         const price = (type !== 'market') ? this.safeString (order, 'price') : undefined;
-        const average = this.safeNumber (order, 'avgPx', undefined);
+        const average = this.safeNumber (order, 'avgPx');
         const timestamp = this.safeInteger (order, 'timestamp');
         const datetime = this.iso8601 (timestamp);
         const filled = this.safeString (order, 'cumQty');
@@ -883,7 +883,7 @@ module.exports = class blockchaincom extends Exchange {
         if (response === undefined) {
             return;
         }
-        const text = this.safeString (response, 'text', undefined);
+        const text = this.safeString (response, 'text');
         if (text !== undefined) { // if trade currency account is empty returns 200 with rejected order
             if (text === 'Insufficient Balance') {
                 throw new InsufficientFunds (this.id + ' ' + body);
