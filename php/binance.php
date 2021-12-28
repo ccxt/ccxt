@@ -4577,6 +4577,60 @@ class binance extends Exchange {
         $params = $this->omit($params, 'type');
         if (($type === 'future') || ($type === 'linear')) {
             $method = 'fapiPrivateGetPositionRisk';
+            // ### Response examples ###
+            //
+            // For One-way position mode:
+            //     array(
+            //         {
+            //             "entryPrice" => "0.00000",
+            //             "marginType" => "isolated",
+            //             "isAutoAddMargin" => "false",
+            //             "isolatedMargin" => "0.00000000",
+            //             "leverage" => "10",
+            //             "liquidationPrice" => "0",
+            //             "markPrice" => "6679.50671178",
+            //             "maxNotionalValue" => "20000000",
+            //             "positionAmt" => "0.000",
+            //             "symbol" => "BTCUSDT",
+            //             "unRealizedProfit" => "0.00000000",
+            //             "positionSide" => "BOTH",
+            //             "updateTime" => 0
+            //        }
+            //     )
+            //
+            // For Hedge position mode:
+            //     array(
+            //         array(
+            //             "entryPrice" => "6563.66500",
+            //             "marginType" => "isolated",
+            //             "isAutoAddMargin" => "false",
+            //             "isolatedMargin" => "15517.54150468",
+            //             "leverage" => "10",
+            //             "liquidationPrice" => "5930.78",
+            //             "markPrice" => "6679.50671178",
+            //             "maxNotionalValue" => "20000000",
+            //             "positionAmt" => "20.000",
+            //             "symbol" => "BTCUSDT",
+            //             "unRealizedProfit" => "2316.83423560"
+            //             "positionSide" => "LONG",
+            //             "updateTime" => 1625474304765
+            //         ),
+            //         {
+            //             "entryPrice" => "0.00000",
+            //             "marginType" => "isolated",
+            //             "isAutoAddMargin" => "false",
+            //             "isolatedMargin" => "5413.95799991",
+            //             "leverage" => "10",
+            //             "liquidationPrice" => "7189.95",
+            //             "markPrice" => "6679.50671178",
+            //             "maxNotionalValue" => "20000000",
+            //             "positionAmt" => "-10.000",
+            //             "symbol" => "BTCUSDT",
+            //             "unRealizedProfit" => "-1156.46711780",
+            //             "positionSide" => "SHORT",
+            //             "updateTime" => 0
+            //         }
+            //     )
         } else if (($type === 'delivery') || ($type === 'inverse')) {
             $method = 'dapiPrivateGetPositionRisk';
         } else {
