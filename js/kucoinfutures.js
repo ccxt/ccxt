@@ -5,6 +5,7 @@
 const { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const kucoin = require ('./kucoin.js');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -154,6 +155,7 @@ module.exports = class kucoinfutures extends kucoin {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '400': BadRequest, // Bad Request -- Invalid request format
@@ -394,8 +396,8 @@ module.exports = class kucoinfutures extends kucoin {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
             const expiry = this.safeInteger (market, 'expireDate');
-            const futures = expiry ? true : false;
-            const swap = !futures;
+            const future = expiry ? true : false;
+            const swap = !future;
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
             const settleId = this.safeString (market, 'settleCurrency');
@@ -404,9 +406,9 @@ module.exports = class kucoinfutures extends kucoin {
             const settle = this.safeCurrencyCode (settleId);
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
-            if (futures) {
+            if (future) {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
-                type = 'futures';
+                type = 'future';
             }
             const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
             const baseMinSizeString = this.safeString (market, 'baseMinSize');
@@ -415,9 +417,8 @@ module.exports = class kucoinfutures extends kucoin {
             const quoteMaxSize = this.parseNumber (quoteMaxSizeString);
             const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
             const inverse = this.safeValue (market, 'isInverse');
-            // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            const amount = this.safeString (market, 'baseIncrement');
-            const price = this.safeString (market, 'priceIncrement');
+            const status = this.safeString (market, 'status');
+            const active = status === 'Open';
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -431,35 +432,32 @@ module.exports = class kucoinfutures extends kucoin {
                 'spot': false,
                 'margin': false,
                 'swap': swap,
-                'futures': futures,
+                'future': future,
                 'option': false,
-                'active': true,
-                'derivative': true,
+                'active': active,
                 'contract': true,
-                'linear': inverse !== true,
+                'linear': !inverse,
                 'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.parseNumber (Precise.stringAbs (this.safeString (market, 'multiplier'))),
-                'expiry': this.parseNumber (expiry),
+                'contractSize': Precise.stringAbs (this.safeString (market, 'multiplier')),
+                'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
-                'strike': undefined,
-                'optionType': undefined,
                 'precision': {
-                    'amount': amount ? this.precisionFromString (amount) : undefined,
-                    'price': price ? this.precisionFromString (price) : undefined,
+                    'amount': this.safeNumber (market, 'lotSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.safeNumber (market, 'maxLeverage', 1),
+                        'min': undefined,
+                        'max': this.safeNumber (market, 'maxLeverage'),
                     },
                     'amount': {
                         'min': baseMinSize,
                         'max': baseMaxSize,
                     },
                     'price': {
-                        'min': price,
+                        'min': undefined,
                         'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
                     },
                     'cost': {
@@ -1012,15 +1010,15 @@ module.exports = class kucoinfutures extends kucoin {
         const data = this.safeValue (response, 'data', {});
         return {
             'id': this.safeString (data, 'orderId'),
-            'clientOrderId': clientOrderId,
+            'clientOrderId': undefined,
             'timestamp': undefined,
             'datetime': undefined,
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': preciseAmount,
+            'symbol': undefined,
+            'type': undefined,
+            'side': undefined,
+            'price': undefined,
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': undefined,
@@ -1028,10 +1026,10 @@ module.exports = class kucoinfutures extends kucoin {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'stopPrice': stopPrice,
-            'info': data,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'stopPrice': undefined,
+            'info': response,
         };
     }
 
@@ -1142,7 +1140,7 @@ module.exports = class kucoinfutures extends kucoin {
         const feeCost = this.safeNumber (order, 'fee');
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'dealSize');
-        const cost = this.safeString (order, 'dealFunds');
+        const cost = this.safeString2 (order, 'dealFunds', 'filledValue');
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
@@ -1156,7 +1154,7 @@ module.exports = class kucoinfutures extends kucoin {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
