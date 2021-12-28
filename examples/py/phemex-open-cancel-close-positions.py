@@ -50,4 +50,4 @@ order = exchange.create_order(symbol, 'market', 'buy', amount)
 orderClose = exchange.create_order(symbol, 'market', 'sell', amount, None, {'reduceOnly': True})
 
 # Opening a contract position (market order) with TakeProfit and StopLoss defined
-order = exchange.create_order(symbol, 'market', 'buy', amount, {'stopLoss': 5000, 'takeProfit': 100000})
+order = exchange.create_order(symbol, 'market', 'buy', amount, None, {'stopLoss': 5000, 'takeProfit': 100000})
