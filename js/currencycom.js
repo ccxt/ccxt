@@ -303,7 +303,7 @@ module.exports = class currencycom extends Exchange {
                     limitPriceMax = maxPrice;
                 }
             }
-            let precisionAmount = Precise.stringDiv ('1', this.parsePrecision (this.safeString (market, 'baseAssetPrecision')));
+            let precisionAmount = this.parsePrecision (this.safeString (market, 'baseAssetPrecision'));
             let limitAmount = {
                 'min': undefined,
                 'max': undefined,
