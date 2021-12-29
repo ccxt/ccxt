@@ -997,6 +997,7 @@ class huobi(Exchange):
         swap = (type == 'swap')
         linear = None
         inverse = None
+        request = {}
         if contract:
             defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
             subType = self.safe_string(options, 'subType', defaultSubType)
@@ -1004,15 +1005,19 @@ class huobi(Exchange):
             if (subType != 'inverse') and (subType != 'linear'):
                 raise ExchangeError(self.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'")  # eslint-disable-line quotes
             linear = (subType == 'linear')
-            inverse = (subType == 'inverse') or future
+            inverse = (subType == 'inverse')
             if future:
-                method = 'contractPublicGetApiV1ContractContractInfo'
+                if inverse:
+                    method = 'contractPublicGetApiV1ContractContractInfo'
+                else:
+                    method = 'contractPublicGetLinearSwapApiV1SwapContractInfo'
+                    request['business_type'] = 'futures'
             elif swap:
                 if inverse:
                     method = 'contractPublicGetSwapApiV1SwapContractInfo'
                 elif linear:
                     method = 'contractPublicGetLinearSwapApiV1SwapContractInfo'
-        response = await getattr(self, method)(query)
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
@@ -1051,7 +1056,7 @@ class huobi(Exchange):
         #         ]
         #     }
         #
-        # future
+        # inverse future
         #
         #     {
         #         "status":"ok",
@@ -1070,6 +1075,30 @@ class huobi(Exchange):
         #             },
         #         ],
         #         "ts":1637474595140
+        #     }
+        #
+        # linear futures
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":[
+        #             {
+        #                 "symbol":"BTC",
+        #                 "contract_code":"BTC-USDT-211231",
+        #                 "contract_size":0.001000000000000000,
+        #                 "price_tick":0.100000000000000000,
+        #                 "delivery_date":"20211231",
+        #                 "delivery_time":"1640937600000",
+        #                 "create_date":"20211228",
+        #                 "contract_status":1,
+        #                 "settlement_date":"1640764800000",
+        #                 "support_margin_mode":"cross",
+        #                 "business_type":"futures",
+        #                 "pair":"BTC-USDT",
+        #                 "contract_type":"self_week"  # next_week, quarter
+        #             },
+        #         ],
+        #         "ts":1640736207263
         #     }
         #
         # swaps
