@@ -915,6 +915,13 @@ module.exports = class binance extends Exchange {
                     '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
                     '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
                     '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                    '-2020': ExchangeError, // {"code":-2020,"msg":"Unable to fill."}
+                    '-2021': InvalidOrder, // {"code":-2021,"msg":"Order would immediately trigger."}
+                    '-2022': InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
+                    '-2023': InsufficientFunds, // {"code":-2023,"msg":"User in liquidation mode now."}
+                    '-2024': InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
+                    '-2025': InsufficientFunds, // {"code":-2025,"msg":"Reach max open order limit."}
+                    '-2026': InsufficientFunds, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
                     '-2027': InsufficientFunds, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
                     '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
                     '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
