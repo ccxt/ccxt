@@ -1141,7 +1141,12 @@ class huobi(Exchange):
                     settleId = baseId if inverse else quoteId
                 elif future:
                     baseId = self.safe_string(market, 'symbol')
-                    quoteId = 'USD'
+                    if inverse:
+                        quoteId = 'USD'
+                    else:
+                        pair = self.safe_string(market, 'pair')
+                        parts = pair.split('-')
+                        quoteId = self.safe_string(parts, 1)
                     settleId = baseId
             else:
                 baseId = self.safe_string(market, 'base-currency')
@@ -1340,7 +1345,11 @@ class huobi(Exchange):
         fieldName = 'symbol'
         method = 'spotPublicGetMarketDetailMerged'
         if market['future']:
-            method = 'contractPublicGetMarketDetailMerged'
+            if market['inverse']:
+                method = 'contractPublicGetMarketDetailMerged'
+            elif market['linear']:
+                method = 'contractPublicGetLinearSwapExMarketDetailMerged'
+                fieldName = 'contract_code'
         elif market['swap']:
             if market['inverse']:
                 method = 'contractPublicGetSwapExMarketDetailMerged'
@@ -1406,18 +1415,27 @@ class huobi(Exchange):
         type = self.safe_string(options, 'type', defaultType)
         type = self.safe_string(params, 'type', type)
         method = 'spotPublicGetMarketTickers'
-        if type == 'future':
-            method = 'contractPublicGetMarketDetailBatchMerged'
-        elif type == 'swap':
-            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-            subType = self.safe_string(options, 'subType', defaultSubType)
-            subType = self.safe_string(params, 'subType', subType)
-            if subType == 'inverse':
-                method = 'contractPublicGetSwapExMarketDetailBatchMerged'
-            elif subType == 'linear':
+        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
+        subType = self.safe_string(options, 'subType', defaultSubType)
+        subType = self.safe_string(params, 'subType', subType)
+        request = {}
+        future = (type == 'future')
+        swap = (type == 'swap')
+        linear = (subType == 'linear')
+        inverse = (subType == 'inverse')
+        if future:
+            if inverse:
+                method = 'contractPublicGetMarketDetailBatchMerged'
+            elif linear:
                 method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged'
-        query = self.omit(params, ['type', 'subType'])
-        response = getattr(self, method)(query)
+                request['business_type'] = 'futures'
+        elif swap:
+            if inverse:
+                method = 'contractPublicGetSwapExMarketDetailBatchMerged'
+            elif linear:
+                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged'
+        params = self.omit(params, ['type', 'subType'])
+        response = getattr(self, method)(self.extend(request, params))
         #
         # spot
         #
@@ -1442,7 +1460,7 @@ class huobi(Exchange):
         #         "ts":1639547261293
         #     }
         #
-        # future
+        # inverse swaps, linear swaps, inverse futures
         #
         #     {
         #         "status":"ok",
@@ -1465,11 +1483,55 @@ class huobi(Exchange):
         #         "ts":1637504679376
         #     }
         #
+        # linear futures
+        #
+        #     {
+        #         "status":"ok",
+        #         "ticks":[
+        #             {
+        #                 "id":1640745627,
+        #                 "ts":1640745627957,
+        #                 "ask":[48079.1,20],
+        #                 "bid":[47713.8,125],
+        #                 "business_type":"futures",
+        #                 "contract_code":"BTC-USDT-CW",
+        #                 "open":"49011.8",
+        #                 "close":"47934",
+        #                 "low":"47292.3",
+        #                 "high":"49011.8",
+        #                 "amount":"17.398",
+        #                 "count":1515,
+        #                 "vol":"17398",
+        #                 "trade_turnover":"840726.5048"
+        #             }
+        #         ],
+        #         "ts":1640745627988
+        #     }
+        #
         tickers = self.safe_value_2(response, 'data', 'ticks', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
+            # the market ids for linear futures are non-standard and differ from all the other endpoints
+            # we are doing a linear-matching here
+            if future and linear:
+                for j in range(0, len(self.symbols)):
+                    symbol = self.symbols[j]
+                    market = self.market(symbol)
+                    contractType = self.safe_string(market['info'], 'contract_type')
+                    if (contractType == 'this_week') and (ticker['symbol'] == (market['baseId'] + '-' + market['quoteId'] + '-CW')):
+                        ticker['symbol'] = market['symbol']
+                        break
+                    elif (contractType == 'next_week') and (ticker['symbol'] == (market['baseId'] + '-' + market['quoteId'] + '-NW')):
+                        ticker['symbol'] = market['symbol']
+                        break
+                    elif (contractType == 'this_quarter') and (ticker['symbol'] == (market['baseId'] + '-' + market['quoteId'] + '-CQ')):
+                        ticker['symbol'] = market['symbol']
+                        break
+                    elif (contractType == 'next_quarter') and (ticker['symbol'] == (market['baseId'] + '-' + market['quoteId'] + '-NQ')):
+                        ticker['symbol'] = market['symbol']
+                        break
             symbol = ticker['symbol']
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)

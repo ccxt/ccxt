@@ -1141,7 +1141,13 @@ class huobi extends Exchange {
                     $settleId = $inverse ? $baseId : $quoteId;
                 } else if ($future) {
                     $baseId = $this->safe_string($market, 'symbol');
-                    $quoteId = 'USD';
+                    if ($inverse) {
+                        $quoteId = 'USD';
+                    } else {
+                        $pair = $this->safe_string($market, 'pair');
+                        $parts = explode('-', $pair);
+                        $quoteId = $this->safe_string($parts, 1);
+                    }
                     $settleId = $baseId;
                 }
             } else {
@@ -1355,7 +1361,12 @@ class huobi extends Exchange {
         $fieldName = 'symbol';
         $method = 'spotPublicGetMarketDetailMerged';
         if ($market['future']) {
-            $method = 'contractPublicGetMarketDetailMerged';
+            if ($market['inverse']) {
+                $method = 'contractPublicGetMarketDetailMerged';
+            } else if ($market['linear']) {
+                $method = 'contractPublicGetLinearSwapExMarketDetailMerged';
+                $fieldName = 'contract_code';
+            }
         } else if ($market['swap']) {
             if ($market['inverse']) {
                 $method = 'contractPublicGetSwapExMarketDetailMerged';
@@ -1424,20 +1435,30 @@ class huobi extends Exchange {
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
         $method = 'spotPublicGetMarketTickers';
-        if ($type === 'future') {
-            $method = 'contractPublicGetMarketDetailBatchMerged';
-        } else if ($type === 'swap') {
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-            $subType = $this->safe_string($options, 'subType', $defaultSubType);
-            $subType = $this->safe_string($params, 'subType', $subType);
-            if ($subType === 'inverse') {
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+        $subType = $this->safe_string($options, 'subType', $defaultSubType);
+        $subType = $this->safe_string($params, 'subType', $subType);
+        $request = array();
+        $future = ($type === 'future');
+        $swap = ($type === 'swap');
+        $linear = ($subType === 'linear');
+        $inverse = ($subType === 'inverse');
+        if ($future) {
+            if ($inverse) {
+                $method = 'contractPublicGetMarketDetailBatchMerged';
+            } else if ($linear) {
+                $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+                $request['business_type'] = 'futures';
+            }
+        } else if ($swap) {
+            if ($inverse) {
                 $method = 'contractPublicGetSwapExMarketDetailBatchMerged';
-            } else if ($subType === 'linear') {
+            } else if ($linear) {
                 $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
             }
         }
-        $query = $this->omit($params, array( 'type', 'subType' ));
-        $response = $this->$method ($query);
+        $params = $this->omit($params, array( 'type', 'subType' ));
+        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -1462,7 +1483,7 @@ class huobi extends Exchange {
         //         "ts":1639547261293
         //     }
         //
-        // future
+        // $inverse swaps, $linear swaps, $inverse futures
         //
         //     {
         //         "status":"ok",
@@ -1485,11 +1506,58 @@ class huobi extends Exchange {
         //         "ts":1637504679376
         //     }
         //
+        // $linear futures
+        //
+        //     {
+        //         "status":"ok",
+        //         "ticks":[
+        //             {
+        //                 "id":1640745627,
+        //                 "ts":1640745627957,
+        //                 "ask":[48079.1,20],
+        //                 "bid":[47713.8,125],
+        //                 "business_type":"futures",
+        //                 "contract_code":"BTC-USDT-CW",
+        //                 "open":"49011.8",
+        //                 "close":"47934",
+        //                 "low":"47292.3",
+        //                 "high":"49011.8",
+        //                 "amount":"17.398",
+        //                 "count":1515,
+        //                 "vol":"17398",
+        //                 "trade_turnover":"840726.5048"
+        //             }
+        //         ],
+        //         "ts":1640745627988
+        //     }
+        //
         $tickers = $this->safe_value_2($response, 'data', 'ticks', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i]);
+            // the $market ids for $linear futures are non-standard and differ from all the other endpoints
+            // we are doing a $linear-matching here
+            if ($future && $linear) {
+                for ($j = 0; $j < count($this->symbols); $j++) {
+                    $symbol = $this->symbols[$j];
+                    $market = $this->market($symbol);
+                    $contractType = $this->safe_string($market['info'], 'contract_type');
+                    if (($contractType === 'this_week') && ($ticker['symbol'] === ($market['baseId'] . '-' . $market['quoteId'] . '-CW'))) {
+                        $ticker['symbol'] = $market['symbol'];
+                        break;
+                    } else if (($contractType === 'next_week') && ($ticker['symbol'] === ($market['baseId'] . '-' . $market['quoteId'] . '-NW'))) {
+                        $ticker['symbol'] = $market['symbol'];
+                        break;
+                    } else if (($contractType === 'this_quarter') && ($ticker['symbol'] === ($market['baseId'] . '-' . $market['quoteId'] . '-CQ'))) {
+                        $ticker['symbol'] = $market['symbol'];
+                        break;
+                    } else if (($contractType === 'next_quarter') && ($ticker['symbol'] === ($market['baseId'] . '-' . $market['quoteId'] . '-NQ'))) {
+                        $ticker['symbol'] = $market['symbol'];
+                        break;
+                    }
+                }
+            }
             $symbol = $ticker['symbol'];
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
