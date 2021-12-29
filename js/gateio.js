@@ -2883,28 +2883,33 @@ module.exports = class gateio extends Exchange {
         //         liq_price: "59058.58"
         //     }
         //
-        const contract = this.safeValue (position, 'contract');
+        const contract = this.safeString (position, 'contract');
         market = this.safeMarket (contract, market);
-        const now = this.milliseconds ();
         const size = this.safeString (position, 'size');
         let side = undefined;
-        if (size > 0) {
+        if (Precise.stringGt (size, '0')) {
             side = 'buy';
-        } else if (size < 0) {
+        } else if (Precise.stringLt (size, '0')) {
             side = 'sell';
         }
         const maintenanceRate = this.safeString (position, 'maintenance_rate');
         const notional = this.safeString (position, 'value');
-        const initialMargin = this.safeString (position, 'margin');
-        // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
+        const leverage = this.safeString (position, 'leverage');
         const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
+        // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
+        // *The default leverage under the full position is the highest leverage in the market.
+        // *Trading fee is charged as Taker Fee Rate (0.075%).
+        const takerFee = '0.00075';
+        const feePaid = Precise.stringMul (takerFee, notional);
+        const initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
-            'timestamp': now,
-            'datetime': this.iso8601 (now),
-            'initialMargin': this.parseNumber (initialMargin),
-            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMargin, notional)),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
             'entryPrice': this.safeNumber (position, 'entry_price'),
@@ -2917,10 +2922,10 @@ module.exports = class gateio extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),
-            'collateral': undefined,
+            'collateral': this.safeNumber (position, 'margin'),
             'marginType': undefined,
             'side': side,
-            'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
+            'percentage': this.parseNumber (percentage),
         };
     }
 
