@@ -3480,7 +3480,7 @@ class Exchange {
 
     public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
         $default_type = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
-        $method_options = $this->safe_value($this->options, $method_name);
+        $method_options = $this->safe_value($this->options, $method_name, array());
         if (isset($method_options)) {
             if (is_string($method_options)) {
                 $method_type = $method_options;
