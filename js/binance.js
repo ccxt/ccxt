@@ -1038,7 +1038,6 @@ module.exports = class binance extends Exchange {
                     '-5012': ExchangeError, // Asset transfer is in pending.
                     '-5013': InsufficientFunds, // [Undocumented error] Asset transfer failed: insufficient balance"
                     '-5021': BadRequest, // This parent sub have no relation
-                    //'-5022': BadRequest, // future account or sub relation not exists. [Note:  in BINANCE DOCS,there is possible bug, as this was mentioned by '5012' error code, while I think it should have been 5022]
                     '-6001': BadRequest, // Daily product not exists.
                     '-6003': BadRequest, // Product not exist or you don't have permission
                     '-6004': ExchangeError, // Product not in purchase status
@@ -1059,7 +1058,6 @@ module.exports = class binance extends Exchange {
                     '-6020': BadRequest, // Project not exists
                     '-7001': BadRequest, // Date range is not supported.
                     '-7002': BadRequest, // Data request type is not supported.
-					//TODO: 9xxx - they are nonstandard : https://binance-docs.github.io/apidocs/spot/en/#9xxx-filter-failures
                     '-10017': BadRequest, // Repay amount should not be larger than liability.
                     '-11008': InsufficientFunds, // [Undocumented error] Exceeding the account's maximum borrowable limit.
                     '-12014': RateLimitExceeded, // More than 1 request in 3 seconds
