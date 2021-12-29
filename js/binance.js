@@ -880,7 +880,7 @@ module.exports = class binance extends Exchange {
                     '-1001': ExchangeNotAvailable, // 'Internal error; unable to process your request. Please try again.'
                     '-1002': AuthenticationError, // 'You are not authorized to execute this request.'
                     '-1003': RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
-                    '-1004': Exc, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                    '-1004': ExchangeError, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
                     '-1005': ExchangeError, // {"code":-1005,"msg":"No such IP has been white listed"}
                     '-1006': ExchangeError, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
                     '-1007': ExchangeError, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
