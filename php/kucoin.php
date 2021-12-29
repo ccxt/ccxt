@@ -1488,12 +1488,13 @@ class kucoin extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($since !== null) {
-            $request['startAt'] = (int) floor($since / 1000);
-        }
-        if ($limit !== null) {
-            $request['pageSize'] = $limit;
-        }
+        // pagination is not supported on the exchange side anymore
+        // if ($since !== null) {
+        //     $request['startAt'] = (int) floor($since / 1000);
+        // }
+        // if ($limit !== null) {
+        //     $request['pageSize'] = $limit;
+        // }
         $response = $this->publicGetMarketHistories (array_merge($request, $params));
         //
         //     {

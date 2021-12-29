@@ -1440,10 +1440,13 @@ class kucoin(Exchange):
         request = {
             'symbol': market['id'],
         }
-        if since is not None:
-            request['startAt'] = int(math.floor(since / 1000))
-        if limit is not None:
-            request['pageSize'] = limit
+        # pagination is not supported on the exchange side anymore
+        # if since is not None:
+        #     request['startAt'] = int(math.floor(since / 1000))
+        # }
+        # if limit is not None:
+        #     request['pageSize'] = limit
+        # }
         response = await self.publicGetMarketHistories(self.extend(request, params))
         #
         #     {
