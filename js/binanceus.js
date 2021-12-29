@@ -42,6 +42,5 @@ module.exports = class binanceus extends binance {
             },
         });
     }
-
 };
 
