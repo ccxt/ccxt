@@ -915,6 +915,7 @@ module.exports = class binance extends Exchange {
                     '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
                     '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
                     '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                    '-2027': InsufficientFunds, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
                     '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
                     '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
                     '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
