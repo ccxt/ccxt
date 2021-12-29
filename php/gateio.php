@@ -2864,7 +2864,7 @@ class gateio extends Exchange {
         //
         //     {
         //         value => "12.475572",
-        //         leverage => "0",
+        //         $leverage => "0",
         //         mode => "single",
         //         realised_point => "0",
         //         $contract => "BTC_USDT",
@@ -2888,28 +2888,33 @@ class gateio extends Exchange {
         //         liq_price => "59058.58"
         //     }
         //
-        $contract = $this->safe_value($position, 'contract');
+        $contract = $this->safe_string($position, 'contract');
         $market = $this->safe_market($contract, $market);
-        $now = $this->milliseconds();
         $size = $this->safe_string($position, 'size');
         $side = null;
-        if ($size > 0) {
+        if (Precise::string_gt($size, '0')) {
             $side = 'buy';
-        } else if ($size < 0) {
+        } else if (Precise::string_lt($size, '0')) {
             $side = 'sell';
         }
         $maintenanceRate = $this->safe_string($position, 'maintenance_rate');
         $notional = $this->safe_string($position, 'value');
-        $initialMargin = $this->safe_string($position, 'margin');
-        // $marginRatio = Precise::string_div($maintenanceRate, collateral);
+        $leverage = $this->safe_string($position, 'leverage');
         $unrealisedPnl = $this->safe_string($position, 'unrealised_pnl');
+        // Initial Position Margin = ( Position Value / Leverage ) . Close Position Fee
+        // *The default $leverage under the full $position is the highest $leverage in the $market->
+        // *Trading fee is charged as Taker Fee Rate (0.075%).
+        $takerFee = '0.00075';
+        $feePaid = Precise::string_mul($takerFee, $notional);
+        $initialMarginString = Precise::string_add(Precise::string_div($notional, $leverage), $feePaid);
+        $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
         return array(
             'info' => $position,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
-            'initialMargin' => $this->parse_number($initialMargin),
-            'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMargin, $notional)),
+            'timestamp' => null,
+            'datetime' => null,
+            'initialMargin' => $this->parse_number($initialMarginString),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notional)),
             'maintenanceMargin' => $this->parse_number(Precise::string_mul($maintenanceRate, $notional)),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceRate),
             'entryPrice' => $this->safe_number($position, 'entry_price'),
@@ -2922,10 +2927,10 @@ class gateio extends Exchange {
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
-            'collateral' => null,
+            'collateral' => $this->safe_number($position, 'margin'),
             'marginType' => null,
             'side' => $side,
-            'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
+            'percentage' => $this->parse_number($percentage),
         );
     }
 
