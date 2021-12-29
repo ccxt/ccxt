@@ -64,7 +64,7 @@ module.exports = class coinsbit extends Exchange {
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
                 },
-                'www': 'https://{hostname}/',
+                'www': 'https://coinsbit.io/',
                 'doc': [
                     'https://www.notion.so/coinsbitwsapi/API-COINSBIT-WS-API-COINSBIT-cf1044cff30646d49a0bab0e28f27a87',
                     'https://github.com/Coinsbit-connect/api/wiki/API',
