@@ -1146,6 +1146,14 @@ class kucoinfutures extends kucoin {
         $rawCost = $this->safe_string_2($order, 'dealFunds', 'filledValue');
         $leverage = $this->safe_string($order, 'leverage');
         $cost = Precise::string_div($rawCost, $leverage);
+        $average = null;
+        if (Precise::string_gt($filled, '0')) {
+            if ($market['linear']) {
+                $average = Precise::string_div($rawCost, Precise::string_mul($market['contractSize'], $filled));
+            } else {
+                $average = Precise::string_div(Precise::string_mul($market['contractSize'], $filled), $rawCost);
+            }
+        }
         // precision reported by their api is 8 d.p.
         // $average = Precise::string_div($rawCost, Precise::string_mul($filled, $market['contractSize']));
         // bool
@@ -1181,7 +1189,7 @@ class kucoinfutures extends kucoin {
             'status' => $status,
             'info' => $order,
             'lastTradeTimestamp' => null,
-            'average' => null,
+            'average' => $average,
             'trades' => null,
         ), $market);
     }

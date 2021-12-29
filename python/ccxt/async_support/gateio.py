@@ -2761,27 +2761,32 @@ class gateio(Exchange):
         #         liq_price: "59058.58"
         #     }
         #
-        contract = self.safe_value(position, 'contract')
+        contract = self.safe_string(position, 'contract')
         market = self.safe_market(contract, market)
-        now = self.milliseconds()
         size = self.safe_string(position, 'size')
         side = None
-        if size > 0:
+        if Precise.string_gt(size, '0'):
             side = 'buy'
-        elif size < 0:
+        elif Precise.string_lt(size, '0'):
             side = 'sell'
         maintenanceRate = self.safe_string(position, 'maintenance_rate')
         notional = self.safe_string(position, 'value')
-        initialMargin = self.safe_string(position, 'margin')
-        # marginRatio = Precise.string_div(maintenanceRate, collateral)
+        leverage = self.safe_string(position, 'leverage')
         unrealisedPnl = self.safe_string(position, 'unrealised_pnl')
+        # Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
+        # *The default leverage under the full position is the highest leverage in the market.
+        # *Trading fee is charged as Taker Fee Rate(0.075%).
+        takerFee = '0.00075'
+        feePaid = Precise.string_mul(takerFee, notional)
+        initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), feePaid)
+        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         return {
             'info': position,
             'symbol': self.safe_string(market, 'symbol'),
-            'timestamp': now,
-            'datetime': self.iso8601(now),
-            'initialMargin': self.parse_number(initialMargin),
-            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMargin, notional)),
+            'timestamp': None,
+            'datetime': None,
+            'initialMargin': self.parse_number(initialMarginString),
+            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
             'maintenanceMargin': self.parse_number(Precise.string_mul(maintenanceRate, notional)),
             'maintenanceMarginPercentage': self.parse_number(maintenanceRate),
             'entryPrice': self.safe_number(position, 'entry_price'),
@@ -2794,10 +2799,10 @@ class gateio(Exchange):
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liq_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
-            'collateral': None,
+            'collateral': self.safe_number(position, 'margin'),
             'marginType': None,
             'side': side,
-            'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
+            'percentage': self.parse_number(percentage),
         }
 
     def parse_positions(self, positions):
