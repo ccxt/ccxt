@@ -1935,6 +1935,33 @@ module.exports = class kucoin extends Exchange {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
+    async parseBalance (response, params) {
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'trade');
+        const requestedType = this.safeString (params, 'type', defaultType);
+        const accountsByType = this.safeValue (this.options, 'accountsByType');
+        const type = this.safeString (accountsByType, requestedType);
+        const data = this.safeValue (response, 'data', []);
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const balanceType = this.safeString (balance, 'type');
+            if (balanceType === type) {
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeString (balance, 'balance');
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'holds');
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'trade');
@@ -1960,26 +1987,7 @@ module.exports = class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
-            const balanceType = this.safeString (balance, 'type');
-            if (balanceType === type) {
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['total'] = this.safeString (balance, 'balance');
-                account['free'] = this.safeString (balance, 'available');
-                account['used'] = this.safeString (balance, 'holds');
-                result[code] = account;
-            }
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response, params);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

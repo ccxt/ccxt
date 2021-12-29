@@ -1098,6 +1098,22 @@ module.exports = class ftx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
+    async parseBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const balances = this.safeValue (response, 'result', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
+            const account = this.account ();
+            account['free'] = this.safeString2 (balance, 'availableWithoutBorrow', 'free');
+            account['total'] = this.safeString (balance, 'total');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
@@ -1113,19 +1129,7 @@ module.exports = class ftx extends Exchange {
         //         ],
         //     }
         //
-        const result = {
-            'info': response,
-        };
-        const balances = this.safeValue (response, 'result', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
-            const account = this.account ();
-            account['free'] = this.safeString2 (balance, 'availableWithoutBorrow', 'free');
-            account['total'] = this.safeString (balance, 'total');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response, params);
     }
 
     parseOrderStatus (status) {

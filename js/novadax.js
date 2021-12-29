@@ -553,23 +553,7 @@ module.exports = class novadax extends Exchange {
         ];
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccountGetBalance (params);
-        //
-        //     {
-        //         "code": "A10000",
-        //         "data": [
-        //             {
-        //                 "available": "1.23",
-        //                 "balance": "0.23",
-        //                 "currency": "BTC",
-        //                 "hold": "1"
-        //             }
-        //         ],
-        //         "message": "Success"
-        //     }
-        //
+    async parseBalance (response) {
         const data = this.safeValue (response, 'data', []);
         const result = {
             'info': response,
@@ -587,6 +571,26 @@ module.exports = class novadax extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountGetBalance (params);
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": [
+        //             {
+        //                 "available": "1.23",
+        //                 "balance": "0.23",
+        //                 "currency": "BTC",
+        //                 "hold": "1"
+        //             }
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        return this.parseBalance (response, params);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

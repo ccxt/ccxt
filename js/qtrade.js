@@ -667,24 +667,7 @@ module.exports = class qtrade extends Exchange {
         }, market);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalancesAll (params);
-        //
-        //     {
-        //         "data":{
-        //             "balances": [
-        //                 { "balance": "100000000", "currency": "BCH" },
-        //                 { "balance": "99992435.78253015", "currency": "LTC" },
-        //                 { "balance": "99927153.76074182", "currency": "BTC" },
-        //             ],
-        //             "order_balances":[],
-        //             "limit_used":0,
-        //             "limit_remaining":4000,
-        //             "limit":4000
-        //         }
-        //     }
-        //
+    async parseBalance (response) {
         const data = this.safeValue (response, 'data', {});
         let balances = this.safeValue (data, 'balances', []);
         const result = {
@@ -711,6 +694,27 @@ module.exports = class qtrade extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalancesAll (params);
+        //
+        //     {
+        //         "data":{
+        //             "balances": [
+        //                 { "balance": "100000000", "currency": "BCH" },
+        //                 { "balance": "99992435.78253015", "currency": "LTC" },
+        //                 { "balance": "99927153.76074182", "currency": "BTC" },
+        //             ],
+        //             "order_balances":[],
+        //             "limit_used":0,
+        //             "limit_remaining":4000,
+        //             "limit":4000
+        //         }
+        //     }
+        //
+        return this.parseBalance (response, params);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

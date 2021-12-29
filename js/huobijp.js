@@ -937,14 +937,7 @@ module.exports = class huobijp extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        const method = this.options['fetchBalanceMethod'];
-        const request = {
-            'id': this.accounts[0]['id'],
-        };
-        const response = await this[method] (this.extend (request, params));
+    async parseBalance (response) {
         const balances = this.safeValue (response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -966,6 +959,17 @@ module.exports = class huobijp extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const method = this.options['fetchBalanceMethod'];
+        const request = {
+            'id': this.accounts[0]['id'],
+        };
+        const response = await this[method] (this.extend (request, params));
+        return this.parseBalance (response, params);
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {

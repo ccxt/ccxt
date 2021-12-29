@@ -250,9 +250,7 @@ module.exports = class coinmate extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostBalances (params);
+    async parseBalance (response) {
         const balances = this.safeValue (response, 'data');
         const result = { 'info': response };
         const currencyIds = Object.keys (balances);
@@ -267,6 +265,12 @@ module.exports = class coinmate extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostBalances (params);
+        return this.parseBalance (response, params);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

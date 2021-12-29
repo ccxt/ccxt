@@ -1413,6 +1413,13 @@ module.exports = class phemex extends Exchange {
         return this.safeBalance (result);
     }
 
+    async parseBalance (response, params) {
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'fetchBalance', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const result = (type === 'swap') ? this.parseSwapBalance (response) : this.parseSpotBalance (response);
+        return result;
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'defaultType', 'fetchBalance', 'spot');
@@ -1536,8 +1543,7 @@ module.exports = class phemex extends Exchange {
         //         }
         //     }
         //
-        const result = (type === 'swap') ? this.parseSwapBalance (response) : this.parseSpotBalance (response);
-        return result;
+        return this.parseBalance (response, params);
     }
 
     parseOrderStatus (status) {

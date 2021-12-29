@@ -287,20 +287,7 @@ module.exports = class vcc extends Exchange {
         };
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalance (params);
-        //
-        //     {
-        //         "message":null,
-        //         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
-        //         "data":{
-        //             "vnd":{"balance":0,"available_balance":0},
-        //             "btc":{"balance":0,"available_balance":0},
-        //             "eth":{"balance":0,"available_balance":0},
-        //         },
-        //     }
-        //
+    async parseBalance (response) {
         const data = this.safeValue (response, 'data');
         const result = {
             'info': response,
@@ -318,6 +305,23 @@ module.exports = class vcc extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
+        //         "data":{
+        //             "vnd":{"balance":0,"available_balance":0},
+        //             "btc":{"balance":0,"available_balance":0},
+        //             "eth":{"balance":0,"available_balance":0},
+        //         },
+        //     }
+        //
+        return this.parseBalance (response, params);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

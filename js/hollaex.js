@@ -579,21 +579,7 @@ module.exports = class hollaex extends Exchange {
         ];
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetUserBalance (params);
-        //
-        //     {
-        //         "updated_at": "2020-03-02T22:27:38.428Z",
-        //         "btc_balance": 0,
-        //         "btc_pending": 0,
-        //         "btc_available": 0,
-        //         "eth_balance": 0,
-        //         "eth_pending": 0,
-        //         "eth_available": 0,
-        //         // ...
-        //     }
-        //
+    async parseBalance (response) {
         const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
         const result = {
             'info': response,
@@ -610,6 +596,24 @@ module.exports = class hollaex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetUserBalance (params);
+        //
+        //     {
+        //         "updated_at": "2020-03-02T22:27:38.428Z",
+        //         "btc_balance": 0,
+        //         "btc_pending": 0,
+        //         "btc_available": 0,
+        //         "eth_balance": 0,
+        //         "eth_pending": 0,
+        //         "eth_available": 0,
+        //         // ...
+        //     }
+        //
+        return this.parseBalance (response, params);
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {

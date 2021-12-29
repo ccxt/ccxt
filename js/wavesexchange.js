@@ -1500,56 +1500,8 @@ module.exports = class wavesexchange extends Exchange {
         }
     }
 
-    async fetchBalance (params = {}) {
-        // makes a lot of different requests to get all the data
-        // in particular:
-        // fetchMarkets, getWavesAddress,
-        // getTotalBalance (doesn't include waves), getReservedBalance (doesn't include waves)
-        // getReservedBalance (includes WAVES)
-        // I couldn't find another way to get all the data
-        this.checkRequiredDependencies ();
-        this.checkRequiredKeys ();
-        await this.loadMarkets ();
-        const wavesAddress = await this.getWavesAddress ();
-        const request = {
-            'address': wavesAddress,
-        };
-        const totalBalance = await this.nodeGetAssetsBalanceAddress (request);
-        // {
-        //   "address": "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
-        //   "balances": [
-        //     {
-        //       "assetId": "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
-        //       "balance": 1177200,
-        //       "reissuable": false,
-        //       "minSponsoredAssetFee": 7420,
-        //       "sponsorBalance": 47492147189709,
-        //       "quantity": 999999999775381400,
-        //       "issueTransaction": {
-        //         "senderPublicKey": "BRnVwSVctnV8pge5vRpsJdWnkjWEJspFb6QvrmZvu3Ht",
-        //         "quantity": 1000000000000000000,
-        //         "fee": 100400000,
-        //         "description": "Neutrino USD",
-        //         "type": 3,
-        //         "version": 2,
-        //         "reissuable": false,
-        //         "script": null,
-        //         "sender": "3PC9BfRwJWWiw9AREE2B3eWzCks3CYtg4yo",
-        //         "feeAssetId": null,
-        //         "chainId": 87,
-        //         "proofs": [
-        //           "3HNpbVkgP69NWSeb9hGYauiQDaXrRXh3tXFzNsGwsAAXnFrA29SYGbLtziW9JLpXEq7qW1uytv5Fnm5XTUMB2BxU"
-        //         ],
-        //         "assetId": "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
-        //         "decimals": 6,
-        //         "name": "USD-N",
-        //         "id": "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
-        //         "timestamp": 1574429393962
-        //       }
-        //     }
-        //   ]
-        // }
-        const balances = this.safeValue (totalBalance, 'balances');
+    async parseBalance (response) {
+        const balances = this.safeValue (response, 'balances');
         const result = {};
         let timestamp = undefined;
         const assetIds = [];
@@ -1621,6 +1573,7 @@ module.exports = class wavesexchange extends Exchange {
                 result[code]['used'] = amount;
             }
         }
+        const wavesAddress = await this.getWavesAddress ();
         const wavesRequest = {
             'address': wavesAddress,
         };
@@ -1642,6 +1595,58 @@ module.exports = class wavesexchange extends Exchange {
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        // makes a lot of different requests to get all the data
+        // in particular:
+        // fetchMarkets, getWavesAddress,
+        // getTotalBalance (doesn't include waves), getReservedBalance (doesn't include waves)
+        // getReservedBalance (includes WAVES)
+        // I couldn't find another way to get all the data
+        this.checkRequiredDependencies ();
+        this.checkRequiredKeys ();
+        await this.loadMarkets ();
+        const wavesAddress = await this.getWavesAddress ();
+        const request = {
+            'address': wavesAddress,
+        };
+        const response = await this.nodeGetAssetsBalanceAddress (request);
+        // {
+        //   "address": "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
+        //   "balances": [
+        //     {
+        //       "assetId": "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
+        //       "balance": 1177200,
+        //       "reissuable": false,
+        //       "minSponsoredAssetFee": 7420,
+        //       "sponsorBalance": 47492147189709,
+        //       "quantity": 999999999775381400,
+        //       "issueTransaction": {
+        //         "senderPublicKey": "BRnVwSVctnV8pge5vRpsJdWnkjWEJspFb6QvrmZvu3Ht",
+        //         "quantity": 1000000000000000000,
+        //         "fee": 100400000,
+        //         "description": "Neutrino USD",
+        //         "type": 3,
+        //         "version": 2,
+        //         "reissuable": false,
+        //         "script": null,
+        //         "sender": "3PC9BfRwJWWiw9AREE2B3eWzCks3CYtg4yo",
+        //         "feeAssetId": null,
+        //         "chainId": 87,
+        //         "proofs": [
+        //           "3HNpbVkgP69NWSeb9hGYauiQDaXrRXh3tXFzNsGwsAAXnFrA29SYGbLtziW9JLpXEq7qW1uytv5Fnm5XTUMB2BxU"
+        //         ],
+        //         "assetId": "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
+        //         "decimals": 6,
+        //         "name": "USD-N",
+        //         "id": "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
+        //         "timestamp": 1574429393962
+        //       }
+        //     }
+        //   ]
+        // }
+        return this.parseBalance (response, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

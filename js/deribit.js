@@ -542,6 +542,21 @@ module.exports = class deribit extends Exchange {
         return result;
     }
 
+    async parseBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const balance = this.safeValue (response, 'result', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (balance, 'available_funds');
+        account['used'] = this.safeString (balance, 'maintenance_margin');
+        account['total'] = this.safeString (balance, 'equity');
+        result[currencyCode] = account;
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const code = this.codeFromOptions ('fetchBalance', params);
@@ -592,18 +607,7 @@ module.exports = class deribit extends Exchange {
         //         testnet: false
         //     }
         //
-        const result = {
-            'info': response,
-        };
-        const balance = this.safeValue (response, 'result', {});
-        const currencyId = this.safeString (balance, 'currency');
-        const currencyCode = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['free'] = this.safeString (balance, 'available_funds');
-        account['used'] = this.safeString (balance, 'maintenance_margin');
-        account['total'] = this.safeString (balance, 'equity');
-        result[currencyCode] = account;
-        return this.safeBalance (result);
+        return this.parseBalance (response, params);
     }
 
     async createDepositAddress (code, params = {}) {

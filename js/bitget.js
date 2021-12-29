@@ -1700,6 +1700,17 @@ module.exports = class bitget extends Exchange {
         return account['id'];
     }
 
+    async parseBalance (response, params) {
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
+        const type = this.safeString (params, 'type', defaultType);
+        if (type === 'spot') {
+            return this.parseSpotBalance (response);
+        } else if (type === 'swap') {
+            return this.parseSwapBalance (response);
+        }
+        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1745,16 +1756,7 @@ module.exports = class bitget extends Exchange {
         //         {"equity":"0","fixed_balance":"0","total_avail_balance":"0","margin":"0","realized_pnl":"0","unrealized_pnl":"0","symbol":"cmt_btcsusdt","margin_frozen":"0","timestamp":"1595673431577","margin_mode":"fixed","forwardContractFlag":true},
         //     ]
         //
-        return this.parseBalanceByType (type, response);
-    }
-
-    parseBalanceByType (type, response) {
-        if (type === 'spot') {
-            return this.parseSpotBalance (response);
-        } else if (type === 'swap') {
-            return this.parseSwapBalance (response);
-        }
-        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+        return this.parseBalance (response, params);
     }
 
     parseOrderStatus (status) {

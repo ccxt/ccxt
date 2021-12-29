@@ -2195,6 +2195,71 @@ module.exports = class huobi extends Exchange {
         return result;
     }
 
+    async parseBalance (response, params) {
+        const options = this.safeValue (this.options, 'fetchTickers', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        params = this.omit (params, 'type');
+        const spot = (type === 'spot');
+        const future = (type === 'future');
+        const swap = (type === 'swap');
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data');
+        if (spot) {
+            const balances = this.safeValue (data, 'list', []);
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                let account = undefined;
+                if (code in result) {
+                    account = result[code];
+                } else {
+                    account = this.account ();
+                }
+                if (balance['type'] === 'trade') {
+                    account['free'] = this.safeString (balance, 'balance');
+                }
+                if (balance['type'] === 'frozen') {
+                    account['used'] = this.safeString (balance, 'balance');
+                }
+                result[code] = account;
+            }
+        } else if (future) {
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const currencyId = this.safeString (balance, 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'margin_available');
+                account['used'] = this.safeString (balance, 'margin_frozen');
+                result[code] = account;
+            }
+        } else if (swap) {
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
+                const symbol = this.safeSymbol (marketId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'margin_balance', 'margin_available');
+                account['used'] = this.safeString (balance, 'margin_frozen');
+                const currencyId = this.safeString2 (balance, 'margin_asset', 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                const marginMode = this.safeString (balance, 'margin_mode');
+                if (marginMode === 'cross') {
+                    result[code] = account;
+                    return this.safeBalance (result);
+                }
+                const accountsByCode = {};
+                accountsByCode[code] = account;
+                result[symbol] = this.safeBalance (accountsByCode);
+            }
+            return result;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchTickers', {});
@@ -2326,60 +2391,7 @@ module.exports = class huobi extends Exchange {
         //         "ts":1640493207964
         //     }
         //
-        const result = { 'info': response };
-        const data = this.safeValue (response, 'data');
-        if (spot) {
-            const balances = this.safeValue (data, 'list', []);
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                let account = undefined;
-                if (code in result) {
-                    account = result[code];
-                } else {
-                    account = this.account ();
-                }
-                if (balance['type'] === 'trade') {
-                    account['free'] = this.safeString (balance, 'balance');
-                }
-                if (balance['type'] === 'frozen') {
-                    account['used'] = this.safeString (balance, 'balance');
-                }
-                result[code] = account;
-            }
-        } else if (future) {
-            for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
-                const currencyId = this.safeString (balance, 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'margin_available');
-                account['used'] = this.safeString (balance, 'margin_frozen');
-                result[code] = account;
-            }
-        } else if (swap) {
-            for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
-                const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
-                const symbol = this.safeSymbol (marketId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'margin_balance', 'margin_available');
-                account['used'] = this.safeString (balance, 'margin_frozen');
-                const currencyId = this.safeString2 (balance, 'margin_asset', 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                const marginMode = this.safeString (balance, 'margin_mode');
-                if (marginMode === 'cross') {
-                    result[code] = account;
-                    return this.safeBalance (result);
-                }
-                const accountsByCode = {};
-                accountsByCode[code] = account;
-                result[symbol] = this.safeBalance (accountsByCode);
-            }
-            return result;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response, params);
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {

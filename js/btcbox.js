@@ -76,9 +76,7 @@ module.exports = class btcbox extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+    async parseBalance (response) {
         const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
@@ -95,6 +93,12 @@ module.exports = class btcbox extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostBalance (params);
+        return this.parseBalance (response, params);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

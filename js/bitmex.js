@@ -274,7 +274,7 @@ module.exports = class bitmex extends Exchange {
         return result;
     }
 
-    parseBalance (response, type = undefined) {
+    async parseBalance (response) {
         //
         //     [
         //         {
@@ -394,7 +394,7 @@ module.exports = class bitmex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalance (response, params);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

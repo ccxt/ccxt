@@ -359,9 +359,7 @@ module.exports = class btcmarkets extends Exchange {
         return this.parse8601 (this.safeString (response, 'timestamp'));
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccountsMeBalances (params);
+    async parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -373,6 +371,12 @@ module.exports = class btcmarkets extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountsMeBalances (params);
+        return this.parseBalance (response, params);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

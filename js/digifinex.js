@@ -425,6 +425,22 @@ module.exports = class digifinex extends Exchange {
         return result;
     }
 
+    async parseBalance (response) {
+        const balances = this.safeValue (response, 'list', []);
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['used'] = this.safeString (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'free');
+            account['total'] = this.safeString (balance, 'total');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -442,19 +458,7 @@ module.exports = class digifinex extends Exchange {
         //             }
         //         ]
         //     }
-        const balances = this.safeValue (response, 'list', []);
-        const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['used'] = this.safeString (balance, 'frozen');
-            account['free'] = this.safeString (balance, 'free');
-            account['total'] = this.safeString (balance, 'total');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response, params);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

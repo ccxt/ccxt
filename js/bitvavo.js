@@ -728,18 +728,7 @@ module.exports = class bitvavo extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalance (params);
-        //
-        //     [
-        //         {
-        //             "symbol": "BTC",
-        //             "available": "1.57593193",
-        //             "inOrder": "0.74832374"
-        //         }
-        //     ]
-        //
+    async parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -755,6 +744,21 @@ module.exports = class bitvavo extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalance (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC",
+        //             "available": "1.57593193",
+        //             "inOrder": "0.74832374"
+        //         }
+        //     ]
+        //
+        return this.parseBalance (response, params);
     }
 
     async fetchDepositAddress (code, params = {}) {

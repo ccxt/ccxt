@@ -857,6 +857,21 @@ module.exports = class bitpanda extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async parseBalance (response) {
+        const balances = this.safeValue (response, 'balances', []);
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency_code');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccountBalances (params);
@@ -876,18 +891,7 @@ module.exports = class bitpanda extends Exchange {
         //         ]
         //     }
         //
-        const balances = this.safeValue (response, 'balances', []);
-        const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency_code');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'locked');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response, params);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {

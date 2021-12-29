@@ -1230,6 +1230,22 @@ module.exports = class kucoinfutures extends kucoin {
         };
     }
 
+    async parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const data = this.safeValue (response, 'data');
+        const currencyId = this.safeString (data, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'availableBalance');
+        account['total'] = this.safeString (data, 'accountEquity');
+        result[code] = account;
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         // only fetches one balance at a time
@@ -1252,19 +1268,7 @@ module.exports = class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const data = this.safeValue (response, 'data');
-        const currencyId = this.safeString (data, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['free'] = this.safeString (data, 'availableBalance');
-        account['total'] = this.safeString (data, 'accountEquity');
-        result[code] = account;
-        return this.safeBalance (result);
+        return this.parseBalance (response, params);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

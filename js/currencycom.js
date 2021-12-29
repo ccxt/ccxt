@@ -429,7 +429,7 @@ module.exports = class currencycom extends Exchange {
         };
     }
 
-    parseBalance (response, type = undefined) {
+    async parseBalance (response, type = undefined) {
         //
         //     {
         //         "makerCommission":0.20,
@@ -491,7 +491,7 @@ module.exports = class currencycom extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response);
+        return this.parseBalance (response, params);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

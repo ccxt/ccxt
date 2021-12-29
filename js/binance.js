@@ -1402,7 +1402,9 @@ module.exports = class binance extends Exchange {
         return result;
     }
 
-    parseBalance (response, type = undefined) {
+    async parseBalance (response, params) {
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
         const result = {
             'info': response,
         };
@@ -1668,7 +1670,7 @@ module.exports = class binance extends Exchange {
         //       }
         //     ]
         //
-        return this.parseBalance (response, type);
+        return this.parseBalance (response, params);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
