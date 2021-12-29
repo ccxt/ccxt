@@ -1909,14 +1909,25 @@ class huobi(Exchange):
         params = self.omit(params, 'price')
         method = 'spotPublicGetMarketHistoryKline'
         if market['future']:
-            if price == 'mark':
-                method = 'contractPublicGetIndexMarketHistoryMarkPriceKline'
-            elif price == 'index':
-                method = 'contractPublicGetIndexMarketHistoryIndex'
-            elif price == 'premiumIndex':
-                raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
-            else:
-                method = 'contractPublicGetMarketHistoryKline'
+            if market['inverse']:
+                if price == 'mark':
+                    method = 'contractPublicGetIndexMarketHistoryMarkPriceKline'
+                elif price == 'index':
+                    method = 'contractPublicGetIndexMarketHistoryIndex'
+                elif price == 'premiumIndex':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
+                else:
+                    method = 'contractPublicGetMarketHistoryKline'
+            elif market['linear']:
+                if price == 'mark':
+                    method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline'
+                elif price == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
+                elif price == 'premiumIndex':
+                    method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline'
+                else:
+                    method = 'contractPublicGetLinearSwapExMarketHistoryKline'
+                fieldName = 'contract_code'
         elif market['swap']:
             if market['inverse']:
                 if price == 'mark':
