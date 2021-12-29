@@ -1134,7 +1134,13 @@ module.exports = class huobi extends Exchange {
                     settleId = inverse ? baseId : quoteId;
                 } else if (future) {
                     baseId = this.safeString (market, 'symbol');
-                    quoteId = 'USD';
+                    if (inverse) {
+                        quoteId = 'USD';
+                    } else {
+                        const pair = this.safeString (market, 'pair');
+                        const parts = pair.split ('-');
+                        quoteId = this.safeString (parts, 1);
+                    }
                     settleId = baseId;
                 }
             } else {
@@ -1422,20 +1428,30 @@ module.exports = class huobi extends Exchange {
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
         let method = 'spotPublicGetMarketTickers';
-        if (type === 'future') {
-            method = 'contractPublicGetMarketDetailBatchMerged';
-        } else if (type === 'swap') {
-            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-            let subType = this.safeString (options, 'subType', defaultSubType);
-            subType = this.safeString (params, 'subType', subType);
-            if (subType === 'inverse') {
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        let subType = this.safeString (options, 'subType', defaultSubType);
+        subType = this.safeString (params, 'subType', subType);
+        const request = {};
+        const future = (type === 'future');
+        const swap = (type === 'swap');
+        const linear = (subType === 'linear');
+        const inverse = (subType === 'inverse');
+        if (future) {
+            if (inverse) {
+                method = 'contractPublicGetMarketDetailBatchMerged';
+            } else if (linear) {
+                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+                request['business_type'] = 'futures';
+            }
+        } else if (swap) {
+            if (inverse) {
                 method = 'contractPublicGetSwapExMarketDetailBatchMerged';
-            } else if (subType === 'linear') {
+            } else if (linear) {
                 method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
             }
         }
-        const query = this.omit (params, [ 'type', 'subType' ]);
-        const response = await this[method] (query);
+        params = this.omit (params, [ 'type', 'subType' ]);
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1460,7 +1476,7 @@ module.exports = class huobi extends Exchange {
         //         "ts":1639547261293
         //     }
         //
-        // future
+        // inverse swaps, linear swaps, inverse futures
         //
         //     {
         //         "status":"ok",
@@ -1483,11 +1499,58 @@ module.exports = class huobi extends Exchange {
         //         "ts":1637504679376
         //     }
         //
+        // linear futures
+        //
+        //     {
+        //         "status":"ok",
+        //         "ticks":[
+        //             {
+        //                 "id":1640745627,
+        //                 "ts":1640745627957,
+        //                 "ask":[48079.1,20],
+        //                 "bid":[47713.8,125],
+        //                 "business_type":"futures",
+        //                 "contract_code":"BTC-USDT-CW",
+        //                 "open":"49011.8",
+        //                 "close":"47934",
+        //                 "low":"47292.3",
+        //                 "high":"49011.8",
+        //                 "amount":"17.398",
+        //                 "count":1515,
+        //                 "vol":"17398",
+        //                 "trade_turnover":"840726.5048"
+        //             }
+        //         ],
+        //         "ts":1640745627988
+        //     }
+        //
         const tickers = this.safeValue2 (response, 'data', 'ticks', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
+            // the market ids for linear futures are non-standard and differ from all the other endpoints
+            // we are doing a linear-matching here
+            if (future && linear) {
+                for (let j = 0; j < this.symbols.length; j++) {
+                    const symbol = this.symbols[j];
+                    const market = this.market (symbol);
+                    const contractType = this.safeString (market['info'], 'contract_type');
+                    if ((contractType === 'this_week') && (ticker['symbol'] === (market['baseId'] + '-' + market['quoteId'] + '-CW'))) {
+                        ticker['symbol'] = market['symbol'];
+                        break;
+                    } else if ((contractType === 'next_week') && (ticker['symbol'] === (market['baseId'] + '-' + market['quoteId'] + '-NW'))) {
+                        ticker['symbol'] = market['symbol'];
+                        break;
+                    } else if ((contractType === 'this_quarter') && (ticker['symbol'] === (market['baseId'] + '-' + market['quoteId'] + '-CQ'))) {
+                        ticker['symbol'] = market['symbol'];
+                        break;
+                    } else if ((contractType === 'next_quarter') && (ticker['symbol'] === (market['baseId'] + '-' + market['quoteId'] + '-NQ'))) {
+                        ticker['symbol'] = market['symbol'];
+                        break;
+                    }
+                }
+            }
             const symbol = ticker['symbol'];
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
