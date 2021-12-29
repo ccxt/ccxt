@@ -880,12 +880,21 @@ module.exports = class binance extends Exchange {
                     '-1001': ExchangeNotAvailable, // 'Internal error; unable to process your request. Please try again.'
                     '-1002': AuthenticationError, // 'You are not authorized to execute this request.'
                     '-1003': RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
+                    '-1004': xxxx, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                    '-1005': xxxx, // {"code":-1005,"msg":"No such IP has been white listed"}
+                    '-1006': xxxx, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
+                    '-1007': xxxx, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
+                    '-1010': xxxx, // {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
+                    '-1011': xxxx, // {"code":-1011,"msg":"This IP cannot access this route."}
                     '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                    '-1014': xxxx, // {"code":-1014,"msg":"Unsupported order combination."}
                     '-1015': RateLimitExceeded, // 'Too many new orders; current limit is %s orders per %s.'
                     '-1016': ExchangeNotAvailable, // 'This service is no longer available.',
                     '-1020': BadRequest, // 'This operation is not supported.'
                     '-1021': InvalidNonce, // 'your time is ahead of server'
                     '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1023': xxx, // {"code":-1023,"msg":"Start time is greater than end time."}
+                    '-1099': AuthenticationError, // Not found, authenticated, or authorized
                     '-1100': BadRequest, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101': BadRequest, // Too many parameters; expected %s and received %s.
                     '-1102': BadRequest, // Param %s or %s must be sent, but both were empty
@@ -893,8 +902,12 @@ module.exports = class binance extends Exchange {
                     '-1104': BadRequest, // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105': BadRequest, // Parameter %s was empty.
                     '-1106': BadRequest, // Parameter %s sent when not required.
+                    '-1108': BadRequest, // Invalid asset.
+                    '-1109': AuthenticationError, // Invalid account.
+                    '-1110': BadRequest, // Invalid symbolType.
                     '-1111': BadRequest, // Precision is over the maximum defined for this asset.
                     '-1112': InvalidOrder, // No orders on book for symbol.
+                    '-1113': BadRequest, // Withdrawal amount must be negative.
                     '-1114': BadRequest, // TimeInForce parameter sent when not required.
                     '-1115': BadRequest, // Invalid timeInForce.
                     '-1116': BadRequest, // Invalid orderType.
@@ -908,34 +921,71 @@ module.exports = class binance extends Exchange {
                     '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                     '-1130': BadRequest, // Data sent for paramter %s is not valid.
                     '-1131': BadRequest, // recvWindow must be less than 60000
-                    '-2008': AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
+                    '-1136': BadRequest, // Invalid newOrderRespType
+                    '-2008': AuthenticationError, // Invalid Api-Key ID.
                     '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                     '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                     '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
-                    '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
-                    '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
-                    '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
-                    '-2020': ExchangeError, // {"code":-2020,"msg":"Unable to fill."}
-                    '-2021': InvalidOrder, // {"code":-2021,"msg":"Order would immediately trigger."}
-                    '-2022': InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
-                    '-2023': InsufficientFunds, // {"code":-2023,"msg":"User in liquidation mode now."}
-                    '-2024': InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
-                    '-2025': InsufficientFunds, // {"code":-2025,"msg":"Reach max open order limit."}
-                    '-2026': InsufficientFunds, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
-                    '-2027': InsufficientFunds, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
-                    '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
-                    '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
-                    '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
-                    '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
-                    '-3015': ExchangeError, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                    '-2014': AuthenticationError, // API-key format invalid.
+                    '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
+                    '-2016': BadRequest, // No trading window could be found for the symbol. Try ticker/24hrs instead.
+                    '-2018': InsufficientFunds, // Balance is insufficient
+                    '-2019': InsufficientFunds, // Margin is insufficient.
+                    '-2020': ExchangeError, // Unable to fill.
+                    '-2021': InvalidOrder, // Order would immediately trigger.
+                    '-2022': InvalidOrder, // ReduceOnly Order is rejected.
+                    '-2023': InsufficientFunds, // User in liquidation mode now.
+                    '-2024': InsufficientFunds, // Position is not sufficient.
+                    '-2025': InsufficientFunds, // Reach max open order limit.
+                    '-2026': InsufficientFunds, // This OrderType is not supported when reduceOnly.
+                    '-2027': InsufficientFunds, // Exceeded the maximum allowable position at current leverage.
+                    '-2028': InsufficientFunds, // Leverage is smaller than permitted: insufficient margin balance
+                    '-3000': ExchangeError, // Internal server error.
+                    '-3001': ExchangeError, // Please enable 2FA first.
+                    '-3002': BadRequest, // We don't have this asset.
+                    '-3003': BadRequest, // Margin account does not exist.
+                    '-3004': ExchangeError, // Trade not allowed.
+                    '-3005': InsufficientFunds, // Transferring out not allowed. Transfer out amount exceeds max amount.
+                    '-3006': InsufficientFunds, // Your borrow amount has exceed maximum borrow amount.
+                    '-3007': ExchangeError, // You have pending transaction, please try again later..
+                    '-3008': InsufficientFunds, // Borrow not allowed. Your borrow amount has exceed maximum borrow amount.
+                    '-3009': BadRequest, // This asset are not allowed to transfer into margin account currently.
+                    '-3010': ExchangeError, // Repay not allowed. Repay amount exceeds borrow amount.
+                    '-3011': BadRequest, // Your input date is invalid.
+                    '-3012': ExchangeError, // Borrow is banned for this asset.
+                    '-3013': BadRequest, // Borrow amount less than minimum borrow amount.
+                    '-3014': AccountSuspended, // Borrow is banned for this account.
+                    '-3015': ExchangeError, // Repay amount exceeds borrow amount.
+                    '-3016': BadRequest, // Repay amount less than minimum repay amount.
+                    '-3017': ExchangeError, // This asset are not allowed to transfer into margin account currently.
+                    '-3018': AccountSuspended, // Transferring in has been banned for this account.
+                    '-3019': AccountSuspended, // Transferring out has been banned for this account.
+                    '-3020': BadRequest, // Transfer out amount exceeds max amount.
+                    '-3021': BadRequest, // Margin account are not allowed to trade this trading pair.
                     '-3022': AccountSuspended, // You account's trading is banned.
-                    '-4028': BadRequest, // {"code":-4028,"msg":"Leverage 100 is not valid"}
-                    '-3020': InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
-                    '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
+                    '-3023': BadRequest, // You can't transfer out/place order under current margin level.
+                    '-3024': BadRequest, // The unpaid debt is too small after this repayment.
+                    '-3025': BadRequest, // Your input date is invalid.
+                    '-3026': BadRequest, // Your input param is invalid.
+                    '-3027': BadRequest, // Not a valid margin asset.
+                    '-3028': BadRequest, // Not a valid margin pair.
+                    '-3029': ExchangeError, // Transfer failed.
+                    '-3036': AccountSuspended, // This account is not allowed to repay.
+                    '-3037': ExchangeError, // PNL is clearing. Wait a second.
+                    '-3038': BadRequest, // Listen key not found.
+                    '-3041': InsufficientFunds, // Balance is not enough
+                    '-3042': BadRequest, // PriceIndex not available for this margin pair.
+                    '-3043': BadRequest, // Transferring in not allowed.
+                    '-3044': ExchangeError, // System busy.
+                    '-3045': ExchangeError, // The system doesn't have enough asset now.
+                    '-3999': ExchangeError, // This function is only available for invited users.
+                    '-4028': BadRequest, // Leverage 100 is not valid
+                    '-3020': InsufficientFunds, // Transfer out amount exceeds max amount.
+                    '-3041': InsufficientFunds, // Balance is not enough
                     '-5013': InsufficientFunds, // Asset transfer failed: insufficient balance"
-                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}
-                    '-4051': InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
-                    '100001003': BadRequest, // {"code":100001003,"msg":"Verification failed"}
+                    '-11008': InsufficientFunds, // Exceeding the account's maximum borrowable limit.
+                    '-4051': InsufficientFunds, // Isolated balance insufficient.
+                    '100001003': BadRequest, // Verification failed
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
