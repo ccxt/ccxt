@@ -1486,12 +1486,13 @@ module.exports = class kucoin extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (since !== undefined) {
-            request['startAt'] = Math.floor (since / 1000);
-        }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
+        // pagination is not supported on the exchange side anymore
+        // if (since !== undefined) {
+        //     request['startAt'] = Math.floor (since / 1000);
+        // }
+        // if (limit !== undefined) {
+        //     request['pageSize'] = limit;
+        // }
         const response = await this.publicGetMarketHistories (this.extend (request, params));
         //
         //     {
