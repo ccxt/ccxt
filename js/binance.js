@@ -876,24 +876,24 @@ module.exports = class binance extends Exchange {
                     "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
-                    '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1000': ExchangeNotAvailable, // An unknown error occured while processing the request.
                     '-1001': ExchangeNotAvailable, // 'Internal error; unable to process your request. Please try again.'
                     '-1002': AuthenticationError, // 'You are not authorized to execute this request.'
-                    '-1003': RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
-                    '-1004': ExchangeError, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
-                    '-1005': ExchangeError, // {"code":-1005,"msg":"No such IP has been white listed"}
-                    '-1006': ExchangeError, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
-                    '-1007': ExchangeError, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
-                    '-1010': ExchangeError, // {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
-                    '-1011': ExchangeError, // {"code":-1011,"msg":"This IP cannot access this route."}
+                    '-1003': RateLimitExceeded, // Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.
+                    '-1004': ExchangeError, // Server is busy, please wait and try again
+                    '-1005': ExchangeError, // No such IP has been white listed
+                    '-1006': ExchangeError, // An unexpected response was received from the message bus. Execution status unknown.
+                    '-1007': ExchangeError, // Timeout waiting for response from backend server. Send status unknown; execution status unknown.
+                    '-1010': ExchangeError, // ERROR_MSG_RECEIVED.
+                    '-1011': ExchangeError, // This IP cannot access this route.
                     '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                    '-1014': InvalidOrder, // {"code":-1014,"msg":"Unsupported order combination."}
+                    '-1014': InvalidOrder, // Unsupported order combination.
                     '-1015': RateLimitExceeded, // 'Too many new orders; current limit is %s orders per %s.'
                     '-1016': ExchangeNotAvailable, // 'This service is no longer available.',
                     '-1020': BadRequest, // 'This operation is not supported.'
                     '-1021': InvalidNonce, // 'your time is ahead of server'
-                    '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
-                    '-1023': ExchangeError, // {"code":-1023,"msg":"Start time is greater than end time."}
+                    '-1022': AuthenticationError, // Signature for this request is not valid.
+                    '-1023': ExchangeError, // Start time is greater than end time.
                     '-1099': AuthenticationError, // Not found, authenticated, or authorized
                     '-1100': BadRequest, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101': BadRequest, // Too many parameters; expected %s and received %s.
@@ -960,7 +960,7 @@ module.exports = class binance extends Exchange {
                     '-3017': ExchangeError, // This asset are not allowed to transfer into margin account currently.
                     '-3018': AccountSuspended, // Transferring in has been banned for this account.
                     '-3019': AccountSuspended, // Transferring out has been banned for this account.
-                    '-3020': BadRequest, // Transfer out amount exceeds max amount.
+                    '-3020': InsufficientFunds, // Transfer out amount exceeds max amount.
                     '-3021': BadRequest, // Margin account are not allowed to trade this trading pair.
                     '-3022': AccountSuspended, // You account's trading is banned.
                     '-3023': BadRequest, // You can't transfer out/place order under current margin level.
@@ -979,13 +979,99 @@ module.exports = class binance extends Exchange {
                     '-3044': ExchangeError, // System busy.
                     '-3045': ExchangeError, // The system doesn't have enough asset now.
                     '-3999': ExchangeError, // This function is only available for invited users.
-                    '-4028': BadRequest, // Leverage 100 is not valid
-                    '-3020': InsufficientFunds, // Transfer out amount exceeds max amount.
-                    '-3041': InsufficientFunds, // Balance is not enough
-                    '-5013': InsufficientFunds, // Asset transfer failed: insufficient balance"
-                    '-11008': InsufficientFunds, // Exceeding the account's maximum borrowable limit.
-                    '-4051': InsufficientFunds, // Isolated balance insufficient.
-                    '100001003': BadRequest, // Verification failed
+                    '-4001 ': BadRequest, // Invalid operation.
+                    '-4002 ': BadRequest, // Invalid get.
+                    '-4003 ': BadRequest, // Your input email is invalid.
+                    '-4004': AuthenticationError, // You don't login or auth.
+                    '-4005 ': RateLimitExceeded, // Too many new requests.
+                    '-4006 ': BadRequest, // Support main account only.
+                    '-4007 ': BadRequest, // Address validation is not passed.
+                    '-4008 ': BadRequest, // Address tag validation is not passed.
+                    '-4010 ': BadRequest, // White list mail has been confirmed. [TODO] possible bug: it should probably be "has not been confirmed"
+                    '-4011 ': BadRequest, // White list mail is invalid.
+                    '-4012 ': BadRequest, // White list is not opened.
+                    '-4013 ': AuthenticationError, // 2FA is not opened.
+                    '-4014 ': BadRequest, // Withdraw is not allowed within 2 min login.
+                    '-4015 ': ExchangeError, // Withdraw is limited.
+                    '-4016 ': BadRequest, // Within 24 hours after password modification, withdrawal is prohibited.
+                    '-4017 ': BadRequest, // Within 24 hours after the release of 2FA, withdrawal is prohibited.
+                    '-4018': BadRequest, // We don't have this asset.
+                    '-4019': BadRequest, // Current asset is not open for withdrawal.
+                    '-4021': BadRequest, // Asset withdrawal must be an %s multiple of %s.
+                    '-4022': BadRequest, // Not less than the minimum pick-up quantity %s.
+                    '-4023': ExchangeError, // Within 24 hours, the withdrawal exceeds the maximum amount.
+                    '-4024': BadRequest, // You don't have this asset.
+                    '-4025': BadRequest, // The number of hold asset is less than zero.
+                    '-4026': InsufficientFunds, // You have insufficient balance.
+                    '-4027': ExchangeError, // Failed to obtain tranId.
+                    '-4028': BadRequest, // The amount of withdrawal must be greater than the Commission.
+                    '-4029': BadRequest, // The withdrawal record does not exist.
+                    '-4030': ExchangeError, // Confirmation of successful asset withdrawal. [TODO] possible bug in docs
+                    '-4031': ExchangeError, // Cancellation failed.
+                    '-4032': ExchangeError, // Withdraw verification exception.
+                    '-4033': BadRequest, // Illegal address.
+                    '-4034': ExchangeError, // The address is suspected of fake.
+                    '-4035': BadRequest, // This address is not on the whitelist. Please join and try again.
+                    '-4036': BadRequest, // The new address needs to be withdrawn in {0} hours.
+                    '-4037': ExchangeError, // Re-sending Mail failed.
+                    '-4038': ExchangeError, // Please try again in 5 minutes.
+                    '-4039': BadRequest, // The user does not exist.
+                    '-4040': BadRequest, // This address not charged.
+                    '-4041': ExchangeError, // Please try again in one minute.
+                    '-4042': ExchangeError, // This asset cannot get deposit address again.
+                    '-4043': BadRequest, // More than 100 recharge addresses were used in 24 hours.
+                    '-4044': BadRequest, // This is a blacklist country.
+                    '-4045': ExchangeError, // Failure to acquire assets.
+                    '-4046': AuthenticationError, // Agreement not confirmed.
+                    '-4047': BadRequest, // Time interval must be within 0-90 days
+                    '-5001': BadRequest, // Don't allow transfer to micro assets.
+                    '-5002': InsufficientFunds, // You have insufficient balance.
+                    '-5003': InsufficientFunds, // You don't have this asset.
+                    '-5004': BadRequest, // The residual balances of %s have exceeded 0.001BTC, Please re-choose.
+                    '-5005': InsufficientFunds, // The residual balances of %s is too low, Please re-choose.
+                    '-5006': BadRequest, // Only transfer once in 24 hours.
+                    '-5007': BadRequest, // Quantity must be greater than zero.
+                    '-5008': InsufficientFunds, // Insufficient amount of returnable assets.
+                    '-5009': BadRequest, // Product does not exist.
+                    '-5010': ExchangeError, // Asset transfer fail.
+                    '-5011': BadRequest, // future account not exists.
+                    '-5012': ExchangeError, // Asset transfer is in pending.
+                    '-5013': InsufficientFunds, // [Undocumented error] Asset transfer failed: insufficient balance"
+                    '-5021': BadRequest, // This parent sub have no relation
+                    //'-5022': BadRequest, // future account or sub relation not exists. [Note:  in BINANCE DOCS,there is possible bug, as this was mentioned by '5012' error code, while I think it should have been 5022]
+                    '-6001': BadRequest, // Daily product not exists.
+                    '-6003': BadRequest, // Product not exist or you don't have permission
+                    '-6004': ExchangeError, // Product not in purchase status
+                    '-6005': InvalidOrder, // Smaller than min purchase limit
+                    '-6006': BadRequest, // Redeem amount error
+                    '-6007': BadRequest, // Not in redeem time
+                    '-6008': BadRequest, // Product not in redeem status
+                    '-6009': RateLimitExceeded, // Request frequency too high
+                    '-6011': BadRequest, // Exceeding the maximum num allowed to purchase per user
+                    '-6012': InsufficientFunds, // Balance not enough
+                    '-6013': ExchangeError, // Purchasing failed
+                    '-6014': BadRequest, // Exceed up-limit allowed to purchased
+                    '-6015': BadRequest, // Empty request body
+                    '-6016': BadRequest, // Parameter err
+                    '-6017': BadRequest, // Not in whitelist
+                    '-6018': BadRequest, // Asset not enough
+                    '-6019': AuthenticationError, // Need confirm
+                    '-6020': BadRequest, // Project not exists
+                    '-7001': BadRequest, // Date range is not supported.
+                    '-7002': BadRequest, // Data request type is not supported.
+					//TODO: 9xxx - they are nonstandard : https://binance-docs.github.io/apidocs/spot/en/#9xxx-filter-failures
+                    '-10017': BadRequest, // Repay amount should not be larger than liability.
+                    '-11008': InsufficientFunds, // [Undocumented error] Exceeding the account's maximum borrowable limit.
+                    '-12014': RateLimitExceeded, // More than 1 request in 3 seconds
+                    '-13000': BadRequest, // Redeption of the token is forbiden now
+                    '-13001': BadRequest, // Exceeds individual 24h redemption limit of the token
+                    '-13002': BadRequest, // Exceeds total 24h redemption limit of the token
+                    '-13003': BadRequest, // Subscription of the token is forbiden now
+                    '-13004': BadRequest, // Exceeds individual 24h subscription limit of the token
+                    '-13005': BadRequest, // Exceeds total 24h subscription limit of the token
+                    '-13006': InvalidOrder, // Subscription amount is too small
+                    '-13007': AuthenticationError, // The Agreement is not signed
+                    '100001003': BadRequest, //  [Undocumented error] Verification failed
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
