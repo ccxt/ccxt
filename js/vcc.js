@@ -287,7 +287,7 @@ module.exports = class vcc extends Exchange {
         };
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const data = this.safeValue (response, 'data');
         const result = {
             'info': response,
@@ -321,7 +321,7 @@ module.exports = class vcc extends Exchange {
         //         },
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

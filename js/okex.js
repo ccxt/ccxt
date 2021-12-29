@@ -1499,14 +1499,6 @@ module.exports = class okex extends Exchange {
         return this.parseTradingFee (first, market);
     }
 
-    async parseBalance (response, params) {
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const options = this.safeValue (this.options, 'fetchBalance', {});
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        return this.parseBalanceByType (type, response);
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString (this.options, 'defaultType');
@@ -1626,7 +1618,7 @@ module.exports = class okex extends Exchange {
         //         "msg":""
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalanceByType (type, response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

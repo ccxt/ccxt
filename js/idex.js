@@ -598,7 +598,7 @@ module.exports = class idex extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -650,7 +650,7 @@ module.exports = class idex extends Exchange {
                 throw e;
             }
         }
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

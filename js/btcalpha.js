@@ -280,7 +280,7 @@ module.exports = class btcalpha extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -297,7 +297,7 @@ module.exports = class btcalpha extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetWallets (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {

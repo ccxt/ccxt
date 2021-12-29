@@ -397,7 +397,7 @@ module.exports = class zonda extends Exchange {
         return this.filterBySymbol (result, symbol);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response, 'balances');
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
@@ -418,7 +418,7 @@ module.exports = class zonda extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

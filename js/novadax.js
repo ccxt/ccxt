@@ -553,7 +553,7 @@ module.exports = class novadax extends Exchange {
         ];
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const data = this.safeValue (response, 'data', []);
         const result = {
             'info': response,
@@ -590,7 +590,7 @@ module.exports = class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

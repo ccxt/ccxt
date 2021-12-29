@@ -636,7 +636,7 @@ module.exports = class bigone extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -671,7 +671,7 @@ module.exports = class bigone extends Exchange {
         //         ],
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOrder (order, market = undefined) {

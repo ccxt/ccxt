@@ -579,7 +579,7 @@ module.exports = class hollaex extends Exchange {
         ];
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
         const result = {
             'info': response,
@@ -613,7 +613,7 @@ module.exports = class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {

@@ -377,7 +377,7 @@ module.exports = class probit extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -410,7 +410,7 @@ module.exports = class probit extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

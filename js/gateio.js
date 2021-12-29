@@ -1479,34 +1479,6 @@ module.exports = class gateio extends Exchange {
         return account;
     }
 
-    async parseBalance (response, params) {
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const margin = type === 'margin';
-        const result = {
-            'info': response,
-        };
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            if (margin) {
-                const marketId = this.safeString (entry, 'currency_pair');
-                const symbol = this.safeSymbol (marketId, undefined, '_');
-                const base = this.safeValue (entry, 'base', {});
-                const quote = this.safeValue (entry, 'quote', {});
-                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency', {}));
-                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency', {}));
-                const subResult = {};
-                subResult[baseCode] = this.fetchBalanceHelper (base);
-                subResult[quoteCode] = this.fetchBalanceHelper (quote);
-                result[symbol] = this.safeBalance (subResult);
-            } else {
-                const code = this.safeCurrencyCode (this.safeString (entry, 'currency', {}));
-                result[code] = this.fetchBalanceHelper (entry);
-            }
-        }
-        return margin ? result : this.safeBalance (result);
-    }
-
     async fetchBalance (params = {}) {
         // :param params.type: spot, margin, crossMargin, swap or future
         // :param params.settle: Settle currency (usdt or btc) for perpetual swap and future
@@ -1619,7 +1591,29 @@ module.exports = class gateio extends Exchange {
         //       user: "6333333",
         //     }
         //
-        return this.parseBalance (response, params);
+        const margin = type === 'margin';
+        const result = {
+            'info': response,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            if (margin) {
+                const marketId = this.safeString (entry, 'currency_pair');
+                const symbol = this.safeSymbol (marketId, undefined, '_');
+                const base = this.safeValue (entry, 'base', {});
+                const quote = this.safeValue (entry, 'quote', {});
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency', {}));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency', {}));
+                const subResult = {};
+                subResult[baseCode] = this.fetchBalanceHelper (base);
+                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                result[symbol] = this.safeBalance (subResult);
+            } else {
+                const code = this.safeCurrencyCode (this.safeString (entry, 'currency', {}));
+                result[code] = this.fetchBalanceHelper (entry);
+            }
+        }
+        return margin ? result : this.safeBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

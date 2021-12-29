@@ -1098,7 +1098,7 @@ module.exports = class ftx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
         };
@@ -1129,7 +1129,7 @@ module.exports = class ftx extends Exchange {
         //         ],
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {

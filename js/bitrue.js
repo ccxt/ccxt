@@ -648,7 +648,7 @@ module.exports = class bitrue extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
         };
@@ -688,7 +688,7 @@ module.exports = class bitrue extends Exchange {
         //         "canDeposit":false
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

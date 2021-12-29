@@ -766,7 +766,7 @@ module.exports = class whitebit extends Exchange {
         return await this.v4PrivatePostOrderCancel (this.extend (request, params));
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balanceKeys = Object.keys (response);
         const result = { };
         for (let i = 0; i < balanceKeys.length; i++) {
@@ -790,7 +790,7 @@ module.exports = class whitebit extends Exchange {
         //         "XMR": { "available": "3013", "freeze": "100" },
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

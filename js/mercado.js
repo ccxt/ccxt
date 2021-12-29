@@ -283,7 +283,7 @@ module.exports = class mercado extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const data = this.safeValue (response, 'response_data', {});
         const balances = this.safeValue (data, 'balance', {});
         const result = { 'info': response };
@@ -305,7 +305,7 @@ module.exports = class mercado extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetAccountInfo (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

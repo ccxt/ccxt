@@ -565,7 +565,7 @@ module.exports = class xena extends Exchange {
         return account['id'];
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         let timestamp = undefined;
         const balances = this.safeValue (response, 'balances', []);
@@ -610,7 +610,7 @@ module.exports = class xena extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseTrade (trade, market = undefined) {

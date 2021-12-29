@@ -577,11 +577,20 @@ module.exports = class bitfinex2 extends bitfinex {
         return result;
     }
 
-    async parseBalance (response, params = {}) {
+    async fetchBalance (params = {}) {
+        // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
+        // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
+        await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
         const accountType = this.safeString (accountsByType, requestedType);
+        if (accountType === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
+        }
         const isDerivative = requestedType === 'derivatives';
+        const query = this.omit (params, 'type');
+        const response = await this.privatePostAuthRWallets (query);
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -600,22 +609,6 @@ module.exports = class bitfinex2 extends bitfinex {
             }
         }
         return this.safeBalance (result);
-    }
-
-    async fetchBalance (params = {}) {
-        // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
-        // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
-        await this.loadMarkets ();
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
-        const requestedType = this.safeString (params, 'type', 'exchange');
-        const accountType = this.safeString (accountsByType, requestedType);
-        if (accountType === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
-        }
-        const query = this.omit (params, 'type');
-        const response = await this.privatePostAuthRWallets (query);
-        return this.parseBalance (response, params);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

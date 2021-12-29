@@ -277,7 +277,7 @@ module.exports = class tidex extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response, 'return');
         const timestamp = this.safeTimestamp (balances, 'server_time');
         const result = {
@@ -328,7 +328,7 @@ module.exports = class tidex extends Exchange {
         //         }
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

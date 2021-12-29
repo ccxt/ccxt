@@ -815,33 +815,6 @@ module.exports = class aax extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async parseBalance (response, params = {}) {
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const types = this.safeValue (this.options, 'types', {});
-        const purseType = this.safeString (types, type, type);
-        const data = this.safeValue (response, 'data');
-        const timestamp = this.safeInteger (response, 'ts');
-        const result = {
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
-            const balanceType = this.safeString (balance, 'purseType');
-            if (balanceType === purseType) {
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'available');
-                account['used'] = this.safeString (balance, 'unavailable');
-                result[code] = account;
-            }
-        }
-        return this.safeBalance (result);
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
@@ -874,7 +847,26 @@ module.exports = class aax extends Exchange {
         //         "ts":1573530401020
         //     }
         //
-        return this.parseBalance (response, params);
+        const data = this.safeValue (response, 'data');
+        const timestamp = this.safeInteger (response, 'ts');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const balanceType = this.safeString (balance, 'purseType');
+            if (balanceType === purseType) {
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'unavailable');
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -550,7 +550,7 @@ module.exports = class eqonex extends Exchange {
         }, market);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const positions = this.safeValue (response, 'positions', []);
         const result = {
             'info': response,
@@ -598,7 +598,7 @@ module.exports = class eqonex extends Exchange {
         //             },
         //         ]
         //     }
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

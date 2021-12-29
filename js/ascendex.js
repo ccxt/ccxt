@@ -608,7 +608,7 @@ module.exports = class ascendex extends Exchange {
         ];
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -689,7 +689,7 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

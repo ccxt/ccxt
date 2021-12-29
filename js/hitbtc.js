@@ -463,7 +463,7 @@ module.exports = class hitbtc extends Exchange {
         return this.parseTradingFee (response, market);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -499,7 +499,7 @@ module.exports = class hitbtc extends Exchange {
         //         {"currency":"DGTX","available":"0","reserved":"0"},
         //     ]
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

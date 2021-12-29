@@ -392,7 +392,31 @@ module.exports = class latoken extends Exchange {
         return result;
     }
 
-    async parseBalance (response, params) {
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAuthAccount (params);
+        //
+        //     [
+        //         {
+        //             id: "e5852e02-8711-431c-9749-a6f5503c6dbe",
+        //             status: "ACCOUNT_STATUS_ACTIVE",
+        //             type: "ACCOUNT_TYPE_WALLET",
+        //             timestamp: "1635920106506",
+        //             currency: "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             available: "100.000000",
+        //             blocked: "0.000000"
+        //         },
+        //         {
+        //             id: "369df204-acbc-467e-a25e-b16e3cc09cf6",
+        //             status: "ACCOUNT_STATUS_ACTIVE",
+        //             type: "ACCOUNT_TYPE_SPOT",
+        //             timestamp: "1635920106504",
+        //             currency: "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             available: "100.000000",
+        //             blocked: "0.000000"
+        //         }
+        //     ]
+        //
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -425,34 +449,6 @@ module.exports = class latoken extends Exchange {
         result['timestamp'] = maxTimestamp;
         result['datetime'] = this.iso8601 (maxTimestamp);
         return this.safeBalance (result);
-    }
-
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAuthAccount (params);
-        //
-        //     [
-        //         {
-        //             id: "e5852e02-8711-431c-9749-a6f5503c6dbe",
-        //             status: "ACCOUNT_STATUS_ACTIVE",
-        //             type: "ACCOUNT_TYPE_WALLET",
-        //             timestamp: "1635920106506",
-        //             currency: "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //             available: "100.000000",
-        //             blocked: "0.000000"
-        //         },
-        //         {
-        //             id: "369df204-acbc-467e-a25e-b16e3cc09cf6",
-        //             status: "ACCOUNT_STATUS_ACTIVE",
-        //             type: "ACCOUNT_TYPE_SPOT",
-        //             timestamp: "1635920106504",
-        //             currency: "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //             available: "100.000000",
-        //             blocked: "0.000000"
-        //         }
-        //     ]
-        //
-        return this.parseBalance (response, params);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

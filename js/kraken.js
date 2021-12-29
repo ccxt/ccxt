@@ -1068,7 +1068,7 @@ module.exports = class kraken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response, 'result', {});
         const result = {
             'info': response,
@@ -1099,7 +1099,7 @@ module.exports = class kraken extends Exchange {
         //         }
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

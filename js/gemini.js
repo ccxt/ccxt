@@ -625,7 +625,7 @@ module.exports = class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -642,7 +642,7 @@ module.exports = class gemini extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostV1Balances (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOrder (order, market = undefined) {

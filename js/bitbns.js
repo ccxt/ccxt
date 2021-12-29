@@ -358,7 +358,7 @@ module.exports = class bitbns extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const timestamp = undefined;
         const result = {
             'info': response,
@@ -404,7 +404,7 @@ module.exports = class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {

@@ -805,25 +805,6 @@ module.exports = class blockchaincom extends Exchange {
         return this.parseTransaction (deposit);
     }
 
-    async parseBalance (response, params = {}) {
-        const accountName = this.safeString (params, 'account', 'primary');
-        const balances = this.safeValue (response, accountName);
-        if (balances === undefined) {
-            throw new ExchangeError (this.id + ' fetchBalance() could not find the "' + accountName + '" account');
-        }
-        const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (entry, 'available');
-            account['total'] = this.safeString (entry, 'balance');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const accountName = this.safeString (params, 'account', 'primary');
@@ -847,7 +828,21 @@ module.exports = class blockchaincom extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        const balances = this.safeValue (response, accountName);
+        if (balances === undefined) {
+            throw new ExchangeError (this.id + ' fetchBalance() could not find the "' + accountName + '" account');
+        }
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const entry = balances[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (entry, 'available');
+            account['total'] = this.safeString (entry, 'balance');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

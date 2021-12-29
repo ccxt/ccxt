@@ -226,7 +226,7 @@ module.exports = class bitso extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const payload = this.safeValue (response, 'payload', {});
         const balances = this.safeValue (payload, 'balances');
         const result = {
@@ -275,7 +275,7 @@ module.exports = class bitso extends Exchange {
         //       },
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

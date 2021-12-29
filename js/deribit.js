@@ -542,7 +542,7 @@ module.exports = class deribit extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
         };
@@ -607,7 +607,7 @@ module.exports = class deribit extends Exchange {
         //         testnet: false
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createDepositAddress (code, params = {}) {

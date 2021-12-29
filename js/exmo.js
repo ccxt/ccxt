@@ -518,7 +518,7 @@ module.exports = class exmo extends Exchange {
         ];
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         const free = this.safeValue (response, 'balances', {});
         const used = this.safeValue (response, 'reserved', {});
@@ -553,7 +553,7 @@ module.exports = class exmo extends Exchange {
         //         },
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

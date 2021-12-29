@@ -198,7 +198,7 @@ module.exports = class zaif extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
         const result = {
@@ -228,7 +228,7 @@ module.exports = class zaif extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

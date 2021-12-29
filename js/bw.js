@@ -591,7 +591,7 @@ module.exports = class bw extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const data = this.safeValue (response, 'datas', {});
         const balances = this.safeValue (data, 'list', []);
         const result = { 'info': response };
@@ -627,7 +627,7 @@ module.exports = class bw extends Exchange {
         //         "resMsg": { "code": "1", "message": "success !" }
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

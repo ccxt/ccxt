@@ -315,7 +315,7 @@ module.exports = class bittrex extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         const indexed = this.indexBy (response, 'currencySymbol');
         const currencyIds = Object.keys (indexed);
@@ -334,7 +334,7 @@ module.exports = class bittrex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetBalances (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

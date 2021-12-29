@@ -1768,15 +1768,6 @@ module.exports = class okex3 extends Exchange {
         return this.safeBalance (result);
     }
 
-    async parseBalance (response, params) {
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance() requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
-        }
-        return this.parseBalanceByType (type, response);
-    }
-
     async fetchBalance (params = {}) {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
@@ -1913,7 +1904,7 @@ module.exports = class okex3 extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalanceByType (type, response);
     }
 
     parseBalanceByType (type, response) {

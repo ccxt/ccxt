@@ -489,7 +489,7 @@ module.exports = class kuna extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response, 'accounts');
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
@@ -507,7 +507,7 @@ module.exports = class kuna extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetMembersMe (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

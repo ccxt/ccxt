@@ -196,7 +196,7 @@ module.exports = class luno extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const wallets = this.safeValue (response, 'balance', []);
         const result = {
             'info': response,
@@ -238,7 +238,7 @@ module.exports = class luno extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

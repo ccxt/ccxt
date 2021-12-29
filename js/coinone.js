@@ -133,7 +133,7 @@ module.exports = class coinone extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         const balances = this.omit (response, [
             'errorCode',
@@ -156,7 +156,7 @@ module.exports = class coinone extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostAccountBalance (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

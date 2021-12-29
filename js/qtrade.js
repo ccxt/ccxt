@@ -667,7 +667,7 @@ module.exports = class qtrade extends Exchange {
         }, market);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const data = this.safeValue (response, 'data', {});
         let balances = this.safeValue (data, 'balances', []);
         const result = {
@@ -714,7 +714,7 @@ module.exports = class qtrade extends Exchange {
         //         }
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

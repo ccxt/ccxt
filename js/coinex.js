@@ -488,29 +488,6 @@ module.exports = class coinex extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseMarginBalance (response, params) {
-        const result = { 'info': response };
-        const data = this.safeValue (response, 'data', {});
-        const free = this.safeValue (data, 'can_transfer', {});
-        const total = this.safeValue (data, 'balance', {});
-        //
-        const sellAccount = this.account ();
-        const sellCurrencyId = this.safeString (data, 'sell_asset_type');
-        const sellCurrencyCode = this.safeCurrencyCode (sellCurrencyId);
-        sellAccount['free'] = this.safeString (free, 'sell_type');
-        sellAccount['total'] = this.safeString (total, 'sell_type');
-        result[sellCurrencyCode] = sellAccount;
-        //
-        const buyAccount = this.account ();
-        const buyCurrencyId = this.safeString (data, 'buy_asset_type');
-        const buyCurrencyCode = this.safeCurrencyCode (buyCurrencyId);
-        buyAccount['free'] = this.safeString (free, 'buy_type');
-        buyAccount['total'] = this.safeString (total, 'buy_type');
-        result[buyCurrencyCode] = buyAccount;
-        //
-        return this.safeBalance (result);
-    }
-
     async fetchMarginBalance (params = {}) {
         await this.loadMarkets ();
         const symbol = this.safeString (params, 'symbol');
@@ -562,22 +539,25 @@ module.exports = class coinex extends Exchange {
         //          "message": "Success"
         //      }
         //
-        return response;
-    }
-
-    parseSpotBalance (response, params) {
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data', {});
-        const currencyIds = Object.keys (balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (balances, currencyId, {});
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'frozen');
-            result[code] = account;
-        }
+        const data = this.safeValue (response, 'data', {});
+        const free = this.safeValue (data, 'can_transfer', {});
+        const total = this.safeValue (data, 'balance', {});
+        //
+        const sellAccount = this.account ();
+        const sellCurrencyId = this.safeString (data, 'sell_asset_type');
+        const sellCurrencyCode = this.safeCurrencyCode (sellCurrencyId);
+        sellAccount['free'] = this.safeString (free, 'sell_type');
+        sellAccount['total'] = this.safeString (total, 'sell_type');
+        result[sellCurrencyCode] = sellAccount;
+        //
+        const buyAccount = this.account ();
+        const buyCurrencyId = this.safeString (data, 'buy_asset_type');
+        const buyCurrencyCode = this.safeCurrencyCode (buyCurrencyId);
+        buyAccount['free'] = this.safeString (free, 'buy_type');
+        buyAccount['total'] = this.safeString (total, 'buy_type');
+        result[buyCurrencyCode] = buyAccount;
+        //
         return this.safeBalance (result);
     }
 
@@ -604,28 +584,29 @@ module.exports = class coinex extends Exchange {
         //       "message": "Ok"
         //     }
         //
-        return response;
-    }
-
-    async parseBalance (response, params) {
-        const accountType = this.safeString (params, 'type', 'main');
-        if (accountType === 'margin') {
-            return this.parseMarginBalance (response, params);
-        } else {
-            return this.parseSpotBalance (response, params);
+        const result = { 'info': response };
+        const balances = this.safeValue (response, 'data', {});
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const balance = this.safeValue (balances, currencyId, {});
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'frozen');
+            result[code] = account;
         }
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
         const accountType = this.safeString (params, 'type', 'main');
         params = this.omit (params, 'type');
-        let response = undefined;
         if (accountType === 'margin') {
-            response = await this.fetchMarginBalance (params);
+            return await this.fetchMarginBalance (params);
         } else {
-            response = await this.fetchSpotBalance (params);
+            return await this.fetchSpotBalance (params);
         }
-        return this.parseBalance (response, params);
     }
 
     parseOrderStatus (status) {

@@ -286,7 +286,7 @@ module.exports = class bytetrade extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -309,7 +309,7 @@ module.exports = class bytetrade extends Exchange {
             'userid': this.apiKey,
         };
         const response = await this.publicGetBalance (this.extend (request, params));
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

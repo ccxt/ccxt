@@ -857,7 +857,7 @@ module.exports = class bitpanda extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response, 'balances', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -891,7 +891,7 @@ module.exports = class bitpanda extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {

@@ -612,7 +612,7 @@ module.exports = class bibox extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const outerResult = this.safeValue (response, 'result');
         const firstResult = this.safeValue (outerResult, 0, {});
         const innerResult = this.safeValue (firstResult, 'result');
@@ -660,7 +660,7 @@ module.exports = class bibox extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {

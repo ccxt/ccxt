@@ -793,7 +793,7 @@ module.exports = class stex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -858,7 +858,7 @@ module.exports = class stex extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {

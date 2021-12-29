@@ -220,7 +220,7 @@ module.exports = class yobit extends Exchange {
         });
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response, 'return', {});
         const timestamp = this.safeInteger (balances, 'server_time');
         const result = {
@@ -270,7 +270,7 @@ module.exports = class yobit extends Exchange {
         //         }
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchMarkets (params = {}) {

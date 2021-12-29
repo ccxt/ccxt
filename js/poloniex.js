@@ -337,7 +337,7 @@ module.exports = class poloniex extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -369,7 +369,7 @@ module.exports = class poloniex extends Exchange {
         //         "AC":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchTradingFees (params = {}) {

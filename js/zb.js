@@ -388,7 +388,7 @@ module.exports = class zb extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response['result'], 'coins');
         const result = {
             'info': response,
@@ -421,7 +421,7 @@ module.exports = class zb extends Exchange {
         const response = await this.privateGetGetAccountInfo (params);
         // todo: use this somehow
         // let permissions = response['result']['base'];
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {

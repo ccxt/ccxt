@@ -434,7 +434,7 @@ module.exports = class timex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -464,7 +464,7 @@ module.exports = class timex extends Exchange {
         //         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
         //     ]
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

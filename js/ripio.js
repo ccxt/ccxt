@@ -490,7 +490,7 @@ module.exports = class ripio extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -520,7 +520,7 @@ module.exports = class ripio extends Exchange {
         //         },
         //     ]
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

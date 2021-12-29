@@ -545,7 +545,7 @@ module.exports = class hitbtc3 extends Exchange {
         };
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -586,7 +586,7 @@ module.exports = class hitbtc3 extends Exchange {
         //       ...
         //     ]
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchTicker (symbol, params = {}) {

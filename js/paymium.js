@@ -85,7 +85,7 @@ module.exports = class paymium extends Exchange {
         });
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
@@ -107,7 +107,7 @@ module.exports = class paymium extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetUser (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

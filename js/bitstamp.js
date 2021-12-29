@@ -819,7 +819,7 @@ module.exports = class bitstamp extends Exchange {
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -860,7 +860,7 @@ module.exports = class bitstamp extends Exchange {
         //         "batusd_fee": "0.000",
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchTradingFee (symbol, params = {}) {

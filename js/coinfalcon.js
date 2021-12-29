@@ -315,7 +315,7 @@ module.exports = class coinfalcon extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data');
         for (let i = 0; i < balances.length; i++) {
@@ -334,7 +334,7 @@ module.exports = class coinfalcon extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetUserAccounts (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {

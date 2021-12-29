@@ -522,10 +522,29 @@ module.exports = class bitfinex extends Exchange {
         return this.decimalToPrecision (price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    async parseBalance (response, params = {}) {
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
         const accountType = this.safeString (accountsByType, requestedType);
+        if (accountType === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
+        }
+        const query = this.omit (params, 'type');
+        const response = await this.privatePostBalances (query);
+        //    [ { type: 'deposit',
+        //        currency: 'btc',
+        //        amount: '0.00116721',
+        //        available: '0.00116721' },
+        //      { type: 'exchange',
+        //        currency: 'ust',
+        //        amount: '0.0000002',
+        //        available: '0.0000002' },
+        //      { type: 'trading',
+        //        currency: 'btc',
+        //        amount: '0.0005',
+        //        available: '0.0005' } ],
         const result = { 'info': response };
         const isDerivative = requestedType === 'derivatives';
         for (let i = 0; i < response.length; i++) {
@@ -552,32 +571,6 @@ module.exports = class bitfinex extends Exchange {
             }
         }
         return this.safeBalance (result);
-    }
-
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const requestedType = this.safeString (params, 'type', 'exchange');
-        const accountType = this.safeString (accountsByType, requestedType);
-        if (accountType === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
-        }
-        const query = this.omit (params, 'type');
-        const response = await this.privatePostBalances (query);
-        //    [ { type: 'deposit',
-        //        currency: 'btc',
-        //        amount: '0.00116721',
-        //        available: '0.00116721' },
-        //      { type: 'exchange',
-        //        currency: 'ust',
-        //        amount: '0.0000002',
-        //        available: '0.0000002' },
-        //      { type: 'trading',
-        //        currency: 'btc',
-        //        amount: '0.0005',
-        //        available: '0.0005' } ],
-        return this.parseBalance (response, params);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

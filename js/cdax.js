@@ -887,7 +887,7 @@ module.exports = class cdax extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -919,7 +919,7 @@ module.exports = class cdax extends Exchange {
             'id': this.accounts[0]['id'],
         };
         const response = await this[method] (this.extend (request, params));
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -1230,7 +1230,7 @@ module.exports = class kucoinfutures extends kucoin {
         };
     }
 
-    async parseBalance (response, params) {
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1268,7 +1268,7 @@ module.exports = class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

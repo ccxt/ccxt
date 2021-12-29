@@ -199,7 +199,7 @@ module.exports = class btcturk extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const data = this.safeValue (response, 'data', []);
         const result = {
             'info': response,
@@ -238,7 +238,7 @@ module.exports = class btcturk extends Exchange {
         //       ]
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

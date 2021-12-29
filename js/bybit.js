@@ -1116,7 +1116,7 @@ module.exports = class bybit extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = {
             'info': response,
         };
@@ -1177,7 +1177,7 @@ module.exports = class bybit extends Exchange {
         //         rate_limit: 120
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {

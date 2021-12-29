@@ -405,7 +405,7 @@ module.exports = class itbit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = response[0]['balances'];
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -423,7 +423,7 @@ module.exports = class itbit extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.fetchWallets (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchWallets (params = {}) {

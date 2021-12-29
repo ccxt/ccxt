@@ -1137,41 +1137,6 @@ module.exports = class mexc extends Exchange {
         ];
     }
 
-    async parseBalance (response, params) {
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const spot = (type === 'spot');
-        const data = this.safeValue (response, 'data', {});
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        if (spot) {
-            const currencyIds = Object.keys (data);
-            for (let i = 0; i < currencyIds.length; i++) {
-                const currencyId = currencyIds[i];
-                const code = this.safeCurrencyCode (currencyId);
-                const balance = this.safeValue (data, currencyId, {});
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'available');
-                account['used'] = this.safeString (balance, 'frozen');
-                result[code] = account;
-            }
-        } else {
-            for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'availableBalance');
-                account['used'] = this.safeString (balance, 'frozenBalance');
-                result[code] = account;
-            }
-        }
-        return this.safeBalance (result);
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
@@ -1208,7 +1173,35 @@ module.exports = class mexc extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        const data = this.safeValue (response, 'data', {});
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        if (spot) {
+            const currencyIds = Object.keys (data);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const code = this.safeCurrencyCode (currencyId);
+                const balance = this.safeValue (data, currencyId, {});
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'frozen');
+                result[code] = account;
+            }
+        } else {
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'availableBalance');
+                account['used'] = this.safeString (balance, 'frozenBalance');
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
     }
 
     safeNetwork (networkId) {

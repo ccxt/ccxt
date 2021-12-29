@@ -781,7 +781,12 @@ module.exports = class coinbase extends Exchange {
         });
     }
 
-    async parseBalance (response, params) {
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'limit': 100,
+        };
+        const response = await this.privateGetAccounts (this.extend (request, params));
         const balances = this.safeValue (response, 'data');
         const accounts = this.safeValue (params, 'type', this.options['accounts']);
         const result = { 'info': response };
@@ -809,15 +814,6 @@ module.exports = class coinbase extends Exchange {
             }
         }
         return this.safeBalance (result);
-    }
-
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'limit': 100,
-        };
-        const response = await this.privateGetAccounts (this.extend (request, params));
-        return this.parseBalance (response, params);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {

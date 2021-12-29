@@ -453,7 +453,7 @@ module.exports = class crex24 extends Exchange {
         };
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -483,7 +483,7 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

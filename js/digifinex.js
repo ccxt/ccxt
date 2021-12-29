@@ -425,7 +425,7 @@ module.exports = class digifinex extends Exchange {
         return result;
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response, 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -458,7 +458,7 @@ module.exports = class digifinex extends Exchange {
         //             }
         //         ]
         //     }
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

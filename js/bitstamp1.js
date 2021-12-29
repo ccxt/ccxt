@@ -181,7 +181,7 @@ module.exports = class bitstamp1 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
@@ -199,7 +199,7 @@ module.exports = class bitstamp1 extends Exchange {
 
     async fetchBalance (params = {}) {
         const response = await this.privatePostBalance (params);
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -773,7 +773,7 @@ module.exports = class delta extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const balances = this.safeValue (response, 'result', []);
         const result = { 'info': response };
         const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});
@@ -814,7 +814,7 @@ module.exports = class delta extends Exchange {
         //         "success":true
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     async fetchPosition (symbol, params = undefined) {

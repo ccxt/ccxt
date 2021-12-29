@@ -1444,7 +1444,7 @@ module.exports = class bitmart extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async parseBalance (response) {
+    parseBalance (response) {
         const data = this.safeValue (response, 'data', {});
         const wallet = this.safeValue2 (data, 'wallet', 'accounts', []);
         const result = { 'info': response };
@@ -1531,7 +1531,7 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalance (response);
     }
 
     parseOrder (order, market = undefined) {
