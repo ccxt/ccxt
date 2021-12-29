@@ -1348,7 +1348,12 @@ module.exports = class huobi extends Exchange {
         let fieldName = 'symbol';
         let method = 'spotPublicGetMarketDetailMerged';
         if (market['future']) {
-            method = 'contractPublicGetMarketDetailMerged';
+            if (market['inverse']) {
+                method = 'contractPublicGetMarketDetailMerged';
+            } else if (market['linear']) {
+                method = 'contractPublicGetLinearSwapExMarketDetailMerged';
+                fieldName = 'contract_code';
+            }
         } else if (market['swap']) {
             if (market['inverse']) {
                 method = 'contractPublicGetSwapExMarketDetailMerged';
