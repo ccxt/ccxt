@@ -936,9 +936,9 @@ module.exports = class binance extends Exchange {
                     '-2022': InvalidOrder, // ReduceOnly Order is rejected.
                     '-2023': InsufficientFunds, // User in liquidation mode now.
                     '-2024': InsufficientFunds, // Position is not sufficient.
-                    '-2025': InsufficientFunds, // Reach max open order limit.
-                    '-2026': InsufficientFunds, // This OrderType is not supported when reduceOnly.
-                    '-2027': InsufficientFunds, // Exceeded the maximum allowable position at current leverage.
+                    '-2025': InvalidOrder, // Reach max open order limit.
+                    '-2026': InvalidOrder, // This OrderType is not supported when reduceOnly.
+                    '-2027': InvalidOrder, // Exceeded the maximum allowable position at current leverage.
                     '-2028': InsufficientFunds, // Leverage is smaller than permitted: insufficient margin balance
                     '-3000': ExchangeError, // Internal server error.
                     '-3001': ExchangeError, // Please enable 2FA first.
