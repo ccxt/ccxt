@@ -3488,7 +3488,7 @@ class Exchange {
                 $method_type = $this->safe_string_2($method_options, 'defaultType', 'type');
             }
         }
-        $market_type = isset($market) ? market['type'] : $method_type;
+        $market_type = isset($market) ? $market['type'] : $method_type;
         $type = $this->safe_string_2($params, 'defaultType', 'type', $market_type);
         $params = $this->omit($params, [ 'defaultType', 'type' ]);
         return array($type, $params);
