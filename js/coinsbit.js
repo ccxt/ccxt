@@ -70,7 +70,7 @@ module.exports = class coinsbit extends Exchange {
                     'https://github.com/Coinsbit-connect/api/wiki/API',
                 ],
                 'fees': [
-                    'https://{hostname}/fee-schedule',
+                    'https://coinsbit.io/fee-schedule',
                 ],
                 'referral': '  <<<TODO>>>   ',
             },
@@ -341,13 +341,16 @@ module.exports = class coinsbit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (1000, limit); // this parameter is not required, default 50 will be returned
         }
-        let method = this.safeString (params, 'method', 'publicGetDepthResult');
-        method = this.safeString (this.options, 'fetchOrderBookMethod', method);
+        const options = this.safeValue (this.options, 'fetchOrderBook', {});
+        // publicGetDepthResult or publicGetBook
+        const type = this.safeString (params, 'method', 'publicGetDepthResult');
+        const method = this.safeString (options, 'method', type);
+        params = this.omit (params, 'method');
         let response = undefined;
         let priceKey = undefined;
         let amountKey = undefined;
-        if (method === 'depth/result') {
-            response = await this.publicGetDepthResult (this.extend (request, params));
+        if (method === 'publicGetDepthResult') {
+            response = await this[method] (this.extend (request, params));
             //     {
             //         asks: [
             //             [  "46809.06069986", "2.651"  ],
@@ -365,10 +368,10 @@ module.exports = class coinsbit extends Exchange {
         } else if (method === 'publicGetBook') {
             request['offset'] = this.safeString (params, 'offset', 0);
             // ATM, they need to be called separately (unfortunately)
-            request['side'] = this.safeString (params, 'side', 'buy');
-            const requestBids = await this.publicGetBook (this.extend (request, params));
-            request['side'] = this.safeString (params, 'side', 'sell');
-            const requestAsks = await this.publicGetBook (this.extend (request, params));
+            let query = this.extend (request, { 'side': 'buy' });
+            const requestBids = await this[method] (this.extend (query, params));
+            query = this.extend (request, { 'side': 'sell' });
+            const requestAsks = await this[method] (this.extend (query, params));
             // FOR EACH (BUY/SELL) REQUEST, THE RESPONSE IS SIMILAR (JUST 'side' PROPERTY IS DIFFERENT BETWEEN THEM)
             //     {
             //         success: true,
@@ -1013,7 +1016,7 @@ module.exports = class coinsbit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
+        let url = this.implodeHostname (this.urls['api'][api]);
         params = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             url += '/api/' + this.version + '/' + api + '/' + path;
