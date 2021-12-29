@@ -1828,7 +1828,11 @@ class huobi(Exchange):
         fieldName = 'symbol'
         method = 'spotPublicGetMarketHistoryTrade'
         if market['future']:
-            method = 'contractPublicGetMarketHistoryTrade'
+            if market['inverse']:
+                method = 'contractPublicGetMarketHistoryTrade'
+            elif market['linear']:
+                method = 'contractPublicGetLinearSwapExMarketHistoryTrade'
+                fieldName = 'contract_code'
         elif market['swap']:
             if market['inverse']:
                 method = 'contractPublicGetSwapExMarketHistoryTrade'

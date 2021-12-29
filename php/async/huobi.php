@@ -1879,7 +1879,12 @@ class huobi extends Exchange {
         $fieldName = 'symbol';
         $method = 'spotPublicGetMarketHistoryTrade';
         if ($market['future']) {
-            $method = 'contractPublicGetMarketHistoryTrade';
+            if ($market['inverse']) {
+                $method = 'contractPublicGetMarketHistoryTrade';
+            } else if ($market['linear']) {
+                $method = 'contractPublicGetLinearSwapExMarketHistoryTrade';
+                $fieldName = 'contract_code';
+            }
         } else if ($market['swap']) {
             if ($market['inverse']) {
                 $method = 'contractPublicGetSwapExMarketHistoryTrade';
