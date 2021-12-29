@@ -1069,7 +1069,7 @@ module.exports = class binance extends Exchange {
                     '-13005': BadRequest, // Exceeds total 24h subscription limit of the token
                     '-13006': InvalidOrder, // Subscription amount is too small
                     '-13007': AuthenticationError, // The Agreement is not signed
-                    '100001003': BadRequest, //  [Undocumented error] Verification failed
+                    '100001003': BadRequest, // [Undocumented error] Verification failed
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
