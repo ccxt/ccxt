@@ -7,7 +7,6 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 
 class coinspot extends Exchange {
@@ -73,7 +72,9 @@ class coinspot extends Exchange {
                 ),
             ),
             'markets' => array(
+                'ADA/AUD' => array( 'id' => 'ada', 'symbol' => 'ADA/AUD', 'base' => 'ADA', 'quote' => 'AUD', 'baseId' => 'ada', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true ),
                 'BTC/AUD' => array( 'id' => 'btc', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'baseId' => 'btc', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true ),
+                'BTC/USDT' => array( 'id' => 'btc', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'baseId' => 'btc', 'quoteId' => 'usdt', 'type' => 'spot', 'spot' => true ),
                 'ETH/AUD' => array( 'id' => 'eth', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD', 'baseId' => 'eth', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true ),
                 'XRP/AUD' => array( 'id' => 'xrp', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD', 'baseId' => 'xrp', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true ),
                 'LTC/AUD' => array( 'id' => 'ltc', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'baseId' => 'ltc', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true ),
@@ -269,9 +270,6 @@ class coinspot extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!$this->apiKey) {
-            throw new AuthenticationError($this->id . ' requires apiKey for all requests');
-        }
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
