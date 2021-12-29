@@ -1967,14 +1967,27 @@ class huobi extends Exchange {
         $params = $this->omit($params, 'price');
         $method = 'spotPublicGetMarketHistoryKline';
         if ($market['future']) {
-            if ($price === 'mark') {
-                $method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
-            } else if ($price === 'index') {
-                $method = 'contractPublicGetIndexMarketHistoryIndex';
-            } else if ($price === 'premiumIndex') {
-                throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-            } else {
-                $method = 'contractPublicGetMarketHistoryKline';
+            if ($market['inverse']) {
+                if ($price === 'mark') {
+                    $method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
+                } else if ($price === 'index') {
+                    $method = 'contractPublicGetIndexMarketHistoryIndex';
+                } else if ($price === 'premiumIndex') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } else {
+                    $method = 'contractPublicGetMarketHistoryKline';
+                }
+            } else if ($market['linear']) {
+                if ($price === 'mark') {
+                    $method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline';
+                } else if ($price === 'index') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } else if ($price === 'premiumIndex') {
+                    $method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline';
+                } else {
+                    $method = 'contractPublicGetLinearSwapExMarketHistoryKline';
+                }
+                $fieldName = 'contract_code';
             }
         } else if ($market['swap']) {
             if ($market['inverse']) {
