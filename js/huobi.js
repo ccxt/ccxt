@@ -1576,7 +1576,12 @@ module.exports = class huobi extends Exchange {
         let fieldName = 'symbol';
         let method = 'spotPublicGetMarketDepth';
         if (market['future']) {
-            method = 'contractPublicGetMarketDepth';
+            if (market['inverse']) {
+                method = 'contractPublicGetMarketDepth';
+            } else if (market['linear']) {
+                method = 'contractPublicGetLinearSwapExMarketDepth';
+                fieldName = 'contract_code';
+            }
         } else if (market['swap']) {
             if (market['inverse']) {
                 method = 'contractPublicGetSwapExMarketDepth';
