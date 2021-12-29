@@ -2626,10 +2626,8 @@ class Exchange(object):
     def handle_market_type_and_params(self, method_name, market=None, params={}):
         default_type = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
         method_options = self.safe_value(self.options, method_name)
-        method_type = None
-        if method_options is None:
-            method_type = default_type
-        else:
+        method_type = default_type
+        if method_options is not None:
             if isinstance(method_options, str):
                 method_type = method_options
             else:
