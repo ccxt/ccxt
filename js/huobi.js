@@ -984,6 +984,7 @@ module.exports = class huobi extends Exchange {
         const swap = (type === 'swap');
         let linear = undefined;
         let inverse = undefined;
+        const request = {};
         if (contract) {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
             let subType = this.safeString (options, 'subType', defaultSubType);
@@ -992,9 +993,14 @@ module.exports = class huobi extends Exchange {
                 throw new ExchangeError (this.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
             }
             linear = (subType === 'linear');
-            inverse = (subType === 'inverse') || future;
+            inverse = (subType === 'inverse');
             if (future) {
-                method = 'contractPublicGetApiV1ContractContractInfo';
+                if (inverse) {
+                    method = 'contractPublicGetApiV1ContractContractInfo';
+                } else {
+                    method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+                    request['business_type'] = 'futures';
+                }
             } else if (swap) {
                 if (inverse) {
                     method = 'contractPublicGetSwapApiV1SwapContractInfo';
@@ -1003,7 +1009,7 @@ module.exports = class huobi extends Exchange {
                 }
             }
         }
-        const response = await this[method] (query);
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1042,7 +1048,7 @@ module.exports = class huobi extends Exchange {
         //         ]
         //     }
         //
-        // future
+        // inverse future
         //
         //     {
         //         "status":"ok",
@@ -1061,6 +1067,30 @@ module.exports = class huobi extends Exchange {
         //             },
         //         ],
         //         "ts":1637474595140
+        //     }
+        //
+        // linear futures
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC-USDT-211231",
+        //                 "contract_size":0.001000000000000000,
+        //                 "price_tick":0.100000000000000000,
+        //                 "delivery_date":"20211231",
+        //                 "delivery_time":"1640937600000",
+        //                 "create_date":"20211228",
+        //                 "contract_status":1,
+        //                 "settlement_date":"1640764800000",
+        //                 "support_margin_mode":"cross",
+        //                 "business_type":"futures",
+        //                 "pair":"BTC-USDT",
+        //                 "contract_type":"this_week" // next_week, quarter
+        //             },
+        //         ],
+        //         "ts":1640736207263
         //     }
         //
         // swaps
