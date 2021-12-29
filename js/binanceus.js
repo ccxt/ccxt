@@ -43,8 +43,5 @@ module.exports = class binanceus extends binance {
         });
     }
 
-    async fetchCurrencies (params = {}) {
-        return undefined;
-    }
 };
 
