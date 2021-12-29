@@ -1145,10 +1145,12 @@ module.exports = class kucoinfutures extends kucoin {
         const leverage = this.safeString (order, 'leverage');
         const cost = Precise.stringDiv (rawCost, leverage);
         let average = undefined;
-        if (market['linear']) {
-            average = Precise.stringDiv (rawCost, Precise.stringMul (market['contractSize'], filled));
-        } else {
-            average = Precise.stringDiv (Precise.stringMul (market['contractSize'], filled), rawCost);
+        if (Precise.stringGt (filled, '0')) {
+            if (market['linear']) {
+                average = Precise.stringDiv (rawCost, Precise.stringMul (market['contractSize'], filled));
+            } else {
+                average = Precise.stringDiv (Precise.stringMul (market['contractSize'], filled), rawCost);
+            }
         }
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
