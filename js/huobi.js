@@ -2942,7 +2942,13 @@ module.exports = class huobi extends Exchange {
                 throw new NotSupported (this.id + 'createOrder() does not support ' + type + ' orders');
             }
         }
-        request['type'] = side + '-' + orderType;
+        let maker = '';
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            maker = '-maker';
+            orderType = 'limit';
+        }
+        request['type'] = side + '-' + orderType + maker;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker', {});
@@ -2951,7 +2957,7 @@ module.exports = class huobi extends Exchange {
         } else {
             request['client-order-id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'client-order-id' ]);
+        params = this.omit (params, [ 'clientOrderId', 'client-order-id', 'postOnly' ]);
         if ((orderType === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
@@ -2981,20 +2987,19 @@ module.exports = class huobi extends Exchange {
         //
         //     {"status":"ok","data":"438398393065481"}
         //
-        const timestamp = this.milliseconds ();
         const id = this.safeString (response, 'data');
         return {
             'info': response,
             'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
+            'symbol': undefined,
+            'type': undefined,
+            'side': undefined,
+            'price': undefined,
+            'amount': undefined,
             'filled': undefined,
             'remaining': undefined,
             'cost': undefined,
