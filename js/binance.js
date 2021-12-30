@@ -1036,7 +1036,7 @@ module.exports = class binance extends Exchange {
                     '-5010': ExchangeError, // {"code":-5010,"msg":"Asset transfer fail."}
                     '-5011': BadRequest, // {"code":-5011,"msg":"future account not exists."}
                     '-5012': ExchangeError, // {"code":-5012,"msg":"Asset transfer is in pending."}
-                    '-5013': InsufficientFunds, // {"code":-5013,"msg":"[Undocumented error] Asset transfer failed: insufficient balance""}
+                    '-5013': InsufficientFunds, // {"code":-5013,"msg":"Asset transfer failed: insufficient balance""}  (Undocumented error)
                     '-5021': BadRequest, // {"code":-5021,"msg":"This parent sub have no relation"}
                     '-6001': BadRequest, // {"code":-6001,"msg":"Daily product not exists."}
                     '-6003': BadRequest, // {"code":-6003,"msg":"Product not exist or you don't have permission"}
@@ -1059,7 +1059,7 @@ module.exports = class binance extends Exchange {
                     '-7001': BadRequest, // {"code":-7001,"msg":"Date range is not supported."}
                     '-7002': BadRequest, // {"code":-7002,"msg":"Data request type is not supported."}
                     '-10017': BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
-                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"[Undocumented error] Exceeding the account's maximum borrowable limit."}
+                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} (Undocumented error)
                     '-12014': RateLimitExceeded, // {"code":-12014,"msg":"More than 1 request in 3 seconds"}
                     '-13000': BadRequest, // {"code":-13000,"msg":"Redeption of the token is forbiden now"}
                     '-13001': BadRequest, // {"code":-13001,"msg":"Exceeds individual 24h redemption limit of the token"}
@@ -1069,7 +1069,7 @@ module.exports = class binance extends Exchange {
                     '-13005': BadRequest, // {"code":-13005,"msg":"Exceeds total 24h subscription limit of the token"}
                     '-13006': InvalidOrder, // {"code":-13006,"msg":"Subscription amount is too small"}
                     '-13007': AuthenticationError, // {"code":-13007,"msg":"The Agreement is not signed"}
-                    '100001003': BadRequest, // {"code":100001003,"msg":"[Undocumented error] Verification failed"}
+                    '100001003': BadRequest, // {"code":100001003,"msg":"Verification failed"} (Undocumented error)
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
