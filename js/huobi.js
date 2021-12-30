@@ -2942,11 +2942,9 @@ module.exports = class huobi extends Exchange {
                 throw new NotSupported (this.id + 'createOrder() does not support ' + type + ' orders');
             }
         }
-        let maker = '';
         const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
-            maker = '-maker';
-            orderType = 'limit';
+            orderType = 'limit-maker';
         }
         request['type'] = side + '-' + orderType + maker;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
