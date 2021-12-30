@@ -10,7 +10,7 @@ const log = require ('ololog')
 module.exports = async (exchange) => {
 
     if (!(exchange.has.fetchBalance)) {
-        log (exchange.id.green, ' does not have fetchBalance')
+        log (exchange.id, ' does not have fetchBalance')
         return
     }
 
