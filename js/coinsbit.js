@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { PermissionDenied, BadRequest, ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -122,11 +122,11 @@ module.exports = class coinsbit extends Exchange {
                     '1d': Number.MAX_SAFE_INTEGER,
                 },
             },
-            'commonCurrencies': {
-                // 'xxx': 'xxxxxxx',
-            },
+            'commonCurrencies': {},
             'exceptions': {
                 'exact': {
+                    'Operation blocked': PermissionDenied,
+                    'Server Error': BadRequest,
                 },
                 'broad': {
                 },
@@ -598,9 +598,10 @@ module.exports = class coinsbit extends Exchange {
         const side = this.safeString (trade, 'type');
         const cost = this.safeString (trade, 'deal');
         const fee = this.safeString (trade, 'fee');
+        const role = this.safeInteger (trade, 'role');
         let takerOrMaker = '';
-        if ('role' in trade) {
-            takerOrMaker = this.safeInteger (trade, 'role') === 2 ? 'taker' : 'maker';
+        if (role !== undefined) {
+            takerOrMaker = (role === 2) ? 'taker' : 'maker';
         } else {
             takerOrMaker = 'taker';
         }
@@ -709,7 +710,9 @@ module.exports = class coinsbit extends Exchange {
         //     code: '200'
         //  }
         const data = this.safeValue (response, 'result');
-        return this.parseOrder (data);
+        return this.extend (this.parseOrder (data, market), {
+            'status': 'canceled',
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -887,6 +890,9 @@ module.exports = class coinsbit extends Exchange {
         //         ftime: '1640212275.93',
         //         marketName: 'ETH_USDT'
         //      },
+        const isFromCreateOrCancelOrder = ('orderId' in order);
+        const isFromFetchOpenOrders = ('id' in order);
+        const isFromFetchClosedOrders = ('ctime' in order);
         const id = this.safeString2 (order, 'id', 'orderId');
         const side = this.safeString (order, 'side');
         const orderType = this.safeString (order, 'type');
@@ -904,7 +910,6 @@ module.exports = class coinsbit extends Exchange {
         let status = undefined;
         let orderSize = undefined;
         if (orderType === 'market') {
-            status = 'closed';
             if (side === 'sell') {
                 orderSize = amountGeneric;
             } else {
@@ -912,6 +917,16 @@ module.exports = class coinsbit extends Exchange {
             }
         } else {
             orderSize = amountGeneric;
+        }
+        // only after we have filled/unfilled amounts calculated, we can calculate status after that
+        const sameFillAsAmount = orderSize === filledSize;
+        if (isFromFetchOpenOrders) {
+            status = 'open';
+        } else if (isFromFetchClosedOrders) {
+            status = sameFillAsAmount ? 'closed' : 'cancelled';
+        } else if (isFromCreateOrCancelOrder) {
+            // cancelled ones will get status overwrites inside 'cancelOrder' anyway, so we handle here only for createOrder's response - let's calculate if it was fully-filled.
+            status = sameFillAsAmount ? 'closed' : 'open';
         }
         const marketId = this.safeString (order, 'market');
         if (market === undefined) {
@@ -1059,30 +1074,44 @@ module.exports = class coinsbit extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return; // fallback to default error handler
+        }
+        // Note1: generic response is as below
         //    {
         //        success: true,
         //        message: "",
         //        code: "200",
         //        result: [ .... ]
         //    }
-        let success = this.safeValue (response, 'success', true);
-        const code = this.safeString (response, 'code');
-        if ((code !== undefined && code !== '200') || !success) {
+        //
+        // Note2: history/result & depth/result endpoints only return pure ARRAY as response, without any code/messages
+        //
+        // Note3: in non-successful cases, code is always 0, they don't have other codes for errors.
+        //
+        // Note4: sometimes, if you make bad request (i.e. incorrect pair), exchange responds with the below (instead of normal response):
+        // {"response":null,"status":500,"errors":{"message":["Server Error"]},"notification":null,"warning":null,"_token":null}
+        //
+        const errorsMessage = this.safeString (this.safeValue (response, 'errors'), 'message');
+        const success = this.safeString (response, 'success', true);
+        if (!this.isTrue (success) || errorsMessage !== undefined) {
             const feedback = this.id + ' ' + body;
-            // Note: history/result & depth/result endpoints only return pure ARRAY as response, without any code/messages
-            let responseCode = 0;
-            if (typeof success === 'string') {
-                if ((success === 'true') || (success === '1')) {
-                    success = true;
-                } else {
-                    success = false;
-                }
-            }
-            if (!success) { // If success is not 'false' strictly, then probably response didnt contain expected JSON format at all. Maybe 404 or any outage
-                responseCode = this.safeString (response, 'code');
-            }
-            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
+            const message = this.safeString (response, 'message', errorsMessage);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
+        }
+    }
+
+    isTrue (x) {
+        if (x !== undefined) {
+            if (typeof x === 'string') {
+                if (x !== '0') {
+                    return (x === 'true' || x === '1');
+                }
+            } else {
+                return x;
+            }
         }
     }
 };
