@@ -805,7 +805,8 @@ class latoken extends Exchange {
         $side = null;
         if ($orderSide !== null) {
             $parts = explode('_', $orderSide);
-            $side = $this->safe_string_lower($parts, strlen($parts) - 1);
+            $partsLength = is_array($parts) ? count($parts) : 0;
+            $side = $this->safe_string_lower($parts, $partsLength - 1);
         }
         $type = $this->parse_order_type($this->safe_string($order, 'type'));
         $price = $this->safe_string($order, 'price');
