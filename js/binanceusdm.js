@@ -27,14 +27,4 @@ module.exports = class binanceusdm extends binance {
             },
         });
     }
-
-    async transferIn (code, amount, params = {}) {
-        // transfer from spot wallet to usdm futures wallet
-        return await this.futuresTransfer (code, amount, 1, params);
-    }
-
-    async transferOut (code, amount, params = {}) {
-        // transfer from usdm futures wallet to spot wallet
-        return await this.futuresTransfer (code, amount, 2, params);
-    }
 };
