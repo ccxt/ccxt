@@ -193,6 +193,10 @@ class Transpiler {
             [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
             [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
             [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+            [ /(.+?)\s+\=\=\=?\s+true/g, '$1 is True' ],
+            [ /(.+?)\s+\!\=\=?\s+true/g, '$1 is not True' ],
+            [ /(.+?)\s+\=\=\=?\s+false/g, '$1 is False' ],
+            [ /(.+?)\s+\!\=\=?\s+false/g, '$1 is not False' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, 'isinstance($1[$2], basestring)' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1[$2], basestring)' ],
