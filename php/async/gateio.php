@@ -853,7 +853,7 @@ class gateio extends Exchange {
     public function get_settlement_currencies($type, $method) {
         $options = $this->safe_value($this->options, $type, array()); // array( 'BTC', 'USDT' ) unified codes
         $fetchMarketsContractOptions = $this->safe_value($options, $method, array());
-        $defaultSettle = $type === 'swap' ? ['usdt'] : ['btc'];
+        $defaultSettle = ($type === 'swap') ? ['usdt'] : ['btc'];
         return $this->safe_value($fetchMarketsContractOptions, 'settlementCurrencies', $defaultSettle);
     }
 
@@ -3000,7 +3000,7 @@ class gateio extends Exchange {
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
         $path = $this->implode_params($path, $params);
-        $endPart = ($path === '' ? '' : '/' . $path);
+        $endPart = ($path === '') ? '' : ('/' . $path);
         $entirePath = '/' . $type . $endPart;
         $url = $this->urls['api'][$authentication] . $entirePath;
         if ($authentication === 'public') {

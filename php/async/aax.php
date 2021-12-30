@@ -424,8 +424,6 @@ class aax extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'quanto' => $quanto,
-                'percentage' => false, // ? Deprecated?
-                'tierBased' => true, // ? Deprecated?
                 'precision' => array(
                     'amount' => $this->safe_number($market, 'lotSize'),
                     'price' => $this->safe_number($market, 'tickSize'),

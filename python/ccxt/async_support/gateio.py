@@ -852,7 +852,7 @@ class gateio(Exchange):
     def get_settlement_currencies(self, type, method):
         options = self.safe_value(self.options, type, {})  # ['BTC', 'USDT'] unified codes
         fetchMarketsContractOptions = self.safe_value(options, method, {})
-        defaultSettle = type == ['usdt'] if 'swap' else ['btc']
+        defaultSettle = ['usdt'] if (type == 'swap') else ['btc']
         return self.safe_value(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle)
 
     async def fetch_currencies(self, params={}):
@@ -2867,7 +2867,7 @@ class gateio(Exchange):
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
         path = self.implode_params(path, params)
-        endPart = (path == '' if '' else '/' + path)
+        endPart = '' if (path == '') else ('/' + path)
         entirePath = '/' + type + endPart
         url = self.urls['api'][authentication] + entirePath
         if authentication == 'public':

@@ -969,7 +969,7 @@ class kucoinfutures extends kucoin {
         );
         $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice) {
-            $request['stop'] = strtoupper($side) === 'BUY' ? 'down' : 'up';
+            $request['stop'] = ($side === 'buy') ? 'down' : 'up';
             $stopPriceType = $this->safe_string($params, 'stopPriceType');
             if (!$stopPriceType) {
                 throw new ArgumentsRequired($this->id . ' trigger orders require $params->stopPriceType to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
@@ -1122,7 +1122,7 @@ class kucoinfutures extends kucoin {
             $request['orderId'] = $id;
         }
         $response = yield $this->$method (array_merge($request, $params));
-        $market = $symbol !== null ? $this->market($symbol) : null;
+        $market = ($symbol !== null) ? $this->market($symbol) : null;
         $responseData = $this->safe_value($response, 'data');
         return $this->parse_order($responseData, $market);
     }

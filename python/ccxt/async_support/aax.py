@@ -435,8 +435,6 @@ class aax(Exchange):
                 'strike': None,
                 'optionType': None,
                 'quanto': quanto,
-                'percentage': False,  # ? Deprecated?
-                'tierBased': True,  # ? Deprecated?
                 'precision': {
                     'amount': self.safe_number(market, 'lotSize'),
                     'price': self.safe_number(market, 'tickSize'),

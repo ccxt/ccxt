@@ -1400,7 +1400,7 @@ class bitstamp extends Exchange {
             if ($market === null) {
                 $market = $this->get_market_from_trade($item);
             }
-            $direction = $parsedTrade['side'] === 'buy' ? 'in' : 'out';
+            $direction = ($parsedTrade['side'] === 'buy') ? 'in' : 'out';
             return array(
                 'id' => $parsedTrade['id'],
                 'info' => $item,
@@ -1423,12 +1423,12 @@ class bitstamp extends Exchange {
             $direction = null;
             if (is_array($item) && array_key_exists('amount', $item)) {
                 $amount = $this->safe_number($item, 'amount');
-                $direction = $amount > 0 ? 'in' : 'out';
+                $direction = ($amount > 0) ? 'in' : 'out';
             } else if ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
                 $code = $parsedTransaction['currency'];
                 $currencyId = $this->safe_string($this->currencies_by_id, $code, $code);
                 $amount = $this->safe_number($item, $currencyId);
-                $direction = $amount > 0 ? 'in' : 'out';
+                $direction = ($amount > 0) ? 'in' : 'out';
             }
             return array(
                 'id' => $parsedTransaction['id'],

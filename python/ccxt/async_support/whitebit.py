@@ -1112,7 +1112,8 @@ class whitebit(Exchange):
                     if errorObject is not None:
                         errorKey = list(errorObject.keys())[0]
                         errorMessageArray = self.safe_value(errorObject, errorKey, [])
-                        errorInfo = len(errorMessageArray) > errorMessageArray[0] if 0 else body
+                        errorMessageLength = len(errorMessageArray)
+                        errorInfo = errorMessageArray[0] if (errorMessageLength > 0) else body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
                 raise ExchangeError(feedback)

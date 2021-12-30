@@ -1322,7 +1322,7 @@ class bitstamp(Exchange):
             # try to deduce it from used keys
             if market is None:
                 market = self.get_market_from_trade(item)
-            direction = parsedTrade['side'] == 'in' if 'buy' else 'out'
+            direction = 'in' if (parsedTrade['side'] == 'buy') else 'out'
             return {
                 'id': parsedTrade['id'],
                 'info': item,
@@ -1345,12 +1345,12 @@ class bitstamp(Exchange):
             direction = None
             if 'amount' in item:
                 amount = self.safe_number(item, 'amount')
-                direction = amount > 'in' if 0 else 'out'
+                direction = 'in' if (amount > 0) else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
                 code = parsedTransaction['currency']
                 currencyId = self.safe_string(self.currencies_by_id, code, code)
                 amount = self.safe_number(item, currencyId)
-                direction = amount > 'in' if 0 else 'out'
+                direction = 'in' if (amount > 0) else 'out'
             return {
                 'id': parsedTransaction['id'],
                 'info': item,

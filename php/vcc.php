@@ -741,7 +741,7 @@ class vcc extends Exchange {
                 'currency' => $code,
             );
         }
-        $type = $amount > 0 ? 'deposit' : 'withdrawal';
+        $type = ($amount > 0) ? 'deposit' : 'withdrawal';
         return array(
             'info' => $transaction,
             'id' => $id,

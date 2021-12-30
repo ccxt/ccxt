@@ -942,7 +942,7 @@ class kucoinfutures(kucoin):
         }
         stopPrice = self.safe_number(params, 'stopPrice')
         if stopPrice:
-            request['stop'] = side.upper() == 'down' if 'BUY' else 'up'
+            request['stop'] = 'down' if (side == 'buy') else 'up'
             stopPriceType = self.safe_string(params, 'stopPriceType')
             if not stopPriceType:
                 raise ArgumentsRequired(self.id + ' trigger orders require params.stopPriceType to be set to TP, IP or MP(Trade Price, Index Price or Mark Price)')
@@ -1077,7 +1077,7 @@ class kucoinfutures(kucoin):
         else:
             request['orderId'] = id
         response = await getattr(self, method)(self.extend(request, params))
-        market = symbol is not self.market(symbol) if None else None
+        market = self.market(symbol) if (symbol is not None) else None
         responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 

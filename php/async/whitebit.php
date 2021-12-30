@@ -1183,7 +1183,8 @@ class whitebit extends Exchange {
                     if ($errorObject !== null) {
                         $errorKey = is_array($errorObject) ? array_keys($errorObject) : array()[0];
                         $errorMessageArray = $this->safe_value($errorObject, $errorKey, array());
-                        $errorInfo = strlen($errorMessageArray) > 0 ? $errorMessageArray[0] : $body;
+                        $errorMessageLength = is_array($errorMessageArray) ? count($errorMessageArray) : 0;
+                        $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
                     }
                 }
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorInfo, $feedback);

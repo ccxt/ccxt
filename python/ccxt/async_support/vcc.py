@@ -719,7 +719,7 @@ class vcc(Exchange):
                 'cost': feeCost,
                 'currency': code,
             }
-        type = amount > 'deposit' if 0 else 'withdrawal'
+        type = 'deposit' if (amount > 0) else 'withdrawal'
         return {
             'info': transaction,
             'id': id,
