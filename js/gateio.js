@@ -2950,7 +2950,7 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesGetSettlePositions',
             'future': 'privateDeliveryGetSettlePositions',
         });
-        const defaultSettle = type === 'swap' ? 'usdt' : 'btc';
+        const defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
         const settle = this.safeStringLower (params, 'settle', defaultSettle);
         const request = {
             'settle': settle,
