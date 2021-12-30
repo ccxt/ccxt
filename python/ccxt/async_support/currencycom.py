@@ -16,6 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class currencycom(Exchange):
@@ -392,7 +393,7 @@ class currencycom(Exchange):
             'taker': self.safe_number(response, 'takerCommission'),
         }
 
-    def parse_balance_response(self, response):
+    def parse_balance(self, response, type=None):
         #
         #     {
         #         "makerCommission":0.20,
@@ -425,7 +426,7 @@ class currencycom(Exchange):
             account['free'] = self.safe_string(balance, 'free')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -452,7 +453,7 @@ class currencycom(Exchange):
         #         ]
         #     }
         #
-        return self.parse_balance_response(response)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -780,18 +781,14 @@ class currencycom(Exchange):
             timestamp = self.safe_integer(order, 'time')
         elif 'transactTime' in order:
             timestamp = self.safe_integer(order, 'transactTime')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'origQty')
-        filled = self.safe_number(order, 'executedQty')
-        remaining = None
-        cost = self.safe_number(order, 'cummulativeQuoteQty')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'origQty')
+        filled = Precise.string_abs(self.safe_string(order, 'executedQty'))
+        cost = self.safe_string(order, 'cummulativeQuoteQty')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        trades = None
         fills = self.safe_value(order, 'fills')
-        if fills is not None:
-            trades = self.parse_trades(fills, market)
         timeInForce = self.safe_string(order, 'timeInForce')
         return self.safe_order({
             'info': order,
@@ -809,11 +806,11 @@ class currencycom(Exchange):
             'cost': cost,
             'average': None,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': None,
-            'trades': trades,
-        })
+            'trades': fills,
+        }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

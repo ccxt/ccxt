@@ -386,6 +386,34 @@ class wavesexchange extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = yield $this->marketGetTickers ();
+        //
+        //   array(
+        //       {
+        //           "symbol" => "WAVES/BTC",
+        //           "amountAssetID" => "WAVES",
+        //           "amountAssetName" => "Waves",
+        //           "amountAssetDecimals" => 8,
+        //           "amountAssetTotalSupply" => "106908766.00000000",
+        //           "amountAssetMaxSupply" => "106908766.00000000",
+        //           "amountAssetCirculatingSupply" => "106908766.00000000",
+        //           "priceAssetID" => "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //           "priceAssetName" => "WBTC",
+        //           "priceAssetDecimals" => 8,
+        //           "priceAssetTotalSupply" => "20999999.96007507",
+        //           "priceAssetMaxSupply" => "20999999.96007507",
+        //           "priceAssetCirculatingSupply" => "20999999.66019601",
+        //           "24h_open" => "0.00032688",
+        //           "24h_high" => "0.00033508",
+        //           "24h_low" => "0.00032443",
+        //           "24h_close" => "0.00032806",
+        //           "24h_vwap" => "0.00032988",
+        //           "24h_volume" => "42349.69440104",
+        //           "24h_priceVolume" => "13.97037207",
+        //           "timestamp":1640232379124
+        //       }
+        //       ...
+        //   )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -395,22 +423,56 @@ class wavesexchange extends Exchange {
             $marketId = $this->safe_string($entry, 'symbol');
             list($base, $quote) = explode('/', $marketId);
             $symbol = $this->safe_currency_code($base) . '/' . $this->safe_currency_code($quote);
-            $precision = array(
-                'amount' => $this->safe_integer($entry, 'amountAssetDecimals'),
-                'price' => $this->safe_integer($entry, 'priceAssetDecimals'),
-            );
             $result[] = array(
-                'symbol' => $symbol,
                 'id' => $id,
+                'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'futures' => false,
+                'option' => false,
+                'derivative' => false,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => null,
+                'maker' => null,
+                'contractSize' => null,
                 'active' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($entry, 'amountAssetDecimals'),
+                    'price' => $this->safe_integer($entry, 'priceAssetDecimals'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $entry,
-                'precision' => $precision,
             );
         }
         return $result;
@@ -1377,7 +1439,7 @@ class wavesexchange extends Exchange {
                 'fee' => $this->parse_number($this->currency_from_precision($currency, $this->safe_string($order, 'matcherFee'))),
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1557,7 +1619,7 @@ class wavesexchange extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

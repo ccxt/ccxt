@@ -670,7 +670,7 @@ class bigone extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_order($order, $market = null) {
@@ -704,7 +704,7 @@ class bigone extends Exchange {
             $side = 'sell';
         }
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'updated_at'));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

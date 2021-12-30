@@ -1910,7 +1910,10 @@ Exchange Metadata
   * a value of ``undefined`` / ``None`` / ``null`` means the method is not currently implemented in ccxt (either ccxt has not unified it yet or the method isn't natively available from the exchange API)
   * boolean ``false`` specifically means that the endpoint isn't natively available from the exchange API
   * boolean ``true`` means the endpoint is natively available from the exchange API and unified in the ccxt library
-  * ``'emulated'`` string means the endpoint isn't natively available from the exchange API but reconstructed (as much as possible) by the ccxt library from other available true-methods
+  * 
+    ``'emulated'`` string means the endpoint isn't natively available from the exchange API but reconstructed (as much as possible) by the ccxt library from other available true-methods
+
+    For a complete list of all exchages and their supported methods, please, refer to this example: https://github.com/ccxt/ccxt/blob/master/examples/js/exchange-capabilities.js
 
 Rate Limit
 ----------
@@ -2079,7 +2082,7 @@ Markets
 
 
 
-Each exchange is a place for trading some kinds of valuables. The exchanges may use differing terms to call them: *"a currency"*\ , *"an asset"*\ , *"a coin"*\ , *"a token"*\ , *"stock"*\ , *"commodity"*\ , *"crypto"*\ , "fiat", etc. A place for trading one asset for another is usually called *"a market"*\ , *"a symbol"*\ , *"a trading pair"*\ , *"a contract"*\ , etc. 
+Each exchange is a place for trading some kinds of valuables. The exchanges may use differing terms to call them: *"a currency"*\ , *"an asset"*\ , *"a coin"*\ , *"a token"*\ , *"stock"*\ , *"commodity"*\ , *"crypto"*\ , "fiat", etc. A place for trading one asset for another is usually called *"a market"*\ , *"a symbol"*\ , *"a trading pair"*\ , *"a contract"*\ , etc.
 
 In terms of the ccxt library, every exchange offers multiple **markets** within itself. Each market is defined by two or more **currencies**. The set of markets differs from exchange to exchange opening possibilities for cross-exchange and cross-market arbitrage.
 
@@ -2172,7 +2175,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 Active status
 -------------
 
-The ``active`` flag is typically used in :ref:`\ ``currencies`` <currency structure>` and :ref:`\ ``markets`` <market structure>`. The exchanges might put a slightly different meaning into it. If a currency is inactive, most of the time all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated information. The user should check if the currency is ``active`` and :ref:`reload markets periodically <market cache force reload>`. 
+The ``active`` flag is typically used in :ref:`\ ``currencies`` <currency structure>` and :ref:`\ ``markets`` <market structure>`. The exchanges might put a slightly different meaning into it. If a currency is inactive, most of the time all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated information. The user should check if the currency is ``active`` and :ref:`reload markets periodically <market cache force reload>`.
 
 Note: the ``false`` value for the ``active`` property doesn't always guarantee that all of the possible features like trading, withdrawing or depositing are disabled on the exchange. Likewise, neither the ``true`` value guarantees that all those features are enabled on the exchange. Check the underlying exchanges' documentation and the code in CCXT for the exact meaning of the ``active`` flag for this or that exchange. This flag is not yet supported or implemented by all markets and may be missing.
 
@@ -2594,6 +2597,75 @@ For those exchanges the ccxt will do a correction, switching and normalizing sid
                DASH / ETH
                        ↑ quote currency
 
+Contract Naming Conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We currently load spot markets with the unified ``BASE/QUOTE`` symbol schema into the ``.markets`` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the ``.markets`` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
+
+ **Please, check this announcement: `Unified contract naming conventions <https://github.com/ccxt/ccxt/issues/10931>`__
+
+Futures Contracts
+"""""""""""""""""
+
+A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in ``YYMMDD`` format:
+
+.. code-block:: JavaScript
+
+   //
+   // base asset or currency
+   // ↓
+   // ↓  quote asset or currency
+   // ↓  ↓
+   // ↓  ↓    settlement asset or currency
+   // ↓  ↓    ↓
+   // ↓  ↓    ↓     identifier (settlement date)
+   // ↓  ↓    ↓     ↓
+   // ↓  ↓    ↓     ↓
+   'BTC/USDT:BTC-211225'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
+   'BTC/USDT:USDT-211225' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
+   'ETH/USDT:ETH-210625'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
+   'ETH/USDT:USDT-210625' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
+
+Perpetual Swaps (Perpetual Futures)
+"""""""""""""""""""""""""""""""""""
+
+.. code-block:: JavaScript
+
+   // base asset or currency
+   // ↓
+   // ↓  quote asset or currency
+   // ↓  ↓
+   // ↓  ↓    settlement asset or currency
+   // ↓  ↓    ↓
+   // ↓  ↓    ↓
+   'BTC/USDT:BTC'  // BTC/USDT inverse perpetual swap contract funded in BTC
+   'BTC/USDT:USDT' // BTC/USDT linear perpetual swap contract funded in USDT
+   'ETH/USDT:ETH'  // ETH/USDT inverse perpetual swap contract funded in ETH
+   'ETH/USDT:USDT' // ETH/USDT linear perpetual swap contract funded in USDT
+
+Options
+"""""""
+
+.. code-block:: JavaScript
+
+   //
+   // base asset or currency
+   // ↓
+   // ↓  quote asset or currency
+   // ↓  ↓
+   // ↓  ↓    settlement asset or currency
+   // ↓  ↓    ↓
+   // ↓  ↓    ↓       identifier (settlement date)
+   // ↓  ↓    ↓       ↓
+   // ↓  ↓    ↓       ↓   strike price
+   // ↓  ↓    ↓       ↓   ↓
+   // ↓  ↓    ↓       ↓   ↓   type, put (P) or call (C)
+   // ↓  ↓    ↓       ↓   ↓   ↓
+   'BTC/USDT:BTC-211225-60000-P'  // BTC/USDT put option contract strike price 60000 USDT settled in BTC (inverse) on 2021-12-25
+   'ETH/USDT:USDT-211225-40000-C' // BTC/USDT call option contract strike price 40000 USDT settled in USDT (linear, vanilla) on 2021-12-25
+   'ETH/USDT:ETH-210625-5000-P'   // ETH/USDT put option contract strike price 5000 USDT settled in ETH (inverse) on 2021-06-25
+   'ETH/USDT:USDT-210625-5000-C'  // ETH/USDT call option contract strike price 5000 USDT settled in USDT (linear, vanilla) on 2021-06-25
+
 Market Cache Force Reload
 -------------------------
 
@@ -2814,7 +2886,7 @@ The unified methods of exchanges might expect and will accept various ``params``
    #                                                                 v
    binance.create_order('BTC/USDT', 'limit', 'buy', amount, price, params)
 
-An exchange will not accept the params from a different exchange, they're not interchangeable. The list of accepted parameters is defined by each specific exchange. 
+An exchange will not accept the params from a different exchange, they're not interchangeable. The list of accepted parameters is defined by each specific exchange.
 
 To find which parameters can be passed to a unified method:
 
@@ -5011,73 +5083,6 @@ Information about the positions can be served from different endpoints depending
 
    // for isolated positions
    await binancecoinm.fetchIsolatedPositions ()
-
-Contract Naming Conventions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-We currently load spot markets with the unified ``BASE/QUOTE`` symbol schema into the ``.markets`` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the ``.markets`` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
-
-Futures Contracts
-~~~~~~~~~~~~~~~~~
-
-A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in ``YYMMDD`` format:
-
-.. code-block:: JavaScript
-
-   //
-   // base asset or currency
-   // ↓
-   // ↓  quote asset or currency
-   // ↓  ↓
-   // ↓  ↓    settlement asset or currency
-   // ↓  ↓    ↓
-   // ↓  ↓    ↓     identifier (settlement date)
-   // ↓  ↓    ↓     ↓
-   // ↓  ↓    ↓     ↓
-   'BTC/USDT:BTC-211225'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
-   'BTC/USDT:USDT-211225' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
-   'ETH/USDT:ETH-210625'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
-   'ETH/USDT:USDT-210625' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
-
-Perpetual Swaps (Perpetual Futures)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: JavaScript
-
-   // base asset or currency
-   // ↓
-   // ↓  quote asset or currency
-   // ↓  ↓
-   // ↓  ↓    settlement asset or currency
-   // ↓  ↓    ↓
-   // ↓  ↓    ↓
-   'BTC/USDT:BTC'  // BTC/USDT inverse perpetual swap contract funded in BTC
-   'BTC/USDT:USDT' // BTC/USDT linear perpetual swap contract funded in USDT
-   'ETH/USDT:ETH'  // ETH/USDT inverse perpetual swap contract funded in ETH
-   'ETH/USDT:USDT' // ETH/USDT linear perpetual swap contract funded in USDT
-
-Options
-~~~~~~~
-
-.. code-block:: JavaScript
-
-   //
-   // base asset or currency
-   // ↓
-   // ↓  quote asset or currency
-   // ↓  ↓
-   // ↓  ↓    settlement asset or currency
-   // ↓  ↓    ↓
-   // ↓  ↓    ↓       identifier (settlement date)
-   // ↓  ↓    ↓       ↓
-   // ↓  ↓    ↓       ↓   strike price
-   // ↓  ↓    ↓       ↓   ↓
-   // ↓  ↓    ↓       ↓   ↓   type, put (P) or call (C)
-   // ↓  ↓    ↓       ↓   ↓   ↓
-   'BTC/USDT:BTC-211225-60000-P'  // BTC/USDT put option contract strike price 60000 USDT settled in BTC (inverse) on 2021-12-25
-   'ETH/USDT:USDT-211225-40000-C' // BTC/USDT call option contract strike price 40000 USDT settled in USDT (linear, vanilla) on 2021-12-25
-   'ETH/USDT:ETH-210625-5000-P'   // ETH/USDT put option contract strike price 5000 USDT settled in ETH (inverse) on 2021-06-25
-   'ETH/USDT:USDT-210625-5000-C'  // ETH/USDT call option contract strike price 5000 USDT settled in USDT (linear, vanilla) on 2021-06-25
 
 Deposit
 -------

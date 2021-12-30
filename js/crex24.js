@@ -479,7 +479,7 @@ module.exports = class crex24 extends Exchange {
             account['used'] = this.safeString (balance, 'reserved');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -789,16 +789,13 @@ module.exports = class crex24 extends Exchange {
         const marketId = this.safeString (order, 'instrument');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'volume');
-        const remaining = this.safeNumber (order, 'remainingVolume');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'volume');
+        const remaining = this.safeString (order, 'remainingVolume');
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'lastUpdate'));
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        const fee = undefined;
-        const trades = undefined;
-        const average = undefined;
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
@@ -816,13 +813,13 @@ module.exports = class crex24 extends Exchange {
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
-            'average': average,
+            'average': undefined,
             'filled': undefined,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
-            'trades': trades,
-        });
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

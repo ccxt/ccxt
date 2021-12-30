@@ -593,7 +593,7 @@ class xena(Exchange):
             result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_trade(self, trade, market=None):
         #
@@ -905,7 +905,7 @@ class xena(Exchange):
             type = 'stop'
         elif type == '4':
             type = 'stop-limit'
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

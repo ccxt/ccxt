@@ -609,7 +609,7 @@ class deribit(Exchange):
         account['used'] = self.safe_string(balance, 'maintenance_margin')
         account['total'] = self.safe_string(balance, 'equity')
         result[currencyCode] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
@@ -1134,7 +1134,7 @@ class deribit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_value(order, 'stop_price')
         postOnly = self.safe_value(order, 'post_only')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

@@ -332,7 +332,7 @@ class coinfalcon extends Exchange {
             $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -378,7 +378,7 @@ class coinfalcon extends Exchange {
         }
         $side = $this->safe_string($order, 'order_type');
         $postOnly = $this->safe_value($order, 'post_only');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),

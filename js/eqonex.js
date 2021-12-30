@@ -594,7 +594,7 @@ module.exports = class eqonex extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1338,7 +1338,7 @@ module.exports = class eqonex extends Exchange {
         }
         const stopPriceScale = this.safeInteger (order, 'stopPx_scale', 0);
         const stopPrice = this.parseNumber (this.convertFromScale (this.safeString (order, 'stopPx'), stopPriceScale));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

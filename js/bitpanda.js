@@ -887,7 +887,7 @@ module.exports = class bitpanda extends Exchange {
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -1280,7 +1280,7 @@ module.exports = class bitpanda extends Exchange {
         const stopPrice = this.safeNumber (rawOrder, 'trigger_price');
         const postOnly = this.safeValue (rawOrder, 'is_post_only');
         const rawTrades = this.safeValue (order, 'trades', []);
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

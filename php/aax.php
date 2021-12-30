@@ -868,7 +868,7 @@ class aax extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1682,7 +1682,7 @@ class aax extends Exchange {
                 'cost' => $feeCost,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,

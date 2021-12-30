@@ -450,7 +450,7 @@ class latoken extends Exchange {
         }
         $result['timestamp'] = $maxTimestamp;
         $result['datetime'] = $this->iso8601($maxTimestamp);
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -823,7 +823,7 @@ class latoken extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'condition'));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,

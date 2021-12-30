@@ -372,7 +372,7 @@ module.exports = class btcmarkets extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -850,7 +850,7 @@ module.exports = class btcmarkets extends Exchange {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'triggerPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

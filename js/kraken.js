@@ -1095,7 +1095,7 @@ module.exports = class kraken extends Exchange {
             account['total'] = this.safeString (balances, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1296,7 +1296,7 @@ module.exports = class kraken extends Exchange {
         const clientOrderId = this.safeString (order, 'userref');
         const rawTrades = this.safeValue (order, 'trades');
         const stopPrice = this.safeNumber (order, 'stopprice');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

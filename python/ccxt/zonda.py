@@ -343,7 +343,7 @@ class zonda(Exchange):
         amount = self.safe_string(order, 'startAmount')
         remaining = self.safe_string(order, 'currentAmount')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'info': order,
@@ -416,7 +416,7 @@ class zonda(Exchange):
             account['used'] = self.safe_string(balance, 'lockedFunds')
             account['free'] = self.safe_string(balance, 'availableFunds')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

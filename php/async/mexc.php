@@ -237,6 +237,7 @@ class mexc extends Exchange {
                 'DRK' => 'DRK',
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
+                'FREE' => 'FreeRossDAO', // conflict with FREE Coin
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
                 'PROS' => 'Pros.Finance', // conflict with Prosper
@@ -1205,7 +1206,7 @@ class mexc extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function safe_network($networkId) {
@@ -1758,7 +1759,7 @@ class mexc extends Exchange {
         if ($orderType !== null) {
             $orderType = str_replace('_order', '', $orderType);
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,

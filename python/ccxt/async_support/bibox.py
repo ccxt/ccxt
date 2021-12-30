@@ -639,7 +639,7 @@ class bibox(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -955,7 +955,7 @@ class bibox(Exchange):
                 'cost': feeCost,
                 'currency': None,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

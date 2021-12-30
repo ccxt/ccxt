@@ -181,6 +181,7 @@ module.exports = class binance extends Exchange {
                         'futures/loan/calcMaxAdjustAmount': 1,
                         'futures/loan/adjustCollateral/history': 1,
                         'futures/loan/liquidationHistory': 1,
+                        'rebate/taxQuery': 1,
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address': 1,
@@ -206,6 +207,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/sub/transfer/history': 1,
                         'sub-account/transfer/subUserHistory': 1,
                         'sub-account/universalTransfer': 1,
+                        'managed-subaccount/asset': 1,
                         // lending endpoints
                         'lending/daily/product/list': 1,
                         'lending/daily/userLeftQuota': 1,
@@ -268,8 +270,6 @@ module.exports = class binance extends Exchange {
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
                         'account/apiRestrictions': 1,
-                        // subaccounts
-                        'managed-subaccount/asset': 1,
                         // c2c / p2p
                         'c2c/orderMatch/listUserOrderHistory': 1,
                     },
@@ -1401,6 +1401,69 @@ module.exports = class binance extends Exchange {
         return result;
     }
 
+    parseBalance (response, type = undefined) {
+        const result = {
+            'info': response,
+        };
+        let timestamp = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            timestamp = this.safeInteger (response, 'updateTime');
+            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'free');
+                account['used'] = this.safeString (balance, 'locked');
+                result[code] = account;
+            }
+        } else if (type === 'savings') {
+            const positionAmountVos = this.safeValue (response, 'positionAmountVos');
+            for (let i = 0; i < positionAmountVos.length; i++) {
+                const entry = positionAmountVos[i];
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                const usedAndTotal = this.safeString (entry, 'amount');
+                account['total'] = usedAndTotal;
+                account['used'] = usedAndTotal;
+                result[code] = account;
+            }
+        } else if (type === 'funding') {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const account = this.account ();
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                account['free'] = this.safeString (entry, 'free');
+                const frozen = this.safeString (entry, 'freeze');
+                const withdrawing = this.safeString (entry, 'withdrawing');
+                const locked = this.safeString (entry, 'locked');
+                account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
+                result[code] = account;
+            }
+        } else {
+            let balances = response;
+            if (!Array.isArray (response)) {
+                balances = this.safeValue (response, 'assets', []);
+            }
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'availableBalance');
+                account['used'] = this.safeString (balance, 'initialMargin');
+                account['total'] = this.safeString2 (balance, 'marginBalance', 'balance');
+                result[code] = account;
+            }
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
@@ -1604,66 +1667,7 @@ module.exports = class binance extends Exchange {
         //       }
         //     ]
         //
-        const result = {
-            'info': response,
-        };
-        let timestamp = undefined;
-        if ((type === 'spot') || (type === 'margin')) {
-            timestamp = this.safeInteger (response, 'updateTime');
-            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString (balance, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'free');
-                account['used'] = this.safeString (balance, 'locked');
-                result[code] = account;
-            }
-        } else if (type === 'savings') {
-            const positionAmountVos = this.safeValue (response, 'positionAmountVos');
-            for (let i = 0; i < positionAmountVos.length; i++) {
-                const entry = positionAmountVos[i];
-                const currencyId = this.safeString (entry, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                const usedAndTotal = this.safeString (entry, 'amount');
-                account['total'] = usedAndTotal;
-                account['used'] = usedAndTotal;
-                result[code] = account;
-            }
-        } else if (type === 'funding') {
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
-                const account = this.account ();
-                const currencyId = this.safeString (entry, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                account['free'] = this.safeString (entry, 'free');
-                const frozen = this.safeString (entry, 'freeze');
-                const withdrawing = this.safeString (entry, 'withdrawing');
-                const locked = this.safeString (entry, 'locked');
-                account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
-                result[code] = account;
-            }
-        } else {
-            let balances = response;
-            if (!Array.isArray (response)) {
-                balances = this.safeValue (response, 'assets', []);
-            }
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString (balance, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'availableBalance');
-                account['used'] = this.safeString (balance, 'initialMargin');
-                account['total'] = this.safeString2 (balance, 'marginBalance', 'balance');
-                result[code] = account;
-            }
-        }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result);
+        return this.parseBalance (response, type);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1930,11 +1934,14 @@ module.exports = class binance extends Exchange {
             // It didn't work before without the endTime
             // https://github.com/ccxt/ccxt/issues/8454
             //
-            // if (since > 0) {
-            //     const endTime = this.sum (since, limit * duration * 1000 - 1);
-            //     const now = this.milliseconds ();
-            //     request['endTime'] = Math.min (now, endTime);
-            // }
+            if (market['inverse']) {
+                if (since > 0) {
+                    const duration = this.parseTimeframe (timeframe);
+                    const endTime = this.sum (since, limit * duration * 1000 - 1);
+                    const now = this.milliseconds ();
+                    request['endTime'] = Math.min (now, endTime);
+                }
+            }
         }
         let method = 'publicGetKlines';
         if (price === 'mark') {
@@ -2361,7 +2368,7 @@ module.exports = class binance extends Exchange {
         }
         const stopPriceString = this.safeString (order, 'stopPrice');
         const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

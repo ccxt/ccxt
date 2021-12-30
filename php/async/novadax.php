@@ -589,7 +589,7 @@ class novadax extends Exchange {
             $account['used'] = $this->safe_string($balance, 'hold');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -884,7 +884,7 @@ class novadax extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,

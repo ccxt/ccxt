@@ -330,7 +330,7 @@ class tidex extends Exchange {
             $account['used'] = $this->safe_string($balance, 'inOrders');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -567,7 +567,7 @@ class tidex extends Exchange {
             $remainingString = $this->safe_string($returnResult, 'remains', $amountString);
         }
         $timestamp = $this->milliseconds();
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -624,7 +624,7 @@ class tidex extends Exchange {
             $remaining = $this->safe_string($order, 'amount');
         }
         $fee = null;
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

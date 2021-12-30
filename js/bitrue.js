@@ -684,7 +684,7 @@ module.exports = class bitrue extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1091,7 +1091,7 @@ module.exports = class bitrue extends Exchange {
         }
         const stopPriceString = this.safeString (order, 'stopPrice');
         const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

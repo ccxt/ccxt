@@ -199,6 +199,7 @@ class binance(Exchange):
                         'futures/loan/calcMaxAdjustAmount': 1,
                         'futures/loan/adjustCollateral/history': 1,
                         'futures/loan/liquidationHistory': 1,
+                        'rebate/taxQuery': 1,
                         # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1,  # get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address': 1,
@@ -224,6 +225,7 @@ class binance(Exchange):
                         'sub-account/sub/transfer/history': 1,
                         'sub-account/transfer/subUserHistory': 1,
                         'sub-account/universalTransfer': 1,
+                        'managed-subaccount/asset': 1,
                         # lending endpoints
                         'lending/daily/product/list': 1,
                         'lending/daily/userLeftQuota': 1,
@@ -286,8 +288,6 @@ class binance(Exchange):
                         # v2 not supported yet
                         # GET /sapi/v2/broker/subAccount/futuresSummary
                         'account/apiRestrictions': 1,
-                        # subaccounts
-                        'managed-subaccount/asset': 1,
                         # c2c / p2p
                         'c2c/orderMatch/listUserOrderHistory': 1,
                     },
@@ -1393,6 +1393,62 @@ class binance(Exchange):
             result.append(entry)
         return result
 
+    def parse_balance(self, response, type=None):
+        result = {
+            'info': response,
+        }
+        timestamp = None
+        if (type == 'spot') or (type == 'margin'):
+            timestamp = self.safe_integer(response, 'updateTime')
+            balances = self.safe_value_2(response, 'balances', 'userAssets', [])
+            for i in range(0, len(balances)):
+                balance = balances[i]
+                currencyId = self.safe_string(balance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'free')
+                account['used'] = self.safe_string(balance, 'locked')
+                result[code] = account
+        elif type == 'savings':
+            positionAmountVos = self.safe_value(response, 'positionAmountVos')
+            for i in range(0, len(positionAmountVos)):
+                entry = positionAmountVos[i]
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                usedAndTotal = self.safe_string(entry, 'amount')
+                account['total'] = usedAndTotal
+                account['used'] = usedAndTotal
+                result[code] = account
+        elif type == 'funding':
+            for i in range(0, len(response)):
+                entry = response[i]
+                account = self.account()
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account['free'] = self.safe_string(entry, 'free')
+                frozen = self.safe_string(entry, 'freeze')
+                withdrawing = self.safe_string(entry, 'withdrawing')
+                locked = self.safe_string(entry, 'locked')
+                account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
+                result[code] = account
+        else:
+            balances = response
+            if not isinstance(response, list):
+                balances = self.safe_value(response, 'assets', [])
+            for i in range(0, len(balances)):
+                balance = balances[i]
+                currencyId = self.safe_string(balance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'availableBalance')
+                account['used'] = self.safe_string(balance, 'initialMargin')
+                account['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
+                result[code] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
@@ -1595,60 +1651,7 @@ class binance(Exchange):
         #       }
         #     ]
         #
-        result = {
-            'info': response,
-        }
-        timestamp = None
-        if (type == 'spot') or (type == 'margin'):
-            timestamp = self.safe_integer(response, 'updateTime')
-            balances = self.safe_value_2(response, 'balances', 'userAssets', [])
-            for i in range(0, len(balances)):
-                balance = balances[i]
-                currencyId = self.safe_string(balance, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'free')
-                account['used'] = self.safe_string(balance, 'locked')
-                result[code] = account
-        elif type == 'savings':
-            positionAmountVos = self.safe_value(response, 'positionAmountVos')
-            for i in range(0, len(positionAmountVos)):
-                entry = positionAmountVos[i]
-                currencyId = self.safe_string(entry, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                usedAndTotal = self.safe_string(entry, 'amount')
-                account['total'] = usedAndTotal
-                account['used'] = usedAndTotal
-                result[code] = account
-        elif type == 'funding':
-            for i in range(0, len(response)):
-                entry = response[i]
-                account = self.account()
-                currencyId = self.safe_string(entry, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account['free'] = self.safe_string(entry, 'free')
-                frozen = self.safe_string(entry, 'freeze')
-                withdrawing = self.safe_string(entry, 'withdrawing')
-                locked = self.safe_string(entry, 'locked')
-                account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
-                result[code] = account
-        else:
-            balances = response
-            if not isinstance(response, list):
-                balances = self.safe_value(response, 'assets', [])
-            for i in range(0, len(balances)):
-                balance = balances[i]
-                currencyId = self.safe_string(balance, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'availableBalance')
-                account['used'] = self.safe_string(balance, 'initialMargin')
-                account['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
-                result[code] = account
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result)
+        return self.parse_balance(response, type)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -1898,11 +1901,12 @@ class binance(Exchange):
             # It didn't work before without the endTime
             # https://github.com/ccxt/ccxt/issues/8454
             #
-            # if since > 0:
-            #     endTime = self.sum(since, limit * duration * 1000 - 1)
-            #     now = self.milliseconds()
-            #     request['endTime'] = min(now, endTime)
-            # }
+            if market['inverse']:
+                if since > 0:
+                    duration = self.parse_timeframe(timeframe)
+                    endTime = self.sum(since, limit * duration * 1000 - 1)
+                    now = self.milliseconds()
+                    request['endTime'] = min(now, endTime)
         method = 'publicGetKlines'
         if price == 'mark':
             if market['inverse']:
@@ -2303,7 +2307,7 @@ class binance(Exchange):
             type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
         stopPrice = self.parse_number(self.omit_zero(stopPriceString))
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

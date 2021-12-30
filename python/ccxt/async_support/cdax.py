@@ -884,7 +884,7 @@ class cdax(Exchange):
             if balance['type'] == 'frozen':
                 account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1058,7 +1058,7 @@ class cdax(Exchange):
                 'cost': feeCostString,
                 'currency': feeCurrency,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

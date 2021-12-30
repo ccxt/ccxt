@@ -395,7 +395,7 @@ class itbit(Exchange):
             account['free'] = self.safe_string(balance, 'availableBalance')
             account['total'] = self.safe_string(balance, 'totalBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_wallets(self, params={}):
         self.load_markets()
@@ -485,7 +485,7 @@ class itbit(Exchange):
         id = self.safe_string(order, 'id')
         postOnlyString = self.safe_string(order, 'postOnly')
         postOnly = (postOnlyString == 'True')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

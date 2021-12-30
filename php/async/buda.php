@@ -457,7 +457,7 @@ class buda extends Exchange {
             $account['total'] = $this->safe_string($balance['amount'], 0);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -591,7 +591,7 @@ class buda extends Exchange {
                 'code' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

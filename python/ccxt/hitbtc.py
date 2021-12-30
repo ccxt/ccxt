@@ -488,7 +488,7 @@ class hitbtc(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'reserved')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -916,22 +916,20 @@ class hitbtc(Exchange):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        amount = self.safe_number(order, 'quantity')
-        filled = self.safe_number(order, 'cumQuantity')
+        amount = self.safe_string(order, 'quantity')
+        filled = self.safe_string(order, 'cumQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         id = self.safe_string(order, 'clientOrderId')
         clientOrderId = id
-        price = self.safe_number(order, 'price')
+        price = self.safe_string(order, 'price')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         trades = self.safe_value(order, 'tradesReport')
         fee = None
-        average = self.safe_number(order, 'avgPrice')
-        if trades is not None:
-            trades = self.parse_trades(trades, market)
+        average = self.safe_string(order, 'avgPrice')
         timeInForce = self.safe_string(order, 'timeInForce')
         return self.safe_order({
             'id': id,
@@ -954,7 +952,7 @@ class hitbtc(Exchange):
             'fee': fee,
             'trades': trades,
             'info': order,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

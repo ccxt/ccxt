@@ -338,7 +338,7 @@ class tidex(Exchange):
             account['free'] = self.safe_string(balance, 'value')
             account['used'] = self.safe_string(balance, 'inOrders')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -545,7 +545,7 @@ class tidex(Exchange):
             filledString = self.safe_string(returnResult, 'received', filledString)
             remainingString = self.safe_string(returnResult, 'remains', amountString)
         timestamp = self.milliseconds()
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -598,7 +598,7 @@ class tidex(Exchange):
         else:
             remaining = self.safe_string(order, 'amount')
         fee = None
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

@@ -107,11 +107,19 @@ if argv.exchange_id not in ccxt.exchanges:
     print_usage()
     raise Exception('Exchange "' + argv.exchange_id + '" not found.')
 
-
 if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
+
+# check auth keys in env var
+requiredCredentials = exchange.requiredCredentials
+for credential, isRequired in requiredCredentials.items():
+    if isRequired and credential and not getattr(exchange, credential, None):
+        credentialEnvName = (argv.exchange_id + '_' + credential).upper() # example: KRAKEN_APIKEY
+        if credentialEnvName in os.environ:
+            credentialValue = os.environ[credentialEnvName]
+            setattr(exchange, credential, credentialValue)
 
 if argv.cors:
     exchange.proxy = 'https://cors-anywhere.herokuapp.com/';

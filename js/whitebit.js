@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
@@ -27,6 +28,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchBidsAsks': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchFundingFees': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
@@ -34,6 +36,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'privateAPI': true,
@@ -60,7 +63,6 @@ module.exports = class whitebit extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
                 'api': {
-                    'web': 'https://whitebit.com/',
                     'v1': {
                         'public': 'https://whitebit.com/api/v1/public',
                         'private': 'https://whitebit.com/api/v1',
@@ -125,10 +127,10 @@ module.exports = class whitebit extends Exchange {
                     'public': {
                         'get': [
                             'assets',
+                            'fee',
+                            'orderbook/{market}',
                             'ticker',
                             'trades/{market}',
-                            'fee',
-                            'assets',
                             'time',
                             'ping',
                         ],
@@ -171,16 +173,28 @@ module.exports = class whitebit extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchTradesMethod': 'fetchTradesV1',
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
             },
             'exceptions': {
                 'exact': {
+                    'Unauthorized request.': AuthenticationError, // {"code":10,"message":"Unauthorized request."}
+                    'The market format is invalid.': BadSymbol, // {"code":0,"message":"Validation failed","errors":{"market":["The market format is invalid."]}}
+                    'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                    'Invalid payload.': BadRequest, // {"code":9,"message":"Invalid payload."}
+                    'Amount must be greater than 0': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+                    'The order id field is required.': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
+                    'Not enough balance': InsufficientFunds, // {"code":0,"message":"Validation failed","errors":{"amount":["Not enough balance"]}}
+                    'This action is unauthorized.': PermissionDenied, // {"code":0,"message":"This action is unauthorized."}
+                    'This API Key is not authorized to perform this action.': PermissionDenied, // {"code":4,"message":"This API Key is not authorized to perform this action."}
+                    'Unexecuted order was not found.': OrderNotFound, // {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
                     '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
-                    '422': InvalidOrder, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
+                    '422': OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
-                    'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                    'Given amount is less than min amount': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'Total is less than': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
+                    'fee must be no less than': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
+                    'Enable your key in API settings': PermissionDenied, // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                 },
             },
         });
@@ -254,36 +268,30 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.v2PublicGetAssets (params);
+        const response = await this.v4PublicGetAssets (params);
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":{
-        //             "BTC":{
-        //                 "id":"4f37bc79-f612-4a63-9a81-d37f7f9ff622",
-        //                 "lastUpdateTimestamp":"2019-10-12T04:40:05.000Z",
-        //                 "name":"Bitcoin",
-        //                 "canWithdraw":true,
-        //                 "canDeposit":true,
-        //                 "minWithdrawal":"0.001",
-        //                 "maxWithdrawal":"0",
-        //                 "makerFee":"0.1",
-        //                 "takerFee":"0.1"
-        //             }
-        //         }
-        //     }
+        //      "BTC": {
+        //          "name": "Bitcoin",
+        //          "unified_cryptoasset_id": 1,
+        //          "can_withdraw": true,
+        //          "can_deposit": true,
+        //          "min_withdraw": "0.001",
+        //          "max_withdraw": "2",
+        //          "maker_fee": "0.1",
+        //          "taker_fee": "0.1",
+        //          "min_deposit": "0.0001",
+        //           "max_deposit": "0",
+        //       },
         //
-        const currencies = this.safeValue (response, 'result');
-        const ids = Object.keys (currencies);
+        const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const currency = currencies[id];
+            const currency = response[id];
             // breaks down in Python due to utf8 encoding issues on the exchange side
             // const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeValue (currency, 'canDeposit', true);
-            const canWithdraw = this.safeValue (currency, 'canWithdraw', true);
+            const canDeposit = this.safeValue (currency, 'can_deposit', true);
+            const canWithdraw = this.safeValue (currency, 'can_withdraw', true);
             const active = canDeposit && canWithdraw;
             const code = this.safeCurrencyCode (id);
             result[code] = {
@@ -300,13 +308,60 @@ module.exports = class whitebit extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber (currency, 'minWithdrawal'),
-                        'max': this.safeNumber (currency, 'maxWithdrawal'),
+                        'min': this.safeNumber (currency, 'min_withdraw'),
+                        'max': this.safeNumber (currency, 'max_withdraw'),
                     },
                 },
             };
         }
         return result;
+    }
+
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v4PublicGetFee (params);
+        //
+        //      {
+        //          "1INCH":{
+        //              "is_depositable":true,
+        //              "is_withdrawal":true,
+        //              "ticker":"1INCH",
+        //              "name":"1inch",
+        //              "providers":[
+        //              ],
+        //              "withdraw":{
+        //                   "max_amount":"0",
+        //                  "min_amount":"21.5",
+        //                  "fixed":"17.5",
+        //                  "flex":null
+        //              },
+        //              "deposit":{
+        //                  "max_amount":"0",
+        //                  "min_amount":"19.5",
+        //                  "fixed":null,
+        //                  "flex":null
+        //               }
+        //          },
+        //           {...}
+        //      }
+        //
+        const currenciesIds = Object.keys (response);
+        const withdrawFees = {};
+        const depositFees = {};
+        for (let i = 0; i < currenciesIds.length; i++) {
+            const currency = currenciesIds[i];
+            const data = response[currency];
+            const code = this.safeCurrencyCode (currency);
+            const withdraw = this.safeValue (data, 'withdraw', {});
+            withdrawFees[code] = this.safeString (withdraw, 'fixed');
+            const deposit = this.safeValue (data, 'deposit', {});
+            depositFees[code] = this.safeString (deposit, 'fixed');
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': depositFees,
+            'info': response,
+        };
     }
 
     async fetchTradingFees (params = {}) {
@@ -326,7 +381,7 @@ module.exports = class whitebit extends Exchange {
         };
         const response = await this.v1PublicGetTicker (this.extend (request, params));
         //
-        //     {
+        //      {
         //         "success":true,
         //         "message":"",
         //         "result": {
@@ -347,53 +402,42 @@ module.exports = class whitebit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //  FetchTicker (v1)
         //
-        // fetchTicker
+        //      {
+        //          "bid":"0.021979",
+        //          "ask":"0.021996",
+        //          "open":"0.02182",
+        //          "high":"0.022039",
+        //          "low":"0.02161",
+        //          "last":"0.021987",
+        //          "volume":"2810.267",
+        //          "deal":"61.383565474",
+        //          "change":"0.76",
+        //      }
         //
-        //     {
-        //         "bid":"0.021979",
-        //         "ask":"0.021996",
-        //         "open":"0.02182",
-        //         "high":"0.022039",
-        //         "low":"0.02161",
-        //         "last":"0.021987",
-        //         "volume":"2810.267",
-        //         "deal":"61.383565474",
-        //         "change":"0.76",
-        //     }
+        // FetchTickers (v4)
         //
-        // fetchTickers v1
+        //      "BCH_RUB":{
+        //          "base_id":1831,
+        //          "quote_id":0,
+        //          "last_price":"32830.21",
+        //          "quote_volume":"1494659.8024096",
+        //          "base_volume":"46.1083",
+        //          "isFrozen":false,
+        //          "change":"2.12" // in percent
+        //      },
         //
-        //     {
-        //         "at":1571022144,
-        //         "ticker": {
-        //             "bid":"0.022024",
-        //             "ask":"0.022042",
-        //             "low":"0.02161",
-        //             "high":"0.022062",
-        //             "last":"0.022036",
-        //             "vol":"2813.503",
-        //             "deal":"61.457279261",
-        //             "change":"0.95"
-        //         }
-        //     }
-        //
-        const timestamp = this.safeTimestamp (ticker, 'at', this.milliseconds ());
-        ticker = this.safeValue (ticker, 'ticker', ticker);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeNumber (ticker, 'last');
-        const percentage = this.safeNumber (ticker, 'change');
-        let change = undefined;
-        if (percentage !== undefined) {
-            change = this.numberToString (percentage * 0.01);
-        }
-        return {
+        const last = this.safeNumber (ticker, 'last_price');
+        const percentage = this.safeNumber (ticker, 'change') * 0.01;
+        return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeNumber (ticker, 'high'),
             'low': this.safeNumber (ticker, 'low'),
             'bid': this.safeNumber (ticker, 'bid'),
@@ -405,46 +449,35 @@ module.exports = class whitebit extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
-            'quoteVolume': this.safeNumber (ticker, 'deal'),
+            'baseVolume': this.safeNumber2 (ticker, 'base_volume', 'volume'),
+            'quoteVolume': this.safeNumber2 (ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PublicGetTickers (params);
+        const response = await this.v4PublicGetTicker (params);
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result": {
-        //             "ETH_BTC": {
-        //                 "at":1571022144,
-        //                 "ticker": {
-        //                     "bid":"0.022024",
-        //                     "ask":"0.022042",
-        //                     "low":"0.02161",
-        //                     "high":"0.022062",
-        //                     "last":"0.022036",
-        //                     "vol":"2813.503",
-        //                     "deal":"61.457279261",
-        //                     "change":"0.95"
-        //                 }
-        //             },
-        //         },
-        //     }
+        //      "BCH_RUB": {
+        //          "base_id":1831,
+        //          "quote_id":0,
+        //          "last_price":"32830.21",
+        //          "quote_volume":"1494659.8024096",
+        //          "base_volume":"46.1083",
+        //          "isFrozen":false,
+        //          "change":"2.12"
+        //      },
         //
-        const data = this.safeValue (response, 'result');
-        const marketIds = Object.keys (data);
+        const marketIds = Object.keys (response);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const ticker = this.parseTicker (data[marketId], market);
+            const ticker = this.parseTicker (response[marketId], market);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -458,118 +491,64 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default = 50, maximum = 100
+            request['depth'] = limit; // default = 50, maximum = 100
         }
-        const response = await this.v2PublicGetDepthMarket (this.extend (request, params));
+        const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":{
-        //             "lastUpdateTimestamp":"2019-10-14T03:15:47.000Z",
-        //             "asks":[
-        //                 ["0.02204","2.03"],
-        //                 ["0.022041","2.492"],
-        //                 ["0.022042","2.254"],
-        //             ],
-        //             "bids":[
-        //                 ["0.022018","2.327"],
-        //                 ["0.022017","1.336"],
-        //                 ["0.022015","2.089"],
-        //             ],
-        //         }
-        //     }
+        //      {
+        //          "timestamp": 1594391413,
+        //          "asks": [
+        //              [
+        //                  "9184.41",
+        //                  "0.773162"
+        //              ],
+        //              [ ... ]
+        //          ],
+        //          "bids": [
+        //              [
+        //                  "9181.19",
+        //                  "0.010873"
+        //              ],
+        //              [ ... ]
+        //          ]
+        //      }
         //
-        const result = this.safeValue (response, 'result', {});
-        const timestamp = this.parse8601 (this.safeString (result, 'lastUpdateTimestamp'));
-        return this.parseOrderBook (result, symbol, timestamp);
-    }
-
-    async fetchTradesV1 (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-            'lastId': 1, // todo add since
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 50, maximum = 10000
-        }
-        const response = await this.v1PublicGetHistory (this.extend (request, params));
-        //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":[
-        //             {
-        //                 "id":11887426,
-        //                 "type":"buy",
-        //                 "time":1571023057.413769,
-        //                 "amount":"0.171",
-        //                 "price":"0.022052"
-        //             }
-        //         ],
-        //     }
-        //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
-    }
-
-    async fetchTradesV2 (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 50, maximum = 10000
-        }
-        const response = await this.v2PublicGetTradesMarket (this.extend (request, params));
-        //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result": [
-        //             {
-        //                 "tradeId":11903347,
-        //                 "price":"0.022044",
-        //                 "volume":"0.029",
-        //                 "time":"2019-10-14T06:30:57.000Z",
-        //                 "isBuyerMaker":false
-        //             },
-        //         ],
-        //     }
-        //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
+        const timestamp = this.safeString (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'fetchTradesV2');
-        return await this[method] (symbol, since, limit, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.v4PublicGetTradesMarket (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "tradeID": 158056419,
+        //              "price": "9186.13",
+        //              "quote_volume": "0.0021",
+        //              "base_volume": "9186.13",
+        //              "trade_timestamp": 1594391747,
+        //              "type": "sell"
+        //          },
+        //      ],
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        //
-        // fetchTradesV1
-        //
+        // fetchTradesV4
         //     {
-        //         "id":11887426,
-        //         "type":"buy",
-        //         "time":1571023057.413769,
-        //         "amount":"0.171",
-        //         "price":"0.022052"
-        //     }
-        //
-        // fetchTradesV2
-        //
-        //     {
-        //         "tradeId":11903347,
-        //         "price":"0.022044",
-        //         "volume":"0.029",
-        //         "time":"2019-10-14T06:30:57.000Z",
-        //         "isBuyerMaker":false
-        //     }
+        //       "tradeID": 158056419,
+        //       "price": "9186.13",
+        //       "quote_volume": "0.0021",
+        //       "base_volume": "9186.13",
+        //       "trade_timestamp": 1594391747,
+        //       "type": "sell"
+        //     },
         //
         // orderTrades (v4Private)
         //
@@ -580,27 +559,18 @@ module.exports = class whitebit extends Exchange {
         //         "amount": "598",
         //         "id": 149156519, // trade id
         //         "dealOrderId": 3134995325, // orderId
-        //         "clientOrderId": "customId11", // empty string if not specified
+        //         "clientOrderId": "customId11",
         //         "role": 2, // 1 = maker, 2 = taker
         //         "deal": "0.00419198" // amount in money
         //     }
         //
-        let timestamp = this.safeTimestamp (trade, 'time');
-        if (timestamp === undefined) {
-            timestamp = this.parse8601 (this.safeString (trade, 'time'));
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'time', 'trade_timestamp');
         const orderId = this.safeString (trade, 'dealOrderId');
         const cost = this.safeString (trade, 'deal');
         const price = this.safeString (trade, 'price');
-        const amount = this.safeString2 (trade, 'amount', 'volume');
-        const id = this.safeString2 (trade, 'id', 'tradeId');
-        let side = this.safeString (trade, 'type');
-        if (side === undefined) {
-            const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
-            if (side !== undefined) {
-                side = isBuyerMaker ? 'buy' : 'sell';
-            }
-        }
+        const amount = this.safeString2 (trade, 'amount', 'base_volume');
+        const id = this.safeString2 (trade, 'id', 'tradeID');
+        const side = this.safeString (trade, 'type');
         const symbol = this.safeSymbol (undefined, market);
         const role = this.safeInteger (trade, 'role');
         let takerOrMaker = undefined;
@@ -695,17 +665,29 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.webGetV1Healthcheck (params);
-        const status = this.safeInteger (response, 'status');
-        let formattedStatus = 'ok';
-        if (status === 503) {
-            formattedStatus = 'maintenance';
-        }
+        const response = await this.v4PublicGetPing (params);
+        //
+        //      [
+        //          "pong"
+        //      ]
+        //
+        let status = this.safeString (response, 0, undefined);
+        status = (status === undefined) ? 'maintenance' : 'ok';
         this.status = this.extend (this.status, {
-            'status': formattedStatus,
+            'status': status,
             'updated': this.milliseconds (),
         });
         return this.status;
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.v4PublicGetTime (params);
+        //
+        //     {
+        //         "time":1635467280514
+        //     }
+        //
+        return this.safeInteger (response, 'time');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -804,7 +786,7 @@ module.exports = class whitebit extends Exchange {
             account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -823,24 +805,24 @@ module.exports = class whitebit extends Exchange {
         //
         //     [
         //         {
-        //             "orderId": 3686033640,            // unexecuted order ID
-        //             "clientOrderId": "customId11",    // custom order id; "clientOrderId": "" - if not specified.
-        //             "market": "BTC_USDT",             // currency market
-        //             "side": "buy",                    // order side
-        //             "type": "limit",                  // unexecuted order type
+        //             "orderId": 3686033640,
+        //             "clientOrderId": "customId11",
+        //             "market": "BTC_USDT",
+        //             "side": "buy",
+        //             "type": "limit",
         //             "timestamp": 1594605801.49815,    // current timestamp of unexecuted order
         //             "dealMoney": "0",                 // executed amount in money
         //             "dealStock": "0",                 // executed amount in stock
         //             "amount": "2.241379",             // active order amount
-        //             "takerFee": "0.001",              // taker fee ratio. If the number less than 0.0001 - it will be rounded to zero
-        //             "makerFee": "0.001",              // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //             "takerFee": "0.001",
+        //             "makerFee": "0.001",
         //             "left": "2.241379",               // unexecuted amount in stock
         //             "dealFee": "0",                   // executed fee by deal
-        //             "price": "40000"                  // unexecuted order price
+        //             "price": "40000"
         //         },
         //     ]
         //
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (response, market, since, limit, { 'status': 'open' });
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -860,7 +842,7 @@ module.exports = class whitebit extends Exchange {
         //         "BTC_USDT": [
         //             {
         //                 "id": 160305483,
-        //                 "clientOrderId": "customId11", // empty string if not specified
+        //                 "clientOrderId": "customId11",
         //                 "time": 1594667731.724403,
         //                 "side": "sell",
         //                 "role": 2, // 1 = maker, 2 = taker
@@ -872,19 +854,20 @@ module.exports = class whitebit extends Exchange {
         //         ],
         //     }
         //
-        // flattening orders and injecting the market
-        const keys = Object.keys (response);
-        const closedOrdersParsed = [];
-        for (let i = 0; i < keys.length; i++) {
-            const marketKey = keys[i];
-            const orders = response[marketKey];
+        const marketIds = Object.keys (response);
+        let results = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId, undefined, '_');
+            const orders = response[marketId];
             for (let j = 0; j < orders.length; j++) {
-                const order = orders[j];
-                order['market'] = marketKey;
-                closedOrdersParsed.push (order);
+                const order = this.parseOrder (orders[j], market);
+                results.push (this.extend (order, { 'status': 'filled' }));
             }
         }
-        return this.parseOrders (closedOrdersParsed, market, since, limit);
+        results = this.sortBy (results, 'timestamp');
+        results = this.filterBySymbolSinceLimit (results, symbol, since, limit, since === undefined);
+        return results;
     }
 
     parseOrder (order, market = undefined) {
@@ -892,37 +875,37 @@ module.exports = class whitebit extends Exchange {
         // createOrder, fetchOpenOrders
         //
         //     {
-        //         "orderId": 4180284841,             // order id
-        //         "clientOrderId": "order1987111",   // empty string if not specified.
-        //         "market": "BTC_USDT",              // deal market
-        //         "side": "buy",                     // order side
-        //         "type": "stop limit",              // order type
-        //         "timestamp": 1595792396.165973,    // current timestamp
+        //         "orderId": 4180284841,
+        //         "clientOrderId": "order1987111",
+        //         "market": "BTC_USDT",
+        //         "side": "buy",
+        //         "type": "stop limit",
+        //         "timestamp": 1595792396.165973,
         //         "dealMoney": "0",                  // if order finished - amount in money currency that finished
         //         "dealStock": "0",                  // if order finished - amount in stock currency that finished
-        //         "amount": "0.001",                 // amount
-        //         "takerFee": "0.001",               // rounded to zero if less than 0.0001
-        //         "makerFee": "0.001",               // rounded to zero if less than 0.0001
+        //         "amount": "0.001",
+        //         "takerFee": "0.001",
+        //         "makerFee": "0.001",
         //         "left": "0.001",                   // remaining amount
         //         "dealFee": "0",                    // fee in money that you pay if order is finished
-        //         "price": "40000",                  // price
+        //         "price": "40000",
         //         "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
         //     }
         //
         // fetchClosedOrders
         //
         //     {
-        //         "market": "BTC_USDT"              // artificial field
-        //         "amount": "0.0009",               // amount of trade
-        //         "price": "40000",                 // price
-        //         "type": "limit",                  // order type
-        //         "id": 4986126152,                 // order id
-        //         "clientOrderId": "customId11",    // empty string if not specified.
-        //         "side": "sell",                   // order side
+        //         "market": "BTC_USDT"
+        //         "amount": "0.0009",
+        //         "price": "40000",
+        //         "type": "limit",
+        //         "id": 4986126152,
+        //         "clientOrderId": "customId11",
+        //         "side": "sell",
         //         "ctime": 1597486960.311311,       // timestamp of order creation
-        //         "takerFee": "0.001",              // rounded to zero if less than 0.0001
+        //         "takerFee": "0.001",
         //         "ftime": 1597486960.311332,       // executed order timestamp
-        //         "makerFee": "0.001",              // rounded to zero if less than 0.0001
+        //         "makerFee": "0.001",
         //         "dealFee": "0.041258268",         // paid fee if order is finished
         //         "dealStock": "0.0009",            // amount in stock currency that finished
         //         "dealMoney": "41.258268"          // amount in money currency that finished
@@ -933,16 +916,31 @@ module.exports = class whitebit extends Exchange {
         const symbol = market['symbol'];
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
-        const amount = this.safeString (order, 'amount');
         const remaining = this.safeString (order, 'left');
         let clientOrderId = this.safeString (order, 'clientOrderId');
         if (clientOrderId === '') {
             clientOrderId = undefined;
         }
-        const price = this.safeString (order, 'price');
+        let price = this.safeString (order, 'price');
         const stopPrice = this.safeString (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
+        let amount = this.safeString (order, 'amount');
+        let cost = undefined;
+        if (price === '0') {
+            // api error to be solved
+            price = undefined;
+        }
+        if (side === 'buy' && type.indexOf ('market') >= 0) {
+            // in these cases the amount is in the quote currency meaning it's the cost
+            cost = amount;
+            amount = undefined;
+            if (price !== undefined) {
+                // if the price is available we can do this conversion
+                // from amount in quote currency to base currency
+                amount = Precise.stringDiv (cost, price);
+            }
+        }
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
         if (dealFee !== undefined) {
@@ -957,7 +955,7 @@ module.exports = class whitebit extends Exchange {
         }
         const timestamp = this.safeTimestamp2 (order, 'ctime', 'timestamp');
         const lastTradeTimestamp = this.safeTimestamp (order, 'ftime');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': orderId,
             'symbol': symbol,
@@ -976,7 +974,7 @@ module.exports = class whitebit extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'average': undefined,
-            'cost': undefined,
+            'cost': cost,
             'fee': fee,
             'trades': undefined,
         }, market);
@@ -1048,25 +1046,25 @@ module.exports = class whitebit extends Exchange {
         // fiat
         //
         //     {
-        //         "url": "https://someaddress.com" // address for depositing
+        //         "url": "https://someaddress.com"
         //     }
         //
         // crypto
         //
         //     {
         //         "account": {
-        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN", // deposit address
-        //             "memo": "48565488244493" // memo if currency requires memo
+        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //             "memo": "48565488244493"
         //         },
         //         "required": {
-        //             "fixedFee": "0", // fixed deposit fee
-        //             "flexFee": { // flexible fee - is fee that use percent rate
-        //                 "maxFee": "0", // maximum fixed fee that you will pay
-        //                 "minFee": "0", // minimum fixed fee that you will pay
-        //                 "percent": "0" // percent of deposit that you will pay
+        //             "fixedFee": "0",
+        //             "flexFee": {
+        //                 "maxFee": "0",
+        //                 "minFee": "0",
+        //                 "percent": "0"
         //             },
-        //             "maxAmount": "0", // max amount of deposit that can be accepted by exchange - if you deposit more than that number, it won't be accepted by exchange
-        //             "minAmount": "1" // min amount of deposit that can be accepted by exchange - if you will deposit less than that number, it won't be accepted by exchange
+        //             "maxAmount": "0",
+        //             "minAmount": "1"
         //         }
         //     }
         //
@@ -1139,7 +1137,7 @@ module.exports = class whitebit extends Exchange {
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const secret = this.stringToBinary (this.secret);
+            const secret = this.stringToBinary (this.encode (this.secret));
             const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64 (body);
@@ -1162,13 +1160,27 @@ module.exports = class whitebit extends Exchange {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
         }
         if (response !== undefined) {
-            const status = this.safeValue (response, 'status');
-            if ((status !== undefined && status !== '200')) {
+            // For cases where we have a meaningful status
+            // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
+            const status = this.safeInteger (response, 'status');
+            // For these cases where we have a generic code variable error key
+            // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+            const code = this.safeInteger (response, 'code');
+            const hasErrorStatus = status !== undefined && status !== '200';
+            if (hasErrorStatus || code !== undefined) {
                 const feedback = this.id + ' ' + body;
-                const status = this.safeString (response, 'status');
-                if (typeof status === 'string') {
-                    this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+                let errorInfo = undefined;
+                if (hasErrorStatus) {
+                    errorInfo = status;
+                } else {
+                    const errorObject = this.safeValue (response, 'errors');
+                    if (errorObject !== undefined) {
+                        const errorKey = Object.keys (errorObject)[0];
+                        const errorMessageArray = this.safeValue (errorObject, errorKey, []);
+                        errorInfo = errorMessageArray.length > 0 ? errorMessageArray[0] : body;
+                    }
                 }
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorInfo, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
                 throw new ExchangeError (feedback);
             }

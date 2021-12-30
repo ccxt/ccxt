@@ -1173,7 +1173,7 @@ module.exports = class bybit extends Exchange {
             account['total'] = this.safeString (balance, 'equity');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseOrderStatus (status) {
@@ -1341,7 +1341,7 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeNumber2 (order, 'trigger_price', 'stop_px');
         const postOnly = (timeInForce === 'PO');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

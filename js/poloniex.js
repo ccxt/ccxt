@@ -153,6 +153,7 @@ module.exports = class poloniex extends Exchange {
                 'ITC': 'Information Coin',
                 'KEY': 'KEYCoin',
                 'MASK': 'NFTX Hashmasks Index', // conflict with Mask Network
+                'MEME': 'Degenerator Meme', // Degenerator Meme migrated to Meme Inu, this exchange still has the old price
                 'PLX': 'ParallaxCoin',
                 'REPV2': 'REP',
                 'STR': 'XLM',
@@ -364,7 +365,7 @@ module.exports = class poloniex extends Exchange {
             account['used'] = this.safeString (balance, 'onOrders');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchTradingFees (params = {}) {
@@ -864,7 +865,7 @@ module.exports = class poloniex extends Exchange {
         }
         const price = this.safeString2 (order, 'price', 'rate');
         const remaining = this.safeString (order, 'amount');
-        const amount = this.safeString2 (order, 'startingAmount');
+        const amount = this.safeString (order, 'startingAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'type');
         const id = this.safeString (order, 'orderNumber');
@@ -888,7 +889,7 @@ module.exports = class poloniex extends Exchange {
             };
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1102,28 +1103,24 @@ module.exports = class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const trades = this.parseTrades (response);
-        const firstTrade = this.safeValue (trades, 0);
+        const firstTrade = this.safeValue (response, 0);
         if (firstTrade === undefined) {
             throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
         }
-        symbol = this.safeString (firstTrade, 'symbol', symbol);
-        const side = this.safeString (firstTrade, 'side');
-        const timestamp = this.safeNumber (firstTrade, 'timestamp');
-        id = this.safeValue (firstTrade['info'], 'globalTradeID', id);
+        id = this.safeValue (firstTrade, 'globalTradeID', id);
         return this.safeOrder ({
             'info': response,
             'id': id,
             'clientOrderId': this.safeValue (firstTrade, 'clientOrderId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': 'closed',
-            'symbol': symbol,
-            'type': this.safeString (firstTrade, 'type'),
+            'symbol': undefined,
+            'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
+            'side': undefined,
             'price': undefined,
             'stopPrice': undefined,
             'cost': undefined,
@@ -1131,7 +1128,7 @@ module.exports = class poloniex extends Exchange {
             'amount': undefined,
             'filled': undefined,
             'remaining': undefined,
-            'trades': trades,
+            'trades': response,
             'fee': undefined,
         });
     }

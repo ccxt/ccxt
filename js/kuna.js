@@ -503,7 +503,7 @@ module.exports = class kuna extends Exchange {
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -554,7 +554,7 @@ module.exports = class kuna extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const id = this.safeString (order, 'id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,

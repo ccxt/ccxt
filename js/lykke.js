@@ -260,7 +260,7 @@ module.exports = class lykke extends Exchange {
             account['used'] = this.safeString (balance, 'Reserved');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -492,7 +492,7 @@ module.exports = class lykke extends Exchange {
         }
         const remaining = Precise.stringAbs (this.safeString (order, 'RemainingVolume'));
         const id = this.safeString (order, 'Id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

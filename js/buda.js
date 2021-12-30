@@ -452,7 +452,7 @@ module.exports = class buda extends Exchange {
             account['total'] = this.safeString (balance['amount'], 0);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -586,7 +586,7 @@ module.exports = class buda extends Exchange {
                 'code': feeCurrencyCode,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

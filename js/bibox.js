@@ -656,7 +656,7 @@ module.exports = class bibox extends Exchange {
             account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -993,7 +993,7 @@ module.exports = class bibox extends Exchange {
                 'currency': undefined,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

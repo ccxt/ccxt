@@ -340,7 +340,7 @@ class bitstamp(Exchange):
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
-            symbolId = baseId + '_' + quoteId
+            marketId = baseId + '_' + quoteId
             id = self.safe_string(market, 'url_symbol')
             amountPrecisionString = self.safe_string(market, 'base_decimals')
             pricePrecisionString = self.safe_string(market, 'counter_decimals')
@@ -363,7 +363,7 @@ class bitstamp(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'symbolId': symbolId,
+                'marketId': marketId,
                 'info': market,
                 'type': 'spot',
                 'spot': True,
@@ -650,7 +650,7 @@ class bitstamp(Exchange):
         feeCostString = self.safe_string(trade, 'fee')
         feeCurrency = None
         if market is not None:
-            priceString = self.safe_string(trade, market['symbolId'], priceString)
+            priceString = self.safe_string(trade, market['marketId'], priceString)
             amountString = self.safe_string(trade, market['baseId'], amountString)
             costString = self.safe_string(trade, market['quoteId'], costString)
             feeCurrency = market['quote']
@@ -679,6 +679,8 @@ class bitstamp(Exchange):
                 side = 'sell'
             elif side == '0':
                 side = 'buy'
+            else:
+                side = None
         if costString is not None:
             costString = Precise.string_abs(costString)
         fee = None
@@ -827,7 +829,7 @@ class bitstamp(Exchange):
             account['used'] = self.safe_string(balance, currencyId + '_reserved')
             account['total'] = self.safe_string(balance, currencyId + '_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_trading_fee(self, symbol, params={}):
         self.load_markets()
@@ -1243,13 +1245,9 @@ class bitstamp(Exchange):
         marketId = self.safe_string_lower(order, 'currency_pair')
         symbol = self.safe_symbol(marketId, market, '/')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        amount = self.safe_number(order, 'amount')
+        amount = self.safe_string(order, 'amount')
         transactions = self.safe_value(order, 'transactions', [])
-        trades = self.parse_trades(transactions, market)
-        length = len(trades)
-        if length:
-            symbol = trades[0]['symbol']
-        price = self.safe_number(order, 'price')
+        price = self.safe_string(order, 'price')
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1268,11 +1266,11 @@ class bitstamp(Exchange):
             'amount': amount,
             'filled': None,
             'remaining': None,
-            'trades': trades,
+            'trades': transactions,
             'fee': None,
             'info': order,
             'average': None,
-        })
+        }, market)
 
     def parse_ledger_entry_type(self, type):
         types = {

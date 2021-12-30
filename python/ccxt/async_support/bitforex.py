@@ -265,7 +265,7 @@ class bitforex(Exchange):
             account['free'] = self.safe_string(balance, 'active')
             account['total'] = self.safe_string(balance, 'fix')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -394,7 +394,7 @@ class bitforex(Exchange):
             'cost': self.safe_number(order, 'tradeFee'),
             'currency': feeCurrency,
         }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

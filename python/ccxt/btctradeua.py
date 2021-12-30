@@ -109,7 +109,7 @@ class btctradeua(Exchange):
             account = self.account()
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -316,7 +316,7 @@ class btctradeua(Exchange):
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'amnt_trade')
         remaining = self.safe_string(order, 'amnt_trade')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'timestamp': timestamp,  # until they fix their timestamp

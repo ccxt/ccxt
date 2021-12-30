@@ -683,7 +683,7 @@ class bitrue(Exchange):
             result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -1066,7 +1066,7 @@ class bitrue(Exchange):
             type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
         stopPrice = self.parse_number(self.omit_zero(stopPriceString))
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

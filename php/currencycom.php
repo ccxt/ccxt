@@ -404,7 +404,7 @@ class currencycom extends Exchange {
         );
     }
 
-    public function parse_balance_response($response) {
+    public function parse_balance($response, $type = null) {
         //
         //     {
         //         "makerCommission":0.20,
@@ -438,7 +438,7 @@ class currencycom extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
@@ -466,7 +466,7 @@ class currencycom extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_balance_response($response);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -814,19 +814,14 @@ class currencycom extends Exchange {
         } else if (is_array($order) && array_key_exists('transactTime', $order)) {
             $timestamp = $this->safe_integer($order, 'transactTime');
         }
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'origQty');
-        $filled = $this->safe_number($order, 'executedQty');
-        $remaining = null;
-        $cost = $this->safe_number($order, 'cummulativeQuoteQty');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'origQty');
+        $filled = Precise::string_abs($this->safe_string($order, 'executedQty'));
+        $cost = $this->safe_string($order, 'cummulativeQuoteQty');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
-        $trades = null;
         $fills = $this->safe_value($order, 'fills');
-        if ($fills !== null) {
-            $trades = $this->parse_trades($fills, $market);
-        }
         $timeInForce = $this->safe_string($order, 'timeInForce');
         return $this->safe_order(array(
             'info' => $order,
@@ -844,11 +839,11 @@ class currencycom extends Exchange {
             'cost' => $cost,
             'average' => null,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => null,
-            'trades' => $trades,
-        ));
+            'trades' => $fills,
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

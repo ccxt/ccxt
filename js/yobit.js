@@ -146,7 +146,9 @@ module.exports = class yobit extends Exchange {
                 'LUNA': 'Luna Coin',
                 'MASK': 'Yobit MASK',
                 'MDT': 'Midnight',
+                'MEME': 'Memez Token', // conflict with Meme Inu / Degenerator Meme
                 'MIS': 'MIScoin',
+                'MM': 'MasterMint', // conflict with MilliMeter
                 'NAV': 'NavajoCoin',
                 'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
@@ -263,7 +265,7 @@ module.exports = class yobit extends Exchange {
             account['total'] = this.safeString (total, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchMarkets (params = {}) {
@@ -623,7 +625,7 @@ module.exports = class yobit extends Exchange {
         const fee = undefined;
         const type = 'limit';
         const side = this.safeString (order, 'type');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

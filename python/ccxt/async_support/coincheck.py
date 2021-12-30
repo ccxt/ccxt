@@ -140,7 +140,7 @@ class coincheck(Exchange):
                 account['free'] = self.safe_string(balances, currencyId)
                 account['used'] = self.safe_string(balances, reserved)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -180,7 +180,7 @@ class coincheck(Exchange):
         status = None
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

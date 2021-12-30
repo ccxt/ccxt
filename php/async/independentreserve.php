@@ -154,7 +154,7 @@ class independentreserve extends Exchange {
             $account['total'] = $this->safe_string($balance, 'TotalBalance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -291,7 +291,7 @@ class independentreserve extends Exchange {
         $cost = $this->safe_string($order, 'Value');
         $average = $this->safe_string($order, 'AvgPrice');
         $price = $this->safe_string($order, 'Price');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

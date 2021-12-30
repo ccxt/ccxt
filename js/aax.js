@@ -866,7 +866,7 @@ module.exports = class aax extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1680,7 +1680,7 @@ module.exports = class aax extends Exchange {
                 'cost': feeCost,
             };
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,

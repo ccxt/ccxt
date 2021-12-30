@@ -221,7 +221,7 @@ module.exports = class bithumb extends Exchange {
             account['free'] = this.safeString (balances, 'available_' + lowerCurrencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -727,7 +727,7 @@ module.exports = class bithumb extends Exchange {
         }
         const id = this.safeString (order, 'order_id');
         const rawTrades = this.safeValue (order, 'contract', []);
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

@@ -585,7 +585,7 @@ class hitbtc3(Exchange):
             account['free'] = self.safe_string(entry, 'available')
             account['used'] = self.safe_string(entry, 'reserved')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_ticker(self, symbol, params={}):
         response = await self.fetch_tickers([symbol], params)
@@ -1303,7 +1303,7 @@ class hitbtc3(Exchange):
         postOnly = self.safe_value(order, 'post_only')
         timeInForce = self.safe_string(order, 'time_in_force')
         rawTrades = self.safe_value(order, 'trades')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': id,

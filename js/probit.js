@@ -406,7 +406,7 @@ module.exports = class probit extends Exchange {
             account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -927,7 +927,7 @@ module.exports = class probit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,

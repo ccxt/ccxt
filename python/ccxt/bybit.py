@@ -1152,7 +1152,7 @@ class bybit(Exchange):
             account['used'] = self.safe_string(balance, 'used_margin')
             account['total'] = self.safe_string(balance, 'equity')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1312,7 +1312,7 @@ class bybit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_number_2(order, 'trigger_price', 'stop_px')
         postOnly = (timeInForce == 'PO')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

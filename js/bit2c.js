@@ -164,7 +164,7 @@ module.exports = class bit2c extends Exchange {
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -300,7 +300,7 @@ module.exports = class bit2c extends Exchange {
         }
         const id = this.safeString (order, 'id');
         const status = this.safeString (order, 'status');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,

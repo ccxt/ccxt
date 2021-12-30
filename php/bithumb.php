@@ -223,7 +223,7 @@ class bithumb extends Exchange {
             $account['free'] = $this->safe_string($balances, 'available_' . $lowerCurrencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -729,7 +729,7 @@ class bithumb extends Exchange {
         }
         $id = $this->safe_string($order, 'order_id');
         $rawTrades = $this->safe_value($order, 'contract', array());
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

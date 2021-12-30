@@ -611,7 +611,7 @@ class hollaex extends Exchange {
             $account['total'] = $this->safe_string($response, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_open_order($id, $symbol = null, $params = array ()) {
@@ -814,7 +814,7 @@ class hollaex extends Exchange {
         $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string($order, 'filled');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,

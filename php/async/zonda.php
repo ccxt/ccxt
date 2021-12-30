@@ -337,7 +337,7 @@ class zonda extends Exchange {
         $amount = $this->safe_string($order, 'startAmount');
         $remaining = $this->safe_string($order, 'currentAmount');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'info' => $order,
@@ -416,7 +416,7 @@ class zonda extends Exchange {
             $account['free'] = $this->safe_string($balance, 'availableFunds');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

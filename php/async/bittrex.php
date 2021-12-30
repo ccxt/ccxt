@@ -231,6 +231,7 @@ class bittrex extends Exchange {
             ),
             'commonCurrencies' => array(
                 'BIFI' => 'Bifrost Finance',
+                'MEME' => 'Memetic', // conflict with Meme Inu
                 'MER' => 'Mercury', // conflict with Mercurial Finance
                 'PROS' => 'Pros.Finance',
                 'REPV2' => 'REP',
@@ -337,7 +338,7 @@ class bittrex extends Exchange {
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1051,7 +1052,7 @@ class bittrex extends Exchange {
         $status = $this->safe_string_lower($order, 'status');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $postOnly = ($timeInForce === 'PO');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,

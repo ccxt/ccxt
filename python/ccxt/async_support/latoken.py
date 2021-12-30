@@ -444,7 +444,7 @@ class latoken(Exchange):
             result[code] = account
         result['timestamp'] = maxTimestamp
         result['datetime'] = self.iso8601(maxTimestamp)
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -793,7 +793,7 @@ class latoken(Exchange):
                 status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

@@ -361,7 +361,7 @@ class btcmarkets(Exchange):
             account['used'] = self.safe_string(balance, 'locked')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -802,7 +802,7 @@ class btcmarkets(Exchange):
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

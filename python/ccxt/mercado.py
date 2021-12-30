@@ -292,7 +292,7 @@ class mercado(Exchange):
                 account['free'] = self.safe_string(balance, 'available')
                 account['total'] = self.safe_string(balance, 'total')
                 result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -410,7 +410,7 @@ class mercado(Exchange):
         filled = self.safe_string(order, 'executed_quantity')
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
         rawTrades = self.safe_value(order, 'operations', [])
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,

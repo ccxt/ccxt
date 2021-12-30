@@ -582,7 +582,7 @@ module.exports = class hitbtc3 extends Exchange {
             account['used'] = this.safeString (entry, 'reserved');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1367,7 +1367,7 @@ module.exports = class hitbtc3 extends Exchange {
         const postOnly = this.safeValue (order, 'post_only');
         const timeInForce = this.safeString (order, 'time_in_force');
         const rawTrades = this.safeValue (order, 'trades');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': id,

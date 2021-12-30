@@ -579,7 +579,7 @@ class novadax(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'hold')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -852,7 +852,7 @@ class novadax(Exchange):
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,

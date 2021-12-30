@@ -292,6 +292,7 @@ module.exports = class gateio extends Exchange {
                 'GTC_HT': 'Game.com HT',
                 'GTC_BSC': 'Game.com BSC',
                 'HIT': 'HitChain',
+                'MM': 'Million', // conflict with MilliMeter
                 'MPH': 'Morpher', // conflict with 88MPH
                 'RAI': 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
@@ -1606,13 +1607,13 @@ module.exports = class gateio extends Exchange {
                 const subResult = {};
                 subResult[baseCode] = this.fetchBalanceHelper (base);
                 subResult[quoteCode] = this.fetchBalanceHelper (quote);
-                result[symbol] = this.parseBalance (subResult);
+                result[symbol] = this.safeBalance (subResult);
             } else {
                 const code = this.safeCurrencyCode (this.safeString (entry, 'currency', {}));
                 result[code] = this.fetchBalanceHelper (entry);
             }
         }
-        return margin ? result : this.parseBalance (result);
+        return margin ? result : this.safeBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1623,6 +1624,8 @@ module.exports = class gateio extends Exchange {
         request['interval'] = this.timeframes[timeframe];
         let method = 'publicSpotGetCandlesticks';
         if (market['contract']) {
+            const maxLimit = 1999;
+            limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
             if (market['future']) {
                 method = 'publicDeliveryGetSettleCandlesticks';
             } else if (market['swap']) {
@@ -1634,20 +1637,15 @@ module.exports = class gateio extends Exchange {
                 request['contract'] = price + '_' + market['id'];
                 params = this.omit (params, 'price');
             }
-        }
-        if (since === undefined) {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
         } else {
-            const timeframeSeconds = this.parseTimeframe (timeframe);
-            const timeframeMilliseconds = timeframeSeconds * 1000;
-            // align forward to the next timeframe alignment
-            since = this.sum (since - (since % timeframeMilliseconds), timeframeMilliseconds);
+            const maxLimit = 1000;
+            limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            const duration = this.parseTimeframe (timeframe);
             request['from'] = parseInt (since / 1000);
-            if (limit !== undefined) {
-                request['to'] = this.sum (request['from'], limit * timeframeSeconds - 1);
-            }
+            request['to'] = this.sum (request['from'], limit * duration - 1);
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -2448,7 +2446,7 @@ module.exports = class gateio extends Exchange {
                 'cost': tkfr,
             });
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': id,
             'timestamp': timestamp,

@@ -1570,7 +1570,7 @@ class okex3 extends Exchange {
             $account['free'] = $this->safe_string($balance, 'available');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_margin_balance($response) {
@@ -1649,7 +1649,7 @@ class okex3 extends Exchange {
                     throw new NotSupported($this->id . ' margin $balance $response format has changed!');
                 }
             }
-            $result[$symbol] = $this->parse_balance($accounts);
+            $result[$symbol] = $this->safe_balance($accounts);
         }
         return $result;
     }
@@ -1726,7 +1726,7 @@ class okex3 extends Exchange {
             $account['total'] = $this->safe_string($balance, 'equity');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_swap_balance($response) {
@@ -1770,7 +1770,7 @@ class okex3 extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
@@ -2220,7 +2220,7 @@ class okex3 extends Exchange {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
         $stopPrice = $this->safe_number($order, 'trigger_price');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

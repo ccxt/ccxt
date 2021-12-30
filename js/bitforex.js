@@ -258,7 +258,7 @@ module.exports = class bitforex extends Exchange {
             account['total'] = this.safeString (balance, 'fix');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -397,7 +397,7 @@ module.exports = class bitforex extends Exchange {
             'cost': this.safeNumber (order, 'tradeFee'),
             'currency': feeCurrency,
         };
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

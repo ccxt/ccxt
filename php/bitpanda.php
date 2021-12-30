@@ -890,7 +890,7 @@ class bitpanda extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
@@ -1283,7 +1283,7 @@ class bitpanda extends Exchange {
         $stopPrice = $this->safe_number($rawOrder, 'trigger_price');
         $postOnly = $this->safe_value($rawOrder, 'is_post_only');
         $rawTrades = $this->safe_value($order, 'trades', array());
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,

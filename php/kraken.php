@@ -1104,7 +1104,7 @@ class kraken extends Exchange {
             $account['total'] = $this->safe_string($balances, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1305,7 +1305,7 @@ class kraken extends Exchange {
         $clientOrderId = $this->safe_string($order, 'userref');
         $rawTrades = $this->safe_value($order, 'trades');
         $stopPrice = $this->safe_number($order, 'stopprice');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,

@@ -606,7 +606,7 @@ module.exports = class xena extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     parseTrade (trade, market = undefined) {
@@ -938,7 +938,7 @@ module.exports = class xena extends Exchange {
         } else if (type === '4') {
             type = 'stop-limit';
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

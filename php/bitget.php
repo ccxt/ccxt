@@ -1609,7 +1609,7 @@ class bitget extends Exchange {
                 $result[$code]['used'] = Precise::string_add($used, $this->safe_string($balance, 'balance'));
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_swap_balance($response) {
@@ -1637,7 +1637,7 @@ class bitget extends Exchange {
             $account['free'] = $this->safe_string($balance, 'total_avail_balance');
             $result[$symbol] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_accounts($params = array ()) {
@@ -1930,7 +1930,7 @@ class bitget extends Exchange {
             );
         }
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

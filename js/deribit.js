@@ -603,7 +603,7 @@ module.exports = class deribit extends Exchange {
         account['used'] = this.safeString (balance, 'maintenance_margin');
         account['total'] = this.safeString (balance, 'equity');
         result[currencyCode] = account;
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -1153,7 +1153,7 @@ module.exports = class deribit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeValue (order, 'stop_price');
         const postOnly = this.safeValue (order, 'post_only');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,

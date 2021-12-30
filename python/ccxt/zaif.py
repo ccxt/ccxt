@@ -222,7 +222,7 @@ class zaif(Exchange):
                 if currencyId in deposit:
                     account['total'] = self.safe_string(deposit, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -351,7 +351,7 @@ class zaif(Exchange):
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'amount')
         id = self.safe_string(order, 'id')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

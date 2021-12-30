@@ -193,7 +193,7 @@ class tidebit extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -418,7 +418,7 @@ class tidebit extends Exchange {
         $filled = $this->safe_string($order, 'executed_volume');
         $remaining = $this->safe_string($order, 'remaining_volume');
         $average = $this->safe_string($order, 'avg_price');
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,

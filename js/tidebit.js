@@ -189,7 +189,7 @@ module.exports = class tidebit extends Exchange {
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -414,7 +414,7 @@ module.exports = class tidebit extends Exchange {
         const filled = this.safeString (order, 'executed_volume');
         const remaining = this.safeString (order, 'remaining_volume');
         const average = this.safeString (order, 'avg_price');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,

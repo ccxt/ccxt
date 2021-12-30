@@ -402,7 +402,7 @@ class bitbns extends Exchange {
                 }
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function parse_order_status($status) {
@@ -485,7 +485,7 @@ class bitbns extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,

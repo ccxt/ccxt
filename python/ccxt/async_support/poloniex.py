@@ -168,6 +168,7 @@ class poloniex(Exchange):
                 'ITC': 'Information Coin',
                 'KEY': 'KEYCoin',
                 'MASK': 'NFTX Hashmasks Index',  # conflict with Mask Network
+                'MEME': 'Degenerator Meme',  # Degenerator Meme migrated to Meme Inu, self exchange still has the old price
                 'PLX': 'ParallaxCoin',
                 'REPV2': 'REP',
                 'STR': 'XLM',
@@ -368,7 +369,7 @@ class poloniex(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'onOrders')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
@@ -829,7 +830,7 @@ class poloniex(Exchange):
             resultingTrades = self.safe_value(resultingTrades, self.safe_string(market, 'id', marketId))
         price = self.safe_string_2(order, 'price', 'rate')
         remaining = self.safe_string(order, 'amount')
-        amount = self.safe_string_2(order, 'startingAmount')
+        amount = self.safe_string(order, 'startingAmount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
         id = self.safe_string(order, 'orderNumber')
@@ -851,7 +852,7 @@ class poloniex(Exchange):
                 'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1047,27 +1048,23 @@ class poloniex(Exchange):
         #         }
         #     ]
         #
-        trades = self.parse_trades(response)
-        firstTrade = self.safe_value(trades, 0)
+        firstTrade = self.safe_value(response, 0)
         if firstTrade is None:
             raise OrderNotFound(self.id + ' order id ' + id + ' not found')
-        symbol = self.safe_string(firstTrade, 'symbol', symbol)
-        side = self.safe_string(firstTrade, 'side')
-        timestamp = self.safe_number(firstTrade, 'timestamp')
-        id = self.safe_value(firstTrade['info'], 'globalTradeID', id)
+        id = self.safe_value(firstTrade, 'globalTradeID', id)
         return self.safe_order({
             'info': response,
             'id': id,
             'clientOrderId': self.safe_value(firstTrade, 'clientOrderId'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'lastTradeTimestamp': None,
             'status': 'closed',
-            'symbol': symbol,
-            'type': self.safe_string(firstTrade, 'type'),
+            'symbol': None,
+            'type': None,
             'timeInForce': None,
             'postOnly': None,
-            'side': side,
+            'side': None,
             'price': None,
             'stopPrice': None,
             'cost': None,
@@ -1075,7 +1072,7 @@ class poloniex(Exchange):
             'amount': None,
             'filled': None,
             'remaining': None,
-            'trades': trades,
+            'trades': response,
             'fee': None,
         })
 

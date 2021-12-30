@@ -221,7 +221,7 @@ class therock(Exchange):
             account['free'] = self.safe_string(balance, 'trading_balance')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

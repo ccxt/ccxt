@@ -245,6 +245,7 @@ class mexc(Exchange):
                 'DRK': 'DRK',
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
+                'FREE': 'FreeRossDAO',  # conflict with FREE Coin
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
@@ -1163,7 +1164,7 @@ class mexc(Exchange):
                 account['free'] = self.safe_string(balance, 'availableBalance')
                 account['used'] = self.safe_string(balance, 'frozenBalance')
                 result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def safe_network(self, networkId):
         if networkId.find('BSC') >= 0:
@@ -1667,7 +1668,7 @@ class mexc(Exchange):
         orderType = self.safe_string_lower(order, 'order_type')
         if orderType is not None:
             orderType = orderType.replace('_order', '')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,

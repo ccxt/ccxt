@@ -608,7 +608,7 @@ class bw(Exchange):
             account['free'] = self.safe_string(balance, 'amount')
             account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if price is None:
@@ -705,7 +705,7 @@ class bw(Exchange):
         remaining = self.safe_string_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
         cost = self.safe_string(order, 'totalMoney')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'entrustId'),
             'clientOrderId': None,

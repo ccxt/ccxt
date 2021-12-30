@@ -186,7 +186,7 @@ class tidebit(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -393,7 +393,7 @@ class tidebit(Exchange):
         filled = self.safe_string(order, 'executed_volume')
         remaining = self.safe_string(order, 'remaining_volume')
         average = self.safe_string(order, 'avg_price')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,

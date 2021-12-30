@@ -549,7 +549,7 @@ class coinex(Exchange):
         buyAccount['total'] = self.safe_string(total, 'buy_type')
         result[buyCurrencyCode] = buyAccount
         #
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_spot_balance(self, params={}):
         self.load_markets()
@@ -585,7 +585,7 @@ class coinex(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
         accountType = self.safe_string(params, 'type', 'main')
@@ -648,7 +648,7 @@ class coinex(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),

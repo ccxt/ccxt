@@ -408,7 +408,7 @@ class coinbasepro(Exchange):
             account['used'] = self.safe_string(balance, 'hold')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -806,7 +806,7 @@ class coinbasepro(Exchange):
         postOnly = self.safe_value(order, 'post_only')
         stopPrice = self.safe_number(order, 'stop_price')
         clientOrderId = self.safe_string(order, 'client_oid')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,

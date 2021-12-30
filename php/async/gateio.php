@@ -298,6 +298,7 @@ class gateio extends Exchange {
                 'GTC_HT' => 'Game.com HT',
                 'GTC_BSC' => 'Game.com BSC',
                 'HIT' => 'HitChain',
+                'MM' => 'Million', // conflict with MilliMeter
                 'MPH' => 'Morpher', // conflict with 88MPH
                 'RAI' => 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC' => 'Super Bitcoin',
@@ -1612,13 +1613,13 @@ class gateio extends Exchange {
                 $subResult = array();
                 $subResult[$baseCode] = $this->fetch_balance_helper($base);
                 $subResult[$quoteCode] = $this->fetch_balance_helper($quote);
-                $result[$symbol] = $this->parse_balance($subResult);
+                $result[$symbol] = $this->safe_balance($subResult);
             } else {
                 $code = $this->safe_currency_code($this->safe_string($entry, 'currency', array()));
                 $result[$code] = $this->fetch_balance_helper($entry);
             }
         }
-        return $margin ? $result : $this->parse_balance($result);
+        return $margin ? $result : $this->safe_balance($result);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -1629,6 +1630,8 @@ class gateio extends Exchange {
         $request['interval'] = $this->timeframes[$timeframe];
         $method = 'publicSpotGetCandlesticks';
         if ($market['contract']) {
+            $maxLimit = 1999;
+            $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
             if ($market['future']) {
                 $method = 'publicDeliveryGetSettleCandlesticks';
             } else if ($market['swap']) {
@@ -1640,20 +1643,15 @@ class gateio extends Exchange {
                 $request['contract'] = $price . '_' . $market['id'];
                 $params = $this->omit($params, 'price');
             }
-        }
-        if ($since === null) {
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
         } else {
-            $timeframeSeconds = $this->parse_timeframe($timeframe);
-            $timeframeMilliseconds = $timeframeSeconds * 1000;
-            // align forward to the next $timeframe alignment
-            $since = $this->sum($since - (fmod($since, $timeframeMilliseconds)), $timeframeMilliseconds);
+            $maxLimit = 1000;
+            $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $duration = $this->parse_timeframe($timeframe);
             $request['from'] = intval($since / 1000);
-            if ($limit !== null) {
-                $request['to'] = $this->sum($request['from'], $limit * $timeframeSeconds - 1);
-            }
+            $request['to'] = $this->sum($request['from'], $limit * $duration - 1);
         }
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -2454,7 +2452,7 @@ class gateio extends Exchange {
                 'cost' => $tkfr,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $id,
             'timestamp' => $timestamp,

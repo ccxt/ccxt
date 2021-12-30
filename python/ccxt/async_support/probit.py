@@ -412,7 +412,7 @@ class probit(Exchange):
             account['total'] = self.safe_string(balance, 'total')
             account['free'] = self.safe_string(balance, 'available')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -891,7 +891,7 @@ class probit(Exchange):
         if clientOrderId == '':
             clientOrderId = None
         timeInForce = self.safe_string_upper(order, 'time_in_force')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,

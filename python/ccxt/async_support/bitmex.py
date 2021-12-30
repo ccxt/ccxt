@@ -278,7 +278,7 @@ class bitmex(Exchange):
             })
         return result
 
-    def parse_balance_response(self, response):
+    def parse_balance(self, response, type=None):
         #
         #     [
         #         {
@@ -340,7 +340,7 @@ class bitmex(Exchange):
             account['free'] = free
             account['total'] = total
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -395,7 +395,7 @@ class bitmex(Exchange):
         #         }
         #     ]
         #
-        return self.parse_balance_response(response)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -1209,7 +1209,7 @@ class bitmex(Exchange):
         stopPrice = self.safe_number(order, 'stopPx')
         execInst = self.safe_string(order, 'execInst')
         postOnly = (execInst == 'ParticipateDoNotInitiate')
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

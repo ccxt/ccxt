@@ -969,7 +969,7 @@ class huobijp extends Exchange {
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1161,7 +1161,7 @@ class huobijp extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,

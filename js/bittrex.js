@@ -223,6 +223,7 @@ module.exports = class bittrex extends Exchange {
             },
             'commonCurrencies': {
                 'BIFI': 'Bifrost Finance',
+                'MEME': 'Memetic', // conflict with Meme Inu
                 'MER': 'Mercury', // conflict with Mercurial Finance
                 'PROS': 'Pros.Finance',
                 'REPV2': 'REP',
@@ -329,7 +330,7 @@ module.exports = class bittrex extends Exchange {
             account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1043,7 +1044,7 @@ module.exports = class bittrex extends Exchange {
         const status = this.safeStringLower (order, 'status');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const postOnly = (timeInForce === 'PO');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
