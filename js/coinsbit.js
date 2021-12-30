@@ -768,7 +768,12 @@ module.exports = class coinsbit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const method = this.safeValue (params, 'method', 'privatePostAccountOrderHistory');
+        let records = undefined;
         if (method === 'privatePostAccountOrderHistory') {
             const response = await this.privatePostAccountOrderHistory (this.extend (request, params));
             // {
@@ -801,7 +806,7 @@ module.exports = class coinsbit extends Exchange {
             //     code: '200'
             //   }
             const data = this.safeValue (response, 'result', {});
-            const records = [];
+            records = [];
             const marketIds = Object.keys (data);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
@@ -810,7 +815,6 @@ module.exports = class coinsbit extends Exchange {
                     records.push (ordersOfMarket[j]);
                 }
             }
-            return this.parseOrders (records, undefined, since, limit, params);
         } else if (method === 'privatePostAccountOrderHistoryList') {
             const response = await this.privatePostAccountOrderHistoryList (this.extend (request, params));
             // {
@@ -841,11 +845,11 @@ module.exports = class coinsbit extends Exchange {
             //     code: '200',
             // }
             const data = this.safeValue (response, 'result', {});
-            const records = this.safeValue (data, 'records', []);
-            return this.parseOrders (records, undefined, since, limit, params);
+            records = this.safeValue (data, 'records', []);
         } else {
             throw new ArgumentsRequired (this.id + " fetchClosedOrders() should have 'method' parameter from the following: privatePostAccountOrderHistoryList | privatePostAccountOrderHistory");
         }
+        return this.parseOrders (records, market, since, limit, params);
     }
 
     parseOrder (order, market = undefined) {
@@ -891,12 +895,24 @@ module.exports = class coinsbit extends Exchange {
             timestamp = this.safeTimestamp (order, 'ctime');
         }
         const lastTradeTimestamp = this.safeTimestamp (order, 'ftime');
-        const price = this.safeString (order, 'price');
-        const orderSize = this.safeString (order, 'amount');
+        const price = this.safeString (order, 'price'); // In case of market order, the price is 0
         const remaining = this.safeString (order, 'left');
         const filledSize = this.safeString (order, 'dealStock');
         const cost = this.safeString2 (order, 'dealMoney', 'deal');
         const fee = this.safeString2 (order, 'dealFee', 'fee');
+        const amountGeneric = this.safeString (order, 'amount');
+        let status = undefined;
+        let orderSize = undefined;
+        if (orderType === 'market') {
+            status = 'closed';
+            if (side === 'sell') {
+                orderSize = amountGeneric;
+            } else {
+                orderSize = filledSize; // for buy market order, coinsbit leaves only this way to define orderSize of base currency
+            }
+        } else {
+            orderSize = amountGeneric;
+        }
         const marketId = this.safeString (order, 'market');
         if (market === undefined) {
             market = this.safeMarket (marketId, market, '_');
@@ -909,7 +925,7 @@ module.exports = class coinsbit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'status': undefined,
+            'status': status,
             'symbol': symbol,
             'type': orderType,
             'timeInForce': undefined,
