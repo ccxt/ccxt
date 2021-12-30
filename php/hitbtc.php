@@ -466,24 +466,7 @@ class hitbtc extends Exchange {
         return $this->parse_trading_fee($response, $market);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $type = $this->safe_string($params, 'type', 'trading');
-        $fetchBalanceAccounts = $this->safe_value($this->options, 'fetchBalanceMethod', array());
-        $typeId = $this->safe_string($fetchBalanceAccounts, $type);
-        if ($typeId === null) {
-            throw new ExchangeError($this->id . ' fetchBalance $account $type must be either main or trading');
-        }
-        $method = 'privateGet' . $this->capitalize($typeId) . 'Balance';
-        $query = $this->omit($params, 'type');
-        $response = $this->$method ($query);
-        //
-        //     array(
-        //         array("currency":"SPI","available":"0","reserved":"0"),
-        //         array("currency":"GRPH","available":"0","reserved":"0"),
-        //         array("currency":"DGTX","available":"0","reserved":"0"),
-        //     )
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -499,6 +482,27 @@ class hitbtc extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $type = $this->safe_string($params, 'type', 'trading');
+        $fetchBalanceAccounts = $this->safe_value($this->options, 'fetchBalanceMethod', array());
+        $typeId = $this->safe_string($fetchBalanceAccounts, $type);
+        if ($typeId === null) {
+            throw new ExchangeError($this->id . ' fetchBalance account $type must be either main or trading');
+        }
+        $method = 'privateGet' . $this->capitalize($typeId) . 'Balance';
+        $query = $this->omit($params, 'type');
+        $response = $this->$method ($query);
+        //
+        //     array(
+        //         array("currency":"SPI","available":"0","reserved":"0"),
+        //         array("currency":"GRPH","available":"0","reserved":"0"),
+        //         array("currency":"DGTX","available":"0","reserved":"0"),
+        //     )
+        //
+        return $this->parse_balance($response);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

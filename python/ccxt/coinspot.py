@@ -96,26 +96,7 @@ class coinspot(Exchange):
             },
         })
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
-        response = getattr(self, method)(params)
-        #
-        # read-write api keys
-        #
-        #     ...
-        #
-        # read-only api keys
-        #
-        #     {
-        #         "status":"ok",
-        #         "balances":[
-        #             {
-        #                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
-        #             }
-        #         ]
-        #     }
-        #
+    def parse_balance(self, response):
         result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
@@ -138,6 +119,28 @@ class coinspot(Exchange):
                 account['total'] = self.safe_string(balances, currencyId)
                 result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
+        response = getattr(self, method)(params)
+        #
+        # read-write api keys
+        #
+        #     ...
+        #
+        # read-only api keys
+        #
+        #     {
+        #         "status":"ok",
+        #         "balances":[
+        #             {
+        #                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

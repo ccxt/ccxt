@@ -199,9 +199,7 @@ class zaif extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostGetInfo ($params);
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'return', array());
         $deposit = $this->safe_value($balances, 'deposit');
         $result = array(
@@ -226,6 +224,12 @@ class zaif extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostGetInfo ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

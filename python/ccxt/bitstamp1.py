@@ -172,20 +172,23 @@ class bitstamp1(Exchange):
         response = self.publicGetTransactions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_balance(self, params={}):
-        balance = self.privatePostBalance(params)
-        result = {'info': balance}
+    def parse_balance(self, response):
+        result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currency(code)
             currencyId = currency['id']
             account = self.account()
-            account['free'] = self.safe_string(balance, currencyId + '_available')
-            account['used'] = self.safe_string(balance, currencyId + '_reserved')
-            account['total'] = self.safe_string(balance, currencyId + '_balance')
+            account['free'] = self.safe_string(response, currencyId + '_available')
+            account['used'] = self.safe_string(response, currencyId + '_reserved')
+            account['total'] = self.safe_string(response, currencyId + '_balance')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        response = self.privatePostBalance(params)
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':

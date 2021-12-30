@@ -199,9 +199,7 @@ class zaif(Exchange):
             })
         return result
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privatePostGetInfo(params)
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'return', {})
         deposit = self.safe_value(balances, 'deposit')
         result = {
@@ -223,6 +221,11 @@ class zaif(Exchange):
                     account['total'] = self.safe_string(deposit, currencyId)
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privatePostGetInfo(params)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

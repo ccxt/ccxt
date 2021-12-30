@@ -458,6 +458,22 @@ class hitbtc(Exchange):
         #
         return self.parse_trading_fee(response, market)
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'reserved')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         type = self.safe_string(params, 'type', 'trading')
@@ -475,20 +491,7 @@ class hitbtc(Exchange):
         #         {"currency":"DGTX","available":"0","reserved":"0"},
         #     ]
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'reserved')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

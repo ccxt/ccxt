@@ -323,11 +323,9 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $balances = yield $this->privateGetBalances ($params);
-        $result = array( 'info' => $balances );
-        $indexed = $this->index_by($balances, 'currencySymbol');
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
+        $indexed = $this->index_by($response, 'currencySymbol');
         $currencyIds = is_array($indexed) ? array_keys($indexed) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
@@ -339,6 +337,12 @@ class bittrex extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetBalances ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

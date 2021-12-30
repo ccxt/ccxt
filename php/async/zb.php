@@ -394,11 +394,7 @@ class zb extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privateGetGetAccountInfo ($params);
-        // todo => use this somehow
-        // $permissions = $response['result']['base'];
+    public function parse_balance($response) {
         $balances = $this->safe_value($response['result'], 'coins');
         $result = array(
             'info' => $response,
@@ -424,6 +420,14 @@ class zb extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetGetAccountInfo ($params);
+        // todo => use this somehow
+        // $permissions = $response['result']['base'];
+        return $this->parse_balance($response);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {

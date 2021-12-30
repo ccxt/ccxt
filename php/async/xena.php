@@ -574,6 +574,28 @@ class xena extends Exchange {
         return $account['id'];
     }
 
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
+        $timestamp = null;
+        $balances = $this->safe_value($response, 'balances', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $lastUpdateTime = $this->safe_string($balance, 'lastUpdateTime');
+            $lastUpdated = mb_substr($lastUpdateTime, 0, 13 - 0);
+            $currentTimestamp = intval($lastUpdated);
+            $timestamp = ($timestamp === null) ? $currentTimestamp : max ($timestamp, $currentTimestamp);
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'onHold');
+            $result[$code] = $account;
+        }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -597,25 +619,7 @@ class xena extends Exchange {
         //         )
         //     }
         //
-        $result = array( 'info' => $response );
-        $timestamp = null;
-        $balances = $this->safe_value($response, 'balances', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $lastUpdateTime = $this->safe_string($balance, 'lastUpdateTime');
-            $lastUpdated = mb_substr($lastUpdateTime, 0, 13 - 0);
-            $currentTimestamp = intval($lastUpdated);
-            $timestamp = ($timestamp === null) ? $currentTimestamp : max ($timestamp, $currentTimestamp);
-            $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'available');
-            $account['used'] = $this->safe_string($balance, 'onHold');
-            $result[$code] = $account;
-        }
-        $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp);
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_trade($trade, $market = null) {

@@ -1233,28 +1233,7 @@ class kucoinfutures extends kucoin {
         );
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        // only fetches one balance at a time
-        // by default it will only fetch the BTC balance of the futures $account
-        // you can send 'currency' in $params to fetch other currencies
-        // fetchBalance (array( 'type' => 'futures', 'currency' => 'USDT' ))
-        $response = yield $this->futuresPrivateGetAccountOverview ($params);
-        //
-        //     {
-        //         $code => '200000',
-        //         $data => {
-        //             accountEquity => 0.00005,
-        //             unrealisedPNL => 0,
-        //             marginBalance => 0.00005,
-        //             positionMargin => 0,
-        //             orderMargin => 0,
-        //             frozenFunds => 0,
-        //             availableBalance => 0.00005,
-        //             currency => 'XBT'
-        //         }
-        //     }
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1268,6 +1247,31 @@ class kucoinfutures extends kucoin {
         $account['total'] = $this->safe_string($data, 'accountEquity');
         $result[$code] = $account;
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        // only fetches one balance at a time
+        // by default it will only fetch the BTC balance of the futures account
+        // you can send 'currency' in $params to fetch other currencies
+        // fetchBalance (array( 'type' => 'futures', 'currency' => 'USDT' ))
+        $response = yield $this->futuresPrivateGetAccountOverview ($params);
+        //
+        //     {
+        //         code => '200000',
+        //         data => {
+        //             accountEquity => 0.00005,
+        //             unrealisedPNL => 0,
+        //             marginBalance => 0.00005,
+        //             positionMargin => 0,
+        //             orderMargin => 0,
+        //             frozenFunds => 0,
+        //             availableBalance => 0.00005,
+        //             currency => 'XBT'
+        //         }
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

@@ -892,14 +892,7 @@ class cdax extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        yield $this->load_accounts();
-        $method = $this->options['fetchBalanceMethod'];
-        $request = array(
-            'id' => $this->accounts[0]['id'],
-        );
-        $response = yield $this->$method (array_merge($request, $params));
+    public function parse_balance($response) {
         $balances = $this->safe_value($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -921,6 +914,17 @@ class cdax extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        yield $this->load_accounts();
+        $method = $this->options['fetchBalanceMethod'];
+        $request = array(
+            'id' => $this->accounts[0]['id'],
+        );
+        $response = yield $this->$method (array_merge($request, $params));
+        return $this->parse_balance($response);
     }
 
     public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {

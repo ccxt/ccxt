@@ -608,6 +608,22 @@ class ascendex(Exchange):
             },
         ]
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        balances = self.safe_value(response, 'data', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            code = self.safe_currency_code(self.safe_string(balance, 'asset'))
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'availableBalance')
+            account['total'] = self.safe_string(balance, 'totalBalance')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
@@ -670,20 +686,7 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        balances = self.safe_value(response, 'data', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            code = self.safe_currency_code(self.safe_string(balance, 'asset'))
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'availableBalance')
-            account['total'] = self.safe_string(balance, 'totalBalance')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

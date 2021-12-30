@@ -717,18 +717,7 @@ class bitvavo(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetBalance(params)
-        #
-        #     [
-        #         {
-        #             "symbol": "BTC",
-        #             "available": "1.57593193",
-        #             "inOrder": "0.74832374"
-        #         }
-        #     ]
-        #
+    def parse_balance(self, response):
         result = {
             'info': response,
             'timestamp': None,
@@ -743,6 +732,20 @@ class bitvavo(Exchange):
             account['used'] = self.safe_string(balance, 'inOrder')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetBalance(params)
+        #
+        #     [
+        #         {
+        #             "symbol": "BTC",
+        #             "available": "1.57593193",
+        #             "inOrder": "0.74832374"
+        #         }
+        #     ]
+        #
+        return self.parse_balance(response)
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()

@@ -276,9 +276,7 @@ class mercado(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostGetAccountInfo(params)
+    def parse_balance(self, response):
         data = self.safe_value(response, 'response_data', {})
         balances = self.safe_value(data, 'balance', {})
         result = {'info': response}
@@ -293,6 +291,11 @@ class mercado(Exchange):
                 account['total'] = self.safe_string(balance, 'total')
                 result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privatePostGetAccountInfo(params)
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

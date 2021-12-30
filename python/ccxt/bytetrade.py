@@ -282,17 +282,10 @@ class bytetrade(Exchange):
             result.append(entry)
         return result
 
-    def fetch_balance(self, params={}):
-        if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires self.apiKey or userid argument')
-        self.load_markets()
-        request = {
-            'userid': self.apiKey,
-        }
-        balances = self.publicGetBalance(self.extend(request, params))
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
+    def parse_balance(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
             currencyId = self.safe_string(balance, 'code')
             code = self.safe_currency_code(currencyId, None)
             account = self.account()
@@ -300,6 +293,16 @@ class bytetrade(Exchange):
             account['used'] = self.safe_string(balance, 'used')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        if not ('userid' in params) and (self.apiKey is None):
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires self.apiKey or userid argument')
+        self.load_markets()
+        request = {
+            'userid': self.apiKey,
+        }
+        response = self.publicGetBalance(self.extend(request, params))
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

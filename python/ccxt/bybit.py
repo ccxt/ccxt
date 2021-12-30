@@ -1097,6 +1097,23 @@ class bybit(Exchange):
         timestamp = self.safe_timestamp(response, 'time_now')
         return self.parse_order_book(result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size')
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+        }
+        balances = self.safe_value(response, 'result', {})
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            balance = balances[currencyId]
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available_balance')
+            account['used'] = self.safe_string(balance, 'used_margin')
+            account['total'] = self.safe_string(balance, 'equity')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         # note: any funds in the 'spot' account will not be returned or visible from self endpoint
         self.load_markets()
@@ -1138,21 +1155,7 @@ class bybit(Exchange):
         #         rate_limit: 120
         #     }
         #
-        result = {
-            'info': response,
-        }
-        balances = self.safe_value(response, 'result', {})
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            balance = balances[currencyId]
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available_balance')
-            account['used'] = self.safe_string(balance, 'used_margin')
-            account['total'] = self.safe_string(balance, 'equity')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {

@@ -430,6 +430,20 @@ class digifinex(Exchange):
             })
         return result
 
+    def parse_balance(self, response):
+        balances = self.safe_value(response, 'list', [])
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['used'] = self.safe_string(balance, 'frozen')
+            account['free'] = self.safe_string(balance, 'free')
+            account['total'] = self.safe_string(balance, 'total')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
@@ -447,18 +461,7 @@ class digifinex(Exchange):
         #             }
         #         ]
         #     }
-        balances = self.safe_value(response, 'list', [])
-        result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['used'] = self.safe_string(balance, 'frozen')
-            account['free'] = self.safe_string(balance, 'free')
-            account['total'] = self.safe_string(balance, 'total')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -205,12 +205,7 @@ class bithumb(Exchange):
                 result.append(entry)
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        request = {
-            'currency': 'ALL',
-        }
-        response = self.privatePostInfoBalance(self.extend(request, params))
+    def parse_balance(self, response):
         result = {'info': response}
         balances = self.safe_value(response, 'data')
         codes = list(self.currencies.keys())
@@ -224,6 +219,14 @@ class bithumb(Exchange):
             account['free'] = self.safe_string(balances, 'available_' + lowerCurrencyId)
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        request = {
+            'currency': 'ALL',
+        }
+        response = self.privatePostInfoBalance(self.extend(request, params))
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

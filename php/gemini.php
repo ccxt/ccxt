@@ -628,9 +628,7 @@ class gemini extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostV1Balances ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -642,6 +640,12 @@ class gemini extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostV1Balances ($params);
+        return $this->parse_balance($response);
     }
 
     public function parse_order($order, $market = null) {

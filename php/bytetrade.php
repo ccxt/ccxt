@@ -290,18 +290,10 @@ class bytetrade extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires $this->apiKey or userid argument');
-        }
-        $this->load_markets();
-        $request = array(
-            'userid' => $this->apiKey,
-        );
-        $balances = $this->publicGetBalance (array_merge($request, $params));
-        $result = array( 'info' => $balances );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'code');
             $code = $this->safe_currency_code($currencyId, null);
             $account = $this->account();
@@ -310,6 +302,18 @@ class bytetrade extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires $this->apiKey or userid argument');
+        }
+        $this->load_markets();
+        $request = array(
+            'userid' => $this->apiKey,
+        );
+        $response = $this->publicGetBalance (array_merge($request, $params));
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

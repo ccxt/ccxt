@@ -345,6 +345,25 @@ class bitbank(Exchange):
         ohlcv = self.safe_value(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        data = self.safe_value(response, 'data', {})
+        assets = self.safe_value(data, 'assets', [])
+        for i in range(0, len(assets)):
+            balance = assets[i]
+            currencyId = self.safe_string(balance, 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'free_amount')
+            account['used'] = self.safe_string(balance, 'locked_amount')
+            account['total'] = self.safe_string(balance, 'onhand_amount')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetUserAssets(params)
@@ -381,23 +400,7 @@ class bitbank(Exchange):
         #       }
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        data = self.safe_value(response, 'data', {})
-        assets = self.safe_value(data, 'assets', [])
-        for i in range(0, len(assets)):
-            balance = assets[i]
-            currencyId = self.safe_string(balance, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'free_amount')
-            account['used'] = self.safe_string(balance, 'locked_amount')
-            account['total'] = self.safe_string(balance, 'onhand_amount')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {

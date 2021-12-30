@@ -824,9 +824,29 @@ class bitstamp extends Exchange {
         return $this->parse_ohlcvs($ohlc, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currency($code);
+            $currencyId = $currency['id'];
+            $account = $this->account();
+            $account['free'] = $this->safe_string($response, $currencyId . '_available');
+            $account['used'] = $this->safe_string($response, $currencyId . '_reserved');
+            $account['total'] = $this->safe_string($response, $currencyId . '_balance');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
-        $balance = yield $this->privatePostBalance ($params);
+        $response = yield $this->privatePostBalance ($params);
         //
         //     {
         //         "aave_available" => "0.00000000",
@@ -845,23 +865,7 @@ class bitstamp extends Exchange {
         //         "batusd_fee" => "0.000",
         //     }
         //
-        $result = array(
-            'info' => $balance,
-            'timestamp' => null,
-            'datetime' => null,
-        );
-        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count($codes); $i++) {
-            $code = $codes[$i];
-            $currency = $this->currency($code);
-            $currencyId = $currency['id'];
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, $currencyId . '_available');
-            $account['used'] = $this->safe_string($balance, $currencyId . '_reserved');
-            $account['total'] = $this->safe_string($balance, $currencyId . '_balance');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {

@@ -1078,19 +1078,7 @@ class kraken extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privatePostBalance ($params);
-        //
-        //     {
-        //         "error":array(),
-        //         "result":{
-        //             "ZUSD":"58.8649",
-        //             "KFEE":"4399.43",
-        //             "XXBT":"0.0000034506",
-        //         }
-        //     }
-        //
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'result', array());
         $result = array(
             'info' => $response,
@@ -1106,6 +1094,22 @@ class kraken extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privatePostBalance ($params);
+        //
+        //     {
+        //         "error":array(),
+        //         "result":{
+        //             "ZUSD":"58.8649",
+        //             "KFEE":"4399.43",
+        //             "XXBT":"0.0000034506",
+        //         }
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

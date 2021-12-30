@@ -232,6 +232,25 @@ class bitso(Exchange):
             }, fee))
         return result
 
+    def parse_balance(self, response):
+        payload = self.safe_value(response, 'payload', {})
+        balances = self.safe_value(payload, 'balances')
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
+            account['total'] = self.safe_string(balance, 'total')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalance(params)
@@ -260,23 +279,7 @@ class bitso(Exchange):
         #       },
         #     }
         #
-        payload = self.safe_value(response, 'payload', {})
-        balances = self.safe_value(payload, 'balances')
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'locked')
-            account['total'] = self.safe_string(balance, 'total')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

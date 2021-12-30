@@ -622,9 +622,7 @@ class gemini(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostV1Balances(params)
+    def parse_balance(self, response):
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -635,6 +633,11 @@ class gemini(Exchange):
             account['total'] = self.safe_string(balance, 'amount')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privatePostV1Balances(params)
+        return self.parse_balance(response)
 
     def parse_order(self, order, market=None):
         timestamp = self.safe_integer(order, 'timestampms')

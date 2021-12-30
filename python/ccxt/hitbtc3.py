@@ -550,6 +550,18 @@ class hitbtc3(Exchange):
             'network': None,
         }
 
+    def parse_balance(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(entry, 'available')
+            account['used'] = self.safe_string(entry, 'reserved')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
@@ -576,16 +588,7 @@ class hitbtc3(Exchange):
         #       ...
         #     ]
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            entry = response[i]
-            currencyId = self.safe_string(entry, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(entry, 'available')
-            account['used'] = self.safe_string(entry, 'reserved')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_ticker(self, symbol, params={}):
         response = self.fetch_tickers([symbol], params)
