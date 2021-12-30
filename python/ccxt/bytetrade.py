@@ -107,6 +107,8 @@ class bytetrade(Exchange):
             },
             'fees': {
                 'trading': {
+                    'tierBased': False,
+                    'percentage': True,
                     'taker': 0.0008,
                     'maker': 0.0008,
                 },
@@ -600,12 +602,18 @@ class bytetrade(Exchange):
         baseId = market['baseId']
         baseCurrency = self.currency(market['base'])
         amountTruncated = self.amount_to_precision(symbol, amount)
-        amountChain = self.toWei(amountTruncated, baseCurrency['precision'])
+        amountTruncatedPrecise = Precise(amountTruncated)
+        amountTruncatedPrecise.reduce()
+        amountTruncatedPrecise.decimals -= baseCurrency['precision']
+        amountChain = str(amountTruncatedPrecise)
         amountChainString = self.number_to_string(amountChain)
         quoteId = market['quoteId']
         quoteCurrency = self.currency(market['quote'])
         priceRounded = self.price_to_precision(symbol, price)
-        priceChain = self.toWei(priceRounded, quoteCurrency['precision'])
+        priceRoundedPrecise = Precise(priceRounded)
+        priceRoundedPrecise.reduce()
+        priceRoundedPrecise.decimals -= quoteCurrency['precision']
+        priceChain = str(priceRoundedPrecise)
         priceChainString = self.number_to_string(priceChain)
         now = self.milliseconds()
         expiryDelta = self.safe_integer(self.options, 'orderExpiration', 31536000000)
@@ -620,7 +628,7 @@ class bytetrade(Exchange):
         totalFeeRate = self.safe_string(params, 'totalFeeRate', 8)
         chainFeeRate = self.safe_string(params, 'chainFeeRate', 1)
         fee = self.safe_string(params, 'fee', defaultFee)
-        eightBytes = Precise.stringPow('2', '64')
+        eightBytes = '18446744073709551616'  # 2 ** 64
         allByteStringArray = [
             self.number_to_be(1, 32),
             self.number_to_le(int(math.floor(now / 1000)), 4),
@@ -1049,9 +1057,10 @@ class bytetrade(Exchange):
             'code': currency['id'],
         }
         response = self.publicGetDepositaddress(request)
-        address = self.safe_string(response[0], 'address')
-        tag = self.safe_string(response[0], 'tag')
-        chainType = self.safe_string(response[0], 'chainType')
+        firstAddress = self.safe_value(response, 0)
+        address = self.safe_string(firstAddress, 'address')
+        tag = self.safe_string(firstAddress, 'tag')
+        chainType = self.safe_string_upper(firstAddress, 'chainType')
         self.check_address(address)
         return {
             'currency': code,
