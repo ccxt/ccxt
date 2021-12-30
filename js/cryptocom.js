@@ -69,7 +69,7 @@ module.exports = class cryptocom extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://cryptocom.intercom-attachments-7.com/i/o/204082378/08c69fc201ae0fa30ca1ef83/47b-bC4xUjyLOT2Oo1NBITGS2W9hRSgSQ3avOH__QTDrYVJDpXYJ87wAIvHAc6-aWJ61M5dq8j1ebA2xfIkgkLX3dkoZ8DP3qbS84ZFFkUHDq22iV4dxAT1dxhQhWEFbwgOcI2f6',
+                'logo': 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
                 'test': 'https://uat-api.3ona.co/v2',
                 'api': 'https://api.crypto.com/v2',
                 'www': 'https://crypto.com/',
