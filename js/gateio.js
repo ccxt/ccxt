@@ -847,7 +847,7 @@ module.exports = class gateio extends Exchange {
     getSettlementCurrencies (type, method) {
         const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
         const fetchMarketsContractOptions = this.safeValue (options, method, {});
-        const defaultSettle = type === 'swap' ? ['usdt'] : ['btc'];
+        const defaultSettle = (type === 'swap') ? ['usdt'] : ['btc'];
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
 
@@ -2994,7 +2994,7 @@ module.exports = class gateio extends Exchange {
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
-        const endPart = (path === '' ? '' : '/' + path);
+        const endPart = (path === '') ? '' : ('/' + path);
         const entirePath = '/' + type + endPart;
         let url = this.urls['api'][authentication] + entirePath;
         if (authentication === 'public') {
