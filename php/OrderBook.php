@@ -51,6 +51,7 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
                 $this['bids']->storeArray ($delta);
             }
         }
+        @$this['symbol'] = $snapshot['symbol'];
         @$this['nonce'] = $snapshot['nonce'];
         @$this['timestamp'] = $snapshot['timestamp'];
         $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);

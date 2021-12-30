@@ -44,6 +44,7 @@ class OrderBook(dict):
         self['nonce'] = snapshot.get('nonce')
         self['timestamp'] = snapshot.get('timestamp')
         self['datetime'] = Exchange.iso8601(self['timestamp'])
+        self['symbol'] = snapshot.get('symbol')
 
     def update(self, snapshot):
         nonce = snapshot.get('nonce')
