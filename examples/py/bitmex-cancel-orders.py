@@ -11,11 +11,11 @@ import ccxt  # noqa: E402
 
 
 
-# exchange = ccxt.bitmex({
-#     'apiKey': 'YOUR_API_KEY',
-#     'secret': 'YOUR_SECRET',
-#     'enableRateLimit': True,
-# })
+exchange = ccxt.bitmex({
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
+    'enableRateLimit': True,
+})
 
 exchange.set_sandbox_mode(True)  # uncomment to use the testnet sandbox
 
