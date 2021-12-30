@@ -966,7 +966,7 @@ module.exports = class kucoinfutures extends kucoin {
         };
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice) {
-            request['stop'] = side.toUpperCase () === 'BUY' ? 'down' : 'up';
+            request['stop'] = (side === 'buy') ? 'down' : 'up';
             const stopPriceType = this.safeString (params, 'stopPriceType');
             if (!stopPriceType) {
                 throw new ArgumentsRequired (this.id + ' trigger orders require params.stopPriceType to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
@@ -1119,7 +1119,7 @@ module.exports = class kucoinfutures extends kucoin {
             request['orderId'] = id;
         }
         const response = await this[method] (this.extend (request, params));
-        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const responseData = this.safeValue (response, 'data');
         return this.parseOrder (responseData, market);
     }
