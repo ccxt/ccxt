@@ -5006,4 +5006,26 @@ module.exports = class binance extends Exchange {
         }
         return result;
     }
+
+    async transferIn (code, amount, params = {}) {
+        // transfer from spot wallet to coinm or usdm futures wallet
+        let num = undefined;
+        if (this.options['defaultType'] === 'delivery') {
+            num = 3;
+        } else if (this.options['defaultType'] === 'future') {
+            num = 1;
+        }
+        return await this.futuresTransfer (code, amount, num, params);
+    }
+
+    async transferOut (code, amount, params = {}) {
+        // transfer from coinm or usdm futures wallet to spot wallet
+        let num = undefined;
+        if (this.options['defaultType'] === 'delivery') {
+            num = 4;
+        } else if (this.options['defaultType'] === 'future') {
+            num = 2;
+        }
+        return await this.futuresTransfer (code, amount, num, params);
+    }
 };
