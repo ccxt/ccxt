@@ -738,7 +738,7 @@ module.exports = class vcc extends Exchange {
                 'currency': code,
             };
         }
-        const type = amount > 0 ? 'deposit' : 'withdrawal';
+        const type = (amount > 0) ? 'deposit' : 'withdrawal';
         return {
             'info': transaction,
             'id': id,
