@@ -778,7 +778,8 @@ class latoken(Exchange):
         side = None
         if orderSide is not None:
             parts = orderSide.split('_')
-            side = self.safe_string_lower(parts, len(parts) - 1)
+            partsLength = len(parts)
+            side = self.safe_string_lower(parts, partsLength - 1)
         type = self.parse_order_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'quantity')
