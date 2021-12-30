@@ -19,7 +19,7 @@ def test_order(exchange, order, symbol, now):
     assert 'datetime' in order
     assert order['datetime'] == exchange.iso8601(order['timestamp'])
     assert 'status' in order
-    assert(order['status'] == 'open') or (order['status'] == 'closed') or (order['status'] == 'canceled')
+    assert(order['status'] is None) or (order['status'] == 'open') or (order['status'] == 'closed') or (order['status'] == 'canceled')
     assert 'symbol' in order
     assert order['symbol'] == symbol
     assert 'type' in order

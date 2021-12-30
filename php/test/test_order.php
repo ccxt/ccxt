@@ -22,7 +22,7 @@ function test_order($exchange, $order, $symbol, $now) {
     assert (is_array($order) && array_key_exists('datetime', $order));
     assert ($order['datetime'] === $exchange->iso8601 ($order['timestamp']));
     assert (is_array($order) && array_key_exists('status', $order));
-    assert (($order['status'] === 'open') || ($order['status'] === 'closed') || ($order['status'] === 'canceled'));
+    assert (($order['status'] === null) || ($order['status'] === 'open') || ($order['status'] === 'closed') || ($order['status'] === 'canceled'));
     assert (is_array($order) && array_key_exists('symbol', $order));
     assert ($order['symbol'] === $symbol);
     assert (is_array($order) && array_key_exists('type', $order));
