@@ -304,7 +304,6 @@ module.exports = class coinsbit extends Exchange {
             timestamp = this.safeTimestamp (ticker, 'at');
         } else { // if arrived from fetchTicker, then there is nothing to be done more
             tickerFinal = ticker;
-            timestamp = this.milliseconds ();
         }
         const last = this.safeNumber (tickerFinal, 'last');
         market = this.safeMarket (undefined, market);
