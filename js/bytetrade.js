@@ -286,18 +286,10 @@ module.exports = class bytetrade extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires this.apiKey or userid argument');
-        }
-        await this.loadMarkets ();
-        const request = {
-            'userid': this.apiKey,
-        };
-        const balances = await this.publicGetBalance (this.extend (request, params));
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+    parseBalance (response) {
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
             const currencyId = this.safeString (balance, 'code');
             const code = this.safeCurrencyCode (currencyId, undefined);
             const account = this.account ();
@@ -306,6 +298,18 @@ module.exports = class bytetrade extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        if (!('userid' in params) && (this.apiKey === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires this.apiKey or userid argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'userid': this.apiKey,
+        };
+        const response = await this.publicGetBalance (this.extend (request, params));
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

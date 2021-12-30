@@ -443,9 +443,7 @@ module.exports = class oceanex extends Exchange {
         return this.safeValue (response, 'data');
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetMembersMe (params);
+    parseBalance (response) {
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue (data, 'accounts');
         const result = { 'info': response };
@@ -459,6 +457,12 @@ module.exports = class oceanex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetMembersMe (params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

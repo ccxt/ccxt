@@ -1444,6 +1444,23 @@ module.exports = class bitmart extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseBalance (response) {
+        const data = this.safeValue (response, 'data', {});
+        const wallet = this.safeValue2 (data, 'wallet', 'accounts', []);
+        const result = { 'info': response };
+        for (let i = 0; i < wallet.length; i++) {
+            const balance = wallet[i];
+            let currencyId = this.safeString2 (balance, 'id', 'currency');
+            currencyId = this.safeString (balance, 'coin_code', currencyId);
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString2 (balance, 'available', 'available_vol');
+            account['used'] = this.safeString2 (balance, 'frozen', 'freeze_vol');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let method = undefined;
@@ -1514,20 +1531,7 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const wallet = this.safeValue2 (data, 'wallet', 'accounts', []);
-        const result = { 'info': response };
-        for (let i = 0; i < wallet.length; i++) {
-            const balance = wallet[i];
-            let currencyId = this.safeString2 (balance, 'id', 'currency');
-            currencyId = this.safeString (balance, 'coin_code', currencyId);
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString2 (balance, 'available', 'available_vol');
-            account['used'] = this.safeString2 (balance, 'frozen', 'freeze_vol');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     parseOrder (order, market = undefined) {

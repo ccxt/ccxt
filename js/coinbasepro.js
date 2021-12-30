@@ -383,9 +383,7 @@ module.exports = class coinbasepro extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccounts (params);
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -398,6 +396,12 @@ module.exports = class coinbasepro extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccounts (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

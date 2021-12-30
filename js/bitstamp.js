@@ -819,9 +819,29 @@ module.exports = class bitstamp extends Exchange {
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const currencyId = currency['id'];
+            const account = this.account ();
+            account['free'] = this.safeString (response, currencyId + '_available');
+            account['used'] = this.safeString (response, currencyId + '_reserved');
+            account['total'] = this.safeString (response, currencyId + '_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         //
         //     {
         //         "aave_available": "0.00000000",
@@ -840,23 +860,7 @@ module.exports = class bitstamp extends Exchange {
         //         "batusd_fee": "0.000",
         //     }
         //
-        const result = {
-            'info': balance,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const codes = Object.keys (this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currency = this.currency (code);
-            const currencyId = currency['id'];
-            const account = this.account ();
-            account['free'] = this.safeString (balance, currencyId + '_available');
-            account['used'] = this.safeString (balance, currencyId + '_reserved');
-            account['total'] = this.safeString (balance, currencyId + '_balance');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchTradingFee (symbol, params = {}) {

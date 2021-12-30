@@ -518,21 +518,7 @@ module.exports = class exmo extends Exchange {
         ];
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostUserInfo (params);
-        //
-        //     {
-        //         "uid":131685,
-        //         "server_date":1628999600,
-        //         "balances":{
-        //             "EXM":"0",
-        //             "USD":"0",
-        //             "EUR":"0",
-        //             "GBP":"0",
-        //         },
-        //     }
-        //
+    parseBalance (response) {
         const result = { 'info': response };
         const free = this.safeValue (response, 'balances', {});
         const used = this.safeValue (response, 'reserved', {});
@@ -550,6 +536,24 @@ module.exports = class exmo extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostUserInfo (params);
+        //
+        //     {
+        //         "uid":131685,
+        //         "server_date":1628999600,
+        //         "balances":{
+        //             "EXM":"0",
+        //             "USD":"0",
+        //             "EUR":"0",
+        //             "GBP":"0",
+        //         },
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

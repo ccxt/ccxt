@@ -206,9 +206,7 @@ module.exports = class therock extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalances (params);
+    parseBalance (response) {
         const balances = this.safeValue (response, 'balances', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -221,6 +219,12 @@ module.exports = class therock extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalances (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
