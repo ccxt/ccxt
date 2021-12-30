@@ -22,6 +22,7 @@ module.exports = class bitmex extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
@@ -1410,6 +1411,10 @@ module.exports = class bitmex extends Exchange {
             }
         }
         return this.parseOrder (order);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        return await this.cancelOrder (ids, symbol, params);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
