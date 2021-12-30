@@ -2956,7 +2956,7 @@ class gateio extends Exchange {
             'swap' => 'privateFuturesGetSettlePositions',
             'future' => 'privateDeliveryGetSettlePositions',
         ));
-        $defaultSettle = $type === 'swap' ? 'usdt' : 'btc';
+        $defaultSettle = ($type === 'swap') ? 'usdt' : 'btc';
         $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
         $request = array(
             'settle' => $settle,
