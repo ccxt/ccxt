@@ -12,16 +12,19 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
+from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.precise import Precise
 
@@ -898,12 +901,12 @@ class binance(Exchange):
                     '-1001': ExchangeNotAvailable,  # {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                     '-1002': AuthenticationError,  # {"code":-1002,"msg":"'You are not authorized to execute self request.'"}
                     '-1003': RateLimitExceeded,  # {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
-                    '-1004': ExchangeError,  # {"code":-1004,"msg":"Server is busy, please wait and try again"}
-                    '-1005': ExchangeError,  # {"code":-1005,"msg":"No such IP has been white listed"}
-                    '-1006': ExchangeError,  # {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
-                    '-1007': ExchangeError,  # {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
-                    '-1010': ExchangeError,  # {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
-                    '-1011': ExchangeError,  # {"code":-1011,"msg":"This IP cannot access self route."}
+                    '-1004': DDoSProtection,  # {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                    '-1005': PermissionDenied,  # {"code":-1005,"msg":"No such IP has been white listed"}
+                    '-1006': BadResponse,  # {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
+                    '-1007': RequestTimeout,  # {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
+                    '-1010': BadResponse,  # {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
+                    '-1011': PermissionDenied,  # {"code":-1011,"msg":"This IP cannot access self route."}
                     '-1013': InvalidOrder,  # {"code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL"}
                     '-1014': InvalidOrder,  # {"code":-1014,"msg":"Unsupported order combination."}
                     '-1015': RateLimitExceeded,  # {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
@@ -911,7 +914,7 @@ class binance(Exchange):
                     '-1020': BadRequest,  # {"code":-1020,"msg":"'This operation is not supported.'"}
                     '-1021': InvalidNonce,  # {"code":-1021,"msg":"'your time is ahead of server'"}
                     '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
-                    '-1023': ExchangeError,  # {"code":-1023,"msg":"Start time is greater than end time."}
+                    '-1023': BadRequest,  # {"code":-1023,"msg":"Start time is greater than end time."}
                     '-1099': AuthenticationError,  # {"code":-1099,"msg":"Not found, authenticated, or authorized"}
                     '-1100': BadRequest,  # {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
                     '-1101': BadRequest,  # {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
@@ -949,8 +952,8 @@ class binance(Exchange):
                     '-2016': BadRequest,  # {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                     '-2018': InsufficientFunds,  # {"code":-2018,"msg":"Balance is insufficient"}
                     '-2019': InsufficientFunds,  # {"code":-2019,"msg":"Margin is insufficient."}
-                    '-2020': ExchangeError,  # {"code":-2020,"msg":"Unable to fill."}
-                    '-2021': InvalidOrder,  # {"code":-2021,"msg":"Order would immediately trigger."}
+                    '-2020': OrderNotFillable,  # {"code":-2020,"msg":"Unable to fill."}
+                    '-2021': OrderImmediatelyFillable,  # {"code":-2021,"msg":"Order would immediately trigger."}
                     '-2022': InvalidOrder,  # {"code":-2022,"msg":"ReduceOnly Order is rejected."}
                     '-2023': InsufficientFunds,  # {"code":-2023,"msg":"User in liquidation mode now."}
                     '-2024': InsufficientFunds,  # {"code":-2024,"msg":"Position is not sufficient."}
@@ -959,8 +962,8 @@ class binance(Exchange):
                     '-2027': InvalidOrder,  # {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
                     '-2028': InsufficientFunds,  # {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
                     '-3000': ExchangeError,  # {"code":-3000,"msg":"Internal server error."}
-                    '-3001': ExchangeError,  # {"code":-3001,"msg":"Please enable 2FA first."}
-                    '-3002': BadRequest,  # {"code":-3002,"msg":"We don't have self asset."}
+                    '-3001': AuthenticationError,  # {"code":-3001,"msg":"Please enable 2FA first."}
+                    '-3002': BadSymbol,  # {"code":-3002,"msg":"We don't have self asset."}
                     '-3003': BadRequest,  # {"code":-3003,"msg":"Margin account does not exist."}
                     '-3004': ExchangeError,  # {"code":-3004,"msg":"Trade not allowed."}
                     '-3005': InsufficientFunds,  # {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
@@ -982,11 +985,11 @@ class binance(Exchange):
                     '-3021': BadRequest,  # {"code":-3021,"msg":"Margin account are not allowed to trade self trading pair."}
                     '-3022': AccountSuspended,  # {"code":-3022,"msg":"You account's trading is banned."}
                     '-3023': BadRequest,  # {"code":-3023,"msg":"You can't transfer out/place order under current margin level."}
-                    '-3024': BadRequest,  # {"code":-3024,"msg":"The unpaid debt is too small after self repayment."}
+                    '-3024': ExchangeError,  # {"code":-3024,"msg":"The unpaid debt is too small after self repayment."}
                     '-3025': BadRequest,  # {"code":-3025,"msg":"Your input date is invalid."}
                     '-3026': BadRequest,  # {"code":-3026,"msg":"Your input param is invalid."}
-                    '-3027': BadRequest,  # {"code":-3027,"msg":"Not a valid margin asset."}
-                    '-3028': BadRequest,  # {"code":-3028,"msg":"Not a valid margin pair."}
+                    '-3027': BadSymbol,  # {"code":-3027,"msg":"Not a valid margin asset."}
+                    '-3028': BadSymbol,  # {"code":-3028,"msg":"Not a valid margin pair."}
                     '-3029': ExchangeError,  # {"code":-3029,"msg":"Transfer failed."}
                     '-3036': AccountSuspended,  # {"code":-3036,"msg":"This account is not allowed to repay."}
                     '-3037': ExchangeError,  # {"code":-3037,"msg":"PNL is clearing. Wait a second."}
@@ -994,7 +997,7 @@ class binance(Exchange):
                     '-3041': InsufficientFunds,  # {"code":-3041,"msg":"Balance is not enough"}
                     '-3042': BadRequest,  # {"code":-3042,"msg":"PriceIndex not available for self margin pair."}
                     '-3043': BadRequest,  # {"code":-3043,"msg":"Transferring in not allowed."}
-                    '-3044': ExchangeError,  # {"code":-3044,"msg":"System busy."}
+                    '-3044': DDoSProtection,  # {"code":-3044,"msg":"System busy."}
                     '-3045': ExchangeError,  # {"code":-3045,"msg":"The system doesn't have enough asset now."}
                     '-3999': ExchangeError,  # {"code":-3999,"msg":"This function is only available for invited users."}
                     '-4001 ': BadRequest,  # {"code":-4001 ,"msg":"Invalid operation."}
@@ -1005,21 +1008,21 @@ class binance(Exchange):
                     '-4006 ': BadRequest,  # {"code":-4006 ,"msg":"Support main account only."}
                     '-4007 ': BadRequest,  # {"code":-4007 ,"msg":"Address validation is not passed."}
                     '-4008 ': BadRequest,  # {"code":-4008 ,"msg":"Address tag validation is not passed."}
-                    '-4010 ': BadRequest,  # {"code":-4010 ,"msg":"White list mail has been confirmed. [TODO] possible bug: it should probably be "has not been confirmed""}
+                    '-4010 ': BadRequest,  # {"code":-4010 ,"msg":"White list mail has been confirmed."}  # [TODO] possible bug: it should probably be "has not been confirmed"
                     '-4011 ': BadRequest,  # {"code":-4011 ,"msg":"White list mail is invalid."}
                     '-4012 ': BadRequest,  # {"code":-4012 ,"msg":"White list is not opened."}
                     '-4013 ': AuthenticationError,  # {"code":-4013 ,"msg":"2FA is not opened."}
-                    '-4014 ': BadRequest,  # {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                    '-4014 ': PermissionDenied,  # {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
                     '-4015 ': ExchangeError,  # {"code":-4015 ,"msg":"Withdraw is limited."}
-                    '-4016 ': BadRequest,  # {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
-                    '-4017 ': BadRequest,  # {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
-                    '-4018': BadRequest,  # {"code":-4018,"msg":"We don't have self asset."}
-                    '-4019': BadRequest,  # {"code":-4019,"msg":"Current asset is not open for withdrawal."}
+                    '-4016 ': PermissionDenied,  # {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                    '-4017 ': PermissionDenied,  # {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
+                    '-4018': BadSymbol,  # {"code":-4018,"msg":"We don't have self asset."}
+                    '-4019': BadSymbol,  # {"code":-4019,"msg":"Current asset is not open for withdrawal."}
                     '-4021': BadRequest,  # {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
                     '-4022': BadRequest,  # {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
                     '-4023': ExchangeError,  # {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
-                    '-4024': BadRequest,  # {"code":-4024,"msg":"You don't have self asset."}
-                    '-4025': BadRequest,  # {"code":-4025,"msg":"The number of hold asset is less than zero."}
+                    '-4024': InsufficientFunds,  # {"code":-4024,"msg":"You don't have self asset."}
+                    '-4025': InsufficientFunds,  # {"code":-4025,"msg":"The number of hold asset is less than zero."}
                     '-4026': InsufficientFunds,  # {"code":-4026,"msg":"You have insufficient balance."}
                     '-4027': ExchangeError,  # {"code":-4027,"msg":"Failed to obtain tranId."}
                     '-4028': BadRequest,  # {"code":-4028,"msg":"The amount of withdrawal must be greater than the Commission."}
@@ -1029,7 +1032,7 @@ class binance(Exchange):
                     '-4032': ExchangeError,  # {"code":-4032,"msg":"Withdraw verification exception."}
                     '-4033': BadRequest,  # {"code":-4033,"msg":"Illegal address."}
                     '-4034': ExchangeError,  # {"code":-4034,"msg":"The address is suspected of fake."}
-                    '-4035': BadRequest,  # {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
+                    '-4035': PermissionDenied,  # {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
                     '-4036': BadRequest,  # {"code":-4036,"msg":"The new address needs to be withdrawn in {0} hours."}
                     '-4037': ExchangeError,  # {"code":-4037,"msg":"Re-sending Mail failed."}
                     '-4038': ExchangeError,  # {"code":-4038,"msg":"Please try again in 5 minutes."}
