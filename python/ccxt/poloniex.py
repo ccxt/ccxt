@@ -342,19 +342,7 @@ class poloniex(Exchange):
             })
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        request = {
-            'account': 'all',
-        }
-        response = self.privatePostReturnCompleteBalances(self.extend(request, params))
-        #
-        #     {
-        #         "1CR":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
-        #         "ABY":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
-        #         "AC":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
-        #     }
-        #
+    def parse_balance(self, response):
         result = {
             'info': response,
             'timestamp': None,
@@ -370,6 +358,21 @@ class poloniex(Exchange):
             account['used'] = self.safe_string(balance, 'onOrders')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        request = {
+            'account': 'all',
+        }
+        response = self.privatePostReturnCompleteBalances(self.extend(request, params))
+        #
+        #     {
+        #         "1CR":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        #         "ABY":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        #         "AC":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        #     }
+        #
+        return self.parse_balance(response)
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()

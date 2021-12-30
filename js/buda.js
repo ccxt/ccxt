@@ -438,9 +438,7 @@ module.exports = class buda extends Exchange {
         return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalances (params);
+    parseBalance (response) {
         const result = { 'info': response };
         const balances = this.safeValue (response, 'balances');
         for (let i = 0; i < balances.length; i++) {
@@ -453,6 +451,12 @@ module.exports = class buda extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalances (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

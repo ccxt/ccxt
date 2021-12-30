@@ -114,9 +114,27 @@ class bit2c(Exchange):
             },
         })
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            account = self.account()
+            currency = self.currency(code)
+            uppercase = currency['id'].upper()
+            if uppercase in response:
+                account['free'] = self.safe_string(response, 'AVAILABLE_' + uppercase)
+                account['total'] = self.safe_string(response, uppercase)
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balance = await self.privateGetAccountBalanceV2(params)
+        response = await self.privateGetAccountBalanceV2(params)
         #
         #     {
         #         "AVAILABLE_NIS": 0.0,
@@ -159,22 +177,7 @@ class bit2c(Exchange):
         #         }
         #     }
         #
-        result = {
-            'info': balance,
-            'timestamp': None,
-            'datetime': None,
-        }
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            account = self.account()
-            currency = self.currency(code)
-            uppercase = currency['id'].upper()
-            if uppercase in balance:
-                account['free'] = self.safe_string(balance, 'AVAILABLE_' + uppercase)
-                account['total'] = self.safe_string(balance, uppercase)
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

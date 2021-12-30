@@ -397,11 +397,7 @@ class zb(Exchange):
             }
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetGetAccountInfo(params)
-        # todo: use self somehow
-        # permissions = response['result']['base']
+    def parse_balance(self, response):
         balances = self.safe_value(response['result'], 'coins')
         result = {
             'info': response,
@@ -426,6 +422,13 @@ class zb(Exchange):
             account['used'] = self.safe_string(balance, 'freez')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetGetAccountInfo(params)
+        # todo: use self somehow
+        # permissions = response['result']['base']
+        return self.parse_balance(response)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #

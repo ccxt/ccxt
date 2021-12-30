@@ -608,6 +608,22 @@ class ascendex(Exchange):
             },
         ]
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        balances = self.safe_value(response, 'data', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            code = self.safe_currency_code(self.safe_string(balance, 'asset'))
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'availableBalance')
+            account['total'] = self.safe_string(balance, 'totalBalance')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         await self.load_accounts()
@@ -670,20 +686,7 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        balances = self.safe_value(response, 'data', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            code = self.safe_currency_code(self.safe_string(balance, 'asset'))
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'availableBalance')
-            account['total'] = self.safe_string(balance, 'totalBalance')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -980,6 +983,37 @@ class ascendex(Exchange):
         #         "timestamp": 1573576916201
         #     }
         #
+        #     {
+        #         "ac": "FUTURES",
+        #         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #         "time": 1640819389454,
+        #         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
+        #         "seqNum": -1,
+        #         "orderType": "Limit",
+        #         "execInst": "NULL_VAL",
+        #         "side": "Buy",
+        #         "symbol": "BTC-PERP",
+        #         "price": "30000",
+        #         "orderQty": "0.002",
+        #         "stopPrice": "0",
+        #         "stopBy": "ref-px",
+        #         "status": "Ack",
+        #         "lastExecTime": 1640819389454,
+        #         "lastQty": "0",
+        #         "lastPx": "0",
+        #         "avgFilledPx": "0",
+        #         "cumFilledQty": "0",
+        #         "fee": "0",
+        #         "cumFee": "0",
+        #         "feeAsset": "",
+        #         "errorCode": "",
+        #         "posStopLossPrice": "0",
+        #         "posStopLossTrigger": "market",
+        #         "posTakeProfitPrice": "0",
+        #         "posTakeProfitTrigger": "market",
+        #         "liquidityInd": "n"
+        #      }
+        #
         # fetchOrder, fetchOpenOrders, fetchClosedOrders
         #
         #     {
@@ -1077,11 +1111,10 @@ class ascendex(Exchange):
         await self.load_markets()
         await self.load_accounts()
         market = self.market(symbol)
-        defaultAccountCategory = self.safe_string(self.options, 'account-category', 'cash')
+        style, query = self.handle_market_type_and_params('createOrder', market, params)
         options = self.safe_value(self.options, 'createOrder', {})
-        accountCategory = self.safe_string(options, 'account-category', defaultAccountCategory)
-        accountCategory = self.safe_string(params, 'account-category', accountCategory)
-        params = self.omit(params, 'account-category')
+        accountCategories = self.safe_value(self.options, 'accountCategories', {})
+        accountCategory = self.safe_string(accountCategories, style, 'cash')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
@@ -1111,7 +1144,20 @@ class ascendex(Exchange):
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
                 params = self.omit(params, 'stopPrice')
-        response = await self.v1PrivateAccountCategoryPostOrder(self.extend(request, params))
+        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryPostOrder')
+        method = self.get_supported_mapping(style, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupPostFuturesOrder',
+        })
+        if method == 'v1PrivateAccountCategoryPostOrder':
+            if accountCategory is not None:
+                request['category'] = accountCategory
+        else:
+            request['account-category'] = accountCategory
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # AccountCategoryPostOrder
         #
         #     {
         #         "code": 0,
@@ -1130,9 +1176,52 @@ class ascendex(Exchange):
         #         }
         #     }
         #
+        # AccountGroupPostFuturesOrder
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "meta": {
+        #                 "id": "",
+        #                 "action": "place-order",
+        #                 "respInst": "ACK"
+        #             },
+        #             "order": {
+        #                 "ac": "FUTURES",
+        #                 "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #                 "time": 1640819389454,
+        #                 "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
+        #                 "seqNum": -1,
+        #                 "orderType": "Limit",
+        #                 "execInst": "NULL_VAL",
+        #                 "side": "Buy",
+        #                 "symbol": "BTC-PERP",
+        #                 "price": "30000",
+        #                 "orderQty": "0.002",
+        #                 "stopPrice": "0",
+        #                 "stopBy": "ref-px",
+        #                 "status": "Ack",
+        #                 "lastExecTime": 1640819389454,
+        #                 "lastQty": "0",
+        #                 "lastPx": "0",
+        #                 "avgFilledPx": "0",
+        #                 "cumFilledQty": "0",
+        #                 "fee": "0",
+        #                 "cumFee": "0",
+        #                 "feeAsset": "",
+        #                 "errorCode": "",
+        #                 "posStopLossPrice": "0",
+        #                 "posStopLossTrigger": "market",
+        #                 "posTakeProfitPrice": "0",
+        #                 "posTakeProfitTrigger": "market",
+        #                 "liquidityInd": "n"
+        #             }
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        info = self.safe_value(data, 'info', {})
-        return self.parse_order(info, market)
+        order = self.safe_value_2(data, 'order', 'info', {})
+        return self.parse_order(order, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

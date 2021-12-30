@@ -333,11 +333,9 @@ class bittrex(Exchange):
             })
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        balances = self.privateGetBalances(params)
-        result = {'info': balances}
-        indexed = self.index_by(balances, 'currencySymbol')
+    def parse_balance(self, response):
+        result = {'info': response}
+        indexed = self.index_by(response, 'currencySymbol')
         currencyIds = list(indexed.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -348,6 +346,11 @@ class bittrex(Exchange):
             account['total'] = self.safe_string(balance, 'total')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetBalances(params)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -123,24 +123,28 @@ module.exports = class coincheck extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const balances = await this.privateGetAccountsBalance (params);
-        const result = { 'info': balances };
+    parseBalance (response) {
+        const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency (code);
             const currencyId = currency['id'];
-            if (currencyId in balances) {
+            if (currencyId in response) {
                 const account = this.account ();
                 const reserved = currencyId + '_reserved';
-                account['free'] = this.safeString (balances, currencyId);
-                account['used'] = this.safeString (balances, reserved);
+                account['free'] = this.safeString (response, currencyId);
+                account['used'] = this.safeString (response, reserved);
                 result[code] = account;
             }
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountsBalance (params);
+        return this.parseBalance (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

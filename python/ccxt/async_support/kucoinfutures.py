@@ -1183,6 +1183,21 @@ class kucoinfutures(kucoin):
             'nextFundingDatetime': None,
         }
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        data = self.safe_value(response, 'data')
+        currencyId = self.safe_string(data, 'currency')
+        code = self.safe_currency_code(currencyId)
+        account = self.account()
+        account['free'] = self.safe_string(data, 'availableBalance')
+        account['total'] = self.safe_string(data, 'accountEquity')
+        result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         # only fetches one balance at a time
@@ -1205,19 +1220,7 @@ class kucoinfutures(kucoin):
         #         }
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        data = self.safe_value(response, 'data')
-        currencyId = self.safe_string(data, 'currency')
-        code = self.safe_currency_code(currencyId)
-        account = self.account()
-        account['free'] = self.safe_string(data, 'availableBalance')
-        account['total'] = self.safe_string(data, 'accountEquity')
-        result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         if (toAccount != 'spot' and toAccount != 'trade' and toAccount != 'trading') or (fromAccount != 'futures' and fromAccount != 'contract'):

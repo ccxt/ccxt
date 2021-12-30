@@ -582,6 +582,23 @@ class idex(Exchange):
             }
         return result
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(entry, 'quantity')
+            account['free'] = self.safe_string(entry, 'availableForTrade')
+            account['used'] = self.safe_string(entry, 'locked')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.check_required_credentials()
         self.load_markets()
@@ -612,21 +629,7 @@ class idex(Exchange):
                 response = self.privateGetBalances(extendedRequest)
             else:
                 raise e
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        for i in range(0, len(response)):
-            entry = response[i]
-            currencyId = self.safe_string(entry, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(entry, 'quantity')
-            account['free'] = self.safe_string(entry, 'availableForTrade')
-            account['used'] = self.safe_string(entry, 'locked')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.check_required_credentials()

@@ -1081,6 +1081,20 @@ class ftx(Exchange):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+        }
+        balances = self.safe_value(response, 'result', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            code = self.safe_currency_code(self.safe_string(balance, 'coin'))
+            account = self.account()
+            account['free'] = self.safe_string_2(balance, 'availableWithoutBorrow', 'free')
+            account['total'] = self.safe_string(balance, 'total')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetWalletBalances(params)
@@ -1096,18 +1110,7 @@ class ftx(Exchange):
         #         ],
         #     }
         #
-        result = {
-            'info': response,
-        }
-        balances = self.safe_value(response, 'result', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            code = self.safe_currency_code(self.safe_string(balance, 'coin'))
-            account = self.account()
-            account['free'] = self.safe_string_2(balance, 'availableWithoutBorrow', 'free')
-            account['total'] = self.safe_string(balance, 'total')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {

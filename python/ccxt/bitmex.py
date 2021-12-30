@@ -278,7 +278,7 @@ class bitmex(Exchange):
             })
         return result
 
-    def parse_balance(self, response, type=None):
+    def parse_balance(self, response):
         #
         #     [
         #         {

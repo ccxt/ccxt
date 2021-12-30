@@ -447,9 +447,7 @@ class oceanex extends Exchange {
         return $this->safe_value($response, 'data');
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privateGetMembersMe ($params);
+    public function parse_balance($response) {
         $data = $this->safe_value($response, 'data');
         $balances = $this->safe_value($data, 'accounts');
         $result = array( 'info' => $response );
@@ -463,6 +461,12 @@ class oceanex extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetMembersMe ($params);
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

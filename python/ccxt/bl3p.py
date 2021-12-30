@@ -68,9 +68,7 @@ class bl3p(Exchange):
             },
         })
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostGENMKTMoneyInfo(params)
+    def parse_balance(self, response):
         data = self.safe_value(response, 'data', {})
         wallets = self.safe_value(data, 'wallets')
         result = {'info': data}
@@ -87,6 +85,11 @@ class bl3p(Exchange):
             account['total'] = self.safe_string(balance, 'value')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privatePostGENMKTMoneyInfo(params)
+        return self.parse_balance(response)
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         price = self.safe_number(bidask, priceKey)
