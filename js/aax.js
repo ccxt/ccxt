@@ -421,8 +421,6 @@ module.exports = class aax extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'quanto': quanto,
-                'percentage': false, // ? Deprecated?
-                'tierBased': true, // ? Deprecated?
                 'precision': {
                     'amount': this.safeNumber (market, 'lotSize'),
                     'price': this.safeNumber (market, 'tickSize'),
