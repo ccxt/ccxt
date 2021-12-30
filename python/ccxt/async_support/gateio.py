@@ -2824,7 +2824,7 @@ class gateio(Exchange):
             'swap': 'privateFuturesGetSettlePositions',
             'future': 'privateDeliveryGetSettlePositions',
         })
-        defaultSettle = type == 'usdt' if 'swap' else 'btc'
+        defaultSettle = 'usdt' if (type == 'swap') else 'btc'
         settle = self.safe_string_lower(params, 'settle', defaultSettle)
         request = {
             'settle': settle,
