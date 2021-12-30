@@ -1526,8 +1526,9 @@ module.exports = class kraken extends Exchange {
         let response = undefined;
         const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId', id);
         const request = {
-            'txid': clientOrderId,
+            'txid': clientOrderId, // order id or userref
         };
+        params = this.omit (params, ['userref', 'clientOrderId' ]);
         try {
             response = await this.privatePostCancelOrder (this.extend (request, params));
         } catch (e) {
