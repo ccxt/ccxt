@@ -100,6 +100,8 @@ module.exports = class bytetrade extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false,
+                    'percentage': true,
                     'taker': 0.0008,
                     'maker': 0.0008,
                 },
@@ -636,12 +638,18 @@ module.exports = class bytetrade extends Exchange {
         const baseId = market['baseId'];
         const baseCurrency = this.currency (market['base']);
         const amountTruncated = this.amountToPrecision (symbol, amount);
-        const amountChain = this.toWei (amountTruncated, baseCurrency['precision']);
+        const amountTruncatedPrecise = new Precise (amountTruncated);
+        amountTruncatedPrecise.reduce ();
+        amountTruncatedPrecise.decimals -= baseCurrency['precision'];
+        const amountChain = amountTruncatedPrecise.toString ();
         const amountChainString = this.numberToString (amountChain);
         const quoteId = market['quoteId'];
         const quoteCurrency = this.currency (market['quote']);
         const priceRounded = this.priceToPrecision (symbol, price);
-        const priceChain = this.toWei (priceRounded, quoteCurrency['precision']);
+        const priceRoundedPrecise = new Precise (priceRounded);
+        priceRoundedPrecise.reduce ();
+        priceRoundedPrecise.decimals -= quoteCurrency['precision'];
+        const priceChain = priceRoundedPrecise.toString ();
         const priceChainString = this.numberToString (priceChain);
         const now = this.milliseconds ();
         const expiryDelta = this.safeInteger (this.options, 'orderExpiration', 31536000000);
@@ -656,7 +664,7 @@ module.exports = class bytetrade extends Exchange {
         const totalFeeRate = this.safeString (params, 'totalFeeRate', 8);
         const chainFeeRate = this.safeString (params, 'chainFeeRate', 1);
         const fee = this.safeString (params, 'fee', defaultFee);
-        const eightBytes = Precise.stringPow ('2', '64');
+        const eightBytes = '18446744073709551616'; // 2 ** 64
         const allByteStringArray = [
             this.numberToBE (1, 32),
             this.numberToLE (Math.floor (now / 1000), 4),
@@ -1127,9 +1135,10 @@ module.exports = class bytetrade extends Exchange {
             'code': currency['id'],
         };
         const response = await this.publicGetDepositaddress (request);
-        const address = this.safeString (response[0], 'address');
-        const tag = this.safeString (response[0], 'tag');
-        const chainType = this.safeString (response[0], 'chainType');
+        const firstAddress = this.safeValue (response, 0);
+        const address = this.safeString (firstAddress, 'address');
+        const tag = this.safeString (firstAddress, 'tag');
+        const chainType = this.safeStringUpper (firstAddress, 'chainType');
         this.checkAddress (address);
         return {
             'currency': code,
