@@ -1002,6 +1002,37 @@ class ascendex extends Exchange {
         //         "timestamp" => 1573576916201
         //     }
         //
+        //     {
+        //         "ac" => "FUTURES",
+        //         "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //         "time" => 1640819389454,
+        //         "orderId" => "a17e0874ecbdU0711043490bbtcpDU5X",
+        //         "seqNum" => -1,
+        //         "orderType" => "Limit",
+        //         "execInst" => "NULL_VAL",
+        //         "side" => "Buy",
+        //         "symbol" => "BTC-PERP",
+        //         "price" => "30000",
+        //         "orderQty" => "0.002",
+        //         "stopPrice" => "0",
+        //         "stopBy" => "ref-px",
+        //         "status" => "Ack",
+        //         "lastExecTime" => 1640819389454,
+        //         "lastQty" => "0",
+        //         "lastPx" => "0",
+        //         "avgFilledPx" => "0",
+        //         "cumFilledQty" => "0",
+        //         "fee" => "0",
+        //         "cumFee" => "0",
+        //         "feeAsset" => "",
+        //         "errorCode" => "",
+        //         "posStopLossPrice" => "0",
+        //         "posStopLossTrigger" => "market",
+        //         "posTakeProfitPrice" => "0",
+        //         "posTakeProfitTrigger" => "market",
+        //         "liquidityInd" => "n"
+        //      }
+        //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
@@ -1103,11 +1134,10 @@ class ascendex extends Exchange {
         yield $this->load_markets();
         yield $this->load_accounts();
         $market = $this->market($symbol);
-        $defaultAccountCategory = $this->safe_string($this->options, 'account-category', 'cash');
+        list($style, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $options = $this->safe_value($this->options, 'createOrder', array());
-        $accountCategory = $this->safe_string($options, 'account-category', $defaultAccountCategory);
-        $accountCategory = $this->safe_string($params, 'account-category', $accountCategory);
-        $params = $this->omit($params, 'account-category');
+        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
+        $accountCategory = $this->safe_string($accountCategories, $style, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'id');
@@ -1141,14 +1171,29 @@ class ascendex extends Exchange {
                 $params = $this->omit($params, 'stopPrice');
             }
         }
-        $response = yield $this->v1PrivateAccountCategoryPostOrder (array_merge($request, $params));
+        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryPostOrder');
+        $method = $this->get_supported_mapping($style, array(
+            'spot' => $defaultMethod,
+            'margin' => $defaultMethod,
+            'swap' => 'v2PrivateAccountGroupPostFuturesOrder',
+        ));
+        if ($method === 'v1PrivateAccountCategoryPostOrder') {
+            if ($accountCategory !== null) {
+                $request['category'] = $accountCategory;
+            }
+        } else {
+            $request['account-category'] = $accountCategory;
+        }
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        // AccountCategoryPostOrder
         //
         //     {
         //         "code" => 0,
         //         "data" => {
         //             "ac" => "MARGIN",
         //             "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
-        //             "action" => "place-order",
+        //             "action" => "place-$order",
         //             "info" => array(
         //                 "id" => "16e607e2b83a8bXHbAwwoqDo55c166fa",
         //                 "orderId" => "16e85b4d9b9a8bXHbAwwoqDoc3d66830",
@@ -1160,9 +1205,52 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
+        // AccountGroupPostFuturesOrder
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "meta" => array(
+        //                 "id" => "",
+        //                 "action" => "place-$order",
+        //                 "respInst" => "ACK"
+        //             ),
+        //             "order" => {
+        //                 "ac" => "FUTURES",
+        //                 "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //                 "time" => 1640819389454,
+        //                 "orderId" => "a17e0874ecbdU0711043490bbtcpDU5X",
+        //                 "seqNum" => -1,
+        //                 "orderType" => "Limit",
+        //                 "execInst" => "NULL_VAL",
+        //                 "side" => "Buy",
+        //                 "symbol" => "BTC-PERP",
+        //                 "price" => "30000",
+        //                 "orderQty" => "0.002",
+        //                 "stopPrice" => "0",
+        //                 "stopBy" => "ref-px",
+        //                 "status" => "Ack",
+        //                 "lastExecTime" => 1640819389454,
+        //                 "lastQty" => "0",
+        //                 "lastPx" => "0",
+        //                 "avgFilledPx" => "0",
+        //                 "cumFilledQty" => "0",
+        //                 "fee" => "0",
+        //                 "cumFee" => "0",
+        //                 "feeAsset" => "",
+        //                 "errorCode" => "",
+        //                 "posStopLossPrice" => "0",
+        //                 "posStopLossTrigger" => "market",
+        //                 "posTakeProfitPrice" => "0",
+        //                 "posTakeProfitTrigger" => "market",
+        //                 "liquidityInd" => "n"
+        //             }
+        //         }
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
-        $info = $this->safe_value($data, 'info', array());
-        return $this->parse_order($info, $market);
+        $order = $this->safe_value_2($data, 'order', 'info', array());
+        return $this->parse_order($order, $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
