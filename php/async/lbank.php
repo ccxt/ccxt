@@ -360,6 +360,29 @@ class lbank extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        $info = $this->safe_value($response, 'info', array());
+        $free = $this->safe_value($info, 'free', array());
+        $freeze = $this->safe_value($info, 'freeze', array());
+        $asset = $this->safe_value($info, 'asset', array());
+        $currencyIds = is_array($free) ? array_keys($free) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($free, $currencyId);
+            $account['used'] = $this->safe_string($freeze, $currencyId);
+            $account['total'] = $this->safe_string($asset, $currencyId);
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privatePostUserInfo ($params);
@@ -385,26 +408,7 @@ class lbank extends Exchange {
         //         }
         //     }
         //
-        $result = array(
-            'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
-        );
-        $info = $this->safe_value($response, 'info', array());
-        $free = $this->safe_value($info, 'free', array());
-        $freeze = $this->safe_value($info, 'freeze', array());
-        $asset = $this->safe_value($info, 'asset', array());
-        $currencyIds = is_array($free) ? array_keys($free) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($free, $currencyId);
-            $account['used'] = $this->safe_string($freeze, $currencyId);
-            $account['total'] = $this->safe_string($asset, $currencyId);
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_order_status($status) {

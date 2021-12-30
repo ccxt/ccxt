@@ -1118,8 +1118,27 @@ class bybit extends Exchange {
         return $this->parse_order_book($result, $symbol, $timestamp, 'Buy', 'Sell', 'price', 'size');
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+        );
+        $balances = $this->safe_value($response, 'result', array());
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $balance = $balances[$currencyId];
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available_balance');
+            $account['used'] = $this->safe_string($balance, 'used_margin');
+            $account['total'] = $this->safe_string($balance, 'equity');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
-        // note => any funds in the 'spot' $account will not be returned or visible from this endpoint
+        // note => any funds in the 'spot' account will not be returned or visible from this endpoint
         $this->load_markets();
         $request = array();
         $coin = $this->safe_string($params, 'coin');
@@ -1137,7 +1156,7 @@ class bybit extends Exchange {
         //         ret_msg => 'OK',
         //         ext_code => '',
         //         ext_info => '',
-        //         $result => {
+        //         result => {
         //             BTC => array(
         //                 equity => 0,
         //                 available_balance => 0,
@@ -1160,22 +1179,7 @@ class bybit extends Exchange {
         //         rate_limit => 120
         //     }
         //
-        $result = array(
-            'info' => $response,
-        );
-        $balances = $this->safe_value($response, 'result', array());
-        $currencyIds = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $balance = $balances[$currencyId];
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'available_balance');
-            $account['used'] = $this->safe_string($balance, 'used_margin');
-            $account['total'] = $this->safe_string($balance, 'equity');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_order_status($status) {

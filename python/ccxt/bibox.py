@@ -596,6 +596,22 @@ class bibox(Exchange):
             }
         return result
 
+    def parse_balance(self, response):
+        outerResult = self.safe_value(response, 'result')
+        firstResult = self.safe_value(outerResult, 0, {})
+        innerResult = self.safe_value(firstResult, 'result')
+        result = {'info': response}
+        assetsList = self.safe_value(innerResult, 'assets_list', [])
+        for i in range(0, len(assetsList)):
+            balance = assetsList[i]
+            currencyId = self.safe_string(balance, 'coin_symbol')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'freeze')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         type = self.safe_string(params, 'type', 'assets')
@@ -626,20 +642,7 @@ class bibox(Exchange):
         #         ]
         #     }
         #
-        outerResult = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResult, 0, {})
-        innerResult = self.safe_value(firstResult, 'result')
-        result = {'info': response}
-        assetsList = self.safe_value(innerResult, 'assets_list', [])
-        for i in range(0, len(assetsList)):
-            balance = assetsList[i]
-            currencyId = self.safe_string(balance, 'coin_symbol')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'freeze')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()

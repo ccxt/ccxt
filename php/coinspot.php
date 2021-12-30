@@ -97,26 +97,7 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
-        $response = $this->$method ($params);
-        //
-        // read-write api keys
-        //
-        //     ...
-        //
-        // read-only api keys
-        //
-        //     {
-        //         "status":"ok",
-        //         "balances":array(
-        //             {
-        //                 "LTC":array("balance":0.1,"audbalance":16.59,"rate":165.95)
-        //             }
-        //         )
-        //     }
-        //
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
         if (gettype($balances) === 'array' && count(array_filter(array_keys($balances), 'is_string')) == 0) {
@@ -143,6 +124,29 @@ class coinspot extends Exchange {
             }
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
+        $response = $this->$method ($params);
+        //
+        // read-write api keys
+        //
+        //     ...
+        //
+        // read-only api keys
+        //
+        //     {
+        //         "status":"ok",
+        //         "balances":array(
+        //             {
+        //                 "LTC":array("balance":0.1,"audbalance":16.59,"rate":165.95)
+        //             }
+        //         )
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

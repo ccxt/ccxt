@@ -253,9 +253,7 @@ class coinmate(Exchange):
             })
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostBalances(params)
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'data')
         result = {'info': response}
         currencyIds = list(balances.keys())
@@ -269,6 +267,11 @@ class coinmate(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privatePostBalances(params)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

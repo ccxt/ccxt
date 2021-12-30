@@ -1033,19 +1033,7 @@ class kraken(Exchange):
         lastTrade.append(lastTradeId)
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostBalance(params)
-        #
-        #     {
-        #         "error":[],
-        #         "result":{
-        #             "ZUSD":"58.8649",
-        #             "KFEE":"4399.43",
-        #             "XXBT":"0.0000034506",
-        #         }
-        #     }
-        #
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'result', {})
         result = {
             'info': response,
@@ -1060,6 +1048,21 @@ class kraken(Exchange):
             account['total'] = self.safe_string(balances, currencyId)
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privatePostBalance(params)
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "ZUSD":"58.8649",
+        #             "KFEE":"4399.43",
+        #             "XXBT":"0.0000034506",
+        #         }
+        #     }
+        #
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

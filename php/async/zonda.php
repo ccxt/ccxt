@@ -399,9 +399,7 @@ class zonda extends Exchange {
         return $this->filter_by_symbol($result, $symbol);
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->v1_01PrivateGetBalancesBITBAYBalance ($params);
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'balances');
         if ($balances === null) {
             throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json($response));
@@ -417,6 +415,12 @@ class zonda extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->v1_01PrivateGetBalancesBITBAYBalance ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

@@ -738,15 +738,7 @@ class whitebit(Exchange):
         }
         return self.v4PrivatePostOrderCancel(self.extend(request, params))
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.v4PrivatePostTradeAccountBalance(params)
-        #
-        #     {
-        #         "BTC": {"available": "0.123", "freeze": "1"},
-        #         "XMR": {"available": "3013", "freeze": "100"},
-        #     }
-        #
+    def parse_balance(self, response):
         balanceKeys = list(response.keys())
         result = {}
         for i in range(0, len(balanceKeys)):
@@ -758,6 +750,17 @@ class whitebit(Exchange):
             account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.v4PrivatePostTradeAccountBalance(params)
+        #
+        #     {
+        #         "BTC": {"available": "0.123", "freeze": "1"},
+        #         "XMR": {"available": "3013", "freeze": "100"},
+        #     }
+        #
+        return self.parse_balance(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

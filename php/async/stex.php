@@ -797,6 +797,24 @@ class stex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        $balances = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $code = $this->safe_currency_code($this->safe_string($balance, 'currency_id'));
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'frozen_balance');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         // yield $this->load_accounts();
@@ -844,21 +862,7 @@ class stex extends Exchange {
         //         )
         //     }
         //
-        $result = array(
-            'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
-        );
-        $balances = $this->safe_value($response, 'data', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $code = $this->safe_currency_code($this->safe_string($balance, 'currency_id'));
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'balance');
-            $account['used'] = $this->safe_string($balance, 'frozen_balance');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_order_status($status) {

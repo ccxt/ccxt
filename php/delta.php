@@ -775,6 +775,23 @@ class delta extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $balances = $this->safe_value($response, 'result', array());
+        $result = array( 'info' => $response );
+        $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'asset_id');
+            $currency = $this->safe_value($currenciesByNumericId, $currencyId);
+            $code = ($currency === null) ? $currencyId : $currency['code'];
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available_balance');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetWalletBalances ($params);
@@ -799,20 +816,7 @@ class delta extends Exchange {
         //         "success":true
         //     }
         //
-        $balances = $this->safe_value($response, 'result', array());
-        $result = array( 'info' => $response );
-        $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $currencyId = $this->safe_string($balance, 'asset_id');
-            $currency = $this->safe_value($currenciesByNumericId, $currencyId);
-            $code = ($currency === null) ? $currencyId : $currency['code'];
-            $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'balance');
-            $account['free'] = $this->safe_string($balance, 'available_balance');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_position($symbol, $params = null) {

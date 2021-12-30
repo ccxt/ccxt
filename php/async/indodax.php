@@ -209,6 +209,28 @@ class indodax extends Exchange {
         return $result;
     }
 
+    public function parse_balance($response) {
+        $balances = $this->safe_value($response, 'return', array());
+        $free = $this->safe_value($balances, 'balance', array());
+        $used = $this->safe_value($balances, 'balance_hold', array());
+        $timestamp = $this->safe_timestamp($balances, 'server_time');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+        $currencyIds = is_array($free) ? array_keys($free) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($free, $currencyId);
+            $account['used'] = $this->safe_string($used, $currencyId);
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privatePostGetInfo ($params);
@@ -242,25 +264,7 @@ class indodax extends Exchange {
         //         }
         //     }
         //
-        $balances = $this->safe_value($response, 'return', array());
-        $free = $this->safe_value($balances, 'balance', array());
-        $used = $this->safe_value($balances, 'balance_hold', array());
-        $timestamp = $this->safe_timestamp($balances, 'server_time');
-        $result = array(
-            'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-        );
-        $currencyIds = is_array($free) ? array_keys($free) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($free, $currencyId);
-            $account['used'] = $this->safe_string($used, $currencyId);
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

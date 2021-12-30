@@ -652,6 +652,26 @@ class bitrue extends Exchange {
         return $result;
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+        );
+        $timestamp = $this->safe_integer($response, 'updateTime');
+        $balances = $this->safe_value_2($response, 'balances', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'asset');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'free');
+            $account['used'] = $this->safe_string($balance, 'locked');
+            $result[$code] = $account;
+        }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->v1PrivateGetAccount ($params);
@@ -672,23 +692,7 @@ class bitrue extends Exchange {
         //         "canDeposit":false
         //     }
         //
-        $result = array(
-            'info' => $response,
-        );
-        $timestamp = $this->safe_integer($response, 'updateTime');
-        $balances = $this->safe_value_2($response, 'balances', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $currencyId = $this->safe_string($balance, 'asset');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'free');
-            $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
-        }
-        $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp);
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

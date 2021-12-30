@@ -94,26 +94,7 @@ module.exports = class coinspot extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
-        const response = await this[method] (params);
-        //
-        // read-write api keys
-        //
-        //     ...
-        //
-        // read-only api keys
-        //
-        //     {
-        //         "status":"ok",
-        //         "balances":[
-        //             {
-        //                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
-        //             }
-        //         ]
-        //     }
-        //
+    parseBalance (response) {
         const result = { 'info': response };
         const balances = this.safeValue2 (response, 'balance', 'balances');
         if (Array.isArray (balances)) {
@@ -140,6 +121,29 @@ module.exports = class coinspot extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
+        const response = await this[method] (params);
+        //
+        // read-write api keys
+        //
+        //     ...
+        //
+        // read-only api keys
+        //
+        //     {
+        //         "status":"ok",
+        //         "balances":[
+        //             {
+        //                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

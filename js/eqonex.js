@@ -550,6 +550,29 @@ module.exports = class eqonex extends Exchange {
         }, market);
     }
 
+    parseBalance (response) {
+        const positions = this.safeValue (response, 'positions', []);
+        const result = {
+            'info': response,
+        };
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const assetType = this.safeString (position, 'assetType');
+            if (assetType === 'ASSET') {
+                const currencyId = this.safeString (position, 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                const quantityString = this.safeString (position, 'quantity');
+                const availableQuantityString = this.safeString (position, 'availableQuantity');
+                const scale = this.safeInteger (position, 'quantity_scale');
+                const account = this.account ();
+                account['free'] = this.convertFromScale (availableQuantityString, scale);
+                account['total'] = this.convertFromScale (quantityString, scale);
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetPositions (params);
@@ -575,26 +598,7 @@ module.exports = class eqonex extends Exchange {
         //             },
         //         ]
         //     }
-        const positions = this.safeValue (response, 'positions', []);
-        const result = {
-            'info': response,
-        };
-        for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
-            const assetType = this.safeString (position, 'assetType');
-            if (assetType === 'ASSET') {
-                const currencyId = this.safeString (position, 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                const quantityString = this.safeString (position, 'quantity');
-                const availableQuantityString = this.safeString (position, 'availableQuantity');
-                const scale = this.safeInteger (position, 'quantity_scale');
-                const account = this.account ();
-                account['free'] = this.convertFromScale (availableQuantityString, scale);
-                account['total'] = this.convertFromScale (quantityString, scale);
-                result[code] = account;
-            }
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

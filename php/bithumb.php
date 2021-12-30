@@ -204,12 +204,7 @@ class bithumb extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'currency' => 'ALL',
-        );
-        $response = $this->privatePostInfoBalance (array_merge($request, $params));
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data');
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
@@ -224,6 +219,15 @@ class bithumb extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'currency' => 'ALL',
+        );
+        $response = $this->privatePostInfoBalance (array_merge($request, $params));
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

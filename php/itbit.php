@@ -408,9 +408,7 @@ class itbit extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->fetch_wallets($params);
+    public function parse_balance($response) {
         $balances = $response[0]['balances'];
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -423,6 +421,12 @@ class itbit extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->fetch_wallets($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_wallets($params = array ()) {

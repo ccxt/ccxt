@@ -548,6 +548,20 @@ class deribit(Exchange):
                 })
         return result
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+        }
+        balance = self.safe_value(response, 'result', {})
+        currencyId = self.safe_string(balance, 'currency')
+        currencyCode = self.safe_currency_code(currencyId)
+        account = self.account()
+        account['free'] = self.safe_string(balance, 'available_funds')
+        account['used'] = self.safe_string(balance, 'maintenance_margin')
+        account['total'] = self.safe_string(balance, 'equity')
+        result[currencyCode] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         code = self.code_from_options('fetchBalance', params)
@@ -598,18 +612,7 @@ class deribit(Exchange):
         #         testnet: False
         #     }
         #
-        result = {
-            'info': response,
-        }
-        balance = self.safe_value(response, 'result', {})
-        currencyId = self.safe_string(balance, 'currency')
-        currencyCode = self.safe_currency_code(currencyId)
-        account = self.account()
-        account['free'] = self.safe_string(balance, 'available_funds')
-        account['used'] = self.safe_string(balance, 'maintenance_margin')
-        account['total'] = self.safe_string(balance, 'equity')
-        result[currencyCode] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()

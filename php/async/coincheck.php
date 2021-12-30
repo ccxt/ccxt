@@ -126,24 +126,28 @@ class coincheck extends Exchange {
         ));
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $balances = yield $this->privateGetAccountsBalance ($params);
-        $result = array( 'info' => $balances );
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
-            if (is_array($balances) && array_key_exists($currencyId, $balances)) {
+            if (is_array($response) && array_key_exists($currencyId, $response)) {
                 $account = $this->account();
                 $reserved = $currencyId . '_reserved';
-                $account['free'] = $this->safe_string($balances, $currencyId);
-                $account['used'] = $this->safe_string($balances, $reserved);
+                $account['free'] = $this->safe_string($response, $currencyId);
+                $account['used'] = $this->safe_string($response, $reserved);
                 $result[$code] = $account;
             }
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetAccountsBalance ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

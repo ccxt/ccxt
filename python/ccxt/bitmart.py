@@ -1413,6 +1413,21 @@ class bitmart(Exchange):
         trades = self.safe_value(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
+    def parse_balance(self, response):
+        data = self.safe_value(response, 'data', {})
+        wallet = self.safe_value_2(data, 'wallet', 'accounts', [])
+        result = {'info': response}
+        for i in range(0, len(wallet)):
+            balance = wallet[i]
+            currencyId = self.safe_string_2(balance, 'id', 'currency')
+            currencyId = self.safe_string(balance, 'coin_code', currencyId)
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string_2(balance, 'available', 'available_vol')
+            account['used'] = self.safe_string_2(balance, 'frozen', 'freeze_vol')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         method = None
@@ -1482,19 +1497,7 @@ class bitmart(Exchange):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        wallet = self.safe_value_2(data, 'wallet', 'accounts', [])
-        result = {'info': response}
-        for i in range(0, len(wallet)):
-            balance = wallet[i]
-            currencyId = self.safe_string_2(balance, 'id', 'currency')
-            currencyId = self.safe_string(balance, 'coin_code', currencyId)
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string_2(balance, 'available', 'available_vol')
-            account['used'] = self.safe_string_2(balance, 'frozen', 'freeze_vol')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_order(self, order, market=None):
         #

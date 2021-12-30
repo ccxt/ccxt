@@ -199,6 +199,24 @@ class btcturk(Exchange):
             })
         return result
 
+    def parse_balance(self, response):
+        data = self.safe_value(response, 'data', [])
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(data)):
+            entry = data[i]
+            currencyId = self.safe_string(entry, 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(entry, 'balance')
+            account['free'] = self.safe_string(entry, 'free')
+            account['used'] = self.safe_string(entry, 'locked')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetUsersBalances(params)
@@ -218,22 +236,7 @@ class btcturk(Exchange):
         #       ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        for i in range(0, len(data)):
-            entry = data[i]
-            currencyId = self.safe_string(entry, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(entry, 'balance')
-            account['free'] = self.safe_string(entry, 'free')
-            account['used'] = self.safe_string(entry, 'locked')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

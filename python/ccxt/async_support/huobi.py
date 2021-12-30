@@ -2815,6 +2815,9 @@ class huobi(Exchange):
                 orderType = 'stop-' + orderType
             elif (orderType != 'stop-limit') and (orderType != 'stop-limit-fok'):
                 raise NotSupported(self.id + 'createOrder() does not support ' + type + ' orders')
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            orderType = 'limit-maker'
         request['type'] = side + '-' + orderType
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
         if clientOrderId is None:
@@ -2823,7 +2826,7 @@ class huobi(Exchange):
             request['client-order-id'] = brokerId + self.uuid()
         else:
             request['client-order-id'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'client-order-id'])
+        params = self.omit(params, ['clientOrderId', 'client-order-id', 'postOnly'])
         if (orderType == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if price is None:
@@ -2849,20 +2852,19 @@ class huobi(Exchange):
         #
         #     {"status":"ok","data":"438398393065481"}
         #
-        timestamp = self.milliseconds()
         id = self.safe_string(response, 'data')
         return {
             'info': response,
             'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'lastTradeTimestamp': None,
             'status': None,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
+            'symbol': None,
+            'type': None,
+            'side': None,
+            'price': None,
+            'amount': None,
             'filled': None,
             'remaining': None,
             'cost': None,

@@ -429,6 +429,22 @@ class digifinex extends Exchange {
         return $result;
     }
 
+    public function parse_balance($response) {
+        $balances = $this->safe_value($response, 'list', array());
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['used'] = $this->safe_string($balance, 'frozen');
+            $account['free'] = $this->safe_string($balance, 'free');
+            $account['total'] = $this->safe_string($balance, 'total');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -446,19 +462,7 @@ class digifinex extends Exchange {
         //             }
         //         )
         //     }
-        $balances = $this->safe_value($response, 'list', array());
-        $result = array( 'info' => $response );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['used'] = $this->safe_string($balance, 'frozen');
-            $account['free'] = $this->safe_string($balance, 'free');
-            $account['total'] = $this->safe_string($balance, 'total');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

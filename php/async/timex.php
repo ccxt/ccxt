@@ -441,18 +441,7 @@ class timex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->tradingGetBalances ($params);
-        //
-        //     array(
-        //         array("currency":"BTC","totalBalance":"0","lockedBalance":"0"),
-        //         array("currency":"AUDT","totalBalance":"0","lockedBalance":"0"),
-        //         array("currency":"ETH","totalBalance":"0","lockedBalance":"0"),
-        //         array("currency":"TIME","totalBalance":"0","lockedBalance":"0"),
-        //         array("currency":"USDT","totalBalance":"0","lockedBalance":"0")
-        //     )
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -468,6 +457,21 @@ class timex extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->tradingGetBalances ($params);
+        //
+        //     array(
+        //         array("currency":"BTC","totalBalance":"0","lockedBalance":"0"),
+        //         array("currency":"AUDT","totalBalance":"0","lockedBalance":"0"),
+        //         array("currency":"ETH","totalBalance":"0","lockedBalance":"0"),
+        //         array("currency":"TIME","totalBalance":"0","lockedBalance":"0"),
+        //         array("currency":"USDT","totalBalance":"0","lockedBalance":"0")
+        //     )
+        //
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

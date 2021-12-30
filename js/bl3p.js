@@ -67,9 +67,7 @@ module.exports = class bl3p extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostGENMKTMoneyInfo (params);
+    parseBalance (response) {
         const data = this.safeValue (response, 'data', {});
         const wallets = this.safeValue (data, 'wallets');
         const result = { 'info': data };
@@ -87,6 +85,12 @@ module.exports = class bl3p extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostGENMKTMoneyInfo (params);
+        return this.parseBalance (response);
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

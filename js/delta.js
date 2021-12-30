@@ -773,6 +773,23 @@ module.exports = class delta extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'result', []);
+        const result = { 'info': response };
+        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'asset_id');
+            const currency = this.safeValue (currenciesByNumericId, currencyId);
+            const code = (currency === undefined) ? currencyId : currency['code'];
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
@@ -797,20 +814,7 @@ module.exports = class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const balances = this.safeValue (response, 'result', []);
-        const result = { 'info': response };
-        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'asset_id');
-            const currency = this.safeValue (currenciesByNumericId, currencyId);
-            const code = (currency === undefined) ? currencyId : currency['code'];
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'balance');
-            account['free'] = this.safeString (balance, 'available_balance');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchPosition (symbol, params = undefined) {

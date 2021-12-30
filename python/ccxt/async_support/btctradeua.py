@@ -97,9 +97,7 @@ class btctradeua(Exchange):
     async def sign_in(self, params={}):
         return await self.privatePostAuth(params)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privatePostBalance(params)
+    def parse_balance(self, response):
         result = {'info': response}
         balances = self.safe_value(response, 'accounts')
         for i in range(0, len(balances)):
@@ -110,6 +108,11 @@ class btctradeua(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privatePostBalance(params)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

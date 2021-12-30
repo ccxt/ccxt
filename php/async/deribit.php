@@ -545,6 +545,21 @@ class deribit extends Exchange {
         return $result;
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+        );
+        $balance = $this->safe_value($response, 'result', array());
+        $currencyId = $this->safe_string($balance, 'currency');
+        $currencyCode = $this->safe_currency_code($currencyId);
+        $account = $this->account();
+        $account['free'] = $this->safe_string($balance, 'available_funds');
+        $account['used'] = $this->safe_string($balance, 'maintenance_margin');
+        $account['total'] = $this->safe_string($balance, 'equity');
+        $result[$currencyCode] = $account;
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $code = $this->code_from_options('fetchBalance', $params);
@@ -556,7 +571,7 @@ class deribit extends Exchange {
         //
         //     {
         //         jsonrpc => '2.0',
-        //         $result => array(
+        //         result => array(
         //             total_pl => 0,
         //             session_upl => 0,
         //             session_rpl => 0,
@@ -585,7 +600,7 @@ class deribit extends Exchange {
         //             deposit_address => '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
         //             delta_total => 0,
         //             $currency => 'BTC',
-        //             $balance => 0.00062359,
+        //             balance => 0.00062359,
         //             available_withdrawal_funds => 0.00062359,
         //             available_funds => 0.00062359
         //         ),
@@ -595,18 +610,7 @@ class deribit extends Exchange {
         //         testnet => false
         //     }
         //
-        $result = array(
-            'info' => $response,
-        );
-        $balance = $this->safe_value($response, 'result', array());
-        $currencyId = $this->safe_string($balance, 'currency');
-        $currencyCode = $this->safe_currency_code($currencyId);
-        $account = $this->account();
-        $account['free'] = $this->safe_string($balance, 'available_funds');
-        $account['used'] = $this->safe_string($balance, 'maintenance_margin');
-        $account['total'] = $this->safe_string($balance, 'equity');
-        $result[$currencyCode] = $account;
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function create_deposit_address($code, $params = array ()) {

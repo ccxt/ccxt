@@ -2950,6 +2950,10 @@ class huobi extends Exchange {
                 throw new NotSupported($this->id . 'createOrder() does not support ' . $type . ' orders');
             }
         }
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly) {
+            $orderType = 'limit-maker';
+        }
         $request['type'] = $side . '-' . $orderType;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if ($clientOrderId === null) {
@@ -2959,7 +2963,7 @@ class huobi extends Exchange {
         } else {
             $request['client-order-id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'client-order-id' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'client-order-id', 'postOnly' ));
         if (($orderType === 'market') && ($side === 'buy')) {
             if ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($price === null) {
@@ -2989,20 +2993,19 @@ class huobi extends Exchange {
         //
         //     array("status":"ok","data":"438398393065481")
         //
-        $timestamp = $this->milliseconds();
         $id = $this->safe_string($response, 'data');
         return array(
             'info' => $response,
             'id' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'lastTradeTimestamp' => null,
             'status' => null,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
+            'symbol' => null,
+            'type' => null,
+            'side' => null,
+            'price' => null,
+            'amount' => null,
             'filled' => null,
             'remaining' => null,
             'cost' => null,

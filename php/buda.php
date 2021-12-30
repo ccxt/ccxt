@@ -443,9 +443,7 @@ class buda extends Exchange {
         return $this->parse_trading_view_ohlcv($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetBalances ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'balances');
         for ($i = 0; $i < count($balances); $i++) {
@@ -458,6 +456,12 @@ class buda extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetBalances ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
