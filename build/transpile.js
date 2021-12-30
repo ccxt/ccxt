@@ -193,13 +193,10 @@ class Transpiler {
             [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
             [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
             [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
-            //
-            // too broad, have to rewrite these cause they don't work
-            //
-            // [ /(.+?)\s+\=\=\=?\s+true/g, 'isinstance($1, bool) and ($1 is True)' ],
-            // [ /(.+?)\s+\!\=\=?\s+true/g, 'isinstance($1, bool) and ($1 is not True)' ],
-            // [ /(.+?)\s+\=\=\=?\s+false/g, 'isinstance($1, bool) and ($1 is False)' ],
-            // [ /(.+?)\s+\!\=\=?\s+false/g, 'isinstance($1, bool) and ($1 is not False)' ],
+            [ /([^\s]+)\s+\=\=\=?\s+true/g, 'isinstance($1, bool) and ($1 is True)' ],
+            [ /([^\s]+)\s+\!\=\=?\s+true/g, 'isinstance($1, bool) and ($1 is not True)' ],
+            [ /([^\s]+)\s+\=\=\=?\s+false/g, 'isinstance($1, bool) and ($1 is False)' ],
+            [ /([^\s]+)\s+\!\=\=?\s+false/g, 'isinstance($1, bool) and ($1 is not False)' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, 'isinstance($1[$2], basestring)' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1[$2], basestring)' ],
