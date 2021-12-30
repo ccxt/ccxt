@@ -1393,7 +1393,7 @@ module.exports = class bitmex extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         // https://github.com/ccxt/ccxt/issues/6507
-        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        const clientOrderId = this.safeValue2 (params, 'clOrdID', 'clientOrderId');
         const request = {};
         if (clientOrderId === undefined) {
             request['orderID'] = id;
