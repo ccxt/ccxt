@@ -26,6 +26,7 @@ class bitmex extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
@@ -1397,7 +1398,7 @@ class bitmex extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         // https://github.com/ccxt/ccxt/issues/6507
-        $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
+        $clientOrderId = $this->safe_value_2($params, 'clOrdID', 'clientOrderId');
         $request = array();
         if ($clientOrderId === null) {
             $request['orderID'] = $id;
@@ -1414,6 +1415,10 @@ class bitmex extends Exchange {
             }
         }
         return $this->parse_order($order);
+    }
+
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        return $this->cancel_order($ids, $symbol, $params);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
