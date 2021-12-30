@@ -530,7 +530,7 @@ module.exports = class litebitpro extends Exchange {
         const request = {
             'market': market['id'],
             'interval': this.timeframes[timeframe],
-            // 'limit': 1440, // default 1440, max 1440
+            // 'limit': 1440, // default 500, max 500
             // 'timestamp_from': since,
             // 'timestamp_to': this.milliseconds (),
         };
@@ -592,7 +592,7 @@ module.exports = class litebitpro extends Exchange {
             // 'amount': this.amountToPrecision (symbol, amount),
             // 'amount_quote': this.costToPrecision (symbol, cost),
             // 'price': this.priceToPrecision (symbol, price),
-            // 'stop': 'loss', // "loss" = stop loss below price, "entry" = take profit above price
+            // 'stop': 'loss', // "entry" = trigger when the last price is greater than or equal to stop_price. "loss" = trigger when the last price is less than or equal to stop_price.
             // 'stop_price': this.priceToPrecision (symbol, price),
             // 'post_only': false,
             // 'time_in_force': 'gtc', // gtc, ioc, fok, day, gtd
@@ -796,7 +796,7 @@ module.exports = class litebitpro extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            // 'market': market['id'], // rate limit 25 without a market, 1 with market specified
+            // 'market': market['id'],
         };
         let market = undefined;
         if (symbol !== undefined) {
