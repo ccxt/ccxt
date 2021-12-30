@@ -1396,7 +1396,7 @@ module.exports = class bitstamp extends Exchange {
             if (market === undefined) {
                 market = this.getMarketFromTrade (item);
             }
-            const direction = parsedTrade['side'] === 'buy' ? 'in' : 'out';
+            const direction = (parsedTrade['side'] === 'buy') ? 'in' : 'out';
             return {
                 'id': parsedTrade['id'],
                 'info': item,
