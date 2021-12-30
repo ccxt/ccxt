@@ -1533,11 +1533,12 @@ class kraken extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = null;
-        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
+        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId', $id);
+        $request = array(
+            'txid' => $clientOrderId,
+        );
         try {
-            $response = $this->privatePostCancelOrder (array_merge(array(
-                'txid' => $clientOrderId || $id,
-            ), $params));
+            $response = $this->privatePostCancelOrder (array_merge($request, $params));
         } catch (Exception $e) {
             if ($this->last_http_response) {
                 if (mb_strpos($this->last_http_response, 'EOrder:Unknown order') !== false) {
