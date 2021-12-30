@@ -1536,8 +1536,9 @@ class kraken extends Exchange {
         $response = null;
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId', $id);
         $request = array(
-            'txid' => $clientOrderId,
+            'txid' => $clientOrderId, // order $id or userref
         );
+        $params = $this->omit($params, ['userref', 'clientOrderId' ]);
         try {
             $response = yield $this->privatePostCancelOrder (array_merge($request, $params));
         } catch (Exception $e) {

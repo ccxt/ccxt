@@ -1449,8 +1449,9 @@ class kraken(Exchange):
         response = None
         clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId', id)
         request = {
-            'txid': clientOrderId,
+            'txid': clientOrderId,  # order id or userref
         }
+        params = self.omit(params, ['userref', 'clientOrderId'])
         try:
             response = await self.privatePostCancelOrder(self.extend(request, params))
         except Exception as e:
