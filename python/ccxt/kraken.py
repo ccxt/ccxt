@@ -1447,11 +1447,12 @@ class kraken(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = None
-        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId', id)
+        request = {
+            'txid': clientOrderId,
+        }
         try:
-            response = self.privatePostCancelOrder(self.extend({
-                'txid': clientOrderId or id,
-            }, params))
+            response = self.privatePostCancelOrder(self.extend(request, params))
         except Exception as e:
             if self.last_http_response:
                 if self.last_http_response.find('EOrder:Unknown order') >= 0:
