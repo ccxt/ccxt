@@ -1177,7 +1177,8 @@ module.exports = class whitebit extends Exchange {
                     if (errorObject !== undefined) {
                         const errorKey = Object.keys (errorObject)[0];
                         const errorMessageArray = this.safeValue (errorObject, errorKey, []);
-                        errorInfo = errorMessageArray.length > 0 ? errorMessageArray[0] : body;
+                        const errorMessageLength = errorMessageArray.length;
+                        errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }
                 }
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorInfo, feedback);
