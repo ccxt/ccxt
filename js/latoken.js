@@ -803,7 +803,8 @@ module.exports = class latoken extends Exchange {
         let side = undefined;
         if (orderSide !== undefined) {
             const parts = orderSide.split ('_');
-            side = this.safeStringLower (parts, parts.length - 1);
+            const partsLength = parts.length;
+            side = this.safeStringLower (parts, partsLength - 1);
         }
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const price = this.safeString (order, 'price');
