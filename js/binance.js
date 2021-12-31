@@ -37,6 +37,7 @@ module.exports = class binance extends Exchange {
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowInterestHistory': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,

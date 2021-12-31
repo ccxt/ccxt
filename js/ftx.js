@@ -50,6 +50,7 @@ module.exports = class ftx extends Exchange {
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterestHistory': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
