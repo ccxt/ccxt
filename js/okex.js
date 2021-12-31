@@ -162,6 +162,7 @@ module.exports = class okex extends Exchange {
                         'account/interest-accrued': 4,
                         'account/interest-rate': 4,
                         'account/max-withdrawal': 1,
+                        'asset/asset-valuation': 1 / 5,
                         'asset/deposit-address': 5 / 3,
                         'asset/balances': 5 / 3,
                         'asset/transfer-state': 10,
@@ -1497,6 +1498,17 @@ module.exports = class okex extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0, {});
         return this.parseTradingFee (first, market);
+    }
+
+    async fetchAssetValuation (code, params = {}) {
+        // this method is not unified, it is an exchange-specific helper wrapper
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ccy': currency['id'],
+        };
+        const response = await this.privateGetAssetAssetValuation (this.extend (request, params));
+        return response;
     }
 
     async fetchBalance (params = {}) {
