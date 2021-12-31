@@ -3129,27 +3129,18 @@ module.exports = class huobi extends Exchange {
             params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         }
         let method = undefined;
-        if (market['swap']) {
-            if (market['inverse']) {
-                method = 'contractPrivatePostSwapApiV1SwapOrder';
-            } else if (market['linear']) {
-                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-                if (marginType === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
-                } else if (marginType === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
-                }
+        if (market['linear']) {
+            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+            if (marginType === 'isolated') {
+                method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
+            } else if (marginType === 'cross') {
+                method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
             }
-        } else if (market['future']) {
-            if (market['inverse']) {
+        } else if (market['inverse']) {
+            if (market['swap']) {
+                method = 'contractPrivatePostSwapApiV1SwapOrder';
+            } else if (market['future']) {
                 method = 'contractPrivatePostApiV1ContractOrder';
-            } else if (market['linear']) {
-                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-                if (marginType === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
-                } else if (marginType === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
-                }
             }
         }
         const response = await this[method] (this.extend (request, params));
