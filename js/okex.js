@@ -1500,17 +1500,6 @@ module.exports = class okex extends Exchange {
         return this.parseTradingFee (first, market);
     }
 
-    async fetchAssetValuation (code, params = {}) {
-        // this method is not unified, it is an exchange-specific helper wrapper
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'ccy': currency['id'],
-        };
-        const response = await this.privateGetAssetAssetValuation (this.extend (request, params));
-        return response;
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString (this.options, 'defaultType');
