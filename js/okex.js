@@ -1500,7 +1500,7 @@ module.exports = class okex extends Exchange {
         return this.parseTradingFee (first, market);
     }
 
-    async fetchAssetValuation (code = 'BTC', params = {}) {
+    async fetchAssetValuation (code, params = {}) {
         // this method is an exchange-specific helper wrapper
         await this.loadMarkets ();
         const currency = this.currency (code);
