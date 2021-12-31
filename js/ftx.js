@@ -1959,7 +1959,7 @@ module.exports = class ftx extends Exchange {
             'trx': 'TRC20',
             'erc20': 'ERC20',
             'sol': 'SOL',
-            'bsc': 'BSC',
+            'bsc': 'BEP20',
             'bep2': 'BEP2',
         };
         return this.safeString (networksById, networkId, networkId);
