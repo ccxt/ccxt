@@ -3136,27 +3136,18 @@ class huobi extends Exchange {
             $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
         }
         $method = null;
-        if ($market['swap']) {
-            if ($market['inverse']) {
-                $method = 'contractPrivatePostSwapApiV1SwapOrder';
-            } else if ($market['linear']) {
-                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                if ($marginType === 'isolated') {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
-                } else if ($marginType === 'cross') {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
-                }
+        if ($market['linear']) {
+            $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+            if ($marginType === 'isolated') {
+                $method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
+            } else if ($marginType === 'cross') {
+                $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
             }
-        } else if ($market['future']) {
-            if ($market['inverse']) {
+        } else if ($market['inverse']) {
+            if ($market['swap']) {
+                $method = 'contractPrivatePostSwapApiV1SwapOrder';
+            } else if ($market['future']) {
                 $method = 'contractPrivatePostApiV1ContractOrder';
-            } else if ($market['linear']) {
-                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                if ($marginType === 'isolated') {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
-                } else if ($marginType === 'cross') {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
-                }
             }
         }
         $response = $this->$method (array_merge($request, $params));

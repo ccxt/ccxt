@@ -2986,24 +2986,17 @@ class huobi(Exchange):
             request['client_order_id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_order_id'])
         method = None
-        if market['swap']:
-            if market['inverse']:
+        if market['linear']:
+            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+            if marginType == 'isolated':
+                method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
+            elif marginType == 'cross':
+                method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder'
+        elif market['inverse']:
+            if market['swap']:
                 method = 'contractPrivatePostSwapApiV1SwapOrder'
-            elif market['linear']:
-                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
-                if marginType == 'isolated':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
-                elif marginType == 'cross':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder'
-        elif market['future']:
-            if market['inverse']:
+            elif market['future']:
                 method = 'contractPrivatePostApiV1ContractOrder'
-            elif market['linear']:
-                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
-                if marginType == 'isolated':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
-                elif marginType == 'cross':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder'
         response = await getattr(self, method)(self.extend(request, params))
         #
         # linear swap cross margin
