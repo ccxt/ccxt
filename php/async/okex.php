@@ -168,6 +168,7 @@ class okex extends Exchange {
                         'account/interest-accrued' => 4,
                         'account/interest-rate' => 4,
                         'account/max-withdrawal' => 1,
+                        'asset/asset-valuation' => 1 / 5,
                         'asset/deposit-address' => 5 / 3,
                         'asset/balances' => 5 / 3,
                         'asset/transfer-state' => 10,
@@ -1503,6 +1504,17 @@ class okex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0, array());
         return $this->parse_trading_fee($first, $market);
+    }
+
+    public function fetch_asset_valuation($code, $params = array ()) {
+        // this method is not unified, it is an exchange-specific helper wrapper
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'ccy' => $currency['id'],
+        );
+        $response = yield $this->privateGetAssetAssetValuation (array_merge($request, $params));
+        return $response;
     }
 
     public function fetch_balance($params = array ()) {
