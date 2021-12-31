@@ -378,6 +378,7 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
+        'fetchBorrowInterestHistory' => 'fetch_borrow_interest_history',
     );
 
     public static function split($string, $delimiters = array(' ')) {
