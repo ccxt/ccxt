@@ -5506,11 +5506,12 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchBorrowInterestHistory (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        this.loadMarkets ();
+        await this.loadMarkets ();
         const request = {};
         let market = undefined;
         if (code !== undefined) {
-            request['asset'] = this.currency (code)['id'];
+            const currency = this.currency (code);
+            request['asset'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -5532,7 +5533,7 @@ module.exports = class binance extends Exchange {
         //             "interest": "0.02414667",
         //             "interestAccuredTime": 1566813600000,
         //             "interestRate": "0.01600000",
-        //             "principal": "36.22000000",  # TODO: Is this the amount borrowed?
+        //             "principal": "36.22000000",
         //             "type": "ON_BORROW"
         //         }
         //     ],

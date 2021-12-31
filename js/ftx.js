@@ -2551,7 +2551,7 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchBorrowInterestHistory (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        this.loadMarkets ();
+        await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
             request['start_time'] = Precise.stringDiv (since.toString (), '1000');
@@ -2575,14 +2575,16 @@ module.exports = class ftx extends Exchange {
         const interestHistory = [];
         for (let i = 0; i < result.length; i++) {
             const payment = result[i];
+            const coin = this.safeString (payment, 'coin');
+            const datetime = this.safeString (payment, 'time');
             interestHistory.push ({
                 'account': undefined,
-                'currency': this.safeString (payment, 'coin'),
+                'currency': this.safeCurrencyCode (coin),
                 'interest': this.safeNumber (payment, 'cost'),
                 'interestRate': this.safeNumber (payment, 'rate'),
                 'amountBorrowed': this.safeNumber (payment, 'size'),
-                'timestamp': undefined,
-                'datetime': this.safeString (payment, 'time'),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
                 'info': payment,
             });
         }
