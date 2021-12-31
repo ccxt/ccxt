@@ -34,15 +34,19 @@ class aax extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
@@ -127,6 +131,7 @@ class aax extends Exchange {
                         'futures/trades', // Retrieve trade details for a futures order
                         'futures/openOrders', // Retrieve futures open orders
                         'futures/orders', // Retrieve historical futures orders
+                        'futures/funding/fundingFee',
                         'futures/funding/predictedFundingFee/{symbol}', // Get predicted funding fee
                     ),
                     'post' => array(
@@ -1980,6 +1985,60 @@ class aax extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+        }
+        if ($limit === null) {
+            $limit = 100; // Default
+        } else if ($limit > 1000) {
+            throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 1000');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'limit' => $limit,
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = yield $this->privateGetFuturesFundingFundingFee (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => array(
+        //            {
+        //                "symbol" => "BTCUSDTFP",
+        //                "fundingRate":"0.001",
+        //                "fundingFee":"100",
+        //                "currency":"USDT",
+        //                "fundingTime" => "2020-08-12T08:00:00Z",
+        //                "markPrice" => "11192.5",
+        //            }
+        //        ),
+        //        "message" => "success",
+        //        "ts" => 1573542445411
+        //    }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $datetime = $this->safe_string($entry, 'fundingTime');
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'code' => $this->safe_currency_code($this->safe_string($entry, 'currency')),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
+                'id' => null,
+                'amount' => $this->safe_number($entry, 'fundingFee'),
+            );
+        }
+        return $result;
     }
 
     public function nonce() {

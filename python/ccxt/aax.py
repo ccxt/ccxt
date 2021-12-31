@@ -50,15 +50,19 @@ class aax(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
@@ -143,6 +147,7 @@ class aax(Exchange):
                         'futures/trades',  # Retrieve trade details for a futures order
                         'futures/openOrders',  # Retrieve futures open orders
                         'futures/orders',  # Retrieve historical futures orders
+                        'futures/funding/fundingFee',
                         'futures/funding/predictedFundingFee/{symbol}',  # Get predicted funding fee
                     ],
                     'post': [
@@ -1901,6 +1906,55 @@ class aax(Exchange):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        if limit is None:
+            limit = 100  # Default
+        elif limit > 1000:
+            raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 1000')
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'limit': limit,
+        }
+        if since is not None:
+            request['startTime'] = since
+        response = self.privateGetFuturesFundingFundingFee(self.extend(request, params))
+        #
+        #    {
+        #        "code": 1,
+        #        "data": [
+        #            {
+        #                "symbol": "BTCUSDTFP",
+        #                "fundingRate":"0.001",
+        #                "fundingFee":"100",
+        #                "currency":"USDT",
+        #                "fundingTime": "2020-08-12T08:00:00Z",
+        #                "markPrice": "11192.5",
+        #            }
+        #        ],
+        #        "message": "success",
+        #        "ts": 1573542445411
+        #    }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            datetime = self.safe_string(entry, 'fundingTime')
+            result.append({
+                'info': entry,
+                'symbol': symbol,
+                'code': self.safe_currency_code(self.safe_string(entry, 'currency')),
+                'timestamp': self.parse8601(datetime),
+                'datetime': datetime,
+                'id': None,
+                'amount': self.safe_number(entry, 'fundingFee'),
+            })
+        return result
 
     def nonce(self):
         return self.milliseconds()
