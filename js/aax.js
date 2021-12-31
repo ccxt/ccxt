@@ -31,6 +31,7 @@ module.exports = class aax extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -102,6 +103,7 @@ module.exports = class aax extends Exchange {
                         'market/markPrice', // Get Current Mark Price
                         'futures/funding/predictedFunding/{symbol}', // Get Predicted Funding Rate
                         'futures/funding/prevFundingRate/{symbol}', // Get Last Funding Rate
+                        'futures/funding/fundingRate',
                         'market/candles/index', // * Deprecated
                         'market/index/candles',
                     ],
@@ -1842,6 +1844,61 @@ module.exports = class aax extends Exchange {
             'tag': tag,
             'network': network,
         };
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = parseInt (since / 1000);
+        }
+        const till = this.safeInteger (params, 'till'); // unified in milliseconds
+        const endTime = this.safeString (params, 'endTime'); // exchange-specific in seconds
+        params = this.omit (params, [ 'endTime', 'till' ]);
+        if (till !== undefined) {
+            request['endTime'] = parseInt (till / 1000);
+        } else if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetFuturesFundingFundingRate (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "fundingRate": "0.00033992",
+        //                "fundingTime": "2021-12-31T00:00:00.000Z",
+        //                "symbol": "ETHUSDTFP"
+        //            },
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            const datetime = this.safeString (entry, 'fundingTime');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     nonce () {
