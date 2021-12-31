@@ -22,6 +22,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': false,
+                'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1495,6 +1496,84 @@ module.exports = class hitbtc3 extends Exchange {
             'info': response,
             'id': id,
         };
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {
+        // all arguments are optional
+        // 'symbols': Comma separated list of symbol codes,
+        // 'sort': 'DESC' or 'ASC'
+        // 'from': 'Datetime or Number',
+        // 'till': 'Datetime or Number',
+        // 'limit': 100,
+        // 'offset': 0,
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbols'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetPublicFuturesHistoryFunding (this.extend (request, params));
+        //
+        //     {
+        //         "BTCUSDT_PERP": [{
+        //             "timestamp": "2021-07-29T16:00:00.271Z",
+        //             "funding_rate": "0.0001",
+        //             "avg_premium_index": "0.000061858585213222",
+        //             "next_funding_time": "2021-07-30T00:00:00.000Z",
+        //             "interest_rate": "0.0001"
+        //         },
+        //         {
+        //             "timestamp": "2021-07-29T00:00:00.233Z",
+        //             "funding_rate": "0.0001",
+        //             "avg_premium_index": "0.000025719039726718",
+        //             "next_funding_time": "2021-07-29T08:00:00.000Z",
+        //             "interest_rate": "0.0001"
+        //         }],
+        //         "SOLUSDT_PERP": [{
+        //             "timestamp": "2021-12-31T00:00:00.059Z",
+        //             "funding_rate": "0.0001",
+        //             "avg_premium_index": "-0.000006926846405161",
+        //             "next_funding_time": "2021-12-31T08:00:00.000Z",
+        //             "interest_rate": "0.0001"
+        //         },
+        //         {
+        //             "timestamp": "2021-12-30T16:00:00.071Z",
+        //             "funding_rate": "0.0001",
+        //             "avg_premium_index": "-0.000012327135410810",
+        //             "next_funding_time": "2021-12-31T00:00:00.000Z",
+        //             "interest_rate":"0.0001"
+        //         }]
+        //     }
+        //
+        const contracts = Object.keys (response);
+        const rates = [];
+        for (let i = 0; i < contracts.length; i++) {
+            const marketId = contracts[i];
+            const market = this.safeMarket (marketId);
+            const entry = response[marketId];
+            for (let i = 0; i < entry.length; i++) {
+                const symbol = this.safeSymbol (market['symbol']);
+                const fundingRate = this.safeNumber (entry[i], 'funding_rate');
+                const datetime = this.safeString (entry[i], 'timestamp');
+                rates.push ({
+                    'info': entry,
+                    'symbol': symbol,
+                    'fundingRate': fundingRate,
+                    'timestamp': this.parse8601 (datetime),
+                    'datetime': datetime,
+                });
+            }
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
