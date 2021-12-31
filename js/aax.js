@@ -31,6 +31,7 @@ module.exports = class aax extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -1833,6 +1834,68 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseDepositAddress (data, currency);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest ('Funding rates only exist for swap contracts');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetFuturesFundingPrevFundingRateSymbol (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": {
+        //           "symbol": "BTCUSDFP",
+        //           "markPrice": "11192.5",
+        //           "fundingRate": "0.001",
+        //           "fundingTime": "2020-08-12T08:00:00Z",
+        //           "nextFundingTime": "2020-08-12T16:00:00Z"
+        //        },
+        //        "message": "success",
+        //        "ts": 1573542445411
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseFundingRate (data);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //    {
+        //        "symbol": "BTCUSDFP",
+        //        "markPrice": "11192.5",
+        //        "fundingRate": "0.001",
+        //        "fundingTime": "2020-08-12T08:00:00Z",
+        //        "nextFundingTime": "2020-08-12T16:00:00Z"
+        //    }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const markPrice = this.safeNumber (contract, 'markPrice');
+        const fundingRate = this.safeNumber (contract, 'fundingRate');
+        const prevFundingDatetime = this.safeString (contract, 'fundingTime');
+        const nextFundingDatetime = this.safeString (contract, 'nextFundingTime');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': fundingRate,
+            'nextFundingRate': undefined,
+            'previousFundingTimestamp': this.parse8601 (prevFundingDatetime),
+            'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
+            'previousFundingDatetime': prevFundingDatetime,
+            'nextFundingDatetime': nextFundingDatetime,
+        };
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
