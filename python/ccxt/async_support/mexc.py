@@ -1233,7 +1233,7 @@ class mexc(Exchange):
         return self.index_by(depositAddresses, 'network')
 
     async def fetch_deposit_address(self, code, params={}):
-        rawNetwork = self.safe_string(params, 'network')
+        rawNetwork = self.safe_string_upper(params, 'network')
         params = self.omit(params, 'network')
         response = await self.fetch_deposit_addresses_by_network(code, params)
         networks = self.safe_value(self.options, 'networks', {})
@@ -1253,7 +1253,8 @@ class mexc(Exchange):
                         if result is None:
                             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find deposit address for ' + code)
             return result
-        result = self.safe_value(response, network)
+        # TODO: add support for all aliases here
+        result = self.safe_value(response, rawNetwork)
         if result is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
         return result
@@ -1494,7 +1495,10 @@ class mexc(Exchange):
         elif side == 'sell':
             orderSide = 'ASK'
         orderType = type.upper()
-        if orderType == 'LIMIT':
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            orderType = 'POST_ONLY'
+        elif orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
         elif (orderType != 'POST_ONLY') and (orderType != 'IMMEDIATE_OR_CANCEL'):
             raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL')
@@ -1510,7 +1514,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        params = self.omit(params, ['type', 'clientOrderId', 'client_order_id'])
+        params = self.omit(params, ['type', 'clientOrderId', 'client_order_id', 'postOnly'])
         response = await self.spotPrivatePostOrderPlace(self.extend(request, params))
         #
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -1525,7 +1529,10 @@ class mexc(Exchange):
             raise ArgumentsRequired(self.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin')
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        if type == 'limit':
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            type = 2
+        elif type == 'limit':
             type = 1
         elif type == 'market':
             type = 6
@@ -1561,7 +1568,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'externalOid'])
+        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
         response = await self.contractPrivatePostOrderSubmit(self.extend(request, params))
         #
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}

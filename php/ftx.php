@@ -1962,7 +1962,7 @@ class ftx extends Exchange {
             'trx' => 'TRC20',
             'erc20' => 'ERC20',
             'sol' => 'SOL',
-            'bsc' => 'BSC',
+            'bsc' => 'BEP20',
             'bep2' => 'BEP2',
         );
         return $this->safe_string($networksById, $networkId, $networkId);

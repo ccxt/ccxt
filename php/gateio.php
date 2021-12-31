@@ -126,6 +126,22 @@ class gateio extends Exchange {
                             '{settle}/insurance' => 1.5,
                         ),
                     ),
+                    'options' => array(
+                        'get' => array(
+                            'underlyings' => 1.5,
+                            'expirations' => 1.5,
+                            'contracts' => 1.5,
+                            'contracts/{contract}' => 1.5,
+                            'settlements' => 1.5,
+                            'settlements/{contract}' => 1.5,
+                            'order_book' => 1.5,
+                            'tickers' => 1.5,
+                            'underlying/tickers/{underlying}' => 1.5,
+                            'candlesticks' => 1.5,
+                            'underlying/candlesticks' => 1.5,
+                            'trades' => 1.5,
+                        ),
+                    ),
                 ),
                 'private' => array(
                     'withdrawals' => array(
@@ -268,6 +284,25 @@ class gateio extends Exchange {
                             '{settle}/orders/{order_id}' => 1.5,
                             '{settle}/price_orders' => 1.5,
                             '{settle}/price_orders/{order_id}' => 1.5,
+                        ),
+                    ),
+                    'options' => array(
+                        'get' => array(
+                            'accounts' => 1.5,
+                            'account_book' => 1.5,
+                            'positions' => 1.5,
+                            'positions/{contract}' => 1.5,
+                            'position_close' => 1.5,
+                            'orders' => 1.5,
+                            'orders/{order_id}' => 1.5,
+                            'my_trades' => 1.5,
+                        ),
+                        'post' => array(
+                            'orders' => 1.5,
+                        ),
+                        'delete' => array(
+                            'orders' => 1.5,
+                            'orders/{order_id}' => 1.5,
                         ),
                     ),
                 ),

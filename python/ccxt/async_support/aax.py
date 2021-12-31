@@ -50,6 +50,7 @@ class aax(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -121,6 +122,7 @@ class aax(Exchange):
                         'market/markPrice',  # Get Current Mark Price
                         'futures/funding/predictedFunding/{symbol}',  # Get Predicted Funding Rate
                         'futures/funding/prevFundingRate/{symbol}',  # Get Last Funding Rate
+                        'futures/funding/fundingRate',
                         'market/candles/index',  # * Deprecated
                         'market/index/candles',
                     ],
@@ -1776,6 +1778,55 @@ class aax(Exchange):
             'tag': tag,
             'network': network,
         }
+
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if since is not None:
+            request['startTime'] = int(since / 1000)
+        till = self.safe_integer(params, 'till')  # unified in milliseconds
+        endTime = self.safe_string(params, 'endTime')  # exchange-specific in seconds
+        params = self.omit(params, ['endTime', 'till'])
+        if till is not None:
+            request['endTime'] = int(till / 1000)
+        elif endTime is not None:
+            request['endTime'] = endTime
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetFuturesFundingFundingRate(self.extend(request, params))
+        #
+        #    {
+        #        "code": 1,
+        #        "data": [
+        #            {
+        #                "fundingRate": "0.00033992",
+        #                "fundingTime": "2021-12-31T00:00:00.000Z",
+        #                "symbol": "ETHUSDTFP"
+        #            },
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbol = self.safe_symbol(marketId)
+            datetime = self.safe_string(entry, 'fundingTime')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
+                'timestamp': self.parse8601(datetime),
+                'datetime': datetime,
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def nonce(self):
         return self.milliseconds()

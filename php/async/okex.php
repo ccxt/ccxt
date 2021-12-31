@@ -168,6 +168,7 @@ class okex extends Exchange {
                         'account/interest-accrued' => 4,
                         'account/interest-rate' => 4,
                         'account/max-withdrawal' => 1,
+                        'asset/asset-valuation' => 1 / 5,
                         'asset/deposit-address' => 5 / 3,
                         'asset/balances' => 5 / 3,
                         'asset/transfer-state' => 10,

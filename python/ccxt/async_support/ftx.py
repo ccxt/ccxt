@@ -1888,7 +1888,7 @@ class ftx(Exchange):
             'trx': 'TRC20',
             'erc20': 'ERC20',
             'sol': 'SOL',
-            'bsc': 'BSC',
+            'bsc': 'BEP20',
             'bep2': 'BEP2',
         }
         return self.safe_string(networksById, networkId, networkId)
