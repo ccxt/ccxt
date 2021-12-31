@@ -1143,11 +1143,12 @@ class huobi(Exchange):
                     baseId = self.safe_string(market, 'symbol')
                     if inverse:
                         quoteId = 'USD'
+                        settleId = baseId
                     else:
                         pair = self.safe_string(market, 'pair')
                         parts = pair.split('-')
                         quoteId = self.safe_string(parts, 1)
-                    settleId = baseId
+                        settleId = quoteId
             else:
                 baseId = self.safe_string(market, 'base-currency')
                 quoteId = self.safe_string(market, 'quote-currency')
@@ -2135,32 +2136,26 @@ class huobi(Exchange):
         spot = (type == 'spot')
         future = (type == 'future')
         swap = (type == 'swap')
+        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
+        subType = self.safe_string(options, 'subType', defaultSubType)
+        subType = self.safe_string(params, 'subType', subType)
+        inverse = (subType == 'inverse')
+        linear = (subType == 'linear')
+        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+        isolated = (marginType == 'isolated')
+        cross = (marginType == 'cross')
         if spot:
             self.load_accounts()
             accountId = self.fetch_account_id_by_type(type, params)
             request['account-id'] = accountId
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
-        elif future:
-            method = 'contractPrivatePostApiV1ContractAccountInfo'
-        elif swap:
-            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-            subType = self.safe_string(options, 'subType', defaultSubType)
-            subType = self.safe_string(params, 'subType', subType)
-            if subType == 'inverse':
+        elif linear:
+            method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
+        elif inverse:
+            if future:
+                method = 'contractPrivatePostApiV1ContractAccountInfo'
+            elif swap:
                 method = 'contractPrivatePostSwapApiV1SwapAccountInfo'
-            elif subType == 'linear':
-                currencyId = self.safe_string(params, 'margin_account')
-                if currencyId is None:
-                    code = self.safe_string(params, 'code')
-                    if code is not None:
-                        params = self.omit(params, 'code')
-                        currency = self.currency(code)
-                        currencyId = currency['id']
-                if currencyId is None:
-                    method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
-                else:
-                    request['margin_account'] = currencyId
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -2210,20 +2205,36 @@ class huobi(Exchange):
         #         "ts":1637644827566
         #     }
         #
-        # swap cross
+        # linear cross futures and linear cross swap
         #
         #     {
         #         "status":"ok",
         #         "data":[
         #             {
+        #                 "futures_contract_detail":[
+        #                     {
+        #                         "symbol":"ETH",
+        #                         "contract_code":"ETH-USDT-220325",
+        #                         "margin_position":0,
+        #                         "margin_frozen":0,
+        #                         "margin_available":200.000000000000000000,
+        #                         "profit_unreal":0E-18,
+        #                         "liquidation_price":null,
+        #                         "lever_rate":5,
+        #                         "adjust_factor":0.060000000000000000,
+        #                         "contract_type":"quarter",
+        #                         "pair":"ETH-USDT",
+        #                         "business_type":"futures"
+        #                     },
+        #                 ],
         #                 "margin_mode":"cross",
         #                 "margin_account":"USDT",
         #                 "margin_asset":"USDT",
-        #                 "margin_balance":200,
-        #                 "margin_static":200,
+        #                 "margin_balance":200.000000000000000000,
+        #                 "margin_static":200.000000000000000000,
         #                 "margin_position":0,
         #                 "margin_frozen":0,
-        #                 "profit_real":0,
+        #                 "profit_real":0E-18,
         #                 "profit_unreal":0,
         #                 "withdraw_available":2E+2,
         #                 "risk_rate":null,
@@ -2242,11 +2253,10 @@ class huobi(Exchange):
         #                         "pair":"MANA-USDT",
         #                         "business_type":"swap"
         #                     },
-        #                     ...
         #                 ]
         #             }
         #         ],
-        #         "ts":1640493207964
+        #         "ts":1640915104870
         #     }
         #
         result = {'info': response}
@@ -2267,7 +2277,32 @@ class huobi(Exchange):
                 if balance['type'] == 'frozen':
                     account['used'] = self.safe_string(balance, 'balance')
                 result[code] = account
-        elif future:
+        elif linear:
+            first = self.safe_value(data, 0, {})
+            if cross:
+                account = self.account()
+                account['free'] = self.safe_string(first, 'margin_balance', 'margin_available')
+                account['used'] = self.safe_string(first, 'margin_frozen')
+                currencyId = self.safe_string_2(first, 'margin_asset', 'symbol')
+                code = self.safe_currency_code(currencyId)
+                result[code] = account
+            elif isolated:
+                fieldName = 'futures_contract_detail' if future else 'contract_detail'
+                balances = self.safe_value(first, fieldName, [])
+                for i in range(0, len(balances)):
+                    balance = balances[i]
+                    marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
+                    market = self.safe_market(marketId)
+                    account = self.account()
+                    account['free'] = self.safe_string(balance, 'margin_balance')
+                    account['used'] = self.safe_string(balance, 'margin_frozen')
+                    code = market['settle']
+                    accountsByCode = {}
+                    accountsByCode[code] = account
+                    symbol = market['symbol']
+                    result[symbol] = self.safe_balance(accountsByCode)
+                return result
+        elif inverse:
             for i in range(0, len(data)):
                 balance = data[i]
                 currencyId = self.safe_string(balance, 'symbol')
@@ -2276,24 +2311,6 @@ class huobi(Exchange):
                 account['free'] = self.safe_string(balance, 'margin_available')
                 account['used'] = self.safe_string(balance, 'margin_frozen')
                 result[code] = account
-        elif swap:
-            for i in range(0, len(data)):
-                balance = data[i]
-                marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
-                symbol = self.safe_symbol(marketId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'margin_balance', 'margin_available')
-                account['used'] = self.safe_string(balance, 'margin_frozen')
-                currencyId = self.safe_string_2(balance, 'margin_asset', 'symbol')
-                code = self.safe_currency_code(currencyId)
-                marginMode = self.safe_string(balance, 'margin_mode')
-                if marginMode == 'cross':
-                    result[code] = account
-                    return self.safe_balance(result)
-                accountsByCode = {}
-                accountsByCode[code] = account
-                result[symbol] = self.safe_balance(accountsByCode)
-            return result
         return self.safe_balance(result)
 
     def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
@@ -2970,16 +2987,23 @@ class huobi(Exchange):
             params = self.omit(params, ['clientOrderId', 'client_order_id'])
         method = None
         if market['swap']:
-            if market['linear']:
+            if market['inverse']:
+                method = 'contractPrivatePostSwapApiV1SwapOrder'
+            elif market['linear']:
                 marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
                 if marginType == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
                 elif marginType == 'cross':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder'
-            else:
-                method = 'contractPrivatePostSwapApiV1SwapOrder'
         elif market['future']:
-            method = 'contractPrivatePostApiV1ContractOrder'
+            if market['inverse']:
+                method = 'contractPrivatePostApiV1ContractOrder'
+            elif market['linear']:
+                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+                if marginType == 'isolated':
+                    method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
+                elif marginType == 'cross':
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder'
         response = getattr(self, method)(self.extend(request, params))
         #
         # linear swap cross margin
