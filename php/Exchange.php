@@ -1365,7 +1365,9 @@ class Exchange {
             $lowercase_method = mb_strtolower($key);
             $camelcase_method = static::capitalize($lowercase_method);
             if (static::is_associative($value)) {
-                if (preg_match('/^(?:get|post|put|delete|options|head|patch)$/i', $key)) {
+                // the options HTTP method conflicts with the 'options' API url path
+                // if (preg_match('/^(?:get|post|put|delete|options|head|patch)$/i', $key)) {
+                if (preg_match('/^(?:get|post|put|delete|head|patch)$/i', $key)) {
                     foreach ($value as $endpoint => $config) {
                         $path = trim($endpoint);
                         if (static::is_associative($config)) {

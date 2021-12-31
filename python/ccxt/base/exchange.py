@@ -511,7 +511,9 @@ class Exchange(object):
             if isinstance(value, list):
                 for path in value:
                     self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths)
-            elif re.search(r'^(?:get|post|put|delete|options|head|patch)$', key, re.IGNORECASE) is not None:
+            # the options HTTP method conflicts with the 'options' API url path
+            # elif re.search(r'^(?:get|post|put|delete|options|head|patch)$', key, re.IGNORECASE) is not None:
+            elif re.search(r'^(?:get|post|put|delete|head|patch)$', key, re.IGNORECASE) is not None:
                 for [endpoint, config] in value.items():
                     path = endpoint.strip()
                     if isinstance(config, dict):
