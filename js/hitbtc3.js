@@ -1502,7 +1502,7 @@ module.exports = class hitbtc3 extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request = {
-        // all parameters are optional
+        // all arguments are optional
         // 'symbols': Comma separated list of symbol codes,
         // 'sort': 'DESC' or 'ASC'
         // 'from': 'Datetime or Number',
@@ -1522,36 +1522,36 @@ module.exports = class hitbtc3 extends Exchange {
         }
         const response = await this.publicGetPublicFuturesHistoryFunding (this.extend (request, params));
         //
-        // {
-        //     "BTCUSDT_PERP": [{
-        //         "timestamp": "2021-07-29T16:00:00.271Z",
-        //         "funding_rate": "0.0001",
-        //         "avg_premium_index": "0.000061858585213222",
-        //         "next_funding_time": "2021-07-30T00:00:00.000Z",
-        //         "interest_rate": "0.0001"
-        //     },
         //     {
-        //         "timestamp": "2021-07-29T00:00:00.233Z",
-        //         "funding_rate": "0.0001",
-        //         "avg_premium_index": "0.000025719039726718",
-        //         "next_funding_time": "2021-07-29T08:00:00.000Z",
-        //         "interest_rate": "0.0001"
-        //     }],
-        //     "SOLUSDT_PERP": [{
-        //         "timestamp": "2021-12-31T00:00:00.059Z",
-        //         "funding_rate": "0.0001",
-        //         "avg_premium_index": "-0.000006926846405161",
-        //         "next_funding_time": "2021-12-31T08:00:00.000Z",
-        //         "interest_rate": "0.0001"
-        //     },
-        //     {
-        //         "timestamp": "2021-12-30T16:00:00.071Z",
-        //         "funding_rate": "0.0001",
-        //         "avg_premium_index": "-0.000012327135410810",
-        //         "next_funding_time": "2021-12-31T00:00:00.000Z",
-        //         "interest_rate":"0.0001"
-        //     }]
-        // }
+        //         "BTCUSDT_PERP": [{
+        //             "timestamp": "2021-07-29T16:00:00.271Z",
+        //             "funding_rate": "0.0001",
+        //             "avg_premium_index": "0.000061858585213222",
+        //             "next_funding_time": "2021-07-30T00:00:00.000Z",
+        //             "interest_rate": "0.0001"
+        //         },
+        //         {
+        //             "timestamp": "2021-07-29T00:00:00.233Z",
+        //             "funding_rate": "0.0001",
+        //             "avg_premium_index": "0.000025719039726718",
+        //             "next_funding_time": "2021-07-29T08:00:00.000Z",
+        //             "interest_rate": "0.0001"
+        //         }],
+        //         "SOLUSDT_PERP": [{
+        //             "timestamp": "2021-12-31T00:00:00.059Z",
+        //             "funding_rate": "0.0001",
+        //             "avg_premium_index": "-0.000006926846405161",
+        //             "next_funding_time": "2021-12-31T08:00:00.000Z",
+        //             "interest_rate": "0.0001"
+        //         },
+        //         {
+        //             "timestamp": "2021-12-30T16:00:00.071Z",
+        //             "funding_rate": "0.0001",
+        //             "avg_premium_index": "-0.000012327135410810",
+        //             "next_funding_time": "2021-12-31T00:00:00.000Z",
+        //             "interest_rate":"0.0001"
+        //         }]
+        //     }
         //
         const contracts = Object.keys (response);
         const rates = [];
