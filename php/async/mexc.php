@@ -1606,7 +1606,10 @@ class mexc extends Exchange {
         if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
             throw new InvalidOrder($this->id . ' createSwapOrder() order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
         }
-        if ($type === 'limit') {
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly) {
+            $type = 2;
+        } else if ($type === 'limit') {
             $type = 1;
         } else if ($type === 'market') {
             $type = 6;
@@ -1647,7 +1650,7 @@ class mexc extends Exchange {
         if ($clientOrderId !== null) {
             $request['externalOid'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'externalOid' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly' ));
         $response = yield $this->contractPrivatePostOrderSubmit (array_merge($request, $params));
         //
         //     array("code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4")

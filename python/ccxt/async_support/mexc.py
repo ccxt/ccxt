@@ -1529,7 +1529,10 @@ class mexc(Exchange):
             raise ArgumentsRequired(self.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin')
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        if type == 'limit':
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            type = 2
+        elif type == 'limit':
             type = 1
         elif type == 'market':
             type = 6
@@ -1565,7 +1568,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'externalOid'])
+        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
         response = await self.contractPrivatePostOrderSubmit(self.extend(request, params))
         #
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
