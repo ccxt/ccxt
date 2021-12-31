@@ -1502,13 +1502,13 @@ module.exports = class hitbtc3 extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request = {
-        // all arguments are optional
-        // 'symbols': Comma separated list of symbol codes,
-        // 'sort': 'DESC' or 'ASC'
-        // 'from': 'Datetime or Number',
-        // 'till': 'Datetime or Number',
-        // 'limit': 100,
-        // 'offset': 0,
+            // all arguments are optional
+            // 'symbols': Comma separated list of symbol codes,
+            // 'sort': 'DESC' or 'ASC'
+            // 'from': 'Datetime or Number',
+            // 'till': 'Datetime or Number',
+            // 'limit': 100,
+            // 'offset': 0,
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1558,11 +1558,12 @@ module.exports = class hitbtc3 extends Exchange {
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
             const market = this.safeMarket (marketId);
-            const entry = response[marketId];
-            for (let i = 0; i < entry.length; i++) {
+            const fundingRateData = response[marketId];
+            for (let i = 0; i < fundingRateData.length; i++) {
+                const entry = fundingRateData[i];
                 const symbol = this.safeSymbol (market['symbol']);
-                const fundingRate = this.safeNumber (entry[i], 'funding_rate');
-                const datetime = this.safeString (entry[i], 'timestamp');
+                const fundingRate = this.safeNumber (entry, 'funding_rate');
+                const datetime = this.safeString (entry, 'timestamp');
                 rates.push ({
                     'info': entry,
                     'symbol': symbol,
