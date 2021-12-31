@@ -805,6 +805,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - Malta
+     - .. image:: https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg
+          :target: https://crypto.com/
+          :alt: cryptocom
+     
+     - cryptocom
+     - `Crypto.com <https://crypto.com/>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://exchange-docs.crypto.com/
+          :alt: API Version 2
+     
+   * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg
           :target: https://therocktrading.com
           :alt: therock

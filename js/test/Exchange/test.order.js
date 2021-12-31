@@ -16,7 +16,7 @@ function testOrder (exchange, order, symbol, now) {
     assert ('datetime' in order);
     assert (order['datetime'] === exchange.iso8601 (order['timestamp']));
     assert ('status' in order);
-    assert ((order['status'] === undefined) || (order['status'] === 'open') || (order['status'] === 'closed') || (order['status'] === 'canceled'));
+    assert ((order['status'] === 'open') || (order['status'] === 'closed') || (order['status'] === 'canceled'));
     assert ('symbol' in order);
     assert (order['symbol'] === symbol);
     assert ('type' in order);
