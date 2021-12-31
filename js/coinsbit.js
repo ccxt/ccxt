@@ -923,7 +923,7 @@ module.exports = class coinsbit extends Exchange {
         if (isFromFetchOpenOrders) {
             status = 'open';
         } else if (isFromFetchClosedOrders) {
-            status = sameFillAsAmount ? 'closed' : 'cancelled';
+            status = sameFillAsAmount ? 'closed' : 'canceled';
         } else if (isFromCreateOrCancelOrder) {
             // cancelled ones will get status overwrites inside 'cancelOrder' anyway, so we handle here only for createOrder's response - let's calculate if it was fully-filled.
             status = sameFillAsAmount ? 'closed' : 'open';
@@ -1098,7 +1098,7 @@ module.exports = class coinsbit extends Exchange {
             const feedback = this.id + ' ' + body;
             const message = this.safeString (response, 'message', errorsMessage);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback);
         }
     }
