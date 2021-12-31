@@ -31,15 +31,19 @@ module.exports = class aax extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
@@ -124,6 +128,7 @@ module.exports = class aax extends Exchange {
                         'futures/trades', // Retrieve trade details for a futures order
                         'futures/openOrders', // Retrieve futures open orders
                         'futures/orders', // Retrieve historical futures orders
+                        'futures/funding/fundingFee',
                         'futures/funding/predictedFundingFee/{symbol}', // Get predicted funding fee
                     ],
                     'post': [
@@ -1977,6 +1982,60 @@ module.exports = class aax extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        if (limit === undefined) {
+            limit = 100; // Default
+        } else if (limit > 1000) {
+            throw new BadRequest (this.id + ' fetchFundingHistory() limit argument cannot exceed 1000');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'limit': limit,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.privateGetFuturesFundingFundingFee (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "symbol": "BTCUSDTFP",
+        //                "fundingRate":"0.001",
+        //                "fundingFee":"100",
+        //                "currency":"USDT",
+        //                "fundingTime": "2020-08-12T08:00:00Z",
+        //                "markPrice": "11192.5",
+        //            }
+        //        ],
+        //        "message": "success",
+        //        "ts": 1573542445411
+        //    }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const datetime = this.safeString (entry, 'fundingTime');
+            result.push ({
+                'info': entry,
+                'symbol': symbol,
+                'code': this.safeCurrencyCode (this.safeString (entry, 'currency')),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+                'id': undefined,
+                'amount': this.safeNumber (entry, 'fundingFee'),
+            });
+        }
+        return result;
     }
 
     nonce () {
