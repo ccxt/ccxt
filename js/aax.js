@@ -103,7 +103,7 @@ module.exports = class aax extends Exchange {
                         'market/markPrice', // Get Current Mark Price
                         'futures/funding/predictedFunding/{symbol}', // Get Predicted Funding Rate
                         'futures/funding/prevFundingRate/{symbol}', // Get Last Funding Rate
-                        'futures/funding/fundingRate', // Get Last Funding Rate
+                        'futures/funding/fundingRate',
                         'market/candles/index', // * Deprecated
                         'market/index/candles',
                     ],
