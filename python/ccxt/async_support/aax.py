@@ -50,6 +50,7 @@ class aax(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -1768,6 +1769,65 @@ class aax(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest('Funding rates only exist for swap contracts')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetFuturesFundingPrevFundingRateSymbol(self.extend(request, params))
+        #
+        #    {
+        #        "code": 1,
+        #        "data": {
+        #           "symbol": "BTCUSDFP",
+        #           "markPrice": "11192.5",
+        #           "fundingRate": "0.001",
+        #           "fundingTime": "2020-08-12T08:00:00Z",
+        #           "nextFundingTime": "2020-08-12T16:00:00Z"
+        #        },
+        #        "message": "success",
+        #        "ts": 1573542445411
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_funding_rate(data)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #    {
+        #        "symbol": "BTCUSDFP",
+        #        "markPrice": "11192.5",
+        #        "fundingRate": "0.001",
+        #        "fundingTime": "2020-08-12T08:00:00Z",
+        #        "nextFundingTime": "2020-08-12T16:00:00Z"
+        #    }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        markPrice = self.safe_number(contract, 'markPrice')
+        fundingRate = self.safe_number(contract, 'fundingRate')
+        prevFundingDatetime = self.safe_string(contract, 'fundingTime')
+        nextFundingDatetime = self.safe_string(contract, 'nextFundingTime')
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'previousFundingRate': fundingRate,
+            'nextFundingRate': None,
+            'previousFundingTimestamp': self.parse8601(prevFundingDatetime),
+            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
+            'previousFundingDatetime': prevFundingDatetime,
+            'nextFundingDatetime': nextFundingDatetime,
+        }
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #
