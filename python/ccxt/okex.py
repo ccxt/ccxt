@@ -1459,16 +1459,6 @@ class okex(Exchange):
         first = self.safe_value(data, 0, {})
         return self.parse_trading_fee(first, market)
 
-    def fetch_asset_valuation(self, code, params={}):
-        # self method is not unified, it is an exchange-specific helper wrapper
-        self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'ccy': currency['id'],
-        }
-        response = self.privateGetAssetAssetValuation(self.extend(request, params))
-        return response
-
     def fetch_balance(self, params={}):
         self.load_markets()
         defaultType = self.safe_string(self.options, 'defaultType')

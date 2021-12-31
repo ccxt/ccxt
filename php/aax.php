@@ -33,16 +33,23 @@ class aax extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchFundingHistory' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
             ),
             'timeframes' => array(
@@ -94,6 +101,7 @@ class aax extends Exchange {
                     'get' => array(
                         'currencies',
                         'announcement/maintenance', // System Maintenance Notice
+                        'time',
                         'instruments', // Retrieve all trading pairs information
                         'market/orderbook', // Order Book
                         'futures/position/openInterest', // Open Interest
@@ -104,6 +112,7 @@ class aax extends Exchange {
                         'market/markPrice', // Get Current Mark Price
                         'futures/funding/predictedFunding/{symbol}', // Get Predicted Funding Rate
                         'futures/funding/prevFundingRate/{symbol}', // Get Last Funding Rate
+                        'futures/funding/fundingRate',
                         'market/candles/index', // * Deprecated
                         'market/index/candles',
                     ),
@@ -121,6 +130,7 @@ class aax extends Exchange {
                         'futures/trades', // Retrieve trade details for a futures order
                         'futures/openOrders', // Retrieve futures open orders
                         'futures/orders', // Retrieve historical futures orders
+                        'futures/funding/fundingFee',
                         'futures/funding/predictedFundingFee/{symbol}', // Get predicted funding fee
                     ),
                     'post' => array(
@@ -256,6 +266,19 @@ class aax extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetTime ($params);
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => 1573542445411,  // unit => millisecond
+        //        "message" => "success",
+        //        "ts" => 1573542445411
+        //    }
+        //
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_status($params = array ()) {
@@ -1820,6 +1843,68 @@ class aax extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest('Funding rates only exist for swap contracts');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetFuturesFundingPrevFundingRateSymbol (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => array(
+        //           "symbol" => "BTCUSDFP",
+        //           "markPrice" => "11192.5",
+        //           "fundingRate" => "0.001",
+        //           "fundingTime" => "2020-08-12T08:00:00Z",
+        //           "nextFundingTime" => "2020-08-12T16:00:00Z"
+        //        ),
+        //        "message" => "success",
+        //        "ts" => 1573542445411
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_funding_rate($data);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //    {
+        //        "symbol" => "BTCUSDFP",
+        //        "markPrice" => "11192.5",
+        //        "fundingRate" => "0.001",
+        //        "fundingTime" => "2020-08-12T08:00:00Z",
+        //        "nextFundingTime" => "2020-08-12T16:00:00Z"
+        //    }
+        //
+        $marketId = $this->safe_string($contract, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $markPrice = $this->safe_number($contract, 'markPrice');
+        $fundingRate = $this->safe_number($contract, 'fundingRate');
+        $prevFundingDatetime = $this->safe_string($contract, 'fundingTime');
+        $nextFundingDatetime = $this->safe_string($contract, 'nextFundingTime');
+        return array(
+            'info' => $contract,
+            'symbol' => $symbol,
+            'markPrice' => $markPrice,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'previousFundingRate' => $fundingRate,
+            'nextFundingRate' => null,
+            'previousFundingTimestamp' => $this->parse8601($prevFundingDatetime),
+            'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
+            'previousFundingDatetime' => $prevFundingDatetime,
+            'nextFundingDatetime' => $nextFundingDatetime,
+        );
+    }
+
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
@@ -1844,6 +1929,115 @@ class aax extends Exchange {
             'tag' => $tag,
             'network' => $network,
         );
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = intval($since / 1000);
+        }
+        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
+        $endTime = $this->safe_string($params, 'endTime'); // exchange-specific in seconds
+        $params = $this->omit($params, array( 'endTime', 'till' ));
+        if ($till !== null) {
+            $request['endTime'] = intval($till / 1000);
+        } else if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetFuturesFundingFundingRate (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => array(
+        //            array(
+        //                "fundingRate" => "0.00033992",
+        //                "fundingTime" => "2021-12-31T00:00:00.000Z",
+        //                "symbol" => "ETHUSDTFP"
+        //            ),
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $symbol = $this->safe_symbol($marketId);
+            $datetime = $this->safe_string($entry, 'fundingTime');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+        }
+        if ($limit === null) {
+            $limit = 100; // Default
+        } else if ($limit > 1000) {
+            throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 1000');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'limit' => $limit,
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = $this->privateGetFuturesFundingFundingFee (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => array(
+        //            {
+        //                "symbol" => "BTCUSDTFP",
+        //                "fundingRate":"0.001",
+        //                "fundingFee":"100",
+        //                "currency":"USDT",
+        //                "fundingTime" => "2020-08-12T08:00:00Z",
+        //                "markPrice" => "11192.5",
+        //            }
+        //        ),
+        //        "message" => "success",
+        //        "ts" => 1573542445411
+        //    }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $datetime = $this->safe_string($entry, 'fundingTime');
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'code' => $this->safe_currency_code($this->safe_string($entry, 'currency')),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
+                'id' => null,
+                'amount' => $this->safe_number($entry, 'fundingFee'),
+            );
+        }
+        return $result;
     }
 
     public function nonce() {

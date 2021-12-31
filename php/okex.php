@@ -1505,17 +1505,6 @@ class okex extends Exchange {
         return $this->parse_trading_fee($first, $market);
     }
 
-    public function fetch_asset_valuation($code, $params = array ()) {
-        // this method is not unified, it is an exchange-specific helper wrapper
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'ccy' => $currency['id'],
-        );
-        $response = $this->privateGetAssetAssetValuation (array_merge($request, $params));
-        return $response;
-    }
-
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType');

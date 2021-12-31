@@ -31,6 +31,7 @@ class hitbtc3 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -1504,6 +1505,68 @@ class hitbtc3 extends Exchange {
             'info' => $response,
             'id' => $id,
         );
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $market = null;
+        $request = array(
+            // all arguments are optional
+            // 'symbols' => Comma separated list of $symbol codes,
+            // 'sort' => 'DESC' or 'ASC'
+            // 'from' => 'Datetime or Number',
+            // 'till' => 'Datetime or Number',
+            // 'limit' => 100,
+            // 'offset' => 0,
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbols'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->publicGetPublicFuturesHistoryFunding (array_merge($request, $params));
+        //
+        //    {
+        //        "BTCUSDT_PERP" => array(
+        //            array(
+        //                "timestamp" => "2021-07-29T16:00:00.271Z",
+        //                "funding_rate" => "0.0001",
+        //                "avg_premium_index" => "0.000061858585213222",
+        //                "next_funding_time" => "2021-07-30T00:00:00.000Z",
+        //                "interest_rate" => "0.0001"
+        //            ),
+        //            ...
+        //        ),
+        //        ...
+        //    }
+        //
+        $contracts = is_array($response) ? array_keys($response) : array();
+        $rates = array();
+        for ($i = 0; $i < count($contracts); $i++) {
+            $marketId = $contracts[$i];
+            $market = $this->safe_market($marketId);
+            $fundingRateData = $response[$marketId];
+            for ($i = 0; $i < count($fundingRateData); $i++) {
+                $entry = $fundingRateData[$i];
+                $symbol = $this->safe_symbol($market['symbol']);
+                $fundingRate = $this->safe_number($entry, 'funding_rate');
+                $datetime = $this->safe_string($entry, 'timestamp');
+                $rates[] = array(
+                    'info' => $entry,
+                    'symbol' => $symbol,
+                    'fundingRate' => $fundingRate,
+                    'timestamp' => $this->parse8601($datetime),
+                    'datetime' => $datetime,
+                );
+            }
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

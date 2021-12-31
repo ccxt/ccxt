@@ -154,9 +154,9 @@ class binance(Exchange):
                 # the API structure below will need 3-layer apidefs
                 'sapi': {
                     'get': {
-                        'accountSnapshot': 1,
                         'system/status': 1,
                         # these endpoints require self.apiKey
+                        'accountSnapshot': 1,
                         'margin/asset': 1,
                         'margin/pair': 1,
                         'margin/allAssets': 1,
@@ -4672,7 +4672,7 @@ class binance(Exchange):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
