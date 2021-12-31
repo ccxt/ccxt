@@ -33,6 +33,7 @@ class aax extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -44,6 +45,7 @@ class aax extends Exchange {
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
             ),
             'timeframes' => array(
@@ -95,6 +97,7 @@ class aax extends Exchange {
                     'get' => array(
                         'currencies',
                         'announcement/maintenance', // System Maintenance Notice
+                        'time',
                         'instruments', // Retrieve all trading pairs information
                         'market/orderbook', // Order Book
                         'futures/position/openInterest', // Open Interest
@@ -258,6 +261,19 @@ class aax extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetTime ($params);
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => 1573542445411,  // unit => millisecond
+        //        "message" => "success",
+        //        "ts" => 1573542445411
+        //    }
+        //
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_status($params = array ()) {
@@ -1820,6 +1836,68 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_deposit_address($data, $currency);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest('Funding rates only exist for swap contracts');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetFuturesFundingPrevFundingRateSymbol (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => array(
+        //           "symbol" => "BTCUSDFP",
+        //           "markPrice" => "11192.5",
+        //           "fundingRate" => "0.001",
+        //           "fundingTime" => "2020-08-12T08:00:00Z",
+        //           "nextFundingTime" => "2020-08-12T16:00:00Z"
+        //        ),
+        //        "message" => "success",
+        //        "ts" => 1573542445411
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_funding_rate($data);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //    {
+        //        "symbol" => "BTCUSDFP",
+        //        "markPrice" => "11192.5",
+        //        "fundingRate" => "0.001",
+        //        "fundingTime" => "2020-08-12T08:00:00Z",
+        //        "nextFundingTime" => "2020-08-12T16:00:00Z"
+        //    }
+        //
+        $marketId = $this->safe_string($contract, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $markPrice = $this->safe_number($contract, 'markPrice');
+        $fundingRate = $this->safe_number($contract, 'fundingRate');
+        $prevFundingDatetime = $this->safe_string($contract, 'fundingTime');
+        $nextFundingDatetime = $this->safe_string($contract, 'nextFundingTime');
+        return array(
+            'info' => $contract,
+            'symbol' => $symbol,
+            'markPrice' => $markPrice,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'previousFundingRate' => $fundingRate,
+            'nextFundingRate' => null,
+            'previousFundingTimestamp' => $this->parse8601($prevFundingDatetime),
+            'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
+            'previousFundingDatetime' => $prevFundingDatetime,
+            'nextFundingDatetime' => $nextFundingDatetime,
+        );
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {

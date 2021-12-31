@@ -139,9 +139,9 @@ class binance extends Exchange {
                 // the API structure below will need 3-layer apidefs
                 'sapi' => array(
                     'get' => array(
-                        'accountSnapshot' => 1,
                         'system/status' => 1,
                         // these endpoints require $this->apiKey
+                        'accountSnapshot' => 1,
                         'margin/asset' => 1,
                         'margin/pair' => 1,
                         'margin/allAssets' => 1,
@@ -4943,7 +4943,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } else if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
+        } else if (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);

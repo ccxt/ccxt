@@ -50,6 +50,7 @@ class aax(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -61,6 +62,7 @@ class aax(Exchange):
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
             },
             'timeframes': {
@@ -112,6 +114,7 @@ class aax(Exchange):
                     'get': [
                         'currencies',
                         'announcement/maintenance',  # System Maintenance Notice
+                        'time',
                         'instruments',  # Retrieve all trading pairs information
                         'market/orderbook',  # Order Book
                         'futures/position/openInterest',  # Open Interest
@@ -275,6 +278,18 @@ class aax(Exchange):
                 },
             },
         })
+
+    def fetch_time(self, params={}):
+        response = self.publicGetTime(params)
+        #
+        #    {
+        #        "code": 1,
+        #        "data": 1573542445411,  # unit: millisecond
+        #        "message": "success",
+        #        "ts": 1573542445411
+        #    }
+        #
+        return self.safe_integer(response, 'data')
 
     def fetch_status(self, params={}):
         response = self.publicGetAnnouncementMaintenance(params)
@@ -1754,6 +1769,65 @@ class aax(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest('Funding rates only exist for swap contracts')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetFuturesFundingPrevFundingRateSymbol(self.extend(request, params))
+        #
+        #    {
+        #        "code": 1,
+        #        "data": {
+        #           "symbol": "BTCUSDFP",
+        #           "markPrice": "11192.5",
+        #           "fundingRate": "0.001",
+        #           "fundingTime": "2020-08-12T08:00:00Z",
+        #           "nextFundingTime": "2020-08-12T16:00:00Z"
+        #        },
+        #        "message": "success",
+        #        "ts": 1573542445411
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_funding_rate(data)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #    {
+        #        "symbol": "BTCUSDFP",
+        #        "markPrice": "11192.5",
+        #        "fundingRate": "0.001",
+        #        "fundingTime": "2020-08-12T08:00:00Z",
+        #        "nextFundingTime": "2020-08-12T16:00:00Z"
+        #    }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        markPrice = self.safe_number(contract, 'markPrice')
+        fundingRate = self.safe_number(contract, 'fundingRate')
+        prevFundingDatetime = self.safe_string(contract, 'fundingTime')
+        nextFundingDatetime = self.safe_string(contract, 'nextFundingTime')
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'previousFundingRate': fundingRate,
+            'nextFundingRate': None,
+            'previousFundingTimestamp': self.parse8601(prevFundingDatetime),
+            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
+            'previousFundingDatetime': prevFundingDatetime,
+            'nextFundingDatetime': nextFundingDatetime,
+        }
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #
