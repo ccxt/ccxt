@@ -61,6 +61,7 @@ class aax(Exchange):
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
             },
             'timeframes': {
@@ -112,6 +113,7 @@ class aax(Exchange):
                     'get': [
                         'currencies',
                         'announcement/maintenance',  # System Maintenance Notice
+                        'time',
                         'instruments',  # Retrieve all trading pairs information
                         'market/orderbook',  # Order Book
                         'futures/position/openInterest',  # Open Interest
@@ -275,6 +277,18 @@ class aax(Exchange):
                 },
             },
         })
+
+    async def fetch_time(self, params={}):
+        response = await self.publicGetTime(params)
+        #
+        #    {
+        #        "code": 1,
+        #        "data": 1573542445411,  # unit: millisecond
+        #        "message": "success",
+        #        "ts": 1573542445411
+        #    }
+        #
+        return self.safe_integer(response, 'data')
 
     async def fetch_status(self, params={}):
         response = await self.publicGetAnnouncementMaintenance(params)

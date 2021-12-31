@@ -45,6 +45,7 @@ class aax extends Exchange {
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
             ),
             'timeframes' => array(
@@ -96,6 +97,7 @@ class aax extends Exchange {
                     'get' => array(
                         'currencies',
                         'announcement/maintenance', // System Maintenance Notice
+                        'time',
                         'instruments', // Retrieve all trading pairs information
                         'market/orderbook', // Order Book
                         'futures/position/openInterest', // Open Interest
@@ -259,6 +261,19 @@ class aax extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = yield $this->publicGetTime ($params);
+        //
+        //    {
+        //        "code" => 1,
+        //        "data" => 1573542445411,  // unit => millisecond
+        //        "message" => "success",
+        //        "ts" => 1573542445411
+        //    }
+        //
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_status($params = array ()) {
