@@ -1501,7 +1501,7 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchAssetValuation (code, params = {}) {
-        // this method is an exchange-specific helper wrapper
+        // this method is not unified, it is an exchange-specific helper wrapper
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
