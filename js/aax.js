@@ -42,6 +42,7 @@ module.exports = class aax extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
             },
             'timeframes': {
@@ -93,6 +94,7 @@ module.exports = class aax extends Exchange {
                     'get': [
                         'currencies',
                         'announcement/maintenance', // System Maintenance Notice
+                        'time',
                         'instruments', // Retrieve all trading pairs information
                         'market/orderbook', // Order Book
                         'futures/position/openInterest', // Open Interest
@@ -256,6 +258,19 @@ module.exports = class aax extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        //
+        //    {
+        //        "code": 1,
+        //        "data": 1573542445411,  // unit: millisecond
+        //        "message": "success",
+        //        "ts": 1573542445411
+        //    }
+        //
+        return this.safeInteger (response, 'data');
     }
 
     async fetchStatus (params = {}) {
