@@ -495,16 +495,15 @@ module.exports = class ascendex extends Exchange {
             const spot = settle === undefined;
             const swap = !spot;
             const type = swap ? 'swap' : 'spot';
-            const contract = swap;
             const margin = this.safeValue (market, 'marginTradable', false);
-            const linear = contract ? true : undefined;
-            const contractSize = contract ? '1' : undefined;
+            const linear = swap ? true : undefined;
+            const contractSize = swap ? '1' : undefined;
             let minQty = this.safeNumber (market, 'minQty');
             let maxQty = this.safeNumber (market, 'maxQty');
             let minPrice = this.safeNumber (market, 'tickSize');
             let maxPrice = undefined;
             let symbol = base + '/' + quote;
-            if (contract) {
+            if (swap) {
                 const lotSizeFilter = this.safeValue (market, 'lotSizeFilter');
                 minQty = this.safeNumber (lotSizeFilter, 'minQty');
                 maxQty = this.safeNumber (lotSizeFilter, 'maxQty');
@@ -532,7 +531,7 @@ module.exports = class ascendex extends Exchange {
                 'type': type,
                 'spot': spot,
                 'margin': margin,
-                'swap': contract,
+                'swap': swap,
                 'future': false,
                 'option': false,
                 'active': active,
