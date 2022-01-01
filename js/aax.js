@@ -2629,8 +2629,13 @@ module.exports = class aax extends Exchange {
         //    }
         //
         const positions = this.safeValue (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
         const first = this.safeValue (positions, 0);
-        return this.parsePosition (first);
+        const position = this.parsePosition (first);
+        return this.extend (position, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        })
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -2693,8 +2698,13 @@ module.exports = class aax extends Exchange {
         //
         const result = [];
         const positions = this.safeValue (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
         for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
+            const position = this.parsePosition (positions[i])
+            result.push (this.extend (position, {
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            }));
         }
         return this.filterByArray (result, 'symbol', symbols, false);
     }
