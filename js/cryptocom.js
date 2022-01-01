@@ -513,7 +513,7 @@ module.exports = class cryptocom extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -609,9 +609,6 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTrades requires a `symbol` argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -927,7 +924,7 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders');
             }
             request['instrument_name'] = market['id'];
         }
@@ -949,7 +946,7 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder requires a `symbol` argument');
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders');
             }
             request['instrument_name'] = market['id'];
             request['order_id'] = id.toString ();
@@ -979,7 +976,7 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a `symbol` argument');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for ' + marketType + ' orders');
             }
             request['instrument_name'] = market['id'];
         }
