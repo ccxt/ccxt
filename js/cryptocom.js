@@ -251,43 +251,6 @@ module.exports = class cryptocom extends Exchange {
         });
     }
 
-    nonce () {
-        return this.milliseconds ();
-    }
-
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api[0]] + '/' + path;
-        const query = this.omit (params, this.extractParams (path));
-        if (api[1] === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const requestParams = this.extend ({}, params);
-            const paramsKeys = Object.keys (this.keysort (requestParams));
-            let strSortKey = '';
-            for (let i = 0; i < paramsKeys.length; i++) {
-                strSortKey = strSortKey + paramsKeys[i].toString () + requestParams[paramsKeys[i]].toString ();
-            }
-            const payload = path + nonce + this.apiKey + strSortKey + nonce;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret));
-            body = this.json ({
-                'id': nonce,
-                'method': path,
-                'params': params,
-                'api_key': this.apiKey,
-                'sig': signature,
-                'nonce': nonce,
-            });
-            headers = {
-                'Content-Type': 'application/json',
-            };
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
     async fetchMarkets (params = {}) {
         // {
         //     "id": 11,
@@ -1174,18 +1137,6 @@ module.exports = class cryptocom extends Exchange {
         return this.parseTransactions (withdrawalList, currency, since, limit);
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'message');
-        if (errorCode in this.exceptions['exact']) {
-            const Exception = this.exceptions['exact'][errorCode];
-            throw new Exception (this.id + ' ' + message);
-        }
-        if (errorCode !== '0') {
-            throw new ExchangeError (this.id + ' ' + message);
-        }
-    }
-
     parseTicker (ticker, market = undefined) {
         // {
         //     "i":"CRO_BTC",
@@ -1475,5 +1426,56 @@ module.exports = class cryptocom extends Exchange {
             'internal': undefined,
             'fee': fee,
         };
+    }
+
+    nonce () {
+        return this.milliseconds ();
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const [ type, access ] = api;
+        let url = this.urls['api'][type] + '/' + path;
+        const query = this.omit (params, this.extractParams (path));
+        if (access === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ().toString ();
+            const requestParams = this.extend ({}, params);
+            const keysorted = this.keysort (requestParams);
+            const paramsKeys = Object.keys (keysorted);
+            let strSortKey = '';
+            for (let i = 0; i < paramsKeys.length; i++) {
+                strSortKey = strSortKey + paramsKeys[i].toString () + requestParams[paramsKeys[i]].toString ();
+            }
+            const payload = path + nonce + this.apiKey + strSortKey + nonce;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+            body = this.json ({
+                'id': nonce,
+                'method': path,
+                'params': params,
+                'api_key': this.apiKey,
+                'sig': signature,
+                'nonce': nonce,
+            });
+            headers = {
+                'Content-Type': 'application/json',
+            };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message');
+        if (errorCode in this.exceptions['exact']) {
+            const Exception = this.exceptions['exact'][errorCode];
+            throw new Exception (this.id + ' ' + message);
+        }
+        if (errorCode !== '0') {
+            throw new ExchangeError (this.id + ' ' + message);
+        }
     }
 };
