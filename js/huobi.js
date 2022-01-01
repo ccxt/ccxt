@@ -1771,22 +1771,22 @@ module.exports = class huobi extends Exchange {
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
             request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
-            if (marketType === 'future') {
-                method = 'contractPrivatePostApiV1ContractMatchresultsExact';
-                request['symbol'] = market['settleId'];
-            } else if (marketType === 'swap') {
-                if (market['linear']) {
-                    const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-                    if (marginType === 'isolated') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
-                    } else if (marginType === 'cross') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
-                    }
-                } else if (market['inverse']) {
-                    method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
+            if (market['linear']) {
+                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+                if (marginType === 'isolated') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
+                } else if (marginType === 'cross') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
                 }
-            } else {
-                throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + marketType + ' markets');
+            } else if (market['inverse']) {
+                if (marketType === 'future') {
+                    method = 'contractPrivatePostApiV1ContractMatchresultsExact';
+                    request['symbol'] = market['settleId'];
+                } else if (marketType === 'swap') {
+                    method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
+                } else {
+                    throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + marketType + ' markets');
+                }
             }
         }
         const response = await this[method] (this.extend (request, params));
@@ -3274,22 +3274,22 @@ module.exports = class huobi extends Exchange {
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
-            if (marketType === 'future') {
-                method = 'contractPrivatePostApiV1ContractCancel';
-                request['symbol'] = market['settleId'];
-            } else if (marketType === 'swap') {
-                if (market['linear']) {
-                    const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-                    if (marginType === 'isolated') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                    } else if (marginType === 'cross') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
-                    }
-                } else if (market['inverse']) {
-                    method = 'contractPrivatePostSwapApiV1SwapCancel';
+            if (market['linear']) {
+                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+                if (marginType === 'isolated') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
+                } else if (marginType === 'cross') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
                 }
-            } else {
-                throw new NotSupported (this.id + ' cancelOrders() does not support ' + marketType + ' markets');
+            } else if (market['inverse']) {
+                if (market['future']) {
+                    method = 'contractPrivatePostApiV1ContractCancel';
+                    request['symbol'] = market['settleId'];
+                } else if (market['swap']) {
+                    method = 'contractPrivatePostSwapApiV1SwapCancel';
+                } else {
+                    throw new NotSupported (this.id + ' cancelOrders() does not support ' + marketType + ' markets');
+                }
             }
             let clientOrderIds = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeString2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
@@ -3387,22 +3387,22 @@ module.exports = class huobi extends Exchange {
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
-            if (marketType === 'future') {
-                method = 'contractPrivatePostApiV1ContractCancelall';
-                request['symbol'] = market['settleId'];
-            } else if (marketType === 'swap') {
-                if (market['linear']) {
-                    const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-                    if (marginType === 'isolated') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
-                    } else if (marginType === 'cross') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
-                    }
-                } else if (market['inverse']) {
-                    method = 'contractPrivatePostSwapApiV1SwapCancelall';
+            if (market['linear']) {
+                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+                if (marginType === 'isolated') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
+                } else if (marginType === 'cross') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
                 }
-            } else {
-                throw new NotSupported (this.id + ' cancelOrders() does not support ' + marketType + ' markets');
+            } else if (market['inverse']) {
+                if (marketType === 'future') {
+                    method = 'contractPrivatePostApiV1ContractCancelall';
+                    request['symbol'] = market['settleId'];
+                } else if (marketType === 'swap') {
+                    method = 'contractPrivatePostSwapApiV1SwapCancelall';
+                } else {
+                    throw new NotSupported (this.id + ' cancelOrders() does not support ' + marketType + ' markets');
+                }
             }
         }
         const response = await this[method] (this.extend (request, params));
