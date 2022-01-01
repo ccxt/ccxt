@@ -280,6 +280,8 @@ async function testExchange (exchange) {
     await tests['fetchClosedOrders'] (exchange, symbol)
     await tests['fetchMyTrades']     (exchange, symbol)
 
+    await tests['fetchPositions']    (exchange, symbol)
+
     if ('fetchLedger' in tests) {
         await tests['fetchLedger'] (exchange, code)
     }

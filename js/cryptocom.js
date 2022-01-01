@@ -76,7 +76,7 @@ module.exports = class cryptocom extends Exchange {
                     'derivatives': 'https://deriv-api.crypto.com/v1',
                 },
                 'www': 'https://crypto.com/',
-                'referral': '',
+                'referral': 'https://crypto.com/exch/5835vstech',
                 'doc': 'https://exchange-docs.crypto.com/',
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },

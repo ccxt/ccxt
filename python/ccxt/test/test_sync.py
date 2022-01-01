@@ -22,6 +22,7 @@ import ccxt  # noqa: E402
 from test_trade import test_trade  # noqa: E402
 from test_order import test_order  # noqa: E402
 from test_ohlcv import test_ohlcv  # noqa: E402
+from test_position import test_position  # noqa: E402
 from test_transaction import test_transaction  # noqa: E402
 
 # ------------------------------------------------------------------------------
@@ -256,6 +257,26 @@ def test_orders(exchange, symbol):
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
     else:
         dump(green(exchange.id), green(symbol), 'fetch_orders() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+def test_positions(exchange, symbol):
+    if exchange.has['fetchPositions']:
+        skipped_exchanges = [
+        ]
+        if exchange.id in skipped_exchanges:
+            dump(green(exchange.id), green(symbol), 'fetch_positions() skipped')
+            return
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching positions...')
+        positions = exchange.fetch_positions()
+        for position in positions:
+            test_position(exchange, position, symbol, int(time.time() * 1000))
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(positions)), 'positions')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_positions() not supported')
 
 # ------------------------------------------------------------------------------
 
