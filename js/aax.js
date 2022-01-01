@@ -2581,14 +2581,56 @@ module.exports = class aax extends Exchange {
         };
     }
 
-    parsePositions (response) {
-        const result = [];
-        const positions = this.safeValue (response, 'data');
-        const ts = this.safeInteger (response, 'ts')
-        for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (this.extend (positions[i], {'ts': ts})));
-        }
-        return result;
+    async fetchPosition (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "autoMarginCall": false,
+        //                "avgEntryPrice": "3706.03",
+        //                "bankruptPrice": "2963.3415880000",
+        //                "base": "ETH",
+        //                "code": "FP",
+        //                "commission": "0.02964824",
+        //                "currentQty": "2",
+        //                "funding": "-0.04827355",
+        //                "fundingStatus": null,
+        //                "id": "385839395735639395",
+        //                "leverage": "5",
+        //                "liquidationPrice": "2983.07",
+        //                "marketPrice": "3731.84",
+        //                "openTime": "2021-12-31T18:57:25.930Z",
+        //                "posLeverage": "5.00",
+        //                "posMargin": "14.85376824",
+        //                "quote": "USDT",
+        //                "realisedPnl": "-0.07792179",
+        //                "riskLimit": "10000000",
+        //                "riskyPrice": "3272.25",
+        //                "settleType": "VANILLA",
+        //                "stopLossPrice": "0",
+        //                "stopLossSource": 1,
+        //                "symbol": "ETHUSDTFP",
+        //                "takeProfitPrice": "0",
+        //                "takeProfitSource": 1,
+        //                "unrealisedPnl": "0.51620000",
+        //                "userID": "3829384"
+        //            }
+        //            ...
+        //        ],
+        //        "message": "success",
+        //        "ts": 1641026778068
+        //    }
+        //
+        const positions = this.safeValue (response, 'data', []);
+        const first = this.safeValue (positions, 0);
+        return this.parsePosition (first);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -2649,7 +2691,11 @@ module.exports = class aax extends Exchange {
         //        "ts": 1641026778068
         //    }
         //
-        const result = this.parsePositions (response);
+        const result = [];
+        const positions = this.safeValue (response, 'data', []);
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
