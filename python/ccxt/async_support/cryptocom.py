@@ -1247,7 +1247,7 @@ class cryptocom(Exchange):
         if execInst is not None:
             postOnly = (execInst == 'POST_ONLY')
         cost = self.safe_string(order, 'cumulative_value')
-        return self.safeOrder2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,

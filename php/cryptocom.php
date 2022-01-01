@@ -1306,7 +1306,7 @@ class cryptocom extends Exchange {
             $postOnly = ($execInst === 'POST_ONLY');
         }
         $cost = $this->safe_string($order, 'cumulative_value');
-        return $this->safeOrder2 (array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
