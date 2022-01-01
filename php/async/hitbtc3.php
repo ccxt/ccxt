@@ -325,7 +325,6 @@ class hitbtc3 extends Exchange {
             $marketType = $this->safe_string($market, 'type');
             $expiry = $this->safe_integer($market, 'expiry');
             $contract = ($marketType === 'futures');
-            $derivative = $contract;
             $spot = ($marketType === 'spot');
             $marginTrading = $this->safe_value($market, 'margin_trading', false);
             $margin = $spot && $marginTrading;
@@ -346,7 +345,7 @@ class hitbtc3 extends Exchange {
             $linear = null;
             $inverse = null;
             if ($contract) {
-                $contractSize = 1;
+                $contractSize = '1';
                 $settleId = $feeCurrencyId;
                 $settle = $this->safe_currency_code($settleId);
                 $linear = (($quote !== null) && ($quote === $settle));
@@ -379,9 +378,7 @@ class hitbtc3 extends Exchange {
                 'margin' => $margin,
                 'swap' => $swap,
                 'future' => $future,
-                'futures' => $future, // deprecated, use $future instead
                 'option' => $option,
-                'derivative' => $derivative,
                 'contract' => $contract,
                 'linear' => $linear,
                 'inverse' => $inverse,

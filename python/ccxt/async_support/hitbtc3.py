@@ -334,7 +334,6 @@ class hitbtc3(Exchange):
             marketType = self.safe_string(market, 'type')
             expiry = self.safe_integer(market, 'expiry')
             contract = (marketType == 'futures')
-            derivative = contract
             spot = (marketType == 'spot')
             marginTrading = self.safe_value(market, 'margin_trading', False)
             margin = spot and marginTrading
@@ -355,7 +354,7 @@ class hitbtc3(Exchange):
             linear = None
             inverse = None
             if contract:
-                contractSize = 1
+                contractSize = '1'
                 settleId = feeCurrencyId
                 settle = self.safe_currency_code(settleId)
                 linear = ((quote is not None) and (quote == settle))
@@ -386,9 +385,7 @@ class hitbtc3(Exchange):
                 'margin': margin,
                 'swap': swap,
                 'future': future,
-                'futures': future,  # deprecated, use future instead
                 'option': option,
-                'derivative': derivative,
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,

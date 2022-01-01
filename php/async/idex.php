@@ -202,7 +202,6 @@ class idex extends Exchange {
                 'swap' => false,
                 'futures' => false,
                 'option' => false,
-                'derivative' => false,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,

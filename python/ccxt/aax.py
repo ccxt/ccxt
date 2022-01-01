@@ -428,7 +428,7 @@ class aax(Exchange):
             if swap:
                 symbol = symbol + ':' + settle
                 type = 'swap'
-                contractSize = self.safe_number(market, 'multiplier')
+                contractSize = self.safe_string(market, 'multiplier')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -444,7 +444,6 @@ class aax(Exchange):
                 'swap': swap,
                 'future': False,
                 'option': False,
-                'derivative': swap,
                 'contract': swap,
                 'linear': linear,
                 'inverse': inverse,

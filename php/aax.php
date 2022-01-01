@@ -416,7 +416,7 @@ class aax extends Exchange {
             if ($swap) {
                 $symbol = $symbol . ':' . $settle;
                 $type = 'swap';
-                $contractSize = $this->safe_number($market, 'multiplier');
+                $contractSize = $this->safe_string($market, 'multiplier');
             }
             $result[] = array(
                 'id' => $id,
@@ -433,7 +433,6 @@ class aax extends Exchange {
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
-                'derivative' => $swap,
                 'contract' => $swap,
                 'linear' => $linear,
                 'inverse' => $inverse,

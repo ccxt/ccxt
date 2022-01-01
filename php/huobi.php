@@ -1172,7 +1172,7 @@ class huobi extends Exchange {
                     $symbol .= '-' . $this->yymmdd($expiry);
                 }
             }
-            $contractSize = $this->safe_number($market, 'contract_size');
+            $contractSize = $this->safe_string($market, 'contract_size');
             $pricePrecision = null;
             $amountPrecision = null;
             $costPrecision = null;

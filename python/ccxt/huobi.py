@@ -1166,7 +1166,7 @@ class huobi(Exchange):
                 if future:
                     expiry = self.safe_integer(market, 'delivery_time')
                     symbol += '-' + self.yymmdd(expiry)
-            contractSize = self.safe_number(market, 'contract_size')
+            contractSize = self.safe_string(market, 'contract_size')
             pricePrecision = None
             amountPrecision = None
             costPrecision = None

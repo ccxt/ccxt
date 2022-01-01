@@ -291,7 +291,6 @@ class zb(Exchange):
                 'swap': False,
                 'futures': False,
                 'option': False,
-                'derivative': False,
                 'contract': False,
                 'linear': None,
                 'inverse': None,

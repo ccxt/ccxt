@@ -497,20 +497,18 @@ class ascendex extends Exchange {
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'Normal');
-            $type = ($settle !== null) ? 'swap' : 'spot';
-            $spot = ($type === 'spot');
-            $swap = ($type === 'swap');
+            $spot = $settle === null;
+            $swap = !$spot;
+            $type = $swap ? 'swap' : 'spot';
             $margin = $this->safe_value($market, 'marginTradable', false);
-            $contract = $swap;
-            $derivative = $contract;
-            $linear = $contract ? true : null;
-            $contractSize = $contract ? 1 : null;
+            $linear = $swap ? true : null;
+            $contractSize = $swap ? '1' : null;
             $minQty = $this->safe_number($market, 'minQty');
             $maxQty = $this->safe_number($market, 'maxQty');
             $minPrice = $this->safe_number($market, 'tickSize');
             $maxPrice = null;
             $symbol = $base . '/' . $quote;
-            if ($contract) {
+            if ($swap) {
                 $lotSizeFilter = $this->safe_value($market, 'lotSizeFilter');
                 $minQty = $this->safe_number($lotSizeFilter, 'minQty');
                 $maxQty = $this->safe_number($lotSizeFilter, 'maxQty');
@@ -542,10 +540,9 @@ class ascendex extends Exchange {
                 'future' => false,
                 'option' => false,
                 'active' => $active,
-                'derivative' => $derivative,
-                'contract' => $contract,
+                'contract' => $swap,
                 'linear' => $linear,
-                'inverse' => $contract ? !$linear : null,
+                'inverse' => $swap ? !$linear : null,
                 'taker' => $fee,
                 'maker' => $fee,
                 'contractSize' => $contractSize,

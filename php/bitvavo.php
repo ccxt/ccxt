@@ -305,7 +305,6 @@ class bitvavo extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'derivative' => false,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,

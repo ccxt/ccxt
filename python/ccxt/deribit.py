@@ -510,7 +510,6 @@ class deribit(Exchange):
                     'swap': swap,
                     'future': future,
                     'option': option,
-                    'derivative': True,
                     'contract': True,
                     'linear': False,
                     'inverse': True,

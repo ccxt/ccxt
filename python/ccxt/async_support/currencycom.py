@@ -336,7 +336,6 @@ class currencycom(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'derivative': False,
                 'contract': False,
                 'linear': None,
                 'inverse': None,

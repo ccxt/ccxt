@@ -497,20 +497,18 @@ class ascendex(Exchange):
             }
             status = self.safe_string(market, 'status')
             active = (status == 'Normal')
-            type = 'swap' if (settle is not None) else 'spot'
-            spot = (type == 'spot')
-            swap = (type == 'swap')
+            spot = settle is None
+            swap = not spot
+            type = 'swap' if swap else 'spot'
             margin = self.safe_value(market, 'marginTradable', False)
-            contract = swap
-            derivative = contract
-            linear = True if contract else None
-            contractSize = 1 if contract else None
+            linear = True if swap else None
+            contractSize = '1' if swap else None
             minQty = self.safe_number(market, 'minQty')
             maxQty = self.safe_number(market, 'maxQty')
             minPrice = self.safe_number(market, 'tickSize')
             maxPrice = None
             symbol = base + '/' + quote
-            if contract:
+            if swap:
                 lotSizeFilter = self.safe_value(market, 'lotSizeFilter')
                 minQty = self.safe_number(lotSizeFilter, 'minQty')
                 maxQty = self.safe_number(lotSizeFilter, 'maxQty')
@@ -541,10 +539,9 @@ class ascendex(Exchange):
                 'future': False,
                 'option': False,
                 'active': active,
-                'derivative': derivative,
-                'contract': contract,
+                'contract': swap,
                 'linear': linear,
-                'inverse': not linear if contract else None,
+                'inverse': not linear if swap else None,
                 'taker': fee,
                 'maker': fee,
                 'contractSize': contractSize,
