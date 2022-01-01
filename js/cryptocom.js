@@ -480,7 +480,7 @@ module.exports = class cryptocom extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const [ style, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ style, query ] = this.handleMarketTypeAndParams ('fetchTicker', undefined, params);
         if (style !== 'spot') {
             throw new NotSupported (this.id + ' fetchTicker only supports spot markets');
         }
@@ -580,7 +580,7 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const [ style, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ style, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
         const method = this.getSupportedMapping (style, {
             'spot': 'spotPublicGetPublicGetTrades',
             'future': 'derivativesPublicGetPublicGetTrades',
@@ -652,7 +652,7 @@ module.exports = class cryptocom extends Exchange {
         if (limit) {
             request['depth'] = limit;
         }
-        const [ style, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const [ style, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         const method = this.getSupportedMapping (style, {
             'spot': 'spotPublicGetPublicGetBook',
             'future': 'derivativesPublicGetPublicGetBook',
