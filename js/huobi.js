@@ -1433,18 +1433,16 @@ module.exports = class huobi extends Exchange {
         const swap = (type === 'swap');
         const linear = (subType === 'linear');
         const inverse = (subType === 'inverse');
-        if (future) {
-            if (inverse) {
-                method = 'contractPublicGetMarketDetailBatchMerged';
-            } else if (linear) {
-                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+        if (linear) {
+            method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+            if (future) {
                 request['business_type'] = 'futures';
             }
-        } else if (swap) {
-            if (inverse) {
+        } else if (inverse) {
+            if (future) {
+                method = 'contractPublicGetMarketDetailBatchMerged';
+            } else if (swap) {
                 method = 'contractPublicGetSwapExMarketDetailBatchMerged';
-            } else if (linear) {
-                method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
             }
         }
         params = this.omit (params, [ 'type', 'subType' ]);
@@ -1572,20 +1570,16 @@ module.exports = class huobi extends Exchange {
         };
         let fieldName = 'symbol';
         let method = 'spotPublicGetMarketDepth';
-        if (market['future']) {
-            if (market['inverse']) {
+        if (market['linear']) {
+            method = 'contractPublicGetLinearSwapExMarketDepth';
+            fieldName = 'contract_code';
+        } else if (market['inverse']) {
+            if (market['future']) {
                 method = 'contractPublicGetMarketDepth';
-            } else if (market['linear']) {
-                method = 'contractPublicGetLinearSwapExMarketDepth';
+            } else if (market['swap']) {
+                method = 'contractPublicGetSwapExMarketDepth';
                 fieldName = 'contract_code';
             }
-        } else if (market['swap']) {
-            if (market['inverse']) {
-                method = 'contractPublicGetSwapExMarketDepth';
-            } else if (market['linear']) {
-                method = 'contractPublicGetLinearSwapExMarketDepth';
-            }
-            fieldName = 'contract_code';
         }
         request[fieldName] = market['id'];
         const response = await this[method] (this.extend (request, params));
