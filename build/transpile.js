@@ -1495,6 +1495,11 @@ class Transpiler {
                 'phpFile': './php/test/test_order.php',
             },
             {
+                'jsFile': './js/test/Exchange/test.position.js',
+                'pyFile': './python/ccxt/test/test_position.py',
+                'phpFile': './php/test/test_position.php',
+            },
+            {
                 'jsFile': './js/test/Exchange/test.transaction.js',
                 'pyFile': './python/ccxt/test/test_transaction.py',
                 'phpFile': './php/test/test_transaction.php',
