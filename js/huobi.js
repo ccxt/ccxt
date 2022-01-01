@@ -1728,8 +1728,8 @@ module.exports = class huobi extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let methodType = undefined;
-        [ methodType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
         const request = {
             // spot -----------------------------------------------------------
             // 'symbol': market['id'],
@@ -1751,7 +1751,7 @@ module.exports = class huobi extends Exchange {
         };
         let method = undefined;
         let market = undefined;
-        if (methodType === 'spot') {
+        if (marketType === 'spot') {
             if (symbol !== undefined) {
                 market = this.market (symbol);
                 request['symbol'] = market['id'];
@@ -1766,15 +1766,15 @@ module.exports = class huobi extends Exchange {
             method = 'spotPrivateGetV1OrderMatchresults';
         } else {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol for ' + methodType + ' orders');
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol for ' + marketType + ' orders');
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
             request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
-            if (methodType === 'future') {
+            if (marketType === 'future') {
                 method = 'contractPrivatePostApiV1ContractMatchresultsExact';
                 request['symbol'] = market['settleId'];
-            } else if (methodType === 'swap') {
+            } else if (marketType === 'swap') {
                 if (market['linear']) {
                     const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
                     if (marginType === 'isolated') {
@@ -1786,7 +1786,7 @@ module.exports = class huobi extends Exchange {
                     method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
                 }
             } else {
-                throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + methodType + ' markets');
+                throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + marketType + ' markets');
             }
         }
         const response = await this[method] (this.extend (request, params));
@@ -2443,8 +2443,8 @@ module.exports = class huobi extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let methodType = undefined;
-        [ methodType, params ] = this.handleMarketTypeAndParams ('fetchOrder', undefined, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', undefined, params);
         const request = {
             // spot -----------------------------------------------------------
             // 'order-id': 'id',
@@ -2459,7 +2459,7 @@ module.exports = class huobi extends Exchange {
             // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         };
         let method = undefined;
-        if (methodType === 'spot') {
+        if (marketType === 'spot') {
             const clientOrderId = this.safeString (params, 'clientOrderId');
             method = 'spotPrivateGetV1OrderOrdersOrderId';
             if (clientOrderId !== undefined) {
@@ -2472,14 +2472,14 @@ module.exports = class huobi extends Exchange {
             }
         } else {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol for ' + methodType + ' orders');
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol for ' + marketType + ' orders');
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
-            if (methodType === 'future') {
+            if (marketType === 'future') {
                 method = 'contractPrivatePostApiV1ContractOrderInfo';
                 request['symbol'] = market['settleId'];
-            } else if (methodType === 'swap') {
+            } else if (marketType === 'swap') {
                 if (market['linear']) {
                     const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
                     if (marginType === 'isolated') {
@@ -2491,7 +2491,7 @@ module.exports = class huobi extends Exchange {
                     method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
                 }
             } else {
-                throw new NotSupported (this.id + ' cancelOrder() does not support ' + methodType + ' markets');
+                throw new NotSupported (this.id + ' cancelOrder() does not support ' + marketType + ' markets');
             }
             const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             if (clientOrderId === undefined) {
@@ -2586,8 +2586,8 @@ module.exports = class huobi extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let methodType = undefined;
-        [ methodType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
         const request = {
             // spot -----------------------------------------------------------
             // 'account-id': account['id'],
@@ -2605,7 +2605,7 @@ module.exports = class huobi extends Exchange {
         };
         let method = undefined;
         let market = undefined;
-        if (methodType === 'spot') {
+        if (marketType === 'spot') {
             method = 'spotPrivateGetV1OrderOpenOrders';
             if (symbol !== undefined) {
                 market = this.market (symbol);
@@ -2633,14 +2633,14 @@ module.exports = class huobi extends Exchange {
             params = this.omit (params, 'account-id');
         } else {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol for ' + methodType + ' orders');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol for ' + marketType + ' orders');
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
-            if (methodType === 'future') {
+            if (marketType === 'future') {
                 method = 'contractPrivatePostApiV1ContractOpenorders';
                 request['symbol'] = market['settleId'];
-            } else if (methodType === 'swap') {
+            } else if (marketType === 'swap') {
                 if (market['linear']) {
                     const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
                     if (marginType === 'isolated') {
@@ -2652,7 +2652,7 @@ module.exports = class huobi extends Exchange {
                     method = 'contractPrivatePostSwapApiV1SwapOpenorders';
                 }
             } else {
-                throw new NotSupported (this.id + ' cancelOrder() does not support ' + methodType + ' markets');
+                throw new NotSupported (this.id + ' cancelOrder() does not support ' + marketType + ' markets');
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
@@ -2904,8 +2904,8 @@ module.exports = class huobi extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ methodType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        const method = this.getSupportedMapping (methodType, {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'createSpotOrder',
             'swap': 'createContractOrder',
             'future': 'createContractOrder',
@@ -3162,8 +3162,8 @@ module.exports = class huobi extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let methodType = undefined;
-        [ methodType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         const request = {
             // spot -----------------------------------------------------------
             // 'order-id': 'id',
@@ -3177,7 +3177,7 @@ module.exports = class huobi extends Exchange {
             // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         };
         let method = undefined;
-        if (methodType === 'spot') {
+        if (marketType === 'spot') {
             const clientOrderId = this.safeString2 (params, 'client-order-id', 'clientOrderId');
             method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
             if (clientOrderId === undefined) {
@@ -3189,25 +3189,25 @@ module.exports = class huobi extends Exchange {
             }
         } else {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol for ' + methodType + ' orders');
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol for ' + marketType + ' orders');
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
-            if (methodType === 'future') {
-                method = 'contractPrivatePostApiV1ContractCancel';
-            } else if (methodType === 'swap') {
-                if (market['linear']) {
-                    const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-                    if (marginType === 'isolated') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                    } else if (marginType === 'cross') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
-                    }
-                } else if (market['inverse']) {
+            if (market['linear']) {
+                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+                if (marginType === 'isolated') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
+                } else if (marginType === 'cross') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
+                }
+            } else if (market['inverse']) {
+                if (market['future']) {
+                    method = 'contractPrivatePostApiV1ContractCancel';
+                } else if (market['swap']) {
                     method = 'contractPrivatePostSwapApiV1SwapCancel';
                 }
             } else {
-                throw new NotSupported (this.id + ' cancelOrder() does not support ' + methodType + ' markets');
+                throw new NotSupported (this.id + ' cancelOrder() does not support ' + marketType + ' markets');
             }
             const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             if (clientOrderId === undefined) {
@@ -3245,8 +3245,8 @@ module.exports = class huobi extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let methodType = undefined;
-        [ methodType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         const request = {
             // spot -----------------------------------------------------------
             'order-ids': [], // max 50 ids
@@ -3258,7 +3258,7 @@ module.exports = class huobi extends Exchange {
             // 'symbol': market['settleId'],
         };
         let method = undefined;
-        if (methodType === 'spot') {
+        if (marketType === 'spot') {
             let clientOrderIds = this.safeString2 (params, 'client-order-id', 'clientOrderId');
             clientOrderIds = this.safeString2 (params, 'client-order-ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
@@ -3270,14 +3270,14 @@ module.exports = class huobi extends Exchange {
             method = 'spotPrivatePostV1OrderOrdersBatchcancel';
         } else {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol for ' + methodType + ' orders');
+                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders');
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
-            if (methodType === 'future') {
+            if (marketType === 'future') {
                 method = 'contractPrivatePostApiV1ContractCancel';
                 request['symbol'] = market['settleId'];
-            } else if (methodType === 'swap') {
+            } else if (marketType === 'swap') {
                 if (market['linear']) {
                     const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
                     if (marginType === 'isolated') {
@@ -3289,7 +3289,7 @@ module.exports = class huobi extends Exchange {
                     method = 'contractPrivatePostSwapApiV1SwapCancel';
                 }
             } else {
-                throw new NotSupported (this.id + ' cancelOrders() does not support ' + methodType + ' markets');
+                throw new NotSupported (this.id + ' cancelOrders() does not support ' + marketType + ' markets');
             }
             let clientOrderIds = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeString2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
@@ -3357,8 +3357,8 @@ module.exports = class huobi extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let methodType = undefined;
-        [ methodType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         const request = {
             // spot -----------------------------------------------------------
             // 'account-id': account['id'],
@@ -3375,7 +3375,7 @@ module.exports = class huobi extends Exchange {
         };
         let market = undefined;
         let method = undefined;
-        if (methodType === 'spot') {
+        if (marketType === 'spot') {
             if (symbol !== undefined) {
                 market = this.market (symbol);
                 request['symbol'] = market['id'];
@@ -3383,14 +3383,14 @@ module.exports = class huobi extends Exchange {
             method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders';
         } else {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol for ' + methodType + ' orders');
+                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders');
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
-            if (methodType === 'future') {
+            if (marketType === 'future') {
                 method = 'contractPrivatePostApiV1ContractCancelall';
                 request['symbol'] = market['settleId'];
-            } else if (methodType === 'swap') {
+            } else if (marketType === 'swap') {
                 if (market['linear']) {
                     const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
                     if (marginType === 'isolated') {
@@ -3402,7 +3402,7 @@ module.exports = class huobi extends Exchange {
                     method = 'contractPrivatePostSwapApiV1SwapCancelall';
                 }
             } else {
-                throw new NotSupported (this.id + ' cancelOrders() does not support ' + methodType + ' markets');
+                throw new NotSupported (this.id + ' cancelOrders() does not support ' + marketType + ' markets');
             }
         }
         const response = await this[method] (this.extend (request, params));
