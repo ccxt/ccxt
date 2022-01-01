@@ -441,14 +441,13 @@ module.exports = class cryptocom extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        const method = this.getSupportedMapping (type, {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetPublicGetTicker',
             'future': 'derivativesPublicGetPublicGetTickers',
             'swap': 'derivativesPublicGetPublicGetTickers',
         });
-        const response = await this[method] (params);
+        const response = await this[method] (query);
         // {
         //     "code":0,
         //     "method":"public/get-ticker",
@@ -481,12 +480,11 @@ module.exports = class cryptocom extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        if (type !== 'spot') {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', undefined, params);
+        if (marketType !== 'spot') {
             throw new NotSupported (this.id + ' fetchTicker only supports spot markets');
         }
-        const response = await this.spotPublicGetPublicGetTicker (this.extend (request, params));
+        const response = await this.spotPublicGetPublicGetTicker (this.extend (request, query));
         // {
         //     "code":0,
         //     "method":"public/get-ticker",
@@ -582,14 +580,13 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const method = this.getSupportedMapping (type, {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetPublicGetTrades',
             'future': 'derivativesPublicGetPublicGetTrades',
             'swap': 'derivativesPublicGetPublicGetTrades',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         // {
         //     "code":0,
         //     "method":"public/get-trades",
@@ -620,14 +617,13 @@ module.exports = class cryptocom extends Exchange {
             'instrument_name': market['id'],
             'timeframe': this.timeframes[timeframe],
         };
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const method = this.getSupportedMapping (type, {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetPublicGetCandlestick',
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         // {
         //     "code":0,
         //     "method":"public/get-candlestick",
@@ -656,14 +652,13 @@ module.exports = class cryptocom extends Exchange {
         if (limit) {
             request['depth'] = limit;
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const method = this.getSupportedMapping (type, {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetPublicGetBook',
             'future': 'derivativesPublicGetPublicGetBook',
             'swap': 'derivativesPublicGetPublicGetBook',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         // {
         //     "code":0,
         //     "method":"public/get-book",
