@@ -316,7 +316,6 @@ module.exports = class hitbtc3 extends Exchange {
             const marketType = this.safeString (market, 'type');
             const expiry = this.safeInteger (market, 'expiry');
             const contract = (marketType === 'futures');
-            const derivative = contract;
             const spot = (marketType === 'spot');
             const marginTrading = this.safeValue (market, 'margin_trading', false);
             const margin = spot && marginTrading;
@@ -370,9 +369,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'margin': margin,
                 'swap': swap,
                 'future': future,
-                'futures': future, // deprecated, use future instead
                 'option': option,
-                'derivative': derivative,
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,

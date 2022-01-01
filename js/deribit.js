@@ -501,7 +501,6 @@ module.exports = class deribit extends Exchange {
                     'swap': swap,
                     'future': future,
                     'option': option,
-                    'derivative': true,
                     'contract': true,
                     'linear': false,
                     'inverse': true,
