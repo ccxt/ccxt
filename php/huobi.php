@@ -1361,20 +1361,16 @@ class huobi extends Exchange {
         $request = array();
         $fieldName = 'symbol';
         $method = 'spotPublicGetMarketDetailMerged';
-        if ($market['future']) {
-            if ($market['inverse']) {
+        if ($market['linear']) {
+            $method = 'contractPublicGetLinearSwapExMarketDetailMerged';
+            $fieldName = 'contract_code';
+        } else if ($market['inverse']) {
+            if ($market['future']) {
                 $method = 'contractPublicGetMarketDetailMerged';
-            } else if ($market['linear']) {
-                $method = 'contractPublicGetLinearSwapExMarketDetailMerged';
+            } else if ($market['swap']) {
+                $method = 'contractPublicGetSwapExMarketDetailMerged';
                 $fieldName = 'contract_code';
             }
-        } else if ($market['swap']) {
-            if ($market['inverse']) {
-                $method = 'contractPublicGetSwapExMarketDetailMerged';
-            } else if ($market['linear']) {
-                $method = 'contractPublicGetLinearSwapExMarketDetailMerged';
-            }
-            $fieldName = 'contract_code';
         }
         $request[$fieldName] = $market['id'];
         $response = $this->$method (array_merge($request, $params));
@@ -1444,18 +1440,16 @@ class huobi extends Exchange {
         $swap = ($type === 'swap');
         $linear = ($subType === 'linear');
         $inverse = ($subType === 'inverse');
-        if ($future) {
-            if ($inverse) {
-                $method = 'contractPublicGetMarketDetailBatchMerged';
-            } else if ($linear) {
-                $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+        if ($linear) {
+            $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+            if ($future) {
                 $request['business_type'] = 'futures';
             }
-        } else if ($swap) {
-            if ($inverse) {
+        } else if ($inverse) {
+            if ($future) {
+                $method = 'contractPublicGetMarketDetailBatchMerged';
+            } else if ($swap) {
                 $method = 'contractPublicGetSwapExMarketDetailBatchMerged';
-            } else if ($linear) {
-                $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
             }
         }
         $params = $this->omit($params, array( 'type', 'subType' ));
@@ -1583,20 +1577,16 @@ class huobi extends Exchange {
         );
         $fieldName = 'symbol';
         $method = 'spotPublicGetMarketDepth';
-        if ($market['future']) {
-            if ($market['inverse']) {
+        if ($market['linear']) {
+            $method = 'contractPublicGetLinearSwapExMarketDepth';
+            $fieldName = 'contract_code';
+        } else if ($market['inverse']) {
+            if ($market['future']) {
                 $method = 'contractPublicGetMarketDepth';
-            } else if ($market['linear']) {
-                $method = 'contractPublicGetLinearSwapExMarketDepth';
+            } else if ($market['swap']) {
+                $method = 'contractPublicGetSwapExMarketDepth';
                 $fieldName = 'contract_code';
             }
-        } else if ($market['swap']) {
-            if ($market['inverse']) {
-                $method = 'contractPublicGetSwapExMarketDepth';
-            } else if ($market['linear']) {
-                $method = 'contractPublicGetLinearSwapExMarketDepth';
-            }
-            $fieldName = 'contract_code';
         }
         $request[$fieldName] = $market['id'];
         $response = $this->$method (array_merge($request, $params));
@@ -1778,22 +1768,22 @@ class huobi extends Exchange {
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
             $request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
-            if ($marketType === 'future') {
-                $method = 'contractPrivatePostApiV1ContractMatchresultsExact';
-                $request['symbol'] = $market['settleId'];
-            } else if ($marketType === 'swap') {
-                if ($market['linear']) {
-                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                    if ($marginType === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
-                    } else if ($marginType === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
-                    }
-                } else if ($market['inverse']) {
-                    $method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
+            if ($market['linear']) {
+                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                if ($marginType === 'isolated') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
+                } else if ($marginType === 'cross') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
                 }
-            } else {
-                throw new NotSupported($this->id . ' fetchMyTrades() does not support ' . $marketType . ' markets');
+            } else if ($market['inverse']) {
+                if ($marketType === 'future') {
+                    $method = 'contractPrivatePostApiV1ContractMatchresultsExact';
+                    $request['symbol'] = $market['settleId'];
+                } else if ($marketType === 'swap') {
+                    $method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
+                } else {
+                    throw new NotSupported($this->id . ' fetchMyTrades() does not support ' . $marketType . ' markets');
+                }
             }
         }
         $response = $this->$method (array_merge($request, $params));
@@ -2483,22 +2473,22 @@ class huobi extends Exchange {
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
-            if ($marketType === 'future') {
-                $method = 'contractPrivatePostApiV1ContractOrderInfo';
-                $request['symbol'] = $market['settleId'];
-            } else if ($marketType === 'swap') {
-                if ($market['linear']) {
-                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                    if ($marginType === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
-                    } else if ($marginType === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo';
-                    }
-                } else if ($market['inverse']) {
-                    $method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
+            if ($market['linear']) {
+                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                if ($marginType === 'isolated') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
+                } else if ($marginType === 'cross') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo';
                 }
-            } else {
-                throw new NotSupported($this->id . ' cancelOrder() does not support ' . $marketType . ' markets');
+            } else if ($market['inverse']) {
+                if ($marketType === 'future') {
+                    $method = 'contractPrivatePostApiV1ContractOrderInfo';
+                    $request['symbol'] = $market['settleId'];
+                } else if ($marketType === 'swap') {
+                    $method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
+                } else {
+                    throw new NotSupported($this->id . ' cancelOrder() does not support ' . $marketType . ' markets');
+                }
             }
             $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
             if ($clientOrderId === null) {
@@ -3281,22 +3271,22 @@ class huobi extends Exchange {
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
-            if ($marketType === 'future') {
-                $method = 'contractPrivatePostApiV1ContractCancel';
-                $request['symbol'] = $market['settleId'];
-            } else if ($marketType === 'swap') {
-                if ($market['linear']) {
-                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                    if ($marginType === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                    } else if ($marginType === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
-                    }
-                } else if ($market['inverse']) {
-                    $method = 'contractPrivatePostSwapApiV1SwapCancel';
+            if ($market['linear']) {
+                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                if ($marginType === 'isolated') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
+                } else if ($marginType === 'cross') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
                 }
-            } else {
-                throw new NotSupported($this->id . ' cancelOrders() does not support ' . $marketType . ' markets');
+            } else if ($market['inverse']) {
+                if ($market['future']) {
+                    $method = 'contractPrivatePostApiV1ContractCancel';
+                    $request['symbol'] = $market['settleId'];
+                } else if ($market['swap']) {
+                    $method = 'contractPrivatePostSwapApiV1SwapCancel';
+                } else {
+                    throw new NotSupported($this->id . ' cancelOrders() does not support ' . $marketType . ' markets');
+                }
             }
             $clientOrderIds = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
             $clientOrderIds = $this->safe_string_2($params, 'client_order_ids', 'clientOrderIds', $clientOrderIds);
@@ -3394,22 +3384,22 @@ class huobi extends Exchange {
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
-            if ($marketType === 'future') {
-                $method = 'contractPrivatePostApiV1ContractCancelall';
-                $request['symbol'] = $market['settleId'];
-            } else if ($marketType === 'swap') {
-                if ($market['linear']) {
-                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                    if ($marginType === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
-                    } else if ($marginType === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
-                    }
-                } else if ($market['inverse']) {
-                    $method = 'contractPrivatePostSwapApiV1SwapCancelall';
+            if ($market['linear']) {
+                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                if ($marginType === 'isolated') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
+                } else if ($marginType === 'cross') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
                 }
-            } else {
-                throw new NotSupported($this->id . ' cancelOrders() does not support ' . $marketType . ' markets');
+            } else if ($market['inverse']) {
+                if ($marketType === 'future') {
+                    $method = 'contractPrivatePostApiV1ContractCancelall';
+                    $request['symbol'] = $market['settleId'];
+                } else if ($marketType === 'swap') {
+                    $method = 'contractPrivatePostSwapApiV1SwapCancelall';
+                } else {
+                    throw new NotSupported($this->id . ' cancelOrders() does not support ' . $marketType . ' markets');
+                }
             }
         }
         $response = $this->$method (array_merge($request, $params));
