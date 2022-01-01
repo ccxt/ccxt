@@ -13,12 +13,12 @@ import ccxt  # noqa: E402
 print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.phemex({
-    'enableRateLimit': True,
-	'apiKey': 'YOUR_API_KEY',
-	'secret': 'YOUR_SECRET',
-	'options': {
-	'defaultType': 'swap',
-	},
+    'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
+    'apiKey': 'YOUR_API_KEY',  # testnet keys if using the testnet sandbox
+    'secret': 'YOUR_SECRET',  # testnet keys if using the testnet sandbox
+    'options': {
+        'defaultType': 'swap',
+    },
 })
 
 # exchange.set_sandbox_mode(True)  # uncomment to use the testnet sandbox
