@@ -2476,22 +2476,22 @@ module.exports = class huobi extends Exchange {
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
-            if (marketType === 'future') {
-                method = 'contractPrivatePostApiV1ContractOrderInfo';
-                request['symbol'] = market['settleId'];
-            } else if (marketType === 'swap') {
-                if (market['linear']) {
-                    const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-                    if (marginType === 'isolated') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
-                    } else if (marginType === 'cross') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo';
-                    }
-                } else if (market['inverse']) {
-                    method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
+            if (market['linear']) {
+                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+                if (marginType === 'isolated') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
+                } else if (marginType === 'cross') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo';
                 }
-            } else {
-                throw new NotSupported (this.id + ' cancelOrder() does not support ' + marketType + ' markets');
+            } else if (market['inverse']) {
+                if (marketType === 'future') {
+                    method = 'contractPrivatePostApiV1ContractOrderInfo';
+                    request['symbol'] = market['settleId'];
+                } else if (marketType === 'swap') {
+                    method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
+                } else {
+                    throw new NotSupported (this.id + ' cancelOrder() does not support ' + marketType + ' markets');
+                }
             }
             const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             if (clientOrderId === undefined) {
