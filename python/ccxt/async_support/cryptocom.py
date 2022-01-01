@@ -261,38 +261,6 @@ class cryptocom(Exchange):
             },
         })
 
-    def nonce(self):
-        return self.milliseconds()
-
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api[0]] + '/' + path
-        query = self.omit(params, self.extract_params(path))
-        if api[1] == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
-            self.check_required_credentials()
-            nonce = str(self.nonce())
-            requestParams = self.extend({}, params)
-            paramsKeys = list(self.keysort(requestParams).keys())
-            strSortKey = ''
-            for i in range(0, len(paramsKeys)):
-                strSortKey = strSortKey + str(paramsKeys[i]) + str(requestParams[paramsKeys[i]])
-            payload = path + nonce + self.apiKey + strSortKey + nonce
-            signature = self.hmac(self.encode(payload), self.encode(self.secret))
-            body = self.json({
-                'id': nonce,
-                'method': path,
-                'params': params,
-                'api_key': self.apiKey,
-                'sig': signature,
-                'nonce': nonce,
-            })
-            headers = {
-                'Content-Type': 'application/json',
-            }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
     async def fetch_markets(self, params={}):
         # {
         #     "id": 11,
@@ -1123,15 +1091,6 @@ class cryptocom(Exchange):
         withdrawalList = self.safe_value(data, 'withdrawal_list', [])
         return self.parse_transactions(withdrawalList, currency, since, limit)
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        errorCode = self.safe_string(response, 'code')
-        message = self.safe_string(response, 'message')
-        if errorCode in self.exceptions['exact']:
-            Exception = self.exceptions['exact'][errorCode]
-            raise Exception(self.id + ' ' + message)
-        if errorCode != '0':
-            raise ExchangeError(self.id + ' ' + message)
-
     def parse_ticker(self, ticker, market=None):
         # {
         #     "i":"CRO_BTC",
@@ -1408,3 +1367,46 @@ class cryptocom(Exchange):
             'internal': None,
             'fee': fee,
         }
+
+    def nonce(self):
+        return self.milliseconds()
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        type, access = api
+        url = self.urls['api'][type] + '/' + path
+        query = self.omit(params, self.extract_params(path))
+        if access == 'public':
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            self.check_required_credentials()
+            nonce = str(self.nonce())
+            requestParams = self.extend({}, params)
+            keysorted = self.keysort(requestParams)
+            paramsKeys = list(keysorted.keys())
+            strSortKey = ''
+            for i in range(0, len(paramsKeys)):
+                strSortKey = strSortKey + str(paramsKeys[i]) + str(requestParams[paramsKeys[i]])
+            payload = path + nonce + self.apiKey + strSortKey + nonce
+            signature = self.hmac(self.encode(payload), self.encode(self.secret))
+            body = self.json({
+                'id': nonce,
+                'method': path,
+                'params': params,
+                'api_key': self.apiKey,
+                'sig': signature,
+                'nonce': nonce,
+            })
+            headers = {
+                'Content-Type': 'application/json',
+            }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        errorCode = self.safe_string(response, 'code')
+        message = self.safe_string(response, 'message')
+        if errorCode in self.exceptions['exact']:
+            Exception = self.exceptions['exact'][errorCode]
+            raise Exception(self.id + ' ' + message)
+        if errorCode != '0':
+            raise ExchangeError(self.id + ' ' + message)

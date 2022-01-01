@@ -256,43 +256,6 @@ class cryptocom extends Exchange {
         ));
     }
 
-    public function nonce() {
-        return $this->milliseconds();
-    }
-
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api[0]] . '/' . $path;
-        $query = $this->omit($params, $this->extract_params($path));
-        if ($api[1] === 'public') {
-            if ($query) {
-                $url .= '?' . $this->urlencode($query);
-            }
-        } else {
-            $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
-            $requestParams = array_merge(array(), $params);
-            $paramsKeys = is_array($this->keysort($requestParams)) ? array_keys($this->keysort($requestParams)) : array();
-            $strSortKey = '';
-            for ($i = 0; $i < count($paramsKeys); $i++) {
-                $strSortKey = $strSortKey . (string) $paramsKeys[$i] . (string) $requestParams[$paramsKeys[$i]];
-            }
-            $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
-            $body = $this->json(array(
-                'id' => $nonce,
-                'method' => $path,
-                'params' => $params,
-                'api_key' => $this->apiKey,
-                'sig' => $signature,
-                'nonce' => $nonce,
-            ));
-            $headers = array(
-                'Content-Type' => 'application/json',
-            );
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
     public function fetch_markets($params = array ()) {
         // {
         //     "id" => 11,
@@ -1179,18 +1142,6 @@ class cryptocom extends Exchange {
         return $this->parse_transactions($withdrawalList, $currency, $since, $limit);
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        $errorCode = $this->safe_string($response, 'code');
-        $message = $this->safe_string($response, 'message');
-        if (is_array($this->exceptions['exact']) && array_key_exists($errorCode, $this->exceptions['exact'])) {
-            $Exception = $this->exceptions['exact'][$errorCode];
-            throw new $Exception($this->id . ' ' . $message);
-        }
-        if ($errorCode !== '0') {
-            throw new ExchangeError($this->id . ' ' . $message);
-        }
-    }
-
     public function parse_ticker($ticker, $market = null) {
         // {
         //     "i":"CRO_BTC",
@@ -1480,5 +1431,56 @@ class cryptocom extends Exchange {
             'internal' => null,
             'fee' => $fee,
         );
+    }
+
+    public function nonce() {
+        return $this->milliseconds();
+    }
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        list($type, $access) = $api;
+        $url = $this->urls['api'][$type] . '/' . $path;
+        $query = $this->omit($params, $this->extract_params($path));
+        if ($access === 'public') {
+            if ($query) {
+                $url .= '?' . $this->urlencode($query);
+            }
+        } else {
+            $this->check_required_credentials();
+            $nonce = (string) $this->nonce();
+            $requestParams = array_merge(array(), $params);
+            $keysorted = $this->keysort($requestParams);
+            $paramsKeys = is_array($keysorted) ? array_keys($keysorted) : array();
+            $strSortKey = '';
+            for ($i = 0; $i < count($paramsKeys); $i++) {
+                $strSortKey = $strSortKey . (string) $paramsKeys[$i] . (string) $requestParams[$paramsKeys[$i]];
+            }
+            $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
+            $body = $this->json(array(
+                'id' => $nonce,
+                'method' => $path,
+                'params' => $params,
+                'api_key' => $this->apiKey,
+                'sig' => $signature,
+                'nonce' => $nonce,
+            ));
+            $headers = array(
+                'Content-Type' => 'application/json',
+            );
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        $errorCode = $this->safe_string($response, 'code');
+        $message = $this->safe_string($response, 'message');
+        if (is_array($this->exceptions['exact']) && array_key_exists($errorCode, $this->exceptions['exact'])) {
+            $Exception = $this->exceptions['exact'][$errorCode];
+            throw new $Exception($this->id . ' ' . $message);
+        }
+        if ($errorCode !== '0') {
+            throw new ExchangeError($this->id . ' ' . $message);
+        }
     }
 }
