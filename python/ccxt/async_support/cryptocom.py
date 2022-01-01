@@ -35,6 +35,7 @@ class cryptocom(Exchange):
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': 'emulated',
                 'fetchDepositAddress': True,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
                 'fetchFundingHistory': False,
@@ -57,13 +58,12 @@ class cryptocom(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransactions': False,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'setLeverage': False,
                 'setMarginMode': False,
+                'transfer': True,
                 'withdraw': True,
-                'fetchDepositAddressesByNetwork': True,
-                'transfer': False,
-                'fetchTransfers': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -216,6 +216,12 @@ class cryptocom(Exchange):
             },
             'options': {
                 'defaultType': 'spot',
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'derivatives': 'DERIVATIVES',
+                    'swap': 'DERIVATIVES',
+                    'future': 'DERIVATIVES',
+                },
             },
             # https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -317,6 +323,10 @@ class cryptocom(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'linear': None,
+                'inverse': None,
+                'settle': None,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': margin,
@@ -410,6 +420,10 @@ class cryptocom(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'linear': True,
+                'inverse': False,
+                'settle': quote,
+                'settleId': quoteId,
                 'type': type,
                 'spot': False,
                 'margin': False,
@@ -483,7 +497,7 @@ class cryptocom(Exchange):
         request = {
             'instrument_name': market['id'],
         }
-        marketType, query = self.handle_market_type_and_params('fetchTicker', None, params)
+        marketType, query = self.handle_market_type_and_params('fetchTicker', market, params)
         if marketType != 'spot':
             raise NotSupported(self.id + ' fetchTicker only supports spot markets')
         response = await self.spotPublicGetPublicGetTicker(self.extend(request, query))
@@ -500,7 +514,7 @@ class cryptocom(Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -511,59 +525,87 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = await self.spotPrivatePostPrivateGetOrderHistory(self.extend(request, params))
-        # {
-        #     "id": 11,
-        #     "method": "private/get-order-history",
-        #     "code": 0,
-        #     "result": {
-        #       "order_list": [
-        #         {
-        #           "status": "FILLED",
-        #           "side": "SELL",
-        #           "price": 1,
-        #           "quantity": 1,
-        #           "order_id": "367107623521528457",
-        #           "client_oid": "my_order_0002",
-        #           "create_time": 1588777459755,
-        #           "update_time": 1588777460700,
-        #           "type": "LIMIT",
-        #           "instrument_name": "ETH_CRO",
-        #           "cumulative_quantity": 1,
-        #           "cumulative_value": 1,
-        #           "avg_price": 1,
-        #           "fee_currency": "CRO",
-        #           "time_in_force": "GOOD_TILL_CANCEL"
-        #         },
-        #         {
-        #           "status": "FILLED",
-        #           "side": "SELL",
-        #           "price": 1,
-        #           "quantity": 1,
-        #           "order_id": "367063282527104905",
-        #           "client_oid": "my_order_0002",
-        #           "create_time": 1588776138290,
-        #           "update_time": 1588776138679,
-        #           "type": "LIMIT",
-        #           "instrument_name": "ETH_CRO",
-        #           "cumulative_quantity": 1,
-        #           "cumulative_value": 1,
-        #           "avg_price": 1,
-        #           "fee_currency": "CRO",
-        #           "time_in_force": "GOOD_TILL_CANCEL"
-        #         }
-        #       ]
+        marketType, query = self.handle_market_type_and_params('fetchOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivatePostPrivateGetOrderHistory',
+            'future': 'derivativesPrivatePostPrivateGetOrderHistory',
+            'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # spot
+        #     {
+        #       id: 1641026542065,
+        #       method: 'private/get-order-history',
+        #       code: 0,
+        #       result: {
+        #         order_list: [
+        #           {
+        #             status: 'FILLED',
+        #             side: 'BUY',
+        #             price: 0,
+        #             quantity: 110,
+        #             order_id: '2120246337927715937',
+        #             client_oid: '',
+        #             create_time: 1641025064904,
+        #             update_time: 1641025064958,
+        #             type: 'MARKET',
+        #             instrument_name: 'USDC_USDT',
+        #             avg_price: 1.0001,
+        #             cumulative_quantity: 110,
+        #             cumulative_value: 110.011,
+        #             fee_currency: 'USDC',
+        #             exec_inst: '',
+        #             time_in_force: 'GOOD_TILL_CANCEL'
+        #           }
+        #         ]
+        #       }
         #     }
-        # }
+        #
+        # swap
+        #     {
+        #       id: 1641026373106,
+        #       method: 'private/get-order-history',
+        #       code: 0,
+        #       result: {
+        #         data: [
+        #           {
+        #             account_id: '85ff689a-7508-4b96-aa79-dc0545d6e637',
+        #             order_id: 13191401932,
+        #             client_oid: '1641025941461',
+        #             order_type: 'LIMIT',
+        #             time_in_force: 'GOOD_TILL_CANCEL',
+        #             side: 'BUY',
+        #             exec_inst: [],
+        #             quantity: '0.0001',
+        #             limit_price: '48000.0',
+        #             order_value: '4.80000000',
+        #             maker_fee_rate: '0.00050',
+        #             taker_fee_rate: '0.00070',
+        #             avg_price: '47253.5',
+        #             trigger_price: '0.0',
+        #             ref_price_type: 'NULL_VAL',
+        #             cumulative_quantity: '0.0001',
+        #             cumulative_value: '4.72535000',
+        #             cumulative_fee: '0.00330775',
+        #             status: 'FILLED',
+        #             update_user_id: 'ce075bef-b600-4277-bd6e-ff9007251e63',
+        #             order_date: '2022-01-01',
+        #             instrument_name: 'BTCUSD-PERP',
+        #             fee_instrument_name: 'USD_Stable_Coin',
+        #             create_time: 1641025941827,
+        #             create_time_ns: '1641025941827994756',
+        #             update_time: 1641025941827
+        #           }
+        #         ]
+        #       }
+        #     }
+        #
         data = self.safe_value(response, 'result', {})
-        orderList = self.safe_value(data, 'order_list', [])
-        orders = self.parse_orders(orderList, market, since, limit)
-        orders = self.filter_by(orders, 'symbol', symbol)
-        return orders
+        orderList = self.safe_value_2(data, 'order_list', 'data', [])
+        return self.parse_orders(orderList, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchTrades requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -665,25 +707,21 @@ class cryptocom(Exchange):
         timestamp = self.safe_integer(orderBook, 't')
         return self.parse_order_book(orderBook, symbol, timestamp)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.spotPrivatePostPrivateGetAccountSummary(params)
-        # {
-        #     "id": 11,
-        #     "method": "private/get-account-summary",
-        #     "code": 0,
-        #     "result": {
-        #         "accounts": [
-        #             {
-        #                 "balance": 99999999.905000000000000000,
-        #                 "available": 99999996.905000000000000000,
-        #                 "order": 3.000000000000000000,
-        #                 "stake": 0,
-        #                 "currency": "CRO"
-        #             }
-        #         ]
-        #     }
-        # }
+    def parse_swap_balance(self, response):
+        responseResult = self.safe_value(response, 'result', {})
+        data = self.safe_value(responseResult, 'data', [])
+        result = {'info': response}
+        for i in range(0, len(data)):
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'instrument_name')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'total_cash_balance')
+            account['free'] = self.safe_string(balance, 'total_available_balance')
+            result[code] = account
+        return self.safe_balance(result)
+
+    def parse_spot_balance(self, response):
         data = self.safe_value(response, 'result', {})
         coinList = self.safe_value(data, 'accounts', [])
         result = {'info': response}
@@ -698,15 +736,90 @@ class cryptocom(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivatePostPrivateGetAccountSummary',
+            'future': 'derivativesPrivatePostPrivateUserBalance',
+            'swap': 'derivativesPrivatePostPrivateUserBalance',
+        })
+        response = await getattr(self, method)(query)
+        # spot
+        #     {
+        #         "id": 11,
+        #         "method": "private/get-account-summary",
+        #         "code": 0,
+        #         "result": {
+        #             "accounts": [
+        #                 {
+        #                     "balance": 99999999.905000000000000000,
+        #                     "available": 99999996.905000000000000000,
+        #                     "order": 3.000000000000000000,
+        #                     "stake": 0,
+        #                     "currency": "CRO"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        # swap
+        #     {
+        #       "id" : 1641025392400,
+        #       "method" : "private/user-balance",
+        #       "code" : 0,
+        #       "result" : {
+        #         "data" : [{
+        #           "total_available_balance" : "109.56000000",
+        #           "total_margin_balance" : "109.56000000",
+        #           "total_initial_margin" : "0.00000000",
+        #           "total_maintenance_margin" : "0.00000000",
+        #           "total_position_cost" : "0.00000000",
+        #           "total_cash_balance" : "109.56000000",
+        #           "total_collateral_value" : "109.56000000",
+        #           "total_session_unrealized_pnl" : "0.00000000",
+        #           "instrument_name" : "USD_Stable_Coin",
+        #           "total_session_realized_pnl" : "0.00000000",
+        #           "position_balances" : [{
+        #             "quantity" : "109.56000000",
+        #             "collateral_weight" : "1.000000",
+        #             "collateral_amount" : "109.56000000",
+        #             "market_value" : "109.56000000",
+        #             "max_withdrawal_balance" : "109.56000000",
+        #             "instrument_name" : "USD_Stable_Coin"
+        #           }],
+        #           "total_effective_leverage" : "0.000000",
+        #           "position_limit" : "3000000.00000000",
+        #           "used_position_limit" : "0.00000000",
+        #           "is_liquidating" : False
+        #         }]
+        #       }
+        #     }
+        #
+        parser = self.get_supported_mapping(marketType, {
+            'spot': 'parseSpotBalance',
+            'future': 'parseSwapBalance',
+            'swap': 'parseSwapBalance',
+        })
+        return getattr(self, parser)(response)
+
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
-            'order_id': id,
-        }
-        response = await self.spotPrivatePostPrivateGetOrderDetail(self.extend(request, params))
+        request = {}
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
+        if marketType == 'spot':
+            request['order_id'] = str(id)
+        else:
+            request['order_id'] = int(id)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivatePostPrivateGetOrderDetail',
+            'future': 'derivativesPrivatePostPrivateGetOrderDetail',
+            'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
         #     "method": "private/get-order-detail",
@@ -744,7 +857,7 @@ class cryptocom(Exchange):
         #     }
         # }
         result = self.safe_value(response, 'result', {})
-        order = self.safe_value(result, 'order_info', {})
+        order = self.safe_value(result, 'order_info', result)
         return self.parse_order(order, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -755,15 +868,21 @@ class cryptocom(Exchange):
             'instrument_name': market['id'],
             'side': side.upper(),
             'type': uppercaseType,
-            'quantity': amount,
+            'quantity': self.amount_to_precision(symbol, amount),
         }
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
-        postOnly = self.safe_value(params, 'postOnly', True)
+        postOnly = self.safe_value(params, 'postOnly', False)
         if postOnly:
             request['exec_inst'] = 'POST_ONLY'
             params = self.omit(params, ['postOnly'])
-        response = await self.spotPrivatePostPrivateCreateOrder(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivatePostPrivateCreateOrder',
+            'future': 'derivativesPrivatePostPrivateCreateOrder',
+            'swap': 'derivativesPrivatePostPrivateCreateOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
         #     "method": "private/create-order",
@@ -776,38 +895,65 @@ class cryptocom(Exchange):
         return self.parse_order(result, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a `symbol` argument')
         await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'instrument_name': market['id'],
-        }
-        return await self.spotPrivatePostPrivateCancelAllOrders(self.extend(request, params))
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        if marketType == 'spot':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders')
+            request['instrument_name'] = market['id']
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivatePostPrivateCancelAllOrders',
+            'future': 'derivativesPrivatePostPrivateCancelAllOrders',
+            'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
+        })
+        return await getattr(self, method)(self.extend(request, query))
 
     async def cancel_order(self, id, symbol=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a `symbol` argument')
         await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'instrument_name': market['id'],
-            'order_id': id,
-        }
-        response = await self.spotPrivatePostPrivateCancelOrder(self.extend(request, params))
-        return self.parse_order(response)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        if marketType == 'spot':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders')
+            request['instrument_name'] = market['id']
+            request['order_id'] = str(id)
+        else:
+            request['order_id'] = int(id)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivatePostPrivateCancelOrder',
+            'future': 'derivativesPrivatePostPrivateCancelOrder',
+            'swap': 'derivativesPrivatePostPrivateCancelOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        result = self.safe_value(response, 'result', response)
+        return self.parse_order(result)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a `symbol` argument')
         await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'instrument_name': market['id'],
-        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
         if limit is not None:
             request['page_size'] = limit
-        response = await self.spotPrivatePostPrivateGetOpenOrders(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        if marketType == 'spot':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for ' + marketType + ' orders')
+            request['instrument_name'] = market['id']
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivatePostPrivateGetOpenOrders',
+            'future': 'derivativesPrivatePostPrivateGetOpenOrders',
+            'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
         #     "method": "private/get-open-orders",
@@ -853,7 +999,7 @@ class cryptocom(Exchange):
         #     }
         # }
         data = self.safe_value(response, 'result', {})
-        resultList = self.safe_value(data, 'order_list', [])
+        resultList = self.safe_value_2(data, 'order_list', 'data', [])
         return self.parse_orders(resultList, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -868,7 +1014,13 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = await self.spotPrivatePostPrivateGetTrades(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivatePostPrivateGetTrades',
+            'future': 'derivativesPrivatePostPrivateGetTrades',
+            'swap': 'derivativesPrivatePostPrivateGetTrades',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
         #     "method": "private/get-trades",
@@ -890,7 +1042,7 @@ class cryptocom(Exchange):
         #     }
         # }
         data = self.safe_value(response, 'result', {})
-        resultList = self.safe_value(data, 'trade_list', [])
+        resultList = self.safe_value_2(data, 'trade_list', 'data', [])
         return self.parse_trades(resultList, market, since, limit)
 
     def parse_address(self, addressString):
@@ -1086,6 +1238,110 @@ class cryptocom(Exchange):
         withdrawalList = self.safe_value(data, 'withdrawal_list', [])
         return self.parse_transactions(withdrawalList, currency, since, limit)
 
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        fromAccount = fromAccount.lower()
+        toAccount = toAccount.lower()
+        accountsById = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsById, fromAccount)
+        if fromId is None:
+            keys = list(accountsById.keys())
+            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+        toId = self.safe_string(accountsById, toAccount)
+        if toId is None:
+            keys = list(accountsById.keys())
+            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        request = {
+            'currency': currency['id'],
+            'amount': float(amount),
+            'from': fromId,
+            'to': toId,
+        }
+        return await self.spotPrivatePostPrivateDerivTransfer(self.extend(request, params))
+
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        if not ('direction' in params):
+            raise ArgumentsRequired(self.id + ' fetchTransfers requires a direction param to be either "IN" or "OUT"')
+        await self.load_markets()
+        currency = None
+        request = {
+            'direction': 'OUT',
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = await self.spotPrivatePostPrivateDerivGetTransferHistory(self.extend(request, params))
+        #
+        #     {
+        #       id: '1641032709328',
+        #       method: 'private/deriv/get-transfer-history',
+        #       code: '0',
+        #       result: {
+        #         transfer_list: [
+        #           {
+        #             direction: 'IN',
+        #             time: '1641025185223',
+        #             amount: '109.56',
+        #             status: 'COMPLETED',
+        #             information: 'From Spot Wallet',
+        #             currency: 'USDC'
+        #           }
+        #         ]
+        #       }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        transferList = self.safe_value(result, 'transfer_list', [])
+        resultArray = []
+        for i in range(0, len(transferList)):
+            transfer = transferList[i]
+            resultArray.append(self.parse_transfer(transfer, currency))
+        return self.filter_by_since_limit(resultArray, since, limit)
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'COMPLETED': 'ok',
+            'PROCESSING': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #       direction: 'IN',
+        #       time: '1641025185223',
+        #       amount: '109.56',
+        #       status: 'COMPLETED',
+        #       information: 'From Spot Wallet',
+        #       currency: 'USDC'
+        #     }
+        #
+        timestamp = self.safe_integer(transfer, 'time')
+        amount = self.safe_number(transfer, 'amount')
+        currencyId = self.safe_string(transfer, 'currency')
+        code = self.safe_currency_code(currencyId)
+        information = self.safe_string(transfer, 'information')
+        fromAccount = None
+        toAccount = None
+        if information is not None:
+            parts = information.split(' ')
+            fromAccount = self.safe_string_lower(parts, 1)
+            toAccount = 'derivative' if (fromAccount == 'spot') else 'spot'
+        rawStatus = self.safe_string(transfer, 'status')
+        status = self.parse_transfer_status(rawStatus)
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
+        }
+
     def parse_ticker(self, ticker, market=None):
         # {
         #     "i":"CRO_BTC",
@@ -1156,12 +1412,16 @@ class cryptocom(Exchange):
         if side is not None:
             side = side.lower()
         id = self.safe_string_2(trade, 'd', 'trade_id')
-        takerOrMaker = self.safe_string_lower(trade, 'liquidity_indicator')
+        takerOrMaker = self.safe_string_lower_2(trade, 'liquidity_indicator', 'taker_side')
         order = self.safe_string(trade, 'order_id')
         fee = None
-        feeCost = self.safe_string(trade, 'fee')
+        feeCost = Precise.string_neg(self.safe_string_2(trade, 'fee', 'fees'))
         if feeCost is not None:
-            feeCurrency = self.safe_string(trade, 'fee_currency')
+            feeCurrency = None
+            if market['spot']:
+                feeCurrency = self.safe_string(trade, 'fee_currency')
+            elif market['linear']:
+                feeCurrency = market['quote']
             fee = {
                 'currency': feeCurrency,
                 'cost': feeCost,
@@ -1228,6 +1488,45 @@ class cryptocom(Exchange):
         #         "time_in_force": "GOOD_TILL_CANCEL",
         #         "exec_inst": "POST_ONLY"
         #       }
+        #
+        #     {
+        #       id: 1641026373106,
+        #       method: 'private/get-order-history',
+        #       code: 0,
+        #       result: {
+        #         data: [
+        #           {
+        #             account_id: '85ff689a-7508-4b96-aa79-dc0545d6e637',
+        #             order_id: 13191401932,
+        #             client_oid: '1641025941461',
+        #             order_type: 'LIMIT',
+        #             time_in_force: 'GOOD_TILL_CANCEL',
+        #             side: 'BUY',
+        #             exec_inst: [],
+        #             quantity: '0.0001',
+        #             limit_price: '48000.0',
+        #             order_value: '4.80000000',
+        #             maker_fee_rate: '0.00050',
+        #             taker_fee_rate: '0.00070',
+        #             avg_price: '47253.5',
+        #             trigger_price: '0.0',
+        #             ref_price_type: 'NULL_VAL',
+        #             cumulative_quantity: '0.0001',
+        #             cumulative_value: '4.72535000',
+        #             cumulative_fee: '0.00330775',
+        #             status: 'FILLED',
+        #             update_user_id: 'ce075bef-b600-4277-bd6e-ff9007251e63',
+        #             order_date: '2022-01-01',
+        #             instrument_name: 'BTCUSD-PERP',
+        #             fee_instrument_name: 'USD_Stable_Coin',
+        #             create_time: 1641025941827,
+        #             create_time_ns: '1641025941827994756',
+        #             update_time: 1641025941827
+        #           }
+        #         ]
+        #       }
+        #     }
+        #
         created = self.safe_integer(order, 'create_time')
         updated = self.safe_integer(order, 'update_time')
         marketId = self.safe_string(order, 'instrument_name')
@@ -1237,9 +1536,11 @@ class cryptocom(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_oid')
-        price = self.safe_string(order, 'price')
+        if clientOrderId == '':
+            clientOrderId = None
+        price = self.safe_string_2(order, 'price', 'limit_price')
         average = self.safe_string(order, 'avg_price')
-        type = self.safe_string_lower(order, 'type')
+        type = self.safe_string_lower_2(order, 'type', 'order_type')
         side = self.safe_string_lower(order, 'side')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         execInst = self.safe_string(order, 'exec_inst')
@@ -1247,6 +1548,14 @@ class cryptocom(Exchange):
         if execInst is not None:
             postOnly = (execInst == 'POST_ONLY')
         cost = self.safe_string(order, 'cumulative_value')
+        feeCost = self.safe_string(order, 'cumulative_fee')
+        fee = None
+        if feeCost is not None:
+            feeCurrency = self.safe_string(order, 'fee_instrument_name')
+            fee = {
+                'cost': feeCost,
+                'currency': self.safe_currency_code(feeCurrency),
+            }
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1265,7 +1574,7 @@ class cryptocom(Exchange):
             'filled': filled,
             'remaining': None,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
             'average': average,
             'trades': [],
         }, market)
