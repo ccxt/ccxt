@@ -10,6 +10,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
@@ -81,65 +82,105 @@ class cryptocom(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
                 'test': 'https://uat-api.3ona.co/v2',
-                'api': 'https://api.crypto.com/v2',
+                'api': {
+                    'spot': 'https://api.crypto.com/v2',
+                    'derivatives': 'https://deriv-api.crypto.com/v1',
+                },
                 'www': 'https://crypto.com/',
                 'referral': '',
                 'doc': 'https://exchange-docs.crypto.com/',
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
-                'public': {
-                    'get': {
-                        'public/auth': 1,
-                        'public/get-instruments': 1,
-                        'public/get-book': 1,
-                        'public/get-candlestick': 1,
-                        'public/get-ticker': 1,
-                        'public/get-trades': 1,
-                        'public/margin/get-transfer-currencies': 1,
-                        'public/margin/get-load-currenices': 1,
-                        'public/respond-heartbeat': 1,
+                'spot': {
+                    'public': {
+                        'get': {
+                            'public/auth': 1,
+                            'public/get-instruments': 1,
+                            'public/get-book': 1,
+                            'public/get-candlestick': 1,
+                            'public/get-ticker': 1,
+                            'public/get-trades': 1,
+                            'public/margin/get-transfer-currencies': 1,
+                            'public/margin/get-load-currenices': 1,
+                            'public/respond-heartbeat': 1,
+                        },
+                    },
+                    'private': {
+                        'post': {
+                            'private/set-cancel-on-disconnect': 10 / 3,
+                            'private/get-cancel-on-disconnect': 10 / 3,
+                            'private/create-withdrawal': 10 / 3,
+                            'private/get-withdrawal-history': 10 / 3,
+                            'private/get-deposit-history': 10 / 3,
+                            'private/get-deposit-address': 10 / 3,
+                            'private/get-account-summary': 10 / 3,
+                            'private/create-order': 2 / 3,
+                            'private/cancel-order': 2 / 3,
+                            'private/cancel-all-orders': 2 / 3,
+                            'private/get-order-history': 10 / 3,
+                            'private/get-open-orders': 10 / 3,
+                            'private/get-order-detail': 1 / 3,
+                            'private/get-trades': 100,
+                            'private/margin/get-user-config': 10 / 3,
+                            'private/margin/get-account-summary': 10 / 3,
+                            'private/margin/transfer': 10 / 3,
+                            'private/margin/borrow': 10 / 3,
+                            'private/margin/repay': 10 / 3,
+                            'private/margin/get-transfer-history': 10 / 3,
+                            'private/margin/get-borrow-history': 10 / 3,
+                            'private/margin/get-interest-history': 10 / 3,
+                            'private/margin/get-repay-history': 10 / 3,
+                            'private/margin/get-liquidation-history': 10 / 3,
+                            'private/margin/get-liquidation-orders': 10 / 3,
+                            'private/margin/create-order': 2 / 3,
+                            'private/margin/cancel-order': 2 / 3,
+                            'private/margin/cancel-all-orders': 2 / 3,
+                            'private/margin/get-order-history': 10 / 3,
+                            'private/margin/get-open-orders': 10 / 3,
+                            'private/margin/get-order-detail': 1 / 3,
+                            'private/margin/get-trades': 100,
+                            'private/deriv/transfer': 10 / 3,
+                            'private/deriv/get-transfer-history': 10 / 3,
+                            'private/subaccount/get-sub-accounts': 10 / 3,
+                            'private/subaccount/get-transfer-history': 10 / 3,
+                            'private/subaccount/transfer': 10 / 3,
+                        },
                     },
                 },
-                'private': {
-                    'post': {
-                        'private/set-cancel-on-disconnect': 10 / 3,
-                        'private/get-cancel-on-disconnect': 10 / 3,
-                        'private/create-withdrawal': 10 / 3,
-                        'private/get-withdrawal-history': 10 / 3,
-                        'private/get-deposit-history': 10 / 3,
-                        'private/get-deposit-address': 10 / 3,
-                        'private/get-account-summary': 10 / 3,
-                        'private/create-order': 2 / 3,
-                        'private/cancel-order': 2 / 3,
-                        'private/cancel-all-orders': 2 / 3,
-                        'private/get-order-history': 10 / 3,
-                        'private/get-open-orders': 10 / 3,
-                        'private/get-order-detail': 1 / 3,
-                        'private/get-trades': 100,
-                        'private/margin/get-user-config': 10 / 3,
-                        'private/margin/get-account-summary': 10 / 3,
-                        'private/margin/transfer': 10 / 3,
-                        'private/margin/borrow': 10 / 3,
-                        'private/margin/repay': 10 / 3,
-                        'private/margin/get-transfer-history': 10 / 3,
-                        'private/margin/get-borrow-history': 10 / 3,
-                        'private/margin/get-interest-history': 10 / 3,
-                        'private/margin/get-repay-history': 10 / 3,
-                        'private/margin/get-liquidation-history': 10 / 3,
-                        'private/margin/get-liquidation-orders': 10 / 3,
-                        'private/margin/create-order': 2 / 3,
-                        'private/margin/cancel-order': 2 / 3,
-                        'private/margin/cancel-all-orders': 2 / 3,
-                        'private/margin/get-order-history': 10 / 3,
-                        'private/margin/get-open-orders': 10 / 3,
-                        'private/margin/get-order-detail': 1 / 3,
-                        'private/margin/get-trades': 100,
-                        'private/deriv/transfer': 10 / 3,
-                        'private/deriv/get-transfer-history': 10 / 3,
-                        'private/subaccount/get-sub-accounts': 10 / 3,
-                        'private/subaccount/get-transfer-history': 10 / 3,
-                        'private/subaccount/transfer': 10 / 3,
+                'derivatives': {
+                    'public': {
+                        'get': {
+                            'public/auth': 10 / 3,
+                            'public/get-instruments': 10 / 3,
+                            'public/get-book': 1,
+                            'public/get-candlestick': 1,
+                            'public/get-trades': 1,
+                            'public/get-tickers': 1,
+                            'public/get-valuations': 1,
+                            'public/get-expired-settlement-price': 10 / 3,
+                            'public/get-insurance': 1,
+                        },
+                    },
+                    'private': {
+                        'post': {
+                            'private/set-cancel-on-disconnect': 10 / 3,
+                            'private/get-cancel-on-disconnect': 10 / 3,
+                            'private/user-balance': 10 / 3,
+                            'private/user-balance-history': 10 / 3,
+                            'private/get-positions': 10 / 3,
+                            'private/create-order': 2 / 3,
+                            'private/cancel-order': 2 / 3,
+                            'private/cancel-all-orders': 2 / 3,
+                            'private/close-position': 10 / 3,
+                            'private/convert-collateral': 10 / 3,
+                            'private/get-order-history': 100,
+                            'private/get-open-orders': 10 / 3,
+                            'private/get-order-detail': 1 / 3,
+                            'private/get-trades': 100,
+                            'private/change-account-leverage': 10 / 3,
+                            'private/get-transactions': 10 / 3,
+                        },
                     },
                 },
             },
@@ -173,8 +214,13 @@ class cryptocom(Exchange):
                     },
                 },
             },
-            'options': {},
+            'options': {
+                'defaultType': 'spot',
+            },
             # https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
+            'commonCurrencies': {
+                'USD_STABLE_COIN': 'USDC',
+            },
             'exceptions': {
                 'exact': {
                     '10001': ExchangeError,
@@ -218,10 +264,10 @@ class cryptocom(Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + path
+    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'][api[0]] + '/' + path
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
+        if api[1] == 'public':
             if query:
                 url += '?' + self.urlencode(query)
         else:
@@ -273,7 +319,7 @@ class cryptocom(Exchange):
         #       ]
         #     }
         #  }
-        response = self.publicGetPublicGetInstruments(params)
+        response = self.spotPublicGetPublicGetInstruments(params)
         resultResponse = self.safe_value(response, 'result', {})
         markets = self.safe_value(resultResponse, 'instruments', [])
         result = []
@@ -303,10 +349,13 @@ class cryptocom(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
                 'spot': True,
                 'margin': margin,
                 'future': False,
                 'swap': False,
+                'expiry': None,
+                'expiryDatetime': None,
                 'contractSize': None,
                 'active': None,
                 'precision': precision,
@@ -323,13 +372,120 @@ class cryptocom(Exchange):
                         'min': minCost,
                         'max': None,
                     },
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+        futuresResponse = self.derivativesPublicGetPublicGetInstruments()
+        #
+        #     {
+        #       id: -1,
+        #       method: 'public/get-instruments',
+        #       code: 0,
+        #       result: {
+        #         data: [
+        #           {
+        #             symbol: '1INCHUSD-PERP',
+        #             inst_type: 'PERPETUAL_SWAP',
+        #             display_name: '1INCHUSD Perpetual',
+        #             base_ccy: '1INCH',
+        #             quote_ccy: 'USD_Stable_Coin',
+        #             quote_decimals: 4,
+        #             quantity_decimals: 0,
+        #             price_tick_size: '0.0001',
+        #             qty_tick_size: '1',
+        #             max_leverage: '50',
+        #             tradable: True,
+        #             expiry_timestamp_ms: 0,
+        #             beta_product: False,
+        #             underlying_symbol: '1INCHUSD-INDEX',
+        #             put_call: 'UNDEFINED',
+        #             strike: '0',
+        #             contract_size: '1'
+        #           },
+        #         ]
+        #       }
+        #     }
+        #
+        futuresResult = self.safe_value(futuresResponse, 'result', {})
+        data = self.safe_value(futuresResult, 'data', [])
+        for i in range(0, len(data)):
+            market = data[i]
+            inst_type = self.safe_string(market, 'inst_type')
+            swap = inst_type == 'PERPETUAL_SWAP'
+            future = inst_type == 'FUTURE'
+            baseId = self.safe_string(market, 'base_ccy')
+            quoteId = self.safe_string(market, 'quote_ccy')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote + ':' + quote
+            expiry = self.safe_integer(market, 'expiry_timestamp_ms')
+            if expiry == 0:
+                expiry = None
+            type = 'swap'
+            if future:
+                type = 'future'
+                symbol = symbol + '-' + self.yymmdd(expiry)
+            contractSize = self.safe_string(market, 'contract_size')
+            marketId = self.safe_string(market, 'symbol')
+            maxLeverage = self.safe_number(market, 'max_leverage')
+            active = self.safe_value(market, 'tradable')
+            pricePrecision = self.safe_integer(market, 'quote_decimals')
+            amountPrecision = self.safe_integer(market, 'quantity_decimals')
+            result.append({
+                'info': market,
+                'id': marketId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'type': type,
+                'spot': False,
+                'margin': False,
+                'future': future,
+                'swap': swap,
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
+                'contractSize': contractSize,
+                'active': active,
+                'precision': {
+                    'price': pricePrecision,
+                    'amount': amountPrecision,
+                },
+                'limits': {
+                    'amount': {
+                        'min': self.parse_number(contractSize),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'leverage': {
+                        'min': None,
+                        'max': maxLeverage,
+                    },
                 },
             })
         return result
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetPublicGetTicker(params)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', None, params)
+        method = self.get_supported_mapping(type, {
+            'spot': 'spotPublicGetPublicGetTicker',
+            'future': 'derivativesPublicGetPublicGetTickers',
+            'swap': 'derivativesPublicGetPublicGetTickers',
+        })
+        response = getattr(self, method)(params)
         # {
         #     "code":0,
         #     "method":"public/get-ticker",
@@ -360,7 +516,11 @@ class cryptocom(Exchange):
         request = {
             'instrument_name': market['id'],
         }
-        response = self.publicGetPublicGetTicker(self.extend(request, params))
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', None, params)
+        if type != 'spot':
+            raise NotSupported(self.id + ' fetchTicker only supports spot markets')
+        response = self.spotPublicGetPublicGetTicker(self.extend(request, params))
         # {
         #     "code":0,
         #     "method":"public/get-ticker",
@@ -385,7 +545,7 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = self.privatePostPrivateGetOrderHistory(self.extend(request, params))
+        response = self.spotPrivatePostPrivateGetOrderHistory(self.extend(request, params))
         # {
         #     "id": 11,
         #     "method": "private/get-order-history",
@@ -448,7 +608,14 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = self.publicGetPublicGetTrades(self.extend(request, params))
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        method = self.get_supported_mapping(type, {
+            'spot': 'spotPublicGetPublicGetTrades',
+            'future': 'derivativesPublicGetPublicGetTrades',
+            'swap': 'derivativesPublicGetPublicGetTrades',
+        })
+        response = getattr(self, method)(self.extend(request, params))
         # {
         #     "code":0,
         #     "method":"public/get-trades",
@@ -478,7 +645,14 @@ class cryptocom(Exchange):
             'instrument_name': market['id'],
             'timeframe': self.timeframes[timeframe],
         }
-        response = self.publicGetPublicGetCandlestick(self.extend(request, params))
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        method = self.get_supported_mapping(type, {
+            'spot': 'spotPublicGetPublicGetCandlestick',
+            'future': 'derivativesPublicGetPublicGetCandlestick',
+            'swap': 'derivativesPublicGetPublicGetCandlestick',
+        })
+        response = getattr(self, method)(self.extend(request, params))
         # {
         #     "code":0,
         #     "method":"public/get-candlestick",
@@ -499,12 +673,20 @@ class cryptocom(Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'instrument_name': self.market_id(symbol),
+            'instrument_name': market['id'],
         }
         if limit:
             request['depth'] = limit
-        response = self.publicGetPublicGetBook(self.extend(request, params))
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        method = self.get_supported_mapping(type, {
+            'spot': 'spotPublicGetPublicGetBook',
+            'future': 'derivativesPublicGetPublicGetBook',
+            'swap': 'derivativesPublicGetPublicGetBook',
+        })
+        response = getattr(self, method)(self.extend(request, params))
         # {
         #     "code":0,
         #     "method":"public/get-book",
@@ -514,12 +696,15 @@ class cryptocom(Exchange):
         #       "t":1591704180270
         #     }
         # }
-        orderBook = self.safe_value(response, 'result')
-        return self.parse_order_book(orderBook, symbol)
+        result = self.safe_value(response, 'result')
+        data = self.safe_value(result, 'data')
+        orderBook = self.safe_value(data, 0)
+        timestamp = self.safe_integer(orderBook, 't')
+        return self.parse_order_book(orderBook, symbol, timestamp)
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostPrivateGetAccountSummary(params)
+        response = self.spotPrivatePostPrivateGetAccountSummary(params)
         # {
         #     "id": 11,
         #     "method": "private/get-account-summary",
@@ -558,7 +743,7 @@ class cryptocom(Exchange):
         request = {
             'order_id': id,
         }
-        response = self.privatePostPrivateGetOrderDetail(self.extend(request, params))
+        response = self.spotPrivatePostPrivateGetOrderDetail(self.extend(request, params))
         # {
         #     "id": 11,
         #     "method": "private/get-order-detail",
@@ -615,7 +800,7 @@ class cryptocom(Exchange):
         if postOnly:
             request['exec_inst'] = 'POST_ONLY'
             params = self.omit(params, ['postOnly'])
-        response = self.privatePostPrivateCreateOrder(self.extend(request, params))
+        response = self.spotPrivatePostPrivateCreateOrder(self.extend(request, params))
         # {
         #     "id": 11,
         #     "method": "private/create-order",
@@ -635,7 +820,7 @@ class cryptocom(Exchange):
         request = {
             'instrument_name': market['id'],
         }
-        return self.privatePostPrivateCancelAllOrders(self.extend(request, params))
+        return self.spotPrivatePostPrivateCancelAllOrders(self.extend(request, params))
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -646,7 +831,7 @@ class cryptocom(Exchange):
             'instrument_name': market['id'],
             'order_id': id,
         }
-        response = self.privatePostPrivateCancelOrder(self.extend(request, params))
+        response = self.spotPrivatePostPrivateCancelOrder(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -659,7 +844,7 @@ class cryptocom(Exchange):
         }
         if limit is not None:
             request['page_size'] = limit
-        response = self.privatePostPrivateGetOpenOrders(self.extend(request, params))
+        response = self.spotPrivatePostPrivateGetOpenOrders(self.extend(request, params))
         # {
         #     "id": 11,
         #     "method": "private/get-open-orders",
@@ -720,7 +905,7 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = self.privatePostPrivateGetTrades(self.extend(request, params))
+        response = self.spotPrivatePostPrivateGetTrades(self.extend(request, params))
         # {
         #     "id": 11,
         #     "method": "private/get-trades",
@@ -768,7 +953,7 @@ class cryptocom(Exchange):
         }
         if tag is not None:
             request['address_tag'] = tag
-        response = self.privatePostPrivateCreateWithdrawal(self.extend(request, params))
+        response = self.spotPrivatePostPrivateCreateWithdrawal(self.extend(request, params))
         #
         #    {
         #        "id":-1,
@@ -798,7 +983,7 @@ class cryptocom(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = self.privatePostPrivateGetDepositAddress(self.extend(request, params))
+        response = self.spotPrivatePostPrivateGetDepositAddress(self.extend(request, params))
         # {
         #     "id": 11,
         #     "method": "private/get-deposit-address",
@@ -874,7 +1059,7 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = self.privatePostPrivateGetDepositHistory(self.extend(request, params))
+        response = self.spotPrivatePostPrivateGetDepositHistory(self.extend(request, params))
         # {
         #     "id": 11,
         #     "method": "private/get-deposit-history",
@@ -910,7 +1095,7 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = self.privatePostPrivateGetWithdrawalHistory(self.extend(request, params))
+        response = self.spotPrivatePostPrivateGetWithdrawalHistory(self.extend(request, params))
         #
         #     {
         #       id: 1640704829096,
