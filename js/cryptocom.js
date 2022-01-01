@@ -51,8 +51,8 @@ module.exports = class cryptocom extends Exchange {
                 'setMarginMode': false,
                 'withdraw': true,
                 'fetchDepositAddressesByNetwork': true,
-                'transfer': false,
-                'fetchTransfers': false,
+                'transfer': true,
+                'fetchTransfers': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -210,7 +210,7 @@ module.exports = class cryptocom extends Exchange {
                     'derivatives': 'DERIVATIVES',
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
-                }
+                },
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -826,10 +826,13 @@ module.exports = class cryptocom extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
-            'order_id': parseInt (id),
-        };
+        const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        if (marketType === 'spot') {
+            request['order_id'] = id.toString ();
+        } else {
+            request['order_id'] = parseInt (id);
+        }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderDetail',
             'future': 'derivativesPrivatePostPrivateGetOrderDetail',
@@ -942,15 +945,16 @@ module.exports = class cryptocom extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
-            'order_id': parseInt (id),
-        };
+        const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder requires a `symbol` argument');
             }
             request['instrument_name'] = market['id'];
+            request['order_id'] = id.toString ();
+        } else {
+            request['order_id'] = parseInt (id);
         }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCancelOrder',
@@ -958,7 +962,8 @@ module.exports = class cryptocom extends Exchange {
             'swap': 'derivativesPrivatePostPrivateCancelOrder',
         });
         const response = await this[method] (this.extend (request, query));
-        return this.parseOrder (response);
+        const result = this.safeValue (response, 'result', response);
+        return this.parseOrder (result);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1029,7 +1034,7 @@ module.exports = class cryptocom extends Exchange {
         //     }
         // }
         const data = this.safeValue (response, 'result', {});
-        const resultList = this.safeValue (data, 'order_list', []);
+        const resultList = this.safeValue2 (data, 'order_list', 'data', []);
         return this.parseOrders (resultList, market, since, limit);
     }
 
@@ -1309,22 +1314,99 @@ module.exports = class cryptocom extends Exchange {
         }
         const request = {
             'currency': currency['id'],
-            'amount': amount,
+            'amount': parseFloat (amount),
             'from': fromId,
             'to': toId,
         };
-        const response = await this.spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
-        return response;
+        return await this.spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!('direction' in params)) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers requires a direction param to be either "IN" or "OUT"');
+        }
         await this.loadMarkets ();
         let currency = undefined;
+        const request = {
+            'direction': 'OUT',
+        };
         if (code !== undefined) {
             currency = this.currency (code);
+            request['currency'] = currency['id'];
         }
-        const request = {
+        const response = await this.spotPrivatePostPrivateDerivGetTransferHistory (this.extend (request, params));
+        //
+        //     {
+        //       id: '1641032709328',
+        //       method: 'private/deriv/get-transfer-history',
+        //       code: '0',
+        //       result: {
+        //         transfer_list: [
+        //           {
+        //             direction: 'IN',
+        //             time: '1641025185223',
+        //             amount: '109.56',
+        //             status: 'COMPLETED',
+        //             information: 'From Spot Wallet',
+        //             currency: 'USDC'
+        //           }
+        //         ]
+        //       }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const transferList = this.safeValue (result, 'transfer_list', []);
+        const resultArray = [];
+        for (let i = 0; i < transferList.length; i++) {
+            const transfer = transferList[i];
+            resultArray.push (this.parseTransfer (transfer, currency));
+        }
+        return this.filterBySinceLimit (resultArray, since, limit);
+    }
 
+    parseTransferStatus (status) {
+        const statuses = {
+            'COMPLETED': 'ok',
+            'PROCESSING': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //       direction: 'IN',
+        //       time: '1641025185223',
+        //       amount: '109.56',
+        //       status: 'COMPLETED',
+        //       information: 'From Spot Wallet',
+        //       currency: 'USDC'
+        //     }
+        //
+        const timestamp = this.safeInteger (transfer, 'time');
+        const amount = this.safeNumber (transfer, 'amount');
+        const currencyId = this.safeString (transfer, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const information = this.safeString (transfer, 'information');
+        let from = undefined;
+        let to = undefined;
+        if (information !== undefined) {
+            const parts = information.split (' ');
+            from = this.safeStringLower (parts, 1);
+            to = (from === 'spot') ? 'derivative' : 'spot';
+        }
+        const rawStatus = this.safeString (transfer, 'status');
+        const status = this.parseTransferStatus (rawStatus);
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': from,
+            'toAccount': to,
+            'status': status,
         };
     }
 
@@ -1529,7 +1611,10 @@ module.exports = class cryptocom extends Exchange {
         const filled = this.safeString (order, 'cumulative_quantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'order_id');
-        const clientOrderId = this.safeString (order, 'client_oid');
+        let clientOrderId = this.safeString (order, 'client_oid');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         const price = this.safeString2 (order, 'price', 'limit_price');
         const average = this.safeString (order, 'avg_price');
         const type = this.safeStringLower2 (order, 'type', 'order_type');
