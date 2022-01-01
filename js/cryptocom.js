@@ -1301,7 +1301,7 @@ module.exports = class cryptocom extends Exchange {
             postOnly = (execInst === 'POST_ONLY');
         }
         const cost = this.safeString (order, 'cumulative_value');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
