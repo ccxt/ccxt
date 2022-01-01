@@ -827,7 +827,7 @@ module.exports = class cryptocom extends Exchange {
             market = this.market (symbol);
         }
         const request = {
-            'order_id': id,
+            'order_id': parseInt (id),
         };
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
@@ -873,7 +873,7 @@ module.exports = class cryptocom extends Exchange {
         //     }
         // }
         const result = this.safeValue (response, 'result', {});
-        const order = this.safeValue (result, 'order_info', {});
+        const order = this.safeValue (result, 'order_info', result);
         return this.parseOrder (order, market);
     }
 
@@ -915,15 +915,19 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'instrument_name': market['id'],
-        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if (marketType === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
+            }
+            request['instrument_name'] = market['id'];
+        }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCancelAllOrders',
             'future': 'derivativesPrivatePostPrivateCancelAllOrders',
@@ -933,16 +937,21 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request = {
-            'instrument_name': market['id'],
-            'order_id': id,
+            'order_id': parseInt (id),
         };
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        if (marketType === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder requires a `symbol` argument');
+            }
+            request['instrument_name'] = market['id'];
+        }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCancelOrder',
             'future': 'derivativesPrivatePostPrivateCancelOrder',
@@ -953,18 +962,22 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'instrument_name': market['id'],
-        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        if (marketType === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a `symbol` argument');
+            }
+            request['instrument_name'] = market['id'];
+        }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',
@@ -1528,6 +1541,15 @@ module.exports = class cryptocom extends Exchange {
             postOnly = (execInst === 'POST_ONLY');
         }
         const cost = this.safeString (order, 'cumulative_value');
+        const feeCost = this.safeString (order, 'cumulative_fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrency = this.safeString (order, 'fee_instrument_name');
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (feeCurrency),
+            };
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1546,7 +1568,7 @@ module.exports = class cryptocom extends Exchange {
             'filled': filled,
             'remaining': undefined,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
             'average': average,
             'trades': [],
         }, market);
