@@ -1695,8 +1695,8 @@ class huobi(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        methodType = None
-        methodType, params = self.handle_market_type_and_params('fetchMyTrades', None, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', None, params)
         request = {
             # spot -----------------------------------------------------------
             # 'symbol': market['id'],
@@ -1718,7 +1718,7 @@ class huobi(Exchange):
         }
         method = None
         market = None
-        if methodType == 'spot':
+        if marketType == 'spot':
             if symbol is not None:
                 market = self.market(symbol)
                 request['symbol'] = market['id']
@@ -1730,14 +1730,14 @@ class huobi(Exchange):
             method = 'spotPrivateGetV1OrderMatchresults'
         else:
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol for ' + methodType + ' orders')
+                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol for ' + marketType + ' orders')
             market = self.market(symbol)
             request['contract_code'] = market['id']
             request['trade_type'] = 0  # 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
-            if methodType == 'future':
+            if marketType == 'future':
                 method = 'contractPrivatePostApiV1ContractMatchresultsExact'
                 request['symbol'] = market['settleId']
-            elif methodType == 'swap':
+            elif marketType == 'swap':
                 if market['linear']:
                     marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
                     if marginType == 'isolated':
@@ -1747,7 +1747,7 @@ class huobi(Exchange):
                 elif market['inverse']:
                     method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact'
             else:
-                raise NotSupported(self.id + ' fetchMyTrades() does not support ' + methodType + ' markets')
+                raise NotSupported(self.id + ' fetchMyTrades() does not support ' + marketType + ' markets')
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -2356,8 +2356,8 @@ class huobi(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        methodType = None
-        methodType, params = self.handle_market_type_and_params('fetchOrder', None, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchOrder', None, params)
         request = {
             # spot -----------------------------------------------------------
             # 'order-id': 'id',
@@ -2372,7 +2372,7 @@ class huobi(Exchange):
             # 'contract_type': 'this_week',  # swap, self_week, next_week, quarter, next_ quarter
         }
         method = None
-        if methodType == 'spot':
+        if marketType == 'spot':
             clientOrderId = self.safe_string(params, 'clientOrderId')
             method = 'spotPrivateGetV1OrderOrdersOrderId'
             if clientOrderId is not None:
@@ -2384,13 +2384,13 @@ class huobi(Exchange):
                 request['order-id'] = id
         else:
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol for ' + methodType + ' orders')
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol for ' + marketType + ' orders')
             market = self.market(symbol)
             request['contract_code'] = market['id']
-            if methodType == 'future':
+            if marketType == 'future':
                 method = 'contractPrivatePostApiV1ContractOrderInfo'
                 request['symbol'] = market['settleId']
-            elif methodType == 'swap':
+            elif marketType == 'swap':
                 if market['linear']:
                     marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
                     if marginType == 'isolated':
@@ -2400,7 +2400,7 @@ class huobi(Exchange):
                 elif market['inverse']:
                     method = 'contractPrivatePostSwapApiV1SwapOrderInfo'
             else:
-                raise NotSupported(self.id + ' cancelOrder() does not support ' + methodType + ' markets')
+                raise NotSupported(self.id + ' cancelOrder() does not support ' + marketType + ' markets')
             clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
             if clientOrderId is None:
                 request['order_id'] = id
@@ -2488,8 +2488,8 @@ class huobi(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        methodType = None
-        methodType, params = self.handle_market_type_and_params('fetchOpenOrders', None, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchOpenOrders', None, params)
         request = {
             # spot -----------------------------------------------------------
             # 'account-id': account['id'],
@@ -2507,7 +2507,7 @@ class huobi(Exchange):
         }
         method = None
         market = None
-        if methodType == 'spot':
+        if marketType == 'spot':
             method = 'spotPrivateGetV1OrderOpenOrders'
             if symbol is not None:
                 market = self.market(symbol)
@@ -2529,13 +2529,13 @@ class huobi(Exchange):
             params = self.omit(params, 'account-id')
         else:
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol for ' + methodType + ' orders')
+                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol for ' + marketType + ' orders')
             market = self.market(symbol)
             request['contract_code'] = market['id']
-            if methodType == 'future':
+            if marketType == 'future':
                 method = 'contractPrivatePostApiV1ContractOpenorders'
                 request['symbol'] = market['settleId']
-            elif methodType == 'swap':
+            elif marketType == 'swap':
                 if market['linear']:
                     marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
                     if marginType == 'isolated':
@@ -2545,7 +2545,7 @@ class huobi(Exchange):
                 elif market['inverse']:
                     method = 'contractPrivatePostSwapApiV1SwapOpenorders'
             else:
-                raise NotSupported(self.id + ' cancelOrder() does not support ' + methodType + ' markets')
+                raise NotSupported(self.id + ' cancelOrder() does not support ' + marketType + ' markets')
             if limit is not None:
                 request['page_size'] = limit
         response = await getattr(self, method)(self.extend(request, params))
@@ -2786,8 +2786,8 @@ class huobi(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        methodType, query = self.handle_market_type_and_params('createOrder', market, params)
-        method = self.get_supported_mapping(methodType, {
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
             'spot': 'createSpotOrder',
             'swap': 'createContractOrder',
             'future': 'createContractOrder',
@@ -3015,8 +3015,8 @@ class huobi(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        methodType = None
-        methodType, params = self.handle_market_type_and_params('cancelOrder', None, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelOrder', None, params)
         request = {
             # spot -----------------------------------------------------------
             # 'order-id': 'id',
@@ -3030,7 +3030,7 @@ class huobi(Exchange):
             # 'contract_type': 'this_week',  # swap, self_week, next_week, quarter, next_ quarter
         }
         method = None
-        if methodType == 'spot':
+        if marketType == 'spot':
             clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
             method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel'
             if clientOrderId is None:
@@ -3041,22 +3041,22 @@ class huobi(Exchange):
                 params = self.omit(params, ['client-order-id', 'clientOrderId'])
         else:
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol for ' + methodType + ' orders')
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol for ' + marketType + ' orders')
             market = self.market(symbol)
             request['contract_code'] = market['id']
-            if methodType == 'future':
-                method = 'contractPrivatePostApiV1ContractCancel'
-            elif methodType == 'swap':
-                if market['linear']:
-                    marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
-                    if marginType == 'isolated':
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
-                    elif marginType == 'cross':
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel'
-                elif market['inverse']:
+            if market['linear']:
+                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+                if marginType == 'isolated':
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
+                elif marginType == 'cross':
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel'
+            elif market['inverse']:
+                if market['future']:
+                    method = 'contractPrivatePostApiV1ContractCancel'
+                elif market['swap']:
                     method = 'contractPrivatePostSwapApiV1SwapCancel'
             else:
-                raise NotSupported(self.id + ' cancelOrder() does not support ' + methodType + ' markets')
+                raise NotSupported(self.id + ' cancelOrder() does not support ' + marketType + ' markets')
             clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
             if clientOrderId is None:
                 request['order_id'] = id
@@ -3090,8 +3090,8 @@ class huobi(Exchange):
 
     async def cancel_orders(self, ids, symbol=None, params={}):
         await self.load_markets()
-        methodType = None
-        methodType, params = self.handle_market_type_and_params('cancelOrder', None, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelOrder', None, params)
         request = {
             # spot -----------------------------------------------------------
             'order-ids': [],  # max 50 ids
@@ -3103,7 +3103,7 @@ class huobi(Exchange):
             # 'symbol': market['settleId'],
         }
         method = None
-        if methodType == 'spot':
+        if marketType == 'spot':
             clientOrderIds = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
             clientOrderIds = self.safe_string_2(params, 'client-order-ids', 'clientOrderIds', clientOrderIds)
             if clientOrderIds is None:
@@ -3114,13 +3114,13 @@ class huobi(Exchange):
             method = 'spotPrivatePostV1OrderOrdersBatchcancel'
         else:
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol for ' + methodType + ' orders')
+                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders')
             market = self.market(symbol)
             request['contract_code'] = market['id']
-            if methodType == 'future':
+            if marketType == 'future':
                 method = 'contractPrivatePostApiV1ContractCancel'
                 request['symbol'] = market['settleId']
-            elif methodType == 'swap':
+            elif marketType == 'swap':
                 if market['linear']:
                     marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
                     if marginType == 'isolated':
@@ -3130,7 +3130,7 @@ class huobi(Exchange):
                 elif market['inverse']:
                     method = 'contractPrivatePostSwapApiV1SwapCancel'
             else:
-                raise NotSupported(self.id + ' cancelOrders() does not support ' + methodType + ' markets')
+                raise NotSupported(self.id + ' cancelOrders() does not support ' + marketType + ' markets')
             clientOrderIds = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
             clientOrderIds = self.safe_string_2(params, 'client_order_ids', 'clientOrderIds', clientOrderIds)
             if clientOrderIds is None:
@@ -3194,8 +3194,8 @@ class huobi(Exchange):
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
-        methodType = None
-        methodType, params = self.handle_market_type_and_params('cancelOrder', None, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelOrder', None, params)
         request = {
             # spot -----------------------------------------------------------
             # 'account-id': account['id'],
@@ -3212,20 +3212,20 @@ class huobi(Exchange):
         }
         market = None
         method = None
-        if methodType == 'spot':
+        if marketType == 'spot':
             if symbol is not None:
                 market = self.market(symbol)
                 request['symbol'] = market['id']
             method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders'
         else:
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol for ' + methodType + ' orders')
+                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders')
             market = self.market(symbol)
             request['contract_code'] = market['id']
-            if methodType == 'future':
+            if marketType == 'future':
                 method = 'contractPrivatePostApiV1ContractCancelall'
                 request['symbol'] = market['settleId']
-            elif methodType == 'swap':
+            elif marketType == 'swap':
                 if market['linear']:
                     marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
                     if marginType == 'isolated':
@@ -3235,7 +3235,7 @@ class huobi(Exchange):
                 elif market['inverse']:
                     method = 'contractPrivatePostSwapApiV1SwapCancelall'
             else:
-                raise NotSupported(self.id + ' cancelOrders() does not support ' + methodType + ' markets')
+                raise NotSupported(self.id + ' cancelOrders() does not support ' + marketType + ' markets')
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
