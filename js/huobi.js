@@ -1354,20 +1354,16 @@ module.exports = class huobi extends Exchange {
         const request = {};
         let fieldName = 'symbol';
         let method = 'spotPublicGetMarketDetailMerged';
-        if (market['future']) {
-            if (market['inverse']) {
+        if (market['linear']) {
+            method = 'contractPublicGetLinearSwapExMarketDetailMerged';
+            fieldName = 'contract_code';
+        } else if (market['inverse']) {
+            if (market['future']) {
                 method = 'contractPublicGetMarketDetailMerged';
-            } else if (market['linear']) {
-                method = 'contractPublicGetLinearSwapExMarketDetailMerged';
+            } else if (market['swap']) {
+                method = 'contractPublicGetSwapExMarketDetailMerged';
                 fieldName = 'contract_code';
             }
-        } else if (market['swap']) {
-            if (market['inverse']) {
-                method = 'contractPublicGetSwapExMarketDetailMerged';
-            } else if (market['linear']) {
-                method = 'contractPublicGetLinearSwapExMarketDetailMerged';
-            }
-            fieldName = 'contract_code';
         }
         request[fieldName] = market['id'];
         const response = await this[method] (this.extend (request, params));
