@@ -446,14 +446,13 @@ class cryptocom(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        type = None
-        type, params = self.handle_market_type_and_params('fetchTickers', None, params)
-        method = self.get_supported_mapping(type, {
+        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetPublicGetTicker',
             'future': 'derivativesPublicGetPublicGetTickers',
             'swap': 'derivativesPublicGetPublicGetTickers',
         })
-        response = getattr(self, method)(params)
+        response = getattr(self, method)(query)
         # {
         #     "code":0,
         #     "method":"public/get-ticker",
@@ -484,11 +483,10 @@ class cryptocom(Exchange):
         request = {
             'instrument_name': market['id'],
         }
-        type = None
-        type, params = self.handle_market_type_and_params('fetchTickers', None, params)
-        if type != 'spot':
+        marketType, query = self.handle_market_type_and_params('fetchTicker', None, params)
+        if marketType != 'spot':
             raise NotSupported(self.id + ' fetchTicker only supports spot markets')
-        response = self.spotPublicGetPublicGetTicker(self.extend(request, params))
+        response = self.spotPublicGetPublicGetTicker(self.extend(request, query))
         # {
         #     "code":0,
         #     "method":"public/get-ticker",
@@ -576,14 +574,13 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        type = None
-        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        method = self.get_supported_mapping(type, {
+        marketType, query = self.handle_market_type_and_params('fetchTrades', market, params)
+        method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetPublicGetTrades',
             'future': 'derivativesPublicGetPublicGetTrades',
             'swap': 'derivativesPublicGetPublicGetTrades',
         })
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         # {
         #     "code":0,
         #     "method":"public/get-trades",
@@ -613,14 +610,13 @@ class cryptocom(Exchange):
             'instrument_name': market['id'],
             'timeframe': self.timeframes[timeframe],
         }
-        type = None
-        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        method = self.get_supported_mapping(type, {
+        marketType, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
+        method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetPublicGetCandlestick',
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         })
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         # {
         #     "code":0,
         #     "method":"public/get-candlestick",
@@ -647,14 +643,13 @@ class cryptocom(Exchange):
         }
         if limit:
             request['depth'] = limit
-        type = None
-        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        method = self.get_supported_mapping(type, {
+        marketType, query = self.handle_market_type_and_params('fetchOrderBook', market, params)
+        method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetPublicGetBook',
             'future': 'derivativesPublicGetPublicGetBook',
             'swap': 'derivativesPublicGetPublicGetBook',
         })
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         # {
         #     "code":0,
         #     "method":"public/get-book",

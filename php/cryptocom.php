@@ -446,14 +446,13 @@ class cryptocom extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
-        $method = $this->get_supported_mapping($type, array(
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPublicGetPublicGetTicker',
             'future' => 'derivativesPublicGetPublicGetTickers',
             'swap' => 'derivativesPublicGetPublicGetTickers',
         ));
-        $response = $this->$method ($params);
+        $response = $this->$method ($query);
         // {
         //     "code":0,
         //     "method":"public/get-$ticker",
@@ -486,12 +485,11 @@ class cryptocom extends Exchange {
         $request = array(
             'instrument_name' => $market['id'],
         );
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
-        if ($type !== 'spot') {
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTicker', null, $params);
+        if ($marketType !== 'spot') {
             throw new NotSupported($this->id . ' fetchTicker only supports spot markets');
         }
-        $response = $this->spotPublicGetPublicGetTicker (array_merge($request, $params));
+        $response = $this->spotPublicGetPublicGetTicker (array_merge($request, $query));
         // {
         //     "code":0,
         //     "method":"public/get-ticker",
@@ -587,14 +585,13 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        $method = $this->get_supported_mapping($type, array(
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPublicGetPublicGetTrades',
             'future' => 'derivativesPublicGetPublicGetTrades',
             'swap' => 'derivativesPublicGetPublicGetTrades',
         ));
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         // {
         //     "code":0,
         //     "method":"public/get-trades",
@@ -625,14 +622,13 @@ class cryptocom extends Exchange {
             'instrument_name' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
         );
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        $method = $this->get_supported_mapping($type, array(
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPublicGetPublicGetCandlestick',
             'future' => 'derivativesPublicGetPublicGetCandlestick',
             'swap' => 'derivativesPublicGetPublicGetCandlestick',
         ));
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         // {
         //     "code":0,
         //     "method":"public/get-candlestick",
@@ -661,14 +657,13 @@ class cryptocom extends Exchange {
         if ($limit) {
             $request['depth'] = $limit;
         }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        $method = $this->get_supported_mapping($type, array(
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPublicGetPublicGetBook',
             'future' => 'derivativesPublicGetPublicGetBook',
             'swap' => 'derivativesPublicGetPublicGetBook',
         ));
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         // {
         //     "code":0,
         //     "method":"public/get-book",
