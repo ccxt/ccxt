@@ -1067,11 +1067,11 @@ The CCXT library currently supports the following 112 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg
-          :target: https://crypto.com/
+          :target: https://crypto.com/exch/5835vstech
           :alt: cryptocom
      
      - cryptocom
-     - `Crypto.com <https://crypto.com/>`__
+     - `Crypto.com <https://crypto.com/exch/5835vstech>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://exchange-docs.crypto.com/
           :alt: API Version 2
@@ -1945,14 +1945,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.66.1/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.66.1/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.66.2/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.66.2/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.66.1/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.66.2/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
