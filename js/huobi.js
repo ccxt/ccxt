@@ -1165,7 +1165,7 @@ module.exports = class huobi extends Exchange {
                     symbol += '-' + this.yymmdd (expiry);
                 }
             }
-            const contractSize = this.safeNumber (market, 'contract_size');
+            const contractSize = this.safeString (market, 'contract_size');
             let pricePrecision = undefined;
             let amountPrecision = undefined;
             let costPrecision = undefined;
