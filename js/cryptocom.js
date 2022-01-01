@@ -1388,12 +1388,12 @@ module.exports = class cryptocom extends Exchange {
         const currencyId = this.safeString (transfer, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const information = this.safeString (transfer, 'information');
-        let from = undefined;
-        let to = undefined;
+        let fromAccount = undefined;
+        let toAccount = undefined;
         if (information !== undefined) {
             const parts = information.split (' ');
-            from = this.safeStringLower (parts, 1);
-            to = (from === 'spot') ? 'derivative' : 'spot';
+            fromAccount = this.safeStringLower (parts, 1);
+            toAccount = (fromAccount === 'spot') ? 'derivative' : 'spot';
         }
         const rawStatus = this.safeString (transfer, 'status');
         const status = this.parseTransferStatus (rawStatus);
@@ -1404,8 +1404,8 @@ module.exports = class cryptocom extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': from,
-            'toAccount': to,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
             'status': status,
         };
     }
