@@ -303,7 +303,6 @@ module.exports = class bitvavo extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'derivative': false,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,

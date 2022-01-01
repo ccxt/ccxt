@@ -492,20 +492,18 @@ module.exports = class ascendex extends Exchange {
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
-            const type = (settle !== undefined) ? 'swap' : 'spot';
-            const spot = (type === 'spot');
-            const swap = (type === 'swap');
+            const spot = settle === undefined;
+            const swap = !spot;
+            const type = swap ? 'swap' : 'spot';
             const margin = this.safeValue (market, 'marginTradable', false);
-            const contract = swap;
-            const derivative = contract;
-            const linear = contract ? true : undefined;
-            const contractSize = contract ? 1 : undefined;
+            const linear = swap ? true : undefined;
+            const contractSize = swap ? '1' : undefined;
             let minQty = this.safeNumber (market, 'minQty');
             let maxQty = this.safeNumber (market, 'maxQty');
             let minPrice = this.safeNumber (market, 'tickSize');
             let maxPrice = undefined;
             let symbol = base + '/' + quote;
-            if (contract) {
+            if (swap) {
                 const lotSizeFilter = this.safeValue (market, 'lotSizeFilter');
                 minQty = this.safeNumber (lotSizeFilter, 'minQty');
                 maxQty = this.safeNumber (lotSizeFilter, 'maxQty');
@@ -537,10 +535,9 @@ module.exports = class ascendex extends Exchange {
                 'future': false,
                 'option': false,
                 'active': active,
-                'derivative': derivative,
-                'contract': contract,
+                'contract': swap,
                 'linear': linear,
-                'inverse': contract ? !linear : undefined,
+                'inverse': swap ? !linear : undefined,
                 'taker': fee,
                 'maker': fee,
                 'contractSize': contractSize,
