@@ -650,7 +650,7 @@ module.exports = class cryptocom extends Exchange {
         //      }
         // }
         const resultResponse = this.safeValue (response, 'result', {});
-        const data = this.safeValue2 (resultResponse, 'data', []);
+        const data = this.safeValue (resultResponse, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
