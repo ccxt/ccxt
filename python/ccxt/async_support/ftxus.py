@@ -15,6 +15,10 @@ class ftxus(ftx):
             'countries': ['US'],
             'certified': False,
             'hostname': 'ftx.us',
+            'has': {
+                'future': False,
+                'swap': False,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg',
                 'www': 'https://ftx.us/',

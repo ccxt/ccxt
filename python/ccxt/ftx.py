@@ -497,37 +497,116 @@ class ftx(Exchange):
         #         volumeUsd24h: "2892083192.6099"
         #     }
         #
+        allFuturesResponse = None
+        if self.has['future']:
+            allFuturesResponse = self.publicGetFutures()
+        #
+        #    {
+        #        success: True,
+        #        result: [
+        #            {
+        #                name: "1INCH-PERP",
+        #                underlying: "1INCH",
+        #                description: "1INCH Token Perpetual Futures",
+        #                type: "perpetual",
+        #                expiry: null,
+        #                perpetual: True,
+        #                expired: False,
+        #                enabled: True,
+        #                postOnly: False,
+        #                priceIncrement: "0.0001",
+        #                sizeIncrement: "1.0",
+        #                last: "2.5556",
+        #                bid: "2.5555",
+        #                ask: "2.5563",
+        #                index: "2.5612449804010833",
+        #                mark: "2.5587",
+        #                imfFactor: "0.0005",
+        #                lowerBound: "2.4315",
+        #                upperBound: "2.6893",
+        #                underlyingDescription: "1INCH Token",
+        #                expiryDescription: "Perpetual",
+        #                moveStart: null,
+        #                marginPrice: "2.5587",
+        #                positionLimitWeight: "20.0",
+        #                group: "perpetual",
+        #                change1h: "0.00799716356760164",
+        #                change24h: "0.004909276569004792",
+        #                changeBod: "0.008394419484511705",
+        #                volumeUsd24h: "17834492.0818",
+        #                volume: "7224898.0",
+        #                openInterest: "5597917.0",
+        #                openInterestUsd: "14323390.2279",
+        #            },
+        #            ...
+        #        ],
+        #    }
+        #
         result = []
         markets = self.safe_value(response, 'result', [])
+        allFutures = self.safe_value(allFuturesResponse, 'result', [])
+        allFuturesDict = self.index_by(allFutures, 'name')
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'name')
+            future = self.safe_value(allFuturesDict, id)
+            marketType = self.safe_string(market, 'type')
+            contract = (marketType == 'future')
             baseId = self.safe_string_2(market, 'baseCurrency', 'underlying')
             quoteId = self.safe_string(market, 'quoteCurrency', 'USD')
-            type = self.safe_string(market, 'type')
+            settleId = 'USD' if contract else None
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
+            spot = not contract
+            margin = not contract
+            perpetual = self.safe_value(future, 'perpetual')
+            swap = perpetual
+            option = False
+            isFuture = contract and not swap
+            expiry = None
+            expiryDatetime = self.safe_string(future, 'expiry')
+            type = 'spot'
+            symbol = base + '/' + quote
+            if swap:
+                type = 'swap'
+                symbol = base + '/' + quote + ':' + settle
+            elif isFuture:
+                type = 'future'
+                expiry = self.parse8601(expiryDatetime)
+                symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry, '')
             # check if a market is a spot or future market
-            symbol = self.safe_string(market, 'name') if (type == 'future') else (base + '/' + quote)
-            active = self.safe_value(market, 'enabled')
             sizeIncrement = self.safe_number(market, 'sizeIncrement')
             priceIncrement = self.safe_number(market, 'priceIncrement')
-            precision = {
-                'amount': sizeIncrement,
-                'price': priceIncrement,
-            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'future': (type == 'future'),
-                'spot': (type == 'spot'),
-                'active': active,
-                'precision': precision,
+                'spot': spot,
+                'margin': margin,
+                'swap': swap,
+                'future': isFuture,
+                'option': option,
+                'active': self.safe_value(market, 'enabled'),
+                'derivative': contract,
+                'contract': contract,
+                'linear': True,
+                'inverse': False,
+                'contractSize': 1,
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': sizeIncrement,
+                    'price': priceIncrement,
+                },
                 'limits': {
                     'amount': {
                         'min': sizeIncrement,
@@ -542,7 +621,8 @@ class ftx(Exchange):
                         'max': None,
                     },
                     'leverage': {
-                        'max': 20,
+                        'min': self.parse_number('1'),
+                        'max': self.parse_number('20'),
                     },
                 },
                 'info': market,
@@ -571,21 +651,10 @@ class ftx(Exchange):
         #         "volumeUsd24h":8570651.12113,
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'name')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
-        else:
-            type = self.safe_string(ticker, 'type')
-            if type == 'future':
-                symbol = marketId
-            else:
-                base = self.safe_currency_code(self.safe_string(ticker, 'baseCurrency'))
-                quote = self.safe_currency_code(self.safe_string(ticker, 'quoteCurrency'))
-                if (base is not None) and (quote is not None):
-                    symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'last')
         timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
         percentage = self.safe_number(ticker, 'change24h')
@@ -897,22 +966,11 @@ class ftx(Exchange):
         id = self.safe_string(trade, 'id')
         takerOrMaker = self.safe_string(trade, 'liquidity')
         marketId = self.safe_string(trade, 'market')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        else:
-            base = self.safe_currency_code(self.safe_string(trade, 'baseCurrency'))
-            quote = self.safe_currency_code(self.safe_string(trade, 'quoteCurrency'))
-            if (base is not None) and (quote is not None):
-                symbol = base + '/' + quote
-            else:
-                symbol = marketId
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
         side = self.safe_string(trade, 'side')
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
