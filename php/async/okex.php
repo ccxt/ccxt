@@ -3732,8 +3732,8 @@ class okex extends Exchange {
     public function set_sandbox_mode($enable) {
         if ($enable) {
             $this->headers['x-simulated-trading'] = 1;
-        } else {
-            $this->headers['x-simulated-trading'] = null;
+        } else if (is_array($this->headers) && array_key_exists('x-simulated-trading', $this->headers)) {
+            $this->headers = $this->omit($this->headers, 'x-simulated-trading');
         }
     }
 

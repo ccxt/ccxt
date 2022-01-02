@@ -3565,8 +3565,8 @@ class okex(Exchange):
     def set_sandbox_mode(self, enable):
         if enable:
             self.headers['x-simulated-trading'] = 1
-        else:
-            self.headers['x-simulated-trading'] = None
+        elif 'x-simulated-trading' in self.headers:
+            self.headers = self.omit(self.headers, 'x-simulated-trading')
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
