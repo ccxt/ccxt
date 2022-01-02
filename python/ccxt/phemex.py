@@ -1778,7 +1778,6 @@ class phemex(Exchange):
             request['orderQty'] = int(amount)
             if stopPrice is not None:
                 triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
-                params = self.omit(params, 'triggerType')
                 request['triggerType'] = triggerType
         if (type == 'Limit') or (type == 'StopLimit') or (type == 'LimitIfTouched'):
             priceString = str(price)

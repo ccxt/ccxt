@@ -1843,7 +1843,6 @@ class phemex extends Exchange {
             $request['orderQty'] = intval($amount);
             if ($stopPrice !== null) {
                 $triggerType = $this->safe_string($params, 'triggerType', 'ByMarkPrice');
-                $params = $this->omit($params, 'triggerType');
                 $request['triggerType'] = $triggerType;
             }
         }
