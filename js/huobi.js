@@ -4641,6 +4641,7 @@ module.exports = class huobi extends Exchange {
             'percentage': this.parseNumber (percentage),
             'marginType': marginType,
             'notional': this.parseNumber (notional),
+            'markPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (intialMarginPercentage),
