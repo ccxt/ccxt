@@ -1750,6 +1750,10 @@ class phemex(Exchange):
             # 'pegPriceType': 'TrailingStopPeg',  # TrailingTakeProfitPeg
             # 'text': 'comment',
         }
+        stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
+        if stopPrice is not None:
+            request['stopPxEp'] = self.to_ep(stopPrice, market)
+        params = self.omit(params, ['stopPx', 'stopPrice'])
         if market['spot']:
             qtyType = self.safe_value(params, 'qtyType', 'ByBase')
             if (type == 'Market') or (type == 'Stop') or (type == 'MarketIfTouched'):
@@ -1772,13 +1776,13 @@ class phemex(Exchange):
                 request['baseQtyEv'] = self.to_ev(amountString, market)
         elif market['swap']:
             request['orderQty'] = int(amount)
+            if stopPrice is not None:
+                triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
+                params = self.omit(params, 'triggerType')
+                request['triggerType'] = triggerType
         if (type == 'Limit') or (type == 'StopLimit') or (type == 'LimitIfTouched'):
             priceString = str(price)
             request['priceEp'] = self.to_ep(priceString, market)
-        stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
-        if stopPrice is not None:
-            request['stopPxEp'] = self.to_ep(stopPrice, market)
-        params = self.omit(params, ['stopPx', 'stopPrice'])
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         if takeProfitPrice is not None:
             request['takeProfitEp'] = self.to_ep(takeProfitPrice, market)
