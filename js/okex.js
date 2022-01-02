@@ -3726,8 +3726,8 @@ module.exports = class okex extends Exchange {
     setSandboxMode (enable) {
         if (enable) {
             this.headers['x-simulated-trading'] = 1;
-        } else {
-            this.headers['x-simulated-trading'] = null;
+        } else if ('x-simulated-trading' in this.headers) {
+            delete this.headers['x-simulated-trading'];
         }
     }
 
