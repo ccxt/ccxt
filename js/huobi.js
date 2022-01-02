@@ -4648,6 +4648,8 @@ module.exports = class huobi extends Exchange {
             'maintenanceMargin': this.parseNumber (maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
             'marginRatio': this.parseNumber (marginRatio),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
@@ -4753,6 +4755,11 @@ module.exports = class huobi extends Exchange {
         const omitted = this.omit (account, [ 'positions' ]);
         const positions = this.safeValue (account, 'positions');
         const position = this.safeValue (positions, 0);
-        return this.parsePosition (this.extend (position, omitted));
+        const timestamp = this.safeInteger (response, 'ts');
+        const parsed = this.parsePosition (this.extend (position, omitted));
+        return this.extend (parsed, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
     }
 };
