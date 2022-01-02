@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -82,7 +83,7 @@ module.exports = class huobi extends Exchange {
                 'fetchOrdersByStatus': undefined,
                 'fetchOrderTrades': true,
                 'fetchPartiallyFilledOrders': undefined,
-                'fetchPosition': undefined,
+                'fetchPosition': true,
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': true,
@@ -4543,27 +4544,37 @@ module.exports = class huobi extends Exchange {
         //       available: '1.000000000000000000',
         //       frozen: '0E-18',
         //       cost_open: '47162.000000000000000000',
-        //       cost_hold: '47162.000000000000000000',
-        //       profit_unreal: '0.047300000000000000',
-        //       profit_rate: '0.002005852169119206',
+        //       cost_hold: '47151.300000000000000000',
+        //       profit_unreal: '0.007300000000000000',
+        //       profit_rate: '-0.000144183876850008',
         //       lever_rate: '2',
-        //       position_margin: '23.604650000000000000',
+        //       position_margin: '23.579300000000000000',
         //       direction: 'buy',
-        //       profit: '0.047300000000000000',
-        //       last_price: '47209.3',
+        //       profit: '-0.003400000000000000',
+        //       last_price: '47158.6',
         //       margin_asset: 'USDT',
         //       margin_mode: 'isolated',
-        //       margin_account: 'BTC-USDT'
+        //       margin_account: 'BTC-USDT',
+        //       margin_balance: '24.973020070000000000',
+        //       margin_position: '23.579300000000000000',
+        //       margin_frozen: '0',
+        //       margin_available: '1.393720070000000000',
+        //       profit_real: '0E-18',
+        //       risk_rate: '1.044107779705080303',
+        //       withdraw_available: '1.386420070000000000000000000000000000',
+        //       liquidation_price: '22353.229148614609571788',
+        //       adjust_factor: '0.015000000000000000',
+        //       margin_static: '24.965720070000000000'
         //     }
         //
         market = this.safeMarket (this.safeString (position, 'contract_code'));
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'volume');
         const contractSize = this.safeString (market, 'contractSize');
-        const entryPrice = this.safeString (position, 'cost_hold');
-        const collateral = this.safeString (position, 'position_margin');
+        const entryPrice = this.safeNumber (position, 'cost_hold');
+        const initialMargin = this.safeString (position, 'position_margin');
         const side = this.safeString (position, 'direction');
-        const unrealizedProfit = this.safeString (position, 'profit_unreal');
+        const unrealizedProfit = this.safeNumber (position, 'profit_unreal');
         let marginType = this.safeString (position, 'margin_mode');
         const leverage = this.safeString (position, 'lever_rate');
         const percentage = Precise.stringMul (this.safeString (position, 'profit_rate'), '100');
@@ -4576,35 +4587,45 @@ module.exports = class huobi extends Exchange {
             notional = Precise.stringDiv (faceValue, lastPrice);
             marginType = 'cross';
         }
+        const intialMarginPercentage = Precise.stringDiv (initialMargin, notional);
+        const collateral = this.safeString (position, 'margin_balance');
+        const liquidationPrice = this.safeNumber (position, 'liquidation_price');
+        const adjustmentFactor = this.safeString (position, 'adjust_factor');
+        const maintenanceMarginPercentage = Precise.stringDiv (adjustmentFactor, leverage);
+        const maintenanceMargin = Precise.stringMul (maintenanceMarginPercentage, notional);
+        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
             'symbol': symbol,
-            'contracts': contracts,
+            'contracts': this.parseNumber (contracts),
+            'contractSize': this.parseNumber (contractSize),
             'entryPrice': entryPrice,
-            'collateral': collateral,
+            'collateral': this.parseNumber (collateral),
             'side': side,
             'unrealizedProfit': unrealizedProfit,
-            'leverage': leverage,
-            'percentage': percentage,
+            'leverage': this.parseNumber (leverage),
+            'percentage': this.parseNumber (percentage),
             'marginType': marginType,
-            'notional': notional,
-            'intialMargin': undefined,
-            'intialMarginPercentage': undefined,
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': undefined, // TODO
+            'notional': this.parseNumber (notional),
+            'liquidationPrice': liquidationPrice,
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (intialMarginPercentage),
+            'maintenanceMargin': this.parseNumber (maintenanceMargin),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
+            'marginRatio': this.parseNumber (marginRatio),
         };
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-        const subType = this.safeString2 (this.options, 'defaultSubType', 'inverse');
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
         let method = undefined;
-        if (subType === 'linear') {
+        if (market['linear']) {
             method = this.getSupportedMapping (marginType, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
+                'isolated': 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
+                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
             });
             //
             //     {
@@ -4635,8 +4656,8 @@ module.exports = class huobi extends Exchange {
             //
         } else {
             method = this.getSupportedMapping (marketType, {
-                'future': 'contractPrivatePostApiV1ContractPositionInfo',
-                'swap': 'contractPrivatePostSwapApiV1SwapPositionInfo',
+                'future': 'contractPrivatePostApiV1ContractAccountPositionInfo',
+                'swap': 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
             });
             // future
             //     {
@@ -4688,12 +4709,18 @@ module.exports = class huobi extends Exchange {
             //     }
             //
         }
-        const response = await this[method] (query);
+        const request = {
+            'contract_code': market['id'],
+        };
+        const response = await this[method] (this.extend (request, query));
         const data = this.safeValue (response, 'data');
+        const account = this.safeValue (data, 0);
+        const omitted = this.omit (account, [ 'positions' ]);
+        const positions = this.safeValue (account, 'positions');
         const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            result.push (this.parsePosition (entry));
+        for (let i = 0; i < positions.length; i++) {
+            const entry = positions[i];
+            result.push (this.parsePosition (this.extend (entry, omitted)));
         }
         return result;
     }
