@@ -476,7 +476,7 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         let allFuturesResponse = undefined;
-        if (this.has['future'] || this.has['swap']) {
+        if (this.has['future']) {
             allFuturesResponse = await this.publicGetFutures ();
         }
         //
