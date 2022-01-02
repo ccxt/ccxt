@@ -2737,26 +2737,26 @@ module.exports = class huobi extends Exchange {
             // POST /linear-swap-api/v1/swap_hisorders linear isolated --------
             // POST /linear-swap-api/v1/swap_cross_hisorders linear cross -----
             'contract_code': market['id'],
-            // 'trade_type true int Transaction type  0:all,1: buy long,2: sell short,3: buy short,4: sell long,5: sell liquidation,6: buy liquidation,7:Delivery long,8: Delivery short 11:reduce positions to close long，12:reduce positions to close short
-            // 'type true int Type  1:All Orders,2:Order in Finished Status
-            // 'status true string Order Status  support multiple query seperated by ',',such as '3,4,5','0': all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
-            // 'create_date true int Date  any positive integer available. Requesting data beyond 90 will not be supported, otherwise, system will return trigger history data within the last 90 days by default.
-            // 'page_index false int Page, default 1st page 1
-            // 'page_size false int Default 20，no more than 50 20 [1-50]
-            // 'sort_by false string sort fields(descending) create_date "create_date"：descending order by order create date , "update_time": descending order by order update time
+            'trade_type': 0, // 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long, 5 sell liquidation, 6 buy liquidation, 7 Delivery long, 8 Delivery short 11 reduce positions to close long, 12 reduce positions to close short
+            'type': 1, // 1 all orders, 2 finished orders
+            'status': '0', // 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+            'create_date': 90, // in days?
+            // 'page_index': 1,
+            // 'page_size': limit, // default 20, max 50
+            // 'sort_by': 'create_date', // create_date descending, update_time descending
         };
         let method = undefined;
         request['contract_code'] = market['id'];
         if (market['linear']) {
             const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
             method = this.getSupportedMapping (marginType, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapOpenorders',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders',
+                'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
+                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
             });
         } else if (market['inverse']) {
             method = this.getSupportedMapping (marketType, {
-                'future': 'contractPrivatePostApiV1ContractOpenorders',
-                'swap': 'contractPrivatePostSwapApiV1SwapOpenorders',
+                'future': 'contractPrivatePostApiV1ContractHisorders',
+                'swap': 'contractPrivatePostSwapApiV1SwapHisorders',
             });
             if (marketType === 'future') {
                 request['symbol'] = market['settleId'];
