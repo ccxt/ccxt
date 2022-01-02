@@ -2747,7 +2747,7 @@ class huobi extends Exchange {
             'contract_code' => $market['id'],
             'trade_type' => 0, // 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long, 5 sell liquidation, 6 buy liquidation, 7 Delivery long, 8 Delivery short 11 reduce positions to close long, 12 reduce positions to close short
             'type' => 1, // 1 all $orders, 2 finished $orders
-            'status' => '0', // 0 all, 3 submitted $orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+            'status' => '0', // comma separated, 0 all, 3 submitted $orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
             'create_date' => 90, // in days?
             // 'page_index' => 1,
             // 'page_size' => $limit, // default 20, max 50
@@ -2825,6 +2825,13 @@ class huobi extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
+    public function fetch_closed_contract_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'status' => '5,6,7',
+        );
+        return $this->fetch_contract_orders($symbol, $since, $limit, array_merge($request, $params));
+    }
+
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $marketType = null;
@@ -2850,8 +2857,8 @@ class huobi extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'fetchClosedSpotOrders',
-            // 'swap' => 'fetchClosedContractOrders', // todo
-            // 'future' => 'fetchClosedContractOrders', // todo
+            'swap' => 'fetchClosedContractOrders',
+            'future' => 'fetchClosedContractOrders',
         ));
         if ($method === null) {
             throw new NotSupported($this->id . ' fetchClosedOrders does not support ' . $marketType . ' markets yet');

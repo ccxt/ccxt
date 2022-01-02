@@ -2640,7 +2640,7 @@ class huobi(Exchange):
             'contract_code': market['id'],
             'trade_type': 0,  # 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long, 5 sell liquidation, 6 buy liquidation, 7 Delivery long, 8 Delivery short 11 reduce positions to close long, 12 reduce positions to close short
             'type': 1,  # 1 all orders, 2 finished orders
-            'status': '0',  # 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+            'status': '0',  # comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
             'create_date': 90,  # in days?
             # 'page_index': 1,
             # 'page_size': limit,  # default 20, max 50
@@ -2714,6 +2714,12 @@ class huobi(Exchange):
         orders = self.safe_value(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
+    def fetch_closed_contract_orders(self, symbol=None, since=None, limit=None, params={}):
+        request = {
+            'status': '5,6,7',
+        }
+        return self.fetch_contract_orders(symbol, since, limit, self.extend(request, params))
+
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         marketType = None
@@ -2736,8 +2742,8 @@ class huobi(Exchange):
         marketType, params = self.handle_market_type_and_params('fetchClosedOrders', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'fetchClosedSpotOrders',
-            # 'swap': 'fetchClosedContractOrders',  # todo
-            # 'future': 'fetchClosedContractOrders',  # todo
+            'swap': 'fetchClosedContractOrders',
+            'future': 'fetchClosedContractOrders',
         })
         if method is None:
             raise NotSupported(self.id + ' fetchClosedOrders does not support ' + marketType + ' markets yet')
