@@ -1840,7 +1840,6 @@ module.exports = class phemex extends Exchange {
             request['orderQty'] = parseInt (amount);
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
-                params = this.omit (params, 'triggerType');
                 request['triggerType'] = triggerType;
             }
         }
