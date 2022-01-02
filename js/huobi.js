@@ -1773,6 +1773,17 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'fetchSpotOrderTrades',
+            // 'swap': 'fetchContractOrderTrades',
+            // 'future': 'fetchContractOrderTrades',
+        });
+        return await this[method] (id, symbol, since, limit, params);
+    }
+
+    async fetchSpotOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'order-id': id,
@@ -2819,7 +2830,7 @@ module.exports = class huobi extends Exchange {
 
     async fetchClosedContractOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'status': '5,6,7',
+            'status': '5,6,7', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
         };
         return await this.fetchContractOrders (symbol, since, limit, this.extend (request, params));
     }
