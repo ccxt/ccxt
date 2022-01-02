@@ -2729,17 +2729,117 @@ class huobi extends Exchange {
         return $this->fetch_spot_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
+    public function fetch_contract_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchContractOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        $request = array(
+            // POST /api/v1/contract_hisorders inverse futures ----------------
+            // 'symbol' => $market['settleId'], // BTC, ETH, ...
+            // 'order_type' => '1', // 1 $limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
+            // POST /swap-api/v1/swap_hisorders inverse swap ------------------
+            // POST /linear-swap-api/v1/swap_hisorders linear isolated --------
+            // POST /linear-swap-api/v1/swap_cross_hisorders linear cross -----
+            'contract_code' => $market['id'],
+            'trade_type' => 0, // 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long, 5 sell liquidation, 6 buy liquidation, 7 Delivery long, 8 Delivery short 11 reduce positions to close long, 12 reduce positions to close short
+            'type' => 1, // 1 all $orders, 2 finished $orders
+            'status' => '0', // 0 all, 3 submitted $orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+            'create_date' => 90, // in days?
+            // 'page_index' => 1,
+            // 'page_size' => $limit, // default 20, max 50
+            // 'sort_by' => 'create_date', // create_date descending, update_time descending
+        );
+        $method = null;
+        $request['contract_code'] = $market['id'];
+        if ($market['linear']) {
+            $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+            $method = $this->get_supported_mapping($marginType, array(
+                'isolated' => 'contractPrivatePostLinearSwapApiV1SwapHisorders',
+                'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
+            ));
+        } else if ($market['inverse']) {
+            $method = $this->get_supported_mapping($marketType, array(
+                'future' => 'contractPrivatePostApiV1ContractHisorders',
+                'swap' => 'contractPrivatePostSwapApiV1SwapHisorders',
+            ));
+            if ($marketType === 'future') {
+                $request['symbol'] = $market['settleId'];
+            }
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => {
+        //             "orders" => array(
+        //                 array(
+        //                     "order_id" => 773131315209248768,
+        //                     "contract_code" => "ADA201225",
+        //                     "symbol" => "ADA",
+        //                     "lever_rate" => 20,
+        //                     "direction" => "buy",
+        //                     "offset" => "close",
+        //                     "volume" => 1,
+        //                     "price" => 0.0925,
+        //                     "create_date" => 1604370469629,
+        //                     "update_time" => 1603704221118,
+        //                     "order_source" => "web",
+        //                     "order_price_type" => 6,
+        //                     "order_type" => 1,
+        //                     "margin_frozen" => 0,
+        //                     "profit" => 0,
+        //                     "contract_type" => "quarter",
+        //                     "trade_volume" => 0,
+        //                     "trade_turnover" => 0,
+        //                     "fee" => 0,
+        //                     "trade_avg_price" => 0,
+        //                     "status" => 3,
+        //                     "order_id_str" => "773131315209248768",
+        //                     "fee_asset" => "ADA",
+        //                     "liquidation_type" => "0",
+        //                     "is_tpsl" => 0,
+        //                     "real_profit" => 0
+        //                     "pair" => "BTC-USDT",
+        //                     "business_type" => "futures",
+        //                     "margin_asset" => "USDT",
+        //                     "margin_mode" => "cross",
+        //                     "margin_account" => "USDT",
+        //                 }
+        //             ),
+        //             "total_page" => 19,
+        //             "current_page" => 1,
+        //             "total_size" => 19
+        //         ),
+        //         "ts" => 1604370617322
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $orders = $this->safe_value($data, 'orders', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'fetchSpotOrders',
-            // 'swap' => 'fetchContractOrders', // todo
-            // 'future' => 'fetchContractOrders', // todo
+            'swap' => 'fetchContractOrders',
+            'future' => 'fetchContractOrders',
         ));
         if ($method === null) {
             throw new NotSupported($this->id . ' fetchOrders does not support ' . $marketType . ' markets yet');
+        }
+        $contract = ($marketType === 'swap') || ($marketType === 'future');
+        if ($contract && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for ' . $marketType . ' orders');
         }
         return $this->$method ($symbol, $since, $limit, $params);
     }
@@ -2974,7 +3074,7 @@ class huobi extends Exchange {
         //         "order_id_str":"924660854912552960"
         //     }
         //
-        // linear swap cross margin fetchOrder
+        // contracts fetchOrder
         //
         //     {
         //         "business_type":"swap",
@@ -3011,7 +3111,7 @@ class huobi extends Exchange {
         //         "real_profit":0
         //     }
         //
-        // linear swap isolated margin fetchOrder detailed
+        // contracts fetchOrder detailed
         //
         //     {
         //         "status" => "ok",
