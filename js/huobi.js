@@ -2509,7 +2509,7 @@ module.exports = class huobi extends Exchange {
             }
         } else {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol for ' + marketType + ' orders');
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol for ' + marketType + ' orders');
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
@@ -2527,7 +2527,7 @@ module.exports = class huobi extends Exchange {
                 } else if (marketType === 'swap') {
                     method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
                 } else {
-                    throw new NotSupported (this.id + ' cancelOrder() does not support ' + marketType + ' markets');
+                    throw new NotSupported (this.id + ' fetchOrder() does not support ' + marketType + ' markets');
                 }
             }
             const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
@@ -2689,7 +2689,7 @@ module.exports = class huobi extends Exchange {
                     method = 'contractPrivatePostSwapApiV1SwapOpenorders';
                 }
             } else {
-                throw new NotSupported (this.id + ' cancelOrder() does not support ' + marketType + ' markets');
+                throw new NotSupported (this.id + ' fetchOpenOrders() does not support ' + marketType + ' markets');
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
