@@ -806,6 +806,19 @@ class huobi extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'fetchMarkets' => array(
+                    'types' => array(
+                        'spot' => true,
+                        'future' => array(
+                            'linear' => true,
+                            'inverse' => true,
+                        ),
+                        'swap' => array(
+                            'linear' => true,
+                            'inverse' => true,
+                        ),
+                    ),
+                ),
                 'defaultType' => 'spot', // spot, future, swap
                 'defaultSubType' => 'inverse', // inverse, linear
                 'defaultNetwork' => 'ERC20',
@@ -1024,12 +1037,31 @@ class huobi extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $type = $this->safe_string($options, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type', $type);
-        if (($type !== 'spot') && ($type !== 'future') && ($type !== 'swap')) {
-            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'"); // eslint-disable-line quotes
+        $types = $this->safe_value($options, 'types', array());
+        $allMarkets = array();
+        $keys = is_array($types) ? array_keys($types) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $type = $keys[$i];
+            $value = $this->safe_value($types, $type);
+            if ($value === true) {
+                $markets = yield $this->fetch_markets_by_type_and_sub_type($type, null, $params);
+                $allMarkets = $this->array_concat($allMarkets, $markets);
+            } else {
+                $subKeys = is_array($value) ? array_keys($value) : array();
+                for ($j = 0; $j < count($subKeys); $j++) {
+                    $subType = $subKeys[$j];
+                    $subValue = $this->safe_value($value, $subType);
+                    if ($subValue) {
+                        $markets = yield $this->fetch_markets_by_type_and_sub_type($type, $subType, $params);
+                        $allMarkets = $this->array_concat($allMarkets, $markets);
+                    }
+                }
+            }
         }
+        return $allMarkets;
+    }
+
+    public function fetch_markets_by_type_and_sub_type($type, $subType, $params = array ()) {
         $method = 'spotPublicGetV1CommonSymbols';
         $query = $this->omit($params, array( 'type', 'subType' ));
         $spot = ($type === 'spot');
@@ -1040,26 +1072,18 @@ class huobi extends Exchange {
         $inverse = null;
         $request = array();
         if ($contract) {
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-            $subType = $this->safe_string($options, 'subType', $defaultSubType);
-            $subType = $this->safe_string($params, 'subType', $subType);
-            if (($subType !== 'inverse') && ($subType !== 'linear')) {
-                throw new ExchangeError($this->id . " does not support '" . $subType . "' $type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
-            }
             $linear = ($subType === 'linear');
             $inverse = ($subType === 'inverse');
-            if ($future) {
-                if ($inverse) {
-                    $method = 'contractPublicGetApiV1ContractContractInfo';
-                } else {
-                    $method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+            if ($linear) {
+                $method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+                if ($future) {
                     $request['business_type'] = 'futures';
                 }
-            } else if ($swap) {
-                if ($inverse) {
+            } else if ($inverse) {
+                if ($future) {
+                    $method = 'contractPublicGetApiV1ContractContractInfo';
+                } else if ($swap) {
                     $method = 'contractPublicGetSwapApiV1SwapContractInfo';
-                } else if ($linear) {
-                    $method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
                 }
             }
         }
@@ -1726,7 +1750,8 @@ class huobi extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($trade, 'ts', 'created-at');
         $timestamp = $this->safe_integer($trade, 'created_at', $timestamp);
         $order = $this->safe_string($trade, 'order-id');
@@ -1741,14 +1766,12 @@ class huobi extends Exchange {
         $priceString = $this->safe_string_2($trade, 'price', 'trade_price');
         $amountString = $this->safe_string_2($trade, 'filled-amount', 'amount');
         $amountString = $this->safe_string($trade, 'trade_volume', $amountString);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
         $costString = $this->safe_string($trade, 'trade_turnover');
-        $cost = $this->parse_number($costString);
         $fee = null;
-        $feeCost = $this->safe_number_2($trade, 'filled-fees', 'trade_fee');
-        $feeCurrency = $this->safe_currency_code($this->safe_string_2($trade, 'fee-currency', 'fee_asset'));
-        $filledPoints = $this->safe_number($trade, 'filled-points');
+        $feeCost = $this->safe_string_2($trade, 'filled-fees', 'trade_fee');
+        $feeCurrencyId = $this->safe_string_2($trade, 'fee-currency', 'fee_asset');
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
+        $filledPoints = $this->safe_string($trade, 'filled-points');
         if ($filledPoints !== null) {
             if (($feeCost === null) || ($feeCost === 0.0)) {
                 $feeCost = $filledPoints;
@@ -1763,7 +1786,7 @@ class huobi extends Exchange {
         }
         $tradeId = $this->safe_string_2($trade, 'trade-id', 'tradeId');
         $id = $this->safe_string_2($trade, 'trade_id', 'id', $tradeId);
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'order' => $order,
@@ -1773,11 +1796,11 @@ class huobi extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {

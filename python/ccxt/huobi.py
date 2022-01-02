@@ -823,6 +823,19 @@ class huobi(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'fetchMarkets': {
+                    'types': {
+                        'spot': True,
+                        'future': {
+                            'linear': True,
+                            'inverse': True,
+                        },
+                        'swap': {
+                            'linear': True,
+                            'inverse': True,
+                        },
+                    },
+                },
                 'defaultType': 'spot',  # spot, future, swap
                 'defaultSubType': 'inverse',  # inverse, linear
                 'defaultNetwork': 'ERC20',
@@ -1030,11 +1043,26 @@ class huobi(Exchange):
 
     def fetch_markets(self, params={}):
         options = self.safe_value(self.options, 'fetchMarkets', {})
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
-        if (type != 'spot') and (type != 'future') and (type != 'swap'):
-            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'")  # eslint-disable-line quotes
+        types = self.safe_value(options, 'types', {})
+        allMarkets = []
+        keys = list(types.keys())
+        for i in range(0, len(keys)):
+            type = keys[i]
+            value = self.safe_value(types, type)
+            if value is True:
+                markets = self.fetch_markets_by_type_and_sub_type(type, None, params)
+                allMarkets = self.array_concat(allMarkets, markets)
+            else:
+                subKeys = list(value.keys())
+                for j in range(0, len(subKeys)):
+                    subType = subKeys[j]
+                    subValue = self.safe_value(value, subType)
+                    if subValue:
+                        markets = self.fetch_markets_by_type_and_sub_type(type, subType, params)
+                        allMarkets = self.array_concat(allMarkets, markets)
+        return allMarkets
+
+    def fetch_markets_by_type_and_sub_type(self, type, subType, params={}):
         method = 'spotPublicGetV1CommonSymbols'
         query = self.omit(params, ['type', 'subType'])
         spot = (type == 'spot')
@@ -1045,24 +1073,17 @@ class huobi(Exchange):
         inverse = None
         request = {}
         if contract:
-            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-            subType = self.safe_string(options, 'subType', defaultSubType)
-            subType = self.safe_string(params, 'subType', subType)
-            if (subType != 'inverse') and (subType != 'linear'):
-                raise ExchangeError(self.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'")  # eslint-disable-line quotes
             linear = (subType == 'linear')
             inverse = (subType == 'inverse')
-            if future:
-                if inverse:
-                    method = 'contractPublicGetApiV1ContractContractInfo'
-                else:
-                    method = 'contractPublicGetLinearSwapApiV1SwapContractInfo'
+            if linear:
+                method = 'contractPublicGetLinearSwapApiV1SwapContractInfo'
+                if future:
                     request['business_type'] = 'futures'
-            elif swap:
-                if inverse:
+            elif inverse:
+                if future:
+                    method = 'contractPublicGetApiV1ContractContractInfo'
+                elif swap:
                     method = 'contractPublicGetSwapApiV1SwapContractInfo'
-                elif linear:
-                    method = 'contractPublicGetLinearSwapApiV1SwapContractInfo'
         response = getattr(self, method)(self.extend(request, query))
         #
         # spot
@@ -1693,7 +1714,8 @@ class huobi(Exchange):
         #     }
         #
         marketId = self.safe_string(trade, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer_2(trade, 'ts', 'created-at')
         timestamp = self.safe_integer(trade, 'created_at', timestamp)
         order = self.safe_string(trade, 'order-id')
@@ -1707,14 +1729,12 @@ class huobi(Exchange):
         priceString = self.safe_string_2(trade, 'price', 'trade_price')
         amountString = self.safe_string_2(trade, 'filled-amount', 'amount')
         amountString = self.safe_string(trade, 'trade_volume', amountString)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
         costString = self.safe_string(trade, 'trade_turnover')
-        cost = self.parse_number(costString)
         fee = None
-        feeCost = self.safe_number_2(trade, 'filled-fees', 'trade_fee')
-        feeCurrency = self.safe_currency_code(self.safe_string_2(trade, 'fee-currency', 'fee_asset'))
-        filledPoints = self.safe_number(trade, 'filled-points')
+        feeCost = self.safe_string_2(trade, 'filled-fees', 'trade_fee')
+        feeCurrencyId = self.safe_string_2(trade, 'fee-currency', 'fee_asset')
+        feeCurrency = self.safe_currency_code(feeCurrencyId)
+        filledPoints = self.safe_string(trade, 'filled-points')
         if filledPoints is not None:
             if (feeCost is None) or (feeCost == 0.0):
                 feeCost = filledPoints
@@ -1726,7 +1746,7 @@ class huobi(Exchange):
             }
         tradeId = self.safe_string_2(trade, 'trade-id', 'tradeId')
         id = self.safe_string_2(trade, 'trade_id', 'id', tradeId)
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'order': order,
@@ -1736,11 +1756,11 @@ class huobi(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         marketType = None
