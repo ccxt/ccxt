@@ -1718,7 +1718,8 @@ module.exports = class huobi extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         let timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
         timestamp = this.safeInteger (trade, 'created_at', timestamp);
         const order = this.safeString (trade, 'order-id');
@@ -1733,13 +1734,11 @@ module.exports = class huobi extends Exchange {
         const priceString = this.safeString2 (trade, 'price', 'trade_price');
         let amountString = this.safeString2 (trade, 'filled-amount', 'amount');
         amountString = this.safeString (trade, 'trade_volume', amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
         const costString = this.safeString (trade, 'trade_turnover');
-        const cost = this.parseNumber (costString);
         let fee = undefined;
-        let feeCost = this.safeNumber2 (trade, 'filled-fees', 'trade_fee');
-        let feeCurrency = this.safeCurrencyCode (this.safeString2 (trade, 'fee-currency', 'fee_asset'));
+        let feeCost = this.safeString2 (trade, 'filled-fees', 'trade_fee');
+        const feeCurrencyId = this.safeString2 (trade, 'fee-currency', 'fee_asset');
+        let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         const filledPoints = this.safeNumber (trade, 'filled-points');
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || (feeCost === 0.0)) {
@@ -1755,7 +1754,7 @@ module.exports = class huobi extends Exchange {
         }
         const tradeId = this.safeString2 (trade, 'trade-id', 'tradeId');
         const id = this.safeString2 (trade, 'trade_id', 'id', tradeId);
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'order': order,
@@ -1765,11 +1764,11 @@ module.exports = class huobi extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
