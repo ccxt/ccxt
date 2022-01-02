@@ -2739,7 +2739,7 @@ module.exports = class huobi extends Exchange {
             'contract_code': market['id'],
             'trade_type': 0, // 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long, 5 sell liquidation, 6 buy liquidation, 7 Delivery long, 8 Delivery short 11 reduce positions to close long, 12 reduce positions to close short
             'type': 1, // 1 all orders, 2 finished orders
-            'status': '0', // 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+            'status': '0', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
             'create_date': 90, // in days?
             // 'page_index': 1,
             // 'page_size': limit, // default 20, max 50
@@ -2817,6 +2817,13 @@ module.exports = class huobi extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async fetchClosedContractOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': '5,6,7',
+        };
+        return await this.fetchContractOrders (symbol, since, limit, this.extend (request, params));
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let marketType = undefined;
@@ -2842,8 +2849,8 @@ module.exports = class huobi extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'fetchClosedSpotOrders',
-            // 'swap': 'fetchClosedContractOrders', // todo
-            // 'future': 'fetchClosedContractOrders', // todo
+            'swap': 'fetchClosedContractOrders',
+            'future': 'fetchClosedContractOrders',
         });
         if (method === undefined) {
             throw new NotSupported (this.id + ' fetchClosedOrders does not support ' + marketType + ' markets yet');

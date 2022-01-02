@@ -1,6 +1,5 @@
 {
     "aax":           { "skip": true },
-    "ascendex":      { "skip": true },
     "aofex":         { "skip": true },
     "bcex":          { "skip": true },
     "bibox":         { "has": { "fetchCurrencies": false }},
