@@ -4751,11 +4751,7 @@ module.exports = class huobi extends Exchange {
         const account = this.safeValue (data, 0);
         const omitted = this.omit (account, [ 'positions' ]);
         const positions = this.safeValue (account, 'positions');
-        const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            const entry = positions[i];
-            result.push (this.parsePosition (this.extend (entry, omitted)));
-        }
-        return result;
+        const position = this.safeValue (positions, 0);
+        return this.parsePosition (this.extend (position, omitted));
     }
 };
