@@ -227,6 +227,9 @@ class binance(Exchange):
                         'margin/orderList': 2,
                         'margin/allOrderList': 10,
                         'margin/openOrderList': 3,
+                        'margin/crossMarginData': {'cost': 1, 'noCoin': 5},
+                        'margin/isolatedMarginData': {'cost': 1, 'noCoin': 10},
+                        'margin/isolatedMarginTier': 1,
                         'loan/income': 1,
                         'fiat/orders': 1,
                         'fiat/payments': 1,
@@ -330,6 +333,12 @@ class binance(Exchange):
                         'account/apiRestrictions': 1,
                         # c2c / p2p
                         'c2c/orderMatch/listUserOrderHistory': 1,
+                        # nft endpoints
+                        'nft/history/transactions': 1,
+                        'nft/history/deposit': 1,
+                        'nft/history/withdraw': 1,
+                        'nft/user/getAsset': 1,
+                        'pay/transactions': 1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -4795,7 +4804,9 @@ class binance(Exchange):
             raise ExchangeError(self.id + ' ' + body)
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
-        if ('noSymbol' in config) and not ('symbol' in params):
+        if ('noCoin' in config) and not ('coin' in params):
+            return config['noCoin']
+        elif ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('noPoolId' in config) and not ('poolId' in params):
             return config['noPoolId']

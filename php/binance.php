@@ -212,6 +212,9 @@ class binance extends Exchange {
                         'margin/orderList' => 2,
                         'margin/allOrderList' => 10,
                         'margin/openOrderList' => 3,
+                        'margin/crossMarginData' => array( 'cost' => 1, 'noCoin' => 5 ),
+                        'margin/isolatedMarginData' => array( 'cost' => 1, 'noCoin' => 10 ),
+                        'margin/isolatedMarginTier' => 1,
                         'loan/income' => 1,
                         'fiat/orders' => 1,
                         'fiat/payments' => 1,
@@ -315,6 +318,12 @@ class binance extends Exchange {
                         'account/apiRestrictions' => 1,
                         // c2c / p2p
                         'c2c/orderMatch/listUserOrderHistory' => 1,
+                        // nft endpoints
+                        'nft/history/transactions' => 1,
+                        'nft/history/deposit' => 1,
+                        'nft/history/withdraw' => 1,
+                        'nft/user/getAsset' => 1,
+                        'pay/transactions' => 1,
                     ),
                     'post' => array(
                         'asset/dust' => 1,
@@ -5087,7 +5096,9 @@ class binance extends Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
-        if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
+        if ((is_array($config) && array_key_exists('noCoin', $config)) && !(is_array($params) && array_key_exists('coin', $params))) {
+            return $config['noCoin'];
+        } else if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
             return $config['noSymbol'];
         } else if ((is_array($config) && array_key_exists('noPoolId', $config)) && !(is_array($params) && array_key_exists('poolId', $params))) {
             return $config['noPoolId'];
