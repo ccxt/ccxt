@@ -1739,7 +1739,7 @@ module.exports = class huobi extends Exchange {
         let feeCost = this.safeString2 (trade, 'filled-fees', 'trade_fee');
         const feeCurrencyId = this.safeString2 (trade, 'fee-currency', 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        const filledPoints = this.safeNumber (trade, 'filled-points');
+        const filledPoints = this.safeString (trade, 'filled-points');
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || (feeCost === 0.0)) {
                 feeCost = filledPoints;
