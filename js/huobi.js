@@ -798,6 +798,19 @@ module.exports = class huobi extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'fetchMarkets': {
+                    'types': {
+                        'spot': true,
+                        'future': {
+                            'linear': true,
+                            'inverse': true,
+                        },
+                        'swap': {
+                            'linear': true,
+                            'inverse': true,
+                        },
+                    },
+                },
                 'defaultType': 'spot', // spot, future, swap
                 'defaultSubType': 'inverse', // inverse, linear
                 'defaultNetwork': 'ERC20',
@@ -1016,12 +1029,31 @@ module.exports = class huobi extends Exchange {
 
     async fetchMarkets (params = {}) {
         const options = this.safeValue (this.options, 'fetchMarkets', {});
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        if ((type !== 'spot') && (type !== 'future') && (type !== 'swap')) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'"); // eslint-disable-line quotes
+        const types = this.safeValue (options, 'types', {});
+        let allMarkets = [];
+        const keys = Object.keys (types);
+        for (let i = 0; i < keys.length; i++) {
+            const type = keys[i];
+            const value = this.safeValue (types, type);
+            if (value === true) {
+                const markets = await this.fetchMarketsByTypeAndSubType (type, undefined, params);
+                allMarkets = this.arrayConcat (allMarkets, markets);
+            } else {
+                const subKeys = Object.keys (value);
+                for (let j = 0; j < subKeys.length; j++) {
+                    const subType = subKeys[j];
+                    const subValue = this.safeValue (value, subType);
+                    if (subValue) {
+                        const markets = await this.fetchMarketsByTypeAndSubType (type, subType, params);
+                        allMarkets = this.arrayConcat (allMarkets, markets);
+                    }
+                }
+            }
         }
+        return allMarkets;
+    }
+
+    async fetchMarketsByTypeAndSubType (type, subType, params = {}) {
         let method = 'spotPublicGetV1CommonSymbols';
         const query = this.omit (params, [ 'type', 'subType' ]);
         const spot = (type === 'spot');
@@ -1032,26 +1064,18 @@ module.exports = class huobi extends Exchange {
         let inverse = undefined;
         const request = {};
         if (contract) {
-            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-            let subType = this.safeString (options, 'subType', defaultSubType);
-            subType = this.safeString (params, 'subType', subType);
-            if ((subType !== 'inverse') && (subType !== 'linear')) {
-                throw new ExchangeError (this.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
-            }
             linear = (subType === 'linear');
             inverse = (subType === 'inverse');
-            if (future) {
-                if (inverse) {
-                    method = 'contractPublicGetApiV1ContractContractInfo';
-                } else {
-                    method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+            if (linear) {
+                method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+                if (future) {
                     request['business_type'] = 'futures';
                 }
-            } else if (swap) {
-                if (inverse) {
+            } else if (inverse) {
+                if (future) {
+                    method = 'contractPublicGetApiV1ContractContractInfo';
+                } else if (swap) {
                     method = 'contractPublicGetSwapApiV1SwapContractInfo';
-                } else if (linear) {
-                    method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
                 }
             }
         }
