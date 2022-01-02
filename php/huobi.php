@@ -1781,6 +1781,17 @@ class huobi extends Exchange {
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrderTrades', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'fetchSpotOrderTrades',
+            // 'swap' => 'fetchContractOrderTrades',
+            // 'future' => 'fetchContractOrderTrades',
+        ));
+        return $this->$method ($id, $symbol, $since, $limit, $params);
+    }
+
+    public function fetch_spot_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order-id' => $id,
@@ -2827,7 +2838,7 @@ class huobi extends Exchange {
 
     public function fetch_closed_contract_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
-            'status' => '5,6,7',
+            'status' => '5,6,7', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
         );
         return $this->fetch_contract_orders($symbol, $since, $limit, array_merge($request, $params));
     }

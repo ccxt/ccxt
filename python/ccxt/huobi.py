@@ -1743,6 +1743,16 @@ class huobi(Exchange):
         }
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchOrderTrades', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'fetchSpotOrderTrades',
+            # 'swap': 'fetchContractOrderTrades',
+            # 'future': 'fetchContractOrderTrades',
+        })
+        return getattr(self, method)(id, symbol, since, limit, params)
+
+    def fetch_spot_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
             'order-id': id,
@@ -2716,7 +2726,7 @@ class huobi(Exchange):
 
     def fetch_closed_contract_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {
-            'status': '5,6,7',
+            'status': '5,6,7',  # comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
         }
         return self.fetch_contract_orders(symbol, since, limit, self.extend(request, params))
 

@@ -799,6 +799,19 @@ module.exports = class huobi extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'fetchMarkets': {
+                    'types': {
+                        'spot': true,
+                        'future': {
+                            'linear': true,
+                            'inverse': true,
+                        },
+                        'swap': {
+                            'linear': true,
+                            'inverse': true,
+                        },
+                    },
+                },
                 'defaultType': 'spot', // spot, future, swap
                 'defaultSubType': 'inverse', // inverse, linear
                 'defaultNetwork': 'ERC20',
@@ -1017,12 +1030,31 @@ module.exports = class huobi extends Exchange {
 
     async fetchMarkets (params = {}) {
         const options = this.safeValue (this.options, 'fetchMarkets', {});
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        if ((type !== 'spot') && (type !== 'future') && (type !== 'swap')) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'"); // eslint-disable-line quotes
+        const types = this.safeValue (options, 'types', {});
+        let allMarkets = [];
+        const keys = Object.keys (types);
+        for (let i = 0; i < keys.length; i++) {
+            const type = keys[i];
+            const value = this.safeValue (types, type);
+            if (value === true) {
+                const markets = await this.fetchMarketsByTypeAndSubType (type, undefined, params);
+                allMarkets = this.arrayConcat (allMarkets, markets);
+            } else {
+                const subKeys = Object.keys (value);
+                for (let j = 0; j < subKeys.length; j++) {
+                    const subType = subKeys[j];
+                    const subValue = this.safeValue (value, subType);
+                    if (subValue) {
+                        const markets = await this.fetchMarketsByTypeAndSubType (type, subType, params);
+                        allMarkets = this.arrayConcat (allMarkets, markets);
+                    }
+                }
+            }
         }
+        return allMarkets;
+    }
+
+    async fetchMarketsByTypeAndSubType (type, subType, params = {}) {
         let method = 'spotPublicGetV1CommonSymbols';
         const query = this.omit (params, [ 'type', 'subType' ]);
         const spot = (type === 'spot');
@@ -1033,26 +1065,18 @@ module.exports = class huobi extends Exchange {
         let inverse = undefined;
         const request = {};
         if (contract) {
-            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-            let subType = this.safeString (options, 'subType', defaultSubType);
-            subType = this.safeString (params, 'subType', subType);
-            if ((subType !== 'inverse') && (subType !== 'linear')) {
-                throw new ExchangeError (this.id + " does not support '" + subType + "' type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
-            }
             linear = (subType === 'linear');
             inverse = (subType === 'inverse');
-            if (future) {
-                if (inverse) {
-                    method = 'contractPublicGetApiV1ContractContractInfo';
-                } else {
-                    method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+            if (linear) {
+                method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+                if (future) {
                     request['business_type'] = 'futures';
                 }
-            } else if (swap) {
-                if (inverse) {
+            } else if (inverse) {
+                if (future) {
+                    method = 'contractPublicGetApiV1ContractContractInfo';
+                } else if (swap) {
                     method = 'contractPublicGetSwapApiV1SwapContractInfo';
-                } else if (linear) {
-                    method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
                 }
             }
         }
@@ -1719,7 +1743,8 @@ module.exports = class huobi extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         let timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
         timestamp = this.safeInteger (trade, 'created_at', timestamp);
         const order = this.safeString (trade, 'order-id');
@@ -1734,14 +1759,12 @@ module.exports = class huobi extends Exchange {
         const priceString = this.safeString2 (trade, 'price', 'trade_price');
         let amountString = this.safeString2 (trade, 'filled-amount', 'amount');
         amountString = this.safeString (trade, 'trade_volume', amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
         const costString = this.safeString (trade, 'trade_turnover');
-        const cost = this.parseNumber (costString);
         let fee = undefined;
-        let feeCost = this.safeNumber2 (trade, 'filled-fees', 'trade_fee');
-        let feeCurrency = this.safeCurrencyCode (this.safeString2 (trade, 'fee-currency', 'fee_asset'));
-        const filledPoints = this.safeNumber (trade, 'filled-points');
+        let feeCost = this.safeString2 (trade, 'filled-fees', 'trade_fee');
+        const feeCurrencyId = this.safeString2 (trade, 'fee-currency', 'fee_asset');
+        let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+        const filledPoints = this.safeString (trade, 'filled-points');
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || (feeCost === 0.0)) {
                 feeCost = filledPoints;
@@ -1756,7 +1779,7 @@ module.exports = class huobi extends Exchange {
         }
         const tradeId = this.safeString2 (trade, 'trade-id', 'tradeId');
         const id = this.safeString2 (trade, 'trade_id', 'id', tradeId);
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'order': order,
@@ -1766,14 +1789,25 @@ module.exports = class huobi extends Exchange {
             'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'fetchSpotOrderTrades',
+            // 'swap': 'fetchContractOrderTrades',
+            // 'future': 'fetchContractOrderTrades',
+        });
+        return await this[method] (id, symbol, since, limit, params);
+    }
+
+    async fetchSpotOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'order-id': id,
@@ -2820,7 +2854,7 @@ module.exports = class huobi extends Exchange {
 
     async fetchClosedContractOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'status': '5,6,7',
+            'status': '5,6,7', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
         };
         return await this.fetchContractOrders (symbol, since, limit, this.extend (request, params));
     }
