@@ -1806,6 +1806,11 @@ module.exports = class phemex extends Exchange {
             // 'pegPriceType': 'TrailingStopPeg', // TrailingTakeProfitPeg
             // 'text': 'comment',
         };
+        const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPxEp'] = this.toEp (stopPrice, market);
+        }
+        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
         if (market['spot']) {
             let qtyType = this.safeValue (params, 'qtyType', 'ByBase');
             if ((type === 'Market') || (type === 'Stop') || (type === 'MarketIfTouched')) {
@@ -1833,16 +1838,15 @@ module.exports = class phemex extends Exchange {
             }
         } else if (market['swap']) {
             request['orderQty'] = parseInt (amount);
+            if (stopPrice !== undefined) {
+                const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
+                request['triggerType'] = triggerType;
+            }
         }
         if ((type === 'Limit') || (type === 'StopLimit') || (type === 'LimitIfTouched')) {
             const priceString = price.toString ();
             request['priceEp'] = this.toEp (priceString, market);
         }
-        const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
-        if (stopPrice !== undefined) {
-            request['stopPxEp'] = this.toEp (stopPrice, market);
-        }
-        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         if (takeProfitPrice !== undefined) {
             request['takeProfitEp'] = this.toEp (takeProfitPrice, market);

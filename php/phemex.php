@@ -1809,6 +1809,11 @@ class phemex extends Exchange {
             // 'pegPriceType' => 'TrailingStopPeg', // TrailingTakeProfitPeg
             // 'text' => 'comment',
         );
+        $stopPrice = $this->safe_string_2($params, 'stopPx', 'stopPrice');
+        if ($stopPrice !== null) {
+            $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
+        }
+        $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
         if ($market['spot']) {
             $qtyType = $this->safe_value($params, 'qtyType', 'ByBase');
             if (($type === 'Market') || ($type === 'Stop') || ($type === 'MarketIfTouched')) {
@@ -1836,16 +1841,15 @@ class phemex extends Exchange {
             }
         } else if ($market['swap']) {
             $request['orderQty'] = intval($amount);
+            if ($stopPrice !== null) {
+                $triggerType = $this->safe_string($params, 'triggerType', 'ByMarkPrice');
+                $request['triggerType'] = $triggerType;
+            }
         }
         if (($type === 'Limit') || ($type === 'StopLimit') || ($type === 'LimitIfTouched')) {
             $priceString = (string) $price;
             $request['priceEp'] = $this->to_ep($priceString, $market);
         }
-        $stopPrice = $this->safe_string_2($params, 'stopPx', 'stopPrice');
-        if ($stopPrice !== null) {
-            $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
-        }
-        $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         if ($takeProfitPrice !== null) {
             $request['takeProfitEp'] = $this->to_ep($takeProfitPrice, $market);
