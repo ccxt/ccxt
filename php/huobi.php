@@ -90,7 +90,7 @@ class huobi extends Exchange {
                 'fetchOrdersByStatus' => null,
                 'fetchOrderTrades' => true,
                 'fetchPartiallyFilledOrders' => null,
-                'fetchPosition' => null,
+                'fetchPosition' => true,
                 'fetchPositions' => null,
                 'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => true,
@@ -4574,5 +4574,199 @@ class huobi extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //       $symbol => 'BTC',
+        //       contract_code => 'BTC-USDT',
+        //       volume => '1.000000000000000000',
+        //       available => '1.000000000000000000',
+        //       frozen => '0E-18',
+        //       cost_open => '47162.000000000000000000',
+        //       cost_hold => '47151.300000000000000000',
+        //       profit_unreal => '0.007300000000000000',
+        //       profit_rate => '-0.000144183876850008',
+        //       lever_rate => '2',
+        //       position_margin => '23.579300000000000000',
+        //       direction => 'buy',
+        //       profit => '-0.003400000000000000',
+        //       last_price => '47158.6',
+        //       margin_asset => 'USDT',
+        //       margin_mode => 'isolated',
+        //       margin_account => 'BTC-USDT',
+        //       margin_balance => '24.973020070000000000',
+        //       margin_position => '23.579300000000000000',
+        //       margin_frozen => '0',
+        //       margin_available => '1.393720070000000000',
+        //       profit_real => '0E-18',
+        //       risk_rate => '1.044107779705080303',
+        //       withdraw_available => '1.386420070000000000000000000000000000',
+        //       liquidation_price => '22353.229148614609571788',
+        //       adjust_factor => '0.015000000000000000',
+        //       margin_static => '24.965720070000000000'
+        //     }
+        //
+        $market = $this->safe_market($this->safe_string($position, 'contract_code'));
+        $symbol = $market['symbol'];
+        $contracts = $this->safe_string($position, 'volume');
+        $contractSize = $this->safe_string($market, 'contractSize');
+        $entryPrice = $this->safe_number($position, 'cost_hold');
+        $initialMargin = $this->safe_string($position, 'position_margin');
+        $side = $this->safe_string($position, 'direction');
+        $unrealizedProfit = $this->safe_number($position, 'profit_unreal');
+        $marginType = $this->safe_string($position, 'margin_mode');
+        $leverage = $this->safe_string($position, 'lever_rate');
+        $percentage = Precise::string_mul($this->safe_string($position, 'profit_rate'), '100');
+        $lastPrice = $this->safe_string($position, 'last_price');
+        $faceValue = Precise::string_mul($contracts, $contractSize);
+        $notional = null;
+        if ($market['linear']) {
+            $notional = Precise::string_mul($faceValue, $lastPrice);
+        } else {
+            $notional = Precise::string_div($faceValue, $lastPrice);
+            $marginType = 'cross';
+        }
+        $intialMarginPercentage = Precise::string_div($initialMargin, $notional);
+        $collateral = $this->safe_string($position, 'margin_balance');
+        $liquidationPrice = $this->safe_number($position, 'liquidation_price');
+        $adjustmentFactor = $this->safe_string($position, 'adjust_factor');
+        $maintenanceMarginPercentage = Precise::string_div($adjustmentFactor, $leverage);
+        $maintenanceMargin = Precise::string_mul($maintenanceMarginPercentage, $notional);
+        $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
+        return array(
+            'info' => $position,
+            'symbol' => $symbol,
+            'contracts' => $this->parse_number($contracts),
+            'contractSize' => $this->parse_number($contractSize),
+            'entryPrice' => $entryPrice,
+            'collateral' => $this->parse_number($collateral),
+            'side' => $side,
+            'unrealizedProfit' => $unrealizedProfit,
+            'leverage' => $this->parse_number($leverage),
+            'percentage' => $this->parse_number($percentage),
+            'marginType' => $marginType,
+            'notional' => $this->parse_number($notional),
+            'markPrice' => null,
+            'liquidationPrice' => $liquidationPrice,
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => $this->parse_number($intialMarginPercentage),
+            'maintenanceMargin' => $this->parse_number($maintenanceMargin),
+            'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentage),
+            'marginRatio' => $this->parse_number($marginRatio),
+            'timestamp' => null,
+            'datetime' => null,
+        );
+    }
+
+    public function fetch_position($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
+        $method = null;
+        if ($market['linear']) {
+            $method = $this->get_supported_mapping($marginType, array(
+                'isolated' => 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
+                'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
+            ));
+            //
+            //     {
+            //       status => 'ok',
+            //       $data => array(
+            //         {
+            //           $symbol => 'BTC',
+            //           contract_code => 'BTC-USDT',
+            //           volume => '1.000000000000000000',
+            //           available => '1.000000000000000000',
+            //           frozen => '0E-18',
+            //           cost_open => '47162.000000000000000000',
+            //           cost_hold => '47162.000000000000000000',
+            //           profit_unreal => '0.047300000000000000',
+            //           profit_rate => '0.002005852169119206',
+            //           lever_rate => '2',
+            //           position_margin => '23.604650000000000000',
+            //           direction => 'buy',
+            //           profit => '0.047300000000000000',
+            //           last_price => '47209.3',
+            //           margin_asset => 'USDT',
+            //           margin_mode => 'isolated',
+            //           margin_account => 'BTC-USDT'
+            //         }
+            //       ),
+            //       ts => '1641108676768'
+            //     }
+            //
+        } else {
+            $method = $this->get_supported_mapping($marketType, array(
+                'future' => 'contractPrivatePostApiV1ContractAccountPositionInfo',
+                'swap' => 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
+            ));
+            // future
+            //     {
+            //       status => 'ok',
+            //       $data => array(
+            //         {
+            //           $symbol => 'BTC',
+            //           contract_code => 'BTC220624',
+            //           contract_type => 'next_quarter',
+            //           volume => '1.000000000000000000',
+            //           available => '1.000000000000000000',
+            //           frozen => '0E-18',
+            //           cost_open => '49018.880000000009853343',
+            //           cost_hold => '49018.880000000009853343',
+            //           profit_unreal => '-8.62360608500000000000000000000000000000000000000E-7',
+            //           profit_rate => '-0.000845439023678622',
+            //           lever_rate => '2',
+            //           position_margin => '0.001019583964880634',
+            //           direction => 'sell',
+            //           profit => '-8.62360608500000000000000000000000000000000000000E-7',
+            //           last_price => '49039.61'
+            //         }
+            //       ),
+            //       ts => '1641109895199'
+            //     }
+            //
+            // swap
+            //     {
+            //       status => 'ok',
+            //       $data => array(
+            //         {
+            //           $symbol => 'BTC',
+            //           contract_code => 'BTC-USD',
+            //           volume => '1.000000000000000000',
+            //           available => '1.000000000000000000',
+            //           frozen => '0E-18',
+            //           cost_open => '47150.000000000012353300',
+            //           cost_hold => '47150.000000000012353300',
+            //           profit_unreal => '0E-54',
+            //           profit_rate => '-7.86E-16',
+            //           lever_rate => '3',
+            //           position_margin => '0.000706963591375044',
+            //           direction => 'buy',
+            //           profit => '0E-54',
+            //           last_price => '47150'
+            //         }
+            //       ),
+            //       ts => '1641109636572'
+            //     }
+            //
+        }
+        $request = array(
+            'contract_code' => $market['id'],
+        );
+        $response = $this->$method (array_merge($request, $query));
+        $data = $this->safe_value($response, 'data');
+        $account = $this->safe_value($data, 0);
+        $omitted = $this->omit($account, array( 'positions' ));
+        $positions = $this->safe_value($account, 'positions');
+        $position = $this->safe_value($positions, 0);
+        $timestamp = $this->safe_integer($response, 'ts');
+        $parsed = $this->parse_position(array_merge($position, $omitted));
+        return array_merge($parsed, array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
     }
 }
