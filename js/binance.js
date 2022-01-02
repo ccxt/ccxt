@@ -206,6 +206,9 @@ module.exports = class binance extends Exchange {
                         'margin/orderList': 2,
                         'margin/allOrderList': 10,
                         'margin/openOrderList': 3,
+                        'margin/crossMarginData': { 'cost': 1, 'noCoin': 5 },
+                        'margin/isolatedMarginData': { 'cost': 1, 'noCoin': 10 },
+                        'margin/isolatedMarginTier': 1,
                         'loan/income': 1,
                         'fiat/orders': 1,
                         'fiat/payments': 1,
@@ -309,6 +312,12 @@ module.exports = class binance extends Exchange {
                         'account/apiRestrictions': 1,
                         // c2c / p2p
                         'c2c/orderMatch/listUserOrderHistory': 1,
+                        // nft endpoints
+                        'nft/history/transactions': 1,
+                        'nft/history/deposit': 1,
+                        'nft/history/withdraw': 1,
+                        'nft/user/getAsset': 1,
+                        'pay/transactions': 1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -5081,7 +5090,9 @@ module.exports = class binance extends Exchange {
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
-        if (('noSymbol' in config) && !('symbol' in params)) {
+        if (('noCoin' in config) && !('coin' in params)) {
+            return config['noCoin'];
+        } else if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noPoolId' in config) && !('poolId' in params)) {
             return config['noPoolId'];
