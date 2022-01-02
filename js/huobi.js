@@ -2721,17 +2721,117 @@ module.exports = class huobi extends Exchange {
         return await this.fetchSpotOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
+    async fetchContractOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchContractOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const request = {
+            // POST /api/v1/contract_hisorders inverse futures ----------------
+            // 'symbol': market['settleId'], // BTC, ETH, ...
+            // 'order_type': '1', // 1 limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
+            // POST /swap-api/v1/swap_hisorders inverse swap ------------------
+            // POST /linear-swap-api/v1/swap_hisorders linear isolated --------
+            // POST /linear-swap-api/v1/swap_cross_hisorders linear cross -----
+            'contract_code': market['id'],
+            // 'trade_type true int Transaction type  0:all,1: buy long,2: sell short,3: buy short,4: sell long,5: sell liquidation,6: buy liquidation,7:Delivery long,8: Delivery short 11:reduce positions to close long，12:reduce positions to close short
+            // 'type true int Type  1:All Orders,2:Order in Finished Status
+            // 'status true string Order Status  support multiple query seperated by ',',such as '3,4,5','0': all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
+            // 'create_date true int Date  any positive integer available. Requesting data beyond 90 will not be supported, otherwise, system will return trigger history data within the last 90 days by default.
+            // 'page_index false int Page, default 1st page 1
+            // 'page_size false int Default 20，no more than 50 20 [1-50]
+            // 'sort_by false string sort fields(descending) create_date "create_date"：descending order by order create date , "update_time": descending order by order update time
+        };
+        let method = undefined;
+        request['contract_code'] = market['id'];
+        if (market['linear']) {
+            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+            method = this.getSupportedMapping (marginType, {
+                'isolated': 'contractPrivatePostLinearSwapApiV1SwapOpenorders',
+                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders',
+            });
+        } else if (market['inverse']) {
+            method = this.getSupportedMapping (marketType, {
+                'future': 'contractPrivatePostApiV1ContractOpenorders',
+                'swap': 'contractPrivatePostSwapApiV1SwapOpenorders',
+            });
+            if (marketType === 'future') {
+                request['symbol'] = market['settleId'];
+            }
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "order_id": 773131315209248768,
+        //                     "contract_code": "ADA201225",
+        //                     "symbol": "ADA",
+        //                     "lever_rate": 20,
+        //                     "direction": "buy",
+        //                     "offset": "close",
+        //                     "volume": 1,
+        //                     "price": 0.0925,
+        //                     "create_date": 1604370469629,
+        //                     "update_time": 1603704221118,
+        //                     "order_source": "web",
+        //                     "order_price_type": 6,
+        //                     "order_type": 1,
+        //                     "margin_frozen": 0,
+        //                     "profit": 0,
+        //                     "contract_type": "quarter",
+        //                     "trade_volume": 0,
+        //                     "trade_turnover": 0,
+        //                     "fee": 0,
+        //                     "trade_avg_price": 0,
+        //                     "status": 3,
+        //                     "order_id_str": "773131315209248768",
+        //                     "fee_asset": "ADA",
+        //                     "liquidation_type": "0",
+        //                     "is_tpsl": 0,
+        //                     "real_profit": 0
+        //                     "pair": "BTC-USDT",
+        //                     "business_type": "futures",
+        //                     "margin_asset": "USDT",
+        //                     "margin_mode": "cross",
+        //                     "margin_account": "USDT",
+        //                 }
+        //             ],
+        //             "total_page": 19,
+        //             "current_page": 1,
+        //             "total_size": 19
+        //         },
+        //         "ts": 1604370617322
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (data, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'fetchSpotOrders',
-            // 'swap': 'fetchContractOrders', // todo
-            // 'future': 'fetchContractOrders', // todo
+            'swap': 'fetchContractOrders',
+            'future': 'fetchContractOrders',
         });
         if (method === undefined) {
             throw new NotSupported (this.id + ' fetchOrders does not support ' + marketType + ' markets yet');
+        }
+        const contract = (marketType === 'swap') || (marketType === 'future');
+        if (contract && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders');
         }
         return await this[method] (symbol, since, limit, params);
     }
@@ -2966,7 +3066,7 @@ module.exports = class huobi extends Exchange {
         //         "order_id_str":"924660854912552960"
         //     }
         //
-        // linear swap cross margin fetchOrder
+        // contracts fetchOrder
         //
         //     {
         //         "business_type":"swap",
@@ -3003,7 +3103,7 @@ module.exports = class huobi extends Exchange {
         //         "real_profit":0
         //     }
         //
-        // linear swap isolated margin fetchOrder detailed
+        // contracts fetchOrder detailed
         //
         //     {
         //         "status": "ok",
