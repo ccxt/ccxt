@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, InvalidAddress, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -82,7 +83,7 @@ module.exports = class huobi extends Exchange {
                 'fetchOrdersByStatus': undefined,
                 'fetchOrderTrades': true,
                 'fetchPartiallyFilledOrders': undefined,
-                'fetchPosition': undefined,
+                'fetchPosition': true,
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': true,
@@ -4566,5 +4567,199 @@ module.exports = class huobi extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //       symbol: 'BTC',
+        //       contract_code: 'BTC-USDT',
+        //       volume: '1.000000000000000000',
+        //       available: '1.000000000000000000',
+        //       frozen: '0E-18',
+        //       cost_open: '47162.000000000000000000',
+        //       cost_hold: '47151.300000000000000000',
+        //       profit_unreal: '0.007300000000000000',
+        //       profit_rate: '-0.000144183876850008',
+        //       lever_rate: '2',
+        //       position_margin: '23.579300000000000000',
+        //       direction: 'buy',
+        //       profit: '-0.003400000000000000',
+        //       last_price: '47158.6',
+        //       margin_asset: 'USDT',
+        //       margin_mode: 'isolated',
+        //       margin_account: 'BTC-USDT',
+        //       margin_balance: '24.973020070000000000',
+        //       margin_position: '23.579300000000000000',
+        //       margin_frozen: '0',
+        //       margin_available: '1.393720070000000000',
+        //       profit_real: '0E-18',
+        //       risk_rate: '1.044107779705080303',
+        //       withdraw_available: '1.386420070000000000000000000000000000',
+        //       liquidation_price: '22353.229148614609571788',
+        //       adjust_factor: '0.015000000000000000',
+        //       margin_static: '24.965720070000000000'
+        //     }
+        //
+        market = this.safeMarket (this.safeString (position, 'contract_code'));
+        const symbol = market['symbol'];
+        const contracts = this.safeString (position, 'volume');
+        const contractSize = this.safeString (market, 'contractSize');
+        const entryPrice = this.safeNumber (position, 'cost_hold');
+        const initialMargin = this.safeString (position, 'position_margin');
+        const side = this.safeString (position, 'direction');
+        const unrealizedProfit = this.safeNumber (position, 'profit_unreal');
+        let marginType = this.safeString (position, 'margin_mode');
+        const leverage = this.safeString (position, 'lever_rate');
+        const percentage = Precise.stringMul (this.safeString (position, 'profit_rate'), '100');
+        const lastPrice = this.safeString (position, 'last_price');
+        const faceValue = Precise.stringMul (contracts, contractSize);
+        let notional = undefined;
+        if (market['linear']) {
+            notional = Precise.stringMul (faceValue, lastPrice);
+        } else {
+            notional = Precise.stringDiv (faceValue, lastPrice);
+            marginType = 'cross';
+        }
+        const intialMarginPercentage = Precise.stringDiv (initialMargin, notional);
+        const collateral = this.safeString (position, 'margin_balance');
+        const liquidationPrice = this.safeNumber (position, 'liquidation_price');
+        const adjustmentFactor = this.safeString (position, 'adjust_factor');
+        const maintenanceMarginPercentage = Precise.stringDiv (adjustmentFactor, leverage);
+        const maintenanceMargin = Precise.stringMul (maintenanceMarginPercentage, notional);
+        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': this.parseNumber (contracts),
+            'contractSize': this.parseNumber (contractSize),
+            'entryPrice': entryPrice,
+            'collateral': this.parseNumber (collateral),
+            'side': side,
+            'unrealizedProfit': unrealizedProfit,
+            'leverage': this.parseNumber (leverage),
+            'percentage': this.parseNumber (percentage),
+            'marginType': marginType,
+            'notional': this.parseNumber (notional),
+            'markPrice': undefined,
+            'liquidationPrice': liquidationPrice,
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (intialMarginPercentage),
+            'maintenanceMargin': this.parseNumber (maintenanceMargin),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
+            'marginRatio': this.parseNumber (marginRatio),
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+    }
+
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        let method = undefined;
+        if (market['linear']) {
+            method = this.getSupportedMapping (marginType, {
+                'isolated': 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
+                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
+            });
+            //
+            //     {
+            //       status: 'ok',
+            //       data: [
+            //         {
+            //           symbol: 'BTC',
+            //           contract_code: 'BTC-USDT',
+            //           volume: '1.000000000000000000',
+            //           available: '1.000000000000000000',
+            //           frozen: '0E-18',
+            //           cost_open: '47162.000000000000000000',
+            //           cost_hold: '47162.000000000000000000',
+            //           profit_unreal: '0.047300000000000000',
+            //           profit_rate: '0.002005852169119206',
+            //           lever_rate: '2',
+            //           position_margin: '23.604650000000000000',
+            //           direction: 'buy',
+            //           profit: '0.047300000000000000',
+            //           last_price: '47209.3',
+            //           margin_asset: 'USDT',
+            //           margin_mode: 'isolated',
+            //           margin_account: 'BTC-USDT'
+            //         }
+            //       ],
+            //       ts: '1641108676768'
+            //     }
+            //
+        } else {
+            method = this.getSupportedMapping (marketType, {
+                'future': 'contractPrivatePostApiV1ContractAccountPositionInfo',
+                'swap': 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
+            });
+            // future
+            //     {
+            //       status: 'ok',
+            //       data: [
+            //         {
+            //           symbol: 'BTC',
+            //           contract_code: 'BTC220624',
+            //           contract_type: 'next_quarter',
+            //           volume: '1.000000000000000000',
+            //           available: '1.000000000000000000',
+            //           frozen: '0E-18',
+            //           cost_open: '49018.880000000009853343',
+            //           cost_hold: '49018.880000000009853343',
+            //           profit_unreal: '-8.62360608500000000000000000000000000000000000000E-7',
+            //           profit_rate: '-0.000845439023678622',
+            //           lever_rate: '2',
+            //           position_margin: '0.001019583964880634',
+            //           direction: 'sell',
+            //           profit: '-8.62360608500000000000000000000000000000000000000E-7',
+            //           last_price: '49039.61'
+            //         }
+            //       ],
+            //       ts: '1641109895199'
+            //     }
+            //
+            // swap
+            //     {
+            //       status: 'ok',
+            //       data: [
+            //         {
+            //           symbol: 'BTC',
+            //           contract_code: 'BTC-USD',
+            //           volume: '1.000000000000000000',
+            //           available: '1.000000000000000000',
+            //           frozen: '0E-18',
+            //           cost_open: '47150.000000000012353300',
+            //           cost_hold: '47150.000000000012353300',
+            //           profit_unreal: '0E-54',
+            //           profit_rate: '-7.86E-16',
+            //           lever_rate: '3',
+            //           position_margin: '0.000706963591375044',
+            //           direction: 'buy',
+            //           profit: '0E-54',
+            //           last_price: '47150'
+            //         }
+            //       ],
+            //       ts: '1641109636572'
+            //     }
+            //
+        }
+        const request = {
+            'contract_code': market['id'],
+        };
+        const response = await this[method] (this.extend (request, query));
+        const data = this.safeValue (response, 'data');
+        const account = this.safeValue (data, 0);
+        const omitted = this.omit (account, [ 'positions' ]);
+        const positions = this.safeValue (account, 'positions');
+        const position = this.safeValue (positions, 0);
+        const timestamp = this.safeInteger (response, 'ts');
+        const parsed = this.parsePosition (this.extend (position, omitted));
+        return this.extend (parsed, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
     }
 };
