@@ -34,7 +34,7 @@ response = exchange.cancel_order(order['id'], symbol)
 pprint(response)
 
 # Opening and Canceling a pending contract (stop-market) order 
-stopMarketOrder = exchange.create_order(symbol, 'Stop', 'buy', amount, None, {'stopPx': 70000, "triggerType": "ByLastPrice"})
+stopMarketOrder = exchange.create_order(symbol, 'Stop', 'buy', amount, None, {'stopPx': 70000}) # default triggerType is ByMarkPrice
 stopMarketResponse = exchange.cancel_order(stopMarketOrder['id'], symbol)
 pprint(stopMarketResponse)
 
@@ -61,7 +61,6 @@ trailingOrder = exchange.create_order(symbol = ethSymbol, type = 'StopLimit', si
     'ordType': 'StopLimit',
     'pegPriceType': 'TrailingStopPeg',
     'pegOffsetValueEp': 10000, # needs to be scaled
-    'triggerType': 'ByMarkPrice'
-    }
+    } # default triggerType is ByMarkPrice
 )
 pprint(trailingOrder)
