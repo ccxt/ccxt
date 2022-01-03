@@ -34,9 +34,10 @@ module.exports = class woo extends Exchange {
                 'fetchOrders': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
+                'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchCanceledOrders': undefined,
+                'fetchCurrencies': true,
                 'fetchOrderBook': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
@@ -86,6 +87,8 @@ module.exports = class woo extends Exchange {
                         'info': 1,
                         'info/:symbol': 1,
                         'market_trades': 1,
+                        'token': 1,
+                        'token_network': 1,
                     },
                 },
                 'private': {
@@ -283,7 +286,7 @@ module.exports = class woo extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // # public/market_trades #
+        // ### public/market_trades
         // {
         //     symbol: "SPOT_BTC_USDT",
         //     side: "SELL",
@@ -322,6 +325,88 @@ module.exports = class woo extends Exchange {
             'type': undefined,
             'fee': undefined,
         }, market);
+    }
+
+    async fetchCurrencies (params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchCurrencies', undefined, params);
+        const method1 = this.getSupportedMapping (marketType, {
+            'spot': 'publicGetToken',
+        });
+        const method2 = this.getSupportedMapping (marketType, {
+            'spot': 'publicGetTokenNetwork',
+        });
+        const response1 = await this[method1] (query);
+        // {
+        //     rows: [
+        //         {
+        //             token: "ETH_USDT",   // other entries can be like "TRON_USDT","BSC_USDT", ...
+        //             fullname: "Tether",
+        //             decimals: 6,
+        //             balance_token: "USDT",
+        //             created_time: "0",
+        //             updated_time: "0"
+        //         },
+        //         ...
+        //     ],
+        //     success: true
+        // }
+        const response2 = await this[method2] (query);
+        // {
+        //     rows: [
+        //         {
+        //             protocol: "ERC20",
+        //             token: "USDT",
+        //             name: "Ethereum",
+        //             minimum_withdrawal: 30,
+        //             withdrawal_fee: 25,
+        //             allow_deposit: 1,
+        //             allow_withdraw: 1
+        //         },
+        //         {
+        //             protocol: "TRC20",
+        //             token: "USDT",
+        //             name: "Tron",
+        //             minimum_withdrawal: 30,
+        //             withdrawal_fee: 1,
+        //             allow_deposit: 1,
+        //             allow_withdraw: 1
+        //         },
+        //         ...
+        //     ],
+        //     success: true
+        // }
+        const result = {};
+        const data = this.safeValue (response1, 'rows', []);
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'token');
+            const name = this.safeString (currency, 'fullname');
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeNumber (currency, 'decimals');
+            const parts = id.split ('_');
+            const network = parts[0];
+            result[code] = {
+                'id': id,
+                'name': name,
+                'code': code,
+                'precision': precision,
+                'info': currency,
+                'active': undefined,
+                'fee': undefined,
+                'network': network,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     nonce () {
