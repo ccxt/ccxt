@@ -4825,7 +4825,7 @@ module.exports = class huobi extends Exchange {
         };
     }
 
-    async fetchPositions (symbols, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
@@ -4868,6 +4868,7 @@ module.exports = class huobi extends Exchange {
                 'future': 'contractPrivatePostApiV1ContractPositionInfo',
                 'swap': 'contractPrivatePostSwapApiV1SwapPositionInfo',
             });
+            //
             // future
             //     {
             //       status: 'ok',
@@ -4930,7 +4931,7 @@ module.exports = class huobi extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             }));
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     async fetchPosition (symbol, params = {}) {
