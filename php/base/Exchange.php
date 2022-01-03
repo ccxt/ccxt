@@ -163,6 +163,7 @@ class Exchange {
         'okex5',
         'paymium',
         'poloniex',
+        'quadency',
         'rightbtc',
         'southxchange',
         'stex',
