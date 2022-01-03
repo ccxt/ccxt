@@ -4249,6 +4249,71 @@ module.exports = class okx extends Exchange {
         return tiers;
     }
 
+    async fetchBorrowInterestHistory (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'mgnMode': symbol !== undefined ? 'isolated' : 'cross',
+        };
+        let market = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['ccy'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (symbol) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
+        const response = await this.privateGetAccountInterestAccrued (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "ccy": "USDT",
+        //                "instId": "",
+        //                "interest": "0.0003960833333334",
+        //                "interestRate": "0.0000040833333333",
+        //                "liab": "97",
+        //                "mgnMode": "",
+        //                "ts": "1637312400000",
+        //                "type": "1"
+        //            },
+        //            ...
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const interestHistory = [];
+        for (let i = 0; i < data.length; i++) {
+            const row = data[i];
+            const instId = this.safeString (row, 'instId');
+            let account = 'CROSS';
+            if (instId) {
+                market = this.market (instId);
+                account = market['symbol'];
+            }
+            const timestamp = this.safeNumber (row, 'ts');
+            interestHistory.push ({
+                'account': account, // isolated symbol, will not be returned for crossed margin
+                'currency': this.safeCurrencyCode (this.safeString (row, 'ccy')),
+                'interest': this.safeNumber (row, 'interest'),
+                'interestRate': this.safeNumber (row, 'interestRate'),
+                'amountBorrowed': this.safeNumber (row, 'liab'),
+                'timestamp': timestamp, // Interest accrued time
+                'datetime': this.iso8601 (timestamp),
+                'info': row,
+            });
+        }
+        return interestHistory;
+    }
+
     setSandboxMode (enable) {
         super.setSandboxMode (enable);
         if (enable) {
