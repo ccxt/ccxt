@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, BadRequest, RateLimitExceeded, PermissionDenied, OnMaintenance, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, BadRequest, RateLimitExceeded, PermissionDenied, OnMaintenance, ExchangeNotAvailable, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -489,7 +489,7 @@ module.exports = class litebitpro extends Exchange {
             'market': this.marketId (symbol),
         };
         if (limit !== undefined) {
-            request['depth'] = limit;
+            throw new NotSupported (this.id + ' fetchOrderBook() doesn\'t support the limit parameter.');
         }
         const response = await this.publicGetBook (this.extend (request, params));
         //
