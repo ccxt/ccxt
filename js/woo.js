@@ -68,8 +68,8 @@ module.exports = class woo extends Exchange {
             'urls': {
                 'logo': '  <<<TODO>>>    ',
                 'api': {
-                    'public': 'https://api.woo.org/',
-                    'private': 'https://api.woo.org/',
+                    'public': 'https://api.woo.org',
+                    'private': 'https://api.woo.org',
                 },
                 'www': 'https://woo.org/',
                 'doc': [
@@ -83,8 +83,8 @@ module.exports = class woo extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'markets': 1,
-
+                        'info': 1,
+                        'info/:symbol': 1,
                     },
                 },
                 'private': {
@@ -129,6 +129,105 @@ module.exports = class woo extends Exchange {
         });
     }
 
+    async fetchMarkets (params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        let data = undefined;
+        if (marketType === 'spot') {
+            const response = await this.publicGetInfo (query);
+            // {
+            //     rows: [
+            //         {
+            //             symbol: "SPOT_AAVE_USDT",
+            //             quote_min: 0,
+            //             quote_max: 100000,
+            //             quote_tick: 0.01,
+            //             base_min: 0.01,
+            //             base_max: 7284,
+            //             base_tick: 0.0001,
+            //             min_notional: 10,
+            //             price_range: 0.1,
+            //             created_time: "0",
+            //             updated_time: "1639107647.988",
+            //             is_stable: 0
+            //         },
+            //         ...
+            //     success: true
+            data = this.safeValue (response, 'rows', []);
+        }
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const marketId = this.safeString (market, 'symbol');
+            const parts = marketId.split ('_');
+            const baseId = parts[1];
+            const quoteId = parts[2];
+            const marketTypeVal = parts[1].toLowerCase ();
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const minQuoteAmount = this.safeNumber (market, 'quote_min');
+            const maxQuoteAmount = this.safeNumber (market, 'quote_max');
+            const minBaseAmount = this.safeNumber (market, 'base_min');
+            const maxBaseAmount = this.safeNumber (market, 'base_max');
+            const priceScale = this.safeInteger (market, 'quote_tick');
+            const quantityScale = this.safeInteger (market, 'base_tick');
+            const pricePrecision = priceScale;
+            const quantityPrecision = quantityScale;
+            result.push ({
+                'id': marketId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': marketTypeVal,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                // Fee is in %, so divide by 100
+                'taker': undefined,
+                'maker': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': quantityPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': minBaseAmount,
+                        'max': maxBaseAmount,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': minQuoteAmount,
+                        'max': maxQuoteAmount,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -137,7 +236,7 @@ module.exports = class woo extends Exchange {
         let url = this.implodeHostname (this.urls['api'][api]);
         params = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            url += '/api/' + this.version + '/' + api + '/' + path;
+            url += '/' + this.version + '/' + api + '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
