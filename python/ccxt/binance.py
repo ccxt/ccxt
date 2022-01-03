@@ -4167,6 +4167,7 @@ class binance(Exchange):
         rational = (1000 % leverage) == 0
         if not rational:
             initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
+        # as oppose to notionalValue
         usdm = ('notional' in position)
         maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
@@ -4368,9 +4369,11 @@ class binance(Exchange):
             side = 'short'
         entryPriceString = self.safe_string(position, 'entryPrice')
         entryPrice = self.parse_number(entryPriceString)
+        # as oppose to notionalValue
+        linear = ('notional' in position)
         if marginType == 'cross':
             # calculate collateral
-            if market['linear']:
+            if linear:
                 # walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 onePlusMaintenanceMarginPercentageString = None
                 entryPriceSignString = entryPriceString
