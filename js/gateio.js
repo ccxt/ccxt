@@ -2413,6 +2413,7 @@ module.exports = class gateio extends Exchange {
         //
         //
         const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'text');
         const marketId = this.safeString2 (order, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
         let timestamp = this.safeTimestamp (order, 'create_time');
@@ -2481,7 +2482,7 @@ module.exports = class gateio extends Exchange {
         }
         return this.safeOrder ({
             'id': id,
-            'clientOrderId': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
