@@ -4611,7 +4611,7 @@ module.exports = class huobi extends Exchange {
                 method = 'contractPrivatePostSwapApiV1SwapFinancialRecordExact';
                 request['contract_code'] = market['id'];
             } else {
-                throw new ExchangeError (this.id + ' fetchFundingHistory() only makes sense for swap contracts')
+                throw new ExchangeError (this.id + ' fetchFundingHistory() only makes sense for swap contracts');
             }
             //
             // swap
