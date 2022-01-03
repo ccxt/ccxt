@@ -339,10 +339,26 @@ module.exports = class woo extends Exchange {
         // {
         //     rows: [
         //         {
-        //             token: "ETH_USDT",   // other entries can be like "TRON_USDT","BSC_USDT", ...
+        //             token: "ETH_USDT",
         //             fullname: "Tether",
         //             decimals: 6,
         //             balance_token: "USDT",
+        //             created_time: "0",
+        //             updated_time: "0"
+        //         },
+        //         {
+        //             token: "BSC_USDT",
+        //             fullname: "Tether",
+        //             decimals: 18,
+        //             balance_token: "USDT",
+        //             created_time: "0",
+        //             updated_time: "0"
+        //         },
+        //         {
+        //             token: "ZEC",
+        //             fullname: "ZCash",
+        //             decimals: 8,
+        //             balance_token: "ZEC",
         //             created_time: "0",
         //             updated_time: "0"
         //         },
