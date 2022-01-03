@@ -513,13 +513,11 @@ class cryptocom(Exchange):
         return self.parse_ticker(data, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
-        await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'instrument_name': market['id'],
-        }
+        request = {}
+        if symbol is not None:
+            await self.load_markets()
+            market = self.market(symbol)
+            request['instrument_name'] = market['id']
         if since is not None:
             # maximum date range is one day
             request['start_ts'] = since
@@ -945,9 +943,8 @@ class cryptocom(Exchange):
             request['page_size'] = limit
         marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for ' + marketType + ' orders')
-            request['instrument_name'] = market['id']
+            if symbol is not None:
+                request['instrument_name'] = market['id']
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',
