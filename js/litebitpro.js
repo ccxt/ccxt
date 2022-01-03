@@ -143,9 +143,9 @@ module.exports = class litebitpro extends Exchange {
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
         //
-        //     { "time": 1590379519148 }
+        //     {"timestamp":1641228475856}
         //
-        return this.safeInteger (response, 'time');
+        return this.safeInteger (response, 'timestamp');
     }
 
     async fetchMarkets (params = {}) {
@@ -447,10 +447,24 @@ module.exports = class litebitpro extends Exchange {
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const takerOrMaker = this.safeString (trade, 'liquidity');
+        let feeCurrency = undefined;
+        if (market !== undefined) {
+            feeCurrency = market['quote'];
+        }
         const fee = {
             'cost': this.safeString (trade, 'fee'),
-            'currency': market !== undefined ? market['quote'] : undefined,
+            'currency': feeCurrency,
         };
+        const feeString = this.safeString (trade, 'fee');
+        const amountQuote = this.safeString (trade, 'amount_quote');
+        let cost = undefined;
+        if (amountQuote !== undefined && feeString !== undefined) {
+            if (side === 'buy') {
+                cost = Precise.stringSub (amountQuote, feeString);
+            } else {
+                cost = Precise.stringAdd (amountQuote, feeString);
+            }
+        }
         const orderId = this.safeString (trade, 'order_uuid');
         return this.safeTrade ({
             'info': trade,
@@ -464,7 +478,7 @@ module.exports = class litebitpro extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
-            'cost': undefined,
+            'cost': cost,
             'fee': fee,
         }, market);
     }
@@ -889,16 +903,24 @@ module.exports = class litebitpro extends Exchange {
         let fee = undefined;
         const feeNumber = this.safeNumber (order, 'fee');
         if (feeNumber !== undefined) {
+            let feeCurrencyCode = undefined;
+            if (market !== undefined) {
+                feeCurrencyCode = market['quote'];
+            }
             fee = {
                 'cost': feeNumber,
-                'currency': market !== undefined ? market['quote'] : undefined,
+                'currency': feeCurrencyCode,
             };
         }
         const feeString = this.safeString (order, 'fee');
         const amountQuoteFilled = this.safeString (order, 'amount_quote_filled');
         let cost = undefined;
         if (amountQuoteFilled !== undefined && feeString !== undefined) {
-            cost = Precise.stringSub (amountQuoteFilled, feeString);
+            if (side === 'buy') {
+                cost = Precise.stringSub (amountQuoteFilled, feeString);
+            } else {
+                cost = Precise.stringAdd (amountQuoteFilled, feeString);
+            }
         }
         const timeInForce = this.safeString (order, 'time_in_force');
         const postOnly = this.safeValue (order, 'post_only');
