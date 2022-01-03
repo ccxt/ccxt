@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } = require ('./base/errors'); // Permission-Denied, Arguments-Required, OrderNot-Found
+const { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } = require ('./base/errors'); // Permission-Denied, Arguments-Required, OrderNot-Found
 
 // ---------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ module.exports = class woo extends Exchange {
                 'fetchDepositAddress': undefined,
                 'fetchDeposits': undefined,
                 'fetchFundingRateHistory': undefined,
-                'fetchMarkets': undefined,
+                'fetchMarkets': true,
                 'fetchMyTrades': undefined,
                 'fetchOrderTrades': undefined,
                 'fetchOHLCV': undefined,
@@ -44,7 +44,7 @@ module.exports = class woo extends Exchange {
                 'fetchTicker': undefined,
                 'fetchTickers': undefined,
                 'fetchTime': undefined,
-                'fetchTrades': undefined,
+                'fetchTrades': true,
                 'fetchWithdrawals': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
@@ -85,6 +85,7 @@ module.exports = class woo extends Exchange {
                     'get': {
                         'info': 1,
                         'info/:symbol': 1,
+                        'market_trades': 1,
                     },
                 },
                 'private': {
@@ -131,9 +132,12 @@ module.exports = class woo extends Exchange {
 
     async fetchMarkets (params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'publicGetInfo',
+        });
         let data = undefined;
         if (marketType === 'spot') {
-            const response = await this.publicGetInfo (query);
+            const response = await this[method] (query);
             // {
             //     rows: [
             //         {
@@ -152,6 +156,7 @@ module.exports = class woo extends Exchange {
             //         },
             //         ...
             //     success: true
+            // }
             data = this.safeValue (response, 'rows', []);
         }
         const result = [];
@@ -161,7 +166,7 @@ module.exports = class woo extends Exchange {
             const parts = marketId.split ('_');
             const baseId = parts[1];
             const quoteId = parts[2];
-            const marketTypeVal = parts[1].toLowerCase ();
+            const marketTypeVal = parts[0].toLowerCase ();
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -226,6 +231,97 @@ module.exports = class woo extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'publicGetMarketTrades',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // {
+        //     success: true,
+        //     rows: [
+        //         {
+        //             symbol: "SPOT_BTC_USDT",
+        //             side: "SELL",
+        //             executed_price: 46222.35,
+        //             executed_quantity: 0.0012,
+        //             executed_timestamp: "1641241162.329"
+        //         },
+        //         {
+        //             symbol: "SPOT_BTC_USDT",
+        //             side: "SELL",
+        //             executed_price: 46222.35,
+        //             executed_quantity: 0.0012,
+        //             executed_timestamp: "1641241162.329"
+        //         },
+        //         {
+        //             symbol: "SPOT_BTC_USDT",
+        //             side: "BUY",
+        //             executed_price: 46224.32,
+        //             executed_quantity: 0.00039,
+        //             executed_timestamp: "1641241162.287"
+        //         },
+        //         ...
+        //      ]
+        // }
+        const resultResponse = this.safeValue (response, 'rows', {});
+        return this.parseTrades (resultResponse, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // # public/market_trades #
+        // {
+        //     symbol: "SPOT_BTC_USDT",
+        //     side: "SELL",
+        //     executed_price: 46222.35,
+        //     executed_quantity: 0.0012,
+        //     executed_timestamp: "1641241162.329"
+        // },
+        const timestamp = this.safeTimestamp (trade, 'executed_timestamp');
+        const marketId = this.safeString (trade, 'symbol');
+        if (market === undefined) {
+            market = this.safeMarket (marketId, market, '_');
+        }
+        const symbol = market['symbol'];
+        const price = this.safeString (trade, 'executed_price');
+        const amount = this.safeString (trade, 'executed_quantity');
+        let side = this.safeString (trade, 'side');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
+        let id = timestamp;
+        if (id !== undefined) {
+            id += '-' + market['id'] + '-' + amount;
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'order': undefined,
+            'takerOrMaker': 'taker',
+            'type': undefined,
+            'fee': undefined,
+        }, market);
     }
 
     nonce () {
