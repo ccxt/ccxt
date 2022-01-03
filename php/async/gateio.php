@@ -2419,6 +2419,7 @@ class gateio extends Exchange {
         //
         //
         $id = $this->safe_string($order, 'id');
+        $clientOrderId = $this->safe_string($order, 'text');
         $marketId = $this->safe_string_2($order, 'currency_pair', 'contract');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_timestamp($order, 'create_time');
@@ -2487,7 +2488,7 @@ class gateio extends Exchange {
         }
         return $this->safe_order(array(
             'id' => $id,
-            'clientOrderId' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
