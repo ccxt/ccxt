@@ -41,6 +41,7 @@ module.exports = class huobi extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchBorrowInterestAccrued': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': undefined,
                 'fetchBorrowRateHistory': undefined,
@@ -4609,67 +4610,66 @@ module.exports = class huobi extends Exchange {
 
     async fetchBorrowInterestAccrued (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'mgnMode': symbol !== undefined ? 'isolated' : 'cross',
-        };
-        let market = undefined;
-        if (code !== undefined) {
-            const currency = this.currency (code);
-            request['ccy'] = currency['id'];
-        }
+        const request = {};
         if (since !== undefined) {
-            request['after'] = since;
+            request['start-date'] = this.yyyymmdd (since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['size'] = limit;
         }
-        if (symbol) {
+        let market = undefined;
+        let method = 'privateGetCrossMarginLoanOrders';
+        if (symbol) { // Isolated
             market = this.market (symbol);
-            request['instId'] = market['id'];
+            request['symbol'] = market['id'];
+            method = 'privateGetMarginLoanOrders';
+        } else { // Cross
+            if (code !== undefined) {
+                const currency = this.currency (code);
+                request['currency'] = currency['id'];
+            }
         }
-        const response = await this.privateGetAccountInterestAccrued (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //    {
-        //        "code": "0",
-        //        "data": [
+        //        "status":"ok",
+        //        "data":[
         //            {
-        //                "ccy": "USDT",
-        //                "instId": "",
-        //                "interest": "0.0003960833333334",
-        //                "interestRate": "0.0000040833333333",
-        //                "liab": "97",
-        //                "mgnMode": "",
-        //                "ts": "1637312400000",
-        //                "type": "1"
-        //            },
-        //            ...
-        //        ],
-        //        "msg": ""
+        //                "loan-balance":"0.100000000000000000",
+        //                "interest-balance":"0.000200000000000000",
+        //                "loan-amount":"0.100000000000000000",
+        //                "accrued-at":1511169724531,
+        //                "interest-amount":"0.000200000000000000",
+        //                "filled-points":"0.2",
+        //                "filled-ht":"0.2",
+        //                "currency":"btc",
+        //                "id":394,
+        //                "state":"accrual",
+        //                "account-id":17747,
+        //                "user-id":119913,
+        //                "created-at":1511169724531
+        //            }
+        //        ]
         //    }
         //
         const data = this.safeValue (response, 'data');
         const interest = [];
         for (let i = 0; i < data.length; i++) {
             const row = data[i];
-            const instId = this.safeString (row, 'instId');
-            let account = 'CROSS';
-            if (instId) {
-                market = this.market (instId);
-                account = market['symbol'];
-            }
-            const timestamp = this.safeNumber (row, 'ts');
+            const account = symbol === undefined ? 'CROSS' : symbol;
+            const timestamp = this.safeNumber (row, 'accrued-at');
             interest.push ({
                 'account': account, // isolated symbol, will not be returned for crossed margin
-                'currency': this.safeCurrencyCode (this.safeString (row, 'ccy')),
-                'interest': this.safeNumber (row, 'interest'),
-                'interestRate': this.safeNumber (row, 'interestRate'),
-                'amountBorrowed': this.safeNumber (row, 'liab'),
+                'currency': this.safeCurrencyCode (this.safeString (row, 'currency')),
+                'interest': this.safeNumber (row, 'interest-amount'),
+                'interestRate': undefined,
+                'amountBorrowed': this.safeNumber (row, 'loan-amount'),
                 'timestamp': timestamp, // Interest accrued time
                 'datetime': this.iso8601 (timestamp),
                 'info': row,
             });
         }
-        return interest;
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
