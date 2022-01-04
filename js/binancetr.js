@@ -3,9 +3,9 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+// const {} = require ('./base/errors');
+// const { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } = require ('./base/functions/number');
+// const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -43,13 +43,13 @@ module.exports = class binancetr extends Exchange {
                         'common/time',
                         'common/symbols',
                         // GET https://api.binance.me/api/v3/depth (when symbol type is 1)
-                        'market/depth', // (when symbol type is not 1)
-                        //GET https://api.binance.me/api/v3/trades (when symbol type is 1)
-                        'market/trades', // (when symbol type is not 1)
+                        'market/depth', // (when symbol type is not 1) - fetchOrderBook
+                        // GET https://api.binance.me/api/v3/trades (when symbol type is 1)
+                        'market/trades', // (when symbol type is not 1) - fetchTrades
                         // GET https://api.binance.me/api/v3/aggTrades (when symbol type is 1)
                         'market/agg-trades', // (when symbol type is not 1)
                         // GET https://api.binance.me/api/v1/klines (when symbol type is 1)
-                        'market/klines', // (when symbol type is not 1)
+                        'market/klines', // (when symbol type is not 1) //fetchOHLCV
                     ],
                 },
                 'private': {
@@ -100,7 +100,7 @@ module.exports = class binancetr extends Exchange {
         //          "msg":"Success",
         //         "data":null,
         //          "timestamp":1641318638443
-        //      } 
+        //      }
         //
         return this.safeInteger (response, 'timestamp');
     }
@@ -148,10 +148,9 @@ module.exports = class binancetr extends Exchange {
         //        }
         //
         const result = [];
-        
         for (let i = 0; i < response['data']['list'].length; i++) {
             const market = response['data']['list'][i];
-            const type = this.safeInteger(market, 'type'); // Important to see endpoint for this market
+            // const type = this.safeInteger(market, 'type'); // Important to see endpoint for this market
             const id = this.safeString (market, 'symbol');
             const filterType0 = market['filters'][0];
             const filterType2 = market['filters'][2];
@@ -163,14 +162,14 @@ module.exports = class binancetr extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const spotPer = market['permissions'].includes("SPOT");
-            const marginPer = market['permissions'].includes("MARGIN");
-            const marginEnable = Boolean(this.safeNumber (market, 'marginTradingEnable'));
-            const spotEnable = Boolean(this.safeNumber (market, 'spotTradingEnable'));
+            const spotPer = market['permissions'].includes ('SPOT');
+            const marginPer = market['permissions'].includes ('MARGIN');
+            const marginEnable = Boolean (this.safeNumber (market, 'marginTradingEnable'));
+            const spotEnable = Boolean (this.safeNumber (market, 'spotTradingEnable'));
             const symbol = base + '/' + quote;
             const precision = {
-                'price': this.safeInteger(market, 'quotePrecision'),
-                'amount': this.safeInteger(market, 'basePrecision'),
+                'price': this.safeInteger (market, 'quotePrecision'),
+                'amount': this.safeInteger (market, 'basePrecision'),
             };
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
@@ -195,8 +194,8 @@ module.exports = class binancetr extends Exchange {
                         'max': this.parseNumber (maxPrice),
                     },
                     'cost': {
-                        'min': undefined, //this.parseNumber (minQty * minPrice),
-                        'max': undefined, //this.parseNumber (maxQty * maxPrice),
+                        'min': undefined, // this.parseNumber (minQty * minPrice),
+                        'max': undefined, // this.parseNumber (maxQty * maxPrice),
                     },
                 },
             }));
@@ -205,7 +204,7 @@ module.exports = class binancetr extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + this.version + '/' + path;;
+        let url = this.urls['api'][api] + this.version + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
@@ -215,10 +214,9 @@ module.exports = class binancetr extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined) {
-            return;
-        }
-    }
+    // handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    //       if (response === undefined) {
+    //       return;
+    //       }
+    // }
 };
