@@ -50,7 +50,7 @@ module.exports = class ftx extends Exchange {
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowInterestHistory': true,
+                'fetchBorrowInterestAccrued': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
@@ -2551,7 +2551,7 @@ module.exports = class ftx extends Exchange {
         }
     }
 
-    async fetchBorrowInterestHistory (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterestAccrued (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
@@ -2573,12 +2573,12 @@ module.exports = class ftx extends Exchange {
         // }
         //
         const result = this.safeValue (response, 'result');
-        const interestHistory = [];
+        const interest = [];
         for (let i = 0; i < result.length; i++) {
             const payment = result[i];
             const coin = this.safeString (payment, 'coin');
             const datetime = this.safeString (payment, 'time');
-            interestHistory.push ({
+            interest.push ({
                 'account': undefined,
                 'currency': this.safeCurrencyCode (coin),
                 'interest': this.safeNumber (payment, 'cost'),
@@ -2589,6 +2589,6 @@ module.exports = class ftx extends Exchange {
                 'info': payment,
             });
         }
-        return interestHistory;
+        return interest;
     }
 };

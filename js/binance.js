@@ -37,7 +37,7 @@ module.exports = class binance extends Exchange {
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
-                'fetchBorrowInterestHistory': true,
+                'fetchBorrowInterestAccrued': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
@@ -5506,7 +5506,7 @@ module.exports = class binance extends Exchange {
         return response;
     }
 
-    async fetchBorrowInterestHistory (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterestAccrued (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -5542,11 +5542,11 @@ module.exports = class binance extends Exchange {
         // }
         //
         const rows = this.safeValue (response, 'rows');
-        const interestHistory = [];
+        const interest = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const timestamp = this.safeNumber (row, 'interestAccuredTime');
-            interestHistory.push ({
+            interest.push ({
                 'account': this.safeString (row, 'isolatedSymbol', 'CROSS'), // isolated symbol, will not be returned for crossed margin
                 'currency': this.safeCurrencyCode (this.safeString (row, 'asset')),
                 'interest': this.safeNumber (row, 'interest'),
@@ -5557,6 +5557,6 @@ module.exports = class binance extends Exchange {
                 'info': row,
             });
         }
-        return interestHistory;
+        return interest;
     }
 };

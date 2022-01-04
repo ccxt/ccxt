@@ -8,7 +8,7 @@ const assert = require ('assert')
 
 module.exports = async (exchange, code, symbol) => {
 
-    const method = 'fetchBorrowInterestHistory'
+    const method = 'fetchBorrowInterestAccrued'
 
     if (exchange.has[method]) {
 
@@ -23,7 +23,7 @@ module.exports = async (exchange, code, symbol) => {
             'info': {},
         }
 
-        const interest = await exchange.fetchBorrowInterestHistory (code, symbol)
+        const interest = await exchange.fetchBorrowInterestAccrued (code, symbol)
 
         console.log (code, method, interest['datetime'], 'symbol: ', symbol,  'interest: ', interest['interest'], 'interestRate: ', interest['interestRate'], 'amountBorrowed: ', interest['amountBorrowed'])
 
@@ -54,6 +54,6 @@ module.exports = async (exchange, code, symbol) => {
         return interest
 
     } else {
-        console.log (code, 'fetchBorrowInterestHistory () not supported')
+        console.log (code, 'fetchBorrowInterestAccrued () not supported')
     }
 }
