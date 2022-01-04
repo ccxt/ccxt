@@ -68,11 +68,9 @@ module.exports = class binancetr extends Exchange {
                         'orders/cancel',
                         'orders/oco',
                         'withdraws',
-
                     ],
                 },
             },
-            // 'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': true,
