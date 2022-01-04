@@ -4627,7 +4627,7 @@ module.exports = class huobi extends Exchange {
         }
         let market = undefined;
         let method = 'privateGetCrossMarginLoanOrders';
-        if (symbol) { // Isolated
+        if (symbol !== undefined) { // Isolated
             market = this.market (symbol);
             request['symbol'] = market['id'];
             method = 'privateGetMarginLoanOrders';
