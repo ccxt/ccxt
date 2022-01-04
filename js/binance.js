@@ -5520,7 +5520,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        if (symbol) {
+        if (symbol !== undefined) { // Isolated
             market = this.market (symbol);
             request['isolatedSymbol'] = market['id'];
         }
@@ -5557,6 +5557,10 @@ module.exports = class binance extends Exchange {
                 'info': row,
             });
         }
+<<<<<<< HEAD
         return interestHistory;
+=======
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+>>>>>>> c3e056a745 (fetchBorrowInterestAccrued with filterByCurrencySinceLimit)
     }
 };
