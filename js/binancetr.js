@@ -19,6 +19,7 @@ module.exports = class binancetr extends Exchange {
             'version': 'v1',
             'has': {
                 'fetchMarkets': true,
+                'fetchTime': true,
             },
             'timeframes': {
             },
