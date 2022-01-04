@@ -16,11 +16,11 @@ module.exports = class wazirx extends Exchange {
                 'fetchCurrencies': false,
                 'fetchTickers': false,
                 'fetchTicker': false,
-                'fetchStatus': false,
                 'fetchOHLCV': false,
                 'fetchOrderBook': false,
                 'fetchTrades': false,
                 'fetchTime': true,
+                'fetchStatus': true,
             },
             'urls': {
                 'logo': 'https://i0.wp.com/blog.wazirx.com/wp-content/uploads/2020/06/banner.png',
@@ -56,6 +56,20 @@ module.exports = class wazirx extends Exchange {
 
     async fetchMarkets (params = {}) {
         return []; // tmp
+    }
+
+    async fetchStatus (params = {}) {
+        const response = await this.publicGetSapiV1SystemStatus (params);
+        //
+        //  { "status":"normal","message":"System is running normally." }
+        //
+        let status = this.safeString (response, 'status');
+        status = (status === 'normal') ? 'ok' : 'maintenance';
+        this.status = this.extend (this.status, {
+            'status': status,
+            'updated': this.milliseconds (),
+        });
+        return this.status;
     }
 
     async fetchTime (params = {}) {
