@@ -2230,9 +2230,8 @@ module.exports = class gateio extends Exchange {
                 }
                 params = this.omit (params, [ 'text', 'clientOrderId' ]);
                 if (clientOrderId[0] !== 't') {
-                    clientOrderId = 't-' + clientOrderId;
+                    request['text'] = 't-' + clientOrderId;
                 }
-                request['text'] = clientOrderId;
             }
         } else {
             if (contract) {
@@ -2367,6 +2366,11 @@ module.exports = class gateio extends Exchange {
         //
         //     {"id":7615567}
         //
+        const modifiedClientOrderId = this.safeString (response, 'text');
+        if (clientOrderId !== undefined && modifiedClientOrderId && modifiedClientOrderId !== clientOrderId) {
+            // 't-' was appended to perform the request and needs to be removed here to reconstruct the order id provided by the caller
+            response['text'] = clientOrderId;
+        }
         return this.parseOrder (response, market);
     }
 
