@@ -91,46 +91,60 @@ module.exports = class binancetr extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetMarketSymbols (params);
+        const response = await this.publicGetCommonSymbols (params);
         //
-        //     [
-        //         {
-        //             "id":"BCNBTC",
-        //             "baseCurrency":"BCN",
-        //             "quoteCurrency":"BTC",
-        //             "quantityIncrement":"100",
-        //             "tickSize":"0.00000000001",
-        //             "takeLiquidityRate":"0.002",
-        //             "provideLiquidityRate":"0.001",
-        //             "feeCurrency":"BTC"
-        //         }
-        //     ]
+        //       {
+        //            "code":0,
+        //            "msg":"Success",
+        //            "data":{
+        //                "list":[
+        //                    {
+        //                        "type":1,
+        //                        "symbol":"ADA_TRY",
+        //                        "baseAsset":"ADA",
+        //                        "basePrecision":8,
+        //                        "quoteAsset":"TRY",
+        //                        "quotePrecision":8,
+        //                        "filters":[
+        //                            {"filterType":"PRICE_FILTER","minPrice":"0.01000000","maxPrice":"10000.00000000","tickSize":"0.01000000","applyToMarket":false},
+        //                            {"filterType":"PERCENT_PRICE","multiplierUp":5,"multiplierDown":0.2,"avgPriceMins":"5","applyToMarket":false},
+        //                            {"filterType":"LOT_SIZE","minQty":"0.10000000","maxQty":"9222449.00000000","stepSize":"0.10000000","applyToMarket":false},
+        //                            {"filterType":"MIN_NOTIONAL","avgPriceMins":"5","minNotional":"10.00000000","applyToMarket":true},
+        //                            {"filterType":"ICEBERG_PARTS","applyToMarket":false,"limit":"10"},
+        //                            {"filterType":"MARKET_LOT_SIZE","minQty":"0.00000000","maxQty":"191987.27930555","stepSize":"0.00000000","applyToMarket":false},
+        //                            {"filterType":"MAX_NUM_ORDERS","applyToMarket":false},
+        //                            {"filterType":"MAX_NUM_ALGO_ORDERS","applyToMarket":false,"maxNumAlgoOrders":"5"}
+        //                        ],
+        //                        "orderTypes":[
+        //                            "LIMIT",
+        //                            "LIMIT_MAKER",
+        //                            "MARKET",
+        //                            "STOP_LOSS_LIMIT",
+        //                            "TAKE_PROFIT_LIMIT"
+        //                            ],
+        //                        "icebergEnable":1,
+        //                        "ocoEnable":1,
+        //                        "spotTradingEnable":1,
+        //                        "marginTradingEnable":0,
+        //                        "permissions":["SPOT"]
+        //                    },
+        //                ]
+        //            }
+        //        }
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const id = this.safeString (market, 'id');
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quoteCurrency');
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            // bequant fix
-            if (id.indexOf ('_') >= 0) {
-                symbol = id;
-            }
-            const lotString = this.safeString (market, 'quantityIncrement');
-            const stepString = this.safeString (market, 'tickSize');
-            const lot = this.parseNumber (lotString);
-            const step = this.parseNumber (stepString);
+            const symbol = base + '/' + quote;
             const precision = {
-                'price': step,
-                'amount': lot,
+                'price': this.safeInteger(market, 'quotePrecision'), // Double check if the are not meant to be the other way around
+                'amount': this.safeInteger(market, 'basePrecision'),
             };
-            const taker = this.safeNumber (market, 'takeLiquidityRate');
-            const maker = this.safeNumber (market, 'provideLiquidityRate');
-            const feeCurrencyId = this.safeString (market, 'feeCurrency');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -142,10 +156,9 @@ module.exports = class binancetr extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'active': true,
-                'taker': taker,
-                'maker': maker,
+                // 'taker': undefined, // should I ommit this line instead of marking it undefined?
+                // 'maker': undefined, // should I ommit this line instead of marking it undefined?
                 'precision': precision,
-                'feeCurrency': feeCurrencyCode,
                 'limits': {
                     'amount': {
                         'min': lot,
@@ -166,16 +179,14 @@ module.exports = class binancetr extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.api[api] + this.version + '/' + path;;
+        let url = this.urls['api'][api] + this.version + '/' + path;;
         if (api === 'public') {
-            url += api + '/' + this.implodeParams (path, params);
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             // will do the private part once we have the keys
         }
-        url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
