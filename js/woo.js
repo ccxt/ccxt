@@ -5,6 +5,10 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } = require ('./base/errors'); // Permission-Denied, Arguments-Required, OrderNot-Found
 
+// eslint-disable-next-line padding-line-between-statements
+function c (o) {
+    console.log (o);
+}
 // ---------------------------------------------------------------------------
 
 module.exports = class woo extends Exchange {
@@ -22,7 +26,7 @@ module.exports = class woo extends Exchange {
                 'cancelOrder': undefined,
                 'cancelAllOrders': undefined,
                 'createMarketOrder': undefined,
-                'fetchBalance': undefined,
+                'fetchBalance': true,
                 'fetchDepositAddress': undefined,
                 'fetchDeposits': undefined,
                 'fetchFundingRateHistory': undefined,
@@ -71,6 +75,7 @@ module.exports = class woo extends Exchange {
                 'api': {
                     'public': 'https://api.woo.org',
                     'private': 'https://api.woo.org',
+                    // API_TESTNET_URL = "http://api.staging.woo.network" as said https://github.com/wanth1997/python-wootrade/blob/main/wootrade/client.py |TODO
                 },
                 'www': 'https://woo.org/',
                 'doc': [
@@ -82,17 +87,46 @@ module.exports = class woo extends Exchange {
                 'referral': '  <<<TODO>>>   ',
             },
             'api': {
-                'public': {
-                    'get': {
-                        'info': 1,
-                        'info/:symbol': 1,
-                        'market_trades': 1,
-                        'token': 1,
-                        'token_network': 1,
+                'v1': {
+                    'public': {
+                        'get': {
+                            'info': 1,
+                            'info/:symbol': 1, // TODO
+                            'market_trades': 1,
+                            'token': 1, // TODO
+                            'token_network': 1, // TODO
+                            'orderbook/:symbol': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'client/token': 1, // TODO
+                            'order/:oid': 1, // shared with "GET: client/order/:client_order_id" |TODO
+                            'client/order/:client_order_id': 1, // shared with "GET: order/:oid" |TODO
+                        },
+                        'post': {
+                            'order': 1, // Limit: 2 requests per 1 second per symbol |TODO
+                        },
+                        'delete': {
+                            'order': 1, // shared with "DELETE: client/order" |TODO
+                            'client/order': 1, // shared with "DELETE: order"  |TODO
+                            'orders': 1, // TODO
+                        },
                     },
                 },
-                'private': {
-                    'post': {
+                'v2': {
+                    'public': {
+                        'get': {
+                            'client/holding': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                        },
+                        'post': {
+                        },
+                        'delete': {
+                        },
                     },
                 },
             },
@@ -136,7 +170,7 @@ module.exports = class woo extends Exchange {
     async fetchMarkets (params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'publicGetInfo',
+            'spot': 'v1PublicGetInfo',
         });
         let data = undefined;
         if (marketType === 'spot') {
@@ -250,7 +284,7 @@ module.exports = class woo extends Exchange {
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'publicGetMarketTrades',
+            'spot': 'v1PublicGetMarketTrades',
         });
         const response = await this[method] (this.extend (request, query));
         // {
@@ -327,13 +361,11 @@ module.exports = class woo extends Exchange {
         }, market);
     }
 
+    // TODO: we need to write them to merge 'token' and 'token_network' objects from API, as it's horrificly bad atm.
     async fetchCurrencies (params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchCurrencies', undefined, params);
         const method1 = this.getSupportedMapping (marketType, {
-            'spot': 'publicGetToken',
-        });
-        const method2 = this.getSupportedMapping (marketType, {
-            'spot': 'publicGetTokenNetwork',
+            'spot': 'v1PublicGetToken',
         });
         const response1 = await this[method1] (query);
         // {
@@ -366,7 +398,32 @@ module.exports = class woo extends Exchange {
         //     ],
         //     success: true
         // }
+        const result = {};
+        const data1 = this.safeValue (response1, 'rows', []);
+        const derivedData1 = {}; // TODO: here needs to be initialized as object, otherwise extra check will be needed inside loop cycles
+        for (let i = 0; i < data1.length; i++) {
+            const item = data1[i];
+            const code = this.safeCurrencyCode (this.safeString (item, 'balance_token'));
+            const pairId = this.safeString (item, 'token');
+            const networkId = pairId.split ('_')[0];
+            const networkSlug = this.genericChainTitleToUnifiedName (networkId);
+            if (!(code in derivedData1)) {
+                derivedData1[code] = {};
+            }
+            if (!(networkSlug in derivedData1[code])) {
+                derivedData1[code][networkSlug] = undefined;
+            }
+            derivedData1[code][networkSlug] = {
+                'fullname': this.safeString (item, 'fullname'),
+                'decimals': this.safeString (item, 'decimals'),
+                'info': item,
+            };
+        }
+        const method2 = this.getSupportedMapping (marketType, {
+            'spot': 'v1PublicGetTokenNetwork',
+        });
         const response2 = await this[method2] (query);
+        const data2 = this.safeValue (response2, 'rows', []);
         // {
         //     rows: [
         //         {
@@ -391,33 +448,69 @@ module.exports = class woo extends Exchange {
         //     ],
         //     success: true
         // }
-        const result = {};
-        const data = this.safeValue (response1, 'rows', []);
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const id = this.safeString (currency, 'token');
-            const name = this.safeString (currency, 'fullname');
+        const derivedData2 = {};
+        for (let i = 0; i < data2.length; i++) {
+            const item = data2[i];
+            const code = this.safeCurrencyCode (this.safeString (item, 'token'));
+            const networkId = this.safeString (item, 'protocol');
+            const networkSlug = this.genericChainTitleToUnifiedName (networkId);
+            if (!(code in derivedData2)) {
+                derivedData2[code] = {};
+            }
+            if (!(networkSlug in derivedData2[code])) {
+                derivedData2[code][networkSlug] = undefined;
+            }
+            derivedData2[code][networkSlug] = {
+                // 'network_title': this.safeString (item, 'name'), // We don't need this much, as we already have network-slug
+                'allow_deposit': this.safeString (item, 'allow_deposit'),
+                'allow_withdraw': this.safeString (item, 'allow_withdraw'),
+                'withdrawal_fee': this.safeString (item, 'withdrawal_fee'),
+                'minimum_withdrawal': this.safeString (item, 'minimum_withdrawal'),
+                'info': item,
+            };
+        }
+        // combine as final step.
+        const keys = Object.keys (derivedData1); //  keys and items amount in derivedData1 and derivedData2 are same
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const item1 = derivedData1[key];
+            const item2 = derivedData2[key];
+            // TODO: if response1 each item contains only one child, then they are the same network . Quite bad behavior of their API for this matter, but as-is: the only solution is this as I think at this moment.
+            const id = key;
+            const networks = Object.keys (item1);
+            const tokenNetwork = item1[networks[0]];
+            const name = this.safeString (tokenNetwork, 'fullname');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeNumber (currency, 'decimals');
-            const parts = id.split ('_');
-            const network = parts[0];
+            const precision = this.safeNumber (tokenNetwork, 'decimals');
+            let deposits_allowed_somewhere = undefined;
+            let withdrawals_allowed_somewhere = undefined;
+            // eslint-disable-next-line no-restricted-syntax, no-unused-vars
+            for (const [chainName, chainBlock] of Object.entries (item2)) {
+                if (chainBlock.allow_deposit === '1') {
+                    deposits_allowed_somewhere = true;
+                }
+                if (chainBlock.allow_withdraw === '1') {
+                    withdrawals_allowed_somewhere = true;
+                }
+            }
+            const active = deposits_allowed_somewhere && withdrawals_allowed_somewhere;
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': precision,
-                'info': currency,
-                'active': undefined,
-                'fee': undefined,
-                'network': network,
+                'info': [item1.info, item2.info],
+                'active': active,
+                'fee': undefined, // TODO
+                'network': undefined, // TODO
                 'limits': {
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': undefined, // TODO
+                        'max': undefined, // TODO
                     },
                 },
             };
@@ -425,21 +518,43 @@ module.exports = class woo extends Exchange {
         return result;
     }
 
+    async fetchBalance (params = {}) {
+        console.log(22);
+        await this.loadMarkets ();
+        const response = await this.v2PrivateClientHolding (params);
+        //
+        //     [ {          currency: "BTC",
+        //                   balance: "0.005",
+        //                    locked: "0.0",
+        //         avg_krw_buy_price: "7446000",
+        //                  modified:  false     },
+        //       {          currency: "ETH",
+        //                   balance: "0.1",
+        //                    locked: "0.0",
+        //         avg_krw_buy_price: "250000",
+        //                  modified:  false    }   ]
+        //
+        return response;
+        return this.parseBalance (response);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeHostname (this.urls['api'][api]);
+        const versionStr = api[0];
+        const privateOrPublic = api[1];
+        let url = this.implodeHostname (this.urls['api'][privateOrPublic]);
         params = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
-            url += '/' + this.version + '/' + api + '/' + path;
+        if (privateOrPublic === 'public') {
+            url += '/' + versionStr + '/' + privateOrPublic + '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
-            const request = '/api/' + this.version + '/' + path;
+            const request = '... TODO...';
             url += request;
             params['request'] = request;
             params['nonce'] = this.nonce ().toString ();
@@ -461,5 +576,30 @@ module.exports = class woo extends Exchange {
         if (!response) {
             // fallback to default error handler
         }
+    }
+
+    // ######### CAN BE MOVED IN BASE #########
+    // the block for unification titles
+    sanitize_str (str) {
+        return str.replace (/[\W_]+/g, '-').toLowerCase ();
+    }
+
+    genericChainTitleToUnifiedName (type) {
+        const type_S = this.sanitize_str (type);
+        const chainsSlugs = {};
+        chainsSlugs['bep-20'] = ['bep', 'bep20', 'bep-20', 'bep_20', 'bsc', 'bsc20', 'bsc-20', 'bsc_20', 'binance', 'binance-network', 'binance-smart-chain', 'binance_smart_chain', 'bep20_bsc_', 'bep20-bsc', 'bep20bsc']; // lbank has 'bep20(bsc)'
+        chainsSlugs['bep-2'] = ['bep2', 'bep_2', 'bep-20', 'bep_20', 'bnb', 'binance-chain', 'binance-network'];
+        chainsSlugs['erc-20'] = ['erc', 'erc20', 'erc-20', 'erc_20', 'eth', 'eth20', 'eth-20', 'eth_20', 'ethereum', 'ethereum-network', 'ethereum-chain'];
+        chainsSlugs['hrc-20'] = ['heco', 'hrc', 'hrc20', 'hrc_20', 'hrc-20', 'huobi', 'huobi-network', 'huobi-chain', 'huobi-eco-chain', 'huobi_eco_chain', 'huobi-chain', 'huobi_chain', 'eco-chain', 'eco_chain'];
+        chainsSlugs['trc-20'] = ['trc', 'trc20', 'trc-20', 'trc_20', 'trx', 'trx20', 'trx-20', 'trx_20', 'tron', 'tron-network', 'tron-chain', 'trx-network'];
+        chainsSlugs['sol'] = ['sol', 'solana', 'sol-chain', 'solana-chain'];
+        chainsSlugs['matic'] = ['matic', 'polygon'];
+        // eslint-disable-next-line no-restricted-syntax
+        for (const [key, chainList] of Object.entries (chainsSlugs)) {
+            if (chainList.includes (type_S)) {
+                return key;
+            }
+        }
+        return type.toLowerCase ();
     }
 };
