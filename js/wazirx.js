@@ -17,7 +17,7 @@ module.exports = class wazirx extends Exchange {
                 'fetchTickers': false,
                 'fetchTicker': false,
                 'fetchOHLCV': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchTrades': false,
                 'fetchTime': true,
                 'fetchStatus': true,
@@ -56,6 +56,33 @@ module.exports = class wazirx extends Exchange {
 
     async fetchMarkets (params = {}) {
         return []; // tmp
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // [1, 5, 10, 20, 50, 100, 500, 1000]
+        }
+        const response = await this.publicGetSapiV1Depth (this.extend (request, params));
+        //
+        //     {
+        //          "timestamp":1559561187,
+        //          "asks":[
+        //                     ["8540.0","1.5"],
+        //                     ["8541.0","0.0042"]
+        //                 ],
+        //          "bids":[
+        //                     ["8530.0","0.8814"],
+        //                     ["8524.0","1.4"]
+        //                 ]
+        //      }
+        //
+        const timestamp = this.safeTimestamp (response, 'timestamp');
+        return this.parseOrderBook (response, timestamp);
     }
 
     async fetchStatus (params = {}) {
