@@ -91,6 +91,19 @@ module.exports = class binancetr extends Exchange {
         });
     }
 
+    async fetchTime (params = {}) {
+        const response = await this.publicGetCommonTime (params);
+        //
+        //      {
+        //          "code":0,
+        //          "msg":"Success",
+        //         "data":null,
+        //          "timestamp":1641318638443
+        //      } 
+        //
+        return this.safeInteger (response, 'timestamp');
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetCommonSymbols (params);
         //
@@ -141,13 +154,10 @@ module.exports = class binancetr extends Exchange {
             const id = this.safeString (market, 'symbol');
             const filterType0 = market['filters'][0];
             const filterType2 = market['filters'][2];
-            const filterType5 = market['filters'][5];
             const minPrice = this.safeValue (filterType0, 'minPrice');
             const maxPrice = this.safeValue (filterType0, 'maxPrice');
             const minQty2 = this.safeValue (filterType2, 'minQty');
             const maxQty2 = this.safeValue (filterType2, 'maxQty');
-            const minQty5 = this.safeValue (filterType5, 'minQty');
-            const maxQty5 = this.safeValue (filterType5, 'maxQty');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
@@ -161,16 +171,6 @@ module.exports = class binancetr extends Exchange {
                 'price': this.safeInteger(market, 'quotePrecision'),
                 'amount': this.safeInteger(market, 'basePrecision'),
             };
-
-                        //console.log(response[i]); process.exit();
-                        console.log(market['symbol'], minPrice);
-                        console.log(filterType0);
-                        console.log('MinPrice: ',minPrice, '-', this.parseNumber (minPrice));
-                        console.log('MaxPrice: ',maxPrice, '-', this.parseNumber (maxPrice));
-                        console.log('minQty2: ',minQty2, '-', 'minQty5: ',minQty5, '-',this.parseNumber (minQty5));
-                        console.log('maxQty2: ',maxQty2, '-', 'maxQty5: ',maxQty5, '-',this.parseNumber (maxQty5));
-                        //
-
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
