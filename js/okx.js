@@ -4249,10 +4249,10 @@ module.exports = class okx extends Exchange {
         return tiers;
     }
 
-    async fetchBorrowInterestHistory (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'mgnMode': symbol !== undefined ? 'isolated' : 'cross',
+            'mgnMode': (symbol !== undefined) ? 'isolated' : 'cross',
         };
         let market = undefined;
         if (code !== undefined) {
@@ -4265,7 +4265,7 @@ module.exports = class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (symbol) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
@@ -4290,7 +4290,7 @@ module.exports = class okx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const interestHistory = [];
+        const interest = [];
         for (let i = 0; i < data.length; i++) {
             const row = data[i];
             const instId = this.safeString (row, 'instId');
@@ -4300,7 +4300,7 @@ module.exports = class okx extends Exchange {
                 account = market['symbol'];
             }
             const timestamp = this.safeNumber (row, 'ts');
-            interestHistory.push ({
+            interest.push ({
                 'account': account, // isolated symbol, will not be returned for crossed margin
                 'currency': this.safeCurrencyCode (this.safeString (row, 'ccy')),
                 'interest': this.safeNumber (row, 'interest'),
@@ -4311,7 +4311,7 @@ module.exports = class okx extends Exchange {
                 'info': row,
             });
         }
-        return interestHistory;
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
     setSandboxMode (enable) {
