@@ -50,7 +50,7 @@ module.exports = class ftx extends Exchange {
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowInterestHistory': true,
+                'fetchBorrowInterestAccrued': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
@@ -2551,7 +2551,7 @@ module.exports = class ftx extends Exchange {
         }
     }
 
-    async fetchBorrowInterestHistory (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterestAccrued (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {

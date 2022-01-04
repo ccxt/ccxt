@@ -378,7 +378,7 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
-        'fetchBorrowInterestHistory' => 'fetch_borrow_interest_history',
+        'fetchBorrowInterestAccrued' => 'fetch_borrow_interest_accrued',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1213,7 +1213,7 @@ class Exchange {
             'fetchAccounts' => null,
             'fetchBalance' => true,
             'fetchBidsAsks' => null,
-            'fetchBorrowInterestHistory' => null,
+            'fetchBorrowInterestAccrued' => null,
             'fetchBorrowRate' => null,
             'fetchBorrowRateHistory' => null,
             'fetchBorrowRatesPerSymbol' => null,
