@@ -18,6 +18,7 @@ module.exports = class binancetr extends Exchange {
             'rateLimit': 1500,
             'version': 'v1',
             'has': {
+                'fetchMarkets': true,
             },
             'timeframes': {
             },
@@ -133,18 +134,43 @@ module.exports = class binancetr extends Exchange {
         //        }
         //
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        
+        for (let i = 0; i < response['data']['list'].length; i++) {
+            const market = response['data']['list'][i];
+            const type = this.safeInteger(market, 'type'); // Important to see endpoint for this market
             const id = this.safeString (market, 'symbol');
+            const filterType0 = market['filters'][0];
+            const filterType2 = market['filters'][2];
+            const filterType5 = market['filters'][5];
+            const minPrice = this.safeValue (filterType0, 'minPrice');
+            const maxPrice = this.safeValue (filterType0, 'maxPrice');
+            const minQty2 = this.safeValue (filterType2, 'minQty');
+            const maxQty2 = this.safeValue (filterType2, 'maxQty');
+            const minQty5 = this.safeValue (filterType5, 'minQty');
+            const maxQty5 = this.safeValue (filterType5, 'maxQty');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const spotPer = market['permissions'].includes("SPOT");
+            const marginPer = market['permissions'].includes("MARGIN");
+            const marginEnable = Boolean(this.safeNumber (market, 'marginTradingEnable'));
+            const spotEnable = Boolean(this.safeNumber (market, 'spotTradingEnable'));
             const symbol = base + '/' + quote;
             const precision = {
-                'price': this.safeInteger(market, 'quotePrecision'), // Double check if the are not meant to be the other way around
+                'price': this.safeInteger(market, 'quotePrecision'),
                 'amount': this.safeInteger(market, 'basePrecision'),
             };
+
+                        //console.log(response[i]); process.exit();
+                        console.log(market['symbol'], minPrice);
+                        console.log(filterType0);
+                        console.log('MinPrice: ',minPrice, '-', this.parseNumber (minPrice));
+                        console.log('MaxPrice: ',maxPrice, '-', this.parseNumber (maxPrice));
+                        console.log('minQty2: ',minQty2, '-', 'minQty5: ',minQty5, '-',this.parseNumber (minQty5));
+                        console.log('maxQty2: ',maxQty2, '-', 'maxQty5: ',maxQty5, '-',this.parseNumber (maxQty5));
+                        //
+
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -154,23 +180,22 @@ module.exports = class binancetr extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'type': 'spot',
-                'spot': true,
-                'active': true,
-                // 'taker': undefined, // should I ommit this line instead of marking it undefined?
-                // 'maker': undefined, // should I ommit this line instead of marking it undefined?
+                'spot': spotPer,
+                'margin': marginPer && marginEnable,
+                'active': spotEnable,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
-                        'max': undefined,
+                        'min': this.parseNumber (minQty2),
+                        'max': this.parseNumber (maxQty2),
                     },
                     'price': {
-                        'min': step,
-                        'max': undefined,
+                        'min': this.parseNumber (minPrice),
+                        'max': this.parseNumber (maxPrice),
                     },
                     'cost': {
-                        'min': this.parseNumber (Precise.stringMul (lotString, stepString)),
-                        'max': undefined,
+                        'min': undefined, //this.parseNumber (minQty * minPrice),
+                        'max': undefined, //this.parseNumber (maxQty * maxPrice),
                     },
                 },
             }));
