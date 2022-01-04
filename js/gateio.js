@@ -67,6 +67,7 @@ module.exports = class gateio extends Exchange {
                 'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterestAccrued': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -3830,6 +3831,67 @@ module.exports = class gateio extends Exchange {
             floor = cap;
         }
         return tiers;
+    }
+
+    async fetchBorrowInterestAccrued (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'side': 'borrow',
+            'status': 'loaned',
+        };
+        let market = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (symbol) {
+            market = this.market (symbol);
+            request['currency_pair'] = market['id'];
+        }
+        const response = await this.privateMarginGetLoans (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "id": "123435",
+        //            "create_time": "1548000000",
+        //            "expire_time": "1548100000",
+        //            "side": "borrow",
+        //            "status": "loaned",
+        //            "currency": "BTC",
+        //            "rate": "0.002",
+        //            "amount": "1.5",
+        //            "days": 10,
+        //            "auto_renew": true,
+        //            "currency_pair": "ETH_BTC",
+        //            "left": "0",
+        //            "repaid": "0",
+        //            "paid_interest": "0",
+        //            "unpaid_interest": "0",
+        //            "fee_rate": "0.18",
+        //            "orig_id": "123424",
+        //            "text": "t-abc"
+        //        }
+        //    ]
+        //
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            const account = symbol === undefined ? 'CROSS' : symbol;
+            interest.push ({
+                'account': account, // isolated symbol, will not be returned for crossed margin
+                'currency': this.safeCurrencyCode (this.safeString (row, 'currency')),
+                'interest': this.safeString (row, 'unpaid_interest'),
+                'interestRate': this.safeNumber (row, 'rate'),
+                'amountBorrowed': this.safeNumber (row, 'amount'),
+                'timestamp': undefined, // Interest accrued time
+                'datetime': undefined,
+                'info': row,
+            });
+        }
+        return interest;
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
