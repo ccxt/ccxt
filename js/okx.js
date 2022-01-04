@@ -4266,7 +4266,7 @@ module.exports = class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (symbol) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
@@ -4312,7 +4312,7 @@ module.exports = class okx extends Exchange {
                 'info': row,
             });
         }
-        return interest;
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
     setSandboxMode (enable) {

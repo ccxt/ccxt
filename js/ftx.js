@@ -2589,6 +2589,6 @@ module.exports = class ftx extends Exchange {
                 'info': payment,
             });
         }
-        return interest;
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 };

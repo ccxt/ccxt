@@ -3847,7 +3847,7 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (symbol) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
@@ -3891,7 +3891,7 @@ module.exports = class gateio extends Exchange {
                 'info': row,
             });
         }
-        return interest;
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
