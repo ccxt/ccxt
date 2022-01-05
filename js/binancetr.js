@@ -19,8 +19,9 @@ module.exports = class binancetr extends Exchange {
             'version': 'v1',
             'has': {
                 'fetchMarkets': true,
-                'fetchTime': true,
                 'fetchOrderBook': true,
+                'fetchTime': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -41,8 +42,9 @@ module.exports = class binancetr extends Exchange {
             'urls': {
                 'logo': '',
                 'api': {
-                    'public': 'https://www.trbinance.com/open/', // With some exceptions (when symbol type is 1)
-                    'private': 'https://www.trbinance.com/open/', // With some exceptions (when symbol type is 1)
+                    'public': 'https://www.trbinance.com/open/',
+                    'public3': 'https://api.binance.me/api/v3/',
+                    'private': 'https://www.trbinance.com/open/',
                 },
                 'www': 'https://www.trbinance.com',
                 'doc': [
@@ -57,14 +59,10 @@ module.exports = class binancetr extends Exchange {
                     'get': [
                         'common/time',
                         'common/symbols',
-                        'market/depth', // when symbol type is not 1 - fetchOrderBook
-                        // GET https://api.binance.me/api/v3/depth (when symbol type is 1)
-                        // GET https://api.binance.me/api/v3/trades (when symbol type is 1)
-                        // GET https://api.binance.me/api/v3/aggTrades (when symbol type is 1)
-                        // GET https://api.binance.me/api/v1/klines (when symbol type is 1)
-                        'market/trades', // when symbol type is not 1 - fetchTrades
-                        'market/agg-trades', // when symbol type is not 1
-                        'market/klines', // when symbol type is not 1 - fetchOHLCV
+                        'market/depth',
+                        'trades',
+                        'aggTrades',
+                        'klines',
                     ],
                 },
                 'private': {
@@ -161,24 +159,28 @@ module.exports = class binancetr extends Exchange {
         //        }
         //
         const result = [];
-        for (let i = 0; i < response['data']['list'].length; i++) {
-            const market = response['data']['list'][i];
+        const data = this.safeValue (response, 'data', {});
+        const list = this.safeValue (data, 'list', []);
+        for (let i = 0; i < list.length; i++) {
+            const market = list[i];
             // const type = this.safeInteger(market, 'type'); // Important to see endpoint for this market
             const id = this.safeString (market, 'symbol');
-            const filterType0 = market['filters'][0];
-            const filterType2 = market['filters'][2];
-            const minPrice = this.safeValue (filterType0, 'minPrice');
-            const maxPrice = this.safeValue (filterType0, 'maxPrice');
-            const minQty2 = this.safeValue (filterType2, 'minQty');
-            const maxQty2 = this.safeValue (filterType2, 'maxQty');
+            const filters = this.safeValue (market, 'filters');
+            const filter0 = this.safeValue (filters, 0);
+            const filter2 = this.safeValue (filters, 2);
+            const permissions = this.safeValue (market, 'permissions');
+            const minPrice = this.safeValue (filter0, 'minPrice');
+            const maxPrice = this.safeValue (filter0, 'maxPrice');
+            const minQty2 = this.safeValue (filter2, 'minQty');
+            const maxQty2 = this.safeValue (filter2, 'maxQty');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const spotPer = market['permissions'].includes ('SPOT');
-            const marginPer = market['permissions'].includes ('MARGIN');
-            const marginEnable = (this.safeNumber (market, 'marginTradingEnable')) === '1' ? true : false;
-            const spotEnable = (this.safeNumber (market, 'spotTradingEnable')) === '1' ? true : false;
+            const spotPer = permissions.indexOf ('SPOT') > -1;
+            const marginPer = permissions.indexOf ('MARGIN') > -1;
+            const marginEnable = (this.safeInteger (market, 'marginTradingEnable')) === '1' ? true : false;
+            const spotEnable = (this.safeInteger (market, 'spotTradingEnable')) === '1' ? true : false;
             const symbol = base + '/' + quote;
             const precision = {
                 'price': this.safeInteger (market, 'quotePrecision'),
@@ -221,12 +223,11 @@ module.exports = class binancetr extends Exchange {
         const request = {
             'symbol': this.marketId (symbol),
         };
-        if (limit === undefined) {
-            limit = 100; // default = 100, max 5000. Valid values are 5, 10, 20, 50 100 and 500
-        } else if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500)) {
+        if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500)) {
             throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be undefined, 5, 10, 20, 50, 100 or 500, default is 100');
+        } else if (limit !== undefined) {
+            request['limit'] = limit;
         }
-        request['limit'] = limit;
         const response = await this.publicGetMarketDepth (this.extend (request, params));
         //
         //    {
@@ -254,14 +255,44 @@ module.exports = class binancetr extends Exchange {
         //
         const result = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (response, 'timestamp', {});
-        const orderBook = this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', '0', '1');
+        const orderBook = this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 0, 1);
         orderBook['nonce'] = this.safeInteger (result, 'lastUpdateId', {});
         return orderBook;
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default: 500
+        }
+        const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //  [
+        //    {"id":1211494273,"price":"46410.42000000","qty":"0.00084000","quoteQty":"38.98475280","time":1641391959076,"isBuyerMaker":false,"isBestMatch":true},
+        //    {"id":1211494274,"price":"46410.42000000","qty":"0.00084000","quoteQty":"38.98475280","time":1641391959278,"isBuyerMaker":false,"isBestMatch":true},
+        //    {"id":1211494275,"price":"46410.41000000","qty":"0.00061000","quoteQty":"28.31035010","time":1641391959289,"isBuyerMaker":true,"isBestMatch":true},
+        //    {"id":1211494276,"price":"46410.42000000","qty":"0.00084000","quoteQty":"38.98475280","time":1641391959357,"isBuyerMaker":false,"isBestMatch":true},
+        //    {"id":1211494277,"price":"46410.42000000","qty":"0.00084000","quoteQty":"38.98475280","time":1641391959483,"isBuyerMaker":false,"isBestMatch":true},
+        //  ]
+        //
+        const data = this.safeValue (response, []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + this.version + '/' + path;
         if (api === 'public') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        }
+        if (api === 'public' && path === 'trades') {
+            url = this.urls['api']['public3'] + path;
+            params['symbol'] = params['symbol'].replace ('_', '');
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
