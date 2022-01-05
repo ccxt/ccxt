@@ -10,6 +10,7 @@ module.exports = class wazirx extends Exchange {
             'name': 'WazirX',
             'countries': ['IN'],
             'version': 'v2',
+            'rateLimit': 100,
             'has': {
                 'CORS': undefined,
                 'fetchMarkets': true,
@@ -32,7 +33,7 @@ module.exports = class wazirx extends Exchange {
                     },
                 },
                 'www': 'https://wazirx.com',
-                'doc': 'https://github.com/WazirX/wazirx-api',
+                'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
             },
             'api': {
                 'spot': {
@@ -49,9 +50,9 @@ module.exports = class wazirx extends Exchange {
                                 'trades': 1,
                             },
                         },
-                        'private': [
-                            'historicalTrades',
-                        ],
+                        'private': {
+                            'historicalTrades': 1,
+                        },
                     },
                 },
             },
@@ -67,7 +68,6 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        // check filters
         const response = await this.spotV1PublicGetExchangeInfo (params);
         //
         // {
@@ -108,19 +108,11 @@ module.exports = class wazirx extends Exchange {
             const isSpot = this.safeValue (entry, 'isSpotTradingAllowed');
             const filters = this.safeValue (entry, 'filters');
             let minPrice = undefined;
-            let maxPrice = undefined;
-            let minAmount = undefined;
-            let maxAmount = undefined;
-            let minCost = undefined;
             for (let j = 0; j < filters.length; j++) {
                 const filter = filters[j];
                 const filterType = this.safeString (filter, 'filterType');
                 if (filterType === 'PRICE_FILTER') {
                     minPrice = this.safeNumber (filter, 'minPrice');
-                    maxPrice = this.safeNumber (filter, 'maxPrice');
-                    minAmount = this.safeNumber (filter, 'minAmount');
-                    maxAmount = this.safeNumber (filter, 'maxAmount');
-                    minCost = this.safeNumber (filter, 'minExchangeValue');
                 }
             }
             const status = this.safeString (entry, 'status');
@@ -128,14 +120,14 @@ module.exports = class wazirx extends Exchange {
             const limits = {
                 'price': {
                     'min': minPrice,
-                    'max': maxPrice,
+                    'max': undefined,
                 },
                 'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
+                    'min': undefined,
+                    'max': undefined,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': undefined,
                     'max': undefined,
                 },
             };
