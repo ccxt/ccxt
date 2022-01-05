@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, BadRequest } = require ('./base/errors');
 
 module.exports = class wazirx extends Exchange {
     describe () {
@@ -45,19 +45,21 @@ module.exports = class wazirx extends Exchange {
                                 'depth',
                                 'trades',
                                 'time',
-                                'historicalTrades',
                             ],
                         },
+                        'private': [
+                            'historicalTrades',
+                        ],
                     },
                 },
             },
             'exceptions': {
                 'exact': {
-                    '403': 'ab',
+                    '1999': BadRequest, // {"code":1999,"message":"symbol is missing, symbol does not have a valid value"} message varies depending on the error
+                    '2908': BadRequest, // {"code":2098,"message":"Request out of receiving window."}
                 },
             },
             'options': {
-                'cachedMarketData': {},
             },
         });
     }
@@ -252,12 +254,12 @@ module.exports = class wazirx extends Exchange {
         const response = await this.spotV1PublicGetTrades (this.extend (request, params));
         // [
         //     {
-        //     "id":322307791,
-        //     "price":"93.7",
-        //     "qty":"0.7",
-        //     "quoteQty":"65.59",
-        //     "time":1641386701000,
-        //     "isBuyerMaker":false
+        //         "id":322307791,
+        //         "price":"93.7",
+        //         "qty":"0.7",
+        //         "quoteQty":"65.59",
+        //         "time":1641386701000,
+        //         "isBuyerMaker":false
         //     },
         // ]
         return this.parseTrades (response, market, since, limit);
@@ -266,13 +268,13 @@ module.exports = class wazirx extends Exchange {
     parseTrade (trade, market = undefined) {
         //
         //     {
-        //     "id":322307791,
-        //     "price":"93.7",
-        //     "qty":"0.7",
-        //     "quoteQty":"65.59",
-        //     "time":1641386701000,
-        //     "isBuyerMaker":false
-        //     },
+        //         "id":322307791,
+        //         "price":"93.7",
+        //         "qty":"0.7",
+        //         "quoteQty":"65.59",
+        //         "time":1641386701000,
+        //         "isBuyerMaker":false
+        //     }
         //
         const id = this.safeString (trade, 'id');
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
@@ -391,9 +393,15 @@ module.exports = class wazirx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
-        if (statusCode !== 200) {
-            const feedback = this.id + ' ' + responseBody;
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        //
+        // {"code":2098,"message":"Request out of receiving window."}
+        //
+        const errorCode = this.safeString (response, 'code');
+        if (errorCode !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback);
         }
     }
