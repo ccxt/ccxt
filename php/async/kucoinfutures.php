@@ -16,7 +16,7 @@ class kucoinfutures extends kucoin {
     public function describe() {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'kucoinfutures',
-            'name' => 'Kucoin Futures',
+            'name' => 'KuCoin Futures',
             'countries' => array( 'SC' ),
             'rateLimit' => 75,
             'version' => 'v1',

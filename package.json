@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.66.23",
+  "version": "1.66.24",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -590,7 +590,8 @@
     "blockchain.com",
     "Blockchain.com",
     "crypto.com",
-    "Crypto.com"
+    "Crypto.com",
+    "KuCoin Futures"
   ],
   "collective": {
     "type": "opencollective",
