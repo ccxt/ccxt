@@ -2,7 +2,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
-const time = require ('./base/functions/time');
 
 module.exports = class wazirx extends Exchange {
     describe () {
@@ -19,7 +18,7 @@ module.exports = class wazirx extends Exchange {
                 'fetchTicker': true,
                 'fetchOHLCV': false,
                 'fetchOrderBook': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTime': true,
                 'fetchStatus': true,
             },
@@ -102,6 +101,7 @@ module.exports = class wazirx extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const isSpot = this.safeValue (entry, 'isSpotTradingAllowed');
             const filters = this.safeValue (entry, 'filters');
             let minPrice = undefined;
             let maxPrice = undefined;
@@ -150,7 +150,7 @@ module.exports = class wazirx extends Exchange {
                 'limits': limits,
                 'precision': precision,
                 'type': 'spot',
-                'spot': true,
+                'spot': isSpot,
                 'active': active,
             });
         }
@@ -158,7 +158,7 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets (); // missing markets
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -188,9 +188,9 @@ module.exports = class wazirx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            'symbol': market['id'],
         };
-        const response = await this.v1PublicGetTicker (this.extend (request, params));
+        const ticker = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
         //
         // {
         //     "symbol":"wrxinr",
@@ -206,13 +206,12 @@ module.exports = class wazirx extends Exchange {
         //     "at":1641382455000
         // }
         //
-        const ticker = this.safeValue (response, undefined, {});
         return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.spotV1PublicGetTickers24hr ();
+        const tickers = await this.spotV1PublicGetTickers24hr ();
         //
         // [
         //     {
@@ -230,7 +229,6 @@ module.exports = class wazirx extends Exchange {
         //     ...
         // ]
         //
-        const tickers = this.safeValue (response, undefined, []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
@@ -240,6 +238,72 @@ module.exports = class wazirx extends Exchange {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // Default 500; max 1000.
+        }
+        const response = await this.spotV1PublicGetTrades (this.extend (request, params));
+        // [
+        //     {
+        //     "id":322307791,
+        //     "price":"93.7",
+        //     "qty":"0.7",
+        //     "quoteQty":"65.59",
+        //     "time":1641386701000,
+        //     "isBuyerMaker":false
+        //     },
+        // ]
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        //     {
+        //     "id":322307791,
+        //     "price":"93.7",
+        //     "qty":"0.7",
+        //     "quoteQty":"65.59",
+        //     "time":1641386701000,
+        //     "isBuyerMaker":false
+        //     },
+        //
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
+        const datetime = this.iso8601 (timestamp);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
+        const side = isBuyerMaker ? 'sell' : 'buy';
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'qty');
+        const cost = this.safeNumber (trade, 'quoteQty');
+        return this.safeTrade ({
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': id,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+            },
+        });
     }
 
     async fetchStatus (params = {}) {
@@ -290,8 +354,8 @@ module.exports = class wazirx extends Exchange {
         const high = this.safeNumber (ticker, 'highPrice');
         const low = this.safeNumber (ticker, 'lowPrice');
         const baseVolume = this.safeNumber (ticker, 'volume');
-        const bid = this.safeNumber (ticker, 'bid');
-        const ask = this.safeNumber (ticker, 'ask');
+        const bid = this.safeNumber (ticker, 'bidPrice');
+        const ask = this.safeNumber (ticker, 'askPrice');
         const timestamp = this.safeString (ticker, 'at');
         return this.safeTicker ({
             'symbol': symbol,
