@@ -12,7 +12,7 @@ module.exports = class wazirx extends Exchange {
             'version': 'v2',
             'has': {
                 'CORS': true,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchCurrencies': false,
                 'fetchTickers': false,
                 'fetchTicker': false,
@@ -55,11 +55,101 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        return []; // tmp
+        // check filters
+        const response = await this.publicGetSapiV1ExchangeInfo (params);
+        //
+        // {
+        //     "timezone":"UTC",
+        //     "serverTime":1641336850932,
+        //     "symbols":[
+        //     {
+        //         "symbol":"btcinr",
+        //         "status":"trading",
+        //         "baseAsset":"btc",
+        //         "quoteAsset":"inr",
+        //         "baseAssetPrecision":5,
+        //         "quoteAssetPrecision":0,
+        //         "orderTypes":[
+        //             "limit",
+        //             "stop_limit"
+        //         ],
+        //         "isSpotTradingAllowed":true,
+        //         "filters":[
+        //             {
+        //                 "filterType":"PRICE_FILTER",
+        //                 "minPrice":"1",
+        //                 "tickSize":"1"
+        //             }
+        //         ]
+        //     },
+        //
+        const markets = this.safeValue (response, 'symbols', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const entry = markets[i];
+            const id = this.safeString (entry, 'symbol');
+            const baseId = this.safeString (entry, 'baseAsset');
+            const quoteId = this.safeString (entry, 'quoteAsset');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const filters = this.safeValue (entry, 'filters');
+            let minPrice = undefined;
+            let maxPrice = undefined;
+            let minAmount = undefined;
+            let maxAmount = undefined;
+            let minCost = undefined;
+            for (let j = 0; j < filters.length; j++) {
+                const filter = filters[j];
+                const filterType = this.safeString (filter, 'filterType');
+                if (filterType === 'PRICE_FILTER') {
+                    minPrice = this.safeNumber (filter, 'minPrice');
+                    maxPrice = this.safeNumber (filter, 'maxPrice');
+                    minAmount = this.safeNumber (filter, 'minAmount');
+                    maxAmount = this.safeNumber (filter, 'maxAmount');
+                    minCost = this.safeNumber (filter, 'minExchangeValue');
+                }
+            }
+            const status = this.safeString (entry, 'status');
+            const active = status === 'trading';
+            const limits = {
+                'price': {
+                    'min': minPrice,
+                    'max': maxPrice,
+                },
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
+            };
+            const precision = {
+                'price': this.safeInteger (entry, 'quoteAssetPrecision'),
+                'amount': this.safeInteger (entry, 'baseAssetPrecision'),
+            };
+            result.push ({
+                'info': entry,
+                'symbol': symbol,
+                'id': id,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'limits': limits,
+                'precision': precision,
+                'type': 'spot',
+                'spot': true,
+                'active': active,
+            });
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+        await this.loadMarkets (); // missing markets
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
