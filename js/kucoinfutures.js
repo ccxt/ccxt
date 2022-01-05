@@ -13,7 +13,7 @@ module.exports = class kucoinfutures extends kucoin {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',
-            'name': 'Kucoin Futures',
+            'name': 'KuCoin Futures',
             'countries': [ 'SC' ],
             'rateLimit': 75,
             'version': 'v1',
