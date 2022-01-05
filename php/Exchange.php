@@ -72,6 +72,7 @@ class Exchange {
         'binanceus',
         'binanceusdm',
         'bit2c',
+        'bit4you',
         'bitbank',
         'bitbay',
         'bitbns',

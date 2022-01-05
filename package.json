@@ -54,7 +54,9 @@
     "postinstall": "node postinstall"
   },
   "types": "./ccxt.d.ts",
-  "dependencies": {},
+  "dependencies": {
+    "axios": "^0.24.0"
+  },
   "devDependencies": {
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
@@ -182,6 +184,7 @@
     "BitMEX",
     "Bitso",
     "Bitstamp",
+    "Bit4you",
     "Bittrex",
     "BL3P",
     "Bleutrade",
