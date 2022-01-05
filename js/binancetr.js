@@ -42,14 +42,14 @@ module.exports = class binancetr extends Exchange {
                     'get': [
                         'common/time',
                         'common/symbols',
+                        'market/depth', // when symbol type is not 1 - fetchOrderBook
                         // GET https://api.binance.me/api/v3/depth (when symbol type is 1)
-                        'market/depth', // (when symbol type is not 1) - fetchOrderBook
                         // GET https://api.binance.me/api/v3/trades (when symbol type is 1)
-                        'market/trades', // (when symbol type is not 1) - fetchTrades
                         // GET https://api.binance.me/api/v3/aggTrades (when symbol type is 1)
-                        'market/agg-trades', // (when symbol type is not 1)
                         // GET https://api.binance.me/api/v1/klines (when symbol type is 1)
-                        'market/klines', // (when symbol type is not 1) //fetchOHLCV
+                        'market/trades', // when symbol type is not 1 - fetchTrades
+                        'market/agg-trades', // when symbol type is not 1
+                        'market/klines', // when symbol type is not 1 - fetchOHLCV
                     ],
                 },
                 'private': {
