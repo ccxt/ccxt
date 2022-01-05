@@ -1081,7 +1081,7 @@ The CCXT library currently supports the following 112 cryptocurrency exchange ma
           :alt: kucoinfutures
      
      - kucoinfutures
-     - `Kucoin Futures <https://futures.kucoin.com/?rcode=E5wkqe>`__
+     - `KuCoin Futures <https://futures.kucoin.com/?rcode=E5wkqe>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.kucoin.com/futures
           :alt: API Version 1
