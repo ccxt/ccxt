@@ -26,7 +26,7 @@ module.exports = class wazirx extends Exchange {
                 'logo': 'https://i0.wp.com/blog.wazirx.com/wp-content/uploads/2020/06/banner.png',
                 'api': {
                     'spot': {
-                        'v1': 'https://api.wazirx.com/sapi/v1/ping',
+                        'v1': 'https://api.wazirx.com/sapi/v1',
                     },
                 },
                 'www': 'https://wazirx.com',
@@ -64,7 +64,7 @@ module.exports = class wazirx extends Exchange {
 
     async fetchMarkets (params = {}) {
         // check filters
-        const response = await this.publicGetSapiV1ExchangeInfo (params);
+        const response = await this.spotV1PublicGetExchangeInfo (params);
         //
         // {
         //     "timezone":"UTC",
@@ -160,12 +160,12 @@ module.exports = class wazirx extends Exchange {
         await this.loadMarkets (); // missing markets
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // [1, 5, 10, 20, 50, 100, 500, 1000]
         }
-        const response = await this.publicGetSapiV1Depth (this.extend (request, params));
+        const response = await this.spotV1PublicGetDepth (this.extend (request, params));
         //
         //     {
         //          "timestamp":1559561187,
@@ -180,11 +180,11 @@ module.exports = class wazirx extends Exchange {
         //      }
         //
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.publicGetSapiV1SystemStatus (params);
+        const response = await this.spotV1PublicGetSystemStatus (params);
         //
         //  { "status":"normal","message":"System is running normally." }
         //
@@ -198,7 +198,7 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetSapiV1Time (params);
+        const response = await this.spotV1PublicGetTime (params);
         //
         //     {
         //         "serverTime":1635467280514
@@ -208,7 +208,9 @@ module.exports = class wazirx extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + path;
+        const marketType = this.safeValue (api, 0);
+        const version = this.safeValue (api, 1);
+        let url = this.urls['api'][marketType][version] + '/' + path;
         if (Object.keys (params).length) {
             url += '?' + this.urlencode (params);
         }
