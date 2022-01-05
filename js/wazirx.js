@@ -179,7 +179,7 @@ module.exports = class wazirx extends Exchange {
         //                 ]
         //      }
         //
-        const timestamp = this.safeTimestamp (response, 'timestamp');
+        const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
