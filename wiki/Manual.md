@@ -971,6 +971,18 @@ $formatted_amount = $exchange->amount_to_precision($symbol, $amount);
 $formatted_price = $exchange->price_to_precision($symbol, $price);
 echo $formatted_amount, " ", $formatted_price, "\n";
 ```
+To give further practical examples which can clearly describe the behavior of aforementioned functions, let's consider the following scenario : you want to trade XYZ symbol, and exchange gives the following inforamtion about that symbol:
+[Scenario A] DECIMAL_PLACES = 8
+amountToPrecision (0.123456789) = 0.12345678 (8 decimals after the dot)
+amountToPrecision (0.0000000000123456789) = 0.0 (8 decimals after the dot)
+
+[Scenario B] TICK_SIZE = 0.0000001
+amountToPrecision (0.123456789) = 0.12345678 (up to 0.00000001 precision)
+amountToPrecision (0.0000000000123456789) = 0.0 (up to 0.00000001 precision)
+
+[Scenario C] SIGNIFICANT_DIGITS = 8
+amountToPrecision (0.0000000000123456789) = 0.000000000012345678 (up to 8 significant non-zero digits)
+amountToPrecision (123.4567890123456789) = 123.45678 (up to 8 significant non-zero digits) 
 
 ## Loading Markets
 
