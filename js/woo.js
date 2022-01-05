@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } = require ('./base/errors'); // Permission-Denied, Arguments-Required, OrderNot-Found
+const Precise = require ('./base/Precise');
 
 // eslint-disable-next-line padding-line-between-statements
 function c (o) {
@@ -27,6 +28,10 @@ module.exports = class woo extends Exchange {
                 'cancelAllOrders': undefined,
                 'createMarketOrder': undefined,
                 'fetchBalance': true,
+                'fetchCanceledOrders': undefined,
+                'fetchClosedOrder': undefined,
+                'fetchClosedOrders': undefined,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': undefined,
                 'fetchDeposits': undefined,
                 'fetchFundingRateHistory': undefined,
@@ -38,10 +43,6 @@ module.exports = class woo extends Exchange {
                 'fetchOrders': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
-                'fetchCanceledOrders': undefined,
-                'fetchClosedOrder': undefined,
-                'fetchClosedOrders': undefined,
-                'fetchCurrencies': true,
                 'fetchOrderBook': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
@@ -117,11 +118,11 @@ module.exports = class woo extends Exchange {
                 'v2': {
                     'public': {
                         'get': {
-                            'client/holding': 1,
                         },
                     },
                     'private': {
                         'get': {
+                            'client/holding': 1,
                         },
                         'post': {
                         },
@@ -519,23 +520,47 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        console.log(22);
         await this.loadMarkets ();
-        const response = await this.v2PrivateClientHolding (params);
-        //
-        //     [ {          currency: "BTC",
-        //                   balance: "0.005",
-        //                    locked: "0.0",
-        //         avg_krw_buy_price: "7446000",
-        //                  modified:  false     },
-        //       {          currency: "ETH",
-        //                   balance: "0.1",
-        //                    locked: "0.0",
-        //         avg_krw_buy_price: "250000",
-        //                  modified:  false    }   ]
-        //
-        return response;
+        const response = await this.v2PrivateGetClientHolding (params);
+        // {
+        //     holding: [
+        //       {
+        //         token: 'USDT',
+        //         holding: '123.758485',
+        //         frozen: '22.0', // i.e. withdrawal
+        //         interest: '0.0',
+        //         outstanding_holding: '-56.4', // whatever in pending/limit orders
+        //         pending_exposure: '0.0', // this value is set when a pending order is waiting to get this token
+        //         opening_cost: '0.00000000',
+        //         holding_cost: '0.00000000',
+        //         realised_pnl: '0.00000000',
+        //         settled_pnl: '0.00000000',
+        //         fee_24_h: '0',
+        //         settled_pnl_24_h: '0',
+        //         updated_time: '1641370779'
+        //       },
+        //       ...
+        //     ],
+        //     success: true
+        //   }
         return this.parseBalance (response);
+    }
+
+    parseBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const balances = this.safeValue (response, 'holding', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'holding');
+            account['used'] = this.safeString (balance, 'outstanding_holding');
+            account['free'] = Precise.stringAdd (account['total'], account['used']);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     nonce () {
@@ -546,27 +571,28 @@ module.exports = class woo extends Exchange {
         const versionStr = api[0];
         const privateOrPublic = api[1];
         let url = this.implodeHostname (this.urls['api'][privateOrPublic]);
+        url += '/' + versionStr + '/';
         params = this.omit (params, this.extractParams (path));
         if (privateOrPublic === 'public') {
-            url += '/' + versionStr + '/' + privateOrPublic + '/' + path;
+            url += privateOrPublic + '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
-            const request = '... TODO...';
-            url += request;
-            params['request'] = request;
-            params['nonce'] = this.nonce ().toString ();
-            const auth = this.json (params);
-            const auth64 = this.stringToBase64 (auth);
-            const signature = this.hmac (auth64, this.encode (this.secret), 'sha512');
-            body = auth;
+            url += path;
+            const ts = this.nonce ().toString ();
+            let auth = this.urlencode (params);
+            auth += '|' + ts;
+            const signature = this.hmac (auth, this.encode (this.secret), 'sha256').toUpperCase ();
+            if (method === 'POST') {
+                body = auth;
+            }
             headers = {
-                'z': this.apiKey,
-                'x': this.decode (auth64),
-                'y': signature,
-                'Content-type': 'application/json',
+                'x-api-key': this.apiKey,
+                'x-api-signature': signature,
+                'x-api-timestamp': ts,
+                'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
