@@ -205,20 +205,6 @@ module.exports = class ascendex extends Exchange {
                     'swap': 'futures',
                     'margin': 'margin',
                 },
-                'networks': {
-                    'TRC20': 'TRC20',
-                    'ERC20': 'ERC20',
-                    'GO20': 'GO20',
-                    'BEP2': 'BEP2',
-                    'BEP20 (BSC)': 'BEP20',
-                    'Bitcoin': 'BTC',
-                    'Bitcoin ABC': 'BCH',
-                    'Litecoin': 'LTC',
-                    'Matic Network': 'MATIC',
-                    'Solana': 'SOL',
-                    'xDai': 'STAKE',
-                    'Akash': 'AKT',
-                },
             },
             'exceptions': {
                 'exact': {
@@ -1834,7 +1820,7 @@ module.exports = class ascendex extends Exchange {
         this.checkAddress (address);
         const code = (currency === undefined) ? undefined : currency['code'];
         const chainName = this.safeString (depositAddress, 'chainName');
-        const network = this.safeString (this.options.networks, chainName);
+        const network = this.safeNetwork (chainName);
         return {
             'currency': code,
             'address': address,
@@ -1842,6 +1828,24 @@ module.exports = class ascendex extends Exchange {
             'network': network,
             'info': depositAddress,
         };
+    }
+
+    safeNetwork (networkId) {
+        const networksById = {
+            'TRC20': 'TRC20',
+            'ERC20': 'ERC20',
+            'GO20': 'GO20',
+            'BEP2': 'BEP2',
+            'BEP20 (BSC)': 'BEP20',
+            'Bitcoin': 'BTC',
+            'Bitcoin ABC': 'BCH',
+            'Litecoin': 'LTC',
+            'Matic Network': 'MATIC',
+            'Solana': 'SOL',
+            'xDai': 'STAKE',
+            'Akash': 'AKT',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchDepositAddress (code, params = {}) {
