@@ -162,8 +162,8 @@ module.exports = class binancetr extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const spotPer = market['permissions'].includes ('SPOT');
             const marginPer = market['permissions'].includes ('MARGIN');
-            const marginEnable = Boolean (this.safeNumber (market, 'marginTradingEnable'));
-            const spotEnable = Boolean (this.safeNumber (market, 'spotTradingEnable'));
+            const marginEnable = (this.safeNumber (market, 'marginTradingEnable')) === '1' ? true : false;
+            const spotEnable = (this.safeNumber (market, 'spotTradingEnable')) === '1' ? true : false;
             const symbol = base + '/' + quote;
             const precision = {
                 'price': this.safeInteger (market, 'quotePrecision'),
@@ -207,14 +207,13 @@ module.exports = class binancetr extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else {
-            // will do the private part once we have the keys
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-    // handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-    //       if (response === undefined) {
-    //       return;
-    //       }
-    // }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return '1';
+        }
+    }
 };
