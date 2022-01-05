@@ -8,6 +8,7 @@ __version__ = '1.66.23'
 
 # -----------------------------------------------------------------------------
 
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import NotSupported
@@ -2638,3 +2639,12 @@ class Exchange(object):
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
+
+    def fetch_withdrawal(self, id, code=None, params={}):
+        withdrawals = self.fetch_withdrawals(code, None, None, params)
+        for i in range(0, len(withdrawals)):
+            withdrawal = withdrawals[i]
+            wid = self.safe_string(withdrawal, 'id')
+            if (id == wid):
+                return withdrawal
+        raise BadRequest(self.id + ' fetchWithdrawal() could not find the withdrawal with id ' + id)

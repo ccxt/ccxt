@@ -33,6 +33,7 @@ const {
 
 const { // eslint-disable-line object-curly-newline
     ExchangeError
+    , BadRequest
     , BadSymbol
     , InvalidAddress
     , NotSupported
@@ -2009,6 +2010,18 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code);
         }
         return rate;
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        const withdrawals = await this.fetchWithdrawals (code, undefined, undefined, params);
+        for (let i = 0; i < withdrawals.length; i++) {
+            const withdrawal = withdrawals[i];
+            const wid = this.safeString (withdrawal, 'id');
+            if (id === wid) {
+                return withdrawal;
+            }
+        }
+        throw new BadRequest (this.id + ' fetchWithdrawal() could not find the withdrawal with id ' + id);
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {

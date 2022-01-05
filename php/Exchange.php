@@ -3497,4 +3497,19 @@ class Exchange {
         $params = $this->omit($params, [ 'defaultType', 'type' ]);
         return array($type, $params);
     }
+
+    public function fetch_withdrawal($id, $code=null, $params=array()) {
+        if (!$this->has['fetchWithdrawals']) {
+            throw new NotSupported($this->id + 'fetchWithdrawals() is not supported yet');
+        }
+        $withdrawals = $this->fetch_withdrawals($code, null, null, $params);
+        for ($i = 0; $i < $withdrawals->length; $i++) {
+            $withdrawal = $withdrawals[$i];
+            $wid = $this->safe_string($withdrawal, 'id');
+            if ($id == $wid) {
+                return $withdrawal;
+            }
+        }
+        throw new BadRequest ($this->id + ' fetchWithdrawal() could not find the withdrawal with id ' + $id);
+    }
 }
