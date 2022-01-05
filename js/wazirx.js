@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest } = require ('./base/errors');
+const { ExchangeError, BadRequest, DDoSProtection, RateLimitExceeded } = require ('./base/errors');
 
 module.exports = class wazirx extends Exchange {
     describe () {
@@ -51,7 +51,9 @@ module.exports = class wazirx extends Exchange {
                             },
                         },
                         'private': {
-                            'historicalTrades': 1,
+                            'get': {
+                                'historicalTrades': 1,
+                            },
                         },
                     },
                 },
@@ -60,6 +62,7 @@ module.exports = class wazirx extends Exchange {
                 'exact': {
                     '1999': BadRequest, // {"code":1999,"message":"symbol is missing, symbol does not have a valid value"} message varies depending on the error
                     '2098': BadRequest, // {"code":2098,"message":"Request out of receiving window."}
+                    '2136': RateLimitExceeded, // {"code":2136,"message":"Too many api request"}
                 },
             },
             'options': {
@@ -391,11 +394,13 @@ module.exports = class wazirx extends Exchange {
         //
         // {"code":2098,"message":"Request out of receiving window."}
         //
+        if ((code === 418) || (code === 429)) {
+            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+        }
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback);
         }
     }
