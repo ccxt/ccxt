@@ -11,7 +11,7 @@ module.exports = class wazirx extends Exchange {
             'countries': ['IN'],
             'version': 'v2',
             'has': {
-                'CORS': true,
+                'CORS': undefined,
                 'fetchMarkets': true,
                 'fetchCurrencies': false,
                 'fetchTickers': true,
@@ -21,6 +21,8 @@ module.exports = class wazirx extends Exchange {
                 'fetchTrades': true,
                 'fetchTime': true,
                 'fetchStatus': true,
+                'privateAPI': true,
+                'publicAPI': true,
             },
             'urls': {
                 'logo': 'https://i0.wp.com/blog.wazirx.com/wp-content/uploads/2020/06/banner.png',
@@ -36,16 +38,16 @@ module.exports = class wazirx extends Exchange {
                 'spot': {
                     'v1': {
                         'public': {
-                            'get': [
-                                'ping',
-                                'systemStatus',
-                                'exchangeInfo',
-                                'tickers/24hr',
-                                'ticker/24hr',
-                                'depth',
-                                'trades',
-                                'time',
-                            ],
+                            'get': {
+                                'depth': 1,
+                                'exchangeInfo': 1,
+                                'ping': 1,
+                                'systemStatus': 1,
+                                'tickers/24hr': 1,
+                                'ticker/24hr': 1,
+                                'time': 1,
+                                'trades': 1,
+                            },
                         },
                         'private': [
                             'historicalTrades',
@@ -56,7 +58,7 @@ module.exports = class wazirx extends Exchange {
             'exceptions': {
                 'exact': {
                     '1999': BadRequest, // {"code":1999,"message":"symbol is missing, symbol does not have a valid value"} message varies depending on the error
-                    '2908': BadRequest, // {"code":2098,"message":"Request out of receiving window."}
+                    '2098': BadRequest, // {"code":2098,"message":"Request out of receiving window."}
                 },
             },
             'options': {
