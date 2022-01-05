@@ -300,7 +300,7 @@ class bitstamp extends Exchange {
                     'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'Price is more than 20% below market price.' => '\\ccxt\\InvalidOrder',
-                    'Bitstamp.net is under scheduled maintenance.' => '\\ccxt\\OnMaintenance', // array( "error" => "Bitstamp.net is under scheduled maintenance. We'll be back soon." )
+                    "Bitstamp.net is under scheduled maintenance. We'll be back soon." => '\\ccxt\\OnMaintenance', // array( "error" => "Bitstamp.net is under scheduled maintenance. We'll be back soon." )
                     'Order could not be placed.' => '\\ccxt\\ExchangeNotAvailable', // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.' => '\\ccxt\\BadRequest',
                 ),
