@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-// const {} = require ('./base/errors');
+const { BadRequest } = require ('./base/errors');
 // const { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } = require ('./base/functions/number');
 // const Precise = require ('./base/Precise');
 
@@ -20,8 +20,23 @@ module.exports = class binancetr extends Exchange {
             'has': {
                 'fetchMarkets': true,
                 'fetchTime': true,
+                'fetchOrderBook': true,
             },
             'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': '',
@@ -201,6 +216,49 @@ module.exports = class binancetr extends Exchange {
         return result;
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'symbol': this.marketId (symbol),
+        };
+        if (limit === undefined) {
+            limit = 100; // default = 100, max 5000. Valid values are 5, 10, 20, 50 100 and 500
+        } else if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500)) {
+            throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be undefined, 5, 10, 20, 50, 100 or 500, default is 100');
+        }
+        request['limit'] = limit;
+        const response = await this.publicGetMarketDepth (this.extend (request, params));
+        //
+        //    {
+        //        "code":0,
+        //        "msg":"Success",
+        //        "data":{
+        //            "lastUpdateId":16083754974,
+        //            "bids":[
+        //                ["46203.21000000","1.75479000"],
+        //                ["46203.03000000","0.06255000"],
+        //                ["46202.47000000","0.00170000"],
+        //                ["46202.46000000","0.01378000"],
+        //                ["46202.30000000","0.01634000"]
+        //            ],
+        //            "asks":[
+        //                ["46203.22000000","0.01611000"],
+        //                ["46203.24000000","0.00498000"],
+        //                ["46203.26000000","0.01136000"],
+        //                ["46205.59000000","0.00216000"],
+        //                ["46205.84000000","0.08579000"]
+        //            ]
+        //        },
+        //        "timestamp":1641383770656
+        //    }
+        //
+        const result = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (response, 'timestamp', {});
+        const orderBook = this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', '0', '1');
+        orderBook['nonce'] = this.safeInteger (result, 'lastUpdateId', {});
+        return orderBook;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + this.version + '/' + path;
         if (api === 'public') {
@@ -213,7 +271,7 @@ module.exports = class binancetr extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return '1';
+            return '1'; // return;
         }
     }
 };
