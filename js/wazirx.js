@@ -24,23 +24,31 @@ module.exports = class wazirx extends Exchange {
             },
             'urls': {
                 'logo': 'https://i0.wp.com/blog.wazirx.com/wp-content/uploads/2020/06/banner.png',
-                'api': 'https://api.wazirx.com',
+                'api': {
+                    'spot': {
+                        'v1': 'https://api.wazirx.com/sapi/v1/ping',
+                    },
+                },
                 'www': 'https://wazirx.com',
                 'doc': 'https://github.com/WazirX/wazirx-api',
             },
             'api': {
-                'public': {
-                    'get': [
-                        'sapi/v1/ping',
-                        'sapi/v1/systemStatus',
-                        'sapi/v1/exchangeInfo',
-                        'sapi/v1/tickers/24hr',
-                        'sapi/v1/ticker/24hr',
-                        'sapi/v1/depth',
-                        'sapi/v1/trades',
-                        'sapi/v1/time',
-                        'sapi/v1/historicalTrades',
-                    ],
+                'spot': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'ping',
+                                'systemStatus',
+                                'exchangeInfo',
+                                'tickers/24hr',
+                                'ticker/24hr',
+                                'depth',
+                                'trades',
+                                'time',
+                                'historicalTrades',
+                            ],
+                        },
+                    },
                 },
             },
             'exceptions': {
