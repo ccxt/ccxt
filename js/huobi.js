@@ -90,7 +90,7 @@ module.exports = class huobi extends Exchange {
                 'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTickersByType': undefined,
+                'fetchTickersByType': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
@@ -1623,6 +1623,10 @@ module.exports = class huobi extends Exchange {
             result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTickersByType (type, symbols = undefined, params = {}) {
+        return this.fetchTickers (symbols, (this.extend ({ 'type': type }, params)));
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

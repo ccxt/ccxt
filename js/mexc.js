@@ -46,6 +46,7 @@ module.exports = class mexc extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTickersByType': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
@@ -685,6 +686,10 @@ module.exports = class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTickers (data, symbols);
+    }
+
+    async fetchTickersByType (type, symbols = undefined, params = {}) {
+        return this.fetchTickers (symbols, (this.extend ({ 'type': type }, params)));
     }
 
     async fetchTicker (symbol, params = {}) {

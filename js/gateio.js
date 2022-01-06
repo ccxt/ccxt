@@ -65,6 +65,7 @@ module.exports = class gateio extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTickersByType': true,
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
@@ -1503,6 +1504,10 @@ module.exports = class gateio extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseTickers (response, symbols);
+    }
+
+    async fetchTickersByType (type, symbols = undefined, params = {}) {
+        return this.fetchTickers (symbols, (this.extend ({ 'type': type }, params)));
     }
 
     fetchBalanceHelper (entry) {
