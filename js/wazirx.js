@@ -77,9 +77,12 @@ module.exports = class wazirx extends Exchange {
                     '2098': BadRequest, // {"code":2098,"message":"Request out of receiving window."}
                     '2136': RateLimitExceeded, // {"code":2136,"message":"Too many api request"}
                     '-1121': BadSymbol, // { "code": -1121, "message": "Invalid symbol." }
+                    '2113': BadRequest, // {"code":2113,"message":"RecvWindow must be in range 1..60000"}
+                    '2115': BadRequest, // {"code":2115,"message":"Signature not found."}
                 },
             },
             'options': {
+                'recvWindow': 10000,
             },
         });
     }
@@ -395,18 +398,19 @@ module.exports = class wazirx extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const accessibility = this.safeValue (api, 2);
         const marketType = this.safeValue (api, 0);
         const version = this.safeValue (api, 1);
         let url = this.urls['api'][marketType][version] + '/' + path;
         if (Object.keys (params).length) {
             url += '?' + this.urlencode (params);
         }
-        if (api === 'private') {
+        if (accessibility === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            body = this.json (this.extend ({ 'recvWindow': 1000, 'timestamp': nonce }, params));
-            const signature = this.hmac (body, this.secret, 'sha256');
-            url += '?' + signature;
+            let data = this.urlencode (this.extend ({ 'recvWindow': 10000, 'timestamp': this.milliseconds () }, params));
+            const signature = this.hmac (data, this.secret, 'sha256');
+            data += '&' + this.urlencode ({ 'signature': signature });
+            url += '?' + data;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Api-Key': this.apiKey,
