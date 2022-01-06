@@ -1508,7 +1508,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
         const typeParams = { 'type': type };
-        return this.fetchTickers (symbols, (this.extend (typeParams, params)));
+        return this.fetchTickers (symbols, this.extend (typeParams, params));
     }
 
     fetchBalanceHelper (entry) {
