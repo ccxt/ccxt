@@ -538,7 +538,7 @@ module.exports = class ftx extends Exchange {
             const baseId = this.safeString2 (market, 'baseCurrency', 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency', 'USD');
             const settleId = contract ? 'USD' : undefined;
-            const base = this.safeCurrencyCode (baseId);
+            let base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const spot = !contract;
@@ -557,6 +557,11 @@ module.exports = class ftx extends Exchange {
             } else if (isFuture) {
                 type = 'future';
                 expiry = this.parse8601 (expiryDatetime);
+                const parsedId = id.split ('-').splice (1);
+                parsedId.splice (parsedId.length - 1, 1);
+                if (parsedId.length > 0) {
+                    base += '-' + parsedId.join ('-');
+                }
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             // check if a market is a spot or future market
