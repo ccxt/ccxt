@@ -44,13 +44,13 @@ module.exports = class woo extends Exchange {
                 'fetchFundingRateHistory': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': undefined,
-                'fetchOrderTrades': undefined,
                 'fetchOHLCV': undefined,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
+                'fetchOrderBook': undefined,
                 'fetchOrders': undefined,
+                'fetchOrderTrades': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
-                'fetchOrderBook': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
                 'fetchStatus': undefined,
@@ -109,7 +109,7 @@ module.exports = class woo extends Exchange {
                     'private': {
                         'get': {
                             'client/token': 1, // TODO
-                            'order/:oid': 1, // shared with "GET: client/order/:client_order_id" |TODO
+                            'order/{oid}': 1, // shared with "GET: client/order/:client_order_id" |TODO
                             'client/order/:client_order_id': 1, // shared with "GET: order/:oid" |TODO
                         },
                         'post': {
@@ -163,7 +163,7 @@ module.exports = class woo extends Exchange {
                     '-1008': InvalidOrder, // { "code": -1008,  "message": "The quantity of settlement is too high than you can request." }
                     '-1009': BadRequest, // { "code": -1009,  "message": "Can not request withdrawal settlement, you need to deposit other arrears first." }
                     '-1011': ExchangeError, // { "code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." }
-                    '-1012': BadRequest, // { "code": -1012,  "message": "Amount is required for buy market orders when margin disabled."}   |  also when selling insufficent tokenm it returns : {"success":false,"code":"-1012","message":"Insufficient WOO. Please enable margin trading for leverage trading."}  |  TODO: This message was returned while testing markete order with price-defined. however, docs say this message should have returned, which is not correct:  The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds." }
+                    '-1012': BadRequest, // { "code": -1012,  "message": "Amount is required for buy market orders when margin disabled."}   |  also when selling insufficent token it returns : {"success":false,"code":"-1012","message":"Insufficient WOO. Please enable margin trading for leverage trading."}  |  TODO: This message was returned while testing markete order with price-defined. however, docs say this message should have returned, which is not correct:  The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds." }
                     '-1101': InvalidOrder, // { "code": -1101,  "message": "The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure." }
                     '-1102': InvalidOrder, // { "code": -1102,  "message": "The order value (price * size) is too small." }
                     '-1103': InvalidOrder, // { "code": -1103,  "message": "The order price is not following the tick size rule for the symbol." }
@@ -343,6 +343,22 @@ module.exports = class woo extends Exchange {
         //     executed_timestamp: "1641241162.329"
         // },
         //
+        // ### fetchOrder->Transactions[]
+        //
+        // {
+        //     id: '99111647',
+        //     symbol: 'SPOT_WOO_USDT',
+        //     fee: '0.0024',
+        //     side: 'BUY',
+        //     executed_timestamp: '1641482113.084',
+        //     order_id: '87541111',
+        //     executed_price: '1',
+        //     executed_quantity: '12',
+        //     fee_asset: 'WOO',
+        //     is_maker: '1'
+        // }
+        //
+        const isFromFetchOrder = ('id' in trade);
         const timestamp = this.safeTimestamp (trade, 'executed_timestamp');
         const marketId = this.safeString (trade, 'symbol');
         if (market === undefined) {
@@ -351,16 +367,26 @@ module.exports = class woo extends Exchange {
         const symbol = market['symbol'];
         const price = this.safeString (trade, 'executed_price');
         const amount = this.safeString (trade, 'executed_quantity');
+        const order_id = this.safeString (trade, 'order_id');
+        const feeValue = this.safeString (trade, 'fee');
+        const feeAsset = this.safeString (trade, 'fee_asset');
+        const cost = Precise.stringMul (price, amount);
         let side = this.safeString (trade, 'side');
         if (side !== undefined) {
             side = side.toLowerCase ();
         }
-        let id = timestamp;
-        if (id !== undefined) {
-            id += '-' + market['id'] + '-' + amount;
+        let id = this.safeString (trade, 'id');
+        if (id === undefined) { // reconstruct artificially, if it doesn't exist
+            id = timestamp;
+            if (id !== undefined) {
+                id += '-' + market['id'] + '-' + amount;
+            }
+        }
+        let takerOrMaker = undefined;
+        if (isFromFetchOrder) {
+            takerOrMaker = this.safeString (trade, 'is_maker') === '1' ? 'maker' : 'taker';
         }
         return this.safeTrade ({
-            'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -368,11 +394,15 @@ module.exports = class woo extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': undefined,
-            'order': undefined,
-            'takerOrMaker': 'taker',
+            'cost': cost,
+            'order': order_id,
+            'takerOrMaker': takerOrMaker,
             'type': undefined,
-            'fee': undefined,
+            'fee': {
+                'cost': feeValue,
+                'currency': feeAsset,
+            },
+            'info': trade,
         }, market);
     }
 
@@ -651,37 +681,84 @@ module.exports = class woo extends Exchange {
         return response;
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetOrderOid',
+        });
+        const request = { 'oid': id };
+        const response = await this[method] (this.extend (request, query));
+        //
+        // {
+        //     success: true,
+        //     symbol: 'SPOT_WOO_USDT',
+        //     status: 'FILLED', // FILLED, NEW
+        //     side: 'BUY',
+        //     created_time: '1641480933.000',
+        //     order_id: '87541111',
+        //     order_tag: 'default',
+        //     price: '1',
+        //     type: 'LIMIT',
+        //     quantity: '12',
+        //     amount: null,
+        //     visible: '12',
+        //     executed: '12', // or any partial amount
+        //     total_fee: '0.0024',
+        //     fee_asset: 'WOO',
+        //     client_order_id: null,
+        //     average_executed_price: '1',
+        //     Transactions: [
+        //       {
+        //         id: '99111647',
+        //         symbol: 'SPOT_WOO_USDT',
+        //         fee: '0.0024',
+        //         side: 'BUY',
+        //         executed_timestamp: '1641482113.084',
+        //         order_id: '87541111',
+        //         executed_price: '1',
+        //         executed_quantity: '12',
+        //         fee_asset: 'WOO',
+        //         is_maker: '1'
+        //       }
+        //     ]
+        // }
+        //
+        return this.parseOrder (response);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // ### createOrder ###
-        // {
-        //     success: true,
-        //     timestamp: '1641383206.489',
-        //     order_id: '86980774',
-        //     order_type: 'LIMIT',
-        //     order_price: '1', // null for 'MARKET' order
-        //     order_quantity: '12', // null for 'MARKET' order
-        //     order_amount: null, // not null for 'MARKET' order
-        //     client_order_id: '0'
-        // }
+        // see example object in "createOrder"
         //
         // ### cancelOrder ###
         // { success: true, status: 'CANCEL_SENT' }
         //
-        const timestamp = this.safeTimestamp (order, 'timestamp');
+        // ### fetchOrder ###
+        // see example object in "fetchOrder"
+        //
+        const isFromFetchOrder = ('order_tag' in order);
+        const timestamp = this.safeTimestamp2 (order, 'timestamp', 'created_time');
         const orderId = this.safeInteger (order, 'order_id');
         const clientOrderId = this.safeTimestamp (order, 'client_order_id'); // Somehow, this always returns 0 for limit order
-        const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const order_price = this.safeString (order, 'order_price');
-        const order_quantity = this.safeString (order, 'order_quantity');
-        const order_amount = this.safeString (order, 'order_amount');
-        let orderType = this.safeString (order, 'order_type');
-        if (orderType !== undefined) {
-            orderType = orderType.toLowerCase ();
+        if (market === undefined) {
+            const marketId = this.safeString (order, 'symbol');
+            market = this.safeMarket (marketId, market);
         }
+        const symbol = market['symbol'];
+        const price = this.safeString2 (order, 'order_price', 'price');
+        const quantity = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
+        const amount = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
+        const orderType = this.safeStringLower2 (order, 'order_type', 'type');
         const status = this.safeValue (order, 'status');
+        const side = this.safeStringLower2 (order, 'side');
+        const filled = this.safeValue (order, 'executed');
+        const remaining = Precise.stringSub (amount, filled);
+        const fee = this.safeValue (order, 'total_fee');
+        const feeCurrency = this.safeString (order, 'fee_asset');
+        const transactions = this.safeValue (order, 'Transactions');
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -692,17 +769,20 @@ module.exports = class woo extends Exchange {
             'symbol': symbol,
             'type': orderType,
             'timeInForce': undefined,
-            'postOnly': undefined, // TODO
-            'side': undefined,
-            'price': order_price,
+            'postOnly': undefined, // TO_DO
+            'side': side,
+            'price': price,
             'stopPrice': undefined,
             'average': undefined,
-            'amount': order_quantity, // TODO
-            'filled': undefined,
-            'remaining': undefined,
-            'cost': order_amount,
-            'trades': undefined,
-            'fee': undefined,
+            'amount': quantity, // TO_DO
+            'filled': filled,
+            'remaining': remaining, // TO_DO
+            'cost': amount, // TO_DO
+            'trades': transactions,
+            'fee': {
+                'cost': fee,
+                'currency': feeCurrency,
+            },
             'info': order,
         }, market);
     }
@@ -710,6 +790,8 @@ module.exports = class woo extends Exchange {
     parseOrderStatus (status) {
         if (status !== undefined) {
             const statuses = {
+                'NEW': 'open',
+                'FILLED': 'closed',
                 'CANCEL_SENT': 'canceled',
                 'CANCEL_ALL_SENT': 'canceled',
             };
@@ -773,6 +855,7 @@ module.exports = class woo extends Exchange {
         const privateOrPublic = api[1];
         let url = this.implodeHostname (this.urls['api'][privateOrPublic]);
         url += '/' + versionStr + '/';
+        path = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         if (privateOrPublic === 'public') {
