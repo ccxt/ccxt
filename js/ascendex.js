@@ -1831,8 +1831,21 @@ module.exports = class ascendex extends Exchange {
     }
 
     safeNetwork (networkId) {
-        // TODO: parse network
-        return networkId;
+        const networksById = {
+            'TRC20': 'TRC20',
+            'ERC20': 'ERC20',
+            'GO20': 'GO20',
+            'BEP2': 'BEP2',
+            'BEP20 (BSC)': 'BEP20',
+            'Bitcoin': 'BTC',
+            'Bitcoin ABC': 'BCH',
+            'Litecoin': 'LTC',
+            'Matic Network': 'MATIC',
+            'Solana': 'SOL',
+            'xDai': 'STAKE',
+            'Akash': 'AKT',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchDepositAddress (code, params = {}) {
