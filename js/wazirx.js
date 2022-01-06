@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, DDoSProtection, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const { ExchangeError, BadRequest, DDoSProtection, RateLimitExceeded, BadSymbol, ArgumentsRequired } = require ('./base/errors');
 
 module.exports = class wazirx extends Exchange {
     describe () {
@@ -14,11 +14,13 @@ module.exports = class wazirx extends Exchange {
             'has': {
                 'CORS': undefined,
                 'fetchMarkets': true,
+                'fetchBalance': true,
                 'fetchCurrencies': false,
                 'fetchTickers': true,
                 'fetchTicker': true,
                 'fetchOHLCV': false,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchTrades': true,
                 'fetchTime': true,
                 'fetchStatus': true,
@@ -79,6 +81,7 @@ module.exports = class wazirx extends Exchange {
                     '-1121': BadSymbol, // { "code": -1121, "message": "Invalid symbol." }
                     '2113': BadRequest, // {"code":2113,"message":"RecvWindow must be in range 1..60000"}
                     '2115': BadRequest, // {"code":2115,"message":"Signature not found."}
+                    '2005': BadRequest, // {"code":2005,"message":"Signature is incorrect."}
                 },
             },
             'options': {
@@ -426,20 +429,128 @@ module.exports = class wazirx extends Exchange {
         return this.parseBalance (response);
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.spotV1PrivateGetAllOrders (this.extend (request, params));
+        // [
+        //     {
+        //         "id": 28,
+        //         "symbol": "wrxinr",
+        //         "price": "9293.0",
+        //         "origQty": "10.0",
+        //         "executedQty": "8.2",
+        //         "status": "cancel",
+        //         "type": "limit",
+        //         "side": "sell",
+        //         "createdTime": 1499827319559,
+        //         "updatedTime": 1499827319559
+        //     },
+        //     {
+        //         "id": 30,
+        //         "symbol": "wrxinr",
+        //         "price": "9293.0",
+        //         "stopPrice": "9200.0",
+        //         "origQty": "10.0",
+        //         "executedQty": "0.0",
+        //         "status": "cancel",
+        //         "type": "stop_limit",
+        //         "side": "sell",
+        //         "createdTime": 1499827319559,
+        //         "updatedTime": 1507725176595
+        //     }
+        // ]
+        let orders = this.parseOrders (response, market, since, limit);
+        orders = this.filterBy (orders, 'symbol', symbol);
+        return orders;
+    }
+
+    parseOrder (order, market = undefined) {
+        // {
+        //     "id":1949417813,
+        //     "symbol":"ltcusdt",
+        //     "type":"limit",
+        //     "side":"sell",
+        //     "status":"done",
+        //     "price":"146.2",
+        //     "origQty":"0.05",
+        //     "executedQty":"0.05",
+        //     "createdTime":1641252564000,
+        //     "updatedTime":1641252564000
+        // },
+        const created = this.safeInteger (order, 'createdTime');
+        const updated = this.safeInteger (order, 'updatedTime');
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'executedQty');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const id = this.safeString (order, 'id');
+        const price = this.safeString (order, 'price');
+        const type = this.safeStringLower (order, 'type');
+        const side = this.safeStringLower (order, 'side');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': created,
+            'datetime': this.iso8601 (created),
+            'lastTradeTimestamp': updated,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': undefined,
+            'cost': undefined,
+            'fee': undefined,
+            'average': undefined,
+            'trades': [],
+        }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'wait': 'open',
+            'done': 'closed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const accessibility = this.safeValue (api, 2);
         const marketType = this.safeValue (api, 0);
         const version = this.safeValue (api, 1);
         let url = this.urls['api'][marketType][version] + '/' + path;
-        if (Object.keys (params).length) {
-            url += '?' + this.urlencode (params);
+        if (accessibility === 'public') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
         }
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
-            let data = this.urlencode (this.extend ({ 'recvWindow': this.options['recvWindow'], 'timestamp': this.milliseconds () }, params));
-            const signature = this.hmac (data, this.secret, 'sha256');
-            data += '&' + this.urlencode ({ 'signature': signature });
-            url += '?' + data;
+            const timestamp = this.milliseconds ();
+            let data = this.extend ({ 'recvWindow': this.options['recvWindow'], 'timestamp': timestamp }, params);
+            data = this.keysort (data);
+            const signature = this.hmac (this.urlencode (data), this.secret, 'sha256');
+            url += '?' + this.urlencode (data);
+            url += '&signature=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Api-Key': this.apiKey,
