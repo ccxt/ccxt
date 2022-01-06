@@ -443,8 +443,6 @@ class wavesexchange(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': None,
-                'maker': None,
                 'contractSize': None,
                 'active': None,
                 'expiry': None,

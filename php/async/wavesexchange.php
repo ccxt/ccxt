@@ -442,8 +442,6 @@ class wavesexchange extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
                 'contractSize' => null,
                 'active' => null,
                 'expiry' => null,

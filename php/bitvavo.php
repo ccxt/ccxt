@@ -308,8 +308,6 @@ class bitvavo extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
                 'contractSize' => null,
                 'active' => ($status === 'trading'),
                 'expiry' => null,

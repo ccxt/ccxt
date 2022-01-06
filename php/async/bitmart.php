@@ -462,8 +462,6 @@ class bitmart extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
                 'contractSize' => null,
                 'active' => true,
                 'expiry' => null,
