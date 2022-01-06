@@ -710,10 +710,8 @@ module.exports = class cryptocom extends Exchange {
         //     }
         // }
         const result = this.safeValue (response, 'result');
-        const data = this.safeValue (result, 'data');
-        const orderBook = this.safeValue (data, 0);
-        const timestamp = this.safeInteger (orderBook, 't');
-        return this.parseOrderBook (orderBook, symbol, timestamp);
+        const timestamp = this.safeInteger (result, 't');
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     parseSwapBalance (response) {
