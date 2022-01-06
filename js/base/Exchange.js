@@ -131,7 +131,6 @@ module.exports = class Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
-                'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
@@ -1185,6 +1184,24 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' fetchTradingFee not supported yet')
         }
         return await this.fetchTradingFees (params)
+    }
+
+    async fetchTradingLimits (symbols = undefined, params = {}) {
+        /*
+            this method should not be called directly, use loadTradingLimits () instead
+            by default it will try load withdrawal fees of all currencies (with separate requests)
+            however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        */
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        const result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
+        }
+        return result;
     }
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {

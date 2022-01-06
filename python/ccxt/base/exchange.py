@@ -2815,3 +2815,18 @@ class Exchange(object):
             row = response[i]
             interest.append(self.parse_borrow_interest(row, market))
         return interest
+
+    def fetchTradingLimits(self, symbols=None, params={}):
+        """
+        this method should not be called directly, use loadTradingLimits () instead
+        by default it will try load withdrawal fees of all currencies (with separate requests)
+        however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        """
+        self.loadMarkets()
+        if (symbols is None):
+            symbols = self.symbols
+        result = {}
+        for i in range(len(symbols)):
+            symbol = symbols[i]
+            result[symbol] = self.fetchTradingLimitsById(self.marketId(symbol), params)
+        return result
