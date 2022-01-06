@@ -89,7 +89,6 @@ module.exports = class aax extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfer': false,
                 'fetchTransfers': true,

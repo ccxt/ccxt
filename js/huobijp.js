@@ -60,7 +60,6 @@ module.exports = class huobijp extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -323,22 +322,6 @@ module.exports = class huobijp extends Exchange {
     async fetchTime (params = {}) {
         const response = await this.publicGetCommonTimestamp (params);
         return this.safeInteger (response, 'data');
-    }
-
-    async fetchTradingLimits (symbols = undefined, params = {}) {
-        // this method should not be called directly, use loadTradingLimits () instead
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
-        await this.loadMarkets ();
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
-        const result = {};
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
-        }
-        return result;
     }
 
     async fetchTradingLimitsById (id, params = {}) {

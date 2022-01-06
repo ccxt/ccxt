@@ -52,7 +52,6 @@ module.exports = class bw extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'withdraw': undefined,

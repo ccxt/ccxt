@@ -87,7 +87,6 @@ module.exports = class binance extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -5582,5 +5581,93 @@ module.exports = class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
+    }
+
+    async fetchTradingLimitsById (id, params = {}) {
+        const request = {
+            'symbol': id,
+        };
+        const response = await this.spotPublicGetV1CommonExchange (this.extend (request, params));
+        //
+        //     { status:   "ok",
+        //         data: {                                  symbol: "aidocbtc",
+        //                              'buy-limit-must-less-than':  1.1,
+        //                          'sell-limit-must-greater-than':  0.9,
+        //                         'limit-order-must-greater-than':  1,
+        //                            'limit-order-must-less-than':  5000000,
+        //                    'market-buy-order-must-greater-than':  0.0001,
+        //                       'market-buy-order-must-less-than':  100,
+        //                   'market-sell-order-must-greater-than':  1,
+        //                      'market-sell-order-must-less-than':  500000,
+        //                       'circuit-break-when-greater-than':  10000,
+        //                          'circuit-break-when-less-than':  10,
+        //                 'market-sell-order-rate-must-less-than':  0.1,
+        //                  'market-buy-order-rate-must-less-than':  0.1        } }
+        //
+        return this.parseTradingLimits (this.safeValue (response, 'data', {}));
+    }
+
+    async fetchTradingLimits (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        // getExchangeInfo
+        const response = await this.publicGetGetExchangeInfo (params);
+        const tradingLimits = this.safeValue (response, 'tradingLimits', []);
+        // To-do parsing response when available
+        return {
+            'info': tradingLimits,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        };
+    }
+
+    async fetchTradingLimits (symbols = undefined, params = {}) {
+        const filters = this.safeValue (market, 'filters', []);
+            const filtersByType = this.indexBy (filters, 'filterType');
+        if ('PRICE_FILTER' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+            const tickSize = this.safeString (filter, 'tickSize');
+            entry['precision']['price'] = this.precisionFromString (tickSize);
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            entry['limits']['price'] = {
+                'min': this.safeNumber (filter, 'minPrice'),
+                'max': this.safeNumber (filter, 'maxPrice'),
+            };
+            entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+        }
+        if ('LOT_SIZE' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+            const stepSize = this.safeString (filter, 'stepSize');
+            entry['precision']['amount'] = this.precisionFromString (stepSize);
+            entry['limits']['amount'] = {
+                'min': this.safeNumber (filter, 'minQty'),
+                'max': this.safeNumber (filter, 'maxQty'),
+            };
+        }
+        if ('MARKET_LOT_SIZE' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
+            entry['limits']['market'] = {
+                'min': this.safeNumber (filter, 'minQty'),
+                'max': this.safeNumber (filter, 'maxQty'),
+            };
+        }
+        if ('MIN_NOTIONAL' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
+            entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
+        }
     }
 };
