@@ -966,20 +966,15 @@ module.exports = class cryptocom extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
+        const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
+            request['instrument_name'] = market['id'];
         }
-        const request = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        if (marketType === 'spot') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for ' + marketType + ' orders');
-            }
-            request['instrument_name'] = market['id'];
-        }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',

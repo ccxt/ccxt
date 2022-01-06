@@ -317,8 +317,6 @@ class bitvavo(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': None,
-                'maker': None,
                 'contractSize': None,
                 'active': (status == 'trading'),
                 'expiry': None,

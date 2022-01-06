@@ -80,7 +80,7 @@ class huobi(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingFee': None,
                 'fetchFundingFees': None,
-                'fetchFundingHistory': None,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': None,
@@ -109,7 +109,7 @@ class huobi(Exchange):
                 'fetchOrderTrades': True,
                 'fetchPartiallyFilledOrders': None,
                 'fetchPosition': True,
-                'fetchPositions': None,
+                'fetchPositions': True,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchStatus': None,
@@ -131,7 +131,7 @@ class huobi(Exchange):
                 'loadLeverageBrackets': None,
                 'loadTimeDifference': None,
                 'reduceMargin': None,
-                'setLeverage': None,
+                'setLeverage': True,
                 'setMarginMode': None,
                 'setPositionMode': None,
                 'signIn': None,
@@ -1737,7 +1737,7 @@ class huobi(Exchange):
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         filledPoints = self.safe_string(trade, 'filled-points')
         if filledPoints is not None:
-            if (feeCost is None) or (feeCost == 0.0):
+            if (feeCost is None) or Precise.string_equals(feeCost, '0'):
                 feeCost = filledPoints
                 feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-deduct-currency'))
         if feeCost is not None:
@@ -4311,6 +4311,166 @@ class huobi(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)
 
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+        marketType, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
+        method = None
+        request = {
+            'type': '30,31',
+        }
+        if market['linear']:
+            method = 'contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact'
+            #
+            # {
+            #   status: 'ok',
+            #   data: {
+            #     financial_record: [
+            #       {
+            #         id: '1320088022',
+            #         type: '30',
+            #         amount: '0.004732510000000000',
+            #         ts: '1641168019321',
+            #         contract_code: 'BTC-USDT',
+            #         asset: 'USDT',
+            #         margin_account: 'BTC-USDT',
+            #         face_margin_account: ''
+            #       },
+            #     ],
+            #     remain_size: '0',
+            #     next_id: null
+            #   },
+            #   ts: '1641189898425'
+            # }
+            if marginType == 'isolated':
+                request['margin_account'] = market['id']
+            else:
+                request['margin_account'] = market['quote']
+        else:
+            if marketType == 'swap':
+                method = 'contractPrivatePostSwapApiV1SwapFinancialRecordExact'
+                request['contract_code'] = market['id']
+            else:
+                raise ExchangeError(self.id + ' fetchFundingHistory() only makes sense for swap contracts')
+            #
+            # swap
+            #     {
+            #       status: 'ok',
+            #       data: {
+            #         financial_record: [
+            #           {
+            #             id: '1667436164',
+            #             symbol: 'BTC',
+            #             type: '30',
+            #             amount: '3.9755491985E-8',
+            #             ts: '1641168097323',
+            #             contract_code: 'BTC-USD'
+            #           },
+            #         ],
+            #         remain_size: '0',
+            #         next_id: null
+            #       },
+            #       ts: '1641190296379'
+            #     }
+            #
+        response = getattr(self, method)(self.extend(request, query))
+        data = self.safe_value(response, 'data', {})
+        financialRecord = self.safe_value(data, 'financial_record', [])
+        return self.parse_incomes(financialRecord, market, since, limit)
+
+    def set_leverage(self, leverage, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+        marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
+        method = None
+        if market['linear']:
+            method = self.get_supported_mapping(marginType, {
+                'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
+                'cross': 'contractPrivatePostLinearSwapCrossApiV1SwapSwitchLeverRate',
+            })
+            #
+            #     {
+            #       status: 'ok',
+            #       data: {
+            #         contract_code: 'BTC-USDT',
+            #         lever_rate: '100',
+            #         margin_mode: 'isolated'
+            #       },
+            #       ts: '1641184710649'
+            #     }
+            #
+        else:
+            method = self.get_supported_mapping(marketType, {
+                'future': 'contractPrivatePostApiV1ContractSwitchLeverRate',
+                'swap': 'contractPrivatePostSwapApiV1SwapSwitchLeverRate',
+            })
+            #
+            # future
+            #     {
+            #       status: 'ok',
+            #       data: {symbol: 'BTC', lever_rate: 5},
+            #       ts: 1641184578678
+            #     }
+            #
+            # swap
+            #
+            #     {
+            #       status: 'ok',
+            #       data: {contract_code: 'BTC-USD', lever_rate: '5'},
+            #       ts: '1641184652979'
+            #     }
+            #
+        request = {
+            'lever_rate': leverage,
+        }
+        if marketType == 'future':
+            request['symbol'] = market['settle']
+        else:
+            request['contract_code'] = market['id']
+        response = getattr(self, method)(self.extend(request, query))
+        return response
+
+    def parse_income(self, income, market=None):
+        #
+        #     {
+        #       id: '1667161118',
+        #       symbol: 'BTC',
+        #       type: '31',
+        #       amount: '-2.11306593188E-7',
+        #       ts: '1641139308983',
+        #       contract_code: 'BTC-USD'
+        #     }
+        #
+        marketId = self.safe_string(income, 'contract_code')
+        symbol = self.safe_symbol(marketId, market)
+        amount = self.safe_number(income, 'amount')
+        timestamp = self.safe_integer(income, 'ts')
+        id = self.safe_string(income, 'id')
+        currencyId = self.safe_string_2(income, 'symbol', 'asset')
+        code = self.safe_currency_code(currencyId)
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': id,
+            'amount': amount,
+        }
+
+    def parse_incomes(self, incomes, market=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(incomes)):
+            entry = incomes[i]
+            parsed = self.parse_income(entry, market)
+            result.append(parsed)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit, 'timestamp')
+
     def parse_position(self, position, market=None):
         #
         #     {
@@ -4349,7 +4509,8 @@ class huobi(Exchange):
         contractSize = self.safe_string(market, 'contractSize')
         entryPrice = self.safe_number(position, 'cost_hold')
         initialMargin = self.safe_string(position, 'position_margin')
-        side = self.safe_string(position, 'direction')
+        rawSide = self.safe_string(position, 'direction')
+        side = 'long' if (rawSide == 'buy') else 'short'
         unrealizedProfit = self.safe_number(position, 'profit_unreal')
         marginType = self.safe_string(position, 'margin_mode')
         leverage = self.safe_string(position, 'lever_rate')
@@ -4393,16 +4554,16 @@ class huobi(Exchange):
             'datetime': None,
         }
 
-    def fetch_position(self, symbol, params={}):
+    def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
         marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
-        marketType, query = self.handle_market_type_and_params('fetchPositions', market, params)
+        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
+        marketType, query = self.handle_market_type_and_params('fetchPositions', None, params)
         method = None
-        if market['linear']:
+        if defaultSubType == 'linear':
             method = self.get_supported_mapping(marginType, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
+                'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
+                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
             })
             #
             #     {
@@ -4433,9 +4594,10 @@ class huobi(Exchange):
             #
         else:
             method = self.get_supported_mapping(marketType, {
-                'future': 'contractPrivatePostApiV1ContractAccountPositionInfo',
-                'swap': 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
+                'future': 'contractPrivatePostApiV1ContractPositionInfo',
+                'swap': 'contractPrivatePostSwapApiV1SwapPositionInfo',
             })
+            #
             # future
             #     {
             #       status: 'ok',
@@ -4483,6 +4645,173 @@ class huobi(Exchange):
             #         }
             #       ],
             #       ts: '1641109636572'
+            #     }
+            #
+        response = getattr(self, method)(query)
+        data = self.safe_value(response, 'data')
+        timestamp = self.safe_integer(response, 'ts')
+        result = []
+        for i in range(0, len(data)):
+            position = data[i]
+            parsed = self.parse_position(position)
+            result.append(self.extend(parsed, {
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            }))
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def fetch_position(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+        marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
+        method = None
+        if market['linear']:
+            method = self.get_supported_mapping(marginType, {
+                'isolated': 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
+                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
+            })
+            #
+            #     {
+            #       status: 'ok',
+            #       data: [
+            #         {
+            #           positions: [
+            #             {
+            #               symbol: 'BTC',
+            #               contract_code: 'BTC-USDT',
+            #               volume: 1,
+            #               available: 1,
+            #               frozen: 0,
+            #               cost_open: 47027.1,
+            #               cost_hold: 47324.4,
+            #               profit_unreal: 0.1705,
+            #               profit_rate: -0.269631765513927,
+            #               lever_rate: 100,
+            #               position_margin: 0.471539,
+            #               direction: 'sell',
+            #               profit: -0.1268,
+            #               last_price: 47153.9,
+            #               margin_asset: 'USDT',
+            #               margin_mode: 'isolated',
+            #               margin_account: 'BTC-USDT'
+            #             }
+            #           ],
+            #           symbol: 'BTC',
+            #           margin_balance: 8.01274699,
+            #           margin_position: 0.471539,
+            #           margin_frozen: 0,
+            #           margin_available: 7.54120799,
+            #           profit_real: 0,
+            #           profit_unreal: 0.1705,
+            #           risk_rate: 16.442755615124092,
+            #           withdraw_available: 7.37070799,
+            #           liquidation_price: 54864.89009448036,
+            #           lever_rate: 100,
+            #           adjust_factor: 0.55,
+            #           margin_static: 7.84224699,
+            #           contract_code: 'BTC-USDT',
+            #           margin_asset: 'USDT',
+            #           margin_mode: 'isolated',
+            #           margin_account: 'BTC-USDT'
+            #         }
+            #       ],
+            #       ts: 1641162539767
+            #     }
+            #
+        else:
+            method = self.get_supported_mapping(marketType, {
+                'future': 'contractPrivatePostApiV1ContractAccountPositionInfo',
+                'swap': 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
+            })
+            # future
+            #     {
+            #       status: 'ok',
+            #       data: [
+            #         {
+            #           symbol: 'BTC',
+            #           contract_code: 'BTC-USD',
+            #           margin_balance: 0.000752347253890835,
+            #           margin_position: 0.000705870726835087,
+            #           margin_frozen: 0,
+            #           margin_available: 0.000046476527055748,
+            #           profit_real: 0,
+            #           profit_unreal: -0.000004546248622,
+            #           risk_rate: 1.0508428311146076,
+            #           withdraw_available: 0.000046476527055748,
+            #           liquidation_price: 35017.91655851386,
+            #           lever_rate: 3,
+            #           adjust_factor: 0.015,
+            #           margin_static: 0.000756893502512835,
+            #           positions: [
+            #             {
+            #               symbol: 'BTC',
+            #               contract_code: 'BTC-USD',
+            #               volume: 1,
+            #               available: 1,
+            #               frozen: 0,
+            #               cost_open: 47150.000000000015,
+            #               cost_hold: 47324.6,
+            #               profit_unreal: -0.000004546248622,
+            #               profit_rate: 0.00463757067530574,
+            #               lever_rate: 3,
+            #               position_margin: 0.000705870726835087,
+            #               direction: 'buy',
+            #               profit: 0.0000032785936199,
+            #               last_price: 47223
+            #             }
+            #           ]
+            #         }
+            #       ],
+            #       ts: 1641162795228
+            #     }
+            #
+            # swap
+            #     {
+            #       status: 'ok',
+            #       data: [
+            #         {
+            #           positions: [
+            #             {
+            #               symbol: 'BTC',
+            #               contract_code: 'BTC-USDT',
+            #               volume: 1,
+            #               available: 1,
+            #               frozen: 0,
+            #               cost_open: 47027.1,
+            #               cost_hold: 47324.4,
+            #               profit_unreal: 0.1705,
+            #               profit_rate: -0.269631765513927,
+            #               lever_rate: 100,
+            #               position_margin: 0.471539,
+            #               direction: 'sell',
+            #               profit: -0.1268,
+            #               last_price: 47153.9,
+            #               margin_asset: 'USDT',
+            #               margin_mode: 'isolated',
+            #               margin_account: 'BTC-USDT'
+            #             }
+            #           ],
+            #           symbol: 'BTC',
+            #           margin_balance: 8.01274699,
+            #           margin_position: 0.471539,
+            #           margin_frozen: 0,
+            #           margin_available: 7.54120799,
+            #           profit_real: 0,
+            #           profit_unreal: 0.1705,
+            #           risk_rate: 16.442755615124092,
+            #           withdraw_available: 7.37070799,
+            #           liquidation_price: 54864.89009448036,
+            #           lever_rate: 100,
+            #           adjust_factor: 0.55,
+            #           margin_static: 7.84224699,
+            #           contract_code: 'BTC-USDT',
+            #           margin_asset: 'USDT',
+            #           margin_mode: 'isolated',
+            #           margin_account: 'BTC-USDT'
+            #         }
+            #       ],
+            #       ts: 1641162539767
             #     }
             #
         request = {

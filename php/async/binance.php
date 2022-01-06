@@ -101,18 +101,17 @@ class binance extends Exchange {
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
-                'fetchWithdrawAddress' => null,
-                'fetchWithdrawAddressesByNetwork' => null,
-                'fetchWithdrawal' => null,
+                'fetchWithdrawAddress' => false,
+                'fetchWithdrawAddressesByNetwork' => false,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
-                'fetchWithdrawalWhitelist' => null,
-                'loadLeverageBrackets' => null,
-                'loadTimeDifference' => null,
+                'fetchWithdrawalWhitelist' => false,
+                'loadLeverageBrackets' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
-                'signIn' => null,
+                'signIn' => false,
                 'transfer' => true,
                 'transferOut' => false,
                 'withdraw' => true,
@@ -4379,6 +4378,7 @@ class binance extends Exchange {
         if (!$rational) {
             $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
         }
+        // as oppose to notionalValue
         $usdm = (is_array($position) && array_key_exists('notional', $position));
         $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -4594,9 +4594,11 @@ class binance extends Exchange {
         }
         $entryPriceString = $this->safe_string($position, 'entryPrice');
         $entryPrice = $this->parse_number($entryPriceString);
+        // as oppose to notionalValue
+        $linear = (is_array($position) && array_key_exists('notional', $position));
         if ($marginType === 'cross') {
             // calculate $collateral
-            if ($market['linear']) {
+            if ($linear) {
                 // walletBalance = ($liquidationPrice * (±1 . mmp) ± $entryPrice) * $contracts
                 $onePlusMaintenanceMarginPercentageString = null;
                 $entryPriceSignString = $entryPriceString;

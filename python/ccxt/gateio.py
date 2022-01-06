@@ -2326,6 +2326,7 @@ class gateio(Exchange):
         #
         #
         id = self.safe_string(order, 'id')
+        clientOrderId = self.safe_string(order, 'text')
         marketId = self.safe_string_2(order, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_timestamp(order, 'create_time')
@@ -2387,7 +2388,7 @@ class gateio(Exchange):
             })
         return self.safe_order({
             'id': id,
-            'clientOrderId': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

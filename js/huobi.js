@@ -55,7 +55,7 @@ module.exports = class huobi extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
-                'fetchFundingHistory': undefined,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined,
@@ -84,7 +84,7 @@ module.exports = class huobi extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPartiallyFilledOrders': undefined,
                 'fetchPosition': true,
-                'fetchPositions': undefined,
+                'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchStatus': undefined,
@@ -106,7 +106,7 @@ module.exports = class huobi extends Exchange {
                 'loadLeverageBrackets': undefined,
                 'loadTimeDifference': undefined,
                 'reduceMargin': undefined,
-                'setLeverage': undefined,
+                'setLeverage': true,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,
@@ -1766,7 +1766,7 @@ module.exports = class huobi extends Exchange {
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         const filledPoints = this.safeString (trade, 'filled-points');
         if (filledPoints !== undefined) {
-            if ((feeCost === undefined) || (feeCost === 0.0)) {
+            if ((feeCost === undefined) || Precise.stringEquals (feeCost, '0')) {
                 feeCost = filledPoints;
                 feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-deduct-currency'));
             }
@@ -4569,6 +4569,177 @@ module.exports = class huobi extends Exchange {
         }
     }
 
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
+        let method = undefined;
+        const request = {
+            'type': '30,31',
+        };
+        if (market['linear']) {
+            method = 'contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact';
+            //
+            // {
+            //   status: 'ok',
+            //   data: {
+            //     financial_record: [
+            //       {
+            //         id: '1320088022',
+            //         type: '30',
+            //         amount: '0.004732510000000000',
+            //         ts: '1641168019321',
+            //         contract_code: 'BTC-USDT',
+            //         asset: 'USDT',
+            //         margin_account: 'BTC-USDT',
+            //         face_margin_account: ''
+            //       },
+            //     ],
+            //     remain_size: '0',
+            //     next_id: null
+            //   },
+            //   ts: '1641189898425'
+            // }
+            if (marginType === 'isolated') {
+                request['margin_account'] = market['id'];
+            } else {
+                request['margin_account'] = market['quote'];
+            }
+        } else {
+            if (marketType === 'swap') {
+                method = 'contractPrivatePostSwapApiV1SwapFinancialRecordExact';
+                request['contract_code'] = market['id'];
+            } else {
+                throw new ExchangeError (this.id + ' fetchFundingHistory() only makes sense for swap contracts');
+            }
+            //
+            // swap
+            //     {
+            //       status: 'ok',
+            //       data: {
+            //         financial_record: [
+            //           {
+            //             id: '1667436164',
+            //             symbol: 'BTC',
+            //             type: '30',
+            //             amount: '3.9755491985E-8',
+            //             ts: '1641168097323',
+            //             contract_code: 'BTC-USD'
+            //           },
+            //         ],
+            //         remain_size: '0',
+            //         next_id: null
+            //       },
+            //       ts: '1641190296379'
+            //     }
+            //
+        }
+        const response = await this[method] (this.extend (request, query));
+        const data = this.safeValue (response, 'data', {});
+        const financialRecord = this.safeValue (data, 'financial_record', []);
+        return this.parseIncomes (financialRecord, market, since, limit);
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
+        let method = undefined;
+        if (market['linear']) {
+            method = this.getSupportedMapping (marginType, {
+                'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
+                'cross': 'contractPrivatePostLinearSwapCrossApiV1SwapSwitchLeverRate',
+            });
+            //
+            //     {
+            //       status: 'ok',
+            //       data: {
+            //         contract_code: 'BTC-USDT',
+            //         lever_rate: '100',
+            //         margin_mode: 'isolated'
+            //       },
+            //       ts: '1641184710649'
+            //     }
+            //
+        } else {
+            method = this.getSupportedMapping (marketType, {
+                'future': 'contractPrivatePostApiV1ContractSwitchLeverRate',
+                'swap': 'contractPrivatePostSwapApiV1SwapSwitchLeverRate',
+            });
+            //
+            // future
+            //     {
+            //       status: 'ok',
+            //       data: { symbol: 'BTC', lever_rate: 5 },
+            //       ts: 1641184578678
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //       status: 'ok',
+            //       data: { contract_code: 'BTC-USD', lever_rate: '5' },
+            //       ts: '1641184652979'
+            //     }
+            //
+        }
+        const request = {
+            'lever_rate': leverage,
+        };
+        if (marketType === 'future') {
+            request['symbol'] = market['settle'];
+        } else {
+            request['contract_code'] = market['id'];
+        }
+        const response = await this[method] (this.extend (request, query));
+        return response;
+    }
+
+    parseIncome (income, market = undefined) {
+        //
+        //     {
+        //       id: '1667161118',
+        //       symbol: 'BTC',
+        //       type: '31',
+        //       amount: '-2.11306593188E-7',
+        //       ts: '1641139308983',
+        //       contract_code: 'BTC-USD'
+        //     }
+        //
+        const marketId = this.safeString (income, 'contract_code');
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeNumber (income, 'amount');
+        const timestamp = this.safeInteger (income, 'ts');
+        const id = this.safeString (income, 'id');
+        const currencyId = this.safeString2 (income, 'symbol', 'asset');
+        const code = this.safeCurrencyCode (currencyId);
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'amount': amount,
+        };
+    }
+
+    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < incomes.length; i++) {
+            const entry = incomes[i];
+            const parsed = this.parseIncome (entry, market);
+            result.push (parsed);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit, 'timestamp');
+    }
+
     parsePosition (position, market = undefined) {
         //
         //     {
@@ -4607,7 +4778,8 @@ module.exports = class huobi extends Exchange {
         const contractSize = this.safeString (market, 'contractSize');
         const entryPrice = this.safeNumber (position, 'cost_hold');
         const initialMargin = this.safeString (position, 'position_margin');
-        const side = this.safeString (position, 'direction');
+        const rawSide = this.safeString (position, 'direction');
+        const side = (rawSide === 'buy') ? 'long' : 'short';
         const unrealizedProfit = this.safeNumber (position, 'profit_unreal');
         let marginType = this.safeString (position, 'margin_mode');
         const leverage = this.safeString (position, 'lever_rate');
@@ -4653,16 +4825,16 @@ module.exports = class huobi extends Exchange {
         };
     }
 
-    async fetchPosition (symbol, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         let method = undefined;
-        if (market['linear']) {
+        if (defaultSubType === 'linear') {
             method = this.getSupportedMapping (marginType, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
+                'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
+                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
             });
             //
             //     {
@@ -4693,9 +4865,10 @@ module.exports = class huobi extends Exchange {
             //
         } else {
             method = this.getSupportedMapping (marketType, {
-                'future': 'contractPrivatePostApiV1ContractAccountPositionInfo',
-                'swap': 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
+                'future': 'contractPrivatePostApiV1ContractPositionInfo',
+                'swap': 'contractPrivatePostSwapApiV1SwapPositionInfo',
             });
+            //
             // future
             //     {
             //       status: 'ok',
@@ -4743,6 +4916,176 @@ module.exports = class huobi extends Exchange {
             //         }
             //       ],
             //       ts: '1641109636572'
+            //     }
+            //
+        }
+        const response = await this[method] (query);
+        const data = this.safeValue (response, 'data');
+        const timestamp = this.safeInteger (response, 'ts');
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const position = data[i];
+            const parsed = this.parsePosition (position);
+            result.push (this.extend (parsed, {
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            }));
+        }
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
+        let method = undefined;
+        if (market['linear']) {
+            method = this.getSupportedMapping (marginType, {
+                'isolated': 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
+                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
+            });
+            //
+            //     {
+            //       status: 'ok',
+            //       data: [
+            //         {
+            //           positions: [
+            //             {
+            //               symbol: 'BTC',
+            //               contract_code: 'BTC-USDT',
+            //               volume: 1,
+            //               available: 1,
+            //               frozen: 0,
+            //               cost_open: 47027.1,
+            //               cost_hold: 47324.4,
+            //               profit_unreal: 0.1705,
+            //               profit_rate: -0.269631765513927,
+            //               lever_rate: 100,
+            //               position_margin: 0.471539,
+            //               direction: 'sell',
+            //               profit: -0.1268,
+            //               last_price: 47153.9,
+            //               margin_asset: 'USDT',
+            //               margin_mode: 'isolated',
+            //               margin_account: 'BTC-USDT'
+            //             }
+            //           ],
+            //           symbol: 'BTC',
+            //           margin_balance: 8.01274699,
+            //           margin_position: 0.471539,
+            //           margin_frozen: 0,
+            //           margin_available: 7.54120799,
+            //           profit_real: 0,
+            //           profit_unreal: 0.1705,
+            //           risk_rate: 16.442755615124092,
+            //           withdraw_available: 7.37070799,
+            //           liquidation_price: 54864.89009448036,
+            //           lever_rate: 100,
+            //           adjust_factor: 0.55,
+            //           margin_static: 7.84224699,
+            //           contract_code: 'BTC-USDT',
+            //           margin_asset: 'USDT',
+            //           margin_mode: 'isolated',
+            //           margin_account: 'BTC-USDT'
+            //         }
+            //       ],
+            //       ts: 1641162539767
+            //     }
+            //
+        } else {
+            method = this.getSupportedMapping (marketType, {
+                'future': 'contractPrivatePostApiV1ContractAccountPositionInfo',
+                'swap': 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
+            });
+            // future
+            //     {
+            //       status: 'ok',
+            //       data: [
+            //         {
+            //           symbol: 'BTC',
+            //           contract_code: 'BTC-USD',
+            //           margin_balance: 0.000752347253890835,
+            //           margin_position: 0.000705870726835087,
+            //           margin_frozen: 0,
+            //           margin_available: 0.000046476527055748,
+            //           profit_real: 0,
+            //           profit_unreal: -0.000004546248622,
+            //           risk_rate: 1.0508428311146076,
+            //           withdraw_available: 0.000046476527055748,
+            //           liquidation_price: 35017.91655851386,
+            //           lever_rate: 3,
+            //           adjust_factor: 0.015,
+            //           margin_static: 0.000756893502512835,
+            //           positions: [
+            //             {
+            //               symbol: 'BTC',
+            //               contract_code: 'BTC-USD',
+            //               volume: 1,
+            //               available: 1,
+            //               frozen: 0,
+            //               cost_open: 47150.000000000015,
+            //               cost_hold: 47324.6,
+            //               profit_unreal: -0.000004546248622,
+            //               profit_rate: 0.00463757067530574,
+            //               lever_rate: 3,
+            //               position_margin: 0.000705870726835087,
+            //               direction: 'buy',
+            //               profit: 0.0000032785936199,
+            //               last_price: 47223
+            //             }
+            //           ]
+            //         }
+            //       ],
+            //       ts: 1641162795228
+            //     }
+            //
+            // swap
+            //     {
+            //       status: 'ok',
+            //       data: [
+            //         {
+            //           positions: [
+            //             {
+            //               symbol: 'BTC',
+            //               contract_code: 'BTC-USDT',
+            //               volume: 1,
+            //               available: 1,
+            //               frozen: 0,
+            //               cost_open: 47027.1,
+            //               cost_hold: 47324.4,
+            //               profit_unreal: 0.1705,
+            //               profit_rate: -0.269631765513927,
+            //               lever_rate: 100,
+            //               position_margin: 0.471539,
+            //               direction: 'sell',
+            //               profit: -0.1268,
+            //               last_price: 47153.9,
+            //               margin_asset: 'USDT',
+            //               margin_mode: 'isolated',
+            //               margin_account: 'BTC-USDT'
+            //             }
+            //           ],
+            //           symbol: 'BTC',
+            //           margin_balance: 8.01274699,
+            //           margin_position: 0.471539,
+            //           margin_frozen: 0,
+            //           margin_available: 7.54120799,
+            //           profit_real: 0,
+            //           profit_unreal: 0.1705,
+            //           risk_rate: 16.442755615124092,
+            //           withdraw_available: 7.37070799,
+            //           liquidation_price: 54864.89009448036,
+            //           lever_rate: 100,
+            //           adjust_factor: 0.55,
+            //           margin_static: 7.84224699,
+            //           contract_code: 'BTC-USDT',
+            //           margin_asset: 'USDT',
+            //           margin_mode: 'isolated',
+            //           margin_account: 'BTC-USDT'
+            //         }
+            //       ],
+            //       ts: 1641162539767
             //     }
             //
         }
