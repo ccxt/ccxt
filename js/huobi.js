@@ -4656,7 +4656,7 @@ module.exports = class huobi extends Exchange {
         const interest = [];
         for (let i = 0; i < data.length; i++) {
             const row = data[i];
-            const account = symbol === undefined ? 'CROSS' : symbol;
+            const account = (symbol === undefined) ? 'CROSS' : symbol;
             const timestamp = this.safeNumber (row, 'accrued-at');
             interest.push ({
                 'account': account, // isolated symbol, will not be returned for crossed margin

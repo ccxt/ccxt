@@ -3879,7 +3879,7 @@ module.exports = class gateio extends Exchange {
         const interest = [];
         for (let i = 0; i < response.length; i++) {
             const row = response[i];
-            const account = symbol === undefined ? 'CROSS' : symbol;
+            const account = (symbol === undefined) ? 'CROSS' : symbol;
             interest.push ({
                 'account': account, // isolated symbol, will not be returned for crossed margin
                 'currency': this.safeCurrencyCode (this.safeString (row, 'currency')),

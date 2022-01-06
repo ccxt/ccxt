@@ -4253,7 +4253,7 @@ module.exports = class okx extends Exchange {
     async fetchBorrowInterestAccrued (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'mgnMode': symbol !== undefined ? 'isolated' : 'cross',
+            'mgnMode': (symbol !== undefined) ? 'isolated' : 'cross',
         };
         let market = undefined;
         if (code !== undefined) {
