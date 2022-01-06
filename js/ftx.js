@@ -558,7 +558,8 @@ module.exports = class ftx extends Exchange {
                 type = 'future';
                 expiry = this.parse8601 (expiryDatetime);
                 let parsedId = id.split ('-');
-                if (parsedId.length > 2) {
+                const length = parsedId.length;
+                if (length > 2) {
                     // handling for MOVE contracts
                     // BTC-MOVE-2022Q1
                     // BTC-MOVE-0106
