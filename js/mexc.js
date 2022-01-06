@@ -689,7 +689,8 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
-        return this.fetchTickers (symbols, (this.extend ({ 'type': type }, params)));
+        const typeParams = { 'type': type };
+        return this.fetchTickers (symbols, (this.extend (typeParams, params)));
     }
 
     async fetchTicker (symbol, params = {}) {
