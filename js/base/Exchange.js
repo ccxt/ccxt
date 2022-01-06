@@ -2444,6 +2444,13 @@ module.exports = class Exchange {
         }
     }
 
+    async fetchPosition (symbol, params = {}) {
+        if (!this.has['fetchPositions']) {
+            throw new NotSupported (this.id + 'fetchPosition() is not supported yet');
+        }
+        return await this.fetchPositions ([symbol], params);
+    }
+
     parseBorrowInterests (response, market = undefined) {
         const interest = [];
         for (let i = 0; i < response.length; i++) {

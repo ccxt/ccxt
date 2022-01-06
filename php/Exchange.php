@@ -4151,4 +4151,11 @@ class Exchange {
             throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
         }
     }
+
+    public function fetch_position($symbol, $params = array()){
+        if (!$this->has['fetchPositions']) {
+            throw new NotSupported ($this->id + 'fetch_position() is not supported yet');
+        }
+        return $this.fetch_positions([$symbol], $params);
+    }
 }

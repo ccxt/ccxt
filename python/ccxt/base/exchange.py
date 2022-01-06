@@ -3156,3 +3156,8 @@ class Exchange(object):
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
+
+    def fetch_position(self, symbol, params={}):
+        if not self.has['fetchPositions']:
+            raise NotSupported(self.id + 'fetch_position() is not supported yet')
+        return self.fetch_positions([symbol], params)
