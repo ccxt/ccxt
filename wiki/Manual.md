@@ -741,7 +741,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
     'type':    'spot'         // spot for spot, future for expiry futures, and swap for perpetual swaps
     'linear':   true          // the contract is a linear contract (settled in quote currency)
     'inverse':  false         // the contract is an inverse contract (settled in base currency)
-    'contractSize': '1'       // the size of one contract, only used if `contract` is true
+    'contractSize': 1         // the size of one contract, only used if `contract` is true
     'spot':     true,         // whether the market is a spot market
     'margin':   true,         // whether the market is a margin market
     'future':   false,        // whether the market is a expiring future
