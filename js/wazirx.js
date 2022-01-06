@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, DDoSProtection, RateLimitExceeded, BadSymbol, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, BadRequest, DDoSProtection, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds } = require ('./base/errors');
 
 module.exports = class wazirx extends Exchange {
     describe () {
@@ -83,6 +83,8 @@ module.exports = class wazirx extends Exchange {
                     '2113': BadRequest, // {"code":2113,"message":"RecvWindow must be in range 1..60000"}
                     '2115': BadRequest, // {"code":2115,"message":"Signature not found."}
                     '2005': BadRequest, // {"code":2005,"message":"Signature is incorrect."}
+                    '2078': PermissionDenied, // {"code":2078,"message":"Permission denied."}
+                    '2002': InsufficientFunds, //  {"code":2002,"message":"Not enough USDT balance to execute this order"}
                 },
             },
             'options': {
@@ -516,6 +518,37 @@ module.exports = class wazirx extends Exchange {
         // ]
         const orders = this.parseOrders (response, market, since, limit);
         return orders;
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            'type': type,
+            'quantity': amount,
+        };
+        if ((type === 'limit') || (type === 'stop_limit')) {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for ' + type + ' orders');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.spotV1PrivatePostOrder (this.extend (request, params));
+        // {
+        //     "id": 28,
+        //     "symbol": "wrxinr",
+        //     "price": "9293.0",
+        //     "origQty": "10.0",
+        //     "executedQty": "8.2",
+        //     "status": "wait",
+        //     "type": "limit",
+        //     "side": "sell",
+        //     "createdTime": 1499827319559,
+        //     "updatedTime": 1499827319559
+        // }
+        return this.parseOrder (response, market);
     }
 
     parseOrder (order, market = undefined) {
