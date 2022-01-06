@@ -86,7 +86,7 @@ module.exports = class binance extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTickersByType': undefined,
+                'fetchTickersByType': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
@@ -2050,6 +2050,10 @@ module.exports = class binance extends Exchange {
         const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
         const response = await this[method] (query);
         return this.parseTickers (response, symbols);
+    }
+
+    async fetchTickersByType (type, symbols = undefined, params = {}) {
+        return this.fetchTickers (symbols, (this.extend ({ 'type': type }, params)));
     }
 
     parseOHLCV (ohlcv, market = undefined) {
