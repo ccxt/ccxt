@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, DDoSProtection, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, BadRequest, DDoSProtection, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 module.exports = class wazirx extends Exchange {
     describe () {
@@ -84,7 +84,8 @@ module.exports = class wazirx extends Exchange {
                     '2115': BadRequest, // {"code":2115,"message":"Signature not found."}
                     '2005': BadRequest, // {"code":2005,"message":"Signature is incorrect."}
                     '2078': PermissionDenied, // {"code":2078,"message":"Permission denied."}
-                    '2002': InsufficientFunds, //  {"code":2002,"message":"Not enough USDT balance to execute this order"}
+                    '2002': InsufficientFunds, // {"code":2002,"message":"Not enough USDT balance to execute this order"}
+                    '94001': InvalidOrder, // {"code":94001,"message":"Stop price not found."}
                 },
             },
             'options': {
@@ -534,6 +535,16 @@ module.exports = class wazirx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for ' + type + ' orders');
             }
             request['price'] = this.priceToPrecision (symbol, price);
+            if (type === 'stop_limit') {
+                const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
+                if (stopPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder requires a stop-price argument for ' + type + ' orders');
+                }
+                request['stopPrice'] = stopPrice;
+                params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+            }
+        } else {
+            throw new ExchangeError (this.id + ' allows limit and stop-limit orders only');
         }
         const response = await this.spotV1PrivatePostOrder (this.extend (request, params));
         // {
