@@ -397,6 +397,35 @@ module.exports = class wazirx extends Exchange {
         }, market);
     }
 
+    parseBalance (response) {
+        const result = { };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const id = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (id);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.spotV1PrivateGetFunds (params);
+        //
+        // [
+        //       {
+        //          "asset":"inr",
+        //          "free":"0.0",
+        //          "locked":"0.0"
+        //       },
+        // ]
+        //
+        return this.parseBalance (response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const accessibility = this.safeValue (api, 2);
         const marketType = this.safeValue (api, 0);
@@ -407,7 +436,7 @@ module.exports = class wazirx extends Exchange {
         }
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
-            let data = this.urlencode (this.extend ({ 'recvWindow': 10000, 'timestamp': this.milliseconds () }, params));
+            let data = this.urlencode (this.extend ({ 'recvWindow': this.options['recvWindow'], 'timestamp': this.milliseconds () }, params));
             const signature = this.hmac (data, this.secret, 'sha256');
             data += '&' + this.urlencode ({ 'signature': signature });
             url += '?' + data;
