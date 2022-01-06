@@ -436,8 +436,6 @@ module.exports = class wavesexchange extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
                 'contractSize': undefined,
                 'active': undefined,
                 'expiry': undefined,
