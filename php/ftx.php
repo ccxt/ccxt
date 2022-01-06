@@ -560,6 +560,20 @@ class ftx extends Exchange {
             } else if ($isFuture) {
                 $type = 'future';
                 $expiry = $this->parse8601($expiryDatetime);
+                $parsedId = explode('-', $id);
+                $length = is_array($parsedId) ? count($parsedId) : 0;
+                if ($length > 2) {
+                    // handling for MOVE contracts
+                    // BTC-MOVE-2022Q1
+                    // BTC-MOVE-0106
+                    // BTC-MOVE-WK-0121
+                    array_pop($parsedId);
+                    // remove $expiry
+                    // array( 'BTC', 'MOVE' )
+                    // array( 'BTC', 'MOVE' )
+                    // array( 'BTC', 'MOVE', 'WK' )
+                    $base = implode('-', $parsedId);
+                }
                 $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
             }
             // check if a $market is a $spot or $future $market
