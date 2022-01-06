@@ -557,9 +557,22 @@ module.exports = class ftx extends Exchange {
             } else if (isFuture) {
                 type = 'future';
                 expiry = this.parse8601 (expiryDatetime);
-                const parsedId = id.split ('-').splice (1);
-                parsedId.splice (parsedId.length - 1, 1);
-                if (parsedId.length > 0) {
+                let parsedId = id.split ('-');
+                if (parsedId.length > 2) {
+                    // handling for MOVE contracts
+                    // BTC-MOVE-2022Q1
+                    // BTC-MOVE-0106
+                    // BTC-MOVE-WK-0121
+                    parsedId = parsedId.slice (1);
+                    // remove BTC
+                    // [ 'MOVE', '2022Q1' ]
+                    // [ 'MOVE', '0106' ]
+                    // [ 'MOVE', 'WK', '0121' ]
+                    parsedId.splice (parsedId.length - 1, 1);
+                    // remove expiry
+                    // [ 'MOVE' ]
+                    // [ 'MOVE' ]
+                    // [ 'MOVE', 'WK' ]
                     base += '-' + parsedId.join ('-');
                 }
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
