@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, DDoSProtection, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, BadRequest, DDoSProtection, RateLimitExceeded, BadSymbol } = require ('./base/errors');
 
 module.exports = class wazirx extends Exchange {
     describe () {
@@ -52,7 +52,20 @@ module.exports = class wazirx extends Exchange {
                         },
                         'private': {
                             'get': {
+                                'account': 1,
+                                'allOrders': 1,
+                                'funds': 1,
                                 'historicalTrades': 1,
+                                'openOrders': 1,
+                                'order': 1,
+                            },
+                            'post': {
+                                'order': 1,
+                                'order/test': 1,
+                            },
+                            'delete': {
+                                'order': 1,
+                                'openOrders': 1,
                             },
                         },
                     },
@@ -63,6 +76,7 @@ module.exports = class wazirx extends Exchange {
                     '1999': BadRequest, // {"code":1999,"message":"symbol is missing, symbol does not have a valid value"} message varies depending on the error
                     '2098': BadRequest, // {"code":2098,"message":"Request out of receiving window."}
                     '2136': RateLimitExceeded, // {"code":2136,"message":"Too many api request"}
+                    '-1121': BadSymbol, // { "code": -1121, "message": "Invalid symbol." }
                 },
             },
             'options': {
@@ -386,6 +400,17 @@ module.exports = class wazirx extends Exchange {
         let url = this.urls['api'][marketType][version] + '/' + path;
         if (Object.keys (params).length) {
             url += '?' + this.urlencode (params);
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ().toString ();
+            body = this.json (this.extend ({ 'recvWindow': 1000, 'timestamp': nonce }, params));
+            const signature = this.hmac (body, this.secret, 'sha256');
+            url += '?' + signature;
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Api-Key': this.apiKey,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
