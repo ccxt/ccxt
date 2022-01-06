@@ -3719,4 +3719,11 @@ class Exchange {
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
     }
+
+    public function fetch_position($symbol, $params = array()){
+        if (!$this->has['fetchPositions']) {
+            throw new NotSupported ($this->id + 'fetch_position() is not supported yet');
+        }
+        return $this.fetch_positions([$symbol], $params);
+    }
 }

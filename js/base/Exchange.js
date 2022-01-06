@@ -2212,6 +2212,12 @@ module.exports = class Exchange {
         } else {
             throw new NotSupported (this.id + 'fetchMarketLeverageTiers() is not supported yet');
         }
+    }
 
+    async fetchPosition (symbol, params = {}) {
+        if (!this.has['fetchPositions']) {
+            throw new NotSupported (this.id + 'fetchPosition() is not supported yet');
+        }
+        return await this.fetchPositions ([symbol], params);
     }
 }
