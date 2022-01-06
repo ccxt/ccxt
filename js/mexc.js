@@ -60,6 +60,7 @@ module.exports = class mexc extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
