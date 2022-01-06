@@ -436,7 +436,6 @@ class Exchange(object):
 
         self.session = self.session if self.session or not self.synchronous else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
-        self.has['loadTimeDifference'] = self.has['fetchTime']
 
     def __del__(self):
         if self.session:

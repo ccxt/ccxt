@@ -347,7 +347,6 @@ module.exports = class Exchange {
             const k = hasKeys[i]
             this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
-        this.has['loadTimeDifference'] = this.has['fetchTime'];
 
         if (this.api) {
             this.defineRestApi (this.api, 'request')

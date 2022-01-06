@@ -1256,8 +1256,6 @@ class Exchange {
             'withdraw' => null,
         );
 
-        $this->has['loadTimeDifference'] = $this->has['fetchTime'];
-
         $this->precisionMode = DECIMAL_PLACES;
         $this->paddingMode = NO_PADDING;
         $this->number = 'floatval';
