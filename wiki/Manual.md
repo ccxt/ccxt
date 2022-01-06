@@ -738,7 +738,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
     'active':   true,         // boolean, market status
     'taker':    0.002,        // taker fee rate, 0.002 = 0.2%
     'maker':    0.0016,       // maker fee rate, 0.0016 = 0.16%
-    'type':    'spot'         // spot for spot, future for expiry futures, and swap for perpetual swaps
+    'type':    'spot'         // spot for spot, future for expiry futures, swap for perpetual swaps, 'option' for options
     'linear':   true          // the contract is a linear contract (settled in quote currency)
     'inverse':  false         // the contract is an inverse contract (settled in base currency)
     'contractSize': 1         // the size of one contract, only used if `contract` is true
@@ -746,7 +746,8 @@ Each currency is an associative array (aka dictionary) with the following keys:
     'margin':   true,         // whether the market is a margin market
     'future':   false,        // whether the market is a expiring future
     'swap':     false,        // whether the market is a perpetual swap
-    'contract': false,        // whether the market is a future or a perpetual swap
+    'option':   false,        // whether the market is an option contract
+    'contract': false,        // whether the market is a future, a perpetual swap, or an option
     'settleId': 'usdt'        // the currencyId of that the contract will settle in, only set if `contract` is true
     'settle':   'USDT'        // the unified currency code that the contract will settle in, only set if `contract` is true
     'expiry':  1641370465121  // the unix expiry timestamp in milliseconds, undefined for everything except market['type'] `future`
