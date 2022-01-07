@@ -322,6 +322,7 @@ module.exports = class phemex extends Exchange {
                 'defaultNetworks': {
                     'USDT': 'ETH',
                 },
+                'defaultSubType': 'linear',
             },
         });
     }
@@ -2454,18 +2455,17 @@ module.exports = class phemex extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const code = this.safeString (params, 'code');
-        const request = {};
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+        let code = this.safeString (params, 'code');
         if (code === undefined) {
-            const currencyId = this.safeString (params, 'currency');
-            if (currencyId === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a currency parameter or a code parameter');
-            }
+            code = (defaultSubType === 'linear') ? 'USD' : 'BTC';
         } else {
-            const currency = this.currency (code);
             params = this.omit (params, 'code');
-            request['currency'] = currency['id'];
         }
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
         const response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
         //
         //     {
@@ -2545,8 +2545,130 @@ module.exports = class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const positions = this.safeValue (data, 'positions', []);
-        // todo unify parsePosition/parsePositions
-        return positions;
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            result.push (this.parsePosition (position));
+        }
+        return result;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //   {
+        //     userID: '811370',
+        //     accountID: '8113700002',
+        //     symbol: 'ETHUSD',
+        //     currency: 'USD',
+        //     side: 'Buy',
+        //     positionStatus: 'Normal',
+        //     crossMargin: false,
+        //     leverageEr: '200000000',
+        //     leverage: '2.00000000',
+        //     initMarginReqEr: '50000000',
+        //     initMarginReq: '0.50000000',
+        //     maintMarginReqEr: '1000000',
+        //     maintMarginReq: '0.01000000',
+        //     riskLimitEv: '5000000000',
+        //     riskLimit: '500000.00000000',
+        //     size: '1',
+        //     value: '22.22370000',
+        //     valueEv: '222237',
+        //     avgEntryPriceEp: '44447400',
+        //     avgEntryPrice: '4444.74000000',
+        //     posCostEv: '111202',
+        //     posCost: '11.12020000',
+        //     assignedPosBalanceEv: '111202',
+        //     assignedPosBalance: '11.12020000',
+        //     bankruptCommEv: '84',
+        //     bankruptComm: '0.00840000',
+        //     bankruptPriceEp: '22224000',
+        //     bankruptPrice: '2222.40000000',
+        //     positionMarginEv: '111118',
+        //     positionMargin: '11.11180000',
+        //     liquidationPriceEp: '22669000',
+        //     liquidationPrice: '2266.90000000',
+        //     deleveragePercentileEr: '0',
+        //     deleveragePercentile: '0E-8',
+        //     buyValueToCostEr: '50112500',
+        //     buyValueToCost: '0.50112500',
+        //     sellValueToCostEr: '50187500',
+        //     sellValueToCost: '0.50187500',
+        //     markPriceEp: '31332499',
+        //     markPrice: '3133.24990000',
+        //     markValueEv: '0',
+        //     markValue: null,
+        //     unRealisedPosLossEv: '0',
+        //     unRealisedPosLoss: null,
+        //     estimatedOrdLossEv: '0',
+        //     estimatedOrdLoss: '0E-8',
+        //     usedBalanceEv: '111202',
+        //     usedBalance: '11.12020000',
+        //     takeProfitEp: '0',
+        //     takeProfit: null,
+        //     stopLossEp: '0',
+        //     stopLoss: null,
+        //     cumClosedPnlEv: '-1546',
+        //     cumFundingFeeEv: '1605',
+        //     cumTransactFeeEv: '8438',
+        //     realisedPnlEv: '0',
+        //     realisedPnl: null,
+        //     cumRealisedPnlEv: '0',
+        //     cumRealisedPnl: null,
+        //     transactTimeNs: '1641571200001885324',
+        //     takerFeeRateEr: '0',
+        //     makerFeeRateEr: '0',
+        //     term: '6',
+        //     lastTermEndTimeNs: '1607711882505745356',
+        //     lastFundingTimeNs: '1641571200000000000',
+        //     curTermRealisedPnlEv: '-1567',
+        //     execSeq: '12112761561'
+        //   }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const collateral = this.safeNumber (position, 'assignedPosBalance');
+        const notionalString = this.safeString (position, 'value');
+        const maintenanceMarginPercentageString = this.safeString (position, 'maintenaceMarginReq');
+        const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
+        const initialMarginPercentageString = this.safeString (position, 'initialMarginReq');
+        const initialMarginString = Precise.stringMul (notionalString, initialMarginPercentageString);
+        const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
+        const crossMargin = this.safeValue (position, 'crossMargin');
+        const marginType = crossMargin ? 'cross' : 'isolated';
+        const markPriceString = this.safeString (position, 'markPrice');
+        const contracts = this.safeString (position, 'size');
+        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSizeString = this.numberToString (contractSize);
+        const leverage = this.safeNumber (position, 'leverage');
+        const entryPriceString = this.safeString (position, 'avgEntryPrice');
+        const rawSide = this.safeString (position, 'side');
+        const side = (rawSide === 'Buy') ? 'long' : 'short';
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': contracts,
+            'contractSize': this.parseNumber (market['contractSize']),
+            'unrealizedPnl': undefined,
+            'leverage': leverage,
+            'liquidationPrice': liquidationPrice,
+            'collateral': collateral,
+            'notional': this.parseNumber (notionalString),
+            'markPrice': this.parseNumber (markPriceString),
+            'entryPrice': this.parseNumber (entryPriceString),
+            'timestamp': undefined,
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentageString),
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
+            'marginRatio': undefined,
+            'datetime': undefined,
+            'marginType': marginType,
+            'side': side,
+            'hedged': undefined,
+            'percentage': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
