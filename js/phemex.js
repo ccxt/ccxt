@@ -419,7 +419,7 @@ module.exports = class phemex extends Exchange {
         const taker = this.parseNumber (this.fromEn (takerFeeRateEr, ratioScale));
         const limits = {
             'amount': {
-                'min': precision['amount'],
+                'min': undefined,
                 'max': undefined,
             },
             'price': {
@@ -433,7 +433,18 @@ module.exports = class phemex extends Exchange {
         };
         const status = this.safeString (market, 'status');
         const active = status === 'Listed';
-        const contractSize = this.safeNumber (market, 'contractSize');
+        const contractSizeString = this.safeString (market, 'contractSize', ' ');
+        let contractSize = undefined;
+        if (contractSizeString.indexOf (' ')) {
+            // "1 USD"
+            // "0.005 ETH"
+            const parts = contractSizeString.split (' ');
+            contractSize = this.parseNumber (parts[0]);
+        } else {
+            // "1.0"
+            // (╯°□°)╯︵ ┻━┻
+            contractSize = this.parseNumber (contractSizeString);
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -2550,7 +2561,7 @@ module.exports = class phemex extends Exchange {
             const position = positions[i];
             result.push (this.parsePosition (position));
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
@@ -2628,11 +2639,11 @@ module.exports = class phemex extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const collateral = this.safeNumber (position, 'assignedPosBalance');
+        const collateral = this.safeString (position, 'assignedPosBalance');
         const notionalString = this.safeString (position, 'value');
-        const maintenanceMarginPercentageString = this.safeString (position, 'maintenaceMarginReq');
+        const maintenanceMarginPercentageString = this.safeString (position, 'maintMarginReq');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
-        const initialMarginPercentageString = this.safeString (position, 'initialMarginReq');
+        const initialMarginPercentageString = this.safeString (position, 'initMarginReq');
         const initialMarginString = Precise.stringMul (notionalString, initialMarginPercentageString);
         const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
         const crossMargin = this.safeValue (position, 'crossMargin');
@@ -2645,29 +2656,48 @@ module.exports = class phemex extends Exchange {
         const entryPriceString = this.safeString (position, 'avgEntryPrice');
         const rawSide = this.safeString (position, 'side');
         const side = (rawSide === 'Buy') ? 'long' : 'short';
+        let priceDiff = undefined;
+        const currency = this.safeString (position, 'currency');
+        if (currency === 'USD') {
+            if (side === 'long') {
+                priceDiff = Precise.stringSub (markPriceString, entryPriceString);
+            } else {
+                priceDiff = Precise.stringSub (entryPriceString, markPriceString);
+            }
+        } else {
+            // inverse
+            if (side === 'long') {
+                priceDiff = Precise.stringSub (Precise.stringDiv ('1', entryPriceString), Precise.stringDiv ('1', markPriceString));
+            } else {
+                priceDiff = Precise.stringSub (Precise.stringDiv ('1', markPriceString), Precise.stringDiv ('1', entryPriceString));
+            }
+        }
+        const unrealizedPnl = Precise.stringMul (Precise.stringMul (priceDiff, contracts), contractSizeString);
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMarginString), '100');
+        const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
         return {
             'info': position,
             'symbol': symbol,
-            'contracts': contracts,
-            'contractSize': this.parseNumber (market['contractSize']),
-            'unrealizedPnl': undefined,
+            'contracts': this.parseNumber (contracts),
+            'contractSize': contractSize,
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
             'leverage': leverage,
             'liquidationPrice': liquidationPrice,
-            'collateral': collateral,
+            'collateral': this.parseNumber (collateral),
             'notional': this.parseNumber (notionalString),
-            'markPrice': this.parseNumber (markPriceString),
+            'markPrice': this.parseNumber (markPriceString), // markPrice lags a bit ¯\_(ツ)_/¯
             'entryPrice': this.parseNumber (entryPriceString),
             'timestamp': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentageString),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
-            'marginRatio': undefined,
+            'marginRatio': this.parseNumber (marginRatio),
             'datetime': undefined,
             'marginType': marginType,
             'side': side,
-            'hedged': undefined,
-            'percentage': undefined,
+            'hedged': false,
+            'percentage': this.parseNumber (percentage),
         };
     }
 
