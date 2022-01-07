@@ -1505,7 +1505,7 @@ class binance(Exchange):
             contractSize = None
             fees = self.fees
             if future or delivery:
-                contractSize = self.safe_string(market, 'contractSize', '1')
+                contractSize = self.safe_number(market, 'contractSize', self.parse_number('1'))
                 fees = self.fees[type]
             maker = fees['trading']['maker']
             taker = fees['trading']['taker']
@@ -4216,6 +4216,8 @@ class binance(Exchange):
         percentage = None
         liquidationPriceStringRaw = None
         liquidationPrice = None
+        contractSize = self.safe_value(market, 'contractSize')
+        contractSizeString = self.number_to_string(contractSize)
         if notionalFloat == 0.0:
             entryPrice = None
         else:
@@ -4252,7 +4254,7 @@ class binance(Exchange):
                 else:
                     onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
                     entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
-                size = Precise.string_mul(contractsStringAbs, market['contractSize'])
+                size = Precise.string_mul(contractsStringAbs, contractSizeString)
                 leftSide = Precise.string_mul(size, onePlusMaintenanceMarginPercentageString)
                 rightSide = Precise.string_sub(Precise.string_mul(Precise.string_div('1', entryPriceSignString), size), walletBalance)
                 liquidationPriceStringRaw = Precise.string_div(leftSide, rightSide)
@@ -4285,7 +4287,7 @@ class binance(Exchange):
             'leverage': self.parse_number(leverageString),
             'unrealizedPnl': unrealizedPnl,
             'contracts': contracts,
-            'contractSize': self.parse_number(market['contractSize']),
+            'contractSize': contractSize,
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': None,
@@ -4368,6 +4370,8 @@ class binance(Exchange):
             side = 'short'
         entryPriceString = self.safe_string(position, 'entryPrice')
         entryPrice = self.parse_number(entryPriceString)
+        contractSize = self.safe_value(market, 'contractSize')
+        contractSizeString = self.number_to_string(contractSize)
         # as oppose to notionalValue
         linear = ('notional' in position)
         if marginType == 'cross':
@@ -4393,7 +4397,7 @@ class binance(Exchange):
                 else:
                     onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
                     entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
-                leftSide = Precise.string_mul(contractsAbs, market['contractSize'])
+                leftSide = Precise.string_mul(contractsAbs, contractSizeString)
                 rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
                 collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', market['precision']['base'])
         else:
@@ -4425,7 +4429,7 @@ class binance(Exchange):
             'info': position,
             'symbol': symbol,
             'contracts': contracts,
-            'contractSize': self.parse_number(market['contractSize']),
+            'contractSize': contractSize,
             'unrealizedPnl': unrealizedPnl,
             'leverage': self.parse_number(leverageString),
             'liquidationPrice': liquidationPrice,

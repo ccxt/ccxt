@@ -801,7 +801,7 @@ class okex extends Exchange {
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
         $contractSize = null;
         if ($contract) {
-            $contractSize = $this->safe_string($market, 'ctVal');
+            $contractSize = $this->safe_number($market, 'ctVal');
         }
         $leverage = $this->safe_number($market, 'lever', 1);
         return array_merge($fees, array(
@@ -3176,7 +3176,7 @@ class okex extends Exchange {
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'percentage' => $percentage,
             'contracts' => $contracts,
-            'contractSize' => $this->parse_number($market['contractSize']),
+            'contractSize' => $this->safe_value($market, 'contractSize'),
             'markPrice' => $this->parse_number($markPriceString),
             'side' => $side,
             'hedged' => $hedged,

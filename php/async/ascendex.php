@@ -507,7 +507,7 @@ class ascendex extends Exchange {
             $type = $swap ? 'swap' : 'spot';
             $margin = $this->safe_value($market, 'marginTradable', false);
             $linear = $swap ? true : null;
-            $contractSize = $swap ? '1' : null;
+            $contractSize = $swap ? $this->parse_number('1') : null;
             $minQty = $this->safe_number($market, 'minQty');
             $maxQty = $this->safe_number($market, 'maxQty');
             $minPrice = $this->safe_number($market, 'tickSize');

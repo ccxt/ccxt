@@ -1234,7 +1234,7 @@ class huobi(Exchange):
                 if future:
                     expiry = self.safe_integer(market, 'delivery_time')
                     symbol += '-' + self.yymmdd(expiry)
-            contractSize = self.safe_string(market, 'contract_size')
+            contractSize = self.safe_number(market, 'contract_size')
             pricePrecision = None
             amountPrecision = None
             costPrecision = None
@@ -4506,7 +4506,8 @@ class huobi(Exchange):
         market = self.safe_market(self.safe_string(position, 'contract_code'))
         symbol = market['symbol']
         contracts = self.safe_string(position, 'volume')
-        contractSize = self.safe_string(market, 'contractSize')
+        contractSize = self.safe_value(market, 'contractSize')
+        contractSizeString = self.number_to_string(contractSize)
         entryPrice = self.safe_number(position, 'cost_hold')
         initialMargin = self.safe_string(position, 'position_margin')
         rawSide = self.safe_string(position, 'direction')
@@ -4516,7 +4517,7 @@ class huobi(Exchange):
         leverage = self.safe_string(position, 'lever_rate')
         percentage = Precise.string_mul(self.safe_string(position, 'profit_rate'), '100')
         lastPrice = self.safe_string(position, 'last_price')
-        faceValue = Precise.string_mul(contracts, contractSize)
+        faceValue = Precise.string_mul(contracts, contractSizeString)
         notional = None
         if market['linear']:
             notional = Precise.string_mul(faceValue, lastPrice)
@@ -4534,7 +4535,7 @@ class huobi(Exchange):
             'info': position,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
-            'contractSize': self.parse_number(contractSize),
+            'contractSize': contractSize,
             'entryPrice': entryPrice,
             'collateral': self.parse_number(collateral),
             'side': side,

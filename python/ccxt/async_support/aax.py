@@ -491,7 +491,7 @@ class aax(Exchange):
             if swap:
                 symbol = symbol + ':' + settle
                 type = 'swap'
-                contractSize = self.safe_string(market, 'multiplier')
+                contractSize = self.safe_number(market, 'multiplier')
             result.append({
                 'id': id,
                 'symbol': symbol,

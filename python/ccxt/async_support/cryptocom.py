@@ -406,7 +406,7 @@ class cryptocom(Exchange):
             if future:
                 type = 'future'
                 symbol = symbol + '-' + self.yymmdd(expiry)
-            contractSize = self.safe_string(market, 'contract_size')
+            contractSize = self.safe_number(market, 'contract_size')
             marketId = self.safe_string(market, 'symbol')
             maxLeverage = self.safe_number(market, 'max_leverage')
             active = self.safe_value(market, 'tradable')

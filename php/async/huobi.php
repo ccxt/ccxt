@@ -1244,7 +1244,7 @@ class huobi extends Exchange {
                     $symbol .= '-' . $this->yymmdd($expiry);
                 }
             }
-            $contractSize = $this->safe_string($market, 'contract_size');
+            $contractSize = $this->safe_number($market, 'contract_size');
             $pricePrecision = null;
             $amountPrecision = null;
             $costPrecision = null;
@@ -4783,7 +4783,8 @@ class huobi extends Exchange {
         $market = $this->safe_market($this->safe_string($position, 'contract_code'));
         $symbol = $market['symbol'];
         $contracts = $this->safe_string($position, 'volume');
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSizeString = $this->number_to_string($contractSize);
         $entryPrice = $this->safe_number($position, 'cost_hold');
         $initialMargin = $this->safe_string($position, 'position_margin');
         $rawSide = $this->safe_string($position, 'direction');
@@ -4793,7 +4794,7 @@ class huobi extends Exchange {
         $leverage = $this->safe_string($position, 'lever_rate');
         $percentage = Precise::string_mul($this->safe_string($position, 'profit_rate'), '100');
         $lastPrice = $this->safe_string($position, 'last_price');
-        $faceValue = Precise::string_mul($contracts, $contractSize);
+        $faceValue = Precise::string_mul($contracts, $contractSizeString);
         $notional = null;
         if ($market['linear']) {
             $notional = Precise::string_mul($faceValue, $lastPrice);
@@ -4812,7 +4813,7 @@ class huobi extends Exchange {
             'info' => $position,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
-            'contractSize' => $this->parse_number($contractSize),
+            'contractSize' => $contractSize,
             'entryPrice' => $entryPrice,
             'collateral' => $this->parse_number($collateral),
             'side' => $side,

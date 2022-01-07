@@ -404,7 +404,7 @@ class cryptocom extends Exchange {
                 $type = 'future';
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
-            $contractSize = $this->safe_string($market, 'contract_size');
+            $contractSize = $this->safe_number($market, 'contract_size');
             $marketId = $this->safe_string($market, 'symbol');
             $maxLeverage = $this->safe_number($market, 'max_leverage');
             $active = $this->safe_value($market, 'tradable');
