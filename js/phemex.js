@@ -442,7 +442,6 @@ module.exports = class phemex extends Exchange {
             contractSize = this.parseNumber (parts[0]);
         } else {
             // "1.0"
-            // (╯°□°)╯︵ ┻━┻
             contractSize = this.parseNumber (contractSizeString);
         }
         return {
