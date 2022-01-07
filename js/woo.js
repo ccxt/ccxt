@@ -46,7 +46,7 @@ module.exports = class woo extends Exchange {
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': undefined,
                 'fetchOrder': true,
-                'fetchOrderBook': undefined,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': undefined,
                 'fetchOpenOrder': undefined,
@@ -103,7 +103,6 @@ module.exports = class woo extends Exchange {
                             'market_trades': 1,
                             'token': 1, // TO_DO
                             'token_network': 1, // TO_DO
-                            'orderbook/:symbol': 1,
                         },
                     },
                     'private': {
@@ -112,6 +111,7 @@ module.exports = class woo extends Exchange {
                             'order/{oid}': 1, // shared with "GET: client/order/:client_order_id"
                             'client/order/{client_order_id}': 1, // shared with "GET: order/:oid"
                             'orders': 1,
+                            'orderbook/{symbol}': 1,
                         },
                         'post': {
                             'order': 5, // Limit: 2 requests per 1 second per symbol |TODO
@@ -869,6 +869,38 @@ module.exports = class woo extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 20;
+        }
+        const request = {
+            'symbol': market['id'],
+            'level': limit, // required
+        };
+        //
+        const response = await this.v1PrivateGetOrderbookSymbol (this.extend (request, params));
+        //
+        // {
+        //   success: true,
+        //   timestamp: '1641562961192',
+        //   asks: [
+        //     { price: '0.921', quantity: '76.01' },
+        //     { price: '0.933', quantity: '477.10' },
+        //     ...
+        //   ],
+        //   bids: [
+        //     { price: '0.940', quantity: '13502.47' },
+        //     { price: '0.932', quantity: '43.91' },
+        //     ...
+        //   ]
+        // }
+        //
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     nonce () {
