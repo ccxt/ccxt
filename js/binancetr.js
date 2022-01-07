@@ -109,7 +109,7 @@ module.exports = class binancetr extends Exchange {
         //      {
         //          "code":0,
         //          "msg":"Success",
-        //         "data":null,
+        //          "data":null,
         //          "timestamp":1641318638443
         //      }
         //
@@ -195,8 +195,18 @@ module.exports = class binancetr extends Exchange {
                     marginPermission = true;
                 }
             }
-            const marginEnable = (this.safeInteger (market, 'marginTradingEnable')) === 1 ? true : false;
-            const spotEnable = (this.safeInteger (market, 'spotTradingEnable')) === 1 ? true : false;
+            let marginEnable = undefined;
+            let spotEnable = undefined;
+            if (this.safeInteger (market, 'marginTradingEnable') === 1) {
+                marginEnable = true;
+            } else {
+                marginEnable = false;
+            }
+            if (this.safeInteger (market, 'spotTradingEnable') === 1) {
+                spotEnable = true;
+            } else {
+                spotEnable = false;
+            }
             const symbol = base + '/' + quote;
             const precision = {
                 'price': this.safeInteger (market, 'quotePrecision'),
