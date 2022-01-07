@@ -290,7 +290,8 @@ module.exports = class binancetr extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            // 'symbol': market['id'],
+            'symbol': market['base'] + market['quote'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default: 500
@@ -318,7 +319,7 @@ module.exports = class binancetr extends Exchange {
         }
         if (api === 'public' && path === 'trades') {
             url = this.urls['api']['public3'] + path;
-            params['symbol'] = params['symbol'].replace ('_', '');
+            // params['symbol'] = params['symbol'].replace ('_', '');
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
