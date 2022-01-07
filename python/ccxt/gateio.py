@@ -1645,7 +1645,9 @@ class gateio(Exchange):
         if since is not None:
             duration = self.parse_timeframe(timeframe)
             request['from'] = int(since / 1000)
-            request['to'] = self.sum(request['from'], limit * duration - 1)
+            toTimestamp = self.sum(request['from'], limit * duration - 1)
+            currentTimestamp = self.seconds()
+            request['to'] = min(toTimestamp, currentTimestamp)
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
