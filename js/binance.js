@@ -1503,7 +1503,7 @@ module.exports = class binance extends Exchange {
             let contractSize = undefined;
             let fees = this.fees;
             if (future || delivery) {
-                contractSize = this.safeString (market, 'contractSize', '1');
+                contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
                 fees = this.fees[type];
             }
             const maker = fees['trading']['maker'];
