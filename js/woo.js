@@ -47,7 +47,7 @@ module.exports = class woo extends Exchange {
                 'fetchOHLCV': undefined,
                 'fetchOrder': true,
                 'fetchOrderBook': undefined,
-                'fetchOrders': undefined,
+                'fetchOrders': true,
                 'fetchOrderTrades': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
@@ -99,18 +99,19 @@ module.exports = class woo extends Exchange {
                     'public': {
                         'get': {
                             'info': 1,
-                            'info/:symbol': 1, // TODO
+                            'info/:symbol': 1, // TO_DO
                             'market_trades': 1,
-                            'token': 1, // TODO
-                            'token_network': 1, // TODO
+                            'token': 1, // TO_DO
+                            'token_network': 1, // TO_DO
                             'orderbook/:symbol': 1,
                         },
                     },
                     'private': {
                         'get': {
-                            'client/token': 1, // TODO
-                            'order/{oid}': 1, // shared with "GET: client/order/:client_order_id" |TODO
-                            'client/order/:client_order_id': 1, // shared with "GET: order/:oid" |TODO
+                            'client/token': 1, // TO_DO
+                            'order/{oid}': 1, // shared with "GET: client/order/:client_order_id"
+                            'client/order/{client_order_id}': 1, // shared with "GET: order/:oid"
+                            'orders': 1,
                         },
                         'post': {
                             'order': 5, // Limit: 2 requests per 1 second per symbol |TODO
@@ -676,19 +677,26 @@ module.exports = class woo extends Exchange {
             'spot': 'v1PrivateDeleteOrders',
         });
         const response = await this[method] (this.extend (request, query));
-        //
-        //
         return response;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        let chosenSpotMethod = undefined;
+        if (clientOrderId) {
+            chosenSpotMethod = 'v1PrivateGetClientOrderClientOrderId';
+            request['client_order_id'] = clientOrderId;
+        } else {
+            chosenSpotMethod = 'v1PrivateGetOrderOid';
+            request['oid'] = id;
+        }
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateGetOrderOid',
+            'spot': chosenSpotMethod,
         });
-        const request = { 'oid': id };
         const response = await this[method] (this.extend (request, query));
         //
         // {
@@ -728,18 +736,35 @@ module.exports = class woo extends Exchange {
         return this.parseOrder (response);
     }
 
+    // TODO : is this https://docs.woo.org/#get-orders correclty implemented by me? Maybe I missed some things (like end-time handing?)
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetOrders',
+        });
+        const response = await this[method] (this.extend (request, query));
+        const data = this.safeValue (response, 'rows');
+        return this.parseOrders (data, market, since, limit, params);
+    }
+
     parseOrder (order, market = undefined) {
         //
-        // ### createOrder ###
-        // see example object in "createOrder"
-        //
-        // ### cancelOrder ###
-        // { success: true, status: 'CANCEL_SENT' }
-        //
-        // ### fetchOrder ###
-        // see example object in "fetchOrder"
-        //
-        const isFromFetchOrder = ('order_tag' in order);
+        // Possible input functions:
+        // * createOrder
+        // * cancelOrder
+        // * fetchOrder
+        // * fetchOrders
+        // const isFromFetchOrder = ('order_tag' in order); TO_DO
         const timestamp = this.safeTimestamp2 (order, 'timestamp', 'created_time');
         const orderId = this.safeInteger (order, 'order_id');
         const clientOrderId = this.safeTimestamp (order, 'client_order_id'); // Somehow, this always returns 0 for limit order
