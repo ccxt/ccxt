@@ -6,7 +6,7 @@ const ccxtpro = require ('ccxt.pro')
         secret: 'YOUR_API_SECRET',
         password: 'YOUR_API_PASSWORD',
         enableRateLimit: true,
-        options: { defaultType: 'futures' },
+        options: { defaultType: 'future' },
     })
     , symbol = 'BTC-USD-201225'
     , amount = 1 // how may contracts

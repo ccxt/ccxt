@@ -27,7 +27,7 @@ async function main () {
     // https://www.okex.com/docs-v5/en/#rest-api-funding-funds-transfer
     //
     //     'spot' == '1'
-    //     'futures' == '3',
+    //     'future' == '3',
     //     'margin' == '5',
     //     'swap' == '9',
     //     'option' == '12',

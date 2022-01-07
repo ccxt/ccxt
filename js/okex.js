@@ -262,7 +262,11 @@ module.exports = class okex extends Exchange {
                     'taker': this.parseNumber ('0.0015'),
                     'maker': this.parseNumber ('0.0010'),
                 },
-                'futures': {
+                'future': {
+                    'taker': this.parseNumber ('0.0005'),
+                    'maker': this.parseNumber ('0.0002'),
+                },
+                'futures': { // * Deprecated, use future
                     'taker': this.parseNumber ('0.0005'),
                     'maker': this.parseNumber ('0.0002'),
                 },
@@ -575,8 +579,8 @@ module.exports = class okex extends Exchange {
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder'
                 'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
-                'defaultType': 'spot', // 'funding', 'spot', 'margin', 'futures', 'swap', 'option'
+                'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
+                'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
@@ -747,10 +751,10 @@ module.exports = class okex extends Exchange {
         const id = this.safeString (market, 'instId');
         const type = this.safeStringLower (market, 'instType');
         const spot = (type === 'spot');
-        const futures = (type === 'futures');
+        const future = (type === 'futures');
         const swap = (type === 'swap');
         const option = (type === 'option');
-        const contract = swap || futures || option;
+        const contract = swap || future || option;
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy');
         const settleCurrency = this.safeString (market, 'settleCcy');
@@ -810,10 +814,11 @@ module.exports = class okex extends Exchange {
             'info': market,
             'type': type,
             'spot': spot,
-            'futures': futures,
             'swap': swap,
-            'contract': contract,
+            'future': future,
+            'futures': future, // * Deprecated, use future
             'option': option,
+            'contract': contract,
             'linear': linear,
             'inverse': inverse,
             'active': active,
@@ -1513,7 +1518,7 @@ module.exports = class okex extends Exchange {
         };
         if (market['spot']) {
             request['instId'] = market['id'];
-        } else if (market['swap'] || market['futures'] || market['option']) {
+        } else if (market['contract']) {
             request['uly'] = market['baseId'] + '-' + market['quoteId'];
         } else {
             throw new NotSupported (this.id + ' fetchTradingFee supports spot, swap, futures or option markets only');
@@ -2122,7 +2127,7 @@ module.exports = class okex extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (market['futures'] || market['swap']) {
+            if (market['future'] || market['swap']) {
                 type = market['type'];
             }
             request['instId'] = market['id'];

@@ -316,7 +316,11 @@ module.exports = class okex3 extends Exchange {
                     'taker': 0.0015,
                     'maker': 0.0010,
                 },
-                'futures': {
+                'future': {
+                    'taker': 0.0005,
+                    'maker': 0.0002,
+                },
+                'futures': { // * Deprecated, use future
                     'taker': 0.0005,
                     'maker': 0.0002,
                 },
@@ -678,8 +682,8 @@ module.exports = class okex3 extends Exchange {
                     'type': 'Candles', // Candles or HistoryCandles
                 },
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ],
-                'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ],
+                'defaultType': 'spot', // 'account', 'spot', 'margin', 'future', 'swap', 'option'
                 'auth': {
                     'time': 'public',
                     'currencies': 'private',
@@ -828,7 +832,7 @@ module.exports = class okex3 extends Exchange {
                 if (futuresAlias !== undefined) {
                     swap = false;
                     future = true;
-                    marketType = 'futures';
+                    marketType = 'future';
                     baseId = this.safeString (market, 'underlying_index');
                 }
             }
@@ -860,8 +864,9 @@ module.exports = class okex3 extends Exchange {
             'info': market,
             'type': marketType,
             'spot': spot,
-            'futures': future,
             'swap': swap,
+            'future': future,
+            'futures': future,  // Deprecated, use future
             'option': option,
             'active': active,
             'precision': precision,
@@ -914,7 +919,7 @@ module.exports = class okex3 extends Exchange {
                 result = this.arrayConcat (result, response);
             }
             return this.parseMarkets (result);
-        } else if ((type === 'spot') || (type === 'futures') || (type === 'swap')) {
+        } else if ((type === 'spot') || (type === 'future') || (type === 'futures') || (type === 'swap')) { // * (type === 'futures') deprecated, use (type === 'future')
             const method = type + 'GetInstruments';
             const response = await this[method] (params);
             //
@@ -1772,7 +1777,7 @@ module.exports = class okex3 extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance() requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
+            throw new ArgumentsRequired (this.id + " fetchBalance() requires a type parameter (one of 'account', 'spot', 'margin', 'future', 'swap')");
         }
         await this.loadMarkets ();
         const suffix = (type === 'account') ? 'Wallet' : 'Accounts';
@@ -1912,12 +1917,12 @@ module.exports = class okex3 extends Exchange {
             return this.parseAccountBalance (response);
         } else if (type === 'margin') {
             return this.parseMarginBalance (response);
-        } else if (type === 'futures') {
+        } else if ((type === 'future') || (type === 'futures')) { // * (type === 'futures') deprecated, use (type === 'future')
             return this.parseFuturesBalance (response);
         } else if (type === 'swap') {
             return this.parseSwapBalance (response);
         }
-        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'future', 'swap')");
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1934,8 +1939,8 @@ module.exports = class okex3 extends Exchange {
             params = this.omit (params, [ 'client_oid', 'clientOrderId' ]);
         }
         let method = undefined;
-        if (market['futures'] || market['swap']) {
-            const size = market['futures'] ? this.numberToString (amount) : this.amountToPrecision (symbol, amount);
+        if (market['future'] || market['swap']) {
+            const size = market['future'] ? this.numberToString (amount) : this.amountToPrecision (symbol, amount);
             request = this.extend (request, {
                 'type': type, // 1:open long 2:open short 3:close long 4:close short for futures
                 'size': size,
@@ -1949,7 +1954,7 @@ module.exports = class okex3 extends Exchange {
             } else {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
-            if (market['futures']) {
+            if (market['future']) {
                 request['leverage'] = '10'; // or '20'
             }
             method = market['type'] + 'PostOrder';
@@ -2011,20 +2016,20 @@ module.exports = class okex3 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = undefined;
-        if (market['futures'] || market['swap']) {
+        if (market['future'] || market['swap']) {
             type = market['type'];
         } else {
             const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', market['type']);
             type = this.safeString (params, 'type', defaultType);
         }
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelOrder() requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired (this.id + " cancelOrder() requires a type parameter (one of 'spot', 'margin', 'future', 'swap').");
         }
         let method = type + 'PostCancelOrder';
         const request = {
             'instrument_id': market['id'],
         };
-        if (market['futures'] || market['swap']) {
+        if (market['future'] || market['swap']) {
             method += 'InstrumentId';
         } else {
             method += 's';
@@ -2249,9 +2254,9 @@ module.exports = class okex3 extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrder() requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired (this.id + " fetchOrder() requires a type parameter (one of 'spot', 'margin', 'future', 'swap').");
         }
-        const instrumentId = (market['futures'] || market['swap']) ? 'InstrumentId' : '';
+        const instrumentId = (market['future'] || market['swap']) ? 'InstrumentId' : '';
         let method = type + 'GetOrders' + instrumentId;
         const request = {
             'instrument_id': market['id'],
@@ -2322,14 +2327,14 @@ module.exports = class okex3 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = undefined;
-        if (market['futures'] || market['swap']) {
+        if (market['future'] || market['swap']) {
             type = market['type'];
         } else {
             const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
             type = this.safeString (params, 'type', defaultType);
         }
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrdersByState() requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired (this.id + " fetchOrdersByState() requires a type parameter (one of 'spot', 'margin', 'future', 'swap').");
         }
         const request = {
             'instrument_id': market['id'],
@@ -2345,7 +2350,7 @@ module.exports = class okex3 extends Exchange {
             'state': state,
         };
         let method = type + 'GetOrders';
-        if (market['futures'] || market['swap']) {
+        if (market['future'] || market['swap']) {
             method += 'InstrumentId';
         }
         const query = this.omit (params, 'type');
@@ -2411,7 +2416,7 @@ module.exports = class okex3 extends Exchange {
         //     }
         //
         let orders = undefined;
-        if (market['swap'] || market['futures']) {
+        if (market['swap'] || market['future']) {
             orders = this.safeValue (response, 'order_info', []);
         } else {
             orders = response;
@@ -2993,7 +2998,7 @@ module.exports = class okex3 extends Exchange {
             // 'limit': limit, // optional, number of results per request, default = maximum = 100
         };
         const type = market['type'];
-        if ((type === 'futures') || (type === 'swap')) {
+        if ((type === 'swap') || (type === 'future') || (type === 'futures')) { // * (type === 'futures') deprecated, use (type === 'future')
             method = type + 'GetInstrumentIdPosition';
         } else if (type === 'option') {
             const underlying = this.safeString (params, 'underlying');
@@ -3188,7 +3193,7 @@ module.exports = class okex3 extends Exchange {
         let method = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
-        if ((type === 'futures') || (type === 'swap')) {
+        if ((type === 'swap') || (type === 'future') || (type === 'futures')) { // * (type === 'futures') deprecated, use (type === 'future')
             method = type + 'GetPosition';
         } else if (type === 'option') {
             const underlying = this.safeString (params, 'underlying');
@@ -3274,7 +3279,7 @@ module.exports = class okex3 extends Exchange {
             argument = 'Currency';
             currency = this.currency (code);
             request['currency'] = currency['id'];
-        } else if (type === 'futures') {
+        } else if ((type === 'future') || (type === 'futures')) { // * (type === 'futures') deprecated, use (type === 'future')
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + " fetchLedger() requires an underlying symbol for '" + type + "' markets");
             }
@@ -3351,7 +3356,7 @@ module.exports = class okex3 extends Exchange {
             //     request['type'] = 'number';
             //
         } else {
-            throw new NotSupported (this.id + " fetchLedger does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+            throw new NotSupported (this.id + " fetchLedger does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'future', 'swap')");
         }
         const method = type + 'Get' + suffix + argument + 'Ledger';
         const response = await this[method] (this.extend (request, query));
