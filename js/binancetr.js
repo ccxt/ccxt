@@ -291,7 +291,7 @@ module.exports = class binancetr extends Exchange {
         const market = this.market (symbol);
         const request = {
             // 'symbol': market['id'],
-            'symbol': market['base'] + market['quote'],
+            'symbol': market['base'] + market['quote'], // Symbol needs to be without underscore for the endpoint
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default: 500
@@ -319,7 +319,6 @@ module.exports = class binancetr extends Exchange {
         }
         if (api === 'public' && path === 'trades') {
             url = this.urls['api']['public3'] + path;
-            // params['symbol'] = params['symbol'].replace ('_', '');
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
