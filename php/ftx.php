@@ -1157,11 +1157,10 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'future');
-            $symbol = $this->safe_symbol($marketId);
             $timestamp = $this->parse8601($this->safe_string($result[$i], 'time'));
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $symbol,
+                'symbol' => $this->safe_symbol($marketId),
                 'fundingRate' => $this->safe_number($entry, 'rate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
