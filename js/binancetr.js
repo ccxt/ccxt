@@ -239,7 +239,7 @@ module.exports = class binancetr extends Exchange {
         const request = {
             'symbol': this.marketId (symbol),
         };
-        if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500)) {
+        if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && limit !== undefined) {
             throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be undefined, 5, 10, 20, 50, 100 or 500, default is 100');
         } else if (limit !== undefined) {
             request['limit'] = limit;
