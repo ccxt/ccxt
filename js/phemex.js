@@ -2639,15 +2639,13 @@ module.exports = class phemex extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const collateral = this.safeString (position, 'assignedPosBalance');
+        const collateral = this.safeString (position, 'positionMargin');
         const notionalString = this.safeString (position, 'value');
         const maintenanceMarginPercentageString = this.safeString (position, 'maintMarginReq');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
         const initialMarginPercentageString = this.safeString (position, 'initMarginReq');
         const initialMarginString = Precise.stringMul (notionalString, initialMarginPercentageString);
         const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
-        const crossMargin = this.safeValue (position, 'crossMargin');
-        const marginType = crossMargin ? 'cross' : 'isolated';
         const markPriceString = this.safeString (position, 'markPrice');
         const contracts = this.safeString (position, 'size');
         const contractSize = this.safeValue (market, 'contractSize');
@@ -2694,7 +2692,7 @@ module.exports = class phemex extends Exchange {
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
             'marginRatio': this.parseNumber (marginRatio),
             'datetime': undefined,
-            'marginType': marginType,
+            'marginType': undefined,
             'side': side,
             'hedged': false,
             'percentage': this.parseNumber (percentage),
