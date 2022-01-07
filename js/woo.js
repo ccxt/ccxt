@@ -39,7 +39,7 @@ module.exports = class woo extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchOrderTrades': undefined,
+                'fetchOrderTrades': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchPosition': undefined,
@@ -335,15 +335,16 @@ module.exports = class woo extends Exchange {
         //     executed_timestamp: "1641241162.329"
         // },
         //
-        // ### fetchOrder->Transactions[]
+        // ### fetchOrderTrades, fetchOrder->Transactions[]
         //
         // {
-        //     id: '99111647',
+        //     id: '99119876',
         //     symbol: 'SPOT_WOO_USDT',
         //     fee: '0.0024',
         //     side: 'BUY',
-        //     executed_timestamp: '1641482113.084',
-        //     order_id: '87541111',
+        //     executed_timestamp: '1641481113.084',
+        //     order_id: '87001234',
+        //     order_tag: 'default', <-- this param only in "fetchOrderTrades"
         //     executed_price: '1',
         //     executed_quantity: '12',
         //     fee_asset: 'WOO',
@@ -916,7 +917,7 @@ module.exports = class woo extends Exchange {
             }
             request['limit'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetKline',
         });
@@ -965,6 +966,42 @@ module.exports = class woo extends Exchange {
             this.safeNumber (ohlcv, 'close'),
             this.safeNumber (ohlcv, 'volume'),
         ];
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'oid': id,
+        };
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetOrderOidTrades',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // {
+        //     success: true,
+        //     rows: [
+        //       {
+        //         id: '99111647',
+        //         symbol: 'SPOT_WOO_USDT',
+        //         fee: '0.0024',
+        //         side: 'BUY',
+        //         executed_timestamp: '1641482113.084',
+        //         order_id: '87541111',
+        //         order_tag: 'default',
+        //         executed_price: '1',
+        //         executed_quantity: '12',
+        //         fee_asset: 'WOO',
+        //         is_maker: '1'
+        //       }
+        //     ]
+        // }
+        const trades = this.safeValue (response, 'rows', []);
+        return this.parseTrades (trades, market, since, limit, params);
     }
 
     nonce () {
