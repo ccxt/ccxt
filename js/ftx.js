@@ -15,6 +15,11 @@ module.exports = class ftx extends Exchange {
             'id': 'ftx',
             'name': 'FTX',
             'countries': [ 'BS' ], // Bahamas
+            // 10 requests per second for non-market endpoints, 1000ms / 10 = 100ms between requests
+            // 6 requests per second for market endpoints, cost = (1000ms /rateLimit) / 6 = 5 / 3
+            // 10 withdrawal requests per 30 seconds, cost = (1000ms / rateLimit) / (1/3) = 30
+            // cancels do not count towards rate-limit
+            // market-data calls do not count towards rate-limits
             'rateLimit': 100,
             'certified': true,
             'pro': true,
@@ -93,179 +98,179 @@ module.exports = class ftx extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'coins',
+                    'get': {
+                        'coins': 0,
                         // markets
-                        'markets',
-                        'markets/{market_name}',
-                        'markets/{market_name}/orderbook', // ?depth={depth}
-                        'markets/{market_name}/trades', // ?limit={limit}&start_time={start_time}&end_time={end_time}
-                        'markets/{market_name}/candles', // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        'markets': 0,
+                        'markets/{market_name}': 0,
+                        'markets/{market_name}/orderbook': 0, // ?depth={depth}
+                        'markets/{market_name}/trades': 0, // ?limit={limit}&start_time={start_time}&end_time={end_time}
+                        'markets/{market_name}/candles': 0, // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
                         // futures
-                        'futures',
-                        'futures/{future_name}',
-                        'futures/{future_name}/stats',
-                        'funding_rates',
-                        'indexes/{index_name}/weights',
-                        'expired_futures',
-                        'indexes/{market_name}/candles', // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        'futures': 0,
+                        'futures/{future_name}': 0,
+                        'futures/{future_name}/stats': 0,
+                        'funding_rates': 0,
+                        'indexes/{index_name}/weights': 0,
+                        'expired_futures': 0,
+                        'indexes/{market_name}/candles': 0, // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
                         // wallet
-                        'wallet/coins',
+                        'wallet/coins': 0,
                         // leverage tokens
-                        'lt/tokens',
-                        'lt/{token_name}',
+                        'lt/tokens': 0,
+                        'lt/{token_name}': 0,
                         // etfs
-                        'etfs/rebalance_info',
+                        'etfs/rebalance_info': 0,
                         // options
-                        'options/requests',
-                        'options/trades',
-                        'options/historical_volumes/BTC',
-                        'stats/24h_options_volume',
-                        'options/open_interest/BTC',
-                        'options/historical_open_interest/BTC',
+                        'options/requests': 0,
+                        'options/trades': 0,
+                        'options/historical_volumes/BTC': 0,
+                        'stats/24h_options_volume': 0,
+                        'options/open_interest/BTC': 0,
+                        'options/historical_open_interest/BTC': 0,
                         // spot margin
-                        'spot_margin/history',
-                        'spot_margin/borrow_summary',
+                        'spot_margin/history': 0,
+                        'spot_margin/borrow_summary': 0,
                         // nfts
-                        'nft/nfts',
-                        'nft/{nft_id}',
-                        'nft/{nft_id}/trades',
-                        'nft/all_trades',
-                        'nft/{nft_id}/account_info',
-                        'nft/collections',
+                        'nft/nfts': 0,
+                        'nft/{nft_id}': 0,
+                        'nft/{nft_id}/trades': 0,
+                        'nft/all_trades': 0,
+                        'nft/{nft_id}/account_info': 0,
+                        'nft/collections': 0,
                         // ftx pay
-                        'ftxpay/apps/{user_specific_id}/details',
-                    ],
-                    'post': [
-                        'ftxpay/apps/{user_specific_id}/orders',
-                    ],
+                        'ftxpay/apps/{user_specific_id}/details': 0,
+                    },
+                    'post': {
+                        'ftxpay/apps/{user_specific_id}/orders': 0,
+                    },
                 },
                 'private': {
-                    'get': [
+                    'get': {
                         // subaccounts
-                        'subaccounts',
-                        'subaccounts/{nickname}/balances',
+                        'subaccounts': 0,
+                        'subaccounts/{nickname}/balances': 0,
                         // account
-                        'account',
-                        'positions',
+                        'account': 0,
+                        'positions': 0,
                         // wallet
-                        'wallet/balances',
-                        'wallet/all_balances',
-                        'wallet/deposit_address/{coin}', // ?method={method}
-                        'wallet/deposits',
-                        'wallet/withdrawals',
-                        'wallet/airdrops',
-                        'wallet/withdrawal_fee',
-                        'wallet/saved_addresses',
+                        'wallet/balances': 0,
+                        'wallet/all_balances': 0,
+                        'wallet/deposit_address/{coin}': 0, // ?method={method}
+                        'wallet/deposits': 0,
+                        'wallet/withdrawals': 0,
+                        'wallet/airdrops': 0,
+                        'wallet/withdrawal_fee': 0,
+                        'wallet/saved_addresses': 0,
                         // orders
-                        'orders', // ?market={market}
-                        'orders/history', // ?market={market}
-                        'orders/{order_id}',
-                        'orders/by_client_id/{client_order_id}',
+                        'orders': 0, // ?market={market}
+                        'orders/history': 0, // ?market={market}
+                        'orders/{order_id}': 0,
+                        'orders/by_client_id/{client_order_id}': 0,
                         // conditional orders
-                        'conditional_orders', // ?market={market}
-                        'conditional_orders/{conditional_order_id}/triggers',
-                        'conditional_orders/history', // ?market={market}
-                        'fills', // ?market={market}
-                        'funding_payments',
+                        'conditional_orders': 0, // ?market={market}
+                        'conditional_orders/{conditional_order_id}/triggers': 0,
+                        'conditional_orders/history': 0, // ?market={market}
+                        'fills': 0, // ?market={market}
+                        'funding_payments': 0,
                         // leverage tokens
-                        'lt/balances',
-                        'lt/creations',
-                        'lt/redemptions',
+                        'lt/balances': 0,
+                        'lt/creations': 0,
+                        'lt/redemptions': 0,
                         // options
-                        'options/my_requests',
-                        'options/requests/{request_id}/quotes',
-                        'options/my_quotes',
-                        'options/account_info',
-                        'options/positions',
-                        'options/fills',
+                        'options/my_requests': 0,
+                        'options/requests/{request_id}/quotes': 0,
+                        'options/my_quotes': 0,
+                        'options/account_info': 0,
+                        'options/positions': 0,
+                        'options/fills': 0,
                         // staking
-                        'staking/stakes',
-                        'staking/unstake_requests',
-                        'staking/balances',
-                        'staking/staking_rewards',
+                        'staking/stakes': 0,
+                        'staking/unstake_requests': 0,
+                        'staking/balances': 0,
+                        'staking/staking_rewards': 0,
                         // otc
-                        'otc/quotes/{quoteId}',
+                        'otc/quotes/{quoteId}': 0,
                         // spot margin
-                        'spot_margin/borrow_rates',
-                        'spot_margin/lending_rates',
-                        'spot_margin/market_info', // ?market={market}
-                        'spot_margin/borrow_history',
-                        'spot_margin/lending_history',
-                        'spot_margin/offers',
-                        'spot_margin/lending_info',
+                        'spot_margin/borrow_rates': 0,
+                        'spot_margin/lending_rates': 0,
+                        'spot_margin/market_info': 0, // ?market={market}
+                        'spot_margin/borrow_history': 0,
+                        'spot_margin/lending_history': 0,
+                        'spot_margin/offers': 0,
+                        'spot_margin/lending_info': 0,
                         // nfts
-                        'nft/balances',
-                        'nft/bids',
-                        'nft/deposits',
-                        'nft/withdrawals',
-                        'nft/fills',
-                        'nft/gallery/{gallery_id}',
-                        'nft/gallery_settings',
+                        'nft/balances': 0,
+                        'nft/bids': 0,
+                        'nft/deposits': 0,
+                        'nft/withdrawals': 0,
+                        'nft/fills': 0,
+                        'nft/gallery/{gallery_id}': 0,
+                        'nft/gallery_settings': 0,
                         // latency statistics
-                        'stats/latency_stats',
+                        'stats/latency_stats': 0,
                         // pnl
-                        'pnl/historical_changes',
-                    ],
-                    'post': [
+                        'pnl/historical_changes': 0,
+                    },
+                    'post': {
                         // subaccounts
-                        'subaccounts',
-                        'subaccounts/update_name',
-                        'subaccounts/transfer',
+                        'subaccounts': 0,
+                        'subaccounts/update_name': 0,
+                        'subaccounts/transfer': 0,
                         // account
-                        'account/leverage',
+                        'account/leverage': 0,
                         // wallet
-                        'wallet/withdrawals',
-                        'wallet/saved_addresses',
+                        'wallet/withdrawals': 30,
+                        'wallet/saved_addresses': 0,
                         // orders
-                        'orders',
-                        'conditional_orders',
-                        'orders/{order_id}/modify',
-                        'orders/by_client_id/{client_order_id}/modify',
-                        'conditional_orders/{order_id}/modify',
+                        'orders': 5 / 3,
+                        'conditional_orders': 5 / 3,
+                        'orders/{order_id}/modify': 5 / 3,
+                        'orders/by_client_id/{client_order_id}/modify': 5 / 3,
+                        'conditional_orders/{order_id}/modify': 5 / 3,
                         // leverage tokens
-                        'lt/{token_name}/create',
-                        'lt/{token_name}/redeem',
+                        'lt/{token_name}/create': 5 / 3,
+                        'lt/{token_name}/redeem': 5 / 3,
                         // options
-                        'options/requests',
-                        'options/requests/{request_id}/quotes',
-                        'options/quotes/{quote_id}/accept',
+                        'options/requests': 5 / 3,
+                        'options/requests/{request_id}/quotes': 5 / 3,
+                        'options/quotes/{quote_id}/accept': 5 / 3,
                         // staking
-                        'staking/unstake_requests',
-                        'srm_stakes/stakes',
+                        'staking/unstake_requests': 5 / 3,
+                        'srm_stakes/stakes': 5 / 3,
                         // otc
-                        'otc/quotes/{quote_id}/accept',
-                        'otc/quotes',
+                        'otc/quotes/{quote_id}/accept': 5 / 3,
+                        'otc/quotes': 5 / 3,
                         // spot margin
-                        'spot_margin/offers',
+                        'spot_margin/offers': 5 / 3,
                         // nfts
-                        'nft/offer',
-                        'nft/buy',
-                        'nft/auction',
-                        'nft/edit_auction',
-                        'nft/cancel_auction',
-                        'nft/bids',
-                        'nft/redeem',
-                        'nft/gallery_settings',
+                        'nft/offer': 5 / 3,
+                        'nft/buy': 5 / 3,
+                        'nft/auction': 5 / 3,
+                        'nft/edit_auction': 5 / 3,
+                        'nft/cancel_auction': 0,
+                        'nft/bids': 5 / 3,
+                        'nft/redeem': 5 / 3,
+                        'nft/gallery_settings': 0,
                         // ftx pay
-                        'ftxpay/apps/{user_specific_id}/orders',
-                    ],
-                    'delete': [
+                        'ftxpay/apps/{user_specific_id}/orders': 5 / 3,
+                    },
+                    'delete': {
                         // subaccounts
-                        'subaccounts',
+                        'subaccounts': 0,
                         // wallet
-                        'wallet/saved_addresses/{saved_address_id}',
+                        'wallet/saved_addresses/{saved_address_id}': 0,
                         // orders
-                        'orders/{order_id}',
-                        'orders/by_client_id/{client_order_id}',
-                        'orders',
-                        'conditional_orders/{order_id}',
+                        'orders/{order_id}': 0,
+                        'orders/by_client_id/{client_order_id}': 0,
+                        'orders': 0,
+                        'conditional_orders/{order_id}': 0,
                         // options
-                        'options/requests/{request_id}',
-                        'options/quotes/{quote_id}',
+                        'options/requests/{request_id}': 0,
+                        'options/quotes/{quote_id}': 0,
                         // staking
-                        'staking/unstake_requests/{request_id}',
-                    ],
+                        'staking/unstake_requests/{request_id}': 0,
+                    },
                 },
             },
             'fees': {
