@@ -37,9 +37,11 @@ class ftx extends Exchange {
                 ),
             ),
             'has' => array(
+                'spot' => true,
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,

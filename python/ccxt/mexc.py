@@ -32,6 +32,11 @@ class mexc(Exchange):
             'version': 'v2',
             'certified': True,
             'has': {
+                'spot': True,
+                'margin': None,
+                'swap': True,
+                'future': None,
+                'option': None,
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,

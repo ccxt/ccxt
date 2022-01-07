@@ -23,6 +23,11 @@ class mexc extends Exchange {
             'version' => 'v2',
             'certified' => true,
             'has' => array(
+                'spot' => true,
+                'margin' => null,
+                'swap' => true,
+                'future' => null,
+                'option' => null,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,

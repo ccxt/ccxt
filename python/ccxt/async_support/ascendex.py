@@ -27,6 +27,11 @@ class ascendex(Exchange):
             'certified': True,
             # new metainfo interface
             'has': {
+                'spot': True,
+                'margin': None,
+                'swap': True,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
