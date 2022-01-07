@@ -165,14 +165,23 @@ module.exports = class binancetr extends Exchange {
             const market = list[i];
             // const type = this.safeInteger(market, 'type'); // Important to see endpoint for this market
             const id = this.safeString (market, 'symbol');
-            const filters = this.safeValue (market, 'filters');
-            const filter0 = this.safeValue (filters, 0);
-            const filter2 = this.safeValue (filters, 2);
+            const filters = this.safeValue (market, 'filters', []);
+            const filtersByType = this.indexBy (filters, 'filterType');
+            let minPrice = undefined;
+            let maxPrice = undefined;
+            let minQty = undefined;
+            let maxQty = undefined;
+            if ('PRICE_FILTER' in filtersByType) {
+                const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+                minPrice = this.safeValue (filter, 'minPrice');
+                maxPrice = this.safeValue (filter, 'maxPrice');
+            }
+            if ('LOT_SIZE' in filtersByType) {
+                const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+                minQty = this.safeValue (filter, 'minQty');
+                maxQty = this.safeValue (filter, 'maxQty');
+            }
             const permissions = this.safeValue (market, 'permissions');
-            const minPrice = this.safeValue (filter0, 'minPrice');
-            const maxPrice = this.safeValue (filter0, 'maxPrice');
-            const minQty2 = this.safeValue (filter2, 'minQty');
-            const maxQty2 = this.safeValue (filter2, 'maxQty');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
@@ -208,8 +217,8 @@ module.exports = class binancetr extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber (minQty2),
-                        'max': this.parseNumber (maxQty2),
+                        'min': this.parseNumber (minQty),
+                        'max': this.parseNumber (maxQty),
                     },
                     'price': {
                         'min': this.parseNumber (minPrice),
