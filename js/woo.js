@@ -35,7 +35,7 @@ module.exports = class woo extends Exchange {
                 'fetchFundingRateHistory': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': undefined,
+                'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -103,6 +103,9 @@ module.exports = class woo extends Exchange {
                             'client/order/{client_order_id}': 1, // shared with "GET: order/:oid"
                             'orders': 1,
                             'orderbook/{symbol}': 1,
+                            'kline': 1,
+                            'client/trade/:tid': 1, // not used in implementations
+                            'order/{oid}/trades': 1,
                         },
                         'post': {
                             'order': 5, // Limit: 2 requests per 1 second per symbol |TODO
@@ -237,9 +240,6 @@ module.exports = class woo extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                // Fee is in %, so divide by 100
-                'taker': undefined,
-                'maker': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -439,20 +439,20 @@ module.exports = class woo extends Exchange {
         //
         const result = {};
         const data1 = this.safeValue (response1, 'rows', []);
-        const derivedData1 = {}; // TODO: here needs to be initialized as object, otherwise extra check will be needed inside loop cycles
+        const derivedCurrenciesData = {}; // TODO: here needs to be initialized as object, otherwise extra check will be needed inside loop cycles
         for (let i = 0; i < data1.length; i++) {
             const item = data1[i];
             const code = this.safeCurrencyCode (this.safeString (item, 'balance_token'));
             const pairId = this.safeString (item, 'token');
             const networkId = pairId.split ('_')[0];
             const networkSlug = this.genericChainTitleToUnifiedName (networkId);
-            if (!(code in derivedData1)) {
-                derivedData1[code] = {};
+            if (!(code in derivedCurrenciesData)) {
+                derivedCurrenciesData[code] = {};
             }
-            if (!(networkSlug in derivedData1[code])) {
-                derivedData1[code][networkSlug] = undefined;
+            if (!(networkSlug in derivedCurrenciesData[code])) {
+                derivedCurrenciesData[code][networkSlug] = undefined;
             }
-            derivedData1[code][networkSlug] = {
+            derivedCurrenciesData[code][networkSlug] = {
                 'fullname': this.safeString (item, 'fullname'),
                 'decimals': this.safeString (item, 'decimals'),
                 'info': item,
@@ -489,19 +489,19 @@ module.exports = class woo extends Exchange {
         //     success: true
         // }
         //
-        const derivedData2 = {};
+        const derivedNetworksData = {};
         for (let i = 0; i < data2.length; i++) {
             const item = data2[i];
             const code = this.safeCurrencyCode (this.safeString (item, 'token'));
             const networkId = this.safeString (item, 'protocol');
             const networkSlug = this.genericChainTitleToUnifiedName (networkId);
-            if (!(code in derivedData2)) {
-                derivedData2[code] = {};
+            if (!(code in derivedNetworksData)) {
+                derivedNetworksData[code] = {};
             }
-            if (!(networkSlug in derivedData2[code])) {
-                derivedData2[code][networkSlug] = undefined;
+            if (!(networkSlug in derivedNetworksData[code])) {
+                derivedNetworksData[code][networkSlug] = undefined;
             }
-            derivedData2[code][networkSlug] = {
+            derivedNetworksData[code][networkSlug] = {
                 // 'network_title': this.safeString (item, 'name'), // We don't need this much, as we already have network-slug
                 'allow_deposit': this.safeString (item, 'allow_deposit'),
                 'allow_withdraw': this.safeString (item, 'allow_withdraw'),
@@ -511,26 +511,30 @@ module.exports = class woo extends Exchange {
             };
         }
         // combine as final step.
-        const keys = Object.keys (derivedData1); // keys and items amount in derivedData1 and derivedData2 are same
+        const keys = Object.keys (derivedCurrenciesData); // keys and items amount in derivedCurrenciesData and derivedNetworksData are same
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const item1 = derivedData1[key];
-            const item2 = derivedData2[key];
+            const currencyInfo = derivedCurrenciesData[key];
+            const currencyNetworks = derivedNetworksData[key];
             // TODO: if response1 each item contains only one child, then they are the same network . Quite bad behavior of their API for this matter, but as-is: the only solution is this as I think at this moment.
             const id = key;
-            const networks = Object.keys (item1);
-            const tokenNetwork = item1[networks[0]];
+            const networks = Object.keys (currencyInfo);
+            const tokenNetwork = currencyInfo[networks[0]];
             const name = this.safeString (tokenNetwork, 'fullname');
             const code = this.safeCurrencyCode (id);
             const precision = this.safeNumber (tokenNetwork, 'decimals');
             let deposits_allowed_somewhere = undefined;
             let withdrawals_allowed_somewhere = undefined;
-            // eslint-disable-next-line no-restricted-syntax, no-unused-vars
-            for (const [chainName, chainBlock] of Object.entries (item2)) {
-                if (chainBlock.allow_deposit === '1') {
+            const networkKeys = Object.keys (currencyNetworks);
+            for (let i = 0; i < networkKeys.length; i++) {
+                const chainName = networkKeys[i];
+                const chainBlock = currencyNetworks[chainName];
+                const allowDeposits = this.safeInteger (chainBlock, 'allow_deposit', 0);
+                const allowWithdrawals = this.safeInteger (chainBlock, 'allow_withdraw', 0);
+                if (allowDeposits === 1) {
                     deposits_allowed_somewhere = true;
                 }
-                if (chainBlock.allow_withdraw === '1') {
+                if (allowWithdrawals === 1) {
                     withdrawals_allowed_somewhere = true;
                 }
             }
@@ -540,7 +544,7 @@ module.exports = class woo extends Exchange {
                 'name': name,
                 'code': code,
                 'precision': precision,
-                'info': [item1.info, item2.info],
+                'info': [currencyInfo.info, currencyNetworks.info],
                 'active': active,
                 'fee': undefined, // TODO
                 'network': undefined, // TODO
@@ -865,15 +869,20 @@ module.exports = class woo extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 20;
-        }
         const request = {
             'symbol': market['id'],
-            'level': limit, // required
         };
-        //
-        const response = await this.v1PrivateGetOrderbookSymbol (this.extend (request, params));
+        if (limit !== undefined) {
+            if (limit > 1000) {
+                throw new BadRequest (this.id + ' fetchOHLCV() limit argument cannot exceed 1000');
+            }
+            request['max_level'] = limit;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetOrderbookSymbol',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // {
         //   success: true,
@@ -892,6 +901,70 @@ module.exports = class woo extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'type': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            if (limit > 1000) {
+                throw new BadRequest (this.id + ' fetchOHLCV() limit argument cannot exceed 1000');
+            }
+            request['limit'] = limit;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetKline',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // {
+        //     success: true,
+        //     rows: [
+        //       {
+        //         open: '0.94238',
+        //         close: '0.94271',
+        //         low: '0.94238',
+        //         high: '0.94296',
+        //         volume: '73.55',
+        //         amount: '69.32040520',
+        //         symbol: 'SPOT_WOO_USDT',
+        //         type: '1m',
+        //         start_timestamp: '1641584700000',
+        //         end_timestamp: '1641584760000'
+        //       },
+        //       {
+        //         open: '0.94186',
+        //         close: '0.94186',
+        //         low: '0.94186',
+        //         high: '0.94186',
+        //         volume: '64.00',
+        //         amount: '60.27904000',
+        //         symbol: 'SPOT_WOO_USDT',
+        //         type: '1m',
+        //         start_timestamp: '1641584640000',
+        //         end_timestamp: '1641584700000'
+        //       },
+        //       ...
+        //     ]
+        // }
+        const data = this.safeValue (response, 'rows', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        // example response in fetchOHLCV
+        return [
+            this.safeInteger (ohlcv, 'start_timestamp'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     nonce () {
@@ -919,6 +992,9 @@ module.exports = class woo extends Exchange {
             if (method === 'POST' || method === 'DELETE') {
                 auth += this.urlencode (params);
                 body = auth;
+            } else {
+                auth += this.urlencode (params);
+                url += '?' + this.urlencode (params);
             }
             auth += '|' + ts;
             const signature = this.hmac (auth, this.encode (this.secret), 'sha256');
@@ -949,21 +1025,23 @@ module.exports = class woo extends Exchange {
     }
 
     sanitize_str (str) { // TODO: can be in base
-        return str.replace (/[\W_]+/g, '-').toLowerCase ();
+        return str.replace (' ', '-').replace ('.', '-').replace ('_', '-').toLowerCase ();
     }
 
     genericChainTitleToUnifiedName (type) { // TODO: can be in base
         const type_S = this.sanitize_str (type);
         const chainsSlugs = {};
-        chainsSlugs['bep-20'] = ['bep', 'bep20', 'bep-20', 'bep_20', 'bsc', 'bsc20', 'bsc-20', 'bsc_20', 'binance', 'binance-network', 'binance-smart-chain', 'binance_smart_chain', 'bep20_bsc_', 'bep20-bsc', 'bep20bsc']; // lbank has 'bep20(bsc)'
-        chainsSlugs['bep-2'] = ['bep2', 'bep_2', 'bep-20', 'bep_20', 'bnb', 'binance-chain', 'binance-network'];
-        chainsSlugs['erc-20'] = ['erc', 'erc20', 'erc-20', 'erc_20', 'eth', 'eth20', 'eth-20', 'eth_20', 'ethereum', 'ethereum-network', 'ethereum-chain'];
-        chainsSlugs['hrc-20'] = ['heco', 'hrc', 'hrc20', 'hrc_20', 'hrc-20', 'huobi', 'huobi-network', 'huobi-chain', 'huobi-eco-chain', 'huobi_eco_chain', 'huobi-chain', 'huobi_chain', 'eco-chain', 'eco_chain'];
-        chainsSlugs['trc-20'] = ['trc', 'trc20', 'trc-20', 'trc_20', 'trx', 'trx20', 'trx-20', 'trx_20', 'tron', 'tron-network', 'tron-chain', 'trx-network'];
-        chainsSlugs['sol'] = ['sol', 'solana', 'sol-chain', 'solana-chain'];
-        chainsSlugs['matic'] = ['matic', 'polygon'];
-        // eslint-disable-next-line no-restricted-syntax
-        for (const [key, chainList] of Object.entries (chainsSlugs)) {
+        chainsSlugs['bep-20'] = ['bep', 'bep20', 'bep-20', 'bsc', 'bsc20', 'bsc-20', 'binance', 'binance-network', 'binance-smart-chain', 'bep20-bsc']; // i.e. lbank has 'bep20(bsc)'
+        chainsSlugs['bep-2'] = ['bep2', 'bep-2', 'bnb', 'binance-chain', 'binance-network'];
+        chainsSlugs['erc-20'] = ['erc', 'erc20', 'erc-20', 'eth', 'eth20', 'eth-20', 'ethereum', 'ethereum-network', 'ethereum-chain'];
+        chainsSlugs['hrc-20'] = ['heco', 'hrc', 'hrc20', 'hrc-20', 'huobi', 'huobi-network', 'huobi-chain', 'huobi-eco-chain', 'eco-network', 'eco-chain'];
+        chainsSlugs['trc-20'] = ['trc', 'trc20', 'trc-20', 'trx', 'trx20', 'trx-20', 'tron', 'tron-network', 'tron-chain', 'trx-chain', 'trx-network'];
+        chainsSlugs['sol'] = ['sol', 'solana', 'solana-network', 'solana-chain', 'sol-network', 'sol-chain'];
+        chainsSlugs['matic'] = ['matic', 'matic-network', 'matic-chain', 'polygon', 'polygon-network', 'polygon-chain'];
+        const keys = Object.keys (chainsSlugs);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const chainList = chainsSlugs[key];
             if (chainList.includes (type_S)) {
                 return key;
             }
