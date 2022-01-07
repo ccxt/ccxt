@@ -88,8 +88,8 @@ module.exports = class binancetr extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.001'),
                 },
             },
             'options': {
