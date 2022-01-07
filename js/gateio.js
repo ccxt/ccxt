@@ -1678,7 +1678,9 @@ module.exports = class gateio extends Exchange {
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
             request['from'] = parseInt (since / 1000);
-            request['to'] = this.sum (request['from'], limit * duration - 1);
+            const toTimestamp = this.sum (request['from'], limit * duration - 1);
+            const currentTimestamp = this.seconds ();
+            request['to'] = Math.min (toTimestamp, currentTimestamp);
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
