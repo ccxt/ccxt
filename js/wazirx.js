@@ -12,21 +12,42 @@ module.exports = class wazirx extends Exchange {
             'version': 'v2',
             'rateLimit': 100,
             'has': {
-                'CORS': undefined,
-                'fetchMarkets': true,
-                'fetchBalance': true,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'CORS': false,
+                'createOrder': true,
                 'fetchCurrencies': false,
-                'fetchTickers': true,
-                'fetchTicker': true,
+                'fetchBalance': true,
+                'fetchBidsAsks': false,
+                'fetchClosedOrders': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': true,
+                'fetchFundingFees': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRates': false,
+                'fetchMarkets': true,
+                'fetchMyTrades': false,
                 'fetchOHLCV': false,
-                'fetchOrderBook': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchTrades': true,
+                'fetchOrderBook': true,
+                'fetchPositions': false,
+                'fetchStatus': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
-                'fetchStatus': true,
-                'privateAPI': true,
-                'publicAPI': true,
+                'fetchTrades': false,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchTransactions': false,
+                'fetchWithdrawals': false,
+                'setLeverage': false,
+                'withdraw': false,
+                'fetchDepositAddressesByNetwork': false,
+                'transfer': false,
+                'fetchTransfers': false,
             },
             'urls': {
                 'logo': 'https://i0.wp.com/blog.wazirx.com/wp-content/uploads/2020/06/banner.png',
@@ -76,15 +97,16 @@ module.exports = class wazirx extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '1999': BadRequest, // {"code":1999,"message":"symbol is missing, symbol does not have a valid value"} message varies depending on the error
-                    '2098': BadRequest, // {"code":2098,"message":"Request out of receiving window."}
-                    '2136': RateLimitExceeded, // {"code":2136,"message":"Too many api request"}
                     '-1121': BadSymbol, // { "code": -1121, "message": "Invalid symbol." }
-                    '2113': BadRequest, // {"code":2113,"message":"RecvWindow must be in range 1..60000"}
-                    '2115': BadRequest, // {"code":2115,"message":"Signature not found."}
+                    '1999': BadRequest, // {"code":1999,"message":"symbol is missing, symbol does not have a valid value"} message varies depending on the error
+                    '2002': InsufficientFunds, // {"code":2002,"message":"Not enough USDT balance to execute this order"}
                     '2005': BadRequest, // {"code":2005,"message":"Signature is incorrect."}
                     '2078': PermissionDenied, // {"code":2078,"message":"Permission denied."}
-                    '2002': InsufficientFunds, // {"code":2002,"message":"Not enough USDT balance to execute this order"}
+                    '2098': BadRequest, // {"code":2098,"message":"Request out of receiving window."}
+                    '2031': InvalidOrder, // {"code":2031,"message":"Minimum buy amount must be worth 2.0 USDT"}
+                    '2113': BadRequest, // {"code":2113,"message":"RecvWindow must be in range 1..60000"}
+                    '2115': BadRequest, // {"code":2115,"message":"Signature not found."}
+                    '2136': RateLimitExceeded, // {"code":2136,"message":"Too many api request"}
                     '94001': InvalidOrder, // {"code":94001,"message":"Stop price not found."}
                 },
             },
@@ -521,6 +543,32 @@ module.exports = class wazirx extends Exchange {
         return orders;
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        return await this.spotV1PrivateDeleteOpenOrders (this.extend (request, params));
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'orderId': id,
+        };
+        const response = await this.spotV1PrivateDeleteOrder (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -633,7 +681,7 @@ module.exports = class wazirx extends Exchange {
             const timestamp = this.milliseconds ();
             let data = this.extend ({ 'recvWindow': this.options['recvWindow'], 'timestamp': timestamp }, params);
             data = this.keysort (data);
-            const signature = this.hmac (this.urlencode (data), this.secret, 'sha256');
+            const signature = this.hmac (this.encode (this.urlencode (data)), this.encode (this.secret), 'sha256');
             url += '?' + this.urlencode (data);
             url += '&signature=' + signature;
             headers = {
