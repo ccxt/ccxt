@@ -436,6 +436,7 @@ class Exchange(object):
 
         self.session = self.session if self.session or not self.synchronous else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
+        self.has['loadTimeDifference'] = self.has['fetchTime']
 
     def __del__(self):
         if self.session:
@@ -2638,3 +2639,9 @@ class Exchange(object):
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
+
+    def load_time_difference(self, params={}):
+        server_time = self.fetchTime(params)
+        after = self.milliseconds()
+        self.options['timeDifference'] = after - server_time
+        return self.options['timeDifference']

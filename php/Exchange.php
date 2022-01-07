@@ -1256,6 +1256,8 @@ class Exchange {
             'withdraw' => null,
         );
 
+        $this->has['loadTimeDifference'] = $this->has['fetchTime'];
+
         $this->precisionMode = DECIMAL_PLACES;
         $this->paddingMode = NO_PADDING;
         $this->number = 'floatval';
@@ -3500,5 +3502,12 @@ class Exchange {
         $type = $this->safe_string_2($params, 'defaultType', 'type', $market_type);
         $params = $this->omit($params, [ 'defaultType', 'type' ]);
         return array($type, $params);
+    }
+
+    public function load_time_difference($params = array()) {
+        $server_time = $this->fetch_time($params);
+        $after = $this->milliseconds();
+        $this->options['timeDifference'] = $after - $server_time;
+        return $this->options['timeDifference'];
     }
 }

@@ -103,7 +103,6 @@ module.exports = class aax extends Exchange {
                 'fetchWithdrawals': undefined,
                 'fetchWithdrawalWhitelist': undefined,
                 'loadLeverageBrackets': undefined,
-                'loadTimeDifference': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,

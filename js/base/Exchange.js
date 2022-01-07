@@ -347,6 +347,7 @@ module.exports = class Exchange {
             const k = hasKeys[i]
             this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
+        this.has['loadTimeDifference'] = this.has['fetchTime'];
 
         if (this.api) {
             this.defineRestApi (this.api, 'request')
@@ -2026,5 +2027,12 @@ module.exports = class Exchange {
         const type = this.safeString2 (params, 'defaultType', 'type', marketType);
         params = this.omit (params, [ 'defaultType', 'type' ]);
         return [ type, params ];
+    }
+
+    async loadTimeDifference (params = {}) {
+        const serverTime = await this.fetchTime (params);
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = after - serverTime;
+        return this.options['timeDifference'];
     }
 }
