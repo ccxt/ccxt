@@ -7,15 +7,6 @@ const { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, E
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
 
-// eslint-disable-next-line padding-line-between-statements
-function c (o) {
-    // eslint-disable-next-line no-console
-    console.log (o);
-}
-// eslint-disable-next-line no-unused-vars
-function x (o) {
-    c (o); process.exit ();
-}
 // ---------------------------------------------------------------------------
 
 module.exports = class woo extends Exchange {
@@ -407,8 +398,8 @@ module.exports = class woo extends Exchange {
         }, market);
     }
 
-    // TODO: we need to write them to merge 'token' and 'token_network' objects from API, as it's horrificly bad atm.
     async fetchCurrencies (params = {}) {
+        // TODO: we need to write them to merge 'token' and 'token_network' objects from API, as it's horrificly bad atm.
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchCurrencies', undefined, params);
         const method1 = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetToken',
@@ -520,7 +511,7 @@ module.exports = class woo extends Exchange {
             };
         }
         // combine as final step.
-        const keys = Object.keys (derivedData1); //  keys and items amount in derivedData1 and derivedData2 are same
+        const keys = Object.keys (derivedData1); // keys and items amount in derivedData1 and derivedData2 are same
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const item1 = derivedData1[key];
@@ -736,8 +727,8 @@ module.exports = class woo extends Exchange {
         return this.parseOrder (response);
     }
 
-    // TODO : is this https://docs.woo.org/#get-orders correclty implemented by me? Maybe I missed some things (like end-time handing?)
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // TODO : is this https://docs.woo.org/#get-orders correclty implemented by me? Maybe I missed some things (like end-time handing?)
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -957,13 +948,11 @@ module.exports = class woo extends Exchange {
         }
     }
 
-    // ######### THE BELOW CAN BE MOVED IN BASE #########
-    // the block for unification titles
-    sanitize_str (str) {
+    sanitize_str (str) { // TODO: can be in base
         return str.replace (/[\W_]+/g, '-').toLowerCase ();
     }
 
-    genericChainTitleToUnifiedName (type) {
+    genericChainTitleToUnifiedName (type) { // TODO: can be in base
         const type_S = this.sanitize_str (type);
         const chainsSlugs = {};
         chainsSlugs['bep-20'] = ['bep', 'bep20', 'bep-20', 'bep_20', 'bsc', 'bsc20', 'bsc-20', 'bsc_20', 'binance', 'binance-network', 'binance-smart-chain', 'binance_smart_chain', 'bep20_bsc_', 'bep20-bsc', 'bep20bsc']; // lbank has 'bep20(bsc)'
