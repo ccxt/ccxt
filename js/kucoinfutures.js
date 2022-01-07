@@ -419,6 +419,7 @@ module.exports = class kucoinfutures extends kucoin {
             const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'status');
             const active = status === 'Open';
+            const contractSizeStr = Precise.stringAbs (this.safeString (market, 'multiplier'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -440,7 +441,8 @@ module.exports = class kucoinfutures extends kucoin {
                 'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': Precise.stringAbs (this.safeString (market, 'multiplier')),
+                'contractSize': this.parseNumber (contractSizeStr),
+                'contractSizeStr': contractSizeStr,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'precision': {
@@ -1147,13 +1149,13 @@ module.exports = class kucoinfutures extends kucoin {
         let average = undefined;
         if (Precise.stringGt (filled, '0')) {
             if (market['linear']) {
-                average = Precise.stringDiv (rawCost, Precise.stringMul (market['contractSize'], filled));
+                average = Precise.stringDiv (rawCost, Precise.stringMul (market['contractSizeStr'], filled));
             } else {
-                average = Precise.stringDiv (Precise.stringMul (market['contractSize'], filled), rawCost);
+                average = Precise.stringDiv (Precise.stringMul (market['contractSizeStr'], filled), rawCost);
             }
         }
         // precision reported by their api is 8 d.p.
-        // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
+        // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSizeStr']));
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
@@ -1474,7 +1476,7 @@ module.exports = class kucoinfutures extends kucoin {
         let cost = this.safeNumber2 (trade, 'funds', 'dealValue');
         if (cost === undefined) {
             market = this.market (symbol);
-            const contractSize = this.safeString (market, 'contractSize');
+            const contractSize = this.safeString (market, 'contractSizeStr');
             const contractCost = Precise.stringMul (priceString, amountString);
             if (contractSize && contractCost) {
                 cost = this.parseNumber (Precise.stringMul (contractCost, contractSize));

@@ -307,6 +307,7 @@ module.exports = class bitvavo extends Exchange {
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
+                'contractSizeStr': undefined,
                 'active': (status === 'trading'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,

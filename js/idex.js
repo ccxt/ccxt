@@ -204,6 +204,7 @@ module.exports = class idex extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
+                'contractSizeStr': undefined,
                 'active': active,
                 'expiry': undefined,
                 'expiryDatetime': undefined,

@@ -1236,7 +1236,7 @@ module.exports = class huobi extends Exchange {
                     symbol += '-' + this.yymmdd (expiry);
                 }
             }
-            const contractSize = this.safeString (market, 'contract_size');
+            const contractSizeStr = this.safeString (market, 'contract_size');
             let pricePrecision = undefined;
             let amountPrecision = undefined;
             let costPrecision = undefined;
@@ -1301,7 +1301,8 @@ module.exports = class huobi extends Exchange {
                 'inverse': inverse,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
-                'contractSize': contractSize,
+                'contractSize': this.parseNumber (contractSizeStr),
+                'contractSizeStr': contractSizeStr,
                 'active': active,
                 'precision': precision,
                 'taker': taker,
@@ -4775,7 +4776,7 @@ module.exports = class huobi extends Exchange {
         market = this.safeMarket (this.safeString (position, 'contract_code'));
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'volume');
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeString (market, 'contractSizeStr');
         const entryPrice = this.safeNumber (position, 'cost_hold');
         const initialMargin = this.safeString (position, 'position_margin');
         const rawSide = this.safeString (position, 'direction');

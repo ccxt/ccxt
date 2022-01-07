@@ -1693,7 +1693,7 @@ module.exports = class Exchange {
         let cost = this.safeString (trade, 'cost');
         if (cost === undefined) {
             // contract trading
-            const contractSize = this.safeString (market, 'contractSize');
+            const contractSize = this.safeString (market, 'contractSizeStr');
             let multiplyPrice = price;
             if (contractSize !== undefined) {
                 const inverse = this.safeValue (market, 'inverse', false);
@@ -1903,7 +1903,7 @@ module.exports = class Exchange {
                 multiplyPrice = average;
             }
             // contract trading
-            const contractSize = this.safeString (market, 'contractSize');
+            const contractSize = this.safeString (market, 'contractSizeStr');
             if (contractSize !== undefined) {
                 const inverse = this.safeValue (market, 'inverse', false);
                 if (inverse) {

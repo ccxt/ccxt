@@ -794,9 +794,9 @@ module.exports = class okex extends Exchange {
         }
         const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
-        let contractSize = undefined;
+        let contractSizeStr = undefined;
         if (contract) {
-            contractSize = this.safeString (market, 'ctVal');
+            contractSizeStr = this.safeString (market, 'ctVal');
         }
         const leverage = this.safeNumber (market, 'lever', 1);
         return this.extend (fees, {
@@ -818,7 +818,8 @@ module.exports = class okex extends Exchange {
             'linear': linear,
             'inverse': inverse,
             'active': active,
-            'contractSize': contractSize,
+            'contractSize': this.parseNumber (contractSizeStr),
+            'contractSizeStr': contractSizeStr,
             'precision': precision,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -3171,7 +3172,7 @@ module.exports = class okex extends Exchange {
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
             'percentage': percentage,
             'contracts': contracts,
-            'contractSize': this.parseNumber (market['contractSize']),
+            'contractSize': market['contractSize'],
             'markPrice': this.parseNumber (markPriceString),
             'side': side,
             'hedged': hedged,

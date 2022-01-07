@@ -432,7 +432,7 @@ module.exports = class phemex extends Exchange {
         };
         const status = this.safeString (market, 'status');
         const active = status === 'Listed';
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSizeStr = this.safeString (market, 'contractSize');
         return {
             'id': id,
             'symbol': symbol,
@@ -453,7 +453,8 @@ module.exports = class phemex extends Exchange {
             'valueScale': valueScale,
             'ratioScale': ratioScale,
             'precision': precision,
-            'contractSize': contractSize,
+            'contractSize': this.parseNumber (contractSizeStr),
+            'contractSizeStr': contractSizeStr,
             'limits': limits,
         };
     }
@@ -541,6 +542,7 @@ module.exports = class phemex extends Exchange {
             'valueScale': 8,
             'ratioScale': 8,
             'contractSize': undefined,
+            'contractSizeStr': undefined,
             'limits': limits,
         };
     }

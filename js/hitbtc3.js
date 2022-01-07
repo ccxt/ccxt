@@ -332,11 +332,11 @@ module.exports = class hitbtc3 extends Exchange {
             let settle = undefined;
             let symbol = base + '/' + quote;
             let type = 'spot';
-            let contractSize = undefined;
+            let contractSizeStr = undefined;
             let linear = undefined;
             let inverse = undefined;
             if (contract) {
-                contractSize = '1';
+                contractSizeStr = '1';
                 settleId = feeCurrencyId;
                 settle = this.safeCurrencyCode (settleId);
                 linear = ((quote !== undefined) && (quote === settle));
@@ -375,7 +375,8 @@ module.exports = class hitbtc3 extends Exchange {
                 'inverse': inverse,
                 'taker': taker,
                 'maker': maker,
-                'contractSize': contractSize,
+                'contractSize': this.parseNumber (contractSizeStr),
+                'contractSizeStr': contractSizeStr,
                 'active': true,
                 'expiry': expiry,
                 'expiryDatetime': undefined,

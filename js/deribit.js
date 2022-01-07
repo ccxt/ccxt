@@ -486,6 +486,7 @@ module.exports = class deribit extends Exchange {
                 }
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
                 const tickSize = this.safeNumber (market, 'tick_size');
+                const contractSizeStr = this.safeString (market, 'contract_size');
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -506,7 +507,8 @@ module.exports = class deribit extends Exchange {
                     'inverse': true,
                     'taker': this.safeNumber (market, 'taker_commission'),
                     'maker': this.safeNumber (market, 'maker_commission'),
-                    'contractSize': this.safeString (market, 'contract_size'),
+                    'contractSize': this.parseNumber (contractSizeStr),
+                    'contractSizeStr': contractSizeStr,
                     'active': this.safeValue (market, 'is_active'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),

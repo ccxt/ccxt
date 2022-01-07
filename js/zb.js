@@ -281,6 +281,7 @@ module.exports = class zb extends Exchange {
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
+                'contractSizeStr': undefined,
                 'active': true,
                 'expiry': undefined,
                 'expiryDatetime': undefined,

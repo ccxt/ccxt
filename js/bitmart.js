@@ -458,6 +458,7 @@ module.exports = class bitmart extends Exchange {
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
+                'contractSizeStr': undefined,
                 'active': true,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -588,6 +589,7 @@ module.exports = class bitmart extends Exchange {
                 symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             const feeConfig = this.safeValue (market, 'fee_config', {});
+            const contractSizeStr = this.safeString (market, 'contract_size');
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -609,7 +611,8 @@ module.exports = class bitmart extends Exchange {
                 'inverse': undefined,
                 'taker': this.safeNumber (feeConfig, 'taker_fee'),
                 'maker': this.safeNumber (feeConfig, 'maker_fee'),
-                'contractSize': this.safeString (market, 'contract_size'),
+                'contractSize': this.parseNumber (contractSizeStr),
+                'contractSizeStr': contractSizeStr,
                 'active': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),

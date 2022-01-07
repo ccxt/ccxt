@@ -1500,10 +1500,10 @@ module.exports = class binance extends Exchange {
             const status = this.safeString2 (market, 'status', 'contractStatus');
             const active = (status === 'TRADING');
             const margin = this.safeValue (market, 'isMarginTradingAllowed', false);
-            let contractSize = undefined;
+            let contractSizeStr = undefined;
             let fees = this.fees;
             if (future || delivery) {
-                contractSize = this.safeString (market, 'contractSize', '1');
+                contractSizeStr = this.safeString (market, 'contractSize', '1');
                 fees = this.fees[type];
             }
             const maker = fees['trading']['maker'];
@@ -1532,7 +1532,8 @@ module.exports = class binance extends Exchange {
                 'settle': settle,
                 'active': active,
                 'precision': precision,
-                'contractSize': contractSize,
+                'contractSize': this.parseNumber (contractSizeStr),
+                'contractSizeStr': contractSizeStr,
                 'maker': maker,
                 'taker': taker,
                 'limits': {
@@ -4386,7 +4387,7 @@ module.exports = class binance extends Exchange {
         let contractsStringAbs = Precise.stringAbs (contractsString);
         if (contractsString === undefined) {
             const entryNotional = Precise.stringMul (Precise.stringMul (leverageString, initialMarginString), entryPriceString);
-            contractsString = Precise.stringDiv (entryNotional, market['contractSize']);
+            contractsString = Precise.stringDiv (entryNotional, market['contractSizeStr']);
             contractsStringAbs = Precise.stringDiv (Precise.stringAdd (contractsString, '0.5'), '1', 0);
         }
         const contracts = this.parseNumber (contractsStringAbs);
@@ -4464,7 +4465,7 @@ module.exports = class binance extends Exchange {
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub ('-1', maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
                 }
-                const size = Precise.stringMul (contractsStringAbs, market['contractSize']);
+                const size = Precise.stringMul (contractsStringAbs, market['contractSizeStr']);
                 const leftSide = Precise.stringMul (size, onePlusMaintenanceMarginPercentageString);
                 const rightSide = Precise.stringSub (Precise.stringMul (Precise.stringDiv ('1', entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv (leftSide, rightSide);
@@ -4500,7 +4501,7 @@ module.exports = class binance extends Exchange {
             'leverage': this.parseNumber (leverageString),
             'unrealizedPnl': unrealizedPnl,
             'contracts': contracts,
-            'contractSize': this.parseNumber (market['contractSize']),
+            'contractSize': market['contractSize'],
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': undefined,
@@ -4614,7 +4615,7 @@ module.exports = class binance extends Exchange {
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub ('-1', maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
                 }
-                const leftSide = Precise.stringMul (contractsAbs, market['contractSize']);
+                const leftSide = Precise.stringMul (contractsAbs, market['contractSizeStr']);
                 const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
                 collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', market['precision']['base']);
             }
@@ -4651,7 +4652,7 @@ module.exports = class binance extends Exchange {
             'info': position,
             'symbol': symbol,
             'contracts': contracts,
-            'contractSize': this.parseNumber (market['contractSize']),
+            'contractSize': market['contractSize'],
             'unrealizedPnl': unrealizedPnl,
             'leverage': this.parseNumber (leverageString),
             'liquidationPrice': liquidationPrice,

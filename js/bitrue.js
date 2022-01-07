@@ -611,6 +611,7 @@ module.exports = class bitrue extends Exchange {
                 'active': active,
                 'precision': precision,
                 'contractSize': undefined,
+                'contractSizeStr': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,

@@ -325,6 +325,7 @@ module.exports = class cryptocom extends Exchange {
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'contractSize': undefined,
+                'contractSizeStr': undefined,
                 'active': undefined,
                 'precision': precision,
                 'limits': {
@@ -399,7 +400,7 @@ module.exports = class cryptocom extends Exchange {
                 type = 'future';
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
-            const contractSize = this.safeString (market, 'contract_size');
+            const contractSizeStr = this.safeString (market, 'contract_size');
             const marketId = this.safeString (market, 'symbol');
             const maxLeverage = this.safeNumber (market, 'max_leverage');
             const active = this.safeValue (market, 'tradable');
@@ -424,7 +425,8 @@ module.exports = class cryptocom extends Exchange {
                 'swap': swap,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
-                'contractSize': contractSize,
+                'contractSize': this.parseNumber (contractSizeStr),
+                'contractSizeStr': contractSizeStr,
                 'active': active,
                 'precision': {
                     'price': pricePrecision,
@@ -432,7 +434,7 @@ module.exports = class cryptocom extends Exchange {
                 },
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber (contractSize),
+                        'min': this.parseNumber (contractSizeStr),
                         'max': undefined,
                     },
                     'price': {

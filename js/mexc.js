@@ -498,6 +498,7 @@ module.exports = class mexc extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const state = this.safeString (market, 'state');
+            const contractSizeStr = this.safeString (market, 'contractSize');
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -518,7 +519,8 @@ module.exports = class mexc extends Exchange {
                 'inverse': false,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.safeString (market, 'contractSize'),
+                'contractSize': this.parseNumber (contractSizeStr),
+                'contractSizeStr': contractSizeStr,
                 'active': (state === '0'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -614,6 +616,7 @@ module.exports = class mexc extends Exchange {
                 'taker': this.safeNumber (market, 'taker_fee_rate'),
                 'maker': this.safeNumber (market, 'maker_fee_rate'),
                 'contractSize': undefined,
+                'contractSizeStr': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
