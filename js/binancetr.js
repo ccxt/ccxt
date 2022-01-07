@@ -177,10 +177,14 @@ module.exports = class binancetr extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const spotPer = permissions.indexOf ('SPOT') > -1;
-            const marginPer = permissions.indexOf ('MARGIN') > -1;
-            const marginEnable = (this.safeInteger (market, 'marginTradingEnable')) === '1' ? true : false;
-            const spotEnable = (this.safeInteger (market, 'spotTradingEnable')) === '1' ? true : false;
+            let spotPermission = false;
+            let marginPermission = false;
+            for (let j = 0; j < permissions.length; j++) {
+                if(permissions[j] === 'SPOT') spotPermission = true;
+                if(permissions[j] === 'MARGIN') marginPermission = true;
+              } 
+            const marginEnable = (this.safeInteger (market, 'marginTradingEnable')) === 1 ? true : false;
+            const spotEnable = (this.safeInteger (market, 'spotTradingEnable')) === 1 ? true : false;
             const symbol = base + '/' + quote;
             const precision = {
                 'price': this.safeInteger (market, 'quotePrecision'),
@@ -195,8 +199,8 @@ module.exports = class binancetr extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'type': 'spot',
-                'spot': spotPer,
-                'margin': marginPer && marginEnable,
+                'spot': spotPermission,
+                'margin': marginPermission && marginEnable,
                 'active': spotEnable,
                 'precision': precision,
                 'limits': {
