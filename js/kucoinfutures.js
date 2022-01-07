@@ -22,6 +22,11 @@ module.exports = class kucoinfutures extends kucoin {
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': false,
             'has': {
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': true,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
