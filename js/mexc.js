@@ -518,7 +518,7 @@ module.exports = class mexc extends Exchange {
                 'inverse': false,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.safeValue (market, 'contractSize'),
+                'contractSize': this.safeNumber (market, 'contractSize'),
                 'active': (state === '0'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
