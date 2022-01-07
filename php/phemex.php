@@ -435,7 +435,7 @@ class phemex extends Exchange {
         );
         $status = $this->safe_string($market, 'status');
         $active = $status === 'Listed';
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $contractSize = $this->safe_number($market, 'contractSize');
         return array(
             'id' => $id,
             'symbol' => $symbol,

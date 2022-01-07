@@ -508,7 +508,7 @@ class deribit extends Exchange {
                     'inverse' => true,
                     'taker' => $this->safe_number($market, 'taker_commission'),
                     'maker' => $this->safe_number($market, 'maker_commission'),
-                    'contractSize' => $this->safe_string($market, 'contract_size'),
+                    'contractSize' => $this->safe_number($market, 'contract_size'),
                     'active' => $this->safe_value($market, 'is_active'),
                     'expiry' => $expiry,
                     'expiryDatetime' => $this->iso8601($expiry),

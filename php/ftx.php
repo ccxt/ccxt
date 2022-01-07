@@ -37,9 +37,11 @@ class ftx extends Exchange {
                 ),
             ),
             'has' => array(
+                'spot' => true,
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -560,6 +562,20 @@ class ftx extends Exchange {
             } else if ($isFuture) {
                 $type = 'future';
                 $expiry = $this->parse8601($expiryDatetime);
+                $parsedId = explode('-', $id);
+                $length = is_array($parsedId) ? count($parsedId) : 0;
+                if ($length > 2) {
+                    // handling for MOVE contracts
+                    // BTC-MOVE-2022Q1
+                    // BTC-MOVE-0106
+                    // BTC-MOVE-WK-0121
+                    array_pop($parsedId);
+                    // remove $expiry
+                    // array( 'BTC', 'MOVE' )
+                    // array( 'BTC', 'MOVE' )
+                    // array( 'BTC', 'MOVE', 'WK' )
+                    $base = implode('-', $parsedId);
+                }
                 $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
             }
             // check if a $market is a $spot or $future $market
@@ -585,7 +601,7 @@ class ftx extends Exchange {
                 'contract' => $contract,
                 'linear' => true,
                 'inverse' => false,
-                'contractSize' => 1,
+                'contractSize' => $this->parse_number('1'),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,
@@ -1141,11 +1157,10 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'future');
-            $symbol = $this->safe_symbol($marketId);
             $timestamp = $this->parse8601($this->safe_string($result[$i], 'time'));
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $symbol,
+                'symbol' => $this->safe_symbol($marketId),
                 'fundingRate' => $this->safe_number($entry, 'rate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -1962,7 +1977,7 @@ class ftx extends Exchange {
             'leverage' => $leverage,
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'contracts' => $this->parse_number($contractsString),
-            'contractSize' => $this->parse_number('1'),
+            'contractSize' => $this->safe_value($market, 'contractSize'),
             'marginRatio' => $marginRatio,
             'liquidationPrice' => $this->parse_number($liquidationPriceString),
             'markPrice' => $this->parse_number($markPriceString),

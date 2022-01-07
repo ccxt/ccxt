@@ -803,7 +803,7 @@ class okex(Exchange):
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         contractSize = None
         if contract:
-            contractSize = self.safe_string(market, 'ctVal')
+            contractSize = self.safe_number(market, 'ctVal')
         leverage = self.safe_number(market, 'lever', 1)
         return self.extend(fees, {
             'id': id,
@@ -3043,7 +3043,7 @@ class okex(Exchange):
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
             'percentage': percentage,
             'contracts': contracts,
-            'contractSize': self.parse_number(market['contractSize']),
+            'contractSize': self.safe_value(market, 'contractSize'),
             'markPrice': self.parse_number(markPriceString),
             'side': side,
             'hedged': hedged,

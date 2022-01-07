@@ -55,9 +55,11 @@ class ftx(Exchange):
                 },
             },
             'has': {
+                'spot': True,
                 'margin': True,
                 'swap': True,
                 'future': True,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -574,6 +576,19 @@ class ftx(Exchange):
             elif isFuture:
                 type = 'future'
                 expiry = self.parse8601(expiryDatetime)
+                parsedId = id.split('-')
+                length = len(parsedId)
+                if length > 2:
+                    # handling for MOVE contracts
+                    # BTC-MOVE-2022Q1
+                    # BTC-MOVE-0106
+                    # BTC-MOVE-WK-0121
+                    parsedId.pop()
+                    # remove expiry
+                    # ['BTC', 'MOVE']
+                    # ['BTC', 'MOVE']
+                    # ['BTC', 'MOVE', 'WK']
+                    base = '-'.join(parsedId)
                 symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry, '')
             # check if a market is a spot or future market
             sizeIncrement = self.safe_number(market, 'sizeIncrement')
@@ -598,7 +613,7 @@ class ftx(Exchange):
                 'contract': contract,
                 'linear': True,
                 'inverse': False,
-                'contractSize': 1,
+                'contractSize': self.parse_number('1'),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,
@@ -1127,11 +1142,10 @@ class ftx(Exchange):
         for i in range(0, len(result)):
             entry = result[i]
             marketId = self.safe_string(entry, 'future')
-            symbol = self.safe_symbol(marketId)
             timestamp = self.parse8601(self.safe_string(result[i], 'time'))
             rates.append({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': self.safe_symbol(marketId),
                 'fundingRate': self.safe_number(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -1895,7 +1909,7 @@ class ftx(Exchange):
             'leverage': leverage,
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
             'contracts': self.parse_number(contractsString),
-            'contractSize': self.parse_number('1'),
+            'contractSize': self.safe_value(market, 'contractSize'),
             'marginRatio': marginRatio,
             'liquidationPrice': self.parse_number(liquidationPriceString),
             'markPrice': self.parse_number(markPriceString),

@@ -438,7 +438,7 @@ class wavesexchange(Exchange):
                 'spot': True,
                 'margin': False,
                 'swap': False,
-                'futures': False,
+                'future': False,
                 'option': False,
                 'contract': False,
                 'linear': None,

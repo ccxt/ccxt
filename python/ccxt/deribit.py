@@ -515,7 +515,7 @@ class deribit(Exchange):
                     'inverse': True,
                     'taker': self.safe_number(market, 'taker_commission'),
                     'maker': self.safe_number(market, 'maker_commission'),
-                    'contractSize': self.safe_string(market, 'contract_size'),
+                    'contractSize': self.safe_number(market, 'contract_size'),
                     'active': self.safe_value(market, 'is_active'),
                     'expiry': expiry,
                     'expiryDatetime': self.iso8601(expiry),

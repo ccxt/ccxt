@@ -614,7 +614,7 @@ class bitmart extends Exchange {
                 'inverse' => null,
                 'taker' => $this->safe_number($feeConfig, 'taker_fee'),
                 'maker' => $this->safe_number($feeConfig, 'maker_fee'),
-                'contractSize' => $this->safe_string($market, 'contract_size'),
+                'contractSize' => $this->safe_number($market, 'contract_size'),
                 'active' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),

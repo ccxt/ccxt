@@ -354,7 +354,7 @@ class hitbtc3(Exchange):
             linear = None
             inverse = None
             if contract:
-                contractSize = '1'
+                contractSize = self.parse_number('1')
                 settleId = feeCurrencyId
                 settle = self.safe_currency_code(settleId)
                 linear = ((quote is not None) and (quote == settle))
