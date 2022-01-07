@@ -609,7 +609,7 @@ module.exports = class bitmart extends Exchange {
                 'inverse': undefined,
                 'taker': this.safeNumber (feeConfig, 'taker_fee'),
                 'maker': this.safeNumber (feeConfig, 'maker_fee'),
-                'contractSize': this.safeString (market, 'contract_size'),
+                'contractSize': this.safeNumber (market, 'contract_size'),
                 'active': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
