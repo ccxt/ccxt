@@ -477,7 +477,7 @@ module.exports = class aax extends Exchange {
             if (swap) {
                 symbol = symbol + ':' + settle;
                 type = 'swap';
-                contractSize = this.safeString (market, 'multiplier');
+                contractSize = this.safeNumber (market, 'multiplier');
             }
             result.push ({
                 'id': id,

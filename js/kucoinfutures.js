@@ -445,7 +445,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': Precise.stringAbs (this.safeString (market, 'multiplier')),
+                'contractSize': this.parseNumber (Precise.stringAbs (this.safeString (market, 'multiplier'))),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'precision': {
@@ -914,7 +914,7 @@ module.exports = class kucoinfutures extends kucoin {
             'leverage': this.safeNumber (position, 'realLeverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeValue (market, 'contractSize'),
             //     realisedPnl: position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),

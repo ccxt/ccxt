@@ -399,7 +399,7 @@ module.exports = class cryptocom extends Exchange {
                 type = 'future';
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
-            const contractSize = this.safeString (market, 'contract_size');
+            const contractSize = this.safeNumber (market, 'contract_size');
             const marketId = this.safeString (market, 'symbol');
             const maxLeverage = this.safeNumber (market, 'max_leverage');
             const active = this.safeValue (market, 'tradable');
