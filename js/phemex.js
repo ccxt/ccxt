@@ -432,7 +432,7 @@ module.exports = class phemex extends Exchange {
         };
         const status = this.safeString (market, 'status');
         const active = status === 'Listed';
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeNumber (market, 'contractSize');
         return {
             'id': id,
             'symbol': symbol,

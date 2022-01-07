@@ -344,7 +344,7 @@ class hitbtc3 extends Exchange {
             $linear = null;
             $inverse = null;
             if ($contract) {
-                $contractSize = '1';
+                $contractSize = $this->parse_number('1');
                 $settleId = $feeCurrencyId;
                 $settle = $this->safe_currency_code($settleId);
                 $linear = (($quote !== null) && ($quote === $settle));

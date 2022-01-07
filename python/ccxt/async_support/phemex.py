@@ -440,7 +440,7 @@ class phemex(Exchange):
         }
         status = self.safe_string(market, 'status')
         active = status == 'Listed'
-        contractSize = self.safe_string(market, 'contractSize')
+        contractSize = self.safe_number(market, 'contractSize')
         return {
             'id': id,
             'symbol': symbol,

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.66.33';
+$version = '1.66.37';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.66.33';
+    const VERSION = '1.66.37';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2868,7 +2868,11 @@ class Exchange {
 
     public static function number_to_string($x) {
         // avoids scientific notation for too large and too small numbers
+        $type = gettype($x);
         $s = (string) $x;
+        if (($type !== 'integer') && ($type !== 'double')) {
+            return $s;
+        }
         if (strpos($x, 'E') === false) {
             return $s;
         }

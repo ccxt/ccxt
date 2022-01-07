@@ -450,7 +450,7 @@ class kucoinfutures(kucoin):
                 'inverse': inverse,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': Precise.string_abs(self.safe_string(market, 'multiplier')),
+                'contractSize': self.parse_number(Precise.string_abs(self.safe_string(market, 'multiplier'))),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'precision': {
@@ -893,7 +893,7 @@ class kucoinfutures(kucoin):
             'leverage': self.safe_number(position, 'realLeverage'),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(Precise.string_abs(size)),
-            'contractSize': self.safe_number(market, 'contractSize'),
+            'contractSize': self.safe_value(market, 'contractSize'),
             #     realisedPnl: position['realised_pnl'],
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),

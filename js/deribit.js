@@ -506,7 +506,7 @@ module.exports = class deribit extends Exchange {
                     'inverse': true,
                     'taker': this.safeNumber (market, 'taker_commission'),
                     'maker': this.safeNumber (market, 'maker_commission'),
-                    'contractSize': this.safeString (market, 'contract_size'),
+                    'contractSize': this.safeNumber (market, 'contract_size'),
                     'active': this.safeValue (market, 'is_active'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),

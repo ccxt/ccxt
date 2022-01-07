@@ -986,6 +986,35 @@ $formatted_price = $exchange->price_to_precision($symbol, $price);
 echo $formatted_amount, " ", $formatted_price, "\n";
 ```
 
+More practical examples that describe the behavior of `exchange.precisionMode`:
+
+```JavaScript
+// case A
+exchange.precisionMode = ccxt.DECIMAL_PLACES
+market = exchange.market (symbol)
+market['precision']['amount'] === 8 // up to 8 decimals after the dot
+exchange.amountToPrecision (symbol, 0.123456789) === 0.12345678 
+exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.0000000 === 0.0
+```
+
+```JavaScript
+// case B
+exchange.precisionMode = ccxt.TICK_SIZE
+market = exchange.market (symbol)
+market['precision']['amount'] === 0.00000001 // up to 0.00000001 precision
+exchange.amountToPrecision (symbol, 0.123456789) === 0.12345678
+exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.00000000 === 0.0
+```
+
+```JavaScript
+// case C
+exchange.precisionMode = ccxt.SIGNIFICANT_DIGITS
+market = exchange.market (symbol)
+market['precision']['amount'] === 8 // up to 8 significant non-zero digits
+exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.000000000012345678 
+exchange.amountToPrecision (symbol, 123.4567890123456789) === 123.45678
+```
+
 ## Loading Markets
 
 In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See [Notes On Rate Limiter](https://docs.ccxt.com/en/latest/manual.html#notes-on-rate-limiter) for more details.

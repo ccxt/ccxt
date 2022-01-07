@@ -507,7 +507,7 @@ class ascendex(Exchange):
             type = 'swap' if swap else 'spot'
             margin = self.safe_value(market, 'marginTradable', False)
             linear = True if swap else None
-            contractSize = '1' if swap else None
+            contractSize = self.parse_number('1') if swap else None
             minQty = self.safe_number(market, 'minQty')
             maxQty = self.safe_number(market, 'maxQty')
             minPrice = self.safe_number(market, 'tickSize')

@@ -528,7 +528,7 @@ class mexc extends Exchange {
                 'inverse' => false,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
-                'contractSize' => $this->safe_string($market, 'contractSize'),
+                'contractSize' => $this->safe_number($market, 'contractSize'),
                 'active' => ($state === '0'),
                 'expiry' => null,
                 'expiryDatetime' => null,

@@ -520,7 +520,7 @@ class mexc(Exchange):
                 'inverse': False,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': self.safe_string(market, 'contractSize'),
+                'contractSize': self.safe_number(market, 'contractSize'),
                 'active': (state == '0'),
                 'expiry': None,
                 'expiryDatetime': None,

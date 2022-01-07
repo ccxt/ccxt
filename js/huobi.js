@@ -1236,7 +1236,7 @@ module.exports = class huobi extends Exchange {
                     symbol += '-' + this.yymmdd (expiry);
                 }
             }
-            const contractSize = this.safeString (market, 'contract_size');
+            const contractSize = this.safeNumber (market, 'contract_size');
             let pricePrecision = undefined;
             let amountPrecision = undefined;
             let costPrecision = undefined;
@@ -4775,7 +4775,8 @@ module.exports = class huobi extends Exchange {
         market = this.safeMarket (this.safeString (position, 'contract_code'));
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'volume');
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSizeString = this.numberToString (contractSize);
         const entryPrice = this.safeNumber (position, 'cost_hold');
         const initialMargin = this.safeString (position, 'position_margin');
         const rawSide = this.safeString (position, 'direction');
@@ -4785,7 +4786,7 @@ module.exports = class huobi extends Exchange {
         const leverage = this.safeString (position, 'lever_rate');
         const percentage = Precise.stringMul (this.safeString (position, 'profit_rate'), '100');
         const lastPrice = this.safeString (position, 'last_price');
-        const faceValue = Precise.stringMul (contracts, contractSize);
+        const faceValue = Precise.stringMul (contracts, contractSizeString);
         let notional = undefined;
         if (market['linear']) {
             notional = Precise.stringMul (faceValue, lastPrice);
@@ -4804,7 +4805,7 @@ module.exports = class huobi extends Exchange {
             'info': position,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
-            'contractSize': this.parseNumber (contractSize),
+            'contractSize': contractSize,
             'entryPrice': entryPrice,
             'collateral': this.parseNumber (collateral),
             'side': side,
