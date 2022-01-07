@@ -2870,7 +2870,7 @@ class Exchange {
         // avoids scientific notation for too large and too small numbers
         $type = gettype($x);
         $s = (string) $x;
-        if (($type !== 'integer') || ($type !== 'double')) {
+        if (($type !== 'integer') && ($type !== 'double')) {
             return $s;
         }
         if (strpos($x, 'E') === false) {
