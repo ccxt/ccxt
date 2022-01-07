@@ -118,7 +118,7 @@ function printSupportedExchanges () {
 
 //-----------------------------------------------------------------------------
 
- function printUsage () {
+function printUsage () {
     log ('This is an example of a basic command-line interface to all exchanges')
     log ('Usage: node', process.argv[1], 'id'.green, 'method'.yellow, '"param1" param2 "param3" param4 ...'.blue)
     log ('Examples:')
