@@ -55,9 +55,11 @@ class ftx(Exchange):
                 },
             },
             'has': {
+                'spot': True,
                 'margin': True,
                 'swap': True,
                 'future': True,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -574,6 +576,19 @@ class ftx(Exchange):
             elif isFuture:
                 type = 'future'
                 expiry = self.parse8601(expiryDatetime)
+                parsedId = id.split('-')
+                length = len(parsedId)
+                if length > 2:
+                    # handling for MOVE contracts
+                    # BTC-MOVE-2022Q1
+                    # BTC-MOVE-0106
+                    # BTC-MOVE-WK-0121
+                    parsedId.pop()
+                    # remove expiry
+                    # ['BTC', 'MOVE']
+                    # ['BTC', 'MOVE']
+                    # ['BTC', 'MOVE', 'WK']
+                    base = '-'.join(parsedId)
                 symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry, '')
             # check if a market is a spot or future market
             sizeIncrement = self.safe_number(market, 'sizeIncrement')

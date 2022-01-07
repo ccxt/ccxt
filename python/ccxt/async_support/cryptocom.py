@@ -938,16 +938,13 @@ class cryptocom(Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
+            request['instrument_name'] = market['id']
         if limit is not None:
             request['page_size'] = limit
         marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
-        if marketType == 'spot':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for ' + marketType + ' orders')
-            request['instrument_name'] = market['id']
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',

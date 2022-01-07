@@ -24,6 +24,11 @@ class kucoinfutures extends kucoin {
             'comment' => 'Platform 2.0',
             'quoteJsonNumbers' => false,
             'has' => array(
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'future' => true,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,

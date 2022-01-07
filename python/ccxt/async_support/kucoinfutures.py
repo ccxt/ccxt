@@ -33,6 +33,11 @@ class kucoinfutures(kucoin):
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,
             'has': {
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': True,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,

@@ -34,9 +34,11 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'has': {
+                'spot': true,
                 'margin': true,
                 'swap': true,
                 'future': true,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -538,7 +540,7 @@ module.exports = class ftx extends Exchange {
             const baseId = this.safeString2 (market, 'baseCurrency', 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency', 'USD');
             const settleId = contract ? 'USD' : undefined;
-            const base = this.safeCurrencyCode (baseId);
+            let base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const spot = !contract;
@@ -557,6 +559,20 @@ module.exports = class ftx extends Exchange {
             } else if (isFuture) {
                 type = 'future';
                 expiry = this.parse8601 (expiryDatetime);
+                const parsedId = id.split ('-');
+                const length = parsedId.length;
+                if (length > 2) {
+                    // handling for MOVE contracts
+                    // BTC-MOVE-2022Q1
+                    // BTC-MOVE-0106
+                    // BTC-MOVE-WK-0121
+                    parsedId.pop ();
+                    // remove expiry
+                    // [ 'BTC', 'MOVE' ]
+                    // [ 'BTC', 'MOVE' ]
+                    // [ 'BTC', 'MOVE', 'WK' ]
+                    base = parsedId.join ('-');
+                }
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             // check if a market is a spot or future market

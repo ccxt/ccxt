@@ -457,8 +457,6 @@ module.exports = class bitmart extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
                 'contractSize': undefined,
                 'active': true,
                 'expiry': undefined,

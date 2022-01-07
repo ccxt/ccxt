@@ -27,6 +27,11 @@ class ascendex(Exchange):
             'certified': True,
             # new metainfo interface
             'has': {
+                'spot': True,
+                'margin': None,
+                'swap': True,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
@@ -1774,8 +1779,21 @@ class ascendex(Exchange):
         }
 
     def safe_network(self, networkId):
-        # TODO: parse network
-        return networkId
+        networksById = {
+            'TRC20': 'TRC20',
+            'ERC20': 'ERC20',
+            'GO20': 'GO20',
+            'BEP2': 'BEP2',
+            'BEP20(BSC)': 'BEP20',
+            'Bitcoin': 'BTC',
+            'Bitcoin ABC': 'BCH',
+            'Litecoin': 'LTC',
+            'Matic Network': 'MATIC',
+            'Solana': 'SOL',
+            'xDai': 'STAKE',
+            'Akash': 'AKT',
+        }
+        return self.safe_string(networksById, networkId, networkId)
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()

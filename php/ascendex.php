@@ -23,6 +23,11 @@ class ascendex extends Exchange {
             'certified' => true,
             // new metainfo interface
             'has' => array(
+                'spot' => true,
+                'margin' => null,
+                'swap' => true,
+                'future' => false,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
@@ -1836,8 +1841,21 @@ class ascendex extends Exchange {
     }
 
     public function safe_network($networkId) {
-        // TODO => parse network
-        return $networkId;
+        $networksById = array(
+            'TRC20' => 'TRC20',
+            'ERC20' => 'ERC20',
+            'GO20' => 'GO20',
+            'BEP2' => 'BEP2',
+            'BEP20 (BSC)' => 'BEP20',
+            'Bitcoin' => 'BTC',
+            'Bitcoin ABC' => 'BCH',
+            'Litecoin' => 'LTC',
+            'Matic Network' => 'MATIC',
+            'Solana' => 'SOL',
+            'xDai' => 'STAKE',
+            'Akash' => 'AKT',
+        );
+        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

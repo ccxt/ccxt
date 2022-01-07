@@ -221,6 +221,12 @@ class kraken extends Exchange {
                         'WithdrawCancel' => 1,
                         'WithdrawInfo' => 1,
                         'WithdrawStatus' => 1,
+                        // staking
+                        'Stake' => 1,
+                        'Unstake' => 1,
+                        'Staking/Assets' => 1,
+                        'Staking/Pending' => 1,
+                        'Staking/Transactions' => 1,
                     ),
                 ),
             ),

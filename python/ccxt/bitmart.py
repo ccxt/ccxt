@@ -476,8 +476,6 @@ class bitmart(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': None,
-                'maker': None,
                 'contractSize': None,
                 'active': True,
                 'expiry': None,
