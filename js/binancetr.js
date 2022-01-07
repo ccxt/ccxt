@@ -180,9 +180,9 @@ module.exports = class binancetr extends Exchange {
             let spotPermission = false;
             let marginPermission = false;
             for (let j = 0; j < permissions.length; j++) {
-                if(permissions[j] === 'SPOT') spotPermission = true;
-                if(permissions[j] === 'MARGIN') marginPermission = true;
-              } 
+                if (permissions[j] === 'SPOT') spotPermission = true;
+                if (permissions[j] === 'MARGIN') marginPermission = true;
+            }
             const marginEnable = (this.safeInteger (market, 'marginTradingEnable')) === 1 ? true : false;
             const spotEnable = (this.safeInteger (market, 'spotTradingEnable')) === 1 ? true : false;
             const symbol = base + '/' + quote;
