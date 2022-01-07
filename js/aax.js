@@ -997,7 +997,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privatePostSpotOrders';
-        } else if (market['futures']) {
+        } else if (market['contract']) {
             method = 'privatePostFuturesOrders';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1108,7 +1108,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privatePutSpotOrders';
-        } else if (market['futures']) {
+        } else if (market['contract']) {
             method = 'privatePutFuturesOrders';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1212,7 +1212,7 @@ module.exports = class aax extends Exchange {
         }
         if (type === 'spot') {
             method = 'privateDeleteSpotOrdersCancelOrderID';
-        } else if (type === 'futures') {
+        } else if (type === 'swap') {
             method = 'privateDeleteFuturesOrdersCancelOrderID';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1311,7 +1311,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privateDeleteSpotOrdersCancelAll';
-        } else if (market['futures']) {
+        } else if (market['contract']) {
             method = 'privateDeleteFuturesOrdersCancelAll';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1380,7 +1380,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (type === 'spot') {
             method = 'privateGetSpotOpenOrders';
-        } else if (type === 'futures') {
+        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
             method = 'privateGetFuturesOpenOrders';
         }
         if (limit !== undefined) {
@@ -1527,7 +1527,7 @@ module.exports = class aax extends Exchange {
         }
         if (type === 'spot') {
             method = 'privateGetSpotOrders';
-        } else if (type === 'futures') {
+        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
             method = 'privateGetFuturesOrders';
         }
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
@@ -1814,7 +1814,7 @@ module.exports = class aax extends Exchange {
         }
         if (type === 'spot') {
             method = 'privateGetSpotTrades';
-        } else if (type === 'futures') {
+        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
             method = 'privateGetFuturesTrades';
         }
         if (limit !== undefined) {
