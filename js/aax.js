@@ -2548,25 +2548,25 @@ module.exports = class aax extends Exchange {
         // const notional = this.safeString (position, 'value');
         const leverage = this.safeString (position, 'leverage');
         const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
-        const realisedPnl = this.safeString (position, 'realisedPnl');
+        // const realisedPnl = this.safeString (position, 'realisedPnl');
         // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
-        const takerFee = this.fees.trading.taker;
+        // const takerFee = this.fees['trading']['taker'];
         // const feePaid = Precise.stringMul (takerFee, notional);
-        const initialMarginString = this.safeString (position, 'posMargin');
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        // const initialMarginString = this.safeString (position, 'posMargin');
+        // const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         const timestamp = this.safeInteger (position, 'ts');
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'initialMargin': this.parseNumber (initialMarginString),
+            // 'initialMargin': this.parseNumber (initialMarginString),
             // 'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             // 'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
             // 'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             // 'notional': this.parseNumber (notional),
-            'leverage': parseInt (leverage),
+            'leverage': this.parseNumber (leverage),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),
             'contractSize': this.safeNumber (market, 'contractSize'),
@@ -2574,10 +2574,10 @@ module.exports = class aax extends Exchange {
             // 'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'marketPrice'),
-            // 'collateral': this.safeNumber (position, 'margin'),
+            'collateral': this.safeNumber (position, 'posMargin'),
             'marginType': this.safeString (position, 'settleType'),
             'side': side,
-            'percentage': this.parseNumber (percentage),
+            // 'percentage': this.parseNumber (percentage),
         };
     }
 
