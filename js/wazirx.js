@@ -8,7 +8,7 @@ module.exports = class wazirx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'wazirx',
             'name': 'WazirX',
-            'countries': ['IN'],
+            'countries': [ 'IN' ],
             'version': 'v2',
             'rateLimit': 100,
             'has': {
@@ -50,7 +50,7 @@ module.exports = class wazirx extends Exchange {
                 'fetchTransfers': false,
             },
             'urls': {
-                'logo': 'https://i0.wp.com/blog.wazirx.com/wp-content/uploads/2020/06/banner.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg',
                 'api': 'https://api.wazirx.com/sapi/v1',
                 'www': 'https://wazirx.com',
                 'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
