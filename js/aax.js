@@ -1963,7 +1963,6 @@ module.exports = class aax extends Exchange {
         const address = this.safeString (transaction, 'address');
         const type = 'deposit';
         let amountString = this.safeString (transaction, 'quantity');
-        amountString = Precise.stringDiv (Precise.stringAbs (amountString), '1e8');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdTime'));
         const updated = this.parse8601 (this.safeString (transaction, 'updatedTime'));
         let status = this.safeString (transaction, 'status');
@@ -1978,7 +1977,7 @@ module.exports = class aax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined, // sender
             'address': address,
-            'addressTo': undefined, // receiver
+            'addressTo': address,
             'amount': this.parseNumber (amountString),
             'type': type,
             'currency': code,
