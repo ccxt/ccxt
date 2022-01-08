@@ -2811,4 +2811,4 @@ class Exchange(object):
     def fetch_position(self, symbol, params={}):
         if not self.has['fetchPositions']:
             raise NotSupported(self.id + 'fetch_position() is not supported yet')
-        return self.fetch_positions([symbol], params)
+        return self.safe_value(self.fetch_positions([symbol], params), 0)

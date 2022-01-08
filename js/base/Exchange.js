@@ -2218,6 +2218,6 @@ module.exports = class Exchange {
         if (!this.has['fetchPositions']) {
             throw new NotSupported (this.id + 'fetchPosition() is not supported yet');
         }
-        return await this.fetchPositions ([symbol], params);
+        return this.safeValue (await this.fetchPositions ([symbol], params), 0);
     }
 }

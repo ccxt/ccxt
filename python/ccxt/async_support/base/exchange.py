@@ -396,3 +396,8 @@ class Exchange(BaseExchange):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
+
+    async def fetch_position(self, symbol, params={}):
+        if not self.has['fetchPositions']:
+            raise NotSupported(self.id + 'fetch_position() is not supported yet')
+        return self.safe_value(await self.fetch_positions([symbol], params), 0)

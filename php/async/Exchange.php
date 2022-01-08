@@ -357,4 +357,11 @@ class Exchange extends \ccxt\Exchange {
             });
         });
     }
+
+    public function fetch_position($symbol, $params = array()){
+        if (!$this->has['fetchPositions']) {
+            throw new NotSupported ($this->id + 'fetch_position() is not supported yet');
+        }
+        return $this->save_value(yield $this.fetch_positions([$symbol], $params), 0);
+    }
 }
