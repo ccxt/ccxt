@@ -51,47 +51,39 @@ module.exports = class wazirx extends Exchange {
             },
             'urls': {
                 'logo': 'https://i0.wp.com/blog.wazirx.com/wp-content/uploads/2020/06/banner.png',
-                'api': {
-                    'spot': {
-                        'v1': 'https://api.wazirx.com/sapi/v1',
-                    },
-                },
+                'api': 'https://api.wazirx.com/sapi/v1',
                 'www': 'https://wazirx.com',
                 'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
             },
             'api': {
-                'spot': {
-                    'v1': {
-                        'public': {
-                            'get': {
-                                'depth': 1,
-                                'exchangeInfo': 1,
-                                'ping': 1,
-                                'systemStatus': 1,
-                                'tickers/24hr': 1,
-                                'ticker/24hr': 1,
-                                'time': 1,
-                                'trades': 1,
-                            },
-                        },
-                        'private': {
-                            'get': {
-                                'account': 1,
-                                'allOrders': 1,
-                                'funds': 1,
-                                'historicalTrades': 1,
-                                'openOrders': 1,
-                                'order': 1,
-                            },
-                            'post': {
-                                'order': 1,
-                                'order/test': 1,
-                            },
-                            'delete': {
-                                'order': 1,
-                                'openOrders': 1,
-                            },
-                        },
+                'public': {
+                    'get': {
+                        'exchangeInfo': 1,
+                        'depth': 1,
+                        'ping': 1,
+                        'systemStatus': 1,
+                        'tickers/24hr': 1,
+                        'ticker/24hr': 1,
+                        'time': 1,
+                        'trades': 1,
+                    },
+                },
+                'private': {
+                    'get': {
+                        'account': 1,
+                        'allOrders': 1,
+                        'funds': 1,
+                        'historicalTrades': 1,
+                        'openOrders': 1,
+                        'order': 1,
+                    },
+                    'post': {
+                        'order': 1,
+                        'order/test': 1,
+                    },
+                    'delete': {
+                        'order': 1,
+                        'openOrders': 1,
                     },
                 },
             },
@@ -117,7 +109,7 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.spotV1PublicGetExchangeInfo (params);
+        const response = await this.publicGetExchangeInfo (params);
         //
         // {
         //     "timezone":"UTC",
@@ -211,7 +203,7 @@ module.exports = class wazirx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // [1, 5, 10, 20, 50, 100, 500, 1000]
         }
-        const response = await this.spotV1PublicGetDepth (this.extend (request, params));
+        const response = await this.publicGetDepth (this.extend (request, params));
         //
         //     {
         //          "timestamp":1559561187,
@@ -235,7 +227,7 @@ module.exports = class wazirx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
+        const ticker = await this.publicGetTicker24hr (this.extend (request, params));
         //
         // {
         //     "symbol":"wrxinr",
@@ -256,7 +248,7 @@ module.exports = class wazirx extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const tickers = await this.spotV1PublicGetTickers24hr ();
+        const tickers = await this.publicGetTickers24hr ();
         //
         // [
         //     {
@@ -294,7 +286,7 @@ module.exports = class wazirx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // Default 500; max 1000.
         }
-        const response = await this.spotV1PublicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         // [
         //     {
         //         "id":322307791,
@@ -352,7 +344,7 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.spotV1PublicGetSystemStatus (params);
+        const response = await this.publicGetSystemStatus (params);
         //
         //  { "status":"normal","message":"System is running normally." }
         //
@@ -366,7 +358,7 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.spotV1PublicGetTime (params);
+        const response = await this.publicGetTime (params);
         //
         //     {
         //         "serverTime":1635467280514
@@ -442,7 +434,7 @@ module.exports = class wazirx extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.spotV1PrivateGetFunds (params);
+        const response = await this.privateGetFunds (params);
         //
         // [
         //       {
@@ -470,7 +462,7 @@ module.exports = class wazirx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.spotV1PrivateGetAllOrders (this.extend (request, params));
+        const response = await this.privateGetAllOrders (this.extend (request, params));
         // [
         //     {
         //         "id": 28,
@@ -511,7 +503,7 @@ module.exports = class wazirx extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.spotV1PrivateGetOpenOrders (this.extend (request, params));
+        const response = await this.privateGetOpenOrders (this.extend (request, params));
         // [
         //     {
         //         "id": 28,
@@ -552,7 +544,7 @@ module.exports = class wazirx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        return await this.spotV1PrivateDeleteOpenOrders (this.extend (request, params));
+        return await this.privateDeleteOpenOrders (this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -565,36 +557,31 @@ module.exports = class wazirx extends Exchange {
             'symbol': market['id'],
             'orderId': id,
         };
-        const response = await this.spotV1PrivateDeleteOrder (this.extend (request, params));
+        const response = await this.privateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (!(type === 'limit') || (type === 'stop_limit')) {
+            throw new ExchangeError (this.id + ' createOrder() supports limit and stop_limit orders only');
+        }
+        if (price === undefined) {
+            throw new ExchangeError (this.id + ' createOrder() requires a price argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'side': side,
-            'type': type,
             'quantity': amount,
+            'type': 'limit',
         };
-        if ((type === 'limit') || (type === 'stop_limit')) {
-            if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for ' + type + ' orders');
-            }
-            request['price'] = this.priceToPrecision (symbol, price);
-            if (type === 'stop_limit') {
-                const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
-                if (stopPrice === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder requires a stop-price argument for ' + type + ' orders');
-                }
-                request['stopPrice'] = stopPrice;
-                params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
-            }
-        } else {
-            throw new ExchangeError (this.id + ' allows limit and stop-limit orders only');
+        request['price'] = this.priceToPrecision (symbol, price);
+        const stopPrice = this.safeString (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['type'] = 'stop_limit';
         }
-        const response = await this.spotV1PrivatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
         // {
         //     "id": 28,
         //     "symbol": "wrxinr",
@@ -662,21 +649,19 @@ module.exports = class wazirx extends Exchange {
         const statuses = {
             'wait': 'open',
             'done': 'closed',
+            'cancel': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const accessibility = this.safeValue (api, 2);
-        const marketType = this.safeValue (api, 0);
-        const version = this.safeValue (api, 1);
-        let url = this.urls['api'][marketType][version] + '/' + path;
-        if (accessibility === 'public') {
+        let url = this.urls['api'] + '/' + path;
+        if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         }
-        if (accessibility === 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
             let data = this.extend ({ 'recvWindow': this.options['recvWindow'], 'timestamp': timestamp }, params);
