@@ -1919,7 +1919,7 @@ module.exports = class aax extends Exchange {
         if (since !== undefined) {
             const startTime = parseInt (since / 1000);
             request['startTime'] = startTime;
-            request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60);
+            request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
         }
         const response = await this.privateGetAccountDeposits (this.extend (request, params));
         // {    "code": 1,
