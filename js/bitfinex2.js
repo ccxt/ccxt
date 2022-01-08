@@ -374,8 +374,8 @@ module.exports = class bitfinex2 extends bitfinex {
             if (this.inArray (id, futuresMarketIds)) {
                 spot = false;
             }
-            const futures = !spot;
-            const type = spot ? 'spot' : 'futures';
+            const future = !spot;
+            const type = spot ? 'spot' : 'future';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf (':') >= 0) {
@@ -428,7 +428,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'swap': false,
                 'spot': spot,
                 'margin': margin,
-                'futures': futures,
+                'future': future,
             });
         }
         return result;
