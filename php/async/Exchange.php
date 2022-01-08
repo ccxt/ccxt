@@ -362,4 +362,22 @@ class Exchange extends \ccxt\Exchange {
             });
         });
     }
+
+    public function fetchTradingLimits($symbols=null, $params=array()){
+        /**
+         * this method should not be called directly, use loadTradingLimits () instead
+         * by default it will try load withdrawal fees of all currencies (with separate requests)
+         * however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        */
+        yield $this->loadMarkets();
+        if ($symbols == null) {
+            $symbols = $this->symbols;
+        }
+        $result = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $result[$symbol] = yield $this->fetchTradingLimitsById($this->marketId($symbol), $params);
+        }
+        return $result;
+    }
 }

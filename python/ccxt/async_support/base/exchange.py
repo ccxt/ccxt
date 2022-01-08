@@ -399,3 +399,18 @@ class Exchange(BaseExchange):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + ' fetch_market_leverage_tiers() is not supported yet')
+
+    async def fetchTradingLimits(self, symbols=None, params={}):
+        """
+        this method should not be called directly, use loadTradingLimits () instead
+        by default it will try load withdrawal fees of all currencies (with separate requests)
+        however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        """
+        await self.loadMarkets()
+        if (symbols is None):
+            symbols = self.symbols
+        result = {}
+        for i in range(len(symbols)):
+            symbol = symbols[i]
+            result[symbol] = await self.fetchTradingLimitsById(self.marketId(symbol), params)
+        return result
