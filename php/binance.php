@@ -3600,7 +3600,7 @@ class binance extends Exchange {
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
             $entry = $incomes[$i];
-            $parsed = $this->parse_income ($entry, $market);
+            $parsed = $this->parse_income($entry, $market);
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
@@ -4307,7 +4307,7 @@ class binance extends Exchange {
             $code = ($this->options['defaultType'] === 'future') ? $market['quote'] : $market['base'];
             // sometimes not all the codes are correctly returned...
             if (is_array($balances) && array_key_exists($code, $balances)) {
-                $parsed = $this->parse_account_position (array_merge($position, array(
+                $parsed = $this->parse_account_position(array_merge($position, array(
                     'crossMargin' => $balances[$code]['crossMargin'],
                     'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
                 )), $market);
@@ -4745,7 +4745,7 @@ class binance extends Exchange {
             throw new NotSupported($this->id . ' fetchPositions() supports linear and inverse contracts only');
         }
         $account = $this->$method ($query);
-        $result = $this->parse_account_positions ($account);
+        $result = $this->parse_account_positions($account);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
@@ -4827,7 +4827,7 @@ class binance extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_position_risk ($response[$i]);
+            $parsed = $this->parse_position_risk($response[$i]);
             $result[] = $parsed;
         }
         return $this->filter_by_array($result, 'symbol', $symbols, false);
@@ -4869,7 +4869,7 @@ class binance extends Exchange {
             throw NotSupported ($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
         }
         $response = $this->$method (array_merge($request, $params));
-        return $this->parse_incomes ($response, $market, $since, $limit);
+        return $this->parse_incomes($response, $market, $since, $limit);
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {

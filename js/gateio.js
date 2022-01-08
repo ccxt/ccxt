@@ -880,7 +880,7 @@ module.exports = class gateio extends Exchange {
     getSettlementCurrencies (type, method) {
         const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
         const fetchMarketsContractOptions = this.safeValue (options, method, {});
-        const defaultSettle = (type === 'swap') ? ['usdt'] : ['btc'];
+        const defaultSettle = (type === 'swap') ? [ 'usdt' ] : [ 'btc' ];
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
 
@@ -1533,7 +1533,7 @@ module.exports = class gateio extends Exchange {
             const defaultSettle = swap ? 'usdt' : 'btc';
             request['settle'] = this.safeStringLower (params, 'settle', defaultSettle);
             const response_item = await this[method] (this.extend (request, params));
-            response = [response_item];
+            response = [ response_item ];
         } else {
             response = await this[method] (this.extend (request, params));
         }

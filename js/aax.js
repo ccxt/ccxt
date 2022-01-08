@@ -51,7 +51,7 @@ module.exports = class aax extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
-                'fetchDeposits': undefined,
+                'fetchDeposits': true,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
                 'fetchFundingHistory': true,
@@ -182,6 +182,7 @@ module.exports = class aax extends Exchange {
                         'user/info', // Retrieve user information
                         'account/balances', // Get Account Balances
                         'account/deposit/address', // undocumented
+                        'account/deposits', // Get account deposits history
                         'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
                         'spot/orders', // Retrieve historical spot orders
@@ -1900,6 +1901,98 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseDepositAddress (data, currency);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // status Not required -  Deposit status, "1: pending,2: confirmed, 3:failed"
+            // currency: Not required -  String Currency
+            // startTime Not required Integer Default: 90 days from current timestamp.
+            // endTime Not required Integer Default: present timestamp.
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            const startTime = parseInt (since / 1000);
+            request['startTime'] = startTime;
+            request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
+        }
+        const response = await this.privateGetAccountDeposits (this.extend (request, params));
+        // {    "code": 1,
+        //     "data": [{
+        //         "currency": "USDT",
+        //         "network": "USDT",
+        //         "quantity": "19.000000000000",
+        //         "txHash": "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address": "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "status": "2",
+        //         "createdTime": "2021-01-08T19:45:01.354Z",
+        //         "updatedTime": "2021-01-08T20:03:05.000Z",
+        //     }]
+        //     "message": "success",
+        //     "ts": 1573561743499
+        // }
+        const deposits = this.safeValue (response, 'data', []);
+        return this.parseTransactions (deposits, code, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '1': 'pending',
+            '2': 'ok',
+            '3': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //    {
+        //         "currency": "USDT",
+        //         "network": "USDT",
+        //         "quantity": "19.000000000000",
+        //         "txHash": "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address": "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "status": "2",
+        //         "createdTime": "2021-01-08T19:45:01.354Z",
+        //         "updatedTime": "2021-01-08T20:03:05.000Z",
+        //     }
+        //
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
+        const txid = this.safeString (transaction, 'txHash');
+        const address = this.safeString (transaction, 'address');
+        const type = 'deposit';
+        const amountString = this.safeString (transaction, 'quantity');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdTime'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedTime'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const tag = this.safeString (transaction, 'addressTag'); // withdrawals only
+        return {
+            'id': undefined,
+            'info': transaction,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'addressFrom': address,
+            'address': address,
+            'addressTo': undefined,
+            'amount': this.parseNumber (amountString),
+            'type': type,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'tagFrom': tag,
+            'tag': tag,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        };
     }
 
     async fetchFundingRate (symbol, params = {}) {

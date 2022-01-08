@@ -825,7 +825,7 @@ class coinbase extends Exchange {
             $currency = $this->currency($code);
         }
         $request = $this->prepare_account_request_with_currency_code($code, $limit, $params);
-        $query = $this->omit($params, ['account_id', 'accountId']);
+        $query = $this->omit($params, array( 'account_id', 'accountId' ));
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg => instance.last_json_response.pagination.next_starting_after

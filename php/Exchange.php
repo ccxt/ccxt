@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.66.47';
+$version = '1.66.53';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.66.47';
+    const VERSION = '1.66.53';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -359,6 +359,7 @@ class Exchange {
         'signHash' => 'sign_hash',
         'signMessage' => 'sign_message',
         'signMessageString' => 'sign_message_string',
+        'getNetwork' => 'get_network',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeTrade' => 'safe_trade',
         'safeOrder' => 'safe_order',
@@ -2977,6 +2978,45 @@ class Exchange {
             return $this->totp($this->twofa);
         } else {
             throw new ExchangeError($this->id . ' requires a non-empty value in $this->twofa property');
+        }
+    }
+
+    public function get_network($network, $code) {
+        $network = strtoupper($network);
+        $aliases = array(
+            'ETHEREUM' => 'ETH',
+            'ETHER' => 'ETH',
+            'ERC20' => 'ETH',
+            'ETH' => 'ETH',
+            'TRC20' => 'TRX',
+            'TRON' => 'TRX',
+            'TRX' => 'TRX',
+            'BEP20' => 'BSC',
+            'BSC' => 'BSC',
+            'HRC20' => 'HT',
+            'HECO' => 'HT',
+            'SPL' => 'SOL',
+            'SOL' => 'SOL',
+            'TERRA' => 'LUNA',
+            'LUNA' => 'LUNA',
+            'POLYGON' => 'MATIC',
+            'MATIC' => 'MATIC',
+            'EOS' => 'EOS',
+            'WAVES' => 'WAVES',
+            'AVALANCHE' => 'AVAX',
+            'AVAX' => 'AVAX',
+            'QTUM' => 'QTUM',
+            'CHZ' => 'CHZ',
+            'NEO' => 'NEO',
+            'ONT' => 'ONT',
+            'RON' => 'RON',
+        );
+        if ($network === $code) {
+            return $network;
+        } else if (is_array($aliases) && array_key_exists($network, $aliases)) {
+            return $aliases[$network];
+        } else {
+            throw new NotSupported($this->id . ' $network ' . $network . ' is not yet supported');
         }
     }
 

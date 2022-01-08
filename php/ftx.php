@@ -1645,7 +1645,7 @@ class ftx extends Exchange {
             $request['order_id'] = $id;
         } else {
             $request['client_order_id'] = $clientOrderId;
-            $params = $this->omit($params, [ 'client_order_id', 'clientOrderId']);
+            $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
             $method = 'privateGetOrdersByClientIdClientOrderId';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -2304,7 +2304,7 @@ class ftx extends Exchange {
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
             $entry = $incomes[$i];
-            $parsed = $this->parse_income ($entry, $market);
+            $parsed = $this->parse_income($entry, $market);
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
@@ -2324,7 +2324,7 @@ class ftx extends Exchange {
         }
         $response = $this->privateGetFundingPayments (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_incomes ($result, $market, $since, $limit);
+        return $this->parse_incomes($result, $market, $since, $limit);
     }
 
     public function parse_funding_rate($fundingRate, $market = null) {

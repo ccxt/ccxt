@@ -32,6 +32,7 @@ class deribit extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchHistoricalVolatility' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -1836,6 +1837,42 @@ class deribit extends Exchange {
         // todo unify parsePositions
         $result = $this->parse_positions($response);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function fetch_historical_volatility($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->publicGetGetHistoricalVolatility (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "result" => [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn" => 1641515379467734,
+        //         "usOut" => 1641515379468095,
+        //         "usDiff" => 361,
+        //         "testnet" => false
+        //     }
+        //
+        $volatilityResult = $this->safe_value($response, 'result', array());
+        $result = array();
+        for ($i = 0; $i < count($volatilityResult); $i++) {
+            $timestamp = $this->safe_integer($volatilityResult[$i], 0);
+            $volatility = $this->safe_number($volatilityResult[$i], 1);
+            $result[] = array(
+                'info' => $response,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'volatility' => $volatility,
+            );
+        }
+        return $result;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

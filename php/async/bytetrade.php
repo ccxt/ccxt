@@ -18,7 +18,7 @@ class bytetrade extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'bytetrade',
             'name' => 'ByteTrade',
-            'countries' => ['HK'],
+            'countries' => array( 'HK' ),
             'rateLimit' => 500,
             'requiresWeb3' => true,
             'certified' => false,

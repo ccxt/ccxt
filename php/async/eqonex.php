@@ -367,7 +367,7 @@ class eqonex extends Exchange {
         $low = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 3), $market['precision']['price']));
         $close = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 4), $market['precision']['price']));
         $volume = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 5), $market['precision']['amount']));
-        return [$timestamp, $open, $high, $low, $close, $volume];
+        return array( $timestamp, $open, $high, $low, $close, $volume );
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
