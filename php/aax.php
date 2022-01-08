@@ -105,7 +105,6 @@ class aax extends Exchange {
                 'fetchWithdrawals' => null,
                 'fetchWithdrawalWhitelist' => null,
                 'loadLeverageBrackets' => null,
-                'loadTimeDifference' => null,
                 'reduceMargin' => null,
                 'setLeverage' => null,
                 'setMarginMode' => null,

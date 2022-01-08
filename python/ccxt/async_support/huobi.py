@@ -129,7 +129,6 @@ class huobi(Exchange):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'loadLeverageBrackets': None,
-                'loadTimeDifference': None,
                 'reduceMargin': None,
                 'setLeverage': True,
                 'setMarginMode': None,

@@ -122,13 +122,6 @@ class indodax extends Exchange {
         return $this->safe_integer($response, 'server_time');
     }
 
-    public function load_time_difference($params = array ()) {
-        $serverTime = $this->fetch_time($params);
-        $after = $this->milliseconds();
-        $this->options['timeDifference'] = $after - $serverTime;
-        return $this->options['timeDifference'];
-    }
-
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetPairs ($params);
         //

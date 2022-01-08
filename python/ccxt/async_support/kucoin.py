@@ -439,13 +439,6 @@ class kucoin(Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    async def load_time_difference(self, params={}):
-        response = await self.publicGetTimestamp(params)
-        after = self.milliseconds()
-        kucoinTime = self.safe_integer(response, 'data')
-        self.options['timeDifference'] = int(after - kucoinTime)
-        return self.options['timeDifference']
-
     async def fetch_time(self, params={}):
         response = await self.publicGetTimestamp(params)
         #

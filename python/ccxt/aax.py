@@ -122,7 +122,6 @@ class aax(Exchange):
                 'fetchWithdrawals': None,
                 'fetchWithdrawalWhitelist': None,
                 'loadLeverageBrackets': None,
-                'loadTimeDifference': None,
                 'reduceMargin': None,
                 'setLeverage': None,
                 'setMarginMode': None,

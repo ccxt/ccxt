@@ -125,12 +125,6 @@ class indodax(Exchange):
         #
         return self.safe_integer(response, 'server_time')
 
-    def load_time_difference(self, params={}):
-        serverTime = self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
-
     def fetch_markets(self, params={}):
         response = self.publicGetPairs(params)
         #

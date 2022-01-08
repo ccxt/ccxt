@@ -353,13 +353,6 @@ class bitrue extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function load_time_difference($params = array ()) {
-        $serverTime = yield $this->fetch_time($params);
-        $after = $this->milliseconds();
-        $this->options['timeDifference'] = $after - $serverTime;
-        return $this->options['timeDifference'];
-    }
-
     public function safe_network($networkId) {
         $uppercaseNetworkId = strtoupper($networkId);
         $networksById = array(

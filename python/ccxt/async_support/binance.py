@@ -1169,12 +1169,6 @@ class binance(Exchange):
         response = await getattr(self, method)(query)
         return self.safe_integer(response, 'serverTime')
 
-    async def load_time_difference(self, params={}):
-        serverTime = await self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
-
     async def fetch_currencies(self, params={}):
         fetchCurrenciesEnabled = self.safe_value(self.options, 'fetchCurrencies')
         if not fetchCurrenciesEnabled:

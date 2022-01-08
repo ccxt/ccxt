@@ -67,7 +67,6 @@ class kucoinfutures extends kucoin {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => null,
-                'loadTimeDifference' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
                 'transferOut' => true,
@@ -294,14 +293,6 @@ class kucoinfutures extends kucoin {
 
     public function fetch_accounts($params = array ()) {
         throw new BadRequest($this->id . ' has no method fetchAccounts');
-    }
-
-    public function load_time_difference($params = array ()) {
-        $response = yield $this->futuresPublicGetTimestamp ($params);
-        $after = $this->milliseconds();
-        $kucoinTime = $this->safe_integer($response, 'data');
-        $this->options['timeDifference'] = intval($after - $kucoinTime);
-        return $this->options['timeDifference'];
     }
 
     public function fetch_status($params = array ()) {

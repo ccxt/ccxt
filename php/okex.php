@@ -105,7 +105,6 @@ class okex extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'loadLeverageBrackets' => null,
-                'loadTimeDifference' => null,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,

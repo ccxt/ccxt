@@ -75,7 +75,6 @@ class kucoinfutures(kucoin):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': None,
-                'loadTimeDifference': True,
                 'setMarginMode': False,
                 'transfer': True,
                 'transferOut': True,
@@ -301,13 +300,6 @@ class kucoinfutures(kucoin):
 
     def fetch_accounts(self, params={}):
         raise BadRequest(self.id + ' has no method fetchAccounts')
-
-    def load_time_difference(self, params={}):
-        response = self.futuresPublicGetTimestamp(params)
-        after = self.milliseconds()
-        kucoinTime = self.safe_integer(response, 'data')
-        self.options['timeDifference'] = int(after - kucoinTime)
-        return self.options['timeDifference']
 
     def fetch_status(self, params={}):
         response = self.futuresPublicGetStatus(params)

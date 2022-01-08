@@ -449,12 +449,6 @@ class bybit(Exchange):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def load_time_difference(self, params={}):
-        serverTime = self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
-
     def fetch_time(self, params={}):
         response = self.v2PublicGetTime(params)
         #

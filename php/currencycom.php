@@ -173,13 +173,6 @@ class currencycom extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function load_time_difference($params = array ()) {
-        $response = $this->publicGetTime ($params);
-        $after = $this->milliseconds();
-        $this->options['timeDifference'] = intval($after - $response['serverTime']);
-        return $this->options['timeDifference'];
-    }
-
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetExchangeInfo ($params);
         //

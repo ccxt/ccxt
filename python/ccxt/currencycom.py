@@ -177,12 +177,6 @@ class currencycom(Exchange):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def load_time_difference(self, params={}):
-        response = self.publicGetTime(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = int(after - response['serverTime'])
-        return self.options['timeDifference']
-
     def fetch_markets(self, params={}):
         response = self.publicGetExchangeInfo(params)
         #
