@@ -2559,7 +2559,6 @@ module.exports = class bitget extends Exchange {
                 'cost': feeCost,
             };
         }
-        const updated = this.safeInteger (transaction, 'updated_at');
         return {
             'info': transaction,
             'id': id,
