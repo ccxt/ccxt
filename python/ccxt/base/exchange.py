@@ -2640,7 +2640,7 @@ class Exchange(object):
         return [type, params]
 
     def load_time_difference(self, params={}):
-        server_time = self.fetchTime(params)
+        server_time = self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - server_time
         return self.options['timeDifference']
