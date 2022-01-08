@@ -383,8 +383,8 @@ class bitfinex2(bitfinex):
             spot = True
             if self.in_array(id, futuresMarketIds):
                 spot = False
-            futures = not spot
-            type = 'spot' if spot else 'futures'
+            future = not spot
+            type = 'spot' if spot else 'future'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -436,7 +436,7 @@ class bitfinex2(bitfinex):
                 'swap': False,
                 'spot': spot,
                 'margin': margin,
-                'futures': futures,
+                'future': future,
             })
         return result
 

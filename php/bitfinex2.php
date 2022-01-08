@@ -367,7 +367,7 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_markets($params = array ()) {
         // todo drop v1 in favor of v2 configs  ( temp-reference for v2update => https://pastebin.com/raw/S8CmqSHQ )
-        // pub:list:pair:exchange,pub:list:pair:$margin,pub:list:pair:$futures,pub:info:pair
+        // pub:list:pair:exchange,pub:list:pair:$margin,pub:list:pair:futures,pub:info:pair
         $v2response = $this->publicGetConfPubListPairFutures ($params);
         $v1response = $this->v1GetSymbolsDetails ($params);
         $futuresMarketIds = $this->safe_value($v2response, 0, array());
@@ -379,8 +379,8 @@ class bitfinex2 extends bitfinex {
             if ($this->in_array($id, $futuresMarketIds)) {
                 $spot = false;
             }
-            $futures = !$spot;
-            $type = $spot ? 'spot' : 'futures';
+            $future = !$spot;
+            $type = $spot ? 'spot' : 'future';
             $baseId = null;
             $quoteId = null;
             if (mb_strpos($id, ':') !== false) {
@@ -433,7 +433,7 @@ class bitfinex2 extends bitfinex {
                 'swap' => false,
                 'spot' => $spot,
                 'margin' => $margin,
-                'futures' => $futures,
+                'future' => $future,
             );
         }
         return $result;
