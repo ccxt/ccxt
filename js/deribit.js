@@ -30,6 +30,7 @@ module.exports = class deribit extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchHistoricalVolatility': true,
                 'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -1834,6 +1835,42 @@ module.exports = class deribit extends Exchange {
         // todo unify parsePositions
         const result = this.parsePositions (response);
         return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchHistoricalVolatility (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.publicGetGetHistoricalVolatility (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn": 1641515379467734,
+        //         "usOut": 1641515379468095,
+        //         "usDiff": 361,
+        //         "testnet": false
+        //     }
+        //
+        const volatilityResult = this.safeValue (response, 'result', {});
+        const result = [];
+        for (let i = 0; i < volatilityResult.length; i++) {
+            const timestamp = this.safeInteger (volatilityResult[i], 0);
+            const volatility = this.safeNumber (volatilityResult[i], 1);
+            result.push ({
+                'info': response,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'volatility': volatility,
+            });
+        }
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
