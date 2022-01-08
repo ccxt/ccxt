@@ -1937,8 +1937,8 @@ module.exports = class aax extends Exchange {
         //     "message": "success",
         //     "ts": 1573561743499
         // }
-        const deposits = this.safeValue (response, 'data', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, code, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1980,8 +1980,8 @@ module.exports = class aax extends Exchange {
         //     "message":"success",
         //     "ts":1573561743499
         //  }
-        const deposits = this.safeValue (response, 'data', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, code, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -2063,12 +2063,14 @@ module.exports = class aax extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdTime'));
         const updated = this.parse8601 (this.safeString (transaction, 'updatedTime'));
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        const network = this.safeString (transaction, 'network');
         return {
             'id': undefined,
             'info': transaction,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'addressFrom': addressFrom,
             'address': address,
             'addressTo': addressTo,
