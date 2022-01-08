@@ -1917,7 +1917,9 @@ module.exports = class aax extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = since; // default 90 days
+            const startTime = parseInt (since / 1000);
+            request['startTime'] = startTime;
+            request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60);
         }
         const response = await this.privateGetAccountDeposits (this.extend (request, params));
         // {    "code": 1,
@@ -1962,30 +1964,33 @@ module.exports = class aax extends Exchange {
         const txid = this.safeString (transaction, 'txHash');
         const address = this.safeString (transaction, 'address');
         const type = 'deposit';
-        let amountString = this.safeString (transaction, 'quantity');
+        const amountString = this.safeString (transaction, 'quantity');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdTime'));
         const updated = this.parse8601 (this.safeString (transaction, 'updatedTime'));
         let status = this.safeString (transaction, 'status');
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
         }
+        // When tested on 9 Jan 2022 AAX did not return the tag in the response.
+        // This is to future proof if it is included in the future.
+        const tag = this.safeString2 (transaction, 'tag', 'addressTag');
         return {
             'id': undefined,
             'info': transaction,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'addressFrom': undefined, // sender
+            'addressFrom': address,
             'address': address,
-            'addressTo': address,
+            'addressTo': undefined,
             'amount': this.parseNumber (amountString),
             'type': type,
             'currency': code,
             'status': status,
             'updated': updated,
-            'tagFrom': undefined, // "tag" or "memo" or "payment_id" associated with the sender
-            'tag': undefined, // "tag" or "memo" or "payment_id" associated with the address
-            'tagTo': undefined, // "tag" or "memo" or "payment_id" associated with the receiver
+            'tagFrom': tag,
+            'tag': tag,
+            'tagTo': undefined,
             'comment': undefined,
             'fee': undefined,
         };
