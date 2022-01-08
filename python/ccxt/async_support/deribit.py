@@ -729,7 +729,7 @@ class deribit(Exchange):
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number_2(ticker, 'last_price', 'last')
         stats = self.safe_value(ticker, 'stats', ticker)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -750,7 +750,7 @@ class deribit(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_number(stats, 'volume'),
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -1631,6 +1631,68 @@ class deribit(Exchange):
             'fee': fee,
         }
 
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 404,
+        #         "result": {
+        #             "average_price": 0,
+        #             "delta": 0,
+        #             "direction": "buy",
+        #             "estimated_liquidation_price": 0,
+        #             "floating_profit_loss": 0,
+        #             "index_price": 3555.86,
+        #             "initial_margin": 0,
+        #             "instrument_name": "BTC-PERPETUAL",
+        #             "leverage": 100,
+        #             "kind": "future",
+        #             "maintenance_margin": 0,
+        #             "mark_price": 3556.62,
+        #             "open_orders_margin": 0.000165889,
+        #             "realized_profit_loss": 0,
+        #             "settlement_price": 3555.44,
+        #             "size": 0,
+        #             "size_currency": 0,
+        #             "total_profit_loss": 0
+        #         }
+        #     }
+        #
+        contract = self.safe_string(position, 'instrument_name')
+        market = self.safe_market(contract, market)
+        size = self.safe_string(position, 'size')
+        side = self.safe_string(position, 'direction')
+        maintenanceRate = self.safe_string(position, 'maintenance_margin')
+        markPrice = self.safe_string(position, 'mark_price')
+        notionalString = Precise.string_mul(markPrice, size)
+        unrealisedPnl = self.safe_string(position, 'floating_profit_loss')
+        initialMarginString = self.safe_string(position, 'initial_margin')
+        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
+        currentTime = self.milliseconds()
+        return {
+            'info': position,
+            'symbol': self.safe_string(market, 'symbol'),
+            'timestamp': currentTime,
+            'datetime': self.iso8601(currentTime),
+            'initialMargin': self.parse_number(initialMarginString),
+            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notionalString)),
+            'maintenanceMargin': self.parse_number(Precise.string_mul(maintenanceRate, notionalString)),
+            'maintenanceMarginPercentage': self.parse_number(maintenanceRate),
+            'entryPrice': self.safe_string(position, 'average_price'),
+            'notional': self.parse_number(notionalString),
+            'leverage': self.safe_number(position, 'leverage'),
+            'unrealizedPnl': self.parse_number(unrealisedPnl),
+            'contracts': self.parse_number(size),  # in USD for perpetuals on deribit
+            'contractSize': self.safe_value(market, 'contractSize'),
+            'marginRatio': None,
+            'liquidationPrice': self.safe_number(position, 'estimated_liquidation_price'),
+            'markPrice': markPrice,
+            'collateral': None,
+            'marginType': None,
+            'side': side,
+            'percentage': self.parse_number(percentage),
+        }
+
     async def fetch_position(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -1664,8 +1726,14 @@ class deribit(Exchange):
         #         }
         #     }
         #
-        # todo unify parsePosition/parsePositions
         result = self.safe_value(response, 'result')
+        return self.parse_position(result)
+
+    def parse_positions(self, positions):
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i]))
+        # todo unify parsePositions
         return result
 
     async def fetch_positions(self, symbols=None, params={}):
@@ -1705,9 +1773,10 @@ class deribit(Exchange):
         #         ]
         #     }
         #
-        # todo unify parsePosition/parsePositions
-        result = self.safe_value(response, 'result', [])
-        return result
+        # response is returning an empty list for result
+        # todo unify parsePositions
+        result = self.parse_positions(response)
+        return self.filter_by_array(result, 'symbol', symbols, False)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
