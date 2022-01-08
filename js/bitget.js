@@ -2559,11 +2559,13 @@ module.exports = class bitget extends Exchange {
                 'cost': feeCost,
             };
         }
+        const updated = this.safeInteger (transaction, 'updated_at');
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -2576,6 +2578,7 @@ module.exports = class bitget extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'updated': updated,
             'fee': fee,
         };
     }
