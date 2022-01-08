@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\NetworkError;
 use \ccxt\InvalidNonce;
 
 class kucoin extends \ccxt\async\kucoin {
@@ -348,6 +349,33 @@ class kucoin extends \ccxt\async\kucoin {
         return $orderbook->limit ($limit);
     }
 
+    public function retry_fetch_order_book_snapshot($client, $message, $subscription) {
+        $symbol = $this->safe_string($subscription, 'symbol');
+        $messageHash = $this->safe_string($subscription, 'messageHash');
+        // var_dump ('fetchOrderBookSnapshot', nonce, previousSequence, nonce >= previousSequence);
+        $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
+        $maxAttempts = $this->safe_integer($options, 'maxAttempts', 3);
+        $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
+        // retry to syncrhonize if we haven't reached $maxAttempts yet
+        if ($numAttempts < $maxAttempts) {
+            // safety guard
+            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                $numAttempts = $this->sum($numAttempts, 1);
+                $subscription['numAttempts'] = $numAttempts;
+                $client->subscriptions[$messageHash] = $subscription;
+                $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+            }
+        } else {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                $subscription['fetchingOrderBookSnapshot'] = false;
+                $subscription['numAttempts'] = 0;
+                $client->subscriptions[$messageHash] = $subscription;
+            }
+            $e = new InvalidNonce ($this->id . ' failed to synchronize WebSocket feed with the snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+            $client->reject ($e, $messageHash);
+        }
+    }
+
     public function fetch_order_book_snapshot($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
@@ -369,24 +397,9 @@ class kucoin extends \ccxt\async\kucoin {
             $previousSequence = $sequenceStart - 1;
             // if the received $snapshot is earlier than the first cached delta
             // then we cannot align it with the cached deltas and we need to
-            // retry synchronizing in $maxAttempts
+            // retry synchronizing in maxAttempts
             if ($nonce < $previousSequence) {
-                $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
-                $maxAttempts = $this->safe_integer($options, 'maxAttempts', 3);
-                $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
-                // retry to syncrhonize if we haven't reached $maxAttempts yet
-                if ($numAttempts < $maxAttempts) {
-                    // safety guard
-                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-                        $numAttempts = $this->sum($numAttempts, 1);
-                        $subscription['numAttempts'] = $numAttempts;
-                        $client->subscriptions[$messageHash] = $subscription;
-                        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
-                    }
-                } else {
-                    // throw upon failing to synchronize in $maxAttempts
-                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
-                }
+                $this->retry_fetch_order_book_snapshot($client, $message, $subscription);
             } else {
                 $orderbook->reset ($snapshot);
                 // unroll the accumulated deltas
@@ -399,7 +412,11 @@ class kucoin extends \ccxt\async\kucoin {
                 $client->resolve ($orderbook, $messageHash);
             }
         } catch (Exception $e) {
-            $client->reject ($e, $messageHash);
+            if ($e instanceof NetworkError) {
+                $this->retry_fetch_order_book_snapshot($client, $message, $subscription);
+            } else {
+                $client->reject ($e, $messageHash);
+            }
         }
     }
 

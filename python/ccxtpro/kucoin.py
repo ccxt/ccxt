@@ -7,6 +7,7 @@ from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NetworkError
 from ccxt.base.errors import InvalidNonce
 
 
@@ -326,6 +327,29 @@ class kucoin(Exchange, ccxt.kucoin):
         orderbook = await self.subscribe(negotiation, topic, messageHash, self.handle_order_book_subscription, symbol, params)
         return orderbook.limit(limit)
 
+    def retry_fetch_order_book_snapshot(self, client, message, subscription):
+        symbol = self.safe_string(subscription, 'symbol')
+        messageHash = self.safe_string(subscription, 'messageHash')
+        # print('fetchOrderBookSnapshot', nonce, previousSequence, nonce >= previousSequence)
+        options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
+        maxAttempts = self.safe_integer(options, 'maxAttempts', 3)
+        numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
+        # retry to syncrhonize if we haven't reached maxAttempts yet
+        if numAttempts < maxAttempts:
+            # safety guard
+            if messageHash in client.subscriptions:
+                numAttempts = self.sum(numAttempts, 1)
+                subscription['numAttempts'] = numAttempts
+                client.subscriptions[messageHash] = subscription
+                self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+        else:
+            if messageHash in client.subscriptions:
+                subscription['fetchingOrderBookSnapshot'] = False
+                subscription['numAttempts'] = 0
+                client.subscriptions[messageHash] = subscription
+            e = InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
+            client.reject(e, messageHash)
+
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
@@ -349,20 +373,7 @@ class kucoin(Exchange, ccxt.kucoin):
             # then we cannot align it with the cached deltas and we need to
             # retry synchronizing in maxAttempts
             if nonce < previousSequence:
-                options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
-                maxAttempts = self.safe_integer(options, 'maxAttempts', 3)
-                numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
-                # retry to syncrhonize if we haven't reached maxAttempts yet
-                if numAttempts < maxAttempts:
-                    # safety guard
-                    if messageHash in client.subscriptions:
-                        numAttempts = self.sum(numAttempts, 1)
-                        subscription['numAttempts'] = numAttempts
-                        client.subscriptions[messageHash] = subscription
-                        self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
-                else:
-                    # raise upon failing to synchronize in maxAttempts
-                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
+                self.retry_fetch_order_book_snapshot(client, message, subscription)
             else:
                 orderbook.reset(snapshot)
                 # unroll the accumulated deltas
@@ -373,7 +384,10 @@ class kucoin(Exchange, ccxt.kucoin):
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
         except Exception as e:
-            client.reject(e, messageHash)
+            if isinstance(e, NetworkError):
+                self.retry_fetch_order_book_snapshot(client, message, subscription)
+            else:
+                client.reject(e, messageHash)
 
     def handle_delta(self, bookside, delta, nonce):
         price = self.safe_float(delta, 0)
