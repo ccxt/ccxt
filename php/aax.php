@@ -53,7 +53,7 @@ class aax extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => null,
-                'fetchDeposits' => null,
+                'fetchDeposits' => true,
                 'fetchFundingFee' => null,
                 'fetchFundingFees' => null,
                 'fetchFundingHistory' => true,
@@ -184,6 +184,7 @@ class aax extends Exchange {
                         'user/info', // Retrieve user information
                         'account/balances', // Get Account Balances
                         'account/deposit/address', // undocumented
+                        'account/deposits', // Get account deposits history
                         'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
                         'spot/orders', // Retrieve historical spot orders
@@ -1902,6 +1903,98 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_deposit_address($data, $currency);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // status Not required -  Deposit status, "1 => pending,2 => confirmed, 3:failed"
+            // $currency => Not required -  String Currency
+            // $startTime Not required Integer Default => 90 days from current timestamp.
+            // endTime Not required Integer Default => present timestamp.
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $startTime = intval($since / 1000);
+            $request['startTime'] = $startTime;
+            $request['endTime'] = $this->sum($startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
+        }
+        $response = $this->privateGetAccountDeposits (array_merge($request, $params));
+        // {    "code" => 1,
+        //     "data" => [array(
+        //         "currency" => "USDT",
+        //         "network" => "USDT",
+        //         "quantity" => "19.000000000000",
+        //         "txHash" => "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address" => "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "status" => "2",
+        //         "createdTime" => "2021-01-08T19:45:01.354Z",
+        //         "updatedTime" => "2021-01-08T20:03:05.000Z",
+        //     )]
+        //     "message" => "success",
+        //     "ts" => 1573561743499
+        // }
+        $deposits = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($deposits, $code, $since, $limit);
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            '1' => 'pending',
+            '2' => 'ok',
+            '3' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //    {
+        //         "currency" => "USDT",
+        //         "network" => "USDT",
+        //         "quantity" => "19.000000000000",
+        //         "txHash" => "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address" => "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "status" => "2",
+        //         "createdTime" => "2021-01-08T19:45:01.354Z",
+        //         "updatedTime" => "2021-01-08T20:03:05.000Z",
+        //     }
+        //
+        $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'));
+        $txid = $this->safe_string($transaction, 'txHash');
+        $address = $this->safe_string($transaction, 'address');
+        $type = 'deposit';
+        $amountString = $this->safe_string($transaction, 'quantity');
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'createdTime'));
+        $updated = $this->parse8601($this->safe_string($transaction, 'updatedTime'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $tag = $this->safe_string($transaction, 'addressTag'); // withdrawals only
+        return array(
+            'id' => null,
+            'info' => $transaction,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'addressFrom' => $address,
+            'address' => $address,
+            'addressTo' => null,
+            'amount' => $this->parse_number($amountString),
+            'type' => $type,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'tagFrom' => $tag,
+            'tag' => $tag,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+        );
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
