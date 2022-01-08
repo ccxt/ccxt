@@ -14,7 +14,7 @@ module.exports = class aax extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'aax',
             'name': 'AAX',
-            'countries': ['MT'], // Malta
+            'countries': [ 'MT' ], // Malta
             'enableRateLimit': true,
             'rateLimit': 500,
             'version': 'v2',
@@ -975,7 +975,7 @@ module.exports = class aax extends Exchange {
         if (postOnly !== undefined) {
             request['execInst'] = 'Post-Only';
         }
-        params = this.omit (params, ['clOrdID', 'clientOrderId', 'postOnly']);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly' ]);
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice === undefined) {
             if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {
@@ -1339,7 +1339,7 @@ module.exports = class aax extends Exchange {
             request['orderID'] = id;
         } else {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, ['clOrdID', 'clientOrderId']);
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         const orders = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
         const order = this.safeValue (orders, 0);
@@ -1375,7 +1375,7 @@ module.exports = class aax extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, ['clOrdID', 'clientOrderId']);
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         let method = undefined;
         if (type === 'spot') {
@@ -1533,7 +1533,7 @@ module.exports = class aax extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, ['clOrdID', 'clientOrderId']);
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         if (limit !== undefined) {
             request['pageSize'] = limit; // default 10
@@ -1971,16 +1971,24 @@ module.exports = class aax extends Exchange {
             status = this.parseTransactionStatus (status);
         }
         return {
+            'id': undefined,
             'info': transaction,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'addressFrom': undefined, // sender
             'address': address,
+            'addressTo': undefined, // receiver
             'amount': this.parseNumber (amountString),
             'type': type,
             'currency': code,
             'status': status,
             'updated': updated,
+            'tagFrom': undefined, // "tag" or "memo" or "payment_id" associated with the sender
+            'tag': undefined, // "tag" or "memo" or "payment_id" associated with the address
+            'tagTo': undefined, // "tag" or "memo" or "payment_id" associated with the receiver
+            'comment': undefined,
+            'fee': undefined,
         };
     }
 
@@ -2086,7 +2094,7 @@ module.exports = class aax extends Exchange {
         }
         const till = this.safeInteger (params, 'till'); // unified in milliseconds
         const endTime = this.safeString (params, 'endTime'); // exchange-specific in seconds
-        params = this.omit (params, ['endTime', 'till']);
+        params = this.omit (params, [ 'endTime', 'till' ]);
         if (till !== undefined) {
             request['endTime'] = parseInt (till / 1000);
         } else if (endTime !== undefined) {
