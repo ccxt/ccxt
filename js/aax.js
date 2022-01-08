@@ -1950,6 +1950,9 @@ module.exports = class aax extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
         //    {
         //         "currency": "USDT",
         //         "network": "USDT",
@@ -1960,6 +1963,7 @@ module.exports = class aax extends Exchange {
         //         "createdTime": "2021-01-08T19:45:01.354Z",
         //         "updatedTime": "2021-01-08T20:03:05.000Z",
         //     }
+        //
         const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
         const txid = this.safeString (transaction, 'txHash');
         const address = this.safeString (transaction, 'address');
@@ -1967,13 +1971,8 @@ module.exports = class aax extends Exchange {
         const amountString = this.safeString (transaction, 'quantity');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdTime'));
         const updated = this.parse8601 (this.safeString (transaction, 'updatedTime'));
-        let status = this.safeString (transaction, 'status');
-        if (status !== undefined) {
-            status = this.parseTransactionStatus (status);
-        }
-        // When tested on 9 Jan 2022 AAX did not return the tag in the response.
-        // This is to future proof if it is included in the future.
-        const tag = this.safeString2 (transaction, 'tag', 'addressTag');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const tag = this.safeString (transaction, 'addressTag'); // withdrawals only
         return {
             'id': undefined,
             'info': transaction,
