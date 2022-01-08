@@ -885,7 +885,7 @@ class gateio extends Exchange {
     public function get_settlement_currencies($type, $method) {
         $options = $this->safe_value($this->options, $type, array()); // array( 'BTC', 'USDT' ) unified codes
         $fetchMarketsContractOptions = $this->safe_value($options, $method, array());
-        $defaultSettle = ($type === 'swap') ? ['usdt'] : ['btc'];
+        $defaultSettle = ($type === 'swap') ? array( 'usdt' ) : array( 'btc' );
         return $this->safe_value($fetchMarketsContractOptions, 'settlementCurrencies', $defaultSettle);
     }
 
@@ -1538,7 +1538,7 @@ class gateio extends Exchange {
             $defaultSettle = $swap ? 'usdt' : 'btc';
             $request['settle'] = $this->safe_string_lower($params, 'settle', $defaultSettle);
             $response_item = $this->$method (array_merge($request, $params));
-            $response = [$response_item];
+            $response = array( $response_item );
         } else {
             $response = $this->$method (array_merge($request, $params));
         }

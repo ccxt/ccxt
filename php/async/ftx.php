@@ -1646,7 +1646,7 @@ class ftx extends Exchange {
             $request['order_id'] = $id;
         } else {
             $request['client_order_id'] = $clientOrderId;
-            $params = $this->omit($params, [ 'client_order_id', 'clientOrderId']);
+            $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
             $method = 'privateGetOrdersByClientIdClientOrderId';
         }
         $response = yield $this->$method (array_merge($request, $params));
