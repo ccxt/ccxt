@@ -200,7 +200,7 @@ class idex extends Exchange {
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
-                'futures' => false,
+                'future' => false,
                 'option' => false,
                 'contract' => false,
                 'linear' => null,
