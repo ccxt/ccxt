@@ -513,7 +513,7 @@ class mexc(Exchange):
                 'spot': False,
                 'margin': False,
                 'swap': True,
-                'futures': False,
+                'future': False,
                 'option': False,
                 'contract': True,
                 'linear': True,

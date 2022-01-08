@@ -521,7 +521,7 @@ class mexc extends Exchange {
                 'spot' => false,
                 'margin' => false,
                 'swap' => true,
-                'futures' => false,
+                'future' => false,
                 'option' => false,
                 'contract' => true,
                 'linear' => true,
