@@ -136,9 +136,7 @@ class coinone(Exchange):
             })
         return result
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privatePostAccountBalance(params)
+    def parse_balance(self, response):
         result = {'info': response}
         balances = self.omit(response, [
             'errorCode',
@@ -155,6 +153,11 @@ class coinone(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privatePostAccountBalance(params)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

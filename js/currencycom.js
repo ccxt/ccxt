@@ -170,13 +170,6 @@ module.exports = class currencycom extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async loadTimeDifference (params = {}) {
-        const response = await this.publicGetTime (params);
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = parseInt (after - response['serverTime']);
-        return this.options['timeDifference'];
-    }
-
     async fetchMarkets (params = {}) {
         const response = await this.publicGetExchangeInfo (params);
         //
@@ -261,10 +254,6 @@ module.exports = class currencycom extends Exchange {
             }
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
-            const precision = {
-                'amount': 1 / Math.pow (1, this.safeInteger (market, 'baseAssetPrecision')),
-                'price': this.safeNumber (market, 'tickSize'),
-            };
             const status = this.safeString (market, 'status');
             const active = (status === 'TRADING');
             let type = this.safeStringLower (market, 'marketType');
@@ -273,79 +262,110 @@ module.exports = class currencycom extends Exchange {
             }
             const spot = (type === 'spot');
             const margin = (type === 'margin');
-            const entry = {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'type': type,
-                'spot': spot,
-                'margin': margin,
-                'info': market,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': -Math.log10 (precision['amount']),
-                        'max': undefined,
-                    },
-                },
-            };
             const exchangeFee = this.safeNumber2 (market, 'exchangeFee', 'tradingFee');
             const makerFee = this.safeNumber (market, 'makerFee', exchangeFee);
             const takerFee = this.safeNumber (market, 'takerFee', exchangeFee);
+            let maker = undefined;
+            let taker = undefined;
             if (makerFee !== undefined) {
-                entry['maker'] = makerFee / 100;
+                maker = makerFee / 100;
             }
             if (takerFee !== undefined) {
-                entry['taker'] = takerFee / 100;
+                taker = takerFee / 100;
             }
+            let limitPriceMin = undefined;
+            let limitPriceMax = undefined;
+            let precisionPrice = this.safeNumber (market, 'tickSize');
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                entry['precision']['price'] = this.safeNumber (filter, 'tickSize');
+                precisionPrice = this.safeNumber (filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                entry['limits']['price'] = {
-                    'min': this.safeNumber (filter, 'minPrice'),
-                    'max': undefined,
-                };
+                limitPriceMin = this.safeNumber (filter, 'minPrice');
                 const maxPrice = this.safeNumber (filter, 'maxPrice');
                 if ((maxPrice !== undefined) && (maxPrice > 0)) {
-                    entry['limits']['price']['max'] = maxPrice;
+                    limitPriceMax = maxPrice;
                 }
             }
+            let precisionAmount = this.parsePrecision (this.safeString (market, 'baseAssetPrecision'));
+            let limitAmount = {
+                'min': undefined,
+                'max': undefined,
+            };
             if ('LOT_SIZE' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-                entry['precision']['amount'] = this.safeNumber (filter, 'stepSize');
-                entry['limits']['amount'] = {
+                precisionAmount = this.safeNumber (filter, 'stepSize');
+                limitAmount = {
                     'min': this.safeNumber (filter, 'minQty'),
                     'max': this.safeNumber (filter, 'maxQty'),
                 };
             }
+            let limitMarket = {
+                'min': undefined,
+                'max': undefined,
+            };
             if ('MARKET_LOT_SIZE' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
-                entry['limits']['market'] = {
+                limitMarket = {
                     'min': this.safeNumber (filter, 'minQty'),
                     'max': this.safeNumber (filter, 'maxQty'),
                 };
             }
+            let costMin = undefined;
             if ('MIN_NOTIONAL' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeNumber (filter, 'minNotional');
+                costMin = this.safeNumber (filter, 'minNotional');
             }
-            result.push (entry);
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': undefined,
+                'active': active,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': precisionAmount,
+                    'price': precisionPrice,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': limitAmount,
+                    'market': limitMarket,
+                    'price': {
+                        'min': limitPriceMin,
+                        'max': limitPriceMax,
+                    },
+                    'cost': {
+                        'min': costMin,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
         }
         return result;
     }

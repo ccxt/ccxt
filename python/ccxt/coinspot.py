@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 
 
@@ -73,7 +72,9 @@ class coinspot(Exchange):
                 },
             },
             'markets': {
+                'ADA/AUD': {'id': 'ada', 'symbol': 'ADA/AUD', 'base': 'ADA', 'quote': 'AUD', 'baseId': 'ada', 'quoteId': 'aud', 'type': 'spot', 'spot': True},
                 'BTC/AUD': {'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud', 'type': 'spot', 'spot': True},
+                'BTC/USDT': {'id': 'btc', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'baseId': 'btc', 'quoteId': 'usdt', 'type': 'spot', 'spot': True},
                 'ETH/AUD': {'id': 'eth', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'baseId': 'eth', 'quoteId': 'aud', 'type': 'spot', 'spot': True},
                 'XRP/AUD': {'id': 'xrp', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'baseId': 'xrp', 'quoteId': 'aud', 'type': 'spot', 'spot': True},
                 'LTC/AUD': {'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud', 'type': 'spot', 'spot': True},
@@ -95,26 +96,7 @@ class coinspot(Exchange):
             },
         })
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
-        response = getattr(self, method)(params)
-        #
-        # read-write api keys
-        #
-        #     ...
-        #
-        # read-only api keys
-        #
-        #     {
-        #         "status":"ok",
-        #         "balances":[
-        #             {
-        #                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
-        #             }
-        #         ]
-        #     }
-        #
+    def parse_balance(self, response):
         result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
@@ -137,6 +119,28 @@ class coinspot(Exchange):
                 account['total'] = self.safe_string(balances, currencyId)
                 result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
+        response = getattr(self, method)(params)
+        #
+        # read-write api keys
+        #
+        #     ...
+        #
+        # read-only api keys
+        #
+        #     {
+        #         "status":"ok",
+        #         "balances":[
+        #             {
+        #                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -255,8 +259,6 @@ class coinspot(Exchange):
         return getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        if not self.apiKey:
-            raise AuthenticationError(self.id + ' requires apiKey for all requests')
         url = self.urls['api'][api] + '/' + path
         if api == 'private':
             self.check_required_credentials()

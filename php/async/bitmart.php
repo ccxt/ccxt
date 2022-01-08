@@ -459,12 +459,9 @@ class bitmart extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'derivative' => false,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
                 'contractSize' => null,
                 'active' => true,
                 'expiry' => null,
@@ -612,13 +609,12 @@ class bitmart extends Exchange {
                 'swap' => $swap,
                 'future' => $future,
                 'option' => false,
-                'derivative' => true,
                 'contract' => true,
                 'linear' => null,
                 'inverse' => null,
                 'taker' => $this->safe_number($feeConfig, 'taker_fee'),
                 'maker' => $this->safe_number($feeConfig, 'maker_fee'),
-                'contractSize' => $this->safe_string($market, 'contract_size'),
+                'contractSize' => $this->safe_number($market, 'contract_size'),
                 'active' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
@@ -1449,6 +1445,23 @@ class bitmart extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $data = $this->safe_value($response, 'data', array());
+        $wallet = $this->safe_value_2($data, 'wallet', 'accounts', array());
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($wallet); $i++) {
+            $balance = $wallet[$i];
+            $currencyId = $this->safe_string_2($balance, 'id', 'currency');
+            $currencyId = $this->safe_string($balance, 'coin_code', $currencyId);
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string_2($balance, 'available', 'available_vol');
+            $account['used'] = $this->safe_string_2($balance, 'frozen', 'freeze_vol');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $method = null;
@@ -1481,7 +1494,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        // $account
+        // account
         //
         //     {
         //         "message":"OK",
@@ -1519,20 +1532,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $wallet = $this->safe_value_2($data, 'wallet', 'accounts', array());
-        $result = array( 'info' => $response );
-        for ($i = 0; $i < count($wallet); $i++) {
-            $balance = $wallet[$i];
-            $currencyId = $this->safe_string_2($balance, 'id', 'currency');
-            $currencyId = $this->safe_string($balance, 'coin_code', $currencyId);
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string_2($balance, 'available', 'available_vol');
-            $account['used'] = $this->safe_string_2($balance, 'frozen', 'freeze_vol');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_order($order, $market = null) {

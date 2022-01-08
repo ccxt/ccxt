@@ -34,9 +34,11 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'has': {
+                'spot': true,
                 'margin': true,
                 'swap': true,
                 'future': true,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -479,37 +481,132 @@ module.exports = class ftx extends Exchange {
         //         volumeUsd24h: "2892083192.6099"
         //     }
         //
+        let allFuturesResponse = undefined;
+        if (this.has['future']) {
+            allFuturesResponse = await this.publicGetFutures ();
+        }
+        //
+        //    {
+        //        success: true,
+        //        result: [
+        //            {
+        //                name: "1INCH-PERP",
+        //                underlying: "1INCH",
+        //                description: "1INCH Token Perpetual Futures",
+        //                type: "perpetual",
+        //                expiry: null,
+        //                perpetual: true,
+        //                expired: false,
+        //                enabled: true,
+        //                postOnly: false,
+        //                priceIncrement: "0.0001",
+        //                sizeIncrement: "1.0",
+        //                last: "2.5556",
+        //                bid: "2.5555",
+        //                ask: "2.5563",
+        //                index: "2.5612449804010833",
+        //                mark: "2.5587",
+        //                imfFactor: "0.0005",
+        //                lowerBound: "2.4315",
+        //                upperBound: "2.6893",
+        //                underlyingDescription: "1INCH Token",
+        //                expiryDescription: "Perpetual",
+        //                moveStart: null,
+        //                marginPrice: "2.5587",
+        //                positionLimitWeight: "20.0",
+        //                group: "perpetual",
+        //                change1h: "0.00799716356760164",
+        //                change24h: "0.004909276569004792",
+        //                changeBod: "0.008394419484511705",
+        //                volumeUsd24h: "17834492.0818",
+        //                volume: "7224898.0",
+        //                openInterest: "5597917.0",
+        //                openInterestUsd: "14323390.2279",
+        //            },
+        //            ...
+        //        ],
+        //    }
+        //
         const result = [];
         const markets = this.safeValue (response, 'result', []);
+        const allFutures = this.safeValue (allFuturesResponse, 'result', []);
+        const allFuturesDict = this.indexBy (allFutures, 'name');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
+            const future = this.safeValue (allFuturesDict, id);
+            const marketType = this.safeString (market, 'type');
+            const contract = (marketType === 'future');
             const baseId = this.safeString2 (market, 'baseCurrency', 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency', 'USD');
-            const type = this.safeString (market, 'type');
-            const base = this.safeCurrencyCode (baseId);
+            const settleId = contract ? 'USD' : undefined;
+            let base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const spot = !contract;
+            const margin = !contract;
+            const perpetual = this.safeValue (future, 'perpetual');
+            const swap = perpetual;
+            const option = false;
+            const isFuture = contract && !swap;
+            let expiry = undefined;
+            const expiryDatetime = this.safeString (future, 'expiry');
+            let type = 'spot';
+            let symbol = base + '/' + quote;
+            if (swap) {
+                type = 'swap';
+                symbol = base + '/' + quote + ':' + settle;
+            } else if (isFuture) {
+                type = 'future';
+                expiry = this.parse8601 (expiryDatetime);
+                const parsedId = id.split ('-');
+                const length = parsedId.length;
+                if (length > 2) {
+                    // handling for MOVE contracts
+                    // BTC-MOVE-2022Q1
+                    // BTC-MOVE-0106
+                    // BTC-MOVE-WK-0121
+                    parsedId.pop ();
+                    // remove expiry
+                    // [ 'BTC', 'MOVE' ]
+                    // [ 'BTC', 'MOVE' ]
+                    // [ 'BTC', 'MOVE', 'WK' ]
+                    base = parsedId.join ('-');
+                }
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
+            }
             // check if a market is a spot or future market
-            const symbol = (type === 'future') ? this.safeString (market, 'name') : (base + '/' + quote);
-            const active = this.safeValue (market, 'enabled');
             const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
             const priceIncrement = this.safeNumber (market, 'priceIncrement');
-            const precision = {
-                'amount': sizeIncrement,
-                'price': priceIncrement,
-            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'future': (type === 'future'),
-                'spot': (type === 'spot'),
-                'active': active,
-                'precision': precision,
+                'spot': spot,
+                'margin': margin,
+                'swap': swap,
+                'future': isFuture,
+                'option': option,
+                'active': this.safeValue (market, 'enabled'),
+                'derivative': contract,
+                'contract': contract,
+                'linear': true,
+                'inverse': false,
+                'contractSize': this.parseNumber ('1'),
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': sizeIncrement,
+                    'price': priceIncrement,
+                },
                 'limits': {
                     'amount': {
                         'min': sizeIncrement,
@@ -524,7 +621,8 @@ module.exports = class ftx extends Exchange {
                         'max': undefined,
                     },
                     'leverage': {
-                        'max': 20,
+                        'min': this.parseNumber ('1'),
+                        'max': this.parseNumber ('20'),
                     },
                 },
                 'info': market,
@@ -555,25 +653,11 @@ module.exports = class ftx extends Exchange {
         //         "volumeUsd24h":8570651.12113,
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'name');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
-        } else {
-            const type = this.safeString (ticker, 'type');
-            if (type === 'future') {
-                symbol = marketId;
-            } else {
-                const base = this.safeCurrencyCode (this.safeString (ticker, 'baseCurrency'));
-                const quote = this.safeCurrencyCode (this.safeString (ticker, 'quoteCurrency'));
-                if ((base !== undefined) && (quote !== undefined)) {
-                    symbol = base + '/' + quote;
-                }
-            }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'last');
         const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
         let percentage = this.safeNumber (ticker, 'change24h');
@@ -900,25 +984,11 @@ module.exports = class ftx extends Exchange {
         const id = this.safeString (trade, 'id');
         const takerOrMaker = this.safeString (trade, 'liquidity');
         const marketId = this.safeString (trade, 'market');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else {
-            const base = this.safeCurrencyCode (this.safeString (trade, 'baseCurrency'));
-            const quote = this.safeCurrencyCode (this.safeString (trade, 'quoteCurrency'));
-            if ((base !== undefined) && (quote !== undefined)) {
-                symbol = base + '/' + quote;
-            } else {
-                symbol = marketId;
-            }
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
         const side = this.safeString (trade, 'side');
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'fee');
@@ -1084,11 +1154,10 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'future');
-            const symbol = this.safeSymbol (marketId);
             const timestamp = this.parse8601 (this.safeString (result[i], 'time'));
             rates.push ({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': this.safeSymbol (marketId),
                 'fundingRate': this.safeNumber (entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -1096,6 +1165,22 @@ module.exports = class ftx extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const balances = this.safeValue (response, 'result', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
+            const account = this.account ();
+            account['free'] = this.safeString2 (balance, 'availableWithoutBorrow', 'free');
+            account['total'] = this.safeString (balance, 'total');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -1113,19 +1198,7 @@ module.exports = class ftx extends Exchange {
         //         ],
         //     }
         //
-        const result = {
-            'info': response,
-        };
-        const balances = this.safeValue (response, 'result', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
-            const account = this.account ();
-            account['free'] = this.safeString2 (balance, 'availableWithoutBorrow', 'free');
-            account['total'] = this.safeString (balance, 'total');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {
@@ -1901,7 +1974,7 @@ module.exports = class ftx extends Exchange {
             'leverage': leverage,
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
             'contracts': this.parseNumber (contractsString),
-            'contractSize': this.parseNumber ('1'),
+            'contractSize': this.safeValue (market, 'contractSize'),
             'marginRatio': marginRatio,
             'liquidationPrice': this.parseNumber (liquidationPriceString),
             'markPrice': this.parseNumber (markPriceString),
@@ -1955,7 +2028,7 @@ module.exports = class ftx extends Exchange {
             'trx': 'TRC20',
             'erc20': 'ERC20',
             'sol': 'SOL',
-            'bsc': 'BSC',
+            'bsc': 'BEP20',
             'bep2': 'BEP2',
         };
         return this.safeString (networksById, networkId, networkId);

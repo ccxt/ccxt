@@ -492,9 +492,7 @@ class kuna extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetMembersMe ($params);
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'accounts');
         $result = array( 'info' => $balances );
         for ($i = 0; $i < count($balances); $i++) {
@@ -507,6 +505,12 @@ class kuna extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetMembersMe ($params);
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

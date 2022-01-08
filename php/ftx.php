@@ -37,9 +37,11 @@ class ftx extends Exchange {
                 ),
             ),
             'has' => array(
+                'spot' => true,
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -482,37 +484,132 @@ class ftx extends Exchange {
         //         volumeUsd24h => "2892083192.6099"
         //     }
         //
+        $allFuturesResponse = null;
+        if ($this->has['future']) {
+            $allFuturesResponse = $this->publicGetFutures ();
+        }
+        //
+        //    {
+        //        success => true,
+        //        $result => array(
+        //            array(
+        //                name => "1INCH-PERP",
+        //                underlying => "1INCH",
+        //                description => "1INCH Token Perpetual Futures",
+        //                $type => "perpetual",
+        //                $expiry => null,
+        //                $perpetual => true,
+        //                expired => false,
+        //                enabled => true,
+        //                postOnly => false,
+        //                $priceIncrement => "0.0001",
+        //                $sizeIncrement => "1.0",
+        //                last => "2.5556",
+        //                bid => "2.5555",
+        //                ask => "2.5563",
+        //                index => "2.5612449804010833",
+        //                mark => "2.5587",
+        //                imfFactor => "0.0005",
+        //                lowerBound => "2.4315",
+        //                upperBound => "2.6893",
+        //                underlyingDescription => "1INCH Token",
+        //                expiryDescription => "Perpetual",
+        //                moveStart => null,
+        //                marginPrice => "2.5587",
+        //                positionLimitWeight => "20.0",
+        //                group => "perpetual",
+        //                change1h => "0.00799716356760164",
+        //                change24h => "0.004909276569004792",
+        //                changeBod => "0.008394419484511705",
+        //                volumeUsd24h => "17834492.0818",
+        //                volume => "7224898.0",
+        //                openInterest => "5597917.0",
+        //                openInterestUsd => "14323390.2279",
+        //            ),
+        //            ...
+        //        ),
+        //    }
+        //
         $result = array();
         $markets = $this->safe_value($response, 'result', array());
+        $allFutures = $this->safe_value($allFuturesResponse, 'result', array());
+        $allFuturesDict = $this->index_by($allFutures, 'name');
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'name');
+            $future = $this->safe_value($allFuturesDict, $id);
+            $marketType = $this->safe_string($market, 'type');
+            $contract = ($marketType === 'future');
             $baseId = $this->safe_string_2($market, 'baseCurrency', 'underlying');
             $quoteId = $this->safe_string($market, 'quoteCurrency', 'USD');
-            $type = $this->safe_string($market, 'type');
+            $settleId = $contract ? 'USD' : null;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            // check if a $market is a spot or future $market
-            $symbol = ($type === 'future') ? $this->safe_string($market, 'name') : ($base . '/' . $quote);
-            $active = $this->safe_value($market, 'enabled');
+            $settle = $this->safe_currency_code($settleId);
+            $spot = !$contract;
+            $margin = !$contract;
+            $perpetual = $this->safe_value($future, 'perpetual');
+            $swap = $perpetual;
+            $option = false;
+            $isFuture = $contract && !$swap;
+            $expiry = null;
+            $expiryDatetime = $this->safe_string($future, 'expiry');
+            $type = 'spot';
+            $symbol = $base . '/' . $quote;
+            if ($swap) {
+                $type = 'swap';
+                $symbol = $base . '/' . $quote . ':' . $settle;
+            } else if ($isFuture) {
+                $type = 'future';
+                $expiry = $this->parse8601($expiryDatetime);
+                $parsedId = explode('-', $id);
+                $length = is_array($parsedId) ? count($parsedId) : 0;
+                if ($length > 2) {
+                    // handling for MOVE contracts
+                    // BTC-MOVE-2022Q1
+                    // BTC-MOVE-0106
+                    // BTC-MOVE-WK-0121
+                    array_pop($parsedId);
+                    // remove $expiry
+                    // array( 'BTC', 'MOVE' )
+                    // array( 'BTC', 'MOVE' )
+                    // array( 'BTC', 'MOVE', 'WK' )
+                    $base = implode('-', $parsedId);
+                }
+                $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
+            }
+            // check if a $market is a $spot or $future $market
             $sizeIncrement = $this->safe_number($market, 'sizeIncrement');
             $priceIncrement = $this->safe_number($market, 'priceIncrement');
-            $precision = array(
-                'amount' => $sizeIncrement,
-                'price' => $priceIncrement,
-            );
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'type' => $type,
-                'future' => ($type === 'future'),
-                'spot' => ($type === 'spot'),
-                'active' => $active,
-                'precision' => $precision,
+                'spot' => $spot,
+                'margin' => $margin,
+                'swap' => $swap,
+                'future' => $isFuture,
+                'option' => $option,
+                'active' => $this->safe_value($market, 'enabled'),
+                'derivative' => $contract,
+                'contract' => $contract,
+                'linear' => true,
+                'inverse' => false,
+                'contractSize' => $this->parse_number('1'),
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $sizeIncrement,
+                    'price' => $priceIncrement,
+                ),
                 'limits' => array(
                     'amount' => array(
                         'min' => $sizeIncrement,
@@ -527,7 +624,8 @@ class ftx extends Exchange {
                         'max' => null,
                     ),
                     'leverage' => array(
-                        'max' => 20,
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->parse_number('20'),
                     ),
                 ),
                 'info' => $market,
@@ -540,7 +638,7 @@ class ftx extends Exchange {
         //
         //     {
         //         "ask":171.29,
-        //         "baseCurrency":null, // $base currency for spot markets
+        //         "baseCurrency":null, // base currency for spot markets
         //         "bid":171.24,
         //         "change1h":-0.0012244897959183673,
         //         "change24h":-0.031603346901854366,
@@ -550,7 +648,7 @@ class ftx extends Exchange {
         //         "name":"ETH-PERP",
         //         "price":171.29,
         //         "priceIncrement":0.01,
-        //         "quoteCurrency":null, // $quote currency for spot markets
+        //         "quoteCurrency":null, // quote currency for spot markets
         //         "quoteVolume24h":8570651.12113,
         //         "sizeIncrement":0.001,
         //         "type":"future",
@@ -558,25 +656,11 @@ class ftx extends Exchange {
         //         "volumeUsd24h":8570651.12113,
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'name');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
-        } else {
-            $type = $this->safe_string($ticker, 'type');
-            if ($type === 'future') {
-                $symbol = $marketId;
-            } else {
-                $base = $this->safe_currency_code($this->safe_string($ticker, 'baseCurrency'));
-                $quote = $this->safe_currency_code($this->safe_string($ticker, 'quoteCurrency'));
-                if (($base !== null) && ($quote !== null)) {
-                    $symbol = $base . '/' . $quote;
-                }
-            }
         }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'last');
         $timestamp = $this->safe_timestamp($ticker, 'time', $this->milliseconds());
         $percentage = $this->safe_number($ticker, 'change24h');
@@ -903,25 +987,11 @@ class ftx extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
         $marketId = $this->safe_string($trade, 'market');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        } else {
-            $base = $this->safe_currency_code($this->safe_string($trade, 'baseCurrency'));
-            $quote = $this->safe_currency_code($this->safe_string($trade, 'quoteCurrency'));
-            if (($base !== null) && ($quote !== null)) {
-                $symbol = $base . '/' . $quote;
-            } else {
-                $symbol = $marketId;
-            }
-        }
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
         $side = $this->safe_string($trade, 'side');
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
@@ -1087,11 +1157,10 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'future');
-            $symbol = $this->safe_symbol($marketId);
             $timestamp = $this->parse8601($this->safe_string($result[$i], 'time'));
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $symbol,
+                'symbol' => $this->safe_symbol($marketId),
                 'fundingRate' => $this->safe_number($entry, 'rate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -1099,6 +1168,22 @@ class ftx extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+        );
+        $balances = $this->safe_value($response, 'result', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
+            $account = $this->account();
+            $account['free'] = $this->safe_string_2($balance, 'availableWithoutBorrow', 'free');
+            $account['total'] = $this->safe_string($balance, 'total');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
@@ -1116,19 +1201,7 @@ class ftx extends Exchange {
         //         ),
         //     }
         //
-        $result = array(
-            'info' => $response,
-        );
-        $balances = $this->safe_value($response, 'result', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
-            $account = $this->account();
-            $account['free'] = $this->safe_string_2($balance, 'availableWithoutBorrow', 'free');
-            $account['total'] = $this->safe_string($balance, 'total');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_order_status($status) {
@@ -1904,7 +1977,7 @@ class ftx extends Exchange {
             'leverage' => $leverage,
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'contracts' => $this->parse_number($contractsString),
-            'contractSize' => $this->parse_number('1'),
+            'contractSize' => $this->safe_value($market, 'contractSize'),
             'marginRatio' => $marginRatio,
             'liquidationPrice' => $this->parse_number($liquidationPriceString),
             'markPrice' => $this->parse_number($markPriceString),
@@ -1958,7 +2031,7 @@ class ftx extends Exchange {
             'trx' => 'TRC20',
             'erc20' => 'ERC20',
             'sol' => 'SOL',
-            'bsc' => 'BSC',
+            'bsc' => 'BEP20',
             'bep2' => 'BEP2',
         );
         return $this->safe_string($networksById, $networkId, $networkId);

@@ -465,43 +465,7 @@ class liquid extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privateGetAccounts ($params);
-        //
-        //     {
-        //         crypto_accounts => array(
-        //             array(
-        //                 id => 2221179,
-        //                 currency => 'USDT',
-        //                 $balance => '0.0',
-        //                 reserved_balance => '0.0',
-        //                 pusher_channel => 'user_xxxxx_account_usdt',
-        //                 lowest_offer_interest_rate => null,
-        //                 highest_offer_interest_rate => null,
-        //                 address => '0',
-        //                 currency_symbol => 'USDT',
-        //                 minimum_withdraw => null,
-        //                 currency_type => 'crypto'
-        //             ),
-        //         ),
-        //         fiat_accounts => array(
-        //             {
-        //                 id => 1112734,
-        //                 currency => 'USD',
-        //                 $balance => '0.0',
-        //                 reserved_balance => '0.0',
-        //                 pusher_channel => 'user_xxxxx_account_usd',
-        //                 lowest_offer_interest_rate => null,
-        //                 highest_offer_interest_rate => null,
-        //                 currency_symbol => '$',
-        //                 send_to_btc_address => null,
-        //                 exchange_rate => '1.0',
-        //                 currency_type => 'fiat'
-        //             }
-        //         )
-        //     }
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -528,6 +492,46 @@ class liquid extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetAccounts ($params);
+        //
+        //     {
+        //         crypto_accounts => array(
+        //             array(
+        //                 id => 2221179,
+        //                 currency => 'USDT',
+        //                 balance => '0.0',
+        //                 reserved_balance => '0.0',
+        //                 pusher_channel => 'user_xxxxx_account_usdt',
+        //                 lowest_offer_interest_rate => null,
+        //                 highest_offer_interest_rate => null,
+        //                 address => '0',
+        //                 currency_symbol => 'USDT',
+        //                 minimum_withdraw => null,
+        //                 currency_type => 'crypto'
+        //             ),
+        //         ),
+        //         fiat_accounts => array(
+        //             {
+        //                 id => 1112734,
+        //                 currency => 'USD',
+        //                 balance => '0.0',
+        //                 reserved_balance => '0.0',
+        //                 pusher_channel => 'user_xxxxx_account_usd',
+        //                 lowest_offer_interest_rate => null,
+        //                 highest_offer_interest_rate => null,
+        //                 currency_symbol => '$',
+        //                 send_to_btc_address => null,
+        //                 exchange_rate => '1.0',
+        //                 currency_type => 'fiat'
+        //             }
+        //         )
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

@@ -211,6 +211,12 @@ module.exports = class kraken extends Exchange {
                         'WithdrawCancel': 1,
                         'WithdrawInfo': 1,
                         'WithdrawStatus': 1,
+                        // staking
+                        'Stake': 1,
+                        'Unstake': 1,
+                        'Staking/Assets': 1,
+                        'Staking/Pending': 1,
+                        'Staking/Transactions': 1,
                     },
                 },
             },
@@ -1068,19 +1074,7 @@ module.exports = class kraken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
-        //
-        //     {
-        //         "error":[],
-        //         "result":{
-        //             "ZUSD":"58.8649",
-        //             "KFEE":"4399.43",
-        //             "XXBT":"0.0000034506",
-        //         }
-        //     }
-        //
+    parseBalance (response) {
         const balances = this.safeValue (response, 'result', {});
         const result = {
             'info': response,
@@ -1096,6 +1090,22 @@ module.exports = class kraken extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostBalance (params);
+        //
+        //     {
+        //         "error":[],
+        //         "result":{
+        //             "ZUSD":"58.8649",
+        //             "KFEE":"4399.43",
+        //             "XXBT":"0.0000034506",
+        //         }
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1520,11 +1530,13 @@ module.exports = class kraken extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
-        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
+        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId', id);
+        const request = {
+            'txid': clientOrderId, // order id or userref
+        };
+        params = this.omit (params, ['userref', 'clientOrderId' ]);
         try {
-            response = await this.privatePostCancelOrder (this.extend ({
-                'txid': clientOrderId || id,
-            }, params));
+            response = await this.privatePostCancelOrder (this.extend (request, params));
         } catch (e) {
             if (this.last_http_response) {
                 if (this.last_http_response.indexOf ('EOrder:Unknown order') >= 0) {

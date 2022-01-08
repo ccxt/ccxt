@@ -384,20 +384,7 @@ class probit(Exchange):
             }
         return result
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetBalance(params)
-        #
-        #     {
-        #         data: [
-        #             {
-        #                 "currency_id":"XRP",
-        #                 "total":"100",
-        #                 "available":"0",
-        #             }
-        #         ]
-        #     }
-        #
+    def parse_balance(self, response):
         result = {
             'info': response,
             'timestamp': None,
@@ -413,6 +400,22 @@ class probit(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetBalance(params)
+        #
+        #     {
+        #         data: [
+        #             {
+        #                 "currency_id":"XRP",
+        #                 "total":"100",
+        #                 "available":"0",
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

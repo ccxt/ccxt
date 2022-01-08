@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.65.27'
+__version__ = '1.66.42'
 
 # ----------------------------------------------------------------------------
 
@@ -99,6 +99,7 @@ from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.bittrex import bittrex                            # noqa: F401
 from ccxt.bitvavo import bitvavo                            # noqa: F401
 from ccxt.bl3p import bl3p                                  # noqa: F401
+from ccxt.blockchaincom import blockchaincom                # noqa: F401
 from ccxt.btcalpha import btcalpha                          # noqa: F401
 from ccxt.btcbox import btcbox                              # noqa: F401
 from ccxt.btcmarkets import btcmarkets                      # noqa: F401
@@ -120,6 +121,7 @@ from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.crex24 import crex24                              # noqa: F401
+from ccxt.cryptocom import cryptocom                        # noqa: F401
 from ccxt.currencycom import currencycom                    # noqa: F401
 from ccxt.delta import delta                                # noqa: F401
 from ccxt.deribit import deribit                            # noqa: F401
@@ -144,6 +146,7 @@ from ccxt.indodax import indodax                            # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
+from ccxt.kucoinfutures import kucoinfutures                # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.latoken import latoken                            # noqa: F401
 from ccxt.latoken1 import latoken1                          # noqa: F401
@@ -213,6 +216,7 @@ exchanges = [
     'bittrex',
     'bitvavo',
     'bl3p',
+    'blockchaincom',
     'btcalpha',
     'btcbox',
     'btcmarkets',
@@ -234,6 +238,7 @@ exchanges = [
     'coinone',
     'coinspot',
     'crex24',
+    'cryptocom',
     'currencycom',
     'delta',
     'deribit',
@@ -258,6 +263,7 @@ exchanges = [
     'itbit',
     'kraken',
     'kucoin',
+    'kucoinfutures',
     'kuna',
     'latoken',
     'latoken1',

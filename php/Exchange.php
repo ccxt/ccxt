@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.65.27';
+$version = '1.66.42';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.65.27';
+    const VERSION = '1.66.42';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -92,6 +92,7 @@ class Exchange {
         'bittrex',
         'bitvavo',
         'bl3p',
+        'blockchaincom',
         'btcalpha',
         'btcbox',
         'btcmarkets',
@@ -113,6 +114,7 @@ class Exchange {
         'coinone',
         'coinspot',
         'crex24',
+        'cryptocom',
         'currencycom',
         'delta',
         'deribit',
@@ -137,6 +139,7 @@ class Exchange {
         'itbit',
         'kraken',
         'kucoin',
+        'kucoinfutures',
         'kuna',
         'latoken',
         'latoken1',
@@ -367,6 +370,7 @@ class Exchange {
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
+        'loadTimeDifference' => 'load_time_difference',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1362,7 +1366,9 @@ class Exchange {
             $lowercase_method = mb_strtolower($key);
             $camelcase_method = static::capitalize($lowercase_method);
             if (static::is_associative($value)) {
-                if (preg_match('/^(?:get|post|put|delete|options|head|patch)$/i', $key)) {
+                // the options HTTP method conflicts with the 'options' API url path
+                // if (preg_match('/^(?:get|post|put|delete|options|head|patch)$/i', $key)) {
+                if (preg_match('/^(?:get|post|put|delete|head|patch)$/i', $key)) {
                     foreach ($value as $endpoint => $config) {
                         $path = trim($endpoint);
                         if (static::is_associative($config)) {
@@ -2863,7 +2869,11 @@ class Exchange {
 
     public static function number_to_string($x) {
         // avoids scientific notation for too large and too small numbers
+        $type = gettype($x);
         $s = (string) $x;
+        if (($type !== 'integer') && ($type !== 'double')) {
+            return $s;
+        }
         if (strpos($x, 'E') === false) {
             return $s;
         }
@@ -3479,6 +3489,7 @@ class Exchange {
     public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
         $default_type = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
         $method_options = $this->safe_value($this->options, $method_name);
+        $method_type = $default_type;
         if (isset($method_options)) {
             if (is_string($method_options)) {
                 $method_type = $method_options;
@@ -3486,9 +3497,16 @@ class Exchange {
                 $method_type = $this->safe_string_2($method_options, 'defaultType', 'type');
             }
         }
-        $market_type = isset($market) ? market['type'] : $method_type;
+        $market_type = isset($market) ? $market['type'] : $method_type;
         $type = $this->safe_string_2($params, 'defaultType', 'type', $market_type);
         $params = $this->omit($params, [ 'defaultType', 'type' ]);
         return array($type, $params);
+    }
+
+    public function load_time_difference($params = array()) {
+        $server_time = $this->fetch_time($params);
+        $after = $this->milliseconds();
+        $this->options['timeDifference'] = $after - $server_time;
+        return $this->options['timeDifference'];
     }
 }

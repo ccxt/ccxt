@@ -255,22 +255,7 @@ class latoken1 extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetAccountBalances ($params);
-        //
-        //     array(
-        //         {
-        //             "currencyId" => 102,
-        //             "symbol" => "LA",
-        //             "name" => "Latoken",
-        //             "amount" => 1054.66,
-        //             "available" => 900.66,
-        //             "frozen" => 154,
-        //             "pending" => 0
-        //         }
-        //     )
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -289,6 +274,25 @@ class latoken1 extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetAccountBalances ($params);
+        //
+        //     array(
+        //         {
+        //             "currencyId" => 102,
+        //             "symbol" => "LA",
+        //             "name" => "Latoken",
+        //             "amount" => 1054.66,
+        //             "available" => 900.66,
+        //             "frozen" => 154,
+        //             "pending" => 0
+        //         }
+        //     )
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

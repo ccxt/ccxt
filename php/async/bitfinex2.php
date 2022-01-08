@@ -1359,6 +1359,7 @@ class bitfinex2 extends bitfinex {
             'ERROR' => 'failed',
             'FAILURE' => 'failed',
             'CANCELED' => 'canceled',
+            'COMPLETED' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1407,12 +1408,12 @@ class bitfinex2 extends bitfinex {
         //         -0.00135, // FEES
         //         null,
         //         null,
-        //         'DESTINATION_ADDRESS',
+        //         '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
         //         null,
         //         null,
         //         null,
-        //         'TRANSACTION_ID',
-        //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //         '0x523ec8945500.....................................', // TRANSACTION_ID
+        //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be => null
         //     )
         //
         $transactionLength = is_array($transaction) ? count($transaction) : 0;
@@ -1427,7 +1428,7 @@ class bitfinex2 extends bitfinex {
         $feeCost = null;
         $txid = null;
         $addressTo = null;
-        if ($transactionLength < 9) {
+        if ($transactionLength === 8) {
             $data = $this->safe_value($transaction, 4, array());
             $timestamp = $this->safe_integer($transaction, 0);
             if ($currency !== null) {
@@ -1446,8 +1447,11 @@ class bitfinex2 extends bitfinex {
             }
             $tag = $this->safe_string($data, 3);
             $type = 'withdrawal';
-        } else {
+        } else if ($transactionLength === 22) {
             $id = $this->safe_string($transaction, 0);
+            $currencyId = $this->safe_string($transaction, 1);
+            $currency = $this->safe_currency($currencyId, $currency);
+            $code = $currency['code'];
             $timestamp = $this->safe_integer($transaction, 5);
             $updated = $this->safe_integer($transaction, 6);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 9));
@@ -1527,12 +1531,12 @@ class bitfinex2 extends bitfinex {
         //             -0.00135, // FEES
         //             null,
         //             null,
-        //             'DESTINATION_ADDRESS',
+        //             '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
         //             null,
         //             null,
         //             null,
-        //             'TRANSACTION_ID',
-        //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //             '0x523ec8945500.....................................', // TRANSACTION_ID
+        //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be => null
         //         )
         //     )
         //

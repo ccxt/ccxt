@@ -253,22 +253,7 @@ module.exports = class latoken1 extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccountBalances (params);
-        //
-        //     [
-        //         {
-        //             "currencyId": 102,
-        //             "symbol": "LA",
-        //             "name": "Latoken",
-        //             "amount": 1054.66,
-        //             "available": 900.66,
-        //             "frozen": 154,
-        //             "pending": 0
-        //         }
-        //     ]
-        //
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -287,6 +272,25 @@ module.exports = class latoken1 extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountBalances (params);
+        //
+        //     [
+        //         {
+        //             "currencyId": 102,
+        //             "symbol": "LA",
+        //             "name": "Latoken",
+        //             "amount": 1054.66,
+        //             "available": 900.66,
+        //             "frozen": 154,
+        //             "pending": 0
+        //         }
+        //     ]
+        //
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

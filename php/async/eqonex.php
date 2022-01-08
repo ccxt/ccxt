@@ -553,6 +553,29 @@ class eqonex extends Exchange {
         ), $market);
     }
 
+    public function parse_balance($response) {
+        $positions = $this->safe_value($response, 'positions', array());
+        $result = array(
+            'info' => $response,
+        );
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $positions[$i];
+            $assetType = $this->safe_string($position, 'assetType');
+            if ($assetType === 'ASSET') {
+                $currencyId = $this->safe_string($position, 'symbol');
+                $code = $this->safe_currency_code($currencyId);
+                $quantityString = $this->safe_string($position, 'quantity');
+                $availableQuantityString = $this->safe_string($position, 'availableQuantity');
+                $scale = $this->safe_integer($position, 'quantity_scale');
+                $account = $this->account();
+                $account['free'] = $this->convert_from_scale($availableQuantityString, $scale);
+                $account['total'] = $this->convert_from_scale($quantityString, $scale);
+                $result[$code] = $account;
+            }
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privatePostGetPositions ($params);
@@ -578,26 +601,7 @@ class eqonex extends Exchange {
         //             ),
         //         )
         //     }
-        $positions = $this->safe_value($response, 'positions', array());
-        $result = array(
-            'info' => $response,
-        );
-        for ($i = 0; $i < count($positions); $i++) {
-            $position = $positions[$i];
-            $assetType = $this->safe_string($position, 'assetType');
-            if ($assetType === 'ASSET') {
-                $currencyId = $this->safe_string($position, 'symbol');
-                $code = $this->safe_currency_code($currencyId);
-                $quantityString = $this->safe_string($position, 'quantity');
-                $availableQuantityString = $this->safe_string($position, 'availableQuantity');
-                $scale = $this->safe_integer($position, 'quantity_scale');
-                $account = $this->account();
-                $account['free'] = $this->convert_from_scale($availableQuantityString, $scale);
-                $account['total'] = $this->convert_from_scale($quantityString, $scale);
-                $result[$code] = $account;
-            }
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

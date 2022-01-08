@@ -125,22 +125,25 @@ class coincheck(Exchange):
             },
         })
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        balances = await self.privateGetAccountsBalance(params)
-        result = {'info': balances}
+    def parse_balance(self, response):
+        result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currency(code)
             currencyId = currency['id']
-            if currencyId in balances:
+            if currencyId in response:
                 account = self.account()
                 reserved = currencyId + '_reserved'
-                account['free'] = self.safe_string(balances, currencyId)
-                account['used'] = self.safe_string(balances, reserved)
+                account['free'] = self.safe_string(response, currencyId)
+                account['used'] = self.safe_string(response, reserved)
                 result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetAccountsBalance(params)
+        return self.parse_balance(response)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

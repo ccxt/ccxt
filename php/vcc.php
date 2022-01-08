@@ -290,20 +290,7 @@ class vcc extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetBalance ($params);
-        //
-        //     {
-        //         "message":null,
-        //         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
-        //         "data":array(
-        //             "vnd":array("balance":0,"available_balance":0),
-        //             "btc":array("balance":0,"available_balance":0),
-        //             "eth":array("balance":0,"available_balance":0),
-        //         ),
-        //     }
-        //
+    public function parse_balance($response) {
         $data = $this->safe_value($response, 'data');
         $result = array(
             'info' => $response,
@@ -321,6 +308,23 @@ class vcc extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetBalance ($params);
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
+        //         "data":array(
+        //             "vnd":array("balance":0,"available_balance":0),
+        //             "btc":array("balance":0,"available_balance":0),
+        //             "eth":array("balance":0,"available_balance":0),
+        //         ),
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -741,7 +745,7 @@ class vcc extends Exchange {
                 'currency' => $code,
             );
         }
-        $type = $amount > 0 ? 'deposit' : 'withdrawal';
+        $type = ($amount > 0) ? 'deposit' : 'withdrawal';
         return array(
             'info' => $transaction,
             'id' => $id,

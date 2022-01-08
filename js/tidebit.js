@@ -175,9 +175,7 @@ module.exports = class tidebit extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetMembersMe (params);
+    parseBalance (response) {
         const balances = this.safeValue (response, 'accounts');
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
@@ -190,6 +188,12 @@ module.exports = class tidebit extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetMembersMe (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

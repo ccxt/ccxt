@@ -247,9 +247,7 @@ module.exports = class lykke extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetWallets (params);
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -261,6 +259,12 @@ module.exports = class lykke extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetWallets (params);
+        return this.parseBalance (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

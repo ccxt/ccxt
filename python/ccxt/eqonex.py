@@ -532,6 +532,26 @@ class eqonex(Exchange):
             'fee': fee,
         }, market)
 
+    def parse_balance(self, response):
+        positions = self.safe_value(response, 'positions', [])
+        result = {
+            'info': response,
+        }
+        for i in range(0, len(positions)):
+            position = positions[i]
+            assetType = self.safe_string(position, 'assetType')
+            if assetType == 'ASSET':
+                currencyId = self.safe_string(position, 'symbol')
+                code = self.safe_currency_code(currencyId)
+                quantityString = self.safe_string(position, 'quantity')
+                availableQuantityString = self.safe_string(position, 'availableQuantity')
+                scale = self.safe_integer(position, 'quantity_scale')
+                account = self.account()
+                account['free'] = self.convert_from_scale(availableQuantityString, scale)
+                account['total'] = self.convert_from_scale(quantityString, scale)
+                result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetPositions(params)
@@ -557,24 +577,7 @@ class eqonex(Exchange):
         #             },
         #         ]
         #     }
-        positions = self.safe_value(response, 'positions', [])
-        result = {
-            'info': response,
-        }
-        for i in range(0, len(positions)):
-            position = positions[i]
-            assetType = self.safe_string(position, 'assetType')
-            if assetType == 'ASSET':
-                currencyId = self.safe_string(position, 'symbol')
-                code = self.safe_currency_code(currencyId)
-                quantityString = self.safe_string(position, 'quantity')
-                availableQuantityString = self.safe_string(position, 'availableQuantity')
-                scale = self.safe_integer(position, 'quantity_scale')
-                account = self.account()
-                account['free'] = self.convert_from_scale(availableQuantityString, scale)
-                account['total'] = self.convert_from_scale(quantityString, scale)
-                result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

@@ -338,6 +338,27 @@ class lbank(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        info = self.safe_value(response, 'info', {})
+        free = self.safe_value(info, 'free', {})
+        freeze = self.safe_value(info, 'freeze', {})
+        asset = self.safe_value(info, 'asset', {})
+        currencyIds = list(free.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(free, currencyId)
+            account['used'] = self.safe_string(freeze, currencyId)
+            account['total'] = self.safe_string(asset, currencyId)
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostUserInfo(params)
@@ -363,25 +384,7 @@ class lbank(Exchange):
         #         }
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        info = self.safe_value(response, 'info', {})
-        free = self.safe_value(info, 'free', {})
-        freeze = self.safe_value(info, 'freeze', {})
-        asset = self.safe_value(info, 'asset', {})
-        currencyIds = list(free.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(free, currencyId)
-            account['used'] = self.safe_string(freeze, currencyId)
-            account['total'] = self.safe_string(asset, currencyId)
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {

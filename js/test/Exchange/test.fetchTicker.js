@@ -32,7 +32,7 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        console.log (symbol.green, 'fetchTicker () not supported')
+        console.log (symbol, 'fetchTicker () not supported')
     }
 }
 

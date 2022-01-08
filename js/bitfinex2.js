@@ -1353,6 +1353,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
+            'COMPLETED': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1401,12 +1402,12 @@ module.exports = class bitfinex2 extends bitfinex {
         //         -0.00135, // FEES
         //         null,
         //         null,
-        //         'DESTINATION_ADDRESS',
+        //         '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
         //         null,
         //         null,
         //         null,
-        //         'TRANSACTION_ID',
-        //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //         '0x523ec8945500.....................................', // TRANSACTION_ID
+        //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
         const transactionLength = transaction.length;
@@ -1421,7 +1422,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let feeCost = undefined;
         let txid = undefined;
         let addressTo = undefined;
-        if (transactionLength < 9) {
+        if (transactionLength === 8) {
             const data = this.safeValue (transaction, 4, []);
             timestamp = this.safeInteger (transaction, 0);
             if (currency !== undefined) {
@@ -1440,8 +1441,11 @@ module.exports = class bitfinex2 extends bitfinex {
             }
             tag = this.safeString (data, 3);
             type = 'withdrawal';
-        } else {
+        } else if (transactionLength === 22) {
             id = this.safeString (transaction, 0);
+            const currencyId = this.safeString (transaction, 1);
+            currency = this.safeCurrency (currencyId, currency);
+            code = currency['code'];
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
@@ -1521,12 +1525,12 @@ module.exports = class bitfinex2 extends bitfinex {
         //             -0.00135, // FEES
         //             null,
         //             null,
-        //             'DESTINATION_ADDRESS',
+        //             '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
         //             null,
         //             null,
         //             null,
-        //             'TRANSACTION_ID',
-        //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //             '0x523ec8945500.....................................', // TRANSACTION_ID
+        //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //         ]
         //     ]
         //

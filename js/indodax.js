@@ -120,13 +120,6 @@ module.exports = class indodax extends Exchange {
         return this.safeInteger (response, 'server_time');
     }
 
-    async loadTimeDifference (params = {}) {
-        const serverTime = await this.fetchTime (params);
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
-    }
-
     async fetchMarkets (params = {}) {
         const response = await this.publicGetPairs (params);
         //
@@ -206,6 +199,28 @@ module.exports = class indodax extends Exchange {
         return result;
     }
 
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'return', {});
+        const free = this.safeValue (balances, 'balance', {});
+        const used = this.safeValue (balances, 'balance_hold', {});
+        const timestamp = this.safeTimestamp (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (free, currencyId);
+            account['used'] = this.safeString (used, currencyId);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
@@ -239,25 +254,7 @@ module.exports = class indodax extends Exchange {
         //         }
         //     }
         //
-        const balances = this.safeValue (response, 'return', {});
-        const free = this.safeValue (balances, 'balance', {});
-        const used = this.safeValue (balances, 'balance_hold', {});
-        const timestamp = this.safeTimestamp (balances, 'server_time');
-        const result = {
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        const currencyIds = Object.keys (free);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (free, currencyId);
-            account['used'] = this.safeString (used, currencyId);
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

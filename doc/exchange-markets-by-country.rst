@@ -805,6 +805,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - Malta
+     - .. image:: https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg
+          :target: https://crypto.com/exch/5835vstech
+          :alt: cryptocom
+     
+     - cryptocom
+     - `Crypto.com <https://crypto.com/exch/5835vstech>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://exchange-docs.crypto.com/
+          :alt: API Version 2
+     
+   * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg
           :target: https://therocktrading.com
           :alt: therock
@@ -946,6 +957,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://docs.kucoin.com
           :alt: API Version 2
+     
+   * - Seychelles
+     - .. image:: https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg
+          :target: https://futures.kucoin.com/?rcode=E5wkqe
+          :alt: kucoinfutures
+     
+     - kucoinfutures
+     - `KuCoin Futures <https://futures.kucoin.com/?rcode=E5wkqe>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.kucoin.com/futures
+          :alt: API Version 1
      
    * - Seychelles
      - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg

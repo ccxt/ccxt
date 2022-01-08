@@ -455,6 +455,7 @@ declare module 'ccxt' {
     export class bittrex extends Exchange {}
     export class bitvavo extends Exchange {}
     export class bl3p extends Exchange {}
+    export class blockchaincom extends Exchange {}
     export class btcalpha extends Exchange {}
     export class btcbox extends Exchange {}
     export class btcmarkets extends Exchange {}
@@ -476,6 +477,7 @@ declare module 'ccxt' {
     export class coinone extends Exchange {}
     export class coinspot extends Exchange {}
     export class crex24 extends Exchange {}
+    export class cryptocom extends Exchange {}
     export class currencycom extends Exchange {}
     export class delta extends Exchange {}
     export class deribit extends Exchange {}
@@ -500,6 +502,7 @@ declare module 'ccxt' {
     export class itbit extends Exchange {}
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
+    export class kucoinfutures extends kucoin {}
     export class kuna extends Exchange {}
     export class latoken extends Exchange {}
     export class latoken1 extends Exchange {}
@@ -571,6 +574,7 @@ declare module 'ccxt' {
         | 'bittrex'
         | 'bitvavo'
         | 'bl3p'
+        | 'blockchaincom'
         | 'btcalpha'
         | 'btcbox'
         | 'btcmarkets'
@@ -592,6 +596,7 @@ declare module 'ccxt' {
         | 'coinone'
         | 'coinspot'
         | 'crex24'
+        | 'cryptocom'
         | 'currencycom'
         | 'delta'
         | 'deribit'
@@ -616,6 +621,7 @@ declare module 'ccxt' {
         | 'itbit'
         | 'kraken'
         | 'kucoin'
+        | 'kucoinfutures'
         | 'kuna'
         | 'latoken'
         | 'latoken1'

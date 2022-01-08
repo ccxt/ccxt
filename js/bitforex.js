@@ -243,9 +243,7 @@ module.exports = class bitforex extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostApiV1FundAllAccount (params);
+    parseBalance (response) {
         const data = response['data'];
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
@@ -259,6 +257,12 @@ module.exports = class bitforex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostApiV1FundAllAccount (params);
+        return this.parseBalance (response);
     }
 
     async fetchTicker (symbol, params = {}) {

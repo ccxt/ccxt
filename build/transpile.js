@@ -54,6 +54,7 @@ class Transpiler {
             [ /\.binaryConcatArray\s/g, '.binary_concat_array'],
             [ /\.binaryToString\s/g, '.binary_to_string' ],
             [ /\.precisionFromString\s/g, '.precision_from_string'],
+            [ /\.parsePrecision\s/g, '.parse_precision'],
             [ /\.implodeHostname\s/g, '.implode_hostname'],
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
@@ -122,6 +123,7 @@ class Transpiler {
             [ /\.loadAccounts\s/g, '.load_accounts'],
             [ /\.loadFees\s/g, '.load_fees'],
             [ /\.loadMarkets\s/g, '.load_markets'],
+            [ /\.loadTimeDifference\s/g, '.load_time_difference'],
             [ /\.fetchMarkets\s/g, '.fetch_markets'],
             [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
             [ /\.fetchCategories\s/g, '.fetch_categories'],
@@ -162,7 +164,10 @@ class Transpiler {
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
-            [ /\.call\s*\(this, /g, '(' ]
+            [ /\.call\s*\(this, /g, '(' ],
+            [ /\.getSupportedMapping\s/g, '.get_supported_mapping'],
+            [ /\.fetchBorrowRate\s/g, '.fetch_borrow_rate'],
+            [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
         ]
     }
 
@@ -192,6 +197,13 @@ class Transpiler {
             [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
             [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
             [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+            //
+            // too broad, have to rewrite these cause they don't work
+            //
+            // [ /([^\s]+)\s+\=\=\=?\s+true/g, 'isinstance($1, bool) and ($1 is True)' ],
+            // [ /([^\s]+)\s+\!\=\=?\s+true/g, 'isinstance($1, bool) and ($1 is not True)' ],
+            // [ /([^\s]+)\s+\=\=\=?\s+false/g, 'isinstance($1, bool) and ($1 is False)' ],
+            // [ /([^\s]+)\s+\!\=\=?\s+false/g, 'isinstance($1, bool) and ($1 is not False)' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, 'isinstance($1[$2], basestring)' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1[$2], basestring)' ],
@@ -1485,6 +1497,11 @@ class Transpiler {
                 'jsFile': './js/test/Exchange/test.order.js',
                 'pyFile': './python/ccxt/test/test_order.py',
                 'phpFile': './php/test/test_order.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.position.js',
+                'pyFile': './python/ccxt/test/test_position.py',
+                'phpFile': './php/test/test_position.php',
             },
             {
                 'jsFile': './js/test/Exchange/test.transaction.js',

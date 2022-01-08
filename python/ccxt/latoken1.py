@@ -254,22 +254,7 @@ class latoken1(Exchange):
             }
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetAccountBalances(params)
-        #
-        #     [
-        #         {
-        #             "currencyId": 102,
-        #             "symbol": "LA",
-        #             "name": "Latoken",
-        #             "amount": 1054.66,
-        #             "available": 900.66,
-        #             "frozen": 154,
-        #             "pending": 0
-        #         }
-        #     ]
-        #
+    def parse_balance(self, response):
         result = {
             'info': response,
             'timestamp': None,
@@ -287,6 +272,24 @@ class latoken1(Exchange):
             account['total'] = self.safe_string(balance, 'amount')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetAccountBalances(params)
+        #
+        #     [
+        #         {
+        #             "currencyId": 102,
+        #             "symbol": "LA",
+        #             "name": "Latoken",
+        #             "amount": 1054.66,
+        #             "available": 900.66,
+        #             "frozen": 154,
+        #             "pending": 0
+        #         }
+        #     ]
+        #
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

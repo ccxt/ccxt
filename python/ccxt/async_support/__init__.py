@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.65.27'
+__version__ = '1.66.42'
 
 # -----------------------------------------------------------------------------
 
@@ -81,6 +81,7 @@ from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa
 from ccxt.async_support.bittrex import bittrex                            # noqa: F401
 from ccxt.async_support.bitvavo import bitvavo                            # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                  # noqa: F401
+from ccxt.async_support.blockchaincom import blockchaincom                # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
 from ccxt.async_support.btcbox import btcbox                              # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                      # noqa: F401
@@ -102,6 +103,7 @@ from ccxt.async_support.coinmate import coinmate                          # noqa
 from ccxt.async_support.coinone import coinone                            # noqa: F401
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
 from ccxt.async_support.crex24 import crex24                              # noqa: F401
+from ccxt.async_support.cryptocom import cryptocom                        # noqa: F401
 from ccxt.async_support.currencycom import currencycom                    # noqa: F401
 from ccxt.async_support.delta import delta                                # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
@@ -126,6 +128,7 @@ from ccxt.async_support.indodax import indodax                            # noqa
 from ccxt.async_support.itbit import itbit                                # noqa: F401
 from ccxt.async_support.kraken import kraken                              # noqa: F401
 from ccxt.async_support.kucoin import kucoin                              # noqa: F401
+from ccxt.async_support.kucoinfutures import kucoinfutures                # noqa: F401
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.latoken import latoken                            # noqa: F401
 from ccxt.async_support.latoken1 import latoken1                          # noqa: F401
@@ -195,6 +198,7 @@ exchanges = [
     'bittrex',
     'bitvavo',
     'bl3p',
+    'blockchaincom',
     'btcalpha',
     'btcbox',
     'btcmarkets',
@@ -216,6 +220,7 @@ exchanges = [
     'coinone',
     'coinspot',
     'crex24',
+    'cryptocom',
     'currencycom',
     'delta',
     'deribit',
@@ -240,6 +245,7 @@ exchanges = [
     'itbit',
     'kraken',
     'kucoin',
+    'kucoinfutures',
     'kuna',
     'latoken',
     'latoken1',

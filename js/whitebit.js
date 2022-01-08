@@ -766,15 +766,7 @@ module.exports = class whitebit extends Exchange {
         return await this.v4PrivatePostOrderCancel (this.extend (request, params));
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.v4PrivatePostTradeAccountBalance (params);
-        //
-        //     {
-        //         "BTC": { "available": "0.123", "freeze": "1" },
-        //         "XMR": { "available": "3013", "freeze": "100" },
-        //     }
-        //
+    parseBalance (response) {
         const balanceKeys = Object.keys (response);
         const result = { };
         for (let i = 0; i < balanceKeys.length; i++) {
@@ -787,6 +779,18 @@ module.exports = class whitebit extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v4PrivatePostTradeAccountBalance (params);
+        //
+        //     {
+        //         "BTC": { "available": "0.123", "freeze": "1" },
+        //         "XMR": { "available": "3013", "freeze": "100" },
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1177,7 +1181,8 @@ module.exports = class whitebit extends Exchange {
                     if (errorObject !== undefined) {
                         const errorKey = Object.keys (errorObject)[0];
                         const errorMessageArray = this.safeValue (errorObject, errorKey, []);
-                        errorInfo = errorMessageArray.length > 0 ? errorMessageArray[0] : body;
+                        const errorMessageLength = errorMessageArray.length;
+                        errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }
                 }
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorInfo, feedback);

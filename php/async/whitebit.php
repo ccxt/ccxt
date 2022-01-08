@@ -772,15 +772,7 @@ class whitebit extends Exchange {
         return yield $this->v4PrivatePostOrderCancel (array_merge($request, $params));
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->v4PrivatePostTradeAccountBalance ($params);
-        //
-        //     {
-        //         "BTC" => array( "available" => "0.123", "freeze" => "1" ),
-        //         "XMR" => array( "available" => "3013", "freeze" => "100" ),
-        //     }
-        //
+    public function parse_balance($response) {
         $balanceKeys = is_array($response) ? array_keys($response) : array();
         $result = array( );
         for ($i = 0; $i < count($balanceKeys); $i++) {
@@ -793,6 +785,18 @@ class whitebit extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->v4PrivatePostTradeAccountBalance ($params);
+        //
+        //     {
+        //         "BTC" => array( "available" => "0.123", "freeze" => "1" ),
+        //         "XMR" => array( "available" => "3013", "freeze" => "100" ),
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1183,7 +1187,8 @@ class whitebit extends Exchange {
                     if ($errorObject !== null) {
                         $errorKey = is_array($errorObject) ? array_keys($errorObject) : array()[0];
                         $errorMessageArray = $this->safe_value($errorObject, $errorKey, array());
-                        $errorInfo = strlen($errorMessageArray) > 0 ? $errorMessageArray[0] : $body;
+                        $errorMessageLength = is_array($errorMessageArray) ? count($errorMessageArray) : 0;
+                        $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
                     }
                 }
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorInfo, $feedback);

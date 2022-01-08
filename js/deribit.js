@@ -501,13 +501,12 @@ module.exports = class deribit extends Exchange {
                     'swap': swap,
                     'future': future,
                     'option': option,
-                    'derivative': true,
                     'contract': true,
                     'linear': false,
                     'inverse': true,
                     'taker': this.safeNumber (market, 'taker_commission'),
                     'maker': this.safeNumber (market, 'maker_commission'),
-                    'contractSize': this.safeString (market, 'contract_size'),
+                    'contractSize': this.safeNumber (market, 'contract_size'),
                     'active': this.safeValue (market, 'is_active'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
@@ -540,6 +539,21 @@ module.exports = class deribit extends Exchange {
             }
         }
         return result;
+    }
+
+    parseBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const balance = this.safeValue (response, 'result', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (balance, 'available_funds');
+        account['used'] = this.safeString (balance, 'maintenance_margin');
+        account['total'] = this.safeString (balance, 'equity');
+        result[currencyCode] = account;
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -592,18 +606,7 @@ module.exports = class deribit extends Exchange {
         //         testnet: false
         //     }
         //
-        const result = {
-            'info': response,
-        };
-        const balance = this.safeValue (response, 'result', {});
-        const currencyId = this.safeString (balance, 'currency');
-        const currencyCode = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['free'] = this.safeString (balance, 'available_funds');
-        account['used'] = this.safeString (balance, 'maintenance_margin');
-        account['total'] = this.safeString (balance, 'equity');
-        result[currencyCode] = account;
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async createDepositAddress (code, params = {}) {

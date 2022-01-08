@@ -419,9 +419,7 @@ class buda(Exchange):
         response = await self.publicGetTvHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcv(response, market, timeframe, since, limit)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetBalances(params)
+    def parse_balance(self, response):
         result = {'info': response}
         balances = self.safe_value(response, 'balances')
         for i in range(0, len(balances)):
@@ -433,6 +431,11 @@ class buda(Exchange):
             account['total'] = self.safe_string(balance['amount'], 0)
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetBalances(params)
+        return self.parse_balance(response)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

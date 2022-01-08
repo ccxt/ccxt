@@ -198,7 +198,6 @@ module.exports = class idex extends Exchange {
                 'swap': false,
                 'futures': false,
                 'option': false,
-                'derivative': false,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -598,6 +597,25 @@ module.exports = class idex extends Exchange {
         return result;
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (entry, 'quantity');
+            account['free'] = this.safeString (entry, 'availableForTrade');
+            account['used'] = this.safeString (entry, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -631,22 +649,7 @@ module.exports = class idex extends Exchange {
                 throw e;
             }
         }
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString (entry, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (entry, 'quantity');
-            account['free'] = this.safeString (entry, 'availableForTrade');
-            account['used'] = this.safeString (entry, 'locked');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

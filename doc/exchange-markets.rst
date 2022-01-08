@@ -2,7 +2,7 @@
 Supported Exchanges
 ===================
 
-The CCXT library currently supports the following 109 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 112 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -421,6 +421,18 @@ The CCXT library currently supports the following 109 cryptocurrency exchange ma
      
      - 
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg
+          :target: https://blockchain.com
+          :alt: blockchaincom
+     
+     - blockchaincom
+     - `Blockchain.com <https://blockchain.com>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://api.blockchain.com/v3
+          :alt: API Version 3
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg
           :target: https://btc-alpha.com/?r=123788
           :alt: btcalpha
@@ -675,6 +687,18 @@ The CCXT library currently supports the following 109 cryptocurrency exchange ma
      - `CREX24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://docs.crex24.com/trade-api/v2
+          :alt: API Version 2
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg
+          :target: https://crypto.com/exch/5835vstech
+          :alt: cryptocom
+     
+     - cryptocom
+     - `Crypto.com <https://crypto.com/exch/5835vstech>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://exchange-docs.crypto.com/
           :alt: API Version 2
      
      - 
@@ -1003,6 +1027,18 @@ The CCXT library currently supports the following 109 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg
+          :target: https://futures.kucoin.com/?rcode=E5wkqe
+          :alt: kucoinfutures
+     
+     - kucoinfutures
+     - `KuCoin Futures <https://futures.kucoin.com/?rcode=E5wkqe>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.kucoin.com/futures
+          :alt: API Version 1
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg
           :target: https://kuna.io?r=kunaid-gvfihe8az7o4
           :alt: kuna

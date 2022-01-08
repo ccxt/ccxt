@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.65.27'
+__version__ = '1.66.42'
 
 # -----------------------------------------------------------------------------
 
@@ -511,7 +511,9 @@ class Exchange(object):
             if isinstance(value, list):
                 for path in value:
                     self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths)
-            elif re.search(r'^(?:get|post|put|delete|options|head|patch)$', key, re.IGNORECASE) is not None:
+            # the options HTTP method conflicts with the 'options' API url path
+            # elif re.search(r'^(?:get|post|put|delete|options|head|patch)$', key, re.IGNORECASE) is not None:
+            elif re.search(r'^(?:get|post|put|delete|head|patch)$', key, re.IGNORECASE) is not None:
                 for [endpoint, config] in value.items():
                     path = endpoint.strip()
                     if isinstance(config, dict):
@@ -2626,10 +2628,8 @@ class Exchange(object):
     def handle_market_type_and_params(self, method_name, market=None, params={}):
         default_type = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
         method_options = self.safe_value(self.options, method_name)
-        method_type = None
-        if method_options is None:
-            method_type = default_type
-        else:
+        method_type = default_type
+        if method_options is not None:
             if isinstance(method_options, str):
                 method_type = method_options
             else:
@@ -2638,3 +2638,9 @@ class Exchange(object):
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
+
+    def load_time_difference(self, params={}):
+        server_time = self.fetch_time(params)
+        after = self.milliseconds()
+        self.options['timeDifference'] = after - server_time
+        return self.options['timeDifference']

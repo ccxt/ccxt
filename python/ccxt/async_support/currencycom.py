@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -178,12 +177,6 @@ class currencycom(Exchange):
         #
         return self.safe_integer(response, 'serverTime')
 
-    async def load_time_difference(self, params={}):
-        response = await self.publicGetTime(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = int(after - response['serverTime'])
-        return self.options['timeDifference']
-
     async def fetch_markets(self, params={}):
         response = await self.publicGetExchangeInfo(params)
         #
@@ -266,10 +259,6 @@ class currencycom(Exchange):
                 symbol = id
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
-            precision = {
-                'amount': 1 / math.pow(1, self.safe_integer(market, 'baseAssetPrecision')),
-                'price': self.safe_number(market, 'tickSize'),
-            }
             status = self.safe_string(market, 'status')
             active = (status == 'TRADING')
             type = self.safe_string_lower(market, 'marketType')
@@ -277,72 +266,103 @@ class currencycom(Exchange):
                 type = 'margin'
             spot = (type == 'spot')
             margin = (type == 'margin')
-            entry = {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'type': type,
-                'spot': spot,
-                'margin': margin,
-                'info': market,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': -math.log10(precision['amount']),
-                        'max': None,
-                    },
-                },
-            }
             exchangeFee = self.safe_number_2(market, 'exchangeFee', 'tradingFee')
             makerFee = self.safe_number(market, 'makerFee', exchangeFee)
             takerFee = self.safe_number(market, 'takerFee', exchangeFee)
+            maker = None
+            taker = None
             if makerFee is not None:
-                entry['maker'] = makerFee / 100
+                maker = makerFee / 100
             if takerFee is not None:
-                entry['taker'] = takerFee / 100
+                taker = takerFee / 100
+            limitPriceMin = None
+            limitPriceMax = None
+            precisionPrice = self.safe_number(market, 'tickSize')
             if 'PRICE_FILTER' in filtersByType:
                 filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-                entry['precision']['price'] = self.safe_number(filter, 'tickSize')
+                precisionPrice = self.safe_number(filter, 'tickSize')
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
                 # therefore limits['price']['max'] doesn't have any meaningful value except None
-                entry['limits']['price'] = {
-                    'min': self.safe_number(filter, 'minPrice'),
-                    'max': None,
-                }
+                limitPriceMin = self.safe_number(filter, 'minPrice')
                 maxPrice = self.safe_number(filter, 'maxPrice')
                 if (maxPrice is not None) and (maxPrice > 0):
-                    entry['limits']['price']['max'] = maxPrice
+                    limitPriceMax = maxPrice
+            precisionAmount = self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))
+            limitAmount = {
+                'min': None,
+                'max': None,
+            }
             if 'LOT_SIZE' in filtersByType:
                 filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-                entry['precision']['amount'] = self.safe_number(filter, 'stepSize')
-                entry['limits']['amount'] = {
+                precisionAmount = self.safe_number(filter, 'stepSize')
+                limitAmount = {
                     'min': self.safe_number(filter, 'minQty'),
                     'max': self.safe_number(filter, 'maxQty'),
                 }
+            limitMarket = {
+                'min': None,
+                'max': None,
+            }
             if 'MARKET_LOT_SIZE' in filtersByType:
                 filter = self.safe_value(filtersByType, 'MARKET_LOT_SIZE', {})
-                entry['limits']['market'] = {
+                limitMarket = {
                     'min': self.safe_number(filter, 'minQty'),
                     'max': self.safe_number(filter, 'maxQty'),
                 }
+            costMin = None
             if 'MIN_NOTIONAL' in filtersByType:
                 filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
-                entry['limits']['cost']['min'] = self.safe_number(filter, 'minNotional')
-            result.append(entry)
+                costMin = self.safe_number(filter, 'minNotional')
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': None,
+                'active': active,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': precisionAmount,
+                    'price': precisionPrice,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': limitAmount,
+                    'market': limitMarket,
+                    'price': {
+                        'min': limitPriceMin,
+                        'max': limitPriceMax,
+                    },
+                    'cost': {
+                        'min': costMin,
+                        'max': None,
+                    },
+                },
+                'info': market,
+            })
         return result
 
     async def fetch_accounts(self, params={}):

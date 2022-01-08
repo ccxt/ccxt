@@ -510,13 +510,12 @@ class deribit(Exchange):
                     'swap': swap,
                     'future': future,
                     'option': option,
-                    'derivative': True,
                     'contract': True,
                     'linear': False,
                     'inverse': True,
                     'taker': self.safe_number(market, 'taker_commission'),
                     'maker': self.safe_number(market, 'maker_commission'),
-                    'contractSize': self.safe_string(market, 'contract_size'),
+                    'contractSize': self.safe_number(market, 'contract_size'),
                     'active': self.safe_value(market, 'is_active'),
                     'expiry': expiry,
                     'expiryDatetime': self.iso8601(expiry),
@@ -547,6 +546,20 @@ class deribit(Exchange):
                     'info': market,
                 })
         return result
+
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+        }
+        balance = self.safe_value(response, 'result', {})
+        currencyId = self.safe_string(balance, 'currency')
+        currencyCode = self.safe_currency_code(currencyId)
+        account = self.account()
+        account['free'] = self.safe_string(balance, 'available_funds')
+        account['used'] = self.safe_string(balance, 'maintenance_margin')
+        account['total'] = self.safe_string(balance, 'equity')
+        result[currencyCode] = account
+        return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -598,18 +611,7 @@ class deribit(Exchange):
         #         testnet: False
         #     }
         #
-        result = {
-            'info': response,
-        }
-        balance = self.safe_value(response, 'result', {})
-        currencyId = self.safe_string(balance, 'currency')
-        currencyCode = self.safe_currency_code(currencyId)
-        account = self.account()
-        account['free'] = self.safe_string(balance, 'available_funds')
-        account['used'] = self.safe_string(balance, 'maintenance_margin')
-        account['total'] = self.safe_string(balance, 'equity')
-        result[currencyCode] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()

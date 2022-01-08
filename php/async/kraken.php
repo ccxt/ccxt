@@ -221,6 +221,12 @@ class kraken extends Exchange {
                         'WithdrawCancel' => 1,
                         'WithdrawInfo' => 1,
                         'WithdrawStatus' => 1,
+                        // staking
+                        'Stake' => 1,
+                        'Unstake' => 1,
+                        'Staking/Assets' => 1,
+                        'Staking/Pending' => 1,
+                        'Staking/Transactions' => 1,
                     ),
                 ),
             ),
@@ -1078,19 +1084,7 @@ class kraken extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privatePostBalance ($params);
-        //
-        //     {
-        //         "error":array(),
-        //         "result":{
-        //             "ZUSD":"58.8649",
-        //             "KFEE":"4399.43",
-        //             "XXBT":"0.0000034506",
-        //         }
-        //     }
-        //
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'result', array());
         $result = array(
             'info' => $response,
@@ -1106,6 +1100,22 @@ class kraken extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privatePostBalance ($params);
+        //
+        //     {
+        //         "error":array(),
+        //         "result":{
+        //             "ZUSD":"58.8649",
+        //             "KFEE":"4399.43",
+        //             "XXBT":"0.0000034506",
+        //         }
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1530,11 +1540,13 @@ class kraken extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
         $response = null;
-        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
+        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId', $id);
+        $request = array(
+            'txid' => $clientOrderId, // order $id or userref
+        );
+        $params = $this->omit($params, ['userref', 'clientOrderId' ]);
         try {
-            $response = yield $this->privatePostCancelOrder (array_merge(array(
-                'txid' => $clientOrderId || $id,
-            ), $params));
+            $response = yield $this->privatePostCancelOrder (array_merge($request, $params));
         } catch (Exception $e) {
             if ($this->last_http_response) {
                 if (mb_strpos($this->last_http_response, 'EOrder:Unknown order') !== false) {
