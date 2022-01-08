@@ -70,7 +70,7 @@ class aax(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': None,
-                'fetchDeposits': None,
+                'fetchDeposits': True,
                 'fetchFundingFee': None,
                 'fetchFundingFees': None,
                 'fetchFundingHistory': True,
@@ -201,6 +201,7 @@ class aax(Exchange):
                         'user/info',  # Retrieve user information
                         'account/balances',  # Get Account Balances
                         'account/deposit/address',  # undocumented
+                        'account/deposits',  # Get account deposits history
                         'spot/trades',  # Retrieve trades details for a spot order
                         'spot/openOrders',  # Retrieve spot open orders
                         'spot/orders',  # Retrieve historical spot orders
@@ -1835,6 +1836,81 @@ class aax(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # status Not required -  Deposit status, "1: pending,2: confirmed, 3:failed"
+            # currency: Not required -  String Currency
+            # startTime Not required Integer Default: 90 days from current timestamp.
+            # endTime Not required Integer Default: present timestamp.
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['startTime'] = since  # default 90 days
+        response = await self.privateGetAccountDeposits(self.extend(request, params))
+        # {   "code": 1,
+        #     "data": [{
+        #         "currency": "USDT",
+        #         "network": "USDT",
+        #         "quantity": "19.000000000000",
+        #         "txHash": "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        #         "address": "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        #         "status": "2",
+        #         "createdTime": "2021-01-08T19:45:01.354Z",
+        #         "updatedTime": "2021-01-08T20:03:05.000Z",
+        #     }]
+        #     "message": "success",
+        #     "ts": 1573561743499
+        # }
+        deposits = self.safe_value(response, 'data', [])
+        return self.parse_transactions(deposits, code, since, limit)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            '1': 'pending',
+            '2': 'ok',
+            '3': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #    {
+        #         "currency": "USDT",
+        #         "network": "USDT",
+        #         "quantity": "19.000000000000",
+        #         "txHash": "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        #         "address": "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        #         "status": "2",
+        #         "createdTime": "2021-01-08T19:45:01.354Z",
+        #         "updatedTime": "2021-01-08T20:03:05.000Z",
+        #     }
+        code = self.safe_currency_code(self.safe_string(transaction, 'currency'))
+        txid = self.safe_string(transaction, 'txHash')
+        address = self.safe_string(transaction, 'address')
+        type = 'deposit'
+        amountString = self.safe_string(transaction, 'quantity')
+        amountString = Precise.string_div(Precise.string_abs(amountString), '1e8')
+        timestamp = self.parse8601(self.safe_string(transaction, 'createdTime'))
+        updated = self.parse8601(self.safe_string(transaction, 'updatedTime'))
+        status = self.safe_string(transaction, 'status')
+        if status is not None:
+            status = self.parse_transaction_status(status)
+        return {
+            'info': transaction,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': address,
+            'amount': self.parse_number(amountString),
+            'type': type,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+        }
 
     async def fetch_funding_rate(self, symbol, params={}):
         await self.load_markets()
