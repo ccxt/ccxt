@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, InvalidNonce } = require ('ccxt/js/base/errors');
+const { ExchangeError, InvalidNonce, NetworkError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -344,6 +344,33 @@ module.exports = class kucoin extends ccxt.kucoin {
         return orderbook.limit (limit);
     }
 
+    retryFetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const messageHash = this.safeString (subscription, 'messageHash');
+        // console.log ('fetchOrderBookSnapshot', nonce, previousSequence, nonce >= previousSequence);
+        const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
+        const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
+        let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+        // retry to syncrhonize if we haven't reached maxAttempts yet
+        if (numAttempts < maxAttempts) {
+            // safety guard
+            if (messageHash in client.subscriptions) {
+                numAttempts = this.sum (numAttempts, 1);
+                subscription['numAttempts'] = numAttempts;
+                client.subscriptions[messageHash] = subscription;
+                this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            }
+        } else {
+            if (messageHash in client.subscriptions) {
+                subscription['fetchingOrderBookSnapshot'] = false;
+                subscription['numAttempts'] = 0;
+                client.subscriptions[messageHash] = subscription;
+            }
+            const e = new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+            client.reject (e, messageHash);
+        }
+    }
+
     async fetchOrderBookSnapshot (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
@@ -367,22 +394,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
             if (nonce < previousSequence) {
-                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
-                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
-                // retry to syncrhonize if we haven't reached maxAttempts yet
-                if (numAttempts < maxAttempts) {
-                    // safety guard
-                    if (messageHash in client.subscriptions) {
-                        numAttempts = this.sum (numAttempts, 1);
-                        subscription['numAttempts'] = numAttempts;
-                        client.subscriptions[messageHash] = subscription;
-                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
-                    }
-                } else {
-                    // throw upon failing to synchronize in maxAttempts
-                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
-                }
+                this.retryFetchOrderBookSnapshot (client, message, subscription);
             } else {
                 orderbook.reset (snapshot);
                 // unroll the accumulated deltas
@@ -395,7 +407,11 @@ module.exports = class kucoin extends ccxt.kucoin {
                 client.resolve (orderbook, messageHash);
             }
         } catch (e) {
-            client.reject (e, messageHash);
+            if (e instanceof NetworkError) {
+                this.retryFetchOrderBookSnapshot (client, message, subscription);
+            } else {
+                client.reject (e, messageHash);
+            }
         }
     }
 
