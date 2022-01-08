@@ -727,7 +727,7 @@ module.exports = class deribit extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber2 (ticker, 'last_price', 'last');
         const stats = this.safeValue (ticker, 'stats', ticker);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -748,7 +748,7 @@ module.exports = class deribit extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (stats, 'volume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1684,6 +1684,69 @@ module.exports = class deribit extends Exchange {
         };
     }
 
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 404,
+        //         "result": {
+        //             "average_price": 0,
+        //             "delta": 0,
+        //             "direction": "buy",
+        //             "estimated_liquidation_price": 0,
+        //             "floating_profit_loss": 0,
+        //             "index_price": 3555.86,
+        //             "initial_margin": 0,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "leverage": 100,
+        //             "kind": "future",
+        //             "maintenance_margin": 0,
+        //             "mark_price": 3556.62,
+        //             "open_orders_margin": 0.000165889,
+        //             "realized_profit_loss": 0,
+        //             "settlement_price": 3555.44,
+        //             "size": 0,
+        //             "size_currency": 0,
+        //             "total_profit_loss": 0
+        //         }
+        //     }
+        //
+        const contract = this.safeString (position, 'instrument_name');
+        market = this.safeMarket (contract, market);
+        const size = this.safeString (position, 'size');
+        const side = this.safeString (position, 'direction');
+        const maintenanceRate = this.safeString (position, 'maintenance_margin');
+        const markPrice = this.safeString (position, 'mark_price');
+        const notionalString = Precise.stringMul (markPrice, size);
+        const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
+        const initialMarginString = this.safeString (position, 'initial_margin');
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const currentTime = this.milliseconds ();
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
+            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notionalString)),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
+            'entryPrice': this.safeString (position, 'average_price'),
+            'notional': this.parseNumber (notionalString),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),  // in USD for perpetuals on deribit
+            'contractSize': this.safeValue (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
+            'markPrice': markPrice,
+            'collateral': undefined,
+            'marginType': undefined,
+            'side': side,
+            'percentage': this.parseNumber (percentage),
+        };
+    }
+
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1717,8 +1780,16 @@ module.exports = class deribit extends Exchange {
         //         }
         //     }
         //
-        // todo unify parsePosition/parsePositions
         const result = this.safeValue (response, 'result');
+        return this.parsePosition (result);
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        // todo unify parsePositions
         return result;
     }
 
@@ -1759,9 +1830,10 @@ module.exports = class deribit extends Exchange {
         //         ]
         //     }
         //
-        // todo unify parsePosition/parsePositions
-        const result = this.safeValue (response, 'result', []);
-        return result;
+        // response is returning an empty list for result
+        // todo unify parsePositions
+        const result = this.parsePositions (response);
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
