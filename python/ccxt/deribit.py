@@ -45,6 +45,7 @@ class deribit(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchHistoricalVolatility': True,
                 'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -1777,6 +1778,40 @@ class deribit(Exchange):
         # todo unify parsePositions
         result = self.parse_positions(response)
         return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def fetch_historical_volatility(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.publicGetGetHistoricalVolatility(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": [
+        #             [1640142000000,63.828320460740585],
+        #             [1640142000000,63.828320460740585],
+        #             [1640145600000,64.03821964123213]
+        #         ],
+        #         "usIn": 1641515379467734,
+        #         "usOut": 1641515379468095,
+        #         "usDiff": 361,
+        #         "testnet": False
+        #     }
+        #
+        volatilityResult = self.safe_value(response, 'result', {})
+        result = []
+        for i in range(0, len(volatilityResult)):
+            timestamp = self.safe_integer(volatilityResult[i], 0)
+            volatility = self.safe_number(volatilityResult[i], 1)
+            result.append({
+                'info': response,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'volatility': volatility,
+            })
+        return result
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
