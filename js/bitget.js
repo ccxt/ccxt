@@ -2577,7 +2577,6 @@ module.exports = class bitget extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'updated': updated,
             'fee': fee,
         };
     }
