@@ -3501,4 +3501,11 @@ class Exchange {
         $params = $this->omit($params, [ 'defaultType', 'type' ]);
         return array($type, $params);
     }
+
+    public function load_time_difference($params = array()) {
+        $server_time = $this->fetch_time($params);
+        $after = $this->milliseconds();
+        $this->options['timeDifference'] = $after - $server_time;
+        return $this->options['timeDifference'];
+    }
 }

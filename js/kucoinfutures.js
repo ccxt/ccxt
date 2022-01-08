@@ -64,7 +64,6 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': undefined,
-                'loadTimeDifference': true,
                 'setMarginMode': false,
                 'transfer': true,
                 'transferOut': true,
@@ -291,14 +290,6 @@ module.exports = class kucoinfutures extends kucoin {
 
     async fetchAccounts (params = {}) {
         throw new BadRequest (this.id + ' has no method fetchAccounts');
-    }
-
-    async loadTimeDifference (params = {}) {
-        const response = await this.futuresPublicGetTimestamp (params);
-        const after = this.milliseconds ();
-        const kucoinTime = this.safeInteger (response, 'data');
-        this.options['timeDifference'] = parseInt (after - kucoinTime);
-        return this.options['timeDifference'];
     }
 
     async fetchStatus (params = {}) {

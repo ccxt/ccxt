@@ -326,4 +326,11 @@ class Exchange extends \ccxt\Exchange {
             throw new NotSupported($this->id . ' fetchTicker not supported yet');
         }
     }
+
+    public function load_time_difference($params = array()) {
+        $server_time = yield $this->fetch_time($params);
+        $after = $this->milliseconds();
+        $this->options['timeDifference'] = $after - $server_time;
+        return $this->options['timeDifference'];
+    }
 }

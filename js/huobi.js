@@ -104,7 +104,6 @@ module.exports = class huobi extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'loadLeverageBrackets': undefined,
-                'loadTimeDifference': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': true,
                 'setMarginMode': undefined,

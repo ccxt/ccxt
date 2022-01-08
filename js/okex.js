@@ -100,7 +100,6 @@ module.exports = class okex extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'loadLeverageBrackets': undefined,
-                'loadTimeDifference': undefined,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,

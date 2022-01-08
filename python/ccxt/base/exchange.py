@@ -2638,3 +2638,9 @@ class Exchange(object):
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
+
+    def load_time_difference(self, params={}):
+        server_time = self.fetch_time(params)
+        after = self.milliseconds()
+        self.options['timeDifference'] = after - server_time
+        return self.options['timeDifference']
