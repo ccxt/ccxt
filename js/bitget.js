@@ -1754,7 +1754,7 @@ module.exports = class bitget extends Exchange {
         } else if (type === 'swap') {
             return this.parseSwapBalance (response);
         }
-        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', or 'swap')");
     }
 
     parseOrderStatus (status) {
@@ -1894,7 +1894,7 @@ module.exports = class bitget extends Exchange {
         // }
         // if ((type !== 'limit') && (type !== 'market')) {
         //     if ('pnl' in order) {
-        //         type = 'futures';
+        //         type = 'future';
         //     } else {
         //         type = 'swap';
         //     }
