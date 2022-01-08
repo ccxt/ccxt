@@ -13,7 +13,7 @@ module.exports = class wavesexchange extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
-            'countries': ['CH'], // Switzerland
+            'countries': [ 'CH' ], // Switzerland
             'rateLimit': 500,
             'certified': true,
             'pro': false,
@@ -505,7 +505,7 @@ module.exports = class wavesexchange extends Exchange {
             if ((limit !== undefined) && (i > limit)) {
                 break;
             }
-            result.push ([price, amount]);
+            result.push ([ price, amount ]);
         }
         return result;
     }
@@ -559,7 +559,7 @@ module.exports = class wavesexchange extends Exchange {
                 headers['content-type'] = 'application/x-www-form-urlencoded';
             }
             if (isCancelOrder) {
-                body = this.json ([query['orderId']]);
+                body = this.json ([ query['orderId'] ]);
                 queryString = '';
             }
             if (queryString.length > 0) {
@@ -1801,7 +1801,7 @@ module.exports = class wavesexchange extends Exchange {
             }
         }
         await this.loadMarkets ();
-        const hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+        const hexChars = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' ];
         const set = {};
         for (let i = 0; i < hexChars.length; i++) {
             const key = hexChars[i];

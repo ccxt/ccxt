@@ -13,7 +13,7 @@ module.exports = class bytetrade extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bytetrade',
             'name': 'ByteTrade',
-            'countries': ['HK'],
+            'countries': [ 'HK' ],
             'rateLimit': 500,
             'requiresWeb3': true,
             'certified': false,
