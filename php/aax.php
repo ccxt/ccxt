@@ -16,7 +16,7 @@ class aax extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'aax',
             'name' => 'AAX',
-            'countries' => ['MT'], // Malta
+            'countries' => array( 'MT' ), // Malta
             'enableRateLimit' => true,
             'rateLimit' => 500,
             'version' => 'v2',
@@ -53,7 +53,7 @@ class aax extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => null,
-                'fetchDeposits' => true,
+                'fetchDeposits' => null,
                 'fetchFundingFee' => null,
                 'fetchFundingFees' => null,
                 'fetchFundingHistory' => true,
@@ -184,7 +184,6 @@ class aax extends Exchange {
                         'user/info', // Retrieve user information
                         'account/balances', // Get Account Balances
                         'account/deposit/address', // undocumented
-                        'account/deposits', // Get account deposits history
                         'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
                         'spot/orders', // Retrieve historical spot orders
@@ -977,7 +976,7 @@ class aax extends Exchange {
         if ($postOnly !== null) {
             $request['execInst'] = 'Post-Only';
         }
-        $params = $this->omit($params, ['clOrdID', 'clientOrderId', 'postOnly']);
+        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly' ));
         $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice === null) {
             if (($orderType === 'STOP-LIMIT') || ($orderType === 'STOP')) {
@@ -1341,7 +1340,7 @@ class aax extends Exchange {
             $request['orderID'] = $id;
         } else {
             $request['clOrdID'] = $clientOrderId;
-            $params = $this->omit($params, ['clOrdID', 'clientOrderId']);
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
         $orders = $this->fetch_orders($symbol, null, null, array_merge($request, $params));
         $order = $this->safe_value($orders, 0);
@@ -1377,7 +1376,7 @@ class aax extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
-            $params = $this->omit($params, ['clOrdID', 'clientOrderId']);
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
         $method = null;
         if ($type === 'spot') {
@@ -1535,7 +1534,7 @@ class aax extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
-            $params = $this->omit($params, ['clOrdID', 'clientOrderId']);
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 10
@@ -1905,87 +1904,6 @@ class aax extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $request = array(
-            // status Not required -  Deposit status, "1 => pending,2 => confirmed, 3:failed"
-            // $currency => Not required -  String Currency
-            // startTime Not required Integer Default => 90 days from current timestamp.
-            // endTime Not required Integer Default => present timestamp.
-        );
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
-        }
-        if ($since !== null) {
-            $request['startTime'] = $since; // default 90 days
-        }
-        $response = $this->privateGetAccountDeposits (array_merge($request, $params));
-        // {    "code" => 1,
-        //     "data" => [array(
-        //         "currency" => "USDT",
-        //         "network" => "USDT",
-        //         "quantity" => "19.000000000000",
-        //         "txHash" => "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
-        //         "address" => "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
-        //         "status" => "2",
-        //         "createdTime" => "2021-01-08T19:45:01.354Z",
-        //         "updatedTime" => "2021-01-08T20:03:05.000Z",
-        //     )]
-        //     "message" => "success",
-        //     "ts" => 1573561743499
-        // }
-        $deposits = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
-    }
-
-    public function parse_transaction_status($status) {
-        $statuses = array(
-            '1' => 'pending',
-            '2' => 'ok',
-            '3' => 'failed',
-        );
-        return $this->safe_string($statuses, $status, $status);
-    }
-
-    public function parse_transaction($transaction, $currency = null) {
-        //    {
-        //         "currency" => "USDT",
-        //         "network" => "USDT",
-        //         "quantity" => "19.000000000000",
-        //         "txHash" => "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
-        //         "address" => "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
-        //         "status" => "2",
-        //         "createdTime" => "2021-01-08T19:45:01.354Z",
-        //         "updatedTime" => "2021-01-08T20:03:05.000Z",
-        //     }
-        $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'));
-        $txid = $this->safe_string($transaction, 'txHash');
-        $address = $this->safe_string($transaction, 'address');
-        $type = 'deposit';
-        $amountString = $this->safe_string($transaction, 'quantity');
-        $amountString = Precise::string_div(Precise::string_abs($amountString), '1e8');
-        $timestamp = $this->parse8601($this->safe_string($transaction, 'createdTime'));
-        $updated = $this->parse8601($this->safe_string($transaction, 'updatedTime'));
-        $status = $this->safe_string($transaction, 'status');
-        if ($status !== null) {
-            $status = $this->parse_transaction_status($status);
-        }
-        return array(
-            'info' => $transaction,
-            'txid' => $txid,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'address' => $address,
-            'amount' => $this->parse_number($amountString),
-            'type' => $type,
-            'currency' => $code,
-            'status' => $status,
-            'updated' => $updated,
-        );
-    }
-
     public function fetch_funding_rate($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2088,7 +2006,7 @@ class aax extends Exchange {
         }
         $till = $this->safe_integer($params, 'till'); // unified in milliseconds
         $endTime = $this->safe_string($params, 'endTime'); // exchange-specific in seconds
-        $params = $this->omit($params, ['endTime', 'till']);
+        $params = $this->omit($params, array( 'endTime', 'till' ));
         if ($till !== null) {
             $request['endTime'] = intval($till / 1000);
         } else if ($endTime !== null) {

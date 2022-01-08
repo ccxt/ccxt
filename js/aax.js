@@ -14,7 +14,7 @@ module.exports = class aax extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'aax',
             'name': 'AAX',
-            'countries': ['MT'], // Malta
+            'countries': [ 'MT' ], // Malta
             'enableRateLimit': true,
             'rateLimit': 500,
             'version': 'v2',
@@ -51,7 +51,7 @@ module.exports = class aax extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
-                'fetchDeposits': true,
+                'fetchDeposits': undefined,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
                 'fetchFundingHistory': true,
@@ -182,7 +182,6 @@ module.exports = class aax extends Exchange {
                         'user/info', // Retrieve user information
                         'account/balances', // Get Account Balances
                         'account/deposit/address', // undocumented
-                        'account/deposits', // Get account deposits history
                         'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
                         'spot/orders', // Retrieve historical spot orders
@@ -975,7 +974,7 @@ module.exports = class aax extends Exchange {
         if (postOnly !== undefined) {
             request['execInst'] = 'Post-Only';
         }
-        params = this.omit (params, ['clOrdID', 'clientOrderId', 'postOnly']);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly' ]);
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice === undefined) {
             if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {
@@ -1339,7 +1338,7 @@ module.exports = class aax extends Exchange {
             request['orderID'] = id;
         } else {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, ['clOrdID', 'clientOrderId']);
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         const orders = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
         const order = this.safeValue (orders, 0);
@@ -1375,7 +1374,7 @@ module.exports = class aax extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, ['clOrdID', 'clientOrderId']);
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         let method = undefined;
         if (type === 'spot') {
@@ -1533,7 +1532,7 @@ module.exports = class aax extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, ['clOrdID', 'clientOrderId']);
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         if (limit !== undefined) {
             request['pageSize'] = limit; // default 10
@@ -1903,87 +1902,6 @@ module.exports = class aax extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            // status Not required -  Deposit status, "1: pending,2: confirmed, 3:failed"
-            // currency: Not required -  String Currency
-            // startTime Not required Integer Default: 90 days from current timestamp.
-            // endTime Not required Integer Default: present timestamp.
-        };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['startTime'] = since; // default 90 days
-        }
-        const response = await this.privateGetAccountDeposits (this.extend (request, params));
-        // {    "code": 1,
-        //     "data": [{
-        //         "currency": "USDT",
-        //         "network": "USDT",
-        //         "quantity": "19.000000000000",
-        //         "txHash": "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
-        //         "address": "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
-        //         "status": "2",
-        //         "createdTime": "2021-01-08T19:45:01.354Z",
-        //         "updatedTime": "2021-01-08T20:03:05.000Z",
-        //     }]
-        //     "message": "success",
-        //     "ts": 1573561743499
-        // }
-        const deposits = this.safeValue (response, 'data', []);
-        return this.parseTransactions (deposits, code, since, limit);
-    }
-
-    parseTransactionStatus (status) {
-        const statuses = {
-            '1': 'pending',
-            '2': 'ok',
-            '3': 'failed',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseTransaction (transaction, currency = undefined) {
-        //    {
-        //         "currency": "USDT",
-        //         "network": "USDT",
-        //         "quantity": "19.000000000000",
-        //         "txHash": "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
-        //         "address": "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
-        //         "status": "2",
-        //         "createdTime": "2021-01-08T19:45:01.354Z",
-        //         "updatedTime": "2021-01-08T20:03:05.000Z",
-        //     }
-        const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
-        const txid = this.safeString (transaction, 'txHash');
-        const address = this.safeString (transaction, 'address');
-        const type = 'deposit';
-        let amountString = this.safeString (transaction, 'quantity');
-        amountString = Precise.stringDiv (Precise.stringAbs (amountString), '1e8');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'createdTime'));
-        const updated = this.parse8601 (this.safeString (transaction, 'updatedTime'));
-        let status = this.safeString (transaction, 'status');
-        if (status !== undefined) {
-            status = this.parseTransactionStatus (status);
-        }
-        return {
-            'info': transaction,
-            'txid': txid,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'address': address,
-            'amount': this.parseNumber (amountString),
-            'type': type,
-            'currency': code,
-            'status': status,
-            'updated': updated,
-        };
-    }
-
     async fetchFundingRate (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2086,7 +2004,7 @@ module.exports = class aax extends Exchange {
         }
         const till = this.safeInteger (params, 'till'); // unified in milliseconds
         const endTime = this.safeString (params, 'endTime'); // exchange-specific in seconds
-        params = this.omit (params, ['endTime', 'till']);
+        params = this.omit (params, [ 'endTime', 'till' ]);
         if (till !== undefined) {
             request['endTime'] = parseInt (till / 1000);
         } else if (endTime !== undefined) {
