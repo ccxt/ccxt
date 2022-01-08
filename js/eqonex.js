@@ -364,7 +364,7 @@ module.exports = class eqonex extends Exchange {
         const low = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 3), market['precision']['price']));
         const close = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 4), market['precision']['price']));
         const volume = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 5), market['precision']['amount']));
-        return [timestamp, open, high, low, close, volume];
+        return [ timestamp, open, high, low, close, volume ];
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {

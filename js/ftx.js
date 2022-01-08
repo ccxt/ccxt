@@ -1642,7 +1642,7 @@ module.exports = class ftx extends Exchange {
             request['order_id'] = id;
         } else {
             request['client_order_id'] = clientOrderId;
-            params = this.omit (params, [ 'client_order_id', 'clientOrderId']);
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
             method = 'privateGetOrdersByClientIdClientOrderId';
         }
         const response = await this[method] (this.extend (request, params));
