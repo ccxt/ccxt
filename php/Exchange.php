@@ -4156,6 +4156,6 @@ class Exchange {
         if (!$this->has['fetchPositions']) {
             throw new NotSupported ($this->id + 'fetch_position() is not supported yet');
         }
-        return $this.fetch_positions([$symbol], $params);
+        return $this->safe_value($this.fetch_positions([$symbol], $params), 0);
     }
 }
