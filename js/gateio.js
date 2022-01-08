@@ -3423,18 +3423,33 @@ module.exports = class gateio extends Exchange {
         //    Other exchange specific params
         //
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'swap');
-        const type = this.safeString (params, 'type', defaultType);
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        let defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
+        if (symbolsLength > 0) {
+            let market = this.market (symbols[0]);
+            defaultSettle = market['settleId'];
+            for (let i = 1; i < symbols.length; i++) {
+                market = this.market (symbols[i]);
+                if (market['settleId'] !== defaultSettle) {
+                    throw new BadRequest (this.id + ' fetchPositions symbols must all be settled in the same currency');
+                }
+            }
+        }
         const method = this.getSupportedMapping (type, {
             'swap': 'privateFuturesGetSettlePositions',
             'future': 'privateDeliveryGetSettlePositions',
         });
-        const defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
         const settle = this.safeStringLower (params, 'settle', defaultSettle);
+        params = this.omit (params, 'settle');
         const request = {
             'settle': settle,
         };
-        const response = await this[method] (request);
+        const response = await this[method] (this.extend (request, params));
         //
         //     [
         //         {
