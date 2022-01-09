@@ -524,7 +524,7 @@ module.exports = class woo extends Exchange {
                     'networks': {},
                 };
             }
-            const networkId = this.detectChainSlug (this.safeString (item, 'protocol'));
+            const networkId = this.detectChainSlug (this.safeString (item, 'protocol', ''));
             derivedNetworksData[code]['networks'][networkId] = {
                 'network_title': this.safeString (item, 'name'),
                 'allow_deposit': this.safeString (item, 'allow_deposit'),
@@ -1443,7 +1443,10 @@ module.exports = class woo extends Exchange {
     }
 
     sanitizestr (str) { // TODO: can be in base
-        return str.replace (' ', '-').replace ('.', '-').replace ('_', '-').toLowerCase ();
+        str = str.replace (' ', '-');
+        str = str.replace ('.', '-');
+        str = str.replace ('_', '-');
+        return str.toLowerCase ();
     }
 
     detectChainSlug (type) { // TODO: can be in base
