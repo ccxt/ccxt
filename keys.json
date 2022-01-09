@@ -36,6 +36,7 @@
     "luno":          { "skip": true },
     "mixcoins":      { "skip": true },
     "mercado":       { "skip": true },
+    "mexc":          { "skip": true },
     "qtrade":        { "skip": true },
     "rightbtc":      { "skip": true },
     "stex":          { "skip": true },
