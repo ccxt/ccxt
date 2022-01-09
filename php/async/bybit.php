@@ -1556,7 +1556,8 @@ class bybit extends Exchange {
                 }
                 $request['stop_px'] = floatval($this->price_to_precision($symbol, $stopPx));
                 $request['base_price'] = floatval($this->price_to_precision($symbol, $basePrice));
-                $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'base_price' ));
+                $request['trigger_by'] = 'LastPrice';
+                $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'base_price', 'trigger_by' ));
             }
         } else if ($basePrice !== null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires both the stop_px and base_price $params for a conditional ' . $type . ' order');
