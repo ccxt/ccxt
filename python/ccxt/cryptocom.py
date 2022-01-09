@@ -1691,6 +1691,7 @@ class cryptocom(Exchange):
                 strSortKey = strSortKey + str(paramsKeys[i]) + str(requestParams[paramsKeys[i]])
             payload = path + nonce + self.apiKey + strSortKey + nonce
             signature = self.hmac(self.encode(payload), self.encode(self.secret))
+            paramsKeysLength = len(paramsKeys)
             body = self.json({
                 'id': nonce,
                 'method': path,
@@ -1699,6 +1700,14 @@ class cryptocom(Exchange):
                 'sig': signature,
                 'nonce': nonce,
             })
+            # fix issue https://github.com/ccxt/ccxt/issues/11179
+            # php always encodes dictionaries as arrays
+            # if an array is empty, php will put it in square brackets
+            # python and js will put it in curly brackets
+            # the code below checks and replaces those brackets in empty requests
+            if paramsKeysLength == 0:
+                body = body.replace('[', '{')
+                body = body.replace(']', '}')
             headers = {
                 'Content-Type': 'application/json',
             }
