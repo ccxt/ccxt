@@ -179,6 +179,7 @@ from ccxt.vcc import vcc                                    # noqa: F401
 from ccxt.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.wazirx import wazirx                              # noqa: F401
 from ccxt.whitebit import whitebit                          # noqa: F401
+from ccxt.woo import woo                                    # noqa: F401
 from ccxt.xena import xena                                  # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
@@ -297,6 +298,7 @@ exchanges = [
     'wavesexchange',
     'wazirx',
     'whitebit',
+    'woo',
     'xena',
     'yobit',
     'zaif',

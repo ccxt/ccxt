@@ -172,6 +172,7 @@ class Exchange {
         'wavesexchange',
         'wazirx',
         'whitebit',
+        'woo',
         'xena',
         'yobit',
         'zaif',
