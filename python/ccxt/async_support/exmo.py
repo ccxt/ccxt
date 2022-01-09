@@ -1223,6 +1223,7 @@ class exmo(Exchange):
                     'currency': code,
                     'rate': None,
                 }
+        network = self.safe_string(transaction, 'provider')
         return {
             'info': transaction,
             'id': id,
@@ -1230,6 +1231,7 @@ class exmo(Exchange):
             'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amount,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

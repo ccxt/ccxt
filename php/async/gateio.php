@@ -2144,12 +2144,18 @@ class gateio extends Exchange {
             'txid' => $txid,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'status' => $status,
             'type' => $type,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'updated' => null,
             'fee' => $fee,
         );
     }

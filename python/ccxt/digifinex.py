@@ -1322,12 +1322,16 @@ class digifinex(Exchange):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
+        network = self.safe_string(transaction, 'chain')
+        if network == '':
+            network = None
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

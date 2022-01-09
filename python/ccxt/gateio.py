@@ -2069,12 +2069,18 @@ class gateio(Exchange):
             'txid': txid,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'status': status,
             'type': type,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'updated': None,
             'fee': fee,
         }
 

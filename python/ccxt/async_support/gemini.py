@@ -799,8 +799,13 @@ class gemini(Exchange):
             'txid': self.safe_string(transaction, 'txHash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': None,  # or is it defined?
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,  # direction of the transaction,('deposit' | 'withdraw')
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
