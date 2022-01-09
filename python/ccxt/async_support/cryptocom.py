@@ -1654,6 +1654,7 @@ class cryptocom(Exchange):
             'txid': txId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

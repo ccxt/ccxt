@@ -2215,6 +2215,7 @@ class bybit(Exchange):
             'txid': self.safe_string(transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': None,
             'addressFrom': None,

@@ -1172,6 +1172,7 @@ class bitpanda extends Exchange {
             'id' => $id,
             'currency' => $currency['code'],
             'amount' => $amount,
+            'network' => null,
             'address' => $addressTo,
             'addressFrom' => null,
             'addressTo' => $addressTo,

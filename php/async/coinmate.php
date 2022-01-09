@@ -349,7 +349,7 @@ class coinmate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($item, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // deposits
         //
@@ -384,17 +384,18 @@ class coinmate extends Exchange {
         //         destinationTag => null
         //     }
         //
-        $timestamp = $this->safe_integer($item, 'timestamp');
-        $amount = $this->safe_number($item, 'amount');
-        $fee = $this->safe_number($item, 'fee');
-        $txid = $this->safe_string($item, 'txid');
-        $address = $this->safe_string($item, 'destination');
-        $tag = $this->safe_string($item, 'destinationTag');
-        $currencyId = $this->safe_string($item, 'amountCurrency');
+        $timestamp = $this->safe_integer($transaction, 'timestamp');
+        $amount = $this->safe_number($transaction, 'amount');
+        $fee = $this->safe_number($transaction, 'fee');
+        $txid = $this->safe_string($transaction, 'txid');
+        $address = $this->safe_string($transaction, 'destination');
+        $tag = $this->safe_string($transaction, 'destinationTag');
+        $currencyId = $this->safe_string($transaction, 'amountCurrency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $type = $this->safe_string_lower($item, 'transferType');
-        $status = $this->parse_transaction_status($this->safe_string($item, 'transferStatus'));
-        $id = $this->safe_string($item, 'transactionId');
+        $type = $this->safe_string_lower($transaction, 'transferType');
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'transferStatus'));
+        $id = $this->safe_string($transaction, 'transactionId');
+        $network = $this->safe_string($transaction, 'walletType');
         return array(
             'id' => $id,
             'timestamp' => $timestamp,
@@ -403,14 +404,19 @@ class coinmate extends Exchange {
             'amount' => $amount,
             'type' => $type,
             'txid' => $txid,
+            'network' => $network,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'status' => $status,
             'fee' => array(
                 'cost' => $fee,
                 'currency' => $code,
             ),
-            'info' => $item,
+            'info' => $transaction,
         );
     }
 
@@ -430,8 +436,8 @@ class coinmate extends Exchange {
             $request['timestampFrom'] = $since;
         }
         $response = yield $this->privatePostTradeHistory (array_merge($request, $params));
-        $items = $response['data'];
-        return $this->parse_trades($items, null, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trades($data, null, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {

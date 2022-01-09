@@ -806,6 +806,7 @@ class bitmex extends Exchange {
             'txid' => null,
             'timestamp' => $transactTime,
             'datetime' => $this->iso8601($transactTime),
+            'network' => null,
             'addressFrom' => $addressFrom,
             'address' => $address,
             'addressTo' => $addressTo,

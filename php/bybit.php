@@ -2320,6 +2320,7 @@ class bybit extends Exchange {
             'txid' => $this->safe_string($transaction, 'tx_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
             'addressTo' => null,
             'addressFrom' => null,

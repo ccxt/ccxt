@@ -767,6 +767,7 @@ class bitmex(Exchange):
             'txid': None,
             'timestamp': transactTime,
             'datetime': self.iso8601(transactTime),
+            'network': None,
             'addressFrom': addressFrom,
             'address': address,
             'addressTo': addressTo,

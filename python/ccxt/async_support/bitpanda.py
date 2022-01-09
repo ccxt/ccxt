@@ -1129,6 +1129,7 @@ class bitpanda(Exchange):
             'id': id,
             'currency': currency['code'],
             'amount': amount,
+            'network': None,
             'address': addressTo,
             'addressFrom': None,
             'addressTo': addressTo,
