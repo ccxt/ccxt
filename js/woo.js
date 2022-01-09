@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } = require ('./base/errors'); // Permission-Denied, Arguments-Required, OrderNot-Found
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
-
+// function c(o){console.log(o);} function x(o){c(o);process.exit();}
 // ---------------------------------------------------------------------------
 
 module.exports = class woo extends Exchange {
@@ -29,12 +29,12 @@ module.exports = class woo extends Exchange {
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchCurrencies': false,
-                'fetchDepositAddress': undefined,
-                'fetchDeposits': undefined,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchFundingRateHistory': undefined,
                 'fetchMarkets': true,
-                'fetchMyTrades': undefined,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -49,7 +49,9 @@ module.exports = class woo extends Exchange {
                 'fetchTickers': undefined,
                 'fetchTime': undefined,
                 'fetchTrades': true,
-                'fetchWithdrawals': undefined,
+                'fetchTransfers': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': true,
                 'deposit': undefined,
                 'withdraw': undefined,
                 'addMargin': undefined,
@@ -104,11 +106,14 @@ module.exports = class woo extends Exchange {
                             'orders': 1,
                             'orderbook/{symbol}': 1,
                             'kline': 1,
-                            'client/trade/:tid': 1, // not used in implementations
+                            'client/trade/:tid': 1, // implicit
                             'order/{oid}/trades': 1,
+                            'client/info': 60,
+                            'asset/deposit': 120, // TODO
+                            'asset/history': 120,
                         },
                         'post': {
-                            'order': 5, // Limit: 2 requests per 1 second per symbol |TODO
+                            'order': 5, // Limit: 2 requests per 1 second per symbol
                         },
                         'delete': {
                             'order': 1, // shared with "DELETE: client/order" |TODO
@@ -143,6 +148,22 @@ module.exports = class woo extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'BSC20': 'BSC',
+                },
+                // the below can be unified approach
+                'defaultNetworksPriorities': [
+                    'ERC20',
+                    'TRC20',
+                    'BSC20',
+                ],
+                // if needed to change default network for specific token (as opposed to 'defaultNetworksPriorities' priorities) then list here
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                    'BTC': 'BTC',
+                },
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -152,7 +173,7 @@ module.exports = class woo extends Exchange {
                     '-1002': AuthenticationError, // { "code": -1002,  "message": "API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked." }
                     '-1003': RateLimitExceeded, // { "code": -1003,  "message": "Rate limit exceed." }
                     '-1004': BadRequest, // { "code": -1004,  "message": "An unknown parameter was sent." }
-                    '-1005': BadRequest, // actual response when sending 'cancelOrder' without symbol: {"success":false,"code":-1005,"message":"symbol must not be blank"} | in docs, it says: { "code": -1005,  "message": "Some parameters are in wrong format for api." }
+                    '-1005': BadRequest, // actual response when sending 'cancelOrder' without symbol: {"success":false,"code":-1005,"message":"symbol must not be blank"} | actual response when getting incorrect deposit address: {"success":false,"code":-1005,"message":"The token is not supported."}  |  in docs, it says: { "code": -1005,  "message": "Some parameters are in wrong format for api." }
                     '-1006': BadRequest, // actual response whensending 'cancelOrder' for already canceled id {"success":false,"code":"-1006","message":"Your order and symbol are not valid or already canceled."}  | in docs, it says: { "code": -1006,  "message": "The data is not found in server." }
                     '-1007': BadRequest, // { "code": -1007,  "message": "The data is already exists or your request is duplicated." }
                     '-1008': InvalidOrder, // { "code": -1008,  "message": "The quantity of settlement is too high than you can request." }
@@ -401,11 +422,12 @@ module.exports = class woo extends Exchange {
 
     async fetchCurrencies (params = {}) {
         // TODO: we need to write them to merge 'token' and 'token_network' objects from API, as it's horrificly bad atm.
+        let method = undefined;
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchCurrencies', undefined, params);
-        const method1 = this.getSupportedMapping (marketType, {
+        method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetToken',
         });
-        const response1 = await this[method1] (query);
+        const response1 = await this[method] (query);
         //
         // {
         //     rows: [
@@ -440,29 +462,31 @@ module.exports = class woo extends Exchange {
         //
         const result = {};
         const data1 = this.safeValue (response1, 'rows', []);
-        const derivedCurrenciesData = {}; // TODO: here needs to be initialized as object, otherwise extra check will be needed inside loop cycles
+        const derivedCurrenciesData = {};
         for (let i = 0; i < data1.length; i++) {
             const item = data1[i];
-            const code = this.safeCurrencyCode (this.safeString (item, 'balance_token'));
-            const pairId = this.safeString (item, 'token');
-            const networkId = pairId.split ('_')[0];
-            const networkSlug = this.genericChainTitleToUnifiedName (networkId);
+            const tokenCode = this.safeString (item, 'balance_token');
+            const code = this.safeCurrencyCode (tokenCode);
             if (!(code in derivedCurrenciesData)) {
-                derivedCurrenciesData[code] = {};
+                derivedCurrenciesData[code] = {
+                    'fullname': this.safeString (item, 'fullname'),
+                    'networks': {},
+                };
             }
-            if (!(networkSlug in derivedCurrenciesData[code])) {
-                derivedCurrenciesData[code][networkSlug] = undefined;
-            }
-            derivedCurrenciesData[code][networkSlug] = {
-                'fullname': this.safeString (item, 'fullname'),
+            const chainedCode = this.safeString (item, 'token');
+            const networkSlug = chainedCode.split ('_')[0];
+            const networkId = this.detectChainSlug (networkSlug);
+            derivedCurrenciesData[code]['networks'][networkId] = {
+                'chained_currency_code': chainedCode,
+                'network_exchangeslug': networkSlug,
                 'decimals': this.safeString (item, 'decimals'),
-                'info': item,
+                'info': { 'currencyInfo': item },
             };
         }
-        const method2 = this.getSupportedMapping (marketType, {
+        method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetTokenNetwork',
         });
-        const response2 = await this[method2] (query);
+        const response2 = await this[method] (query);
         const data2 = this.safeValue (response2, 'rows', []);
         //
         // {
@@ -493,62 +517,42 @@ module.exports = class woo extends Exchange {
         const derivedNetworksData = {};
         for (let i = 0; i < data2.length; i++) {
             const item = data2[i];
-            const code = this.safeCurrencyCode (this.safeString (item, 'token'));
-            const networkId = this.safeString (item, 'protocol');
-            const networkSlug = this.genericChainTitleToUnifiedName (networkId);
+            const tokenCode = this.safeString (item, 'token');
+            const code = this.safeCurrencyCode (tokenCode);
             if (!(code in derivedNetworksData)) {
-                derivedNetworksData[code] = {};
+                derivedNetworksData[code] = {
+                    'networks': {},
+                };
             }
-            if (!(networkSlug in derivedNetworksData[code])) {
-                derivedNetworksData[code][networkSlug] = undefined;
-            }
-            derivedNetworksData[code][networkSlug] = {
-                // 'network_title': this.safeString (item, 'name'), // We don't need this much, as we already have network-slug
+            const networkId = this.detectChainSlug (this.safeString (item, 'protocol'));
+            derivedNetworksData[code]['networks'][networkId] = {
+                'network_title': this.safeString (item, 'name'),
                 'allow_deposit': this.safeString (item, 'allow_deposit'),
                 'allow_withdraw': this.safeString (item, 'allow_withdraw'),
                 'withdrawal_fee': this.safeString (item, 'withdrawal_fee'),
                 'minimum_withdrawal': this.safeString (item, 'minimum_withdrawal'),
-                'info': item,
+                'info': { 'networkInfo': item },
             };
         }
         // combine as final step.
         const keys = Object.keys (derivedCurrenciesData); // keys and items amount in derivedCurrenciesData and derivedNetworksData are same
         for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const currencyInfo = derivedCurrenciesData[key];
-            const currencyNetworks = derivedNetworksData[key];
-            // TODO: if response1 each item contains only one child, then they are the same network . Quite bad behavior of their API for this matter, but as-is: the only solution is this as I think at this moment.
-            const id = key;
-            const networks = Object.keys (currencyInfo);
-            const tokenNetwork = currencyInfo[networks[0]];
-            const name = this.safeString (tokenNetwork, 'fullname');
-            const code = this.safeCurrencyCode (id);
-            const precision = this.safeNumber (tokenNetwork, 'decimals');
-            let deposits_allowed_somewhere = undefined;
-            let withdrawals_allowed_somewhere = undefined;
-            const networkKeys = Object.keys (currencyNetworks);
-            for (let i = 0; i < networkKeys.length; i++) {
-                const chainName = networkKeys[i];
-                const chainBlock = currencyNetworks[chainName];
-                const allowDeposits = this.safeInteger (chainBlock, 'allow_deposit', 0);
-                const allowWithdrawals = this.safeInteger (chainBlock, 'allow_withdraw', 0);
-                if (allowDeposits === 1) {
-                    deposits_allowed_somewhere = true;
-                }
-                if (allowWithdrawals === 1) {
-                    withdrawals_allowed_somewhere = true;
-                }
-            }
-            const active = deposits_allowed_somewhere && withdrawals_allowed_somewhere;
+            const code = keys[i]; // keys are alraedy safeCurrencyCode-d
+            const currencyInfo = derivedCurrenciesData[code];
+            const currencyNetworks = derivedNetworksData[code];
+            const currencyMerged = this.deepExtend (currencyInfo, currencyNetworks);
+            // if response1 each item contains only one child, then they are the same network . Quite bad behavior of their API for this matter, but as-is: the only solution is this as I think at this moment.
+            const name = this.safeString (currencyMerged, 'fullname');
+            const isActive = this.hasChildWithKeyValue (currencyNetworks, 'allow_deposit', 1) && this.hasChildWithKeyValue (currencyNetworks, 'allow_withdraw', 1);
             result[code] = {
-                'id': id,
+                'id': code,
                 'name': name,
                 'code': code,
-                'precision': precision,
-                'info': [currencyInfo.info, currencyNetworks.info],
-                'active': active,
+                'precision': undefined, // TODO: different networks have different precision
+                'info': { 'currencyInfo': currencyInfo, 'networkInfo': currencyNetworks },
+                'active': isActive,
                 'fee': undefined, // TODO
-                'network': undefined, // TODO
+                'networks': currencyMerged['networks'],
                 'limits': {
                     'deposit': {
                         'min': undefined,
@@ -821,52 +825,6 @@ module.exports = class woo extends Exchange {
         return status;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.v2PrivateGetClientHolding (params);
-        //
-        // {
-        //     holding: [
-        //       {
-        //         token: 'USDT',
-        //         holding: '123.758485',
-        //         frozen: '22.0', // i.e. withdrawal
-        //         interest: '0.0',
-        //         outstanding_holding: '-56.4', // whatever in pending/limit orders
-        //         pending_exposure: '0.0', // this value is set when a pending order is waiting to get this token
-        //         opening_cost: '0.00000000',
-        //         holding_cost: '0.00000000',
-        //         realised_pnl: '0.00000000',
-        //         settled_pnl: '0.00000000',
-        //         fee_24_h: '0',
-        //         settled_pnl_24_h: '0',
-        //         updated_time: '1641370779'
-        //       },
-        //       ...
-        //     ],
-        //     success: true
-        // }
-        //
-        return this.parseBalance (response);
-    }
-
-    parseBalance (response) {
-        const result = {
-            'info': response,
-        };
-        const balances = this.safeValue (response, 'holding', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'holding');
-            account['used'] = this.safeString (balance, 'outstanding_holding');
-            account['free'] = Precise.stringAdd (account['total'], account['used']);
-            result[code] = account;
-        }
-        return this.safeBalance (result);
-    }
-
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1004,6 +962,314 @@ module.exports = class woo extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (symbol !== undefined) {
+            request['symbol'] = symbol;
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetClientTrades',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // {
+        //     "success": true,
+        //     "meta": {
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //     },
+        //     "rows": [
+        //         {
+        //             "id": 5,
+        //             "symbol": "SPOT_BTC_USDT",
+        //             "order_id": 211,
+        //             "order_tag": "default",
+        //             "executed_price": 10892.84,
+        //             "executed_quantity": 0.002,
+        //             "is_maker": 0,
+        //             "side": "SELL",
+        //             "fee": 0,
+        //             "fee_asset": "USDT",
+        //             "executed_timestamp": "1566264290.250"
+        //         },
+        //         ...
+        //     ]
+        // }
+        const trades = this.safeValue (response, 'rows', []);
+        return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v2PrivateGetClientHolding',
+        });
+        const response = await this[method] (query);
+        //
+        // {
+        //     holding: [
+        //       {
+        //         token: 'USDT',
+        //         holding: '123.758485',
+        //         frozen: '22.0', // i.e. withdrawal
+        //         interest: '0.0',
+        //         outstanding_holding: '-56.4', // whatever in pending/limit orders
+        //         pending_exposure: '0.0', // this value is set when a pending order is waiting to get this token
+        //         opening_cost: '0.00000000',
+        //         holding_cost: '0.00000000',
+        //         realised_pnl: '0.00000000',
+        //         settled_pnl: '0.00000000',
+        //         fee_24_h: '0',
+        //         settled_pnl_24_h: '0',
+        //         updated_time: '1641370779'
+        //       },
+        //       ...
+        //     ],
+        //     success: true
+        // }
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const balances = this.safeValue (response, 'holding', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'holding');
+            account['used'] = this.safeString (balance, 'outstanding_holding');
+            account['free'] = Precise.stringAdd (account['total'], account['used']);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const [codeForExchange, networkId] = this.currencyCodeWithNetwork (currency['code'], params, '_', true);
+        const request = {
+            'token': codeForExchange,
+        };
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchDepositAddress', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetAssetDeposit',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // {
+        //     success: true,
+        //     address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
+        //     extra: ''
+        // }
+        let tag = this.safeValue (response, 'extra');
+        if (tag === '') {
+            tag = undefined;
+        }
+        const address = this.safeValue (response, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': networkId,
+            'info': response,
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'transaction_type': 'BALANCE',
+            'token_side': 'DEPOSIT',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'transaction_type': 'BALANCE',
+            'token_side': 'WITHDRAW',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = { };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['balance_token'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const transactionType = this.safeString (params, 'transaction_type');
+        if (transactionType !== undefined) {
+            request['type'] = transactionType;
+        }
+        params = this.omit (params, 'type'); // conflict! we need to change 'type' param for spot/futures into 'exchangeType'
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransactions', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetAssetHistory',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // {
+        //     rows: [
+        //       {
+        //         id: '22010508193900165',
+        //         token: 'TRON_USDT',
+        //         extra: '',
+        //         amount: '13.75848500',
+        //         status: 'COMPLETED',
+        //         account: null,
+        //         description: null,
+        //         user_id: '42222',
+        //         application_id: '6ad2b303-f354-45c0-8105-9f5f19d0e335',
+        //         external_id: '220105081900134',
+        //         target_address: 'TXnyFSnAYad3YCaqtwMw9jvXKkeU39NLnK',
+        //         source_address: 'TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6',
+        //         type: 'BALANCE',
+        //         token_side: 'DEPOSIT',
+        //         tx_id: '35b0004022f6b3ad07f39a0b7af199f6b258c2c3e2c7cdc93c67efa74fd625ee',
+        //         fee_token: '',
+        //         fee_amount: '0.00000000',
+        //         created_time: '1641370779.442',
+        //         updated_time: '1641370779.465',
+        //         is_new_target_address: null,
+        //         confirmed_number: '29',
+        //         confirming_threshold: '27',
+        //         audit_tag: '1',
+        //         audit_result: '0',
+        //         balance_token: null, // TODO -write them this is broken
+        //         network_name: null // TODO -write them this is broken
+        //       }
+        //     ],
+        //     meta: { total: '1', records_per_page: '25', current_page: '1' },
+        //     success: true
+        // }
+        const transactions = this.safeValue (response, 'rows', {});
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // example in fetchTransactions
+        const networkizedCode = this.safeString (transaction, 'token');
+        if (currency === undefined) {
+            currency = this.getCurrencyByNetworkizedCode (networkizedCode);
+        }
+        const code = currency['code'];
+        let movementDirection = this.safeStringLower (transaction, 'token_side');
+        if (movementDirection === 'withdraw') {
+            movementDirection = 'withdrawal';
+        }
+        let fee_token = this.safeString (transaction, 'fee_token', '');
+        if (fee_token === '') {
+            fee_token = code;
+        }
+        const addressTo = this.safeString (transaction, 'target_address');
+        const addressFrom = this.safeString (transaction, 'source_address');
+        const timestamp = this.safeTimestamp (transaction, 'created_time');
+        return {
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'tx_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': movementDirection === 'deposit' ? addressTo : addressFrom, // TODO - should become deprecated property
+            'address_from': addressTo, // TODO - make unified property
+            'address_to': addressFrom, // TODO - make unified property
+            'tag': this.safeString (transaction, 'extra'),
+            'type': movementDirection,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': this.safeTimestamp (transaction, 'updated_time'),
+            'fee': {
+                'currency': fee_token,
+                'cost': this.safeNumber (transaction, 'fee_amount'),
+                'rate': undefined,
+            },
+            'info': transaction,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'NEW': 'pending',
+            'CONFIRMING': 'pending',
+            'PROCESSING': 'pending',
+            'COMPLETED': 'ok',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request = {
+            'type': 'COLLATERAL',
+        };
+        params = this.omit (params, 'type'); // conflict! we need to change 'type' param for spot/futures into 'exchangeType'
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetAssetHistory',
+        });
+        const response = await this[method] (this.extend (request, query));
+        const rows = this.safeValue (response, 'rows');
+        return this.parseTransfers (rows, currency, since, limit, params);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        // example is "fetchTransactions"
+        let movementDirection = this.safeStringLower (transfer, 'token_side');
+        if (movementDirection === 'withdraw') {
+            movementDirection = 'withdrawal';
+        }
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        if (movementDirection === 'withdraw') {
+            fromAccount = 'derivative';
+            toAccount = 'spot';
+        } else {
+            fromAccount = 'spot';
+            toAccount = 'derivative';
+        }
+        const timestamp = this.safeTimestamp (transfer, 'created_time');
+        return {
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeValue (currency, 'code'),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
+            'info': transfer,
+        };
+    }
+
+    parseTransferStatus (status) {
+        return this.parseTransactionStatus (status);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -1061,20 +1327,136 @@ module.exports = class woo extends Exchange {
         }
     }
 
-    sanitize_str (str) { // TODO: can be in base
+    getDefaultNetworkPairForCurrency (code, params) {
+        // at first, try to find if user or exchange has defined default networks for the specific currency
+        const userChosenNetork = this.safeStringUpper (params, 'network');
+        params = this.omit (params, 'network');
+        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+        if (defaultNetworks !== undefined) {
+            const defaultNetworkCode = this.safeStringUpper (defaultNetworks, code);
+            if (defaultNetworkCode !== undefined) {
+                const networks = this.safeValue (this.options, 'networks');
+                if (networks !== undefined) {
+                    const unifiedNetworkCode = userChosenNetork !== undefined ? this.detectChainSlug (userChosenNetork) : defaultNetworkCode;
+                    const exchangeNetworkSlug = this.safeString (networks, unifiedNetworkCode, defaultNetworkCode);
+                    if (exchangeNetworkSlug !== undefined) {
+                        return {
+                            'id': exchangeNetworkSlug,
+                            'code': unifiedNetworkCode,
+                        };
+                    }
+                }
+            }
+        }
+        // if not found by above 'defaultNetworks' for specific currency, then try with global priorities
+        const priorityNetworks = this.safeValue (this.options, 'defaultNetworksPriorities');
+        const currencyItem = this.currencies[code];
+        const networks = currencyItem['networks'];
+        // itterate according to priority networks
+        if (priorityNetworks !== undefined) {
+            for (let j = 0; j < priorityNetworks.length; j++) {
+                const networkId = priorityNetworks[j];
+                if (networkId in networks) {
+                    const networkItem = networks[networkId];
+                    return {
+                        'id': networkItem['network_exchangeslug'],
+                        'code': networkId,
+                    };
+                }
+            }
+        }
+        return undefined;
+    }
+
+    currencyCodeWithNetwork (code, params, divider = '_', beforOrAfter = true) { // this method can be moved into base
+        // at first, try to get according to default networks
+        const defaultNetworkPair = this.getDefaultNetworkPairForCurrency (code, params);
+        if (defaultNetworkPair !== undefined) {
+            const id = defaultNetworkPair['id'];
+            let networkizedCode = undefined;
+            if (code === id) { // if there was no dash between pair, then its same
+                networkizedCode = code;
+            } else { // if there was dash, then needs to be joined
+                if (beforOrAfter) {
+                    networkizedCode = id + divider + code;
+                } else {
+                    networkizedCode = code + divider + id;
+                }
+            }
+            const networkCode = defaultNetworkPair['code'];
+            return [networkizedCode, networkCode];
+        } else {
+            // if it was not returned above according to defaults & options, then return the first network
+            const currencyItem = this.currencies[code];
+            const networks = currencyItem['networks'];
+            const networkKeys = Object.keys (networks);
+            for (let j = 0; j < networkKeys.length; j++) {
+                const networkCode = networkKeys[j];
+                const networkItem = networks[networkCode];
+                const networkizedCode = this.safeString (networkItem, 'chained_currency_code');
+                if (networkizedCode !== undefined) {
+                    return [networkizedCode, networkCode];
+                }
+            }
+        }
+        return undefined;
+    }
+
+    getCurrencyByNetworkizedCode (chainedCode) {
+        const keys = Object.keys (this.currencies);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const currencyItem = this.currencies[key];
+            const currencyCode = currencyItem['code'];
+            if (chainedCode === currencyCode) {
+                return chainedCode;
+            } else {
+                const networks = currencyItem['networks'];
+                const networkKeys = Object.keys (networks);
+                for (let j = 0; j < networkKeys.length; j++) {
+                    const networkKey = networkKeys[j];
+                    const networkItem = networks[networkKey];
+                    if (networkItem['chained_currency_code'] === chainedCode) {
+                        return currencyItem;
+                    }
+                }
+            }
+        }
+        return undefined;
+    }
+
+    objectMemberAt (objOrArray, position) { // TODO: can be in base
+        return objOrArray[Object.keys (objOrArray)[position]];
+    }
+
+    hasChildWithKeyValue (obj, targetKey, targetValue) {
+        const keys = Object.keys (obj);
+        for (let i = 0; i < keys.length; i++) {
+            const currentKey = keys[i];
+            const childMember = obj[currentKey];
+            const value = this.safeInteger (childMember, targetKey, undefined);
+            if (value === targetValue) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    sanitizestr (str) { // TODO: can be in base
         return str.replace (' ', '-').replace ('.', '-').replace ('_', '-').toLowerCase ();
     }
 
-    genericChainTitleToUnifiedName (type) { // TODO: can be in base
-        const type_S = this.sanitize_str (type);
+    detectChainSlug (type) { // TODO: can be in base
+        const type_S = this.sanitizestr (type);
         const chainsSlugs = {};
-        chainsSlugs['bep-20'] = ['bep', 'bep20', 'bep-20', 'bsc', 'bsc20', 'bsc-20', 'binance', 'binance-network', 'binance-smart-chain', 'bep20-bsc']; // i.e. lbank has 'bep20(bsc)'
-        chainsSlugs['bep-2'] = ['bep2', 'bep-2', 'bnb', 'binance-chain', 'binance-network'];
-        chainsSlugs['erc-20'] = ['erc', 'erc20', 'erc-20', 'eth', 'eth20', 'eth-20', 'ethereum', 'ethereum-network', 'ethereum-chain'];
-        chainsSlugs['hrc-20'] = ['heco', 'hrc', 'hrc20', 'hrc-20', 'huobi', 'huobi-network', 'huobi-chain', 'huobi-eco-chain', 'eco-network', 'eco-chain'];
-        chainsSlugs['trc-20'] = ['trc', 'trc20', 'trc-20', 'trx', 'trx20', 'trx-20', 'tron', 'tron-network', 'tron-chain', 'trx-chain', 'trx-network'];
-        chainsSlugs['sol'] = ['sol', 'solana', 'solana-network', 'solana-chain', 'sol-network', 'sol-chain'];
-        chainsSlugs['matic'] = ['matic', 'matic-network', 'matic-chain', 'polygon', 'polygon-network', 'polygon-chain'];
+        chainsSlugs['BTC'] = ['btc', 'btc-chain', 'btc-network', 'bitcoin', 'bitcoin-chain', 'bitcoin-network'];
+        chainsSlugs['BEP20'] = ['bep', 'bep20', 'bep-20', 'bsc', 'bsc20', 'bsc-20', 'binance', 'binance-network', 'binance-smart-chain', 'bep20-bsc']; // i.e. lbank has 'bep20(bsc)'
+        chainsSlugs['BEP2'] = ['bep2', 'bep-2', 'bnb', 'binance-chain', 'binance-network'];
+        chainsSlugs['ERC20'] = ['erc', 'erc20', 'erc-20', 'eth', 'eth20', 'eth-20', 'ethereum', 'ethereum-network', 'ethereum-chain'];
+        chainsSlugs['HRC20'] = ['heco', 'hrc', 'hrc20', 'hrc-20', 'huobi', 'huobi-network', 'huobi-chain', 'huobi-eco-chain', 'eco-network', 'eco-chain'];
+        chainsSlugs['TRC20'] = ['trc', 'trc20', 'trc-20', 'trx', 'trx20', 'trx-20', 'tron', 'tron-network', 'tron-chain', 'trx-chain', 'trx-network'];
+        chainsSlugs['SOL'] = ['sol', 'solana', 'solana-network', 'solana-chain', 'sol-network', 'sol-chain'];
+        chainsSlugs['MATIC'] = ['matic', 'matic-network', 'matic-chain', 'polygon', 'polygon-network', 'polygon-chain'];
         const keys = Object.keys (chainsSlugs);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1083,6 +1465,6 @@ module.exports = class woo extends Exchange {
                 return key;
             }
         }
-        return type.toLowerCase ();
+        return type.toUpperCase ();
     }
 };
