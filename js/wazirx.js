@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, DDoSProtection, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 module.exports = class wazirx extends Exchange {
     describe () {
@@ -54,6 +55,7 @@ module.exports = class wazirx extends Exchange {
                 'api': 'https://api.wazirx.com/sapi/v1',
                 'www': 'https://wazirx.com',
                 'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
+                'fees': 'https://wazirx.com/fees',
             },
             'api': {
                 'public': {
@@ -86,6 +88,9 @@ module.exports = class wazirx extends Exchange {
                         'openOrders': 1,
                     },
                 },
+            },
+            'fees': {
+                'WRX': { 'maker': this.parseNumber ('0.0'), 'taker': this.parseNumber ('0.0') },
             },
             'exceptions': {
                 'exact': {
@@ -156,6 +161,13 @@ module.exports = class wazirx extends Exchange {
                     minPrice = this.safeNumber (filter, 'minPrice');
                 }
             }
+            const fee = this.safeValue (this.fees, quote, {});
+            let takerString = this.safeString (fee, 'taker', '0.2');
+            takerString = Precise.stringDiv (takerString, '100');
+            const taker = this.parseNumber (takerString);
+            let makerString = this.safeString (fee, 'maker', '0.2');
+            makerString = Precise.stringDiv (makerString, '100');
+            const maker = this.parseNumber (makerString);
             const status = this.safeString (entry, 'status');
             const active = status === 'trading';
             const limits = {
@@ -183,6 +195,8 @@ module.exports = class wazirx extends Exchange {
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
+                'maker': maker,
+                'taker': taker,
                 'quoteId': quoteId,
                 'limits': limits,
                 'precision': precision,
