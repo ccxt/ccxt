@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } = require ('./base/errors'); // Permission-Denied, Arguments-Required, OrderNot-Found
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
-// function c(o){console.log(o);} function x(o){c(o);process.exit();}
+
 // ---------------------------------------------------------------------------
 
 module.exports = class woo extends Exchange {
@@ -94,13 +94,13 @@ module.exports = class woo extends Exchange {
                             'info': 1,
                             'info/:symbol': 1, // TO_DO
                             'market_trades': 1,
-                            'token': 1, // TO_DO
-                            'token_network': 1, // TO_DO
+                            'token': 1,
+                            'token_network': 1,
                         },
                     },
                     'private': {
                         'get': {
-                            'client/token': 1, // TO_DO
+                            'client/token': 1, // implicit
                             'order/{oid}': 1, // shared with "GET: client/order/:client_order_id"
                             'client/order/{client_order_id}': 1, // shared with "GET: order/:oid"
                             'orders': 1,
@@ -109,31 +109,27 @@ module.exports = class woo extends Exchange {
                             'client/trade/:tid': 1, // implicit
                             'order/{oid}/trades': 1,
                             'client/info': 60,
-                            'asset/deposit': 120, // TODO
+                            'asset/deposit': 120,
                             'asset/history': 120,
+                            'token_interest': 120, // implicit
+                            'token_interest/:token': 120, // implicit
+                            'interest/history': 120, // implicit
+                            'interest/repay': 120, // implicit
                         },
                         'post': {
                             'order': 5, // Limit: 2 requests per 1 second per symbol
                         },
                         'delete': {
-                            'order': 1, // shared with "DELETE: client/order" |TODO
-                            'client/order': 1, // shared with "DELETE: order"  |TODO
-                            'orders': 1, // TODO
+                            'order': 1, // shared with "DELETE: client/order"
+                            'client/order': 1, // shared with "DELETE: order"
+                            'orders': 1,
                         },
                     },
                 },
                 'v2': {
-                    'public': {
-                        'get': {
-                        },
-                    },
                     'private': {
                         'get': {
                             'client/holding': 1,
-                        },
-                        'post': {
-                        },
-                        'delete': {
                         },
                     },
                 },
