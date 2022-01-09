@@ -1167,6 +1167,7 @@ module.exports = class probit extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': address,
@@ -1178,6 +1179,7 @@ module.exports = class probit extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'updated': undefined,
             'fee': fee,
             'info': transaction,
         };

@@ -1145,14 +1145,20 @@ module.exports = class liquid extends Exchange {
         const amountString = this.safeString (transaction, 'amount');
         const feeCostString = this.safeString (transaction, 'withdrawal_fee');
         const amount = this.parseNumber (Precise.stringSub (amountString, feeCostString));
+        const network = this.safeString (transaction, 'chain_name');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,

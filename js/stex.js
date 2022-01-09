@@ -1580,12 +1580,14 @@ module.exports = class stex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        const network = this.safeString (withdrawalAddress, 'protocol_name');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'addressFrom': undefined,
             'address': address,
             'addressTo': address,

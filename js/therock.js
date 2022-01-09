@@ -742,12 +742,14 @@ module.exports = class therock extends Exchange {
         const amount = this.safeNumber (transaction, 'price');
         const timestamp = this.parse8601 (this.safeString (transaction, 'date'));
         const status = 'ok';
+        const network = this.safeString (detail, 'method');
         // todo parse tags
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': network,
             'addressFrom': undefined,
             'addressTo': address,
             'address': address,
