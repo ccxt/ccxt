@@ -923,10 +923,6 @@ module.exports = class kucoinfutures extends kucoin {
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
-        const leverage = this.safeNumber (params, 'leverage');
-        if (!leverage) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a leverage parameter');
-        }
         if (amount < 1) {
             throw new InvalidOrder (this.id + ' createOrder() minimum contract order amount is 1');
         }
@@ -937,6 +933,7 @@ module.exports = class kucoinfutures extends kucoin {
             'symbol': market['id'],
             'type': type, // limit or market
             'size': preciseAmount,
+            'leverage': 1,
             // 'remark': '', // optional remark for the order, length cannot exceed 100 utf8 characters
             // 'tradeType': 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
             // limit orders ---------------------------------------------------
