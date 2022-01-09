@@ -721,12 +721,14 @@ class therock(Exchange):
         amount = self.safe_number(transaction, 'price')
         timestamp = self.parse8601(self.safe_string(transaction, 'date'))
         status = 'ok'
+        network = self.safe_string(detail, 'method')
         # todo parse tags
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': network,
             'addressFrom': None,
             'addressTo': address,
             'address': address,

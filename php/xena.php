@@ -1468,12 +1468,14 @@ class xena extends Exchange {
         $amount = $this->safe_number($transaction, 'amount');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $fee = null;
+        $network = $this->safe_string($transaction, 'blockchain');
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,

@@ -723,12 +723,14 @@ class vcc(Exchange):
                 'currency': code,
             }
         type = 'deposit' if (amount > 0) else 'withdrawal'
+        network = self.safe_string(transaction, 'network')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

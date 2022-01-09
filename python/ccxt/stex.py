@@ -1520,12 +1520,14 @@ class stex(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        network = self.safe_string(withdrawalAddress, 'protocol_name')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'addressFrom': None,
             'address': address,
             'addressTo': address,
