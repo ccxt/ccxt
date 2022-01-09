@@ -1124,6 +1124,7 @@ module.exports = class eqonex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': undefined,

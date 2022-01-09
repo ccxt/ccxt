@@ -930,6 +930,7 @@ module.exports = class hitbtc3 extends Exchange {
             'txid': txhash,
             'code': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,

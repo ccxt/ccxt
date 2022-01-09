@@ -1377,12 +1377,17 @@ module.exports = class digifinex extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
+        let network = this.safeString (transaction, 'chain');
+        if (network === '') {
+            network = undefined;
+        }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

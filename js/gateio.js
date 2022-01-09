@@ -2138,12 +2138,18 @@ module.exports = class gateio extends Exchange {
             'txid': txid,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'status': status,
             'type': type,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'updated': undefined,
             'fee': fee,
         };
     }
