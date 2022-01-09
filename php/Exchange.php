@@ -2660,6 +2660,17 @@ class Exchange {
         } else if (array_key_exists($function, static::$camelcase_methods)) {
             $underscore = static::$camelcase_methods[$function];
             return call_user_func_array(array($this, $underscore), $params);
+        } else if (!preg_match('/^[A-Z0-9_]+$/', $function)) {
+            $underscore = preg_replace_callback('/[a-z0-9][A-Z]/m', function ($x) {
+                return $x[0][0] . '_' . $x[0][1];
+            }, $function);
+            $underscore = strtolower($underscore);
+            if (method_exists($this, $underscore)) {
+                return call_user_func_array(array($this, $underscore), $params);
+            } else {
+                /* handle errors */
+                throw new ExchangeError($function . ' method not found');
+            }
         } else {
             /* handle errors */
             throw new ExchangeError($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
