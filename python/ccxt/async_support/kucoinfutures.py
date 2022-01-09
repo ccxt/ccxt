@@ -902,9 +902,6 @@ class kucoinfutures(kucoin):
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
         params = self.omit(params, ['clientOid', 'clientOrderId'])
-        leverage = self.safe_number(params, 'leverage')
-        if not leverage:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a leverage parameter')
         if amount < 1:
             raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
         preciseAmount = int(self.amount_to_precision(symbol, amount))
@@ -914,6 +911,7 @@ class kucoinfutures(kucoin):
             'symbol': market['id'],
             'type': type,  # limit or market
             'size': preciseAmount,
+            'leverage': 1,
             # 'remark': '',  # optional remark for the order, length cannot exceed 100 utf8 characters
             # 'tradeType': 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
             # limit orders ---------------------------------------------------
