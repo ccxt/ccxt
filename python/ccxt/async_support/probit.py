@@ -1108,6 +1108,7 @@ class probit(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': address,
@@ -1119,6 +1120,7 @@ class probit(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'updated': None,
             'fee': fee,
             'info': transaction,
         }

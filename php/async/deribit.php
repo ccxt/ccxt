@@ -1836,8 +1836,9 @@ class deribit extends Exchange {
         //
         // $response is returning an empty list for $result
         // todo unify parsePositions
-        $result = $this->parse_positions($response);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        $result = $this->safe_value($response, 'result', array());
+        $positions = $this->parse_positions($result);
+        return $this->filter_by_array($positions, 'symbol', $symbols, false);
     }
 
     public function fetch_historical_volatility($code, $params = array ()) {

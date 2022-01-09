@@ -745,12 +745,14 @@ class therock extends Exchange {
         $amount = $this->safe_number($transaction, 'price');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'date'));
         $status = 'ok';
+        $network = $this->safe_string($detail, 'method');
         // todo parse tags
         return array(
             'info' => $transaction,
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => $network,
             'addressFrom' => null,
             'addressTo' => $address,
             'address' => $address,
