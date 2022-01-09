@@ -1553,7 +1553,8 @@ module.exports = class bybit extends Exchange {
                 }
                 request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
                 request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
-                params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price' ]);
+                request['trigger_by'] = 'LastPrice';
+                params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'trigger_by' ]);
             }
         } else if (basePrice !== undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
