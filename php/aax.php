@@ -580,6 +580,8 @@ class aax extends Exchange {
             $fee = $this->safe_number($currency, 'withdrawFee');
             $visible = $this->safe_value($currency, 'visible');
             $active = ($enableWithdraw && $enableDeposit && $visible);
+            $deposit = ($enableDeposit && $visible);
+            $withdraw = ($enableWithdraw && $visible);
             $network = $this->safe_string($currency, 'network');
             $result[$code] = array(
                 'id' => $id,
@@ -588,6 +590,8 @@ class aax extends Exchange {
                 'precision' => $precision,
                 'info' => $currency,
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'fee' => $fee,
                 'network' => $network,
                 'limits' => array(

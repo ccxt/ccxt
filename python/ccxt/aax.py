@@ -589,6 +589,8 @@ class aax(Exchange):
             fee = self.safe_number(currency, 'withdrawFee')
             visible = self.safe_value(currency, 'visible')
             active = (enableWithdraw and enableDeposit and visible)
+            deposit = (enableDeposit and visible)
+            withdraw = (enableWithdraw and visible)
             network = self.safe_string(currency, 'network')
             result[code] = {
                 'id': id,
@@ -597,6 +599,8 @@ class aax(Exchange):
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
                 'network': network,
                 'limits': {
