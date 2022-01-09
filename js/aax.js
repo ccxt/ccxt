@@ -577,6 +577,8 @@ module.exports = class aax extends Exchange {
             const fee = this.safeNumber (currency, 'withdrawFee');
             const visible = this.safeValue (currency, 'visible');
             const active = (enableWithdraw && enableDeposit && visible);
+            const deposit = (enableDeposit && visible);
+            const withdraw = (enableWithdraw && visible);
             const network = this.safeString (currency, 'network');
             result[code] = {
                 'id': id,
@@ -585,6 +587,8 @@ module.exports = class aax extends Exchange {
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
                 'network': network,
                 'limits': {
