@@ -268,6 +268,7 @@ class bybit extends Exchange {
                             'stop-order/replace',
                             'position/set-auto-add-margin',
                             'position/switch-isolated',
+                            'position/switch-mode',
                             'tpsl/switch-mode',
                             'position/add-margin',
                             'position/set-leverage',
