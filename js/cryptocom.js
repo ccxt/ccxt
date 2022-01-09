@@ -1774,6 +1774,7 @@ module.exports = class cryptocom extends Exchange {
             }
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+            const paramsKeysLength = paramsKeys.length;
             body = this.json ({
                 'id': nonce,
                 'method': path,
@@ -1782,6 +1783,10 @@ module.exports = class cryptocom extends Exchange {
                 'sig': signature,
                 'nonce': nonce,
             });
+            if (paramsKeysLength === 0) {
+                body = body.replace ('[', '{');
+                body = body.replace (']', '}');
+            }
             headers = {
                 'Content-Type': 'application/json',
             };
