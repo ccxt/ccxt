@@ -383,6 +383,8 @@ class ascendex(Exchange):
                 'margin': margin,
                 'name': self.safe_string(currency, 'assetName'),
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': int(precision),
                 'limits': {

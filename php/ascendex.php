@@ -381,6 +381,8 @@ class ascendex extends Exchange {
                 'margin' => $margin,
                 'name' => $this->safe_string($currency, 'assetName'),
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => intval($precision),
                 'limits' => array(
