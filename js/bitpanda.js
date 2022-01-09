@@ -1169,6 +1169,7 @@ module.exports = class bitpanda extends Exchange {
             'id': id,
             'currency': currency['code'],
             'amount': amount,
+            'network': undefined,
             'address': addressTo,
             'addressFrom': undefined,
             'addressTo': addressTo,

@@ -2318,6 +2318,7 @@ module.exports = class bybit extends Exchange {
             'txid': this.safeString (transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,

@@ -801,6 +801,7 @@ module.exports = class bitmex extends Exchange {
             'txid': undefined,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
+            'network': undefined,
             'addressFrom': addressFrom,
             'address': address,
             'addressTo': addressTo,
