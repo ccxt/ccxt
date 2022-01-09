@@ -285,8 +285,9 @@ module.exports = class wazirx extends Exchange {
             const ticker = tickers[i];
             const marketId = this.safeString (ticker, 'symbol');
             const market = this.safeMarket (marketId, undefined);
-            const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            const parsedTicker = this.parseTicker (ticker, market);
+            const symbol = parsedTicker['symbol'];
+            result[symbol] = parsedTicker;
         }
         return result;
     }
@@ -397,9 +398,10 @@ module.exports = class wazirx extends Exchange {
         //        "at":1641382455000 // only on fetchTicker
         //     }
         //
-        const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         const last = this.safeNumber (ticker, 'lastPrice');
         const open = this.safeNumber (ticker, 'openPrice');
         const high = this.safeNumber (ticker, 'highPrice');
