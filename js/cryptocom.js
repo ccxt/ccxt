@@ -1783,6 +1783,11 @@ module.exports = class cryptocom extends Exchange {
                 'sig': signature,
                 'nonce': nonce,
             });
+            // fix issue https://github.com/ccxt/ccxt/issues/11179
+            // php always encodes dictionaries as arrays
+            // if an array is empty, php will put it in square brackets
+            // python and js will put it in curly brackets
+            // the code below checks and replaces those brackets in empty requests
             if (paramsKeysLength === 0) {
                 body = body.replace ('[', '{');
                 body = body.replace (']', '}');
