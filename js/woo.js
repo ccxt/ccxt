@@ -604,7 +604,7 @@ module.exports = class woo extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit (params, ['clOrdID', 'clientOrderId']);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivatePostOrder',
@@ -1060,7 +1060,7 @@ module.exports = class woo extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const [codeForExchange, networkId] = this.currencyCodeWithNetwork (currency['code'], params, '_', true);
+        const [ codeForExchange, networkId ] = this.currencyCodeWithNetwork (currency['code'], params, '_', true);
         const request = {
             'token': codeForExchange,
         };
@@ -1384,7 +1384,7 @@ module.exports = class woo extends Exchange {
                 }
             }
             const networkCode = defaultNetworkPair['code'];
-            return [networkizedCode, networkCode];
+            return [ networkizedCode, networkCode ];
         } else {
             // if it was not returned above according to defaults & options, then return the first network
             const currencyItem = this.currencies[code];
@@ -1395,7 +1395,7 @@ module.exports = class woo extends Exchange {
                 const networkItem = networks[networkCode];
                 const networkizedCode = this.safeString (networkItem, 'chained_currency_code');
                 if (networkizedCode !== undefined) {
-                    return [networkizedCode, networkCode];
+                    return [ networkizedCode, networkCode ];
                 }
             }
         }
@@ -1449,14 +1449,14 @@ module.exports = class woo extends Exchange {
     detectChainSlug (type) { // TODO: can be in base
         const type_S = this.sanitizestr (type);
         const chainsSlugs = {};
-        chainsSlugs['BTC'] = ['btc', 'btc-chain', 'btc-network', 'bitcoin', 'bitcoin-chain', 'bitcoin-network'];
-        chainsSlugs['BEP20'] = ['bep', 'bep20', 'bep-20', 'bsc', 'bsc20', 'bsc-20', 'binance', 'binance-network', 'binance-smart-chain', 'bep20-bsc']; // i.e. lbank has 'bep20(bsc)'
-        chainsSlugs['BEP2'] = ['bep2', 'bep-2', 'bnb', 'binance-chain', 'binance-network'];
-        chainsSlugs['ERC20'] = ['erc', 'erc20', 'erc-20', 'eth', 'eth20', 'eth-20', 'ethereum', 'ethereum-network', 'ethereum-chain'];
-        chainsSlugs['HRC20'] = ['heco', 'hrc', 'hrc20', 'hrc-20', 'huobi', 'huobi-network', 'huobi-chain', 'huobi-eco-chain', 'eco-network', 'eco-chain'];
-        chainsSlugs['TRC20'] = ['trc', 'trc20', 'trc-20', 'trx', 'trx20', 'trx-20', 'tron', 'tron-network', 'tron-chain', 'trx-chain', 'trx-network'];
-        chainsSlugs['SOL'] = ['sol', 'solana', 'solana-network', 'solana-chain', 'sol-network', 'sol-chain'];
-        chainsSlugs['MATIC'] = ['matic', 'matic-network', 'matic-chain', 'polygon', 'polygon-network', 'polygon-chain'];
+        chainsSlugs['BTC'] = [ 'btc', 'btc-chain', 'btc-network', 'bitcoin', 'bitcoin-chain', 'bitcoin-network' ];
+        chainsSlugs['BEP20'] = [ 'bep', 'bep20', 'bep-20', 'bsc', 'bsc20', 'bsc-20', 'binance', 'binance-network', 'binance-smart-chain', 'bep20-bsc' ]; // i.e. lbank has 'bep20(bsc)'
+        chainsSlugs['BEP2'] = [ 'bep2', 'bep-2', 'bnb', 'binance-chain', 'binance-network' ];
+        chainsSlugs['ERC20'] = [ 'erc', 'erc20', 'erc-20', 'eth', 'eth20', 'eth-20', 'ethereum', 'ethereum-network', 'ethereum-chain' ];
+        chainsSlugs['HRC20'] = [ 'heco', 'hrc', 'hrc20', 'hrc-20', 'huobi', 'huobi-network', 'huobi-chain', 'huobi-eco-chain', 'eco-network', 'eco-chain' ];
+        chainsSlugs['TRC20'] = [ 'trc', 'trc20', 'trc-20', 'trx', 'trx20', 'trx-20', 'tron', 'tron-network', 'tron-chain', 'trx-chain', 'trx-network' ];
+        chainsSlugs['SOL'] = [ 'sol', 'solana', 'solana-network', 'solana-chain', 'sol-network', 'sol-chain' ];
+        chainsSlugs['MATIC'] = [ 'matic', 'matic-network', 'matic-chain', 'polygon', 'polygon-network', 'polygon-chain' ];
         const keys = Object.keys (chainsSlugs);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
