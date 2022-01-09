@@ -1186,14 +1186,20 @@ class bitfinex extends Exchange {
         if ($feeCost !== null) {
             $feeCost = abs($feeCost);
         }
+        $tag = $this->safe_string($transaction, 'description');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'address' => $this->safe_string($transaction, 'address'), // todo => this is actually the tag for XRP transfers (the address is missing)
-            'tag' => null, // refix it properly for the tag from description
+            'network' => null,
+            'address' => $this->safe_string($transaction, 'address'), // todo => this is actually the $tag for XRP transfers (the address is missing)
+            'addressTo' => null,
+            'addressFrom' => null,
+            'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,

@@ -2332,6 +2332,7 @@ class bitmart extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
             'addressFrom' => null,
             'addressTo' => null,

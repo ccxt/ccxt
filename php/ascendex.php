@@ -2034,6 +2034,7 @@ class ascendex extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

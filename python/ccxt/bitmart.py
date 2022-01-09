@@ -2228,6 +2228,7 @@ class bitmart(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
             'addressFrom': None,
             'addressTo': None,

@@ -2460,6 +2460,7 @@ class bitget(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

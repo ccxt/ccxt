@@ -890,6 +890,7 @@ class bitbns(Exchange):
             'txid': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': None,
             'addressTo': None,
             'addressFrom': None,

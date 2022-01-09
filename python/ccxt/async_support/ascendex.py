@@ -1961,6 +1961,7 @@ class ascendex(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
             'addressTo': address,
             'addressFrom': None,
