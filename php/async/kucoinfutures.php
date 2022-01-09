@@ -926,10 +926,6 @@ class kucoinfutures extends kucoin {
         // required param, cannot be used twice
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
         $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
-        $leverage = $this->safe_number($params, 'leverage');
-        if (!$leverage) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $leverage parameter');
-        }
         if ($amount < 1) {
             throw new InvalidOrder($this->id . ' createOrder() minimum contract order $amount is 1');
         }
@@ -940,6 +936,7 @@ class kucoinfutures extends kucoin {
             'symbol' => $market['id'],
             'type' => $type, // limit or $market
             'size' => $preciseAmount,
+            'leverage' => 1,
             // 'remark' => '', // optional remark for the order, length cannot exceed 100 utf8 characters
             // 'tradeType' => 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
             // limit orders ---------------------------------------------------
