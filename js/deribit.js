@@ -1833,8 +1833,9 @@ module.exports = class deribit extends Exchange {
         //
         // response is returning an empty list for result
         // todo unify parsePositions
-        const result = this.parsePositions (response);
-        return this.filterByArray (result, 'symbol', symbols, false);
+        const result = this.safeValue (response, 'result', []);
+        const positions = this.parsePositions (result);
+        return this.filterByArray (positions, 'symbol', symbols, false);
     }
 
     async fetchHistoricalVolatility (code, params = {}) {
