@@ -423,6 +423,8 @@ class ftx(Exchange):
                 'type': None,
                 'name': name,
                 'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': None,
                 'limits': {

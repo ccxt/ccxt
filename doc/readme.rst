@@ -23,7 +23,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :alt: NPM Downloads
  
 .. image:: https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white
-     :target: https://discord.gg/dhzSKYU
+     :target: https://discord.gg/ccxt
      :alt: Discord
  
 .. image:: https://img.shields.io/badge/exchanges-115-blue.svg
@@ -1945,14 +1945,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.66.85/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.66.85/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.66.86/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.66.86/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.66.85/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.66.86/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

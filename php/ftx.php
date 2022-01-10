@@ -406,6 +406,8 @@ class ftx extends Exchange {
                 'type' => null,
                 'name' => $name,
                 'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => null,
                 'limits' => array(
