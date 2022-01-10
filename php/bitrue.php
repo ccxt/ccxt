@@ -505,6 +505,8 @@ class bitrue extends Exchange {
                 'precision' => $precision,
                 'info' => $currency,
                 'active' => $active,
+                'deposit' => $enableDeposit,
+                'withdraw' => $enableWithdraw,
                 'networks' => $networks,
                 'fee' => $this->safe_number($currency, 'withdrawFee'),
                 // 'fees' => fees,
