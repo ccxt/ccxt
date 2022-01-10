@@ -560,6 +560,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 'type': type,
                 'name': name,
                 'active': true,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
