@@ -249,6 +249,8 @@ class cex extends Exchange {
                 'code' => $code,
                 'name' => $id,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'precision' => $precision,
                 'fee' => null,
                 'limits' => array(
