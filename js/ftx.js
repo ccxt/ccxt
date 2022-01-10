@@ -399,6 +399,8 @@ module.exports = class ftx extends Exchange {
                 'type': undefined,
                 'name': name,
                 'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
