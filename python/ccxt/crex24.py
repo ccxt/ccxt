@@ -385,8 +385,12 @@ class crex24(Exchange):
             withdrawalPrecision = self.safe_integer(currency, 'withdrawalPrecision')
             precision = math.pow(10, -withdrawalPrecision)
             address = self.safe_value(currency, 'BaseAddress')
-            active = (currency['depositsAllowed'] and currency['withdrawalsAllowed'] and not currency['isDelisted'])
-            type = 'fiat' if currency['isFiat'] else 'crypto'
+            deposit = self.safe_value(currency, 'depositsAllowed')
+            withdraw = self.safe_value(currency, 'withdrawalsAllowed')
+            delisted = self.safe_value(currency, 'isDelisted')
+            active = deposit and withdraw and not delisted
+            fiat = self.safe_value(currency, 'isFiat')
+            type = 'fiat' if fiat else 'crypto'
             result[code] = {
                 'id': id,
                 'code': code,
@@ -395,6 +399,8 @@ class crex24(Exchange):
                 'type': type,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': self.safe_number(currency, 'flatWithdrawalFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
