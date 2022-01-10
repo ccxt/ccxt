@@ -499,6 +499,8 @@ module.exports = class bibox extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
