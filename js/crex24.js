@@ -381,7 +381,8 @@ module.exports = class crex24 extends Exchange {
             const address = this.safeValue (currency, 'BaseAddress');
             const deposit = this.safeValue (currency, 'depositsAllowed');
             const withdraw = this.safeValue (currency, 'withdrawalsAllowed');
-            const active = (deposit && withdraw && !currency['isDelisted']);
+            const delisted = this.safeValue (currency, 'isDelisted');
+            const active = deposit && withdraw && !delisted;
             const type = currency['isFiat'] ? 'fiat' : 'crypto';
             result[code] = {
                 'id': id,
