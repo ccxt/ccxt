@@ -322,11 +322,7 @@ module.exports = class idex extends Exchange {
         if (percentage !== undefined) {
             percentage = 1 + percentage / 100;
         }
-        let change = undefined;
-        if ((close !== undefined) && (open !== undefined)) {
-            change = close - open;
-        }
-        return {
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -341,13 +337,13 @@ module.exports = class idex extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        });
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

@@ -260,7 +260,7 @@ module.exports = class oceanex extends Exchange {
         //
         const ticker = this.safeValue (data, 'ticker', {});
         const timestamp = this.safeTimestamp (data, 'at');
-        return {
+        return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -281,7 +281,7 @@ module.exports = class oceanex extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        });
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

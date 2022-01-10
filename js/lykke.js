@@ -407,7 +407,7 @@ module.exports = class lykke extends Exchange {
             symbol = market['symbol'];
         }
         const close = this.safeNumber (ticker, 'lastPrice');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -428,7 +428,7 @@ module.exports = class lykke extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'volume24H'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -219,7 +219,7 @@ module.exports = class tidebit extends Exchange {
             symbol = market['symbol'];
         }
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -240,7 +240,7 @@ module.exports = class tidebit extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

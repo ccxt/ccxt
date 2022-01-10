@@ -244,7 +244,7 @@ module.exports = class therock extends Exchange {
             symbol = market['symbol'];
         }
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -265,7 +265,7 @@ module.exports = class therock extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume_traded'),
             'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

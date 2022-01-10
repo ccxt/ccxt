@@ -404,7 +404,7 @@ module.exports = class hollaex extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString2 (ticker, 'time', 'timestamp'));
         const close = this.safeNumber (ticker, 'close');
-        const result = {
+        return this.safeTicker ({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
@@ -425,8 +425,7 @@ module.exports = class hollaex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
-        };
-        return result;
+        });
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

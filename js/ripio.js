@@ -280,7 +280,7 @@ module.exports = class ripio extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'last_price');
         const average = this.safeNumber (ticker, 'avg');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -301,7 +301,7 @@ module.exports = class ripio extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {

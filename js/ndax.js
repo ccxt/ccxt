@@ -531,14 +531,10 @@ module.exports = class ndax extends Exchange {
         const percentage = this.safeNumber (ticker, 'Rolling24HrPxChangePercent');
         const change = this.safeNumber (ticker, 'Rolling24HrPxChange');
         const open = this.safeNumber (ticker, 'SessionOpen');
-        let average = undefined;
-        if ((last !== undefined) && (change !== undefined)) {
-            average = this.sum (last, open) / 2;
-        }
         const baseVolume = this.safeNumber (ticker, 'Rolling24HrVolume');
         const quoteVolume = this.safeNumber (ticker, 'Rolling24HrNotional');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -555,11 +551,11 @@ module.exports = class ndax extends Exchange {
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
-            'average': average,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {
