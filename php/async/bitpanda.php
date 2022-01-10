@@ -348,6 +348,8 @@ class bitpanda extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
             );
         }
         return $result;

@@ -352,6 +352,8 @@ class bitpanda(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
             })
         return result
 
