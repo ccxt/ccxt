@@ -255,6 +255,8 @@ module.exports = class coinbasepro extends Exchange {
                 'type': this.safeString (details, 'type'),
                 'name': name,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
