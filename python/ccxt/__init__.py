@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.64.14'
+__version__ = '1.64.16'
 
 # ----------------------------------------------------------------------------
 
@@ -151,6 +151,7 @@ from ccxt.latoken import latoken                            # noqa: F401
 from ccxt.latoken1 import latoken1                          # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
 from ccxt.liquid import liquid                              # noqa: F401
+from ccxt.litebitpro import litebitpro                      # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
@@ -267,6 +268,7 @@ exchanges = [
     'latoken1',
     'lbank',
     'liquid',
+    'litebitpro',
     'luno',
     'lykke',
     'mercado',
