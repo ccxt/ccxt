@@ -379,8 +379,12 @@ module.exports = class crex24 extends Exchange {
             const withdrawalPrecision = this.safeInteger (currency, 'withdrawalPrecision');
             const precision = Math.pow (10, -withdrawalPrecision);
             const address = this.safeValue (currency, 'BaseAddress');
-            const active = (currency['depositsAllowed'] && currency['withdrawalsAllowed'] && !currency['isDelisted']);
-            const type = currency['isFiat'] ? 'fiat' : 'crypto';
+            const deposit = this.safeValue (currency, 'depositsAllowed');
+            const withdraw = this.safeValue (currency, 'withdrawalsAllowed');
+            const delisted = this.safeValue (currency, 'isDelisted');
+            const active = deposit && withdraw && !delisted;
+            const fiat = this.safeValue (currency, 'isFiat');
+            const type = fiat ? 'fiat' : 'crypto';
             result[code] = {
                 'id': id,
                 'code': code,
@@ -389,6 +393,8 @@ module.exports = class crex24 extends Exchange {
                 'type': type,
                 'name': this.safeString (currency, 'name'),
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': this.safeNumber (currency, 'flatWithdrawalFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
