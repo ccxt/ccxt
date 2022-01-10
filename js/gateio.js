@@ -1516,9 +1516,8 @@ module.exports = class gateio extends Exchange {
         // :param params.type: spot, margin, crossMargin, swap or future
         // :param params.settle: Settle currency (usdt or btc) for perpetual swap and future
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const swap = type === 'swap';
         const future = type === 'future';
         const method = this.getSupportedMapping (type, {
