@@ -1794,8 +1794,9 @@ class cryptocom extends Exchange {
             // python and js will put it in curly brackets
             // the code below checks and replaces those brackets in empty requests
             if ($paramsKeysLength === 0) {
-                $body = str_replace('[', 'array(', $body);
-                $body = str_replace(']', ', $body)');
+                $paramsString = '{}';
+                $arrayString = '[]';
+                $body = str_replace($arrayString, $paramsString, $body);
             }
             $headers = array(
                 'Content-Type' => 'application/json',
