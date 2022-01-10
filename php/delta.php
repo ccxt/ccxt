@@ -260,6 +260,8 @@ class delta extends Exchange {
                 'name' => $this->safe_string($currency, 'name'),
                 'info' => $currency, // the original payload
                 'active' => $active,
+                'deposit' => $depositsEnabled,
+                'withdraw' => $withdrawalsEnabled,
                 'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
                 'precision' => 1 / pow(10, $precision),
                 'limits' => array(
