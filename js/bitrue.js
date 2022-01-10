@@ -502,6 +502,8 @@ module.exports = class bitrue extends Exchange {
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': enableDeposit,
+                'withdraw': enableWithdraw,
                 'networks': networks,
                 'fee': this.safeNumber (currency, 'withdrawFee'),
                 // 'fees': fees,
