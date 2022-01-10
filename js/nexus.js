@@ -272,9 +272,10 @@ module.exports = class nexus extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const instrument = symbol.replace ('/', '');
-        const response = await this.edsGetTrades ({ 'exchange': this.options['exchangeName'], 'instrument': instrument });
+        params = this.extend (params, { 'exchange': this.options['exchangeName'], 'instrument': instrument, 'limit': limit });
+        const response = await this.edsGetTrades (params);
         const trades = response['trades'];
         const result = [];
         for (let i = 0; i < trades.length; i++) {
