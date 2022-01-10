@@ -368,7 +368,7 @@ module.exports = class bytetrade extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -389,7 +389,7 @@ module.exports = class bytetrade extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'baseVolume'),
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {

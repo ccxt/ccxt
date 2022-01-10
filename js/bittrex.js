@@ -451,7 +451,7 @@ module.exports = class bittrex extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '-');
         const percentage = this.safeNumber (ticker, 'percentChange');
         const last = this.safeNumber (ticker, 'lastTradeRate');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -472,7 +472,7 @@ module.exports = class bittrex extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

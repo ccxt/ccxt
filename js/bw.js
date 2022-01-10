@@ -331,7 +331,7 @@ module.exports = class bw extends Exchange {
         const close = this.safeNumber (ticker, 1);
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -352,7 +352,7 @@ module.exports = class bw extends Exchange {
             'baseVolume': this.safeNumber (ticker, 4),
             'quoteVolume': this.safeNumber (ticker, 9),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {

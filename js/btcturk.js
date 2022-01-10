@@ -289,7 +289,7 @@ module.exports = class btcturk extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -310,7 +310,7 @@ module.exports = class btcturk extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
