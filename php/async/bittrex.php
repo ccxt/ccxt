@@ -412,6 +412,8 @@ class bittrex extends Exchange {
                 'type' => $this->safe_string($currency, 'coinType'),
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => ($isActive === 'ONLINE'),
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(

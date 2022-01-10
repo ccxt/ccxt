@@ -416,6 +416,8 @@ class bittrex(Exchange):
                 'type': self.safe_string(currency, 'coinType'),
                 'name': self.safe_string(currency, 'name'),
                 'active': (isActive == 'ONLINE'),
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
