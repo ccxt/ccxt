@@ -414,6 +414,8 @@ module.exports = class hitbtc extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': payin,
+                'withdraw': payout,
                 'fee': this.safeNumber (currency, 'payoutFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
