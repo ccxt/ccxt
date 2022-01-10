@@ -22,6 +22,7 @@ module.exports = class trbinance extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchOHLCV': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -286,6 +287,168 @@ module.exports = class trbinance extends Exchange {
         return orderBook;
     }
 
+    parseTrade (trade, market = undefined) {
+        if ('isDustTrade' in trade) {
+            return this.parseDustTrade (trade, market);
+        }
+        //
+        // aggregate trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+        //
+        //     {
+        //         "a": 26129,         // Aggregate tradeId
+        //         "p": "0.01633102",  // Price
+        //         "q": "4.70443515",  // Quantity
+        //         "f": 27781,         // First tradeId
+        //         "l": 27781,         // Last tradeId
+        //         "T": 1498793709153, // Timestamp
+        //         "m": true,          // Was the buyer the maker?
+        //         "M": true           // Was the trade the best price match?
+        //     }
+        //
+        // recent public trades and old public trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
+        //
+        //     {
+        //         "id": 28457,
+        //         "price": "4.00000100",
+        //         "qty": "12.00000000",
+        //         "time": 1499865549590,
+        //         "isBuyerMaker": true,
+        //         "isBestMatch": true
+        //     }
+        //
+        // private trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-trade-list-user_data
+        //
+        //     {
+        //         "symbol": "BNBBTC",
+        //         "id": 28457,
+        //         "orderId": 100234,
+        //         "price": "4.00000100",
+        //         "qty": "12.00000000",
+        //         "commission": "10.10000000",
+        //         "commissionAsset": "BNB",
+        //         "time": 1499865549590,
+        //         "isBuyer": true,
+        //         "isMaker": false,
+        //         "isBestMatch": true
+        //     }
+        //
+        // futures trades
+        // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+        //
+        //     {
+        //       "accountId": 20,
+        //       "buyer": False,
+        //       "commission": "-0.07819010",
+        //       "commissionAsset": "USDT",
+        //       "counterPartyId": 653,
+        //       "id": 698759,
+        //       "maker": False,
+        //       "orderId": 25851813,
+        //       "price": "7819.01",
+        //       "qty": "0.002",
+        //       "quoteQty": "0.01563",
+        //       "realizedPnl": "-0.91539999",
+        //       "side": "SELL",
+        //       "symbol": "BTCUSDT",
+        //       "time": 1569514978020
+        //     }
+        //     {
+        //       "symbol": "BTCUSDT",
+        //       "id": 477128891,
+        //       "orderId": 13809777875,
+        //       "side": "SELL",
+        //       "price": "38479.55",
+        //       "qty": "0.001",
+        //       "realizedPnl": "-0.00009534",
+        //       "marginAsset": "USDT",
+        //       "quoteQty": "38.47955",
+        //       "commission": "-0.00076959",
+        //       "commissionAsset": "USDT",
+        //       "time": 1612733566708,
+        //       "positionSide": "BOTH",
+        //       "maker": true,
+        //       "buyer": false
+        //     }
+        //
+        // { respType: FULL }
+        //
+        //     {
+        //       "price": "4000.00000000",
+        //       "qty": "1.00000000",
+        //       "commission": "4.00000000",
+        //       "commissionAsset": "USDT",
+        //       "tradeId": "1234",
+        //     }
+        //
+        const timestamp = this.safeInteger2 (trade, 'T', 'time');
+        const price = this.safeString2 (trade, 'p', 'price');
+        const amount = this.safeString2 (trade, 'q', 'qty');
+        const cost = this.safeString2 (trade, 'quoteQty', 'baseQty');  // inverse futures
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        let id = this.safeString2 (trade, 't', 'a');
+        id = this.safeString2 (trade, 'id', 'tradeId', id);
+        let side = undefined;
+        const orderId = this.safeString (trade, 'orderId');
+        if ('m' in trade) {
+            // this is reversed intentionally
+            if (trade['m']) {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
+        } else if ('isBuyerMaker' in trade) {
+            if (trade['isBuyerMaker']) {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
+        } else if ('side' in trade) {
+            side = this.safeStringLower (trade, 'side');
+        } else {
+            if ('isBuyer' in trade) {
+                if (trade['isBuyer']) {
+                    side = 'buy';
+                } else {
+                    side = 'sell';
+                }
+            }
+        }
+        let fee = undefined;
+        if ('commission' in trade) {
+            fee = {
+                'cost': this.safeString (trade, 'commission'),
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
+            };
+        }
+        let takerOrMaker = undefined;
+        if ('isBuyerMaker' in trade) {
+            takerOrMaker = trade['isBuyerMaker'] ? 'maker' : 'taker';
+        }
+        // if ('maker' in trade) {
+        //     takerOrMaker = trade['maker'] ? 'maker' : 'taker';
+        // }
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        }, market);
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -306,8 +469,62 @@ module.exports = class trbinance extends Exchange {
         //    {"id":1211494277,"price":"46410.42000000","qty":"0.00084000","quoteQty":"38.98475280","time":1641391959483,"isBuyerMaker":false,"isBestMatch":true},
         //  ]
         //
-        const data = this.safeValue (response, []);
-        return this.parseTrades (data, market, since, limit);
+        // const data = this.safeValue (response, []);
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // binancetr docs say that the default limit is 500, max=1500 for futures and max=1000 for spot markets
+        // the reality is that the time range wider than 500 candles doestn't work
+        const defaultLimit = 500;
+        const maxLimit = 1500;
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
+        const request = {
+            'interval': this.timeframes[timeframe],
+            'limit': limit,
+        };
+        if (price === 'index') {
+            request['pair'] = market['id'];   // Index price takes this argument instead of symbol
+        } else {
+            // request['symbol'] = market['id'];
+            request['symbol'] = market['base'] + market['quote']; // Symbol needs to be without underscore for the endpoint
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            if (market['inverse']) {
+                if (since > 0) {
+                    const duration = this.parseTimeframe (timeframe);
+                    const endTime = this.sum (since, limit * duration * 1000 - 1);
+                    const now = this.milliseconds ();
+                    request['endTime'] = Math.min (now, endTime);
+                }
+            }
+        }
+        const method = 'publicGetKlines';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
+        //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
+        //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -318,6 +535,12 @@ module.exports = class trbinance extends Exchange {
             }
         }
         if (api === 'public' && path === 'trades') {
+            url = this.urls['api']['public3'] + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        }
+        if (api === 'public' && path === 'klines') {
             url = this.urls['api']['public3'] + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
