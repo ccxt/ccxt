@@ -917,6 +917,8 @@ module.exports = class gateio extends Exchange {
                 'precision': amountPrecision,
                 'info': entry,
                 'active': active,
+                'deposit': !deposit_disabled,
+                'withdraw': !withdraw_disabled,
                 'fee': undefined,
                 'fees': [],
                 'limits': this.limits,
