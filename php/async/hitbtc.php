@@ -418,6 +418,8 @@ class hitbtc extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $payin,
+                'withdraw' => $payout,
                 'fee' => $this->safe_number($currency, 'payoutFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array(
