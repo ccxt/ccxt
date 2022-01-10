@@ -298,6 +298,8 @@ module.exports = class eqonex extends Exchange {
             'precision': precision,
             'fee': fee,
             'active': active,
+            'deposit': undefined,
+            'withdraw': undefined,
             'limits': {
                 'amount': {
                     'min': undefined,
