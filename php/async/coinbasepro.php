@@ -260,6 +260,8 @@ class coinbasepro extends Exchange {
                 'type' => $this->safe_string($details, 'type'),
                 'name' => $name,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(

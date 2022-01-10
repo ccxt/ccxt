@@ -273,6 +273,8 @@ class coinbasepro(Exchange):
                 'type': self.safe_string(details, 'type'),
                 'name': name,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {
