@@ -301,6 +301,8 @@ class eqonex extends Exchange {
             'precision' => $precision,
             'fee' => $fee,
             'active' => $active,
+            'deposit' => null,
+            'withdraw' => null,
             'limits' => array(
                 'amount' => array(
                     'min' => null,

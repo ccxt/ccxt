@@ -296,6 +296,8 @@ class eqonex(Exchange):
             'precision': precision,
             'fee': fee,
             'active': active,
+            'deposit': None,
+            'withdraw': None,
             'limits': {
                 'amount': {
                     'min': None,
