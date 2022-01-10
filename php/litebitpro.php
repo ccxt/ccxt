@@ -54,10 +54,8 @@ class litebitpro extends Exchange {
                 // TODO
                 'logo' => 'TODO',
                 'api' => array(
-                    // 'public' => 'https://api.pro.liteaccept.nl',
-                    // 'private' => 'https://api.pro.liteaccept.nl',
-                    'public' => 'https://api.exchange.test.litebit.tech',
-                    'private' => 'https://api.exchange.test.litebit.tech',
+                    'public' => 'https://api.pro.liteaccept.nl',
+                    'private' => 'https://api.pro.liteaccept.nl',
                 ),
                 'www' => 'https://pro.litebit.com/',
                 'doc' => 'https://docs.pro.litebit.com/',
