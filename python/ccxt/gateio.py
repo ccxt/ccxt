@@ -1907,29 +1907,25 @@ class gateio(Exchange):
         symbol = self.safe_symbol(marketId, market)
         amountString = self.safe_string_2(trade, 'amount', 'size')
         priceString = self.safe_string(trade, 'price')
-        costString = Precise.string_abs(Precise.string_mul(amountString, priceString))
-        price = self.parse_number(priceString)
-        cost = self.parse_number(costString)
         contractSide = 'sell' if Precise.string_lt(amountString, '0') else 'buy'
         amountString = Precise.string_abs(amountString)
-        amount = self.parse_number(amountString)
         side = self.safe_string(trade, 'side', contractSide)
         orderId = self.safe_string(trade, 'order_id')
         gtFee = self.safe_string(trade, 'gt_fee')
         feeCurrency = None
-        feeCost = None
+        feeCostString = None
         if gtFee == '0':
             feeCurrency = self.safe_string(trade, 'fee_currency')
-            feeCost = self.safe_number(trade, 'fee')
+            feeCostString = self.safe_string(trade, 'fee')
         else:
             feeCurrency = 'GT'
-            feeCost = self.parse_number(gtFee)
+            feeCostString = gtFee
         fee = {
-            'cost': feeCost,
+            'cost': feeCostString,
             'currency': feeCurrency,
         }
         takerOrMaker = self.safe_string(trade, 'role')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1939,11 +1935,11 @@ class gateio(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
