@@ -1070,7 +1070,7 @@ module.exports = class okex extends Exchange {
         const quoteVolume = this.safeNumber (ticker, 'volCcy24h');
         const baseVolume = this.safeNumber (ticker, 'vol24h');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1091,7 +1091,7 @@ module.exports = class okex extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {
