@@ -233,6 +233,8 @@ module.exports = class buda extends Exchange {
                 'info': currency,
                 'name': undefined,
                 'active': true,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
