@@ -258,6 +258,8 @@ module.exports = class delta extends Exchange {
                 'name': this.safeString (currency, 'name'),
                 'info': currency, // the original payload
                 'active': active,
+                'deposit': depositsEnabled,
+                'withdraw': withdrawalsEnabled,
                 'fee': this.safeNumber (currency, 'base_withdrawal_fee'),
                 'precision': 1 / Math.pow (10, precision),
                 'limits': {
