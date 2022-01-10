@@ -186,7 +186,7 @@ module.exports = class woo extends Exchange {
                     'symbol must not be blank': BadRequest, // when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported': BadRequest, // when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled': BadRequest, // actual response whensending 'cancelOrder' for already canceled id [-1006]
-                    'Insufficient WOO. Please enable margin trading for leverage trading': BadRequest, //  when selling insufficent token [-1012]
+                    'Insufficient WOO. Please enable margin trading for leverage trading': BadRequest, // when selling insufficent token [-1012]
                 },
             },
             'precisionMode': TICK_SIZE,
