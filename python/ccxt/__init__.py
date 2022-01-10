@@ -173,6 +173,7 @@ from ccxt.okex3 import okex3                                # noqa: F401
 from ccxt.okex5 import okex5                                # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
+from ccxt.quadency import quadency                          # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.stex import stex                                  # noqa: F401
@@ -301,6 +302,7 @@ exchanges = [
     'okex5',
     'paymium',
     'poloniex',
+    'quadency',
     'rightbtc',
     'southxchange',
     'stex',

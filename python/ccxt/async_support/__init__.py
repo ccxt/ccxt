@@ -154,6 +154,7 @@ from ccxt.async_support.okex3 import okex3                                # noqa
 from ccxt.async_support.okex5 import okex5                                # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.poloniex import poloniex                          # noqa: F401
+from ccxt.async_support.quadency import quadency                          # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
 from ccxt.async_support.stex import stex                                  # noqa: F401
@@ -282,6 +283,7 @@ exchanges = [
     'okex5',
     'paymium',
     'poloniex',
+    'quadency',
     'rightbtc',
     'southxchange',
     'stex',
