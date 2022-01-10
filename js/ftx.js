@@ -20,6 +20,7 @@ module.exports = class ftx extends Exchange {
             // 10 withdrawal requests per 30 seconds, cost = (1000ms / rateLimit) / (1/3) = 30
             // cancels do not count towards rate-limit
             // market-data calls do not count towards rate-limits
+            // only 'order-making' requests count towards ratelimit
             'rateLimit': 100,
             'certified': true,
             'pro': true,
