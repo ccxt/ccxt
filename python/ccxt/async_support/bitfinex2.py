@@ -566,6 +566,8 @@ class bitfinex2(bitfinex):
                 'type': type,
                 'name': name,
                 'active': True,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {

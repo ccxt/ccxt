@@ -566,6 +566,8 @@ class bitfinex2 extends bitfinex {
                 'type' => $type,
                 'name' => $name,
                 'active' => true,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(
