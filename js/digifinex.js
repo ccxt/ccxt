@@ -256,6 +256,8 @@ module.exports = class digifinex extends Exchange {
                     'type': undefined,
                     'name': undefined,
                     'active': active,
+                    'deposit': depositStatus > 0,
+                    'withdraw': withdrawStatus > 0,
                     'fee': fee,
                     'precision': 8, // todo fix hardcoded value
                     'limits': {
