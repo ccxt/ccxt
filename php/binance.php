@@ -1293,6 +1293,8 @@ class binance extends Exchange {
                 'precision' => $precision,
                 'info' => $entry,
                 'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
                 'networks' => $networkList,
                 'fee' => $fee,
                 'fees' => $fees,
