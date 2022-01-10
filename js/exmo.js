@@ -375,6 +375,8 @@ module.exports = class exmo extends Exchange {
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': 8,
                 'limits': limits,
