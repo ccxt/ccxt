@@ -413,6 +413,8 @@ class hitbtc(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': payin,
+                'withdraw': payout,
                 'fee': self.safe_number(currency, 'payoutFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
