@@ -401,6 +401,8 @@ class bitvavo(Exchange):
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdrawal,
                 'fee': self.safe_number(currency, 'withdrawalFee'),
                 'precision': precision,
                 'limits': {
