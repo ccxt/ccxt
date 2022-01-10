@@ -883,6 +883,8 @@ module.exports = class bitmart extends Exchange {
                 'name': name,
                 'info': currency, // the original payload
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
