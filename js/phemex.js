@@ -1018,17 +1018,9 @@ module.exports = class phemex extends Exchange {
         if ((market !== undefined) && (market['spot'])) {
             vwap = this.vwap (baseVolume, quoteVolume);
         }
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
         const openString = this.fromEp (this.safeString (ticker, 'openEp'), market);
         const open = this.parseNumber (openString);
-        if ((openString !== undefined) && (lastString !== undefined)) {
-            change = this.parseNumber (Precise.stringSub (lastString, openString));
-            average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
-            percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
-        }
-        const result = {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1043,14 +1035,13 @@ module.exports = class phemex extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined, // previous day close
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
-        return result;
+        });
     }
 
     async fetchTicker (symbol, params = {}) {
