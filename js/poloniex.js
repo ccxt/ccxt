@@ -443,17 +443,9 @@ module.exports = class poloniex extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        let open = undefined;
-        let change = undefined;
-        let average = undefined;
         const last = this.safeNumber (ticker, 'last');
         const relativeChange = this.safeNumber (ticker, 'percentChange');
-        if (relativeChange !== -1) {
-            open = last / this.sum (1, relativeChange);
-            change = last - open;
-            average = this.sum (last, open) / 2;
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -464,17 +456,17 @@ module.exports = class poloniex extends Exchange {
             'ask': this.safeNumber (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': relativeChange * 100,
-            'average': average,
+            'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'quoteVolume'),
             'quoteVolume': this.safeNumber (ticker, 'baseVolume'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
