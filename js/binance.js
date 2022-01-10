@@ -1280,6 +1280,8 @@ module.exports = class binance extends Exchange {
             }
             const trading = this.safeValue (entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
+            const deposit = (isDepositEnabled && trading);
+            const withdraw = (isWithdrawEnabled && trading);
             result[code] = {
                 'id': id,
                 'name': name,
@@ -1287,6 +1289,8 @@ module.exports = class binance extends Exchange {
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networkList,
                 'fee': fee,
                 'fees': fees,
