@@ -76,7 +76,7 @@ module.exports = class woo extends Exchange {
                 'api': {
                     'public': 'https://api.woo.org',
                     'private': 'https://api.woo.org',
-                    // API_TESTNET_URL = "http://api.staging.woo.network" as said https://github.com/wanth1997/python-wootrade/blob/main/wootrade/client.py |TODO
+                    // TODO: official api doesnt mention, but there seems to be :  API_TESTNET_URL = "http://api.staging.woo.network" as said https://github.com/wanth1997/python-wootrade/blob/main/wootrade/client.py
                 },
                 'www': 'https://woo.org/',
                 'doc': [
@@ -169,13 +169,13 @@ module.exports = class woo extends Exchange {
                     '-1002': AuthenticationError, // { "code": -1002,  "message": "API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked." }
                     '-1003': RateLimitExceeded, // { "code": -1003,  "message": "Rate limit exceed." }
                     '-1004': BadRequest, // { "code": -1004,  "message": "An unknown parameter was sent." }
-                    '-1005': BadRequest, // actual response when sending 'cancelOrder' without symbol: {"success":false,"code":-1005,"message":"symbol must not be blank"} | actual response when getting incorrect deposit address: {"success":false,"code":-1005,"message":"The token is not supported."}  |  in docs, it says: { "code": -1005,  "message": "Some parameters are in wrong format for api." }
-                    '-1006': BadRequest, // actual response whensending 'cancelOrder' for already canceled id {"success":false,"code":"-1006","message":"Your order and symbol are not valid or already canceled."}  | in docs, it says: { "code": -1006,  "message": "The data is not found in server." }
+                    '-1005': BadRequest, // { "code": -1005,  "message": "Some parameters are in wrong format for api." }
+                    '-1006': BadRequest, // { "code": -1006,  "message": "The data is not found in server." }
                     '-1007': BadRequest, // { "code": -1007,  "message": "The data is already exists or your request is duplicated." }
                     '-1008': InvalidOrder, // { "code": -1008,  "message": "The quantity of settlement is too high than you can request." }
                     '-1009': BadRequest, // { "code": -1009,  "message": "Can not request withdrawal settlement, you need to deposit other arrears first." }
                     '-1011': ExchangeError, // { "code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." }
-                    '-1012': BadRequest, // { "code": -1012,  "message": "Amount is required for buy market orders when margin disabled."}   |  also when selling insufficent token it returns : {"success":false,"code":"-1012","message":"Insufficient WOO. Please enable margin trading for leverage trading."}  |  TODO: This message was returned while testing markete order with price-defined. however, docs say this message should have returned, which is not correct:  The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds." }
+                    '-1012': BadRequest, // { "code": -1012,  "message": "Amount is required for buy market orders when margin disabled."}  The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds." }
                     '-1101': InvalidOrder, // { "code": -1101,  "message": "The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure." }
                     '-1102': InvalidOrder, // { "code": -1102,  "message": "The order value (price * size) is too small." }
                     '-1103': InvalidOrder, // { "code": -1103,  "message": "The order price is not following the tick size rule for the symbol." }
@@ -183,6 +183,10 @@ module.exports = class woo extends Exchange {
                     '-1105': InvalidOrder, // { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
                 },
                 'broad': {
+                    'symbol must not be blank': BadRequest, // when sending 'cancelOrder' without symbol [-1005]
+                    'The token is not supported': BadRequest, // when getting incorrect token's deposit address [-1005]
+                    'Your order and symbol are not valid or already canceled': BadRequest, // actual response whensending 'cancelOrder' for already canceled id [-1006]
+                    'Insufficient WOO. Please enable margin trading for leverage trading': BadRequest, //  when selling insufficent token [-1012]
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -194,40 +198,37 @@ module.exports = class woo extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetInfo',
         });
-        let data = undefined;
-        if (marketType === 'spot') {
-            const response = await this[method] (query);
-            //
-            // {
-            //     rows: [
-            //         {
-            //             symbol: "SPOT_AAVE_USDT",
-            //             quote_min: 0,
-            //             quote_max: 100000,
-            //             quote_tick: 0.01,
-            //             base_min: 0.01,
-            //             base_max: 7284,
-            //             base_tick: 0.0001,
-            //             min_notional: 10,
-            //             price_range: 0.1,
-            //             created_time: "0",
-            //             updated_time: "1639107647.988",
-            //             is_stable: 0
-            //         },
-            //         ...
-            //     success: true
-            // }
-            //
-            data = this.safeValue (response, 'rows', []);
-        }
+        const response = await this[method] (query);
+        //
+        // {
+        //     rows: [
+        //         {
+        //             symbol: "SPOT_AAVE_USDT",
+        //             quote_min: 0,
+        //             quote_max: 100000,
+        //             quote_tick: 0.01,
+        //             base_min: 0.01,
+        //             base_max: 7284,
+        //             base_tick: 0.0001,
+        //             min_notional: 10,
+        //             price_range: 0.1,
+        //             created_time: "0",
+        //             updated_time: "1639107647.988",
+        //             is_stable: 0
+        //         },
+        //         ...
+        //     success: true
+        // }
+        //
+        const data = this.safeValue (response, 'rows', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
             const parts = marketId.split ('_');
-            const baseId = parts[1];
-            const quoteId = parts[2];
-            const marketTypeVal = parts[0].toLowerCase ();
+            const marketTypeVal = this.safeStringLower (parts, 0);
+            const baseId = this.safeString (parts, 1);
+            const quoteId = this.safeString (parts, 2);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -828,9 +829,7 @@ module.exports = class woo extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            if (limit > 1000) {
-                throw new BadRequest (this.id + ' fetchOHLCV() limit argument cannot exceed 1000');
-            }
+            limit = Math.min (limit, 1000);
             request['max_level'] = limit;
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
@@ -866,10 +865,7 @@ module.exports = class woo extends Exchange {
             'type': this.timeframes[timeframe],
         };
         if (limit !== undefined) {
-            if (limit > 1000) {
-                throw new BadRequest (this.id + ' fetchOHLCV() limit argument cannot exceed 1000');
-            }
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
         const method = this.getSupportedMapping (marketType, {
@@ -1152,8 +1148,8 @@ module.exports = class woo extends Exchange {
         //         confirming_threshold: '27',
         //         audit_tag: '1',
         //         audit_result: '0',
-        //         balance_token: null, // TODO -write them this is broken
-        //         network_name: null // TODO -write them this is broken
+        //         balance_token: null, // TODO -write to support, that this seems broken
+        //         network_name: null // TODO -write to support, that this seems broken
         //       }
         //     ],
         //     meta: { total: '1', records_per_page: '25', current_page: '1' },
@@ -1318,12 +1314,12 @@ module.exports = class woo extends Exchange {
         const errorCode = this.safeString (response, 'code');
         if (!success) {
             const feedback = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
     }
 
-    getDefaultNetworkPairForCurrency (code, params) {
+    getDefaultNetworkPairForCurrency (code, params) { // TODO: this method can be moved into base
         // at first, try to find if user or exchange has defined default networks for the specific currency
         const userChosenNetork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
@@ -1364,7 +1360,7 @@ module.exports = class woo extends Exchange {
         return undefined;
     }
 
-    currencyCodeWithNetwork (code, params, divider = '_', beforOrAfter = true) { // this method can be moved into base
+    currencyCodeWithNetwork (code, params, divider = '_', beforOrAfter = true) { // TODO: this method can be moved into base
         // at first, try to get according to default networks
         const defaultNetworkPair = this.getDefaultNetworkPairForCurrency (code, params);
         if (defaultNetworkPair !== undefined) {
@@ -1398,7 +1394,7 @@ module.exports = class woo extends Exchange {
         return undefined;
     }
 
-    getCurrencyByNetworkizedCode (chainedCode) {
+    getCurrencyByNetworkizedCode (chainedCode) { // TODO: this method can be moved into base
         const keys = Object.keys (this.currencies);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1438,14 +1434,14 @@ module.exports = class woo extends Exchange {
         return false;
     }
 
-    sanitizestr (str) { // TODO: can be in base
+    sanitizestr (str) { // TODO: this method can be moved into base
         str = str.replace (' ', '-');
         str = str.replace ('.', '-');
         str = str.replace ('_', '-');
         return str.toLowerCase ();
     }
 
-    detectChainSlug (type) { // TODO: can be in base
+    detectChainSlug (type) { // TODO: this method can be moved into base
         const type_S = this.sanitizestr (type);
         const chainsSlugs = {};
         chainsSlugs['BTC'] = [ 'btc', 'btc-chain', 'btc-network', 'bitcoin', 'bitcoin-chain', 'bitcoin-network' ];
