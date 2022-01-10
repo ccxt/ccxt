@@ -1490,9 +1490,8 @@ class gateio(Exchange):
         # :param params.type: spot, margin, crossMargin, swap or future
         # :param params.settle: Settle currency(usdt or btc) for perpetual swap and future
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
+        type = None
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         swap = type == 'swap'
         future = type == 'future'
         method = self.get_supported_mapping(type, {

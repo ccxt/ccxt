@@ -1522,9 +1522,8 @@ class gateio extends Exchange {
         // :param $params->type => spot, $margin, crossMargin, $swap or $future
         // :param $params->settle => Settle currency (usdt or btc) for perpetual $swap and $future
         yield $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $swap = $type === 'swap';
         $future = $type === 'future';
         $method = $this->get_supported_mapping($type, array(
