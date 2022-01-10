@@ -488,6 +488,8 @@ class bibox(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': None,
                 'precision': precision,
                 'limits': {

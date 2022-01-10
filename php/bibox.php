@@ -503,6 +503,8 @@ class bibox extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
