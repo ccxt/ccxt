@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.64.14'
+__version__ = '1.64.15'
 
 # -----------------------------------------------------------------------------
 
@@ -133,6 +133,7 @@ from ccxt.async_support.latoken import latoken                            # noqa
 from ccxt.async_support.latoken1 import latoken1                          # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
 from ccxt.async_support.liquid import liquid                              # noqa: F401
+from ccxt.async_support.litebitpro import litebitpro                      # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
 from ccxt.async_support.lykke import lykke                                # noqa: F401
 from ccxt.async_support.mercado import mercado                            # noqa: F401
@@ -249,6 +250,7 @@ exchanges = [
     'latoken1',
     'lbank',
     'liquid',
+    'litebitpro',
     'luno',
     'lykke',
     'mercado',
