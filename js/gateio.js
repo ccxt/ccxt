@@ -1959,30 +1959,26 @@ module.exports = class gateio extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
-        const costString = Precise.stringAbs (Precise.stringMul (amountString, priceString));
-        const price = this.parseNumber (priceString);
-        const cost = this.parseNumber (costString);
         const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
         amountString = Precise.stringAbs (amountString);
-        const amount = this.parseNumber (amountString);
         const side = this.safeString (trade, 'side', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const gtFee = this.safeString (trade, 'gt_fee');
         let feeCurrency = undefined;
-        let feeCost = undefined;
+        let feeCostString = undefined;
         if (gtFee === '0') {
             feeCurrency = this.safeString (trade, 'fee_currency');
-            feeCost = this.safeNumber (trade, 'fee');
+            feeCostString = this.safeString (trade, 'fee');
         } else {
             feeCurrency = 'GT';
-            feeCost = this.parseNumber (gtFee);
+            feeCostString = gtFee;
         }
         const fee = {
-            'cost': feeCost,
+            'cost': feeCostString,
             'currency': feeCurrency,
         };
         const takerOrMaker = this.safeString (trade, 'role');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1992,11 +1988,11 @@ module.exports = class gateio extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
