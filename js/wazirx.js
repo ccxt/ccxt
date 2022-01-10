@@ -283,9 +283,7 @@ module.exports = class wazirx extends Exchange {
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            const marketId = this.safeString (ticker, 'symbol');
-            const market = this.safeMarket (marketId, undefined);
-            const parsedTicker = this.parseTicker (ticker, market);
+            const parsedTicker = this.parseTicker (ticker);
             const symbol = parsedTicker['symbol'];
             result[symbol] = parsedTicker;
         }
@@ -351,10 +349,7 @@ module.exports = class wazirx extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': {
-                'cost': undefined,
-                'currency': undefined,
-            },
+            'fee': undefined,
         });
     }
 
@@ -398,10 +393,9 @@ module.exports = class wazirx extends Exchange {
         //        "at":1641382455000 // only on fetchTicker
         //     }
         //
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeNumber (ticker, 'lastPrice');
         const open = this.safeNumber (ticker, 'openPrice');
         const high = this.safeNumber (ticker, 'highPrice');
@@ -697,8 +691,8 @@ module.exports = class wazirx extends Exchange {
         //
         // {"code":2098,"message":"Request out of receiving window."}
         //
-        if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+        if (response === undefined) {
+            return;
         }
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== undefined) {
