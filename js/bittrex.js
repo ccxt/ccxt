@@ -404,6 +404,8 @@ module.exports = class bittrex extends Exchange {
                 'type': this.safeString (currency, 'coinType'),
                 'name': this.safeString (currency, 'name'),
                 'active': (isActive === 'ONLINE'),
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
