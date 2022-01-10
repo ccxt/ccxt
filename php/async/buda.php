@@ -153,6 +153,27 @@ class buda extends Exchange {
     public function fetch_currency_info($currency, $currencies = null) {
         if (!$currencies) {
             $response = yield $this->publicGetCurrencies ();
+            //
+            //     {
+            //         "currencies":[
+            //             {
+            //                 "id":"BTC",
+            //                 "symbol":"฿",
+            //                 "managed":true,
+            //                 "input_decimals":8,
+            //                 "display_decimals":8,
+            //                 "timezone":"UTC",
+            //                 "deposit_minimum":["0.0","BTC"],
+            //                 "withdrawal_minimum":["0.00001","BTC"],
+            //                 "max_digits_for_decimals":6,
+            //                 "crypto":true,
+            //                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+            //                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+            //                 "amount_to_micro_multiplier":1000000000000
+            //             }
+            //         ]
+            //     }
+            //
             $currencies = $this->safe_value($response, 'currencies');
         }
         for ($i = 0; $i < count($currencies); $i++) {
@@ -221,17 +242,43 @@ class buda extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = yield $this->publicGetCurrencies ();
+        //
+        //     {
+        //         "currencies":[
+        //             {
+        //                 "id":"BTC",
+        //                 "symbol":"฿",
+        //                 "managed":true,
+        //                 "input_decimals":8,
+        //                 "display_decimals":8,
+        //                 "timezone":"UTC",
+        //                 "deposit_minimum":["0.0","BTC"],
+        //                 "withdrawal_minimum":["0.00001","BTC"],
+        //                 "max_digits_for_decimals":6,
+        //                 "crypto":true,
+        //                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+        //                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+        //                 "amount_to_micro_multiplier":1000000000000
+        //             }
+        //         ]
+        //     }
+        //
         $currencies = $response['currencies'];
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
-            if (!$currency['managed']) {
+            $managed = $this->safe_value($currency, 'managed', false);
+            if (!$managed) {
                 continue;
             }
             $id = $this->safe_string($currency, 'id');
             $code = $this->safe_currency_code($id);
             $precision = $this->safe_number($currency, 'input_decimals');
             $minimum = pow(10, -$precision);
+            $depositMinimum = $this->safe_value($currency, 'deposit_minimum', array());
+            $withdrawalMinimum = $this->safe_value($currency, 'withdrawal_minimum', array());
+            $minDeposit = $this->safe_number($depositMinimum, 0);
+            $minWithdraw = $this->safe_number($withdrawalMinimum, 0);
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -248,11 +295,11 @@ class buda extends Exchange {
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => floatval($currency['deposit_minimum'][0]),
+                        'min' => $minDeposit,
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => floatval($currency['withdrawal_minimum'][0]),
+                        'min' => $minWithdraw,
                     ),
                 ),
             );

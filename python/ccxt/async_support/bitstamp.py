@@ -400,6 +400,8 @@ class bitstamp(Exchange):
             'type': currencyType,
             'name': name,
             'active': True,
+            'deposit': None,
+            'withdraw': None,
             'fee': self.safe_number(description['fees']['funding']['withdraw'], code),
             'precision': precision,
             'limits': {
@@ -439,6 +441,20 @@ class bitstamp(Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.fetch_markets_from_cache(params)
+        #
+        #     [
+        #         {
+        #             "trading": "Enabled",
+        #             "base_decimals": 8,
+        #             "url_symbol": "btcusd",
+        #             "name": "BTC/USD",
+        #             "instant_and_market_orders": "Enabled",
+        #             "minimum_order": "20.0 USD",
+        #             "counter_decimals": 2,
+        #             "description": "Bitcoin / U.S. dollar"
+        #         },
+        #     ]
+        #
         result = {}
         for i in range(0, len(response)):
             market = response[i]
