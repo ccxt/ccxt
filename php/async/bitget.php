@@ -937,6 +937,8 @@ class bitget extends Exchange {
                 'type' => null,
                 'name' => null,
                 'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => null,
                 'limits' => array(
