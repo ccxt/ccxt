@@ -238,6 +238,8 @@ class buda extends Exchange {
                 'info' => $currency,
                 'name' => null,
                 'active' => true,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(

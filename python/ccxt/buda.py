@@ -233,6 +233,8 @@ class buda(Exchange):
                 'info': currency,
                 'name': None,
                 'active': True,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {
