@@ -659,6 +659,8 @@ module.exports = class coinbase extends Exchange {
                 'type': type,
                 'name': name,
                 'active': true,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
