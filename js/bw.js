@@ -292,6 +292,8 @@ module.exports = class bw extends Exchange {
                 'info': currency,
                 'name': code,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': this.safeNumber (currency, 'drawFee'),
                 'precision': undefined,
                 'limits': {
