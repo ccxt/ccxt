@@ -108,6 +108,7 @@ module.exports = class wazirx extends Exchange {
                 },
             },
             'options': {
+                // 'fetchTradesMethod': 'privateGetHistoricalTrades',
                 'recvWindow': 10000,
             },
         });
@@ -299,7 +300,8 @@ module.exports = class wazirx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // Default 500; max 1000.
         }
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const method = this.safeString (this.options, 'fetchTradesMethod', 'publicGetTrades');
+        const response = await this[method] (this.extend (request, params));
         // [
         //     {
         //         "id":322307791,
