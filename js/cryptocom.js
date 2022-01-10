@@ -1789,8 +1789,9 @@ module.exports = class cryptocom extends Exchange {
             // python and js will put it in curly brackets
             // the code below checks and replaces those brackets in empty requests
             if (paramsKeysLength === 0) {
-                body = body.replace ('[', '{');
-                body = body.replace (']', '}');
+                const paramsString = '{}';
+                const arrayString = '[]';
+                body = body.replace (arrayString, paramsString);
             }
             headers = {
                 'Content-Type': 'application/json',
