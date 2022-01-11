@@ -2794,7 +2794,7 @@ module.exports = class bybit extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = undefined;
-        if (this.isArray (api)) {
+        if (Array.isArray (api)) {
             const type = this.safeString (api, 0);
             let section = this.safeString (api, 1);
             if (type === 'spot') {
