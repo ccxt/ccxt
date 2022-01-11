@@ -984,7 +984,7 @@ class aax(Exchange):
         method = None
         if market['spot']:
             method = 'privatePostSpotOrders'
-        elif market['futures']:
+        elif market['contract']:
             method = 'privatePostFuturesOrders'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -1090,7 +1090,7 @@ class aax(Exchange):
         method = None
         if market['spot']:
             method = 'privatePutSpotOrders'
-        elif market['futures']:
+        elif market['contract']:
             method = 'privatePutFuturesOrders'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -1191,7 +1191,7 @@ class aax(Exchange):
             type = market['type']
         if type == 'spot':
             method = 'privateDeleteSpotOrdersCancelOrderID'
-        elif type == 'futures':
+        elif type == 'swap' or type == 'future' or type == 'futures':  # type == 'futures' deprecated, use type == 'swap'
             method = 'privateDeleteFuturesOrdersCancelOrderID'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -1287,7 +1287,7 @@ class aax(Exchange):
         method = None
         if market['spot']:
             method = 'privateDeleteSpotOrdersCancelAll'
-        elif market['futures']:
+        elif market['contract']:
             method = 'privateDeleteFuturesOrdersCancelAll'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -1348,7 +1348,7 @@ class aax(Exchange):
         method = None
         if type == 'spot':
             method = 'privateGetSpotOpenOrders'
-        elif type == 'futures':
+        elif type == 'swap' or type == 'future' or type == 'futures':  # type == 'futures' deprecated, use type == 'swap'
             method = 'privateGetFuturesOpenOrders'
         if limit is not None:
             request['pageSize'] = limit  # default 10
@@ -1489,7 +1489,7 @@ class aax(Exchange):
             type = market['type']
         if type == 'spot':
             method = 'privateGetSpotOrders'
-        elif type == 'futures':
+        elif type == 'swap' or type == 'future' or type == 'futures':  # type == 'futures' deprecated, use type == 'swap'
             method = 'privateGetFuturesOrders'
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
@@ -1759,7 +1759,7 @@ class aax(Exchange):
             type = market['type']
         if type == 'spot':
             method = 'privateGetSpotTrades'
-        elif type == 'futures':
+        elif type == 'swap' or type == 'future' or type == 'futures':  # type == 'futures' deprecated, use type == 'swap'
             method = 'privateGetFuturesTrades'
         if limit is not None:
             request['pageSize'] = limit  # default 10
