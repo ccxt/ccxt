@@ -313,6 +313,7 @@ module.exports = class gateio extends Exchange {
                 '8h': '8h',
                 '1d': '1d',
                 '7d': '7d',
+                '1w': '7d',
             },
             // copied from gateiov2
             'commonCurrencies': {
