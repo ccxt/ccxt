@@ -72,7 +72,7 @@ module.exports = class woo extends Exchange {
                 '1y': '1y',
             },
             'urls': {
-                'logo': '  <<<TODO>>>    ',
+                'logo': '',
                 'api': {
                     'public': 'https://api.woo.org',
                     'private': 'https://api.woo.org',
@@ -85,7 +85,7 @@ module.exports = class woo extends Exchange {
                 'fees': [
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
-                'referral': '  <<<TODO>>>   ',
+                'referral': '',
             },
             'api': {
                 'v1': {
