@@ -366,10 +366,7 @@ module.exports = class buda extends Exchange {
         }
         const last = parseFloat (ticker['last_price'][0]);
         const percentage = parseFloat (ticker['price_variation_24h']);
-        const open = parseFloat (this.priceToPrecision (symbol, last / (percentage + 1)));
-        const change = last - open;
-        const average = this.sum (last, open) / 2;
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -380,17 +377,17 @@ module.exports = class buda extends Exchange {
             'ask': parseFloat (ticker['min_ask'][0]),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
-            'previousClose': open,
-            'change': change,
+            'previousClose': undefined,
+            'change': undefined,
             'percentage': percentage * 100,
-            'average': average,
+            'average': undefined,
             'baseVolume': parseFloat (ticker['volume'][0]),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        });
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
