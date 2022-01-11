@@ -499,7 +499,7 @@ module.exports = class btcmarkets extends Exchange {
         const vwap = this.vwap (baseVolume, quoteVolume);
         const change = this.safeNumber (ticker, 'price24h');
         const percentage = this.safeNumber (ticker, 'pricePct24h');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -520,7 +520,7 @@ module.exports = class btcmarkets extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {
