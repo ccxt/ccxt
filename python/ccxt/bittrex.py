@@ -458,10 +458,11 @@ class bittrex(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'updatedAt'))
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         percentage = self.safe_number(ticker, 'percentChange')
         last = self.safe_number(ticker, 'lastTradeRate')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -482,7 +483,7 @@ class bittrex(Exchange):
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

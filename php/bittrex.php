@@ -456,10 +456,11 @@ class bittrex extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'updatedAt'));
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $percentage = $this->safe_number($ticker, 'percentChange');
         $last = $this->safe_number($ticker, 'lastTradeRate');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -480,7 +481,7 @@ class bittrex extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
