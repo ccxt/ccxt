@@ -726,14 +726,8 @@ module.exports = class bitmart extends Exchange {
         const baseVolume = this.safeNumber2 (ticker, 'base_coin_volume', 'base_volume_24h');
         let quoteVolume = this.safeNumber2 (ticker, 'quote_coin_volume', 'quote_volume_24h');
         quoteVolume = this.safeNumber (ticker, 'volume_24h', quoteVolume);
-        const open = this.safeNumber2 (ticker, 'open_24h', 'open');
-        let average = undefined;
-        if ((last !== undefined) && (open !== undefined)) {
-            average = this.sum (last, open) / 2;
-        }
-        average = this.safeNumber (ticker, 'avg_price', average);
         const price = this.safeValue (ticker, 'depth_price', ticker);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -750,11 +744,11 @@ module.exports = class bitmart extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': percentage,
-            'average': average,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {
