@@ -2,7 +2,7 @@
 Supported Exchanges
 ===================
 
-The CCXT library currently supports the following 112 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1419,6 +1419,18 @@ The CCXT library currently supports the following 112 cryptocurrency exchange ma
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg
+          :target: https://wazirx.com
+          :alt: wazirx
+     
+     - wazirx
+     - `WazirX <https://wazirx.com>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.wazirx.com/#public-rest-api-for-wazirx
+          :alt: API Version 2
+     
+     - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg
           :target: https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963
