@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import math
+import time
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -78,6 +79,7 @@ class mexc(Exchange):
                 '30m': '30m',
                 '1h': '1h',
                 '1d': '1d',
+                '1w': '1w',
                 '1M': '1M',
             },
             'urls': {
@@ -219,6 +221,7 @@ class mexc(Exchange):
                         '30m': '30m',
                         '1h': '1h',
                         '1d': '1d',
+                        '1w': '1w',
                         '1M': '1M',
                     },
                     'contract': {
@@ -1025,6 +1028,12 @@ class mexc(Exchange):
         }
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        timeframe_change_flag = False
+        if timeframe == '1w':
+            old_timeframe = timeframe
+            timeframe_change_flag = True
+            timeframe = '1d'
+
         self.load_markets()
         market = self.market(symbol)
         options = self.safe_value(self.options, 'timeframes', {})
@@ -1076,11 +1085,49 @@ class mexc(Exchange):
         #
         if market['spot']:
             data = self.safe_value(response, 'data', [])
-            return self.parse_ohlcvs(data, market, timeframe, since, limit)
+            parse_data = self.parse_ohlcvs(data, market, timeframe, since, limit)
+            if timeframe_change_flag :
+                parse_data = self.build_ohlcv_revert(parse_data,old_timeframe)
+
+            return parse_data
         elif market['swap']:
             data = self.safe_value(response, 'data', {})
             result = self.convert_trading_view_to_ohlcv(data, 'time', 'open', 'high', 'low', 'close', 'vol')
             return self.parse_ohlcvs(result, market, timeframe, since, limit)
+
+    # timeframe must be '1w' or '1m'
+    def build_ohlcv_revert(self, trades, timeframe='1m', since=None, limit=None):
+        ms = self.parse_timeframe(timeframe) * 1000
+        ohlcvs = []
+        (timestamp, open, high, low, close, volume, count) = (0, 1, 2, 3, 4, 5, 6)
+        num_trades = len(trades)
+        oldest = (num_trades - 1) if limit is None else min(num_trades - 1, limit)
+        for i in range(0, oldest):
+            trade = trades[i]
+            if (since is not None) and (trade[0] < since):
+                continue
+            timestruct = time.localtime(trade[0] / 1000)
+
+            j = len(ohlcvs)
+            candle = j - 1
+            if (j == 0) or timestruct.tm_wday == 0:
+                # moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.append([
+                    trade[0],
+                    trade[1],
+                    trade[2],
+                    trade[3],
+                    trade[4],
+                    trade[5]
+                ])
+            else:
+                # still processing the same timeframe -> update opening trade
+                ohlcvs[candle][high] = max(ohlcvs[candle][high], trade[high])
+                ohlcvs[candle][low] = min(ohlcvs[candle][low], trade[low])
+                ohlcvs[candle][close] = trade[close]
+                ohlcvs[candle][volume] += trade[volume]
+        return ohlcvs
+
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
