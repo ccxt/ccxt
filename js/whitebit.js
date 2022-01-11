@@ -16,7 +16,8 @@ module.exports = class whitebit extends Exchange {
             'countries': [ 'EE' ],
             'rateLimit': 500,
             'has': {
-                'cancelOrder': undefined,
+                'fetchDepositAddress': true,
+                'cancelOrder': true,
                 'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': undefined,

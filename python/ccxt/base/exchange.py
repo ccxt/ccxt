@@ -321,8 +321,6 @@ class Exchange(object):
         'fetchTradingLimits': None,
         'fetchTransactions': None,
         'fetchTransfers': None,
-        'fetchWithdrawAddress': None,
-        'fetchWithdrawAddressesByNetwork': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
         'loadLeverageBrackets': None,

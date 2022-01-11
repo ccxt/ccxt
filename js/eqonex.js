@@ -16,6 +16,7 @@ module.exports = class eqonex extends Exchange {
             'countries': [ 'US', 'SG' ], // United States, Singapore
             'rateLimit': 10,
             'has': {
+                'fetchTradingLimits': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createOrder': true,
