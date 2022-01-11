@@ -107,7 +107,7 @@ module.exports = class bit4you extends Exchange {
                         'wallet/blockchain-history',
                         'wallet/send',
                         'portfolio/history',
-                        'portfolio/open-orders',
+                        'order/pending',
                         'order/info',
                         'order/list',
                         'order/create',
@@ -140,7 +140,6 @@ module.exports = class bit4you extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
-        //TODO
         await this.loadMarkets();
         const market = this.market (symbol);
         // console.log (market)
@@ -306,10 +305,13 @@ module.exports = class bit4you extends Exchange {
         };
     }
 
-    async fetchTicker (symbols = undefined, params = {}) {
+    async fetchTicker (symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const cached = this.market (symbol);
+        const market = cached['symbol'];
         try {
             const response = await this.fetchTickers();
-            return response[''] || [];
+            return response[market] || [];
         } catch (error) {
             return error;
         }
@@ -355,7 +357,6 @@ module.exports = class bit4you extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // since is currently not implemented in our api, we use pagination index default is 0
-
         const request = {};
         request.simulation = params.simulation;
         request.market = symbol || '';
@@ -364,7 +365,35 @@ module.exports = class bit4you extends Exchange {
         
         try {
             const response = await this.privatePostOrderList (this.extend (request));
-            return response || [];
+            const parsedData = [];
+            for (const info in response) {
+                const obj = {};
+                obj.id = response[info].txid;
+                obj.clientOrderId = undefined;
+                obj.datetime = this.iso8601 (response[info].open_time);
+                obj.timestamp = response[info].open_time;
+                obj.lastTradeTimestamp = response[info].update_time;
+                obj.status = response[info].isOpen ? 'open' : 'closed';
+                obj.symbol = response[info].market.replace('-', '/');
+                obj.type = response[info].requested_rate ? 'limit' : 'market';
+                obj.timeInForce = undefined;
+                obj.side = response[info].type;
+                obj.price = response[info].quantity;
+                obj.average = response[info].quantity;
+                obj.amount = response[info].base_quantity;
+                obj.filled = response[info].base_quantity;
+                obj.remaining = response[info].remaining.quantity || undefined;
+                obj.cost = parseFloat(Number(obj.filled) * Number(obj.price));
+                obj.trades = response[info].position;
+                obj.fee = {
+                    'currency': response[info].fee.iso,
+                    'cost': response[info].fee.quantity,
+                    'rate': undefined,
+                };
+                obj.info = response[info];
+                parsedData.push(obj);
+            }
+            return parsedData;
         } catch (error) {
             return error;
         }
@@ -377,7 +406,32 @@ module.exports = class bit4you extends Exchange {
 
         try {
             const response = await this.privatePostOrderInfo (this.extend (request));
-            return response || [];
+            const parsedData = {};
+            parsedData.id = response.txid;
+            parsedData.clientOrderId = undefined;
+            parsedData.datetime = this.iso8601 (response.open_time);
+            parsedData.timestamp = response.open_time;
+            parsedData.lastTradeTimestamp = response.update_time;
+            parsedData.status = response.isOpen ? 'open' : 'closed';
+            parsedData.symbol = response.market.replace('-', '/');
+            parsedData.type = response.requested_rate ? 'limit' : 'market';
+            parsedData.timeInForce = undefined;
+            parsedData.side = response.type;
+            parsedData.price = response.quantity;
+            parsedData.average = response.quantity;
+            parsedData.amount = response.base_quantity;
+            parsedData.filled = response.base_quantity;
+            parsedData.remaining = response.remaining.quantity || undefined;
+            parsedData.cost = parseFloat(parsedData.filled * parsedData.price);
+            parsedData.trades = response.position;
+            parsedData.fee = {
+                'currency': response.fee.iso,
+                'cost': response.fee.quantity,
+                'rate': undefined,
+            };
+            parsedData.info = response;
+
+            return parsedData || [];
         } catch (error) {
             return error;
         }
@@ -385,9 +439,8 @@ module.exports = class bit4you extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = params;
-        
         try {
-            const response = await this.privatePostPortfolioOpenOrders (this.extend (request));
+            const response = await this.privatePostOrderPending (this.extend (request));
             return response || [];
         } catch (error) {
             return error;
@@ -420,6 +473,9 @@ module.exports = class bit4you extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // side type be limit or Market
+        await this.loadMarkets();
+        const market = this.market (symbol);
+        const iso = market['symbol'].replace('/', '-');
         const request = {};
 
         // if no rate is provided, the order will be executed at the current market rate
@@ -428,14 +484,13 @@ module.exports = class bit4you extends Exchange {
         }
 
         request.simulation = params.simulation; // demo mode
-        request.market = symbol;
+        request.market = iso;
         request.type = side; // ENUM Buy or sell
         request.quantity = amount;
-        request.quantity_iso = params.quantity_iso ? params.quantity_iso : null;
-        request.time_in_force = params.time_in_force ? params.time_in_force : null; // Default: 'GTC' - Enum: "GTC" "IOC" "FOK" "GTD" "DAY"
-        request.client_order_id = params.client_order_id ? params.client_order_id : null;
-        request.expires_at = params.expires_at ? params.expires_at : null;
-
+        request.quantity_iso = params && params.quantity_iso ? params.quantity_iso : market.quote;
+        request.time_in_force = params && params.time_in_force ? params.time_in_force : null; // Default: 'GTC' - Enum: "GTC" "IOC" "FOK" "GTD" "DAY"
+        request.client_order_id = params && params.client_order_id ? params.client_order_id : null;
+        request.expires_at = params && params.expires_at ? params.expires_at : null;
         try {
             const response = await this.privatePostOrderCreate (request);
             return response || [];

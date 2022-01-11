@@ -10,12 +10,14 @@ async function b4yTest () {
         // let exchange2 = new ccxt.coinbase();
         // const res = await exchange2.fetchMarkets();
         // console.log(res)
-        const token = 'bearer token here';
+        const token = 'token here';
         let exchange = new ccxt.bit4you({
             'token': token, // bearer token : need to sign on www.bit4you.io
             'enableRateLimit': true,
-            'simulation': false // to active demo mode set on true - default (false)
+            'simulation': true // to active demo mode set on true - default (false)
         })
+
+        console.log('simulation mode:', exchange.simulation)
 
         // console.log(exchange.simulation)
 
@@ -36,19 +38,19 @@ async function b4yTest () {
 
         // createOrder
         // symbol, type, side, amount, price = undefined, params = {}
-        // console.log(await exchange.createOrder('SHIB-USDT','market','sell',100))
-        // console.log(await exchange.createOrder('AVAX-USDT','market','buy',80))
-        // console.log(await exchange.createOrder('LTC-USDT','market','sell',34.10))
+        // console.log(await exchange.createOrder('ADA/USDT','market','buy',100,null,{quantity_iso:'ADA'}))
+        // console.log(await exchange.createOrder('AVAX-USDT','market','sell',80,null))
+        // console.log(await exchange.createOrder('LTC-USDT','market','sell',34.10,null))
 
         
         // cancelOrder
-        // console.log(await exchange.cancelOrder('0d2eb5951c18ba130c74947cdcb1c8fb9fe26732', null, {simulation: true}))
+        // console.log(await exchange.cancelOrder('28ce0de2fe1c4a42a84bc36162f66ce4', null))
 
         // fetchOpenOrders
-        // console.log(await exchange.fetchOpenOrders(null,null,null,{}))
+        console.log(await exchange.fetchOrders())
 
         // fetchOrders
-        // console.log(await exchange.fetchOrders("BTC-USDT",null,null,{}))
+        // console.log(await exchange.fetchOrder('5aaa14cec86a49deb1f7d2c6a8c68c98'))
         
         // fetchClosedOrders
         // console.log(await exchange.fetchClosedOrders(null,null,null,{}))
