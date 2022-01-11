@@ -556,11 +556,7 @@ module.exports = class currencycom extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'lastPrice');
         const open = this.safeNumber (ticker, 'openPrice');
-        let average = undefined;
-        if ((open !== undefined) && (last !== undefined)) {
-            average = this.sum (open, last) / 2;
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -577,11 +573,11 @@ module.exports = class currencycom extends Exchange {
             'previousClose': this.safeNumber (ticker, 'prevClosePrice'), // previous day close
             'change': this.safeNumber (ticker, 'priceChange'),
             'percentage': this.safeNumber (ticker, 'priceChangePercent'),
-            'average': average,
+            'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -322,7 +322,7 @@ module.exports = class idex extends Exchange {
         if (percentage !== undefined) {
             percentage = 1 + percentage / 100;
         }
-        return this.safeTicker({
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

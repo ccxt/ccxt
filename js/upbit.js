@@ -556,7 +556,7 @@ module.exports = class upbit extends Exchange {
         const last = this.safeNumber (ticker, 'trade_price');
         const change = this.safeNumber (ticker, 'signed_change_price');
         const percentage = this.safeNumber (ticker, 'signed_change_rate');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -577,7 +577,7 @@ module.exports = class upbit extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'acc_trade_volume_24h'),
             'quoteVolume': this.safeNumber (ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

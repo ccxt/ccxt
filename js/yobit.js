@@ -420,7 +420,7 @@ module.exports = class yobit extends Exchange {
             symbol = market['symbol'];
         }
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -441,7 +441,7 @@ module.exports = class yobit extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol_cur'),
             'quoteVolume': this.safeNumber (ticker, 'vol'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

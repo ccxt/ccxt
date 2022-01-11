@@ -578,7 +578,7 @@ module.exports = class digifinex extends Exchange {
         const timestamp = this.safeTimestamp (ticker, 'date');
         const last = this.safeNumber (ticker, 'last');
         const percentage = this.safeNumber (ticker, 'change');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -599,7 +599,7 @@ module.exports = class digifinex extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': this.safeNumber (ticker, 'base_vol'),
             'info': ticker,
-        };
+        });
     }
 
     parseTrade (trade, market = undefined) {

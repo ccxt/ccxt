@@ -183,23 +183,10 @@ module.exports = class lbank extends Exchange {
         ticker = info['ticker'];
         const last = this.safeNumber (ticker, 'latest');
         const percentage = this.safeNumber (ticker, 'change');
-        let open = undefined;
-        if (percentage !== undefined) {
-            const relativeChange = this.sum (1, percentage / 100);
-            if (relativeChange > 0) {
-                open = last / this.sum (1, relativeChange);
-            }
-        }
-        let change = undefined;
-        let average = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -214,13 +201,13 @@ module.exports = class lbank extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
-            'average': average,
+            'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': this.safeNumber (ticker, 'turnover'),
             'info': info,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {

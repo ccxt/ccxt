@@ -337,13 +337,9 @@ module.exports = class latoken1 extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const open = this.safeNumber (ticker, 'open');
         const close = this.safeNumber (ticker, 'close');
-        let change = undefined;
-        if (open !== undefined && close !== undefined) {
-            change = close - open;
-        }
         const percentage = this.safeNumber (ticker, 'priceChange');
         const timestamp = this.nonce ();
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -358,13 +354,13 @@ module.exports = class latoken1 extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {

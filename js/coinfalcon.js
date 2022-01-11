@@ -136,7 +136,7 @@ module.exports = class coinfalcon extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.milliseconds ();
         const last = this.safeNumber (ticker, 'last_price');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -157,7 +157,7 @@ module.exports = class coinfalcon extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
-        };
+        });
     }
 
     async fetchTicker (symbol, params = {}) {
