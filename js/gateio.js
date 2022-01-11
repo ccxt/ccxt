@@ -2452,7 +2452,7 @@ module.exports = class gateio extends Exchange {
             side = this.safeString (order, 'side');
         }
         const status = this.parseOrderStatus (rawStatus);
-        const timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
+        let timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
         if (timeInForce === 'POC') {
             timeInForce = 'PO'
         }
