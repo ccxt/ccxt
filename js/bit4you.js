@@ -7,7 +7,6 @@
 
 'use strict';
 
-
 //                              User
 // +-------------------------------------------------------------+
 // |                            CCXT                             |
@@ -47,8 +46,8 @@
 
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
-const { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce, BadSymbol } = require ('./base/errors');
-const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
+const {BadRequest, DDoSProtection, ExchangeError } = require ('./base/errors');
+// const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -140,45 +139,6 @@ module.exports = class bit4you extends Exchange {
                 },
             },
         });
-    }
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let fullPath = '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-
-        if (method === 'POST') {
-            body = JSON.parse(this.json(query));
-            if (body && body.simulation === undefined) {
-                body.simulation = this.simulation;
-            }
-        }
-
-        headers = {
-            'Content-Type': 'application/json',
-        };
-
-        if (method === 'GET') {
-            if (Object.keys (query).length) {
-                fullPath += '?' + this.urlencode (query);
-            }
-        }
-        const url = this.urls['api'].url + fullPath;
-
-        if (api === 'private') {
-            const authorization = this.safeString (this.headers, 'Authorization');
-            if (authorization !== undefined) {
-                headers = {
-                    'Authorization': authorization,
-                    'Content-Type': 'application/json',
-                };
-            } else if (this.token) {
-                headers = {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + this.token,
-                };
-            } 
-        }    
-        return { 'url': url, 'method': method, 'body': this.json(body), 'headers': headers };
     }
 
     async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
@@ -516,6 +476,65 @@ module.exports = class bit4you extends Exchange {
             return response || [];
         } catch (error) {
             return error;
+        }
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let fullPath = '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+
+        if (method === 'POST') {
+            body = JSON.parse(this.json(query));
+            if (body && body.simulation === undefined) {
+                body.simulation = this.simulation;
+            }
+        }
+
+        headers = {
+            'Content-Type': 'application/json',
+        };
+
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                fullPath += '?' + this.urlencode (query);
+            }
+        }
+        const url = this.urls['api'].url + fullPath;
+
+        if (api === 'private') {
+            const authorization = this.safeString (this.headers, 'Authorization');
+            if (authorization !== undefined) {
+                headers = {
+                    'Authorization': authorization,
+                    'Content-Type': 'application/json',
+                };
+            } else if (this.token) {
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + this.token,
+                };
+            } 
+        }    
+        return { 'url': url, 'method': method, 'body': this.json(body), 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        if (code === 429) {
+            throw new DDoSProtection (this.id + ' ' + body);
+        }
+        if (code >= 400) {
+            const error = this.safeValue (response, 'error', {});
+            const message = this.safeString (error, 'message');
+            const feedback = this.id + ' ' + body;
+            // this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            // this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            if (code === 400) {
+                throw new BadRequest (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };

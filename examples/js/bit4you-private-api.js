@@ -1,8 +1,8 @@
 "use strict";
 
-const ccxt = require('../../ccxt.js')
-const asTable = require('as-table')
-const log = require('ololog').configure({ locate: false })
+const ccxt = require('../../ccxt.js');
+const asTable = require('as-table');
+const log = require('ololog').configure({ locate: false });
 
 require('ansicolor').nice
 
@@ -10,23 +10,26 @@ async function b4yTest () {
         // let exchange2 = new ccxt.coinbase();
         // const res = await exchange2.fetchMarkets();
         // console.log(res)
-        const token = 'here your token',
+        const token = 'bearer token here';
         let exchange = new ccxt.bit4you({
-            'token': token', // bearer token : need to sign on bit4you
+            'token': token, // bearer token : need to sign on bit4you
             'enableRateLimit': true,
+            'simulation': false // to active demo mode set on true - default (false)
         })
+
+        // console.log(exchange.simulation)
 
         // fetchOrderBook
         // console.log(await exchange.fetchOrderBook('BTC-USDT'))
 
         // fetchMarkets
-        console.log(await exchange.fetchStatus())
+        // console.log(await exchange.fetchStatus())
         
         // fetchCurrencies
         // console.log(await exchange.loadMarkets())
 
         // fetchMyTrades
-        // console.log(await exchange.fetchMyTrades({simulation:false}))
+        // console.log(await exchange.fetchMyTrades())
 
         // fetchBalance
         // console.log(await exchange.fetchBalance())
