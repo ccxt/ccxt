@@ -20,6 +20,7 @@ class eqonex(Exchange):
             'countries': ['US', 'SG'],  # United States, Singapore
             'rateLimit': 10,
             'has': {
+                'fetchTradingLimits': True,
                 'cancelOrder': True,
                 'CORS': None,
                 'createOrder': True,

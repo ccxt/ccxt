@@ -60,7 +60,6 @@ module.exports = class gateio extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrdersByStatus': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -565,9 +564,7 @@ module.exports = class gateio extends Exchange {
     async fetchMarkets (params = {}) {
         // :param params['type']: 'spot', 'margin', 'future' or 'delivery'
         // :param params['settle']: The quote currency
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         const spot = (type === 'spot');
         const margin = (type === 'margin');
         const future = (type === 'future');
@@ -1491,9 +1488,8 @@ module.exports = class gateio extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
@@ -1861,6 +1857,9 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         //
@@ -2452,8 +2451,19 @@ module.exports = class gateio extends Exchange {
             side = this.safeString (order, 'side');
         }
         const status = this.parseOrderStatus (rawStatus);
-        const type = this.safeString (order, 'type');
-        const timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
+        let timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
+        if (timeInForce === 'POC') {
+            timeInForce = 'PO';
+        }
+        let type = this.safeString (order, 'type');
+        if (type === undefined) {
+            // response for swaps doesn't include the type information
+            if (timeInForce === 'PO' || timeInForce === 'GTC' || timeInForce === 'IOC' || timeInForce === 'FOK') {
+                type = 'limit';
+            } else {
+                type = 'market';
+            }
+        }
         const fees = [];
         const gtFee = this.safeNumber (order, 'gt_fee');
         if (gtFee) {
@@ -2542,8 +2552,8 @@ module.exports = class gateio extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
         if (symbol === undefined && (type === 'spot') || type === 'margin' || type === 'cross_margin') {
             const request = {
                 // 'page': 1,
@@ -2814,7 +2824,7 @@ module.exports = class gateio extends Exchange {
             'to': toId,
             'amount': truncated,
         };
-        if ((toId === 'future') || (toId === 'delivery')) {
+        if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
             request['settle'] = currency['lowerCaseId'];
         }
         const response = await this.privateWalletPostTransfers (this.extend (request, params));

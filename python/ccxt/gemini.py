@@ -39,6 +39,7 @@ class gemini(Exchange):
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'has': {
+                'fetchDepositAddressesByNetwork': True,
                 'cancelOrder': True,
                 'CORS': None,
                 'createDepositAddress': True,

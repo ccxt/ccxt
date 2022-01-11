@@ -12,6 +12,7 @@ module.exports = class xena extends Exchange {
             'countries': [ 'VC', 'UK' ],
             'rateLimit': 100,
             'has': {
+                'fetchAccounts': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,

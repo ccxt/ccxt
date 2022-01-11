@@ -67,12 +67,10 @@ class aax extends Exchange {
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => null,
                 'fetchMarkets' => true,
-                'fetchMarketsByType' => null,
                 'fetchMarkOHLCV' => false,
                 'fetchMyBuys' => null,
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
-                'fetchNetworkDepositAddress' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
@@ -80,10 +78,7 @@ class aax extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrders' => true,
-                'fetchOrdersByState' => null,
-                'fetchOrdersByStatus' => null,
                 'fetchOrderTrades' => null,
-                'fetchPartiallyFilledOrders' => null,
                 'fetchPosition' => null,
                 'fetchPositions' => null,
                 'fetchPositionsRisk' => null,
@@ -91,7 +86,6 @@ class aax extends Exchange {
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
-                'fetchTickersByType' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => null,
@@ -99,8 +93,6 @@ class aax extends Exchange {
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => null,
                 'fetchTransfers' => null,
-                'fetchWithdrawAddress' => null,
-                'fetchWithdrawAddressesByNetwork' => null,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
@@ -1004,7 +996,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privatePostSpotOrders';
-        } else if ($market['futures']) {
+        } else if ($market['contract']) {
             $method = 'privatePostFuturesOrders';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1115,7 +1107,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privatePutSpotOrders';
-        } else if ($market['futures']) {
+        } else if ($market['contract']) {
             $method = 'privatePutFuturesOrders';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1219,7 +1211,7 @@ class aax extends Exchange {
         }
         if ($type === 'spot') {
             $method = 'privateDeleteSpotOrdersCancelOrderID';
-        } else if ($type === 'futures') {
+        } else if ($type === 'swap' || $type === 'future' || $type === 'futures') { // $type === 'futures' deprecated, use $type === 'swap'
             $method = 'privateDeleteFuturesOrdersCancelOrderID';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1318,7 +1310,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privateDeleteSpotOrdersCancelAll';
-        } else if ($market['futures']) {
+        } else if ($market['contract']) {
             $method = 'privateDeleteFuturesOrdersCancelAll';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1387,7 +1379,7 @@ class aax extends Exchange {
         $method = null;
         if ($type === 'spot') {
             $method = 'privateGetSpotOpenOrders';
-        } else if ($type === 'futures') {
+        } else if ($type === 'swap' || $type === 'future' || $type === 'futures') { // $type === 'futures' deprecated, use $type === 'swap'
             $method = 'privateGetFuturesOpenOrders';
         }
         if ($limit !== null) {
@@ -1534,7 +1526,7 @@ class aax extends Exchange {
         }
         if ($type === 'spot') {
             $method = 'privateGetSpotOrders';
-        } else if ($type === 'futures') {
+        } else if ($type === 'swap' || $type === 'future' || $type === 'futures') { // $type === 'futures' deprecated, use $type === 'swap'
             $method = 'privateGetFuturesOrders';
         }
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
@@ -1821,7 +1813,7 @@ class aax extends Exchange {
         }
         if ($type === 'spot') {
             $method = 'privateGetSpotTrades';
-        } else if ($type === 'futures') {
+        } else if ($type === 'swap' || $type === 'future' || $type === 'futures') { // $type === 'futures' deprecated, use $type === 'swap'
             $method = 'privateGetFuturesTrades';
         }
         if ($limit !== null) {

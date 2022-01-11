@@ -20,6 +20,7 @@ module.exports = class deribit extends Exchange {
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit': 50,
             'has': {
+                'fetchPosition': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': true,

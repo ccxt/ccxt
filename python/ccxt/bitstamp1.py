@@ -25,7 +25,7 @@ class bitstamp1(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMyTrades': True,
-                'fetchOrder': None,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchTicker': True,
                 'fetchTrades': True,

@@ -23,6 +23,7 @@ class xena(Exchange):
             'countries': ['VC', 'UK'],
             'rateLimit': 100,
             'has': {
+                'fetchAccounts': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,

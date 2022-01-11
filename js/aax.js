@@ -65,12 +65,10 @@ module.exports = class aax extends Exchange {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
                 'fetchMarkets': true,
-                'fetchMarketsByType': undefined,
                 'fetchMarkOHLCV': false,
                 'fetchMyBuys': undefined,
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
-                'fetchNetworkDepositAddress': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
@@ -78,10 +76,7 @@ module.exports = class aax extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
-                'fetchOrdersByState': undefined,
-                'fetchOrdersByStatus': undefined,
                 'fetchOrderTrades': undefined,
-                'fetchPartiallyFilledOrders': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
@@ -89,7 +84,6 @@ module.exports = class aax extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
-                'fetchTickersByType': undefined,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': undefined,
@@ -97,8 +91,6 @@ module.exports = class aax extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
-                'fetchWithdrawAddress': undefined,
-                'fetchWithdrawAddressesByNetwork': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
@@ -1002,7 +994,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privatePostSpotOrders';
-        } else if (market['futures']) {
+        } else if (market['contract']) {
             method = 'privatePostFuturesOrders';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1113,7 +1105,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privatePutSpotOrders';
-        } else if (market['futures']) {
+        } else if (market['contract']) {
             method = 'privatePutFuturesOrders';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1217,7 +1209,7 @@ module.exports = class aax extends Exchange {
         }
         if (type === 'spot') {
             method = 'privateDeleteSpotOrdersCancelOrderID';
-        } else if (type === 'futures') {
+        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
             method = 'privateDeleteFuturesOrdersCancelOrderID';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1316,7 +1308,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privateDeleteSpotOrdersCancelAll';
-        } else if (market['futures']) {
+        } else if (market['contract']) {
             method = 'privateDeleteFuturesOrdersCancelAll';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1385,7 +1377,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (type === 'spot') {
             method = 'privateGetSpotOpenOrders';
-        } else if (type === 'futures') {
+        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
             method = 'privateGetFuturesOpenOrders';
         }
         if (limit !== undefined) {
@@ -1532,7 +1524,7 @@ module.exports = class aax extends Exchange {
         }
         if (type === 'spot') {
             method = 'privateGetSpotOrders';
-        } else if (type === 'futures') {
+        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
             method = 'privateGetFuturesOrders';
         }
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
@@ -1819,7 +1811,7 @@ module.exports = class aax extends Exchange {
         }
         if (type === 'spot') {
             method = 'privateGetSpotTrades';
-        } else if (type === 'futures') {
+        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
             method = 'privateGetFuturesTrades';
         }
         if (limit !== undefined) {

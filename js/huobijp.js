@@ -24,6 +24,7 @@ module.exports = class huobijp extends Exchange {
             'hostname': 'api-cloud.huobi.co.jp',
             'pro': true,
             'has': {
+                'fetchAccounts': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,

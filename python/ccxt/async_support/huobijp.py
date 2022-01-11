@@ -39,6 +39,7 @@ class huobijp(Exchange):
             'hostname': 'api-cloud.huobi.co.jp',
             'pro': True,
             'has': {
+                'fetchAccounts': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,

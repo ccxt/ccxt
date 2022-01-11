@@ -21,6 +21,7 @@ class blockchaincom extends Exchange {
             'rateLimit' => 10000,
             'version' => 'v3',
             'has' => array(
+                'fetchDepositAddress' => true,
                 'CORS' => false,
                 'fetchTrades' => false,
                 'fetchOHLCV' => false,
@@ -34,7 +35,6 @@ class blockchaincom extends Exchange {
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
-                'fetchPartiallyFilledOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchBalance' => true,
                 'createOrder' => true,

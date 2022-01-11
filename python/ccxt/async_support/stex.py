@@ -29,6 +29,7 @@ class stex(Exchange):
             'certified': False,
             # new metainfo interface
             'has': {
+                'fetchClosedOrder': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
