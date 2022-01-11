@@ -1790,16 +1790,18 @@ module.exports = class deribit extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
         }
-        // todo unify parsePositions
         return result;
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (code = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a currency code argument');
+        }
         await this.loadMarkets ();
-        const code = this.codeFromOptions ('fetchPositions', params);
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
+            // "kind" : "future", "option"
         };
         const response = await this.privateGetGetPositions (this.extend (request, params));
         //
@@ -1827,50 +1829,12 @@ module.exports = class deribit extends Exchange {
         //                 "size": 50,
         //                 "size_currency": 0.006687487,
         //                 "total_profit_loss": 0.000032781
-        //             }
+        //             },
         //         ]
         //     }
         //
-        // response is returning an empty list for result
-        // todo unify parsePositions
-        const result = this.parsePositions (response);
-        return this.filterByArray (result, 'symbol', symbols, false);
-    }
-
-    async fetchHistoricalVolatility (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.publicGetGetHistoricalVolatility (this.extend (request, params));
-        //
-        //     {
-        //         "jsonrpc": "2.0",
-        //         "result": [
-        //             [1640142000000,63.828320460740585],
-        //             [1640142000000,63.828320460740585],
-        //             [1640145600000,64.03821964123213]
-        //         ],
-        //         "usIn": 1641515379467734,
-        //         "usOut": 1641515379468095,
-        //         "usDiff": 361,
-        //         "testnet": false
-        //     }
-        //
-        const volatilityResult = this.safeValue (response, 'result', {});
-        const result = [];
-        for (let i = 0; i < volatilityResult.length; i++) {
-            const timestamp = this.safeInteger (volatilityResult[i], 0);
-            const volatility = this.safeNumber (volatilityResult[i], 1);
-            result.push ({
-                'info': response,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'volatility': volatility,
-            });
-        }
-        return result;
+        const result = this.safeValue (response, 'result');
+        return this.parsePositions (result);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
