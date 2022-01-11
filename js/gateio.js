@@ -1286,6 +1286,10 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        const toTimestamp = this.safeInteger (params, 'to');
+        if (toTimestamp !== undefined) {
+            request['to'] = toTimestamp
+        }
         const method = this.getSupportedMapping (market['type'], {
             'swap': 'privateFuturesGetSettleAccountBook',
             'future': 'privateDeliveryGetSettleAccountBook',
