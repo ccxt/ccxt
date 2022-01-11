@@ -32,6 +32,11 @@ class mexc(Exchange):
             'version': 'v2',
             'certified': True,
             'has': {
+                'spot': True,
+                'margin': None,
+                'swap': True,
+                'future': None,
+                'option': None,
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -73,6 +78,7 @@ class mexc(Exchange):
                 '30m': '30m',
                 '1h': '1h',
                 '1d': '1d',
+                '1w': '1w',
                 '1M': '1M',
             },
             'urls': {
@@ -508,15 +514,14 @@ class mexc(Exchange):
                 'spot': False,
                 'margin': False,
                 'swap': True,
-                'futures': False,
+                'future': False,
                 'option': False,
-                'derivative': True,
                 'contract': True,
                 'linear': True,
                 'inverse': False,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': self.safe_string(market, 'contractSize'),
+                'contractSize': self.safe_number(market, 'contractSize'),
                 'active': (state == '0'),
                 'expiry': None,
                 'expiryDatetime': None,
@@ -604,7 +609,6 @@ class mexc(Exchange):
                 'future': False,
                 'option': False,
                 'active': (state == 'ENABLED'),
-                'derivative': False,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -1026,9 +1030,10 @@ class mexc(Exchange):
         market = self.market(symbol)
         options = self.safe_value(self.options, 'timeframes', {})
         timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe, timeframe)
         request = {
             'symbol': market['id'],
-            'interval': timeframes[timeframe],
+            'interval': timeframeValue,
         }
         method = None
         if market['spot']:
@@ -1233,7 +1238,7 @@ class mexc(Exchange):
         return self.index_by(depositAddresses, 'network')
 
     async def fetch_deposit_address(self, code, params={}):
-        rawNetwork = self.safe_string(params, 'network')
+        rawNetwork = self.safe_string_upper(params, 'network')
         params = self.omit(params, 'network')
         response = await self.fetch_deposit_addresses_by_network(code, params)
         networks = self.safe_value(self.options, 'networks', {})
@@ -1253,7 +1258,8 @@ class mexc(Exchange):
                         if result is None:
                             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find deposit address for ' + code)
             return result
-        result = self.safe_value(response, network)
+        # TODO: add support for all aliases here
+        result = self.safe_value(response, rawNetwork)
         if result is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
         return result
@@ -1412,12 +1418,16 @@ class mexc(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
-            'network': network,
             'status': status,
             'updated': updated,
             'fee': fee,
@@ -1494,10 +1504,15 @@ class mexc(Exchange):
         elif side == 'sell':
             orderSide = 'ASK'
         orderType = type.upper()
-        if orderType == 'LIMIT':
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            orderType = 'POST_ONLY'
+        elif orderType == 'LIMIT':
             orderType = 'LIMIT_ORDER'
         elif (orderType != 'POST_ONLY') and (orderType != 'IMMEDIATE_OR_CANCEL'):
-            raise InvalidOrder(self.id + ' createOrder does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL')
+            raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL')
+        else:
+            raise InvalidOrder(self.id + ' createOrder() allows limit orders only')
         request = {
             'symbol': market['id'],
             'price': self.price_to_precision(symbol, price),
@@ -1508,7 +1523,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        params = self.omit(params, ['type', 'clientOrderId', 'client_order_id'])
+        params = self.omit(params, ['type', 'clientOrderId', 'client_order_id', 'postOnly'])
         response = await self.spotPrivatePostOrderPlace(self.extend(request, params))
         #
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -1523,7 +1538,10 @@ class mexc(Exchange):
             raise ArgumentsRequired(self.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin')
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        if type == 'limit':
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if postOnly:
+            type = 2
+        elif type == 'limit':
             type = 1
         elif type == 'market':
             type = 6
@@ -1559,7 +1577,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'externalOid'])
+        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
         response = await self.contractPrivatePostOrderSubmit(self.extend(request, params))
         #
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}

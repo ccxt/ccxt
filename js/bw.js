@@ -591,6 +591,22 @@ module.exports = class bw extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const data = this.safeValue (response, 'datas', {});
+        const balances = this.safeValue (data, 'list', []);
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currencyTypeId');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'amount');
+            account['used'] = this.safeString (balance, 'freeze');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostExchangeFundControllerWebsiteFundcontrollerFindbypage (params);
@@ -611,19 +627,7 @@ module.exports = class bw extends Exchange {
         //         "resMsg": { "code": "1", "message": "success !" }
         //     }
         //
-        const data = this.safeValue (response, 'datas', {});
-        const balances = this.safeValue (data, 'list', []);
-        const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currencyTypeId');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'amount');
-            account['used'] = this.safeString (balance, 'freeze');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1062,6 +1066,7 @@ module.exports = class bw extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': undefined,

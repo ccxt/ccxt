@@ -628,9 +628,7 @@ class gemini extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostV1Balances ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -642,6 +640,12 @@ class gemini extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostV1Balances ($params);
+        return $this->parse_balance($response);
     }
 
     public function parse_order($order, $market = null) {
@@ -825,8 +829,13 @@ class gemini extends Exchange {
             'txid' => $this->safe_string($transaction, 'txHash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null, // or is it defined?
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type, // direction of the $transaction, ('deposit' | 'withdraw')
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
@@ -869,7 +878,7 @@ class gemini extends Exchange {
             'network' => $networkId,
         );
         $response = $this->privatePostV1AddressesNetwork (array_merge($request, $params));
-        $results = $this->parse_deposit_addresses($response, [$code], false, array( 'network' => $networkCode, 'currency' => $code ));
+        $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
         return $this->group_by($results, 'network');
     }
 

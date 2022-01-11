@@ -3,13 +3,9 @@ from pprint import pprint
 
 print('CCXT Version:', ccxt.__version__)
 
-exchange = ccxt.binance({
-    'enableRateLimit': True,
+exchange = ccxt.binanceusdm({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
-    'options': {
-        'defaultType': 'future',
-    },
 })
 
 print('Loading markets from', exchange.id)

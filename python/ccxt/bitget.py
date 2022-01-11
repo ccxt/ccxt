@@ -940,6 +940,8 @@ class bitget(Exchange):
                 'type': None,
                 'name': None,
                 'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': None,
                 'limits': {
@@ -1702,7 +1704,7 @@ class bitget(Exchange):
             return self.parse_spot_balance(response)
         elif type == 'swap':
             return self.parse_swap_balance(response)
-        raise NotSupported(self.id + " fetchBalance does not support the '" + type + "' type(the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')")
+        raise NotSupported(self.id + " fetchBalance does not support the '" + type + "' type(the type must be one of 'account', 'spot', or 'swap')")
 
     def parse_order_status(self, status):
         statuses = {
@@ -1838,7 +1840,7 @@ class bitget(Exchange):
         # }
         # if (type != 'limit') and (type != 'market'):
         #     if 'pnl' in order:
-        #         type = 'futures'
+        #         type = 'future'
         #     else:
         #         type = 'swap'
         #     }
@@ -2460,6 +2462,7 @@ class bitget(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

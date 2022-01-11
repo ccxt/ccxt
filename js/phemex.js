@@ -46,6 +46,7 @@ module.exports = class phemex extends Exchange {
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -321,6 +322,7 @@ module.exports = class phemex extends Exchange {
                 'defaultNetworks': {
                     'USDT': 'ETH',
                 },
+                'defaultSubType': 'linear',
             },
         });
     }
@@ -417,7 +419,7 @@ module.exports = class phemex extends Exchange {
         const taker = this.parseNumber (this.fromEn (takerFeeRateEr, ratioScale));
         const limits = {
             'amount': {
-                'min': precision['amount'],
+                'min': undefined,
                 'max': undefined,
             },
             'price': {
@@ -431,7 +433,17 @@ module.exports = class phemex extends Exchange {
         };
         const status = this.safeString (market, 'status');
         const active = status === 'Listed';
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSizeString = this.safeString (market, 'contractSize', ' ');
+        let contractSize = undefined;
+        if (contractSizeString.indexOf (' ')) {
+            // "1 USD"
+            // "0.005 ETH"
+            const parts = contractSizeString.split (' ');
+            contractSize = this.parseNumber (parts[0]);
+        } else {
+            // "1.0"
+            contractSize = this.parseNumber (contractSizeString);
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -1805,6 +1817,11 @@ module.exports = class phemex extends Exchange {
             // 'pegPriceType': 'TrailingStopPeg', // TrailingTakeProfitPeg
             // 'text': 'comment',
         };
+        const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPxEp'] = this.toEp (stopPrice, market);
+        }
+        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
         if (market['spot']) {
             let qtyType = this.safeValue (params, 'qtyType', 'ByBase');
             if ((type === 'Market') || (type === 'Stop') || (type === 'MarketIfTouched')) {
@@ -1832,16 +1849,25 @@ module.exports = class phemex extends Exchange {
             }
         } else if (market['swap']) {
             request['orderQty'] = parseInt (amount);
+            if (stopPrice !== undefined) {
+                const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
+                request['triggerType'] = triggerType;
+            }
         }
         if ((type === 'Limit') || (type === 'StopLimit') || (type === 'LimitIfTouched')) {
             const priceString = price.toString ();
             request['priceEp'] = this.toEp (priceString, market);
         }
-        const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
-        if (stopPrice !== undefined) {
-            request['stopPxEp'] = this.toEp (stopPrice, market);
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if (takeProfitPrice !== undefined) {
+            request['takeProfitEp'] = this.toEp (takeProfitPrice, market);
+            params = this.omit (params, 'takeProfitPrice');
         }
-        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        if (stopLossPrice !== undefined) {
+            request['stopLossEp'] = this.toEp (stopLossPrice, market);
+            params = this.omit (params, 'stopLossPrice');
+        }
         const method = market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
         const response = await this[method] (this.extend (request, params));
         //
@@ -2422,6 +2448,7 @@ module.exports = class phemex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2439,18 +2466,17 @@ module.exports = class phemex extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const code = this.safeString (params, 'code');
-        const request = {};
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+        let code = this.safeString (params, 'code');
         if (code === undefined) {
-            const currencyId = this.safeString (params, 'currency');
-            if (currencyId === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a currency parameter or a code parameter');
-            }
+            code = (defaultSubType === 'linear') ? 'USD' : 'BTC';
         } else {
-            const currency = this.currency (code);
             params = this.omit (params, 'code');
-            request['currency'] = currency['id'];
         }
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
         const response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
         //
         //     {
@@ -2530,8 +2556,147 @@ module.exports = class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const positions = this.safeValue (data, 'positions', []);
-        // todo unify parsePosition/parsePositions
-        return positions;
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            result.push (this.parsePosition (position));
+        }
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //   {
+        //     userID: '811370',
+        //     accountID: '8113700002',
+        //     symbol: 'ETHUSD',
+        //     currency: 'USD',
+        //     side: 'Buy',
+        //     positionStatus: 'Normal',
+        //     crossMargin: false,
+        //     leverageEr: '200000000',
+        //     leverage: '2.00000000',
+        //     initMarginReqEr: '50000000',
+        //     initMarginReq: '0.50000000',
+        //     maintMarginReqEr: '1000000',
+        //     maintMarginReq: '0.01000000',
+        //     riskLimitEv: '5000000000',
+        //     riskLimit: '500000.00000000',
+        //     size: '1',
+        //     value: '22.22370000',
+        //     valueEv: '222237',
+        //     avgEntryPriceEp: '44447400',
+        //     avgEntryPrice: '4444.74000000',
+        //     posCostEv: '111202',
+        //     posCost: '11.12020000',
+        //     assignedPosBalanceEv: '111202',
+        //     assignedPosBalance: '11.12020000',
+        //     bankruptCommEv: '84',
+        //     bankruptComm: '0.00840000',
+        //     bankruptPriceEp: '22224000',
+        //     bankruptPrice: '2222.40000000',
+        //     positionMarginEv: '111118',
+        //     positionMargin: '11.11180000',
+        //     liquidationPriceEp: '22669000',
+        //     liquidationPrice: '2266.90000000',
+        //     deleveragePercentileEr: '0',
+        //     deleveragePercentile: '0E-8',
+        //     buyValueToCostEr: '50112500',
+        //     buyValueToCost: '0.50112500',
+        //     sellValueToCostEr: '50187500',
+        //     sellValueToCost: '0.50187500',
+        //     markPriceEp: '31332499',
+        //     markPrice: '3133.24990000',
+        //     markValueEv: '0',
+        //     markValue: null,
+        //     unRealisedPosLossEv: '0',
+        //     unRealisedPosLoss: null,
+        //     estimatedOrdLossEv: '0',
+        //     estimatedOrdLoss: '0E-8',
+        //     usedBalanceEv: '111202',
+        //     usedBalance: '11.12020000',
+        //     takeProfitEp: '0',
+        //     takeProfit: null,
+        //     stopLossEp: '0',
+        //     stopLoss: null,
+        //     cumClosedPnlEv: '-1546',
+        //     cumFundingFeeEv: '1605',
+        //     cumTransactFeeEv: '8438',
+        //     realisedPnlEv: '0',
+        //     realisedPnl: null,
+        //     cumRealisedPnlEv: '0',
+        //     cumRealisedPnl: null,
+        //     transactTimeNs: '1641571200001885324',
+        //     takerFeeRateEr: '0',
+        //     makerFeeRateEr: '0',
+        //     term: '6',
+        //     lastTermEndTimeNs: '1607711882505745356',
+        //     lastFundingTimeNs: '1641571200000000000',
+        //     curTermRealisedPnlEv: '-1567',
+        //     execSeq: '12112761561'
+        //   }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const collateral = this.safeString (position, 'positionMargin');
+        const notionalString = this.safeString (position, 'value');
+        const maintenanceMarginPercentageString = this.safeString (position, 'maintMarginReq');
+        const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
+        const initialMarginString = this.safeString (position, 'assignedPosBalance');
+        const initialMarginPercentageString = Precise.stringDiv (initialMarginString, notionalString);
+        const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
+        const markPriceString = this.safeString (position, 'markPrice');
+        const contracts = this.safeString (position, 'size');
+        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSizeString = this.numberToString (contractSize);
+        const leverage = this.safeNumber (position, 'leverage');
+        const entryPriceString = this.safeString (position, 'avgEntryPrice');
+        const rawSide = this.safeString (position, 'side');
+        const side = (rawSide === 'Buy') ? 'long' : 'short';
+        let priceDiff = undefined;
+        const currency = this.safeString (position, 'currency');
+        if (currency === 'USD') {
+            if (side === 'long') {
+                priceDiff = Precise.stringSub (markPriceString, entryPriceString);
+            } else {
+                priceDiff = Precise.stringSub (entryPriceString, markPriceString);
+            }
+        } else {
+            // inverse
+            if (side === 'long') {
+                priceDiff = Precise.stringSub (Precise.stringDiv ('1', entryPriceString), Precise.stringDiv ('1', markPriceString));
+            } else {
+                priceDiff = Precise.stringSub (Precise.stringDiv ('1', markPriceString), Precise.stringDiv ('1', entryPriceString));
+            }
+        }
+        const unrealizedPnl = Precise.stringMul (Precise.stringMul (priceDiff, contracts), contractSizeString);
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMarginString), '100');
+        const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': this.parseNumber (contracts),
+            'contractSize': contractSize,
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'leverage': leverage,
+            'liquidationPrice': liquidationPrice,
+            'collateral': this.parseNumber (collateral),
+            'notional': this.parseNumber (notionalString),
+            'markPrice': this.parseNumber (markPriceString), // markPrice lags a bit ¯\_(ツ)_/¯
+            'entryPrice': this.parseNumber (entryPriceString),
+            'timestamp': undefined,
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentageString),
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
+            'marginRatio': this.parseNumber (marginRatio),
+            'datetime': undefined,
+            'marginType': undefined,
+            'side': side,
+            'hedged': false,
+            'percentage': this.parseNumber (percentage),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -2566,6 +2731,24 @@ module.exports = class phemex extends Exchange {
         }
         url = this.implodeHostname (this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

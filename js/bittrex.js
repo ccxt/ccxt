@@ -315,11 +315,9 @@ module.exports = class bittrex extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const balances = await this.privateGetBalances (params);
-        const result = { 'info': balances };
-        const indexed = this.indexBy (balances, 'currencySymbol');
+    parseBalance (response) {
+        const result = { 'info': response };
+        const indexed = this.indexBy (response, 'currencySymbol');
         const currencyIds = Object.keys (indexed);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -331,6 +329,12 @@ module.exports = class bittrex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalances (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -400,6 +404,8 @@ module.exports = class bittrex extends Exchange {
                 'type': this.safeString (currency, 'coinType'),
                 'name': this.safeString (currency, 'name'),
                 'active': (isActive === 'ONLINE'),
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -974,8 +980,13 @@ module.exports = class bittrex extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'status': status,
             'type': type,
             'updated': updated,

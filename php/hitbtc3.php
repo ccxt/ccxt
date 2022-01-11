@@ -30,6 +30,7 @@ class hitbtc3 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -323,7 +324,6 @@ class hitbtc3 extends Exchange {
             $marketType = $this->safe_string($market, 'type');
             $expiry = $this->safe_integer($market, 'expiry');
             $contract = ($marketType === 'futures');
-            $derivative = $contract;
             $spot = ($marketType === 'spot');
             $marginTrading = $this->safe_value($market, 'margin_trading', false);
             $margin = $spot && $marginTrading;
@@ -344,7 +344,7 @@ class hitbtc3 extends Exchange {
             $linear = null;
             $inverse = null;
             if ($contract) {
-                $contractSize = 1;
+                $contractSize = $this->parse_number('1');
                 $settleId = $feeCurrencyId;
                 $settle = $this->safe_currency_code($settleId);
                 $linear = (($quote !== null) && ($quote === $settle));
@@ -377,9 +377,7 @@ class hitbtc3 extends Exchange {
                 'margin' => $margin,
                 'swap' => $swap,
                 'future' => $future,
-                'futures' => $future, // deprecated, use $future instead
                 'option' => $option,
-                'derivative' => $derivative,
                 'contract' => $contract,
                 'linear' => $linear,
                 'inverse' => $inverse,
@@ -553,6 +551,20 @@ class hitbtc3 extends Exchange {
         );
     }
 
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $currencyId = $this->safe_string($entry, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($entry, 'available');
+            $account['used'] = $this->safe_string($entry, 'reserved');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $type = $this->safe_string_lower($params, 'type', 'spot');
         $params = $this->omit($params, array( 'type' ));
@@ -580,17 +592,7 @@ class hitbtc3 extends Exchange {
         //       ...
         //     )
         //
-        $result = array( 'info' => $response );
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $currencyId = $this->safe_string($entry, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($entry, 'available');
-            $account['used'] = $this->safe_string($entry, 'reserved');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -936,6 +938,7 @@ class hitbtc3 extends Exchange {
             'txid' => $txhash,
             'code' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
@@ -1499,6 +1502,68 @@ class hitbtc3 extends Exchange {
             'info' => $response,
             'id' => $id,
         );
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $request = array(
+            // all arguments are optional
+            // 'symbols' => Comma separated list of $symbol codes,
+            // 'sort' => 'DESC' or 'ASC'
+            // 'from' => 'Datetime or Number',
+            // 'till' => 'Datetime or Number',
+            // 'limit' => 100,
+            // 'offset' => 0,
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbols'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetPublicFuturesHistoryFunding (array_merge($request, $params));
+        //
+        //    {
+        //        "BTCUSDT_PERP" => array(
+        //            array(
+        //                "timestamp" => "2021-07-29T16:00:00.271Z",
+        //                "funding_rate" => "0.0001",
+        //                "avg_premium_index" => "0.000061858585213222",
+        //                "next_funding_time" => "2021-07-30T00:00:00.000Z",
+        //                "interest_rate" => "0.0001"
+        //            ),
+        //            ...
+        //        ),
+        //        ...
+        //    }
+        //
+        $contracts = is_array($response) ? array_keys($response) : array();
+        $rates = array();
+        for ($i = 0; $i < count($contracts); $i++) {
+            $marketId = $contracts[$i];
+            $market = $this->safe_market($marketId);
+            $fundingRateData = $response[$marketId];
+            for ($i = 0; $i < count($fundingRateData); $i++) {
+                $entry = $fundingRateData[$i];
+                $symbol = $this->safe_symbol($market['symbol']);
+                $fundingRate = $this->safe_number($entry, 'funding_rate');
+                $datetime = $this->safe_string($entry, 'timestamp');
+                $rates[] = array(
+                    'info' => $entry,
+                    'symbol' => $symbol,
+                    'fundingRate' => $fundingRate,
+                    'timestamp' => $this->parse8601($datetime),
+                    'datetime' => $datetime,
+                );
+            }
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

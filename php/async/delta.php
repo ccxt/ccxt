@@ -126,24 +126,24 @@ class delta extends Exchange {
                     'taker' => 0.15 / 100,
                     'maker' => 0.10 / 100,
                     'tiers' => array(
-                        'taker' => [
-                            [0, 0.15 / 100],
-                            [100, 0.13 / 100],
-                            [250, 0.13 / 100],
-                            [1000, 0.1 / 100],
-                            [5000, 0.09 / 100],
-                            [10000, 0.075 / 100],
-                            [20000, 0.065 / 100],
-                        ],
-                        'maker' => [
-                            [0, 0.1 / 100],
-                            [100, 0.1 / 100],
-                            [250, 0.09 / 100],
-                            [1000, 0.075 / 100],
-                            [5000, 0.06 / 100],
-                            [10000, 0.05 / 100],
-                            [20000, 0.05 / 100],
-                        ],
+                        'taker' => array(
+                            array( 0, 0.15 / 100 ),
+                            array( 100, 0.13 / 100 ),
+                            array( 250, 0.13 / 100 ),
+                            array( 1000, 0.1 / 100 ),
+                            array( 5000, 0.09 / 100 ),
+                            array( 10000, 0.075 / 100 ),
+                            array( 20000, 0.065 / 100 ),
+                        ),
+                        'maker' => array(
+                            array( 0, 0.1 / 100 ),
+                            array( 100, 0.1 / 100 ),
+                            array( 250, 0.09 / 100 ),
+                            array( 1000, 0.075 / 100 ),
+                            array( 5000, 0.06 / 100 ),
+                            array( 10000, 0.05 / 100 ),
+                            array( 20000, 0.05 / 100 ),
+                        ),
                     ),
                 ),
             ),
@@ -260,6 +260,8 @@ class delta extends Exchange {
                 'name' => $this->safe_string($currency, 'name'),
                 'info' => $currency, // the original payload
                 'active' => $active,
+                'deposit' => $depositsEnabled,
+                'withdraw' => $withdrawalsEnabled,
                 'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
                 'precision' => 1 / pow(10, $precision),
                 'limits' => array(
@@ -775,6 +777,23 @@ class delta extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $balances = $this->safe_value($response, 'result', array());
+        $result = array( 'info' => $response );
+        $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'asset_id');
+            $currency = $this->safe_value($currenciesByNumericId, $currencyId);
+            $code = ($currency === null) ? $currencyId : $currency['code'];
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available_balance');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetWalletBalances ($params);
@@ -799,20 +818,7 @@ class delta extends Exchange {
         //         "success":true
         //     }
         //
-        $balances = $this->safe_value($response, 'result', array());
-        $result = array( 'info' => $response );
-        $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $currencyId = $this->safe_string($balance, 'asset_id');
-            $currency = $this->safe_value($currenciesByNumericId, $currencyId);
-            $code = ($currency === null) ? $currencyId : $currency['code'];
-            $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'balance');
-            $account['free'] = $this->safe_string($balance, 'available_balance');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_position($symbol, $params = null) {

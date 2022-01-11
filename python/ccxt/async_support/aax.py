@@ -41,26 +41,95 @@ class aax(Exchange):
             'certified': True,
             'pro': True,
             'has': {
+                'margin': False,
+                'swap': True,
+                'future': False,
+                'addMargin': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': None,
+                'CORS': None,
+                'createDepositAddress': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': None,
+                'deposit': None,
                 'editOrder': True,
+                'fetchAccounts': None,
+                'fetchAllTradingFees': None,
                 'fetchBalance': True,
+                'fetchBidsAsks': None,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
+                'fetchClosedOrder': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': None,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': None,
+                'fetchDepositAddressesByNetwork': None,
+                'fetchDeposits': True,
+                'fetchFundingFee': None,
+                'fetchFundingFees': None,
+                'fetchFundingHistory': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
+                'fetchFundingRates': None,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': None,
+                'fetchL3OrderBook': None,
+                'fetchLedger': None,
+                'fetchLedgerEntry': None,
+                'fetchLeverage': None,
                 'fetchMarkets': True,
+                'fetchMarketsByType': None,
+                'fetchMarkOHLCV': False,
+                'fetchMyBuys': None,
+                'fetchMySells': None,
                 'fetchMyTrades': True,
+                'fetchNetworkDepositAddress': None,
                 'fetchOHLCV': True,
+                'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrderBooks': None,
                 'fetchOrders': True,
+                'fetchOrdersByState': None,
+                'fetchOrdersByStatus': None,
+                'fetchOrderTrades': None,
+                'fetchPartiallyFilledOrders': None,
+                'fetchPosition': None,
+                'fetchPositions': None,
+                'fetchPositionsRisk': None,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
+                'fetchTickersByType': None,
+                'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': None,
+                'fetchTradingFees': None,
+                'fetchTradingLimits': None,
+                'fetchTransactions': None,
+                'fetchTransfers': None,
+                'fetchWithdrawAddress': None,
+                'fetchWithdrawAddressesByNetwork': None,
+                'fetchWithdrawal': None,
+                'fetchWithdrawals': True,
+                'fetchWithdrawalWhitelist': None,
+                'loadLeverageBrackets': None,
+                'reduceMargin': None,
+                'setLeverage': None,
+                'setMarginMode': None,
+                'setPositionMode': None,
+                'signIn': None,
+                'transfer': None,
+                'transferOut': False,
+                'withdraw': None,
             },
             'timeframes': {
                 '1m': '1m',
@@ -111,6 +180,7 @@ class aax(Exchange):
                     'get': [
                         'currencies',
                         'announcement/maintenance',  # System Maintenance Notice
+                        'time',
                         'instruments',  # Retrieve all trading pairs information
                         'market/orderbook',  # Order Book
                         'futures/position/openInterest',  # Open Interest
@@ -121,6 +191,7 @@ class aax(Exchange):
                         'market/markPrice',  # Get Current Mark Price
                         'futures/funding/predictedFunding/{symbol}',  # Get Predicted Funding Rate
                         'futures/funding/prevFundingRate/{symbol}',  # Get Last Funding Rate
+                        'futures/funding/fundingRate',
                         'market/candles/index',  # * Deprecated
                         'market/index/candles',
                     ],
@@ -130,6 +201,8 @@ class aax(Exchange):
                         'user/info',  # Retrieve user information
                         'account/balances',  # Get Account Balances
                         'account/deposit/address',  # undocumented
+                        'account/deposits',  # Get account deposits history
+                        'account/withdraws',  # Get account withdrawals history
                         'spot/trades',  # Retrieve trades details for a spot order
                         'spot/openOrders',  # Retrieve spot open orders
                         'spot/orders',  # Retrieve historical spot orders
@@ -138,6 +211,7 @@ class aax(Exchange):
                         'futures/trades',  # Retrieve trade details for a futures order
                         'futures/openOrders',  # Retrieve futures open orders
                         'futures/orders',  # Retrieve historical futures orders
+                        'futures/funding/fundingFee',
                         'futures/funding/predictedFundingFee/{symbol}',  # Get predicted funding fee
                     ],
                     'post': [
@@ -273,6 +347,18 @@ class aax(Exchange):
                 },
             },
         })
+
+    async def fetch_time(self, params={}):
+        response = await self.publicGetTime(params)
+        #
+        #    {
+        #        "code": 1,
+        #        "data": 1573542445411,  # unit: millisecond
+        #        "message": "success",
+        #        "ts": 1573542445411
+        #    }
+        #
+        return self.safe_integer(response, 'data')
 
     async def fetch_status(self, params={}):
         response = await self.publicGetAnnouncementMaintenance(params)
@@ -422,7 +508,6 @@ class aax(Exchange):
                 'swap': swap,
                 'future': False,
                 'option': False,
-                'derivative': swap,
                 'contract': swap,
                 'linear': linear,
                 'inverse': inverse,
@@ -435,8 +520,6 @@ class aax(Exchange):
                 'strike': None,
                 'optionType': None,
                 'quanto': quanto,
-                'percentage': False,  # ? Deprecated?
-                'tierBased': True,  # ? Deprecated?
                 'precision': {
                     'amount': self.safe_number(market, 'lotSize'),
                     'price': self.safe_number(market, 'tickSize'),
@@ -506,6 +589,8 @@ class aax(Exchange):
             fee = self.safe_number(currency, 'withdrawFee')
             visible = self.safe_value(currency, 'visible')
             active = (enableWithdraw and enableDeposit and visible)
+            deposit = (enableDeposit and visible)
+            withdraw = (enableWithdraw and visible)
             network = self.safe_string(currency, 'network')
             result[code] = {
                 'id': id,
@@ -514,6 +599,8 @@ class aax(Exchange):
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
                 'network': network,
                 'limits': {
@@ -1755,6 +1842,237 @@ class aax(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # status Not required -  Deposit status, "1: pending,2: confirmed, 3:failed"
+            # currency: Not required -  String Currency
+            # startTime Not required Integer Default: 90 days from current timestamp.
+            # endTime Not required Integer Default: present timestamp.
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            startTime = int(since / 1000)
+            request['startTime'] = startTime
+            request['endTime'] = self.sum(startTime, 90 * 24 * 60 * 60)  # Only allows a 90 day window between start and end
+        response = await self.privateGetAccountDeposits(self.extend(request, params))
+        # {   "code": 1,
+        #     "data": [{
+        #         "currency": "USDT",
+        #         "network": "USDT",
+        #         "quantity": "19.000000000000",
+        #         "txHash": "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        #         "address": "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        #         "status": "2",
+        #         "createdTime": "2021-01-08T19:45:01.354Z",
+        #         "updatedTime": "2021-01-08T20:03:05.000Z",
+        #     }]
+        #     "message": "success",
+        #     "ts": 1573561743499
+        # }
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, code, since, limit)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # status Not required : "0: Under Review, 1: Manual Review, 2: On Chain, 3: Review Failed, 4: On Chain, 5: Completed, 6: Failed"
+            # currency: Not required -  String Currency
+            # startTime Not required Integer Default: 30 days from current timestamp.
+            # endTime Not required Integer Default: present timestamp.
+            # Note difference between endTime and startTime must be 90 days or less
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            startTime = int(since / 1000)
+            request['startTime'] = startTime
+            request['endTime'] = self.sum(startTime, 90 * 24 * 60 * 60)  # Only allows a 90 day window between start and end
+        response = await self.privateGetAccountWithdraws(self.extend(request, params))
+        # {
+        #     "code":1,
+        #     "data": [
+        #       {
+        #            "currency":"USDT",
+        #            "network":"USDT",
+        #            "quantity":"19.000000000000",
+        #            "fee":"0.10000"
+        #            "txHash":"75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        #            "address":"1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        #            "addressTag": "",
+        #            "status":"2",
+        #            "createdTime":"2021-01-08T19:45:01.354Z",
+        #            "updatedTime":"2021-01-08T20:03:05.000Z",
+        #       }
+        #  ]
+        #     "message":"success",
+        #     "ts":1573561743499
+        #  }
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, code, since, limit)
+
+    def parse_transaction_status_by_type(self, status, type=None):
+        statuses = {
+            'deposit': {
+                '1': 'pending',
+                '2': 'ok',
+                '3': 'failed',
+            },
+            'withdrawal': {
+                '0': 'pending',  # under review
+                '1': 'pending',  # manual review
+                '2': 'pending',  # on chain
+                '3': 'failed',  # failed
+                '4': 'pending',  # on chain
+                '5': 'ok',      # completed
+                '6': 'failed',  # failed
+            },
+        }
+        return self.safe_string(self.safe_value(statuses, type, {}), status, status)
+
+    def parse_address_by_type(self, address, tag, type=None):
+        addressFrom = None
+        addressTo = None
+        tagFrom = None
+        tagTo = None
+        if type == 'deposit':
+            addressFrom = address
+            tagFrom = tag
+        elif type == 'withdrawal':
+            addressTo = address
+            tagTo = tag
+        return [addressFrom, tagFrom, addressTo, tagTo]
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchDeposits
+        #
+        #    {
+        #         "currency": "USDT",
+        #         "network": "USDT",
+        #         "quantity": "19.000000000000",
+        #         "txHash": "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        #         "address": "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        #         "status": "2",
+        #         "createdTime": "2021-01-08T19:45:01.354Z",
+        #         "updatedTime": "2021-01-08T20:03:05.000Z",
+        #     }
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "currency":"USDT",
+        #         "network":"USDT",
+        #         "quantity":"19.000000000000",
+        #         "fee":"0.10000"
+        #         "txHash":"75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        #         "address":"1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        #         "addressTag": "",
+        #         "status":"2",
+        #         "createdTime":"2021-01-08T19:45:01.354Z",
+        #         "updatedTime":"2021-01-08T20:03:05.000Z",
+        #      }
+        #
+        fee = self.safe_string(transaction, 'fee')
+        type = 'withdrawal'
+        if fee is None:
+            type = 'deposit'
+        code = self.safe_currency_code(self.safe_string(transaction, 'currency'))
+        txid = self.safe_string(transaction, 'txHash')
+        address = self.safe_string(transaction, 'address')
+        tag = self.safe_string(transaction, 'addressTag')  # withdrawals only
+        addressFrom, tagFrom, addressTo, tagTo = self.parse_address_by_type(address, tag, type)
+        amountString = self.safe_string(transaction, 'quantity')
+        timestamp = self.parse8601(self.safe_string(transaction, 'createdTime'))
+        updated = self.parse8601(self.safe_string(transaction, 'updatedTime'))
+        status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
+        network = self.safe_string(transaction, 'network')
+        return {
+            'id': None,
+            'info': transaction,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': network,
+            'addressFrom': addressFrom,
+            'address': address,
+            'addressTo': addressTo,
+            'amount': self.parse_number(amountString),
+            'type': type,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'tagFrom': tagFrom,
+            'tag': tag,
+            'tagTo': tagTo,
+            'comment': None,
+            'fee': fee,
+        }
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest('Funding rates only exist for swap contracts')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetFuturesFundingPrevFundingRateSymbol(self.extend(request, params))
+        #
+        #    {
+        #        "code": 1,
+        #        "data": {
+        #           "symbol": "BTCUSDFP",
+        #           "markPrice": "11192.5",
+        #           "fundingRate": "0.001",
+        #           "fundingTime": "2020-08-12T08:00:00Z",
+        #           "nextFundingTime": "2020-08-12T16:00:00Z"
+        #        },
+        #        "message": "success",
+        #        "ts": 1573542445411
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_funding_rate(data)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #    {
+        #        "symbol": "BTCUSDFP",
+        #        "markPrice": "11192.5",
+        #        "fundingRate": "0.001",
+        #        "fundingTime": "2020-08-12T08:00:00Z",
+        #        "nextFundingTime": "2020-08-12T16:00:00Z"
+        #    }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        markPrice = self.safe_number(contract, 'markPrice')
+        fundingRate = self.safe_number(contract, 'fundingRate')
+        prevFundingDatetime = self.safe_string(contract, 'fundingTime')
+        nextFundingDatetime = self.safe_string(contract, 'nextFundingTime')
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'previousFundingRate': fundingRate,
+            'nextFundingRate': None,
+            'previousFundingTimestamp': self.parse8601(prevFundingDatetime),
+            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
+            'previousFundingDatetime': prevFundingDatetime,
+            'nextFundingDatetime': nextFundingDatetime,
+        }
+
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
@@ -1778,6 +2096,104 @@ class aax(Exchange):
             'tag': tag,
             'network': network,
         }
+
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if since is not None:
+            request['startTime'] = int(since / 1000)
+        till = self.safe_integer(params, 'till')  # unified in milliseconds
+        endTime = self.safe_string(params, 'endTime')  # exchange-specific in seconds
+        params = self.omit(params, ['endTime', 'till'])
+        if till is not None:
+            request['endTime'] = int(till / 1000)
+        elif endTime is not None:
+            request['endTime'] = endTime
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetFuturesFundingFundingRate(self.extend(request, params))
+        #
+        #    {
+        #        "code": 1,
+        #        "data": [
+        #            {
+        #                "fundingRate": "0.00033992",
+        #                "fundingTime": "2021-12-31T00:00:00.000Z",
+        #                "symbol": "ETHUSDTFP"
+        #            },
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbol = self.safe_symbol(marketId)
+            datetime = self.safe_string(entry, 'fundingTime')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
+                'timestamp': self.parse8601(datetime),
+                'datetime': datetime,
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        if limit is None:
+            limit = 100  # Default
+        elif limit > 1000:
+            raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 1000')
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'limit': limit,
+        }
+        if since is not None:
+            request['startTime'] = since
+        response = await self.privateGetFuturesFundingFundingFee(self.extend(request, params))
+        #
+        #    {
+        #        "code": 1,
+        #        "data": [
+        #            {
+        #                "symbol": "BTCUSDTFP",
+        #                "fundingRate":"0.001",
+        #                "fundingFee":"100",
+        #                "currency":"USDT",
+        #                "fundingTime": "2020-08-12T08:00:00Z",
+        #                "markPrice": "11192.5",
+        #            }
+        #        ],
+        #        "message": "success",
+        #        "ts": 1573542445411
+        #    }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            datetime = self.safe_string(entry, 'fundingTime')
+            result.append({
+                'info': entry,
+                'symbol': symbol,
+                'code': self.safe_currency_code(self.safe_string(entry, 'currency')),
+                'timestamp': self.parse8601(datetime),
+                'datetime': datetime,
+                'id': None,
+                'amount': self.safe_number(entry, 'fundingFee'),
+            })
+        return result
 
     def nonce(self):
         return self.milliseconds()

@@ -287,20 +287,7 @@ module.exports = class vcc extends Exchange {
         };
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalance (params);
-        //
-        //     {
-        //         "message":null,
-        //         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
-        //         "data":{
-        //             "vnd":{"balance":0,"available_balance":0},
-        //             "btc":{"balance":0,"available_balance":0},
-        //             "eth":{"balance":0,"available_balance":0},
-        //         },
-        //     }
-        //
+    parseBalance (response) {
         const data = this.safeValue (response, 'data');
         const result = {
             'info': response,
@@ -318,6 +305,23 @@ module.exports = class vcc extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
+        //         "data":{
+        //             "vnd":{"balance":0,"available_balance":0},
+        //             "btc":{"balance":0,"available_balance":0},
+        //             "eth":{"balance":0,"available_balance":0},
+        //         },
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -738,13 +742,15 @@ module.exports = class vcc extends Exchange {
                 'currency': code,
             };
         }
-        const type = amount > 0 ? 'deposit' : 'withdrawal';
+        const type = (amount > 0) ? 'deposit' : 'withdrawal';
+        const network = this.safeString (transaction, 'network');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

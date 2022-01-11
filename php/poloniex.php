@@ -339,19 +339,7 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'account' => 'all',
-        );
-        $response = $this->privatePostReturnCompleteBalances (array_merge($request, $params));
-        //
-        //     {
-        //         "1CR":array("available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"),
-        //         "ABY":array("available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"),
-        //         "AC":array("available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"),
-        //     }
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -368,6 +356,22 @@ class poloniex extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'account' => 'all',
+        );
+        $response = $this->privatePostReturnCompleteBalances (array_merge($request, $params));
+        //
+        //     {
+        //         "1CR":array("available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"),
+        //         "ABY":array("available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"),
+        //         "AC":array("available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"),
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -1451,8 +1455,13 @@ class poloniex extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'status' => $status,
             'type' => $type,
             'updated' => null,

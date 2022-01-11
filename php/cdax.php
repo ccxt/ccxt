@@ -870,6 +870,8 @@ class cdax extends Exchange {
                 // 'transfer' => null,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => null, // todo need to fetch from fee endpoint
                 'precision' => $precision,
                 'limits' => array(
@@ -892,14 +894,7 @@ class cdax extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $this->load_accounts();
-        $method = $this->options['fetchBalanceMethod'];
-        $request = array(
-            'id' => $this->accounts[0]['id'],
-        );
-        $response = $this->$method (array_merge($request, $params));
+    public function parse_balance($response) {
         $balances = $this->safe_value($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -921,6 +916,17 @@ class cdax extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $this->load_accounts();
+        $method = $this->options['fetchBalanceMethod'];
+        $request = array(
+            'id' => $this->accounts[0]['id'],
+        );
+        $response = $this->$method (array_merge($request, $params));
+        return $this->parse_balance($response);
     }
 
     public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1437,14 +1443,21 @@ class cdax extends Exchange {
         if ($feeCost !== null) {
             $feeCost = abs($feeCost);
         }
+        $address = $this->safe_string($transaction, 'address');
+        $network = $this->safe_string_upper($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'address' => $this->safe_string($transaction, 'address'),
+            'network' => $network,
+            'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,

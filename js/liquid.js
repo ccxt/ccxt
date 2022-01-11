@@ -460,6 +460,35 @@ module.exports = class liquid extends Exchange {
         return result;
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const crypto = this.safeValue (response, 'crypto_accounts', []);
+        const fiat = this.safeValue (response, 'fiat_accounts', []);
+        for (let i = 0; i < crypto.length; i++) {
+            const balance = crypto[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserved_balance');
+            result[code] = account;
+        }
+        for (let i = 0; i < fiat.length; i++) {
+            const balance = fiat[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserved_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
@@ -497,32 +526,7 @@ module.exports = class liquid extends Exchange {
         //         ]
         //     }
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const crypto = this.safeValue (response, 'crypto_accounts', []);
-        const fiat = this.safeValue (response, 'fiat_accounts', []);
-        for (let i = 0; i < crypto.length; i++) {
-            const balance = crypto[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'reserved_balance');
-            result[code] = account;
-        }
-        for (let i = 0; i < fiat.length; i++) {
-            const balance = fiat[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'reserved_balance');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1141,14 +1145,20 @@ module.exports = class liquid extends Exchange {
         const amountString = this.safeString (transaction, 'amount');
         const feeCostString = this.safeString (transaction, 'withdrawal_fee');
         const amount = this.parseNumber (Precise.stringSub (amountString, feeCostString));
+        const network = this.safeString (transaction, 'chain_name');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,

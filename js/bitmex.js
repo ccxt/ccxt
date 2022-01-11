@@ -22,6 +22,7 @@ module.exports = class bitmex extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
@@ -274,7 +275,7 @@ module.exports = class bitmex extends Exchange {
         return result;
     }
 
-    parseBalance (response, type = undefined) {
+    parseBalance (response) {
         //
         //     [
         //         {
@@ -800,6 +801,7 @@ module.exports = class bitmex extends Exchange {
             'txid': undefined,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
+            'network': undefined,
             'addressFrom': addressFrom,
             'address': address,
             'addressTo': addressTo,
@@ -1393,7 +1395,7 @@ module.exports = class bitmex extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         // https://github.com/ccxt/ccxt/issues/6507
-        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        const clientOrderId = this.safeValue2 (params, 'clOrdID', 'clientOrderId');
         const request = {};
         if (clientOrderId === undefined) {
             request['orderID'] = id;
@@ -1410,6 +1412,10 @@ module.exports = class bitmex extends Exchange {
             }
         }
         return this.parseOrder (order);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        return await this.cancelOrder (ids, symbol, params);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {

@@ -352,6 +352,8 @@ class bitpanda(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
             })
         return result
 
@@ -839,6 +841,19 @@ class bitpanda(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def parse_balance(self, response):
+        balances = self.safe_value(response, 'balances', [])
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency_code')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetAccountBalances(params)
@@ -858,17 +873,7 @@ class bitpanda(Exchange):
         #         ]
         #     }
         #
-        balances = self.safe_value(response, 'balances', [])
-        result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency_code')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         code = None
@@ -1126,6 +1131,7 @@ class bitpanda(Exchange):
             'id': id,
             'currency': currency['code'],
             'amount': amount,
+            'network': None,
             'address': addressTo,
             'addressFrom': None,
             'addressTo': addressTo,

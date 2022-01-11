@@ -49,6 +49,7 @@ class eqonex extends Exchange {
                 '6h' => 5,
                 '1d' => 6,
                 '7d' => 7,
+                '1w' => 7,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -301,6 +302,8 @@ class eqonex extends Exchange {
             'precision' => $precision,
             'fee' => $fee,
             'active' => $active,
+            'deposit' => null,
+            'withdraw' => null,
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -367,7 +370,7 @@ class eqonex extends Exchange {
         $low = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 3), $market['precision']['price']));
         $close = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 4), $market['precision']['price']));
         $volume = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 5), $market['precision']['amount']));
-        return [$timestamp, $open, $high, $low, $close, $volume];
+        return array( $timestamp, $open, $high, $low, $close, $volume );
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
@@ -553,6 +556,29 @@ class eqonex extends Exchange {
         ), $market);
     }
 
+    public function parse_balance($response) {
+        $positions = $this->safe_value($response, 'positions', array());
+        $result = array(
+            'info' => $response,
+        );
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $positions[$i];
+            $assetType = $this->safe_string($position, 'assetType');
+            if ($assetType === 'ASSET') {
+                $currencyId = $this->safe_string($position, 'symbol');
+                $code = $this->safe_currency_code($currencyId);
+                $quantityString = $this->safe_string($position, 'quantity');
+                $availableQuantityString = $this->safe_string($position, 'availableQuantity');
+                $scale = $this->safe_integer($position, 'quantity_scale');
+                $account = $this->account();
+                $account['free'] = $this->convert_from_scale($availableQuantityString, $scale);
+                $account['total'] = $this->convert_from_scale($quantityString, $scale);
+                $result[$code] = $account;
+            }
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privatePostGetPositions ($params);
@@ -578,26 +604,7 @@ class eqonex extends Exchange {
         //             ),
         //         )
         //     }
-        $positions = $this->safe_value($response, 'positions', array());
-        $result = array(
-            'info' => $response,
-        );
-        for ($i = 0; $i < count($positions); $i++) {
-            $position = $positions[$i];
-            $assetType = $this->safe_string($position, 'assetType');
-            if ($assetType === 'ASSET') {
-                $currencyId = $this->safe_string($position, 'symbol');
-                $code = $this->safe_currency_code($currencyId);
-                $quantityString = $this->safe_string($position, 'quantity');
-                $availableQuantityString = $this->safe_string($position, 'availableQuantity');
-                $scale = $this->safe_integer($position, 'quantity_scale');
-                $account = $this->account();
-                $account['free'] = $this->convert_from_scale($availableQuantityString, $scale);
-                $account['total'] = $this->convert_from_scale($quantityString, $scale);
-                $result[$code] = $account;
-            }
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1123,6 +1130,7 @@ class eqonex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => null,

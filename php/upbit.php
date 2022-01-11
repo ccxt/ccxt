@@ -418,21 +418,7 @@ class upbit extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetAccounts ($params);
-        //
-        //     array( array(          currency => "BTC",
-        //                   $balance => "0.005",
-        //                    locked => "0.0",
-        //         avg_krw_buy_price => "7446000",
-        //                  modified =>  false     ),
-        //       {          currency => "ETH",
-        //                   $balance => "0.1",
-        //                    locked => "0.0",
-        //         avg_krw_buy_price => "250000",
-        //                  modified =>  false    }   )
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -448,6 +434,24 @@ class upbit extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetAccounts ($params);
+        //
+        //     array( array(          currency => "BTC",
+        //                   balance => "0.005",
+        //                    locked => "0.0",
+        //         avg_krw_buy_price => "7446000",
+        //                  modified =>  false     ),
+        //       {          currency => "ETH",
+        //                   balance => "0.1",
+        //                    locked => "0.0",
+        //         avg_krw_buy_price => "250000",
+        //                  modified =>  false    }   )
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -1077,8 +1081,13 @@ class upbit extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'status' => $status,
             'type' => $type,
             'updated' => $updated,

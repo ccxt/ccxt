@@ -337,19 +337,7 @@ module.exports = class poloniex extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'account': 'all',
-        };
-        const response = await this.privatePostReturnCompleteBalances (this.extend (request, params));
-        //
-        //     {
-        //         "1CR":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
-        //         "ABY":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
-        //         "AC":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
-        //     }
-        //
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -366,6 +354,22 @@ module.exports = class poloniex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'account': 'all',
+        };
+        const response = await this.privatePostReturnCompleteBalances (this.extend (request, params));
+        //
+        //     {
+        //         "1CR":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        //         "ABY":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        //         "AC":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async fetchTradingFees (params = {}) {
@@ -1449,8 +1453,13 @@ module.exports = class poloniex extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'status': status,
             'type': type,
             'updated': undefined,

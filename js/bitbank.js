@@ -350,6 +350,27 @@ module.exports = class bitbank extends Exchange {
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const data = this.safeValue (response, 'data', {});
+        const assets = this.safeValue (data, 'assets', []);
+        for (let i = 0; i < assets.length; i++) {
+            const balance = assets[i];
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free_amount');
+            account['used'] = this.safeString (balance, 'locked_amount');
+            account['total'] = this.safeString (balance, 'onhand_amount');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetUserAssets (params);
@@ -386,24 +407,7 @@ module.exports = class bitbank extends Exchange {
         //       }
         //     }
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const data = this.safeValue (response, 'data', {});
-        const assets = this.safeValue (data, 'assets', []);
-        for (let i = 0; i < assets.length; i++) {
-            const balance = assets[i];
-            const currencyId = this.safeString (balance, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'free_amount');
-            account['used'] = this.safeString (balance, 'locked_amount');
-            account['total'] = this.safeString (balance, 'onhand_amount');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {

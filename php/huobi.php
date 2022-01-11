@@ -34,44 +34,90 @@ class huobi extends Exchange {
                 // 'margin' => true,
                 'swap' => true,
                 'future' => true,
+                'addMargin' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'CORS' => null,
+                'createDepositAddress' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => null,
+                'deposit' => null,
                 'fetchAccounts' => true,
+                'fetchAllTradingFees' => null,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => null,
                 'fetchBorrowRate' => true,
+                'fetchBorrowRateHistory' => null,
                 'fetchBorrowRates' => true,
                 'fetchBorrowRatesPerSymbol' => true,
+                'fetchCanceledOrders' => null,
+                'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingFee' => null,
+                'fetchFundingFees' => null,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => null,
                 'fetchIndexOHLCV' => true,
+                'fetchIsolatedPositions' => null,
+                'fetchL3OrderBook' => null,
+                'fetchLedger' => null,
+                'fetchLedgerEntry' => null,
+                'fetchLeverage' => null,
                 'fetchMarkets' => true,
+                'fetchMarketsByType' => null,
                 'fetchMarkOHLCV' => true,
+                'fetchMyBuys' => null,
+                'fetchMySells' => null,
                 'fetchMyTrades' => true,
+                'fetchNetworkDepositAddress' => null,
                 'fetchOHLCV' => true,
+                'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrderBooks' => null,
                 'fetchOrders' => true,
+                'fetchOrdersByState' => null,
+                'fetchOrdersByStatus' => null,
                 'fetchOrderTrades' => true,
+                'fetchPartiallyFilledOrders' => null,
+                'fetchPosition' => true,
+                'fetchPositions' => true,
+                'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => true,
+                'fetchStatus' => null,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTickersByType' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
+                'fetchTradingFees' => null,
                 'fetchTradingLimits' => true,
+                'fetchTransactions' => null,
+                'fetchTransfers' => null,
                 'fetchWithdrawAddress' => true,
                 'fetchWithdrawAddressesByNetwork' => true,
+                'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
+                'fetchWithdrawalWhitelist' => null,
+                'loadLeverageBrackets' => null,
+                'reduceMargin' => null,
+                'setLeverage' => true,
+                'setMarginMode' => null,
+                'setPositionMode' => null,
+                'signIn' => null,
                 'transfer' => true,
+                'transferOut' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -759,6 +805,19 @@ class huobi extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'fetchMarkets' => array(
+                    'types' => array(
+                        'spot' => true,
+                        'future' => array(
+                            'linear' => true,
+                            'inverse' => true,
+                        ),
+                        'swap' => array(
+                            'linear' => true,
+                            'inverse' => true,
+                        ),
+                    ),
+                ),
                 'defaultType' => 'spot', // spot, future, swap
                 'defaultSubType' => 'inverse', // inverse, linear
                 'defaultNetwork' => 'ERC20',
@@ -977,12 +1036,31 @@ class huobi extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $type = $this->safe_string($options, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type', $type);
-        if (($type !== 'spot') && ($type !== 'future') && ($type !== 'swap')) {
-            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to 'spot', 'future', 'swap'"); // eslint-disable-line quotes
+        $types = $this->safe_value($options, 'types', array());
+        $allMarkets = array();
+        $keys = is_array($types) ? array_keys($types) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $type = $keys[$i];
+            $value = $this->safe_value($types, $type);
+            if ($value === true) {
+                $markets = $this->fetch_markets_by_type_and_sub_type($type, null, $params);
+                $allMarkets = $this->array_concat($allMarkets, $markets);
+            } else {
+                $subKeys = is_array($value) ? array_keys($value) : array();
+                for ($j = 0; $j < count($subKeys); $j++) {
+                    $subType = $subKeys[$j];
+                    $subValue = $this->safe_value($value, $subType);
+                    if ($subValue) {
+                        $markets = $this->fetch_markets_by_type_and_sub_type($type, $subType, $params);
+                        $allMarkets = $this->array_concat($allMarkets, $markets);
+                    }
+                }
+            }
         }
+        return $allMarkets;
+    }
+
+    public function fetch_markets_by_type_and_sub_type($type, $subType, $params = array ()) {
         $method = 'spotPublicGetV1CommonSymbols';
         $query = $this->omit($params, array( 'type', 'subType' ));
         $spot = ($type === 'spot');
@@ -991,26 +1069,24 @@ class huobi extends Exchange {
         $swap = ($type === 'swap');
         $linear = null;
         $inverse = null;
+        $request = array();
         if ($contract) {
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-            $subType = $this->safe_string($options, 'subType', $defaultSubType);
-            $subType = $this->safe_string($params, 'subType', $subType);
-            if (($subType !== 'inverse') && ($subType !== 'linear')) {
-                throw new ExchangeError($this->id . " does not support '" . $subType . "' $type, set exchange.options['defaultSubType'] to 'inverse' or 'linear'"); // eslint-disable-line quotes
-            }
             $linear = ($subType === 'linear');
-            $inverse = ($subType === 'inverse') || $future;
-            if ($future) {
-                $method = 'contractPublicGetApiV1ContractContractInfo';
-            } else if ($swap) {
-                if ($inverse) {
+            $inverse = ($subType === 'inverse');
+            if ($linear) {
+                $method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
+                if ($future) {
+                    $request['business_type'] = 'futures';
+                }
+            } else if ($inverse) {
+                if ($future) {
+                    $method = 'contractPublicGetApiV1ContractContractInfo';
+                } else if ($swap) {
                     $method = 'contractPublicGetSwapApiV1SwapContractInfo';
-                } else if ($linear) {
-                    $method = 'contractPublicGetLinearSwapApiV1SwapContractInfo';
                 }
             }
         }
-        $response = $this->$method ($query);
+        $response = $this->$method (array_merge($request, $query));
         //
         // $spot
         //
@@ -1049,7 +1125,7 @@ class huobi extends Exchange {
         //         )
         //     }
         //
-        // $future
+        // $inverse $future
         //
         //     {
         //         "status":"ok",
@@ -1068,6 +1144,30 @@ class huobi extends Exchange {
         //             ),
         //         ),
         //         "ts":1637474595140
+        //     }
+        //
+        // $linear futures
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             array(
+        //                 "symbol":"BTC",
+        //                 "contract_code":"BTC-USDT-211231",
+        //                 "contract_size":0.001000000000000000,
+        //                 "price_tick":0.100000000000000000,
+        //                 "delivery_date":"20211231",
+        //                 "delivery_time":"1640937600000",
+        //                 "create_date":"20211228",
+        //                 "contract_status":1,
+        //                 "settlement_date":"1640764800000",
+        //                 "support_margin_mode":"cross",
+        //                 "business_type":"futures",
+        //                 "pair":"BTC-USDT",
+        //                 "contract_type":"this_week" // next_week, quarter
+        //             ),
+        //         ),
+        //         "ts":1640736207263
         //     }
         //
         // swaps
@@ -1111,8 +1211,15 @@ class huobi extends Exchange {
                     $settleId = $inverse ? $baseId : $quoteId;
                 } else if ($future) {
                     $baseId = $this->safe_string($market, 'symbol');
-                    $quoteId = 'USD';
-                    $settleId = $baseId;
+                    if ($inverse) {
+                        $quoteId = 'USD';
+                        $settleId = $baseId;
+                    } else {
+                        $pair = $this->safe_string($market, 'pair');
+                        $parts = explode('-', $pair);
+                        $quoteId = $this->safe_string($parts, 1);
+                        $settleId = $quoteId;
+                    }
                 }
             } else {
                 $baseId = $this->safe_string($market, 'base-currency');
@@ -1324,15 +1431,16 @@ class huobi extends Exchange {
         $request = array();
         $fieldName = 'symbol';
         $method = 'spotPublicGetMarketDetailMerged';
-        if ($market['future']) {
-            $method = 'contractPublicGetMarketDetailMerged';
-        } else if ($market['swap']) {
-            if ($market['inverse']) {
-                $method = 'contractPublicGetSwapExMarketDetailMerged';
-            } else if ($market['linear']) {
-                $method = 'contractPublicGetLinearSwapExMarketDetailMerged';
-            }
+        if ($market['linear']) {
+            $method = 'contractPublicGetLinearSwapExMarketDetailMerged';
             $fieldName = 'contract_code';
+        } else if ($market['inverse']) {
+            if ($market['future']) {
+                $method = 'contractPublicGetMarketDetailMerged';
+            } else if ($market['swap']) {
+                $method = 'contractPublicGetSwapExMarketDetailMerged';
+                $fieldName = 'contract_code';
+            }
         }
         $request[$fieldName] = $market['id'];
         $response = $this->$method (array_merge($request, $params));
@@ -1394,20 +1502,28 @@ class huobi extends Exchange {
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
         $method = 'spotPublicGetMarketTickers';
-        if ($type === 'future') {
-            $method = 'contractPublicGetMarketDetailBatchMerged';
-        } else if ($type === 'swap') {
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-            $subType = $this->safe_string($options, 'subType', $defaultSubType);
-            $subType = $this->safe_string($params, 'subType', $subType);
-            if ($subType === 'inverse') {
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+        $subType = $this->safe_string($options, 'subType', $defaultSubType);
+        $subType = $this->safe_string($params, 'subType', $subType);
+        $request = array();
+        $future = ($type === 'future');
+        $swap = ($type === 'swap');
+        $linear = ($subType === 'linear');
+        $inverse = ($subType === 'inverse');
+        if ($linear) {
+            $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
+            if ($future) {
+                $request['business_type'] = 'futures';
+            }
+        } else if ($inverse) {
+            if ($future) {
+                $method = 'contractPublicGetMarketDetailBatchMerged';
+            } else if ($swap) {
                 $method = 'contractPublicGetSwapExMarketDetailBatchMerged';
-            } else if ($subType === 'linear') {
-                $method = 'contractPublicGetLinearSwapExMarketDetailBatchMerged';
             }
         }
-        $query = $this->omit($params, array( 'type', 'subType' ));
-        $response = $this->$method ($query);
+        $params = $this->omit($params, array( 'type', 'subType' ));
+        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -1432,7 +1548,7 @@ class huobi extends Exchange {
         //         "ts":1639547261293
         //     }
         //
-        // future
+        // $inverse swaps, $linear swaps, $inverse futures
         //
         //     {
         //         "status":"ok",
@@ -1455,11 +1571,58 @@ class huobi extends Exchange {
         //         "ts":1637504679376
         //     }
         //
+        // $linear futures
+        //
+        //     {
+        //         "status":"ok",
+        //         "ticks":[
+        //             {
+        //                 "id":1640745627,
+        //                 "ts":1640745627957,
+        //                 "ask":[48079.1,20],
+        //                 "bid":[47713.8,125],
+        //                 "business_type":"futures",
+        //                 "contract_code":"BTC-USDT-CW",
+        //                 "open":"49011.8",
+        //                 "close":"47934",
+        //                 "low":"47292.3",
+        //                 "high":"49011.8",
+        //                 "amount":"17.398",
+        //                 "count":1515,
+        //                 "vol":"17398",
+        //                 "trade_turnover":"840726.5048"
+        //             }
+        //         ],
+        //         "ts":1640745627988
+        //     }
+        //
         $tickers = $this->safe_value_2($response, 'data', 'ticks', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i]);
+            // the $market ids for $linear futures are non-standard and differ from all the other endpoints
+            // we are doing a $linear-matching here
+            if ($future && $linear) {
+                for ($j = 0; $j < count($this->symbols); $j++) {
+                    $symbol = $this->symbols[$j];
+                    $market = $this->market($symbol);
+                    $contractType = $this->safe_string($market['info'], 'contract_type');
+                    if (($contractType === 'this_week') && ($ticker['symbol'] === ($market['baseId'] . '-' . $market['quoteId'] . '-CW'))) {
+                        $ticker['symbol'] = $market['symbol'];
+                        break;
+                    } else if (($contractType === 'next_week') && ($ticker['symbol'] === ($market['baseId'] . '-' . $market['quoteId'] . '-NW'))) {
+                        $ticker['symbol'] = $market['symbol'];
+                        break;
+                    } else if (($contractType === 'this_quarter') && ($ticker['symbol'] === ($market['baseId'] . '-' . $market['quoteId'] . '-CQ'))) {
+                        $ticker['symbol'] = $market['symbol'];
+                        break;
+                    } else if (($contractType === 'next_quarter') && ($ticker['symbol'] === ($market['baseId'] . '-' . $market['quoteId'] . '-NQ'))) {
+                        $ticker['symbol'] = $market['symbol'];
+                        break;
+                    }
+                }
+            }
             $symbol = $ticker['symbol'];
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
@@ -1484,15 +1647,16 @@ class huobi extends Exchange {
         );
         $fieldName = 'symbol';
         $method = 'spotPublicGetMarketDepth';
-        if ($market['future']) {
-            $method = 'contractPublicGetMarketDepth';
-        } else if ($market['swap']) {
-            if ($market['inverse']) {
-                $method = 'contractPublicGetSwapExMarketDepth';
-            } else if ($market['linear']) {
-                $method = 'contractPublicGetLinearSwapExMarketDepth';
-            }
+        if ($market['linear']) {
+            $method = 'contractPublicGetLinearSwapExMarketDepth';
             $fieldName = 'contract_code';
+        } else if ($market['inverse']) {
+            if ($market['future']) {
+                $method = 'contractPublicGetMarketDepth';
+            } else if ($market['swap']) {
+                $method = 'contractPublicGetSwapExMarketDepth';
+                $fieldName = 'contract_code';
+            }
         }
         $request[$fieldName] = $market['id'];
         $response = $this->$method (array_merge($request, $params));
@@ -1537,7 +1701,7 @@ class huobi extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
-        // fetchTrades (public)
+        // spot fetchTrades (public)
         //
         //     {
         //         "amount" => 0.010411000000000000,
@@ -1548,9 +1712,9 @@ class huobi extends Exchange {
         //         "direction" => "sell"
         //     }
         //
-        // fetchMyTrades (private)
+        // spot fetchMyTrades (private)
         //
-        //     array(
+        //     {
         //          'symbol' => 'swftcbtc',
         //          'fee-currency' => 'swftc',
         //          'filled-fees' => '0',
@@ -1566,11 +1730,29 @@ class huobi extends Exchange {
         //          'match-id' => 100087455560,
         //          'role' => 'maker',
         //          'trade-id' => 100050305348
-        //     ),
+        //     }
+        //
+        // linear swap isolated margin fetchOrder details
+        //
+        //     {
+        //         "trade_id" => 131560927,
+        //         "trade_price" => 13059.800000000000000000,
+        //         "trade_volume" => 1.000000000000000000,
+        //         "trade_turnover" => 13.059800000000000000,
+        //         "trade_fee" => -0.005223920000000000,
+        //         "created_at" => 1603703614715,
+        //         "role" => "taker",
+        //         "fee_asset" => "USDT",
+        //         "profit" => 0,
+        //         "real_profit" => 0,
+        //         "id" => "131560927-770334322963152896-1"
+        //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($trade, 'ts', 'created-at');
+        $timestamp = $this->safe_integer($trade, 'created_at', $timestamp);
         $order = $this->safe_string($trade, 'order-id');
         $side = $this->safe_string($trade, 'direction');
         $type = $this->safe_string($trade, 'type');
@@ -1580,17 +1762,17 @@ class huobi extends Exchange {
             $type = $typeParts[1];
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
-        $priceString = $this->safe_string($trade, 'price');
+        $priceString = $this->safe_string_2($trade, 'price', 'trade_price');
         $amountString = $this->safe_string_2($trade, 'filled-amount', 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $amountString = $this->safe_string($trade, 'trade_volume', $amountString);
+        $costString = $this->safe_string($trade, 'trade_turnover');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'filled-fees');
-        $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
-        $filledPoints = $this->safe_number($trade, 'filled-points');
+        $feeCost = $this->safe_string_2($trade, 'filled-fees', 'trade_fee');
+        $feeCurrencyId = $this->safe_string_2($trade, 'fee-currency', 'fee_asset');
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
+        $filledPoints = $this->safe_string($trade, 'filled-points');
         if ($filledPoints !== null) {
-            if (($feeCost === null) || ($feeCost === 0.0)) {
+            if (($feeCost === null) || Precise::string_equals($feeCost, '0')) {
                 $feeCost = $filledPoints;
                 $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-deduct-currency'));
             }
@@ -1602,8 +1784,8 @@ class huobi extends Exchange {
             );
         }
         $tradeId = $this->safe_string_2($trade, 'trade-id', 'tradeId');
-        $id = $this->safe_string($trade, 'id', $tradeId);
-        return array(
+        $id = $this->safe_string_2($trade, 'trade_id', 'id', $tradeId);
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'order' => $order,
@@ -1613,14 +1795,25 @@ class huobi extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrderTrades', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'fetchSpotOrderTrades',
+            // 'swap' => 'fetchContractOrderTrades',
+            // 'future' => 'fetchContractOrderTrades',
+        ));
+        return $this->$method ($id, $symbol, $since, $limit, $params);
+    }
+
+    public function fetch_spot_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order-id' => $id,
@@ -1631,8 +1824,8 @@ class huobi extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $methodType = null;
-        list($methodType, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
         $request = array(
             // spot -----------------------------------------------------------
             // 'symbol' => $market['id'],
@@ -1654,7 +1847,7 @@ class huobi extends Exchange {
         );
         $method = null;
         $market = null;
-        if ($methodType === 'spot') {
+        if ($marketType === 'spot') {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
@@ -1669,27 +1862,27 @@ class huobi extends Exchange {
             $method = 'spotPrivateGetV1OrderMatchresults';
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol for ' . $methodType . ' orders');
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol for ' . $marketType . ' orders');
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
             $request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
-            if ($methodType === 'future') {
-                $method = 'contractPrivatePostApiV1ContractMatchresultsExact';
-                $request['symbol'] = $market['settleId'];
-            } else if ($methodType === 'swap') {
-                if ($market['linear']) {
-                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                    if ($marginType === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
-                    } else if ($marginType === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
-                    }
-                } else if ($market['inverse']) {
-                    $method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
+            if ($market['linear']) {
+                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                if ($marginType === 'isolated') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
+                } else if ($marginType === 'cross') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
                 }
-            } else {
-                throw new NotSupported($this->id . ' fetchMyTrades() does not support ' . $methodType . ' markets');
+            } else if ($market['inverse']) {
+                if ($marketType === 'future') {
+                    $method = 'contractPrivatePostApiV1ContractMatchresultsExact';
+                    $request['symbol'] = $market['settleId'];
+                } else if ($marketType === 'swap') {
+                    $method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
+                } else {
+                    throw new NotSupported($this->id . ' fetchMyTrades() does not support ' . $marketType . ' markets');
+                }
             }
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1775,7 +1968,12 @@ class huobi extends Exchange {
         $fieldName = 'symbol';
         $method = 'spotPublicGetMarketHistoryTrade';
         if ($market['future']) {
-            $method = 'contractPublicGetMarketHistoryTrade';
+            if ($market['inverse']) {
+                $method = 'contractPublicGetMarketHistoryTrade';
+            } else if ($market['linear']) {
+                $method = 'contractPublicGetLinearSwapExMarketHistoryTrade';
+                $fieldName = 'contract_code';
+            }
         } else if ($market['swap']) {
             if ($market['inverse']) {
                 $method = 'contractPublicGetSwapExMarketHistoryTrade';
@@ -1863,14 +2061,27 @@ class huobi extends Exchange {
         $params = $this->omit($params, 'price');
         $method = 'spotPublicGetMarketHistoryKline';
         if ($market['future']) {
-            if ($price === 'mark') {
-                $method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
-            } else if ($price === 'index') {
-                $method = 'contractPublicGetIndexMarketHistoryIndex';
-            } else if ($price === 'premiumIndex') {
-                throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-            } else {
-                $method = 'contractPublicGetMarketHistoryKline';
+            if ($market['inverse']) {
+                if ($price === 'mark') {
+                    $method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
+                } else if ($price === 'index') {
+                    $method = 'contractPublicGetIndexMarketHistoryIndex';
+                } else if ($price === 'premiumIndex') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } else {
+                    $method = 'contractPublicGetMarketHistoryKline';
+                }
+            } else if ($market['linear']) {
+                if ($price === 'mark') {
+                    $method = 'contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline';
+                } else if ($price === 'index') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } else if ($price === 'premiumIndex') {
+                    $method = 'contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline';
+                } else {
+                    $method = 'contractPublicGetLinearSwapExMarketHistoryKline';
+                }
+                $fieldName = 'contract_code';
             }
         } else if ($market['swap']) {
             if ($market['inverse']) {
@@ -2093,35 +2304,26 @@ class huobi extends Exchange {
         $spot = ($type === 'spot');
         $future = ($type === 'future');
         $swap = ($type === 'swap');
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+        $subType = $this->safe_string($options, 'subType', $defaultSubType);
+        $subType = $this->safe_string($params, 'subType', $subType);
+        $inverse = ($subType === 'inverse');
+        $linear = ($subType === 'linear');
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+        $isolated = ($marginType === 'isolated');
+        $cross = ($marginType === 'cross');
         if ($spot) {
             $this->load_accounts();
             $accountId = $this->fetch_account_id_by_type($type, $params);
             $request['account-id'] = $accountId;
             $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
-        } else if ($future) {
-            $method = 'contractPrivatePostApiV1ContractAccountInfo';
-        } else if ($swap) {
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-            $subType = $this->safe_string($options, 'subType', $defaultSubType);
-            $subType = $this->safe_string($params, 'subType', $subType);
-            if ($subType === 'inverse') {
+        } else if ($linear) {
+            $method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+        } else if ($inverse) {
+            if ($future) {
+                $method = 'contractPrivatePostApiV1ContractAccountInfo';
+            } else if ($swap) {
                 $method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
-            } else if ($subType === 'linear') {
-                $currencyId = $this->safe_string($params, 'margin_account');
-                if ($currencyId === null) {
-                    $code = $this->safe_string($params, 'code');
-                    if ($code !== null) {
-                        $params = $this->omit($params, 'code');
-                        $currency = $this->currency($code);
-                        $currencyId = $currency['id'];
-                    }
-                }
-                if ($currencyId === null) {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
-                } else {
-                    $request['margin_account'] = $currencyId;
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
-                }
             }
         }
         $response = $this->$method (array_merge($request, $params));
@@ -2143,7 +2345,7 @@ class huobi extends Exchange {
         //         "ts":1637644827566
         //     }
         //
-        // $future, $swap isolated
+        // $future, $swap $isolated
         //
         //     {
         //         "status":"ok",
@@ -2164,29 +2366,45 @@ class huobi extends Exchange {
         //                 "margin_static":0,
         //                 "is_debit":0, // $future only
         //                 "contract_code":"BTC-USD", // $swap only
-        //                 "margin_asset":"USDT", // linear only
-        //                 "margin_mode":"isolated", // linear only
-        //                 "margin_account":"BTC-USDT" // linear only
-        //                 "transfer_profit_ratio":null // inverse only
+        //                 "margin_asset":"USDT", // $linear only
+        //                 "margin_mode":"isolated", // $linear only
+        //                 "margin_account":"BTC-USDT" // $linear only
+        //                 "transfer_profit_ratio":null // $inverse only
         //             ),
         //         ),
         //         "ts":1637644827566
         //     }
         //
-        // $swap cross
+        // $linear $cross futures and $linear $cross $swap
         //
         //     {
         //         "status":"ok",
         //         "data":array(
         //             {
+        //                 "futures_contract_detail":array(
+        //                     array(
+        //                         "symbol":"ETH",
+        //                         "contract_code":"ETH-USDT-220325",
+        //                         "margin_position":0,
+        //                         "margin_frozen":0,
+        //                         "margin_available":200.000000000000000000,
+        //                         "profit_unreal":0E-18,
+        //                         "liquidation_price":null,
+        //                         "lever_rate":5,
+        //                         "adjust_factor":0.060000000000000000,
+        //                         "contract_type":"quarter",
+        //                         "pair":"ETH-USDT",
+        //                         "business_type":"futures"
+        //                     ),
+        //                 ),
         //                 "margin_mode":"cross",
         //                 "margin_account":"USDT",
         //                 "margin_asset":"USDT",
-        //                 "margin_balance":200,
-        //                 "margin_static":200,
+        //                 "margin_balance":200.000000000000000000,
+        //                 "margin_static":200.000000000000000000,
         //                 "margin_position":0,
         //                 "margin_frozen":0,
-        //                 "profit_real":0,
+        //                 "profit_real":0E-18,
         //                 "profit_unreal":0,
         //                 "withdraw_available":2E+2,
         //                 "risk_rate":null,
@@ -2205,11 +2423,10 @@ class huobi extends Exchange {
         //                         "pair":"MANA-USDT",
         //                         "business_type":"swap"
         //                     ),
-        //                     ...
         //                 )
         //             }
         //         ),
-        //         "ts":1640493207964
+        //         "ts":1640915104870
         //     }
         //
         $result = array( 'info' => $response );
@@ -2234,7 +2451,34 @@ class huobi extends Exchange {
                 }
                 $result[$code] = $account;
             }
-        } else if ($future) {
+        } else if ($linear) {
+            $first = $this->safe_value($data, 0, array());
+            if ($cross) {
+                $account = $this->account();
+                $account['free'] = $this->safe_string($first, 'margin_balance', 'margin_available');
+                $account['used'] = $this->safe_string($first, 'margin_frozen');
+                $currencyId = $this->safe_string_2($first, 'margin_asset', 'symbol');
+                $code = $this->safe_currency_code($currencyId);
+                $result[$code] = $account;
+            } else if ($isolated) {
+                $fieldName = $future ? 'futures_contract_detail' : 'contract_detail';
+                $balances = $this->safe_value($first, $fieldName, array());
+                for ($i = 0; $i < count($balances); $i++) {
+                    $balance = $balances[$i];
+                    $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
+                    $market = $this->safe_market($marketId);
+                    $account = $this->account();
+                    $account['free'] = $this->safe_string($balance, 'margin_balance');
+                    $account['used'] = $this->safe_string($balance, 'margin_frozen');
+                    $code = $market['settle'];
+                    $accountsByCode = array();
+                    $accountsByCode[$code] = $account;
+                    $symbol = $market['symbol'];
+                    $result[$symbol] = $this->safe_balance($accountsByCode);
+                }
+                return $result;
+            }
+        } else if ($inverse) {
             for ($i = 0; $i < count($data); $i++) {
                 $balance = $data[$i];
                 $currencyId = $this->safe_string($balance, 'symbol');
@@ -2244,79 +2488,14 @@ class huobi extends Exchange {
                 $account['used'] = $this->safe_string($balance, 'margin_frozen');
                 $result[$code] = $account;
             }
-        } else if ($swap) {
-            for ($i = 0; $i < count($data); $i++) {
-                $balance = $data[$i];
-                $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
-                $symbol = $this->safe_symbol($marketId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'margin_balance', 'margin_available');
-                $account['used'] = $this->safe_string($balance, 'margin_frozen');
-                $currencyId = $this->safe_string_2($balance, 'margin_asset', 'symbol');
-                $code = $this->safe_currency_code($currencyId);
-                $marginMode = $this->safe_string($balance, 'margin_mode');
-                if ($marginMode === 'cross') {
-                    $result[$code] = $account;
-                    return $this->safe_balance($result);
-                }
-                $accountsByCode = array();
-                $accountsByCode[$code] = $account;
-                $result[$symbol] = $this->safe_balance($accountsByCode);
-            }
-            return $result;
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders');
-        if ($method === 'spot_private_get_v1_order_orders') {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrdersByStates() requires a $symbol argument');
-            }
-        }
-        $this->load_markets();
-        $market = null;
-        $request = array(
-            'states' => $states,
-            // 'symbol' => $market['id'],
-        );
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        $response = $this->$method (array_merge($request, $params));
-        //
-        //     {
-        //         status => "ok",
-        //         $data => array(
-        //             {
-        //                 id => 13997833014,
-        //                 $symbol => "ethbtc",
-        //                 'account-id' => 3398321,
-        //                 amount => "0.045000000000000000",
-        //                 price => "0.034014000000000000",
-        //                 'created-at' => 1545836976871,
-        //                 type => "sell-$limit",
-        //                 'field-amount' => "0.045000000000000000",
-        //                 'field-cash-amount' => "0.001530630000000000",
-        //                 'field-fees' => "0.000003061260000000",
-        //                 'finished-at' => 1545837948214,
-        //                 source => "spot-api",
-        //                 state => "filled",
-        //                 'canceled-at' => 0
-        //             }
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
-    }
-
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $methodType = null;
-        list($methodType, $params) = $this->handle_market_type_and_params('fetchOrder', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', null, $params);
         $request = array(
             // spot -----------------------------------------------------------
             // 'order-id' => 'id',
@@ -2331,7 +2510,8 @@ class huobi extends Exchange {
             // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         );
         $method = null;
-        if ($methodType === 'spot') {
+        $market = null;
+        if ($marketType === 'spot') {
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             $method = 'spotPrivateGetV1OrderOrdersOrderId';
             if ($clientOrderId !== null) {
@@ -2344,26 +2524,26 @@ class huobi extends Exchange {
             }
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol for ' . $methodType . ' orders');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol for ' . $marketType . ' orders');
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
-            if ($methodType === 'future') {
-                $method = 'contractPrivatePostApiV1ContractOrderInfo';
-                $request['symbol'] = $market['settleId'];
-            } else if ($methodType === 'swap') {
-                if ($market['linear']) {
-                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                    if ($marginType === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
-                    } else if ($marginType === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo';
-                    }
-                } else if ($market['inverse']) {
-                    $method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
+            if ($market['linear']) {
+                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                if ($marginType === 'isolated') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
+                } else if ($marginType === 'cross') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo';
                 }
-            } else {
-                throw new NotSupported($this->id . ' cancelOrder() does not support ' . $methodType . ' markets');
+            } else if ($market['inverse']) {
+                if ($marketType === 'future') {
+                    $method = 'contractPrivatePostApiV1ContractOrderInfo';
+                    $request['symbol'] = $market['settleId'];
+                } else if ($marketType === 'swap') {
+                    $method = 'contractPrivatePostSwapApiV1SwapOrderInfo';
+                } else {
+                    throw new NotSupported($this->id . ' fetchOrder() does not support ' . $marketType . ' markets');
+                }
             }
             $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
             if ($clientOrderId === null) {
@@ -2441,6 +2621,64 @@ class huobi extends Exchange {
         //         "ts":1640557982556
         //     }
         //
+        // linear swap isolated margin detail
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => {
+        //             "symbol" => "BTC",
+        //             "contract_code" => "BTC-USDT",
+        //             "instrument_price" => 0,
+        //             "final_interest" => 0,
+        //             "adjust_value" => 0,
+        //             "lever_rate" => 10,
+        //             "direction" => "sell",
+        //             "offset" => "open",
+        //             "volume" => 1.000000000000000000,
+        //             "price" => 13059.800000000000000000,
+        //             "created_at" => 1603703614712,
+        //             "canceled_at" => 0,
+        //             "order_source" => "api",
+        //             "order_price_type" => "opponent",
+        //             "margin_frozen" => 0,
+        //             "profit" => 0,
+        //             "trades" => array(
+        //                 array(
+        //                     "trade_id" => 131560927,
+        //                     "trade_price" => 13059.800000000000000000,
+        //                     "trade_volume" => 1.000000000000000000,
+        //                     "trade_turnover" => 13.059800000000000000,
+        //                     "trade_fee" => -0.005223920000000000,
+        //                     "created_at" => 1603703614715,
+        //                     "role" => "taker",
+        //                     "fee_asset" => "USDT",
+        //                     "profit" => 0,
+        //                     "real_profit" => 0,
+        //                     "id" => "131560927-770334322963152896-1"
+        //                 }
+        //             ),
+        //             "total_page" => 1,
+        //             "current_page" => 1,
+        //             "total_size" => 1,
+        //             "liquidation_type" => "0",
+        //             "fee_asset" => "USDT",
+        //             "fee" => -0.005223920000000000,
+        //             "order_id" => 770334322963152896,
+        //             "order_id_str" => "770334322963152896",
+        //             "client_order_id" => 57012021045,
+        //             "order_type" => "1",
+        //             "status" => 6,
+        //             "trade_avg_price" => 13059.800000000000000000,
+        //             "trade_turnover" => 13.059800000000000000,
+        //             "trade_volume" => 1.000000000000000000,
+        //             "margin_asset" => "USDT",
+        //             "margin_mode" => "isolated",
+        //             "margin_account" => "BTC-USDT",
+        //             "real_profit" => 0,
+        //             "is_tpsl" => 0
+        //         ),
+        //         "ts" => 1603703678477
+        //     }
         $order = $this->safe_value($response, 'data');
         if (gettype($order) === 'array' && count(array_filter(array_keys($order), 'is_string')) == 0) {
             $order = $this->safe_value($order, 0);
@@ -2448,18 +2686,223 @@ class huobi extends Exchange {
         return $this->parse_order($order);
     }
 
+    public function fetch_spot_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
+        if ($method === 'spot_private_get_v1_order_orders') {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            }
+        }
+        $this->load_markets();
+        $market = null;
+        $request = array(
+            // spot_private_get_v1_order_orders GET /v1/order/orders ----------
+            // 'symbol' => $market['id'], // required
+            // 'types' => 'buy-$market,sell-$market,buy-$limit,sell-$limit,buy-ioc,sell-ioc,buy-stop-$limit,sell-stop-$limit,buy-$limit-fok,sell-$limit-fok,buy-stop-$limit-fok,sell-stop-$limit-fok',
+            // 'start-time' => $since, // max window of 48h within a range of 180 days, within past 2 hours for cancelled orders
+            // 'end-time' => $this->milliseconds(),
+            'states' => $states, // filled, partial-canceled, canceled
+            // 'from' => order['id'],
+            // 'direct' => 'next', // next, prev, used with from
+            // 'size' => 100, // max 100
+            // spot_private_get_v1_order_history GET /v1/order/history --------
+            // 'symbol' => $market['id'], // optional
+            // 'start-time' => $since, // max window of 48h within a range of 180 days, within past 2 hours for cancelled orders
+            // 'end-time' => $this->milliseconds(),
+            // 'direct' => 'next', // next, prev, used with from
+            // 'size' => 100, // max 100
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['start-time'] = $since; // a window of 48 hours within 180 days
+            $request['end-time'] = $this->sum($since, 48 * 60 * 60 * 1000);
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // spot_private_get_v1_order_orders GET /v1/order/orders
+        //
+        //     {
+        //         status => "ok",
+        //         $data => array(
+        //             {
+        //                 id => 13997833014,
+        //                 $symbol => "ethbtc",
+        //                 'account-id' => 3398321,
+        //                 'client-order-id' => "23456",
+        //                 amount => "0.045000000000000000",
+        //                 price => "0.034014000000000000",
+        //                 'created-at' => 1545836976871,
+        //                 type => "sell-$limit",
+        //                 'field-amount' => "0.045000000000000000",
+        //                 'field-cash-amount' => "0.001530630000000000",
+        //                 'field-fees' => "0.000003061260000000",
+        //                 'finished-at' => 1545837948214,
+        //                 source => "spot-api",
+        //                 state => "filled",
+        //                 'canceled-at' => 0
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
+    }
+
+    public function fetch_spot_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_spot_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
+    }
+
+    public function fetch_closed_spot_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_spot_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
+    }
+
+    public function fetch_contract_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchContractOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        $request = array(
+            // POST /api/v1/contract_hisorders inverse futures ----------------
+            // 'symbol' => $market['settleId'], // BTC, ETH, ...
+            // 'order_type' => '1', // 1 $limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
+            // POST /swap-api/v1/swap_hisorders inverse swap ------------------
+            // POST /linear-swap-api/v1/swap_hisorders linear isolated --------
+            // POST /linear-swap-api/v1/swap_cross_hisorders linear cross -----
+            'contract_code' => $market['id'],
+            'trade_type' => 0, // 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long, 5 sell liquidation, 6 buy liquidation, 7 Delivery long, 8 Delivery short 11 reduce positions to close long, 12 reduce positions to close short
+            'type' => 1, // 1 all $orders, 2 finished $orders
+            'status' => '0', // comma separated, 0 all, 3 submitted $orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+            'create_date' => 90, // in days?
+            // 'page_index' => 1,
+            // 'page_size' => $limit, // default 20, max 50
+            // 'sort_by' => 'create_date', // create_date descending, update_time descending
+        );
+        $method = null;
+        $request['contract_code'] = $market['id'];
+        if ($market['linear']) {
+            $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+            $method = $this->get_supported_mapping($marginType, array(
+                'isolated' => 'contractPrivatePostLinearSwapApiV1SwapHisorders',
+                'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
+            ));
+        } else if ($market['inverse']) {
+            $method = $this->get_supported_mapping($marketType, array(
+                'future' => 'contractPrivatePostApiV1ContractHisorders',
+                'swap' => 'contractPrivatePostSwapApiV1SwapHisorders',
+            ));
+            if ($marketType === 'future') {
+                $request['symbol'] = $market['settleId'];
+            }
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => {
+        //             "orders" => array(
+        //                 array(
+        //                     "order_id" => 773131315209248768,
+        //                     "contract_code" => "ADA201225",
+        //                     "symbol" => "ADA",
+        //                     "lever_rate" => 20,
+        //                     "direction" => "buy",
+        //                     "offset" => "close",
+        //                     "volume" => 1,
+        //                     "price" => 0.0925,
+        //                     "create_date" => 1604370469629,
+        //                     "update_time" => 1603704221118,
+        //                     "order_source" => "web",
+        //                     "order_price_type" => 6,
+        //                     "order_type" => 1,
+        //                     "margin_frozen" => 0,
+        //                     "profit" => 0,
+        //                     "contract_type" => "quarter",
+        //                     "trade_volume" => 0,
+        //                     "trade_turnover" => 0,
+        //                     "fee" => 0,
+        //                     "trade_avg_price" => 0,
+        //                     "status" => 3,
+        //                     "order_id_str" => "773131315209248768",
+        //                     "fee_asset" => "ADA",
+        //                     "liquidation_type" => "0",
+        //                     "is_tpsl" => 0,
+        //                     "real_profit" => 0
+        //                     "pair" => "BTC-USDT",
+        //                     "business_type" => "futures",
+        //                     "margin_asset" => "USDT",
+        //                     "margin_mode" => "cross",
+        //                     "margin_account" => "USDT",
+        //                 }
+        //             ),
+        //             "total_page" => 19,
+        //             "current_page" => 1,
+        //             "total_size" => 19
+        //         ),
+        //         "ts" => 1604370617322
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $orders = $this->safe_value($data, 'orders', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function fetch_closed_contract_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'status' => '5,6,7', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+        );
+        return $this->fetch_contract_orders($symbol, $since, $limit, array_merge($request, $params));
+    }
+
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
+        $this->load_markets();
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'fetchSpotOrders',
+            'swap' => 'fetchContractOrders',
+            'future' => 'fetchContractOrders',
+        ));
+        if ($method === null) {
+            throw new NotSupported($this->id . ' fetchOrders does not support ' . $marketType . ' markets yet');
+        }
+        $contract = ($marketType === 'swap') || ($marketType === 'future');
+        if ($contract && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for ' . $marketType . ' orders');
+        }
+        return $this->$method ($symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
+        $this->load_markets();
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'fetchClosedSpotOrders',
+            'swap' => 'fetchClosedContractOrders',
+            'future' => 'fetchClosedContractOrders',
+        ));
+        if ($method === null) {
+            throw new NotSupported($this->id . ' fetchClosedOrders does not support ' . $marketType . ' markets yet');
+        }
+        return $this->$method ($symbol, $since, $limit, $params);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $methodType = null;
-        list($methodType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', null, $params);
         $request = array(
             // spot -----------------------------------------------------------
             // 'account-id' => $account['id'],
@@ -2477,7 +2920,7 @@ class huobi extends Exchange {
         );
         $method = null;
         $market = null;
-        if ($methodType === 'spot') {
+        if ($marketType === 'spot') {
             $method = 'spotPrivateGetV1OrderOpenOrders';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2505,14 +2948,14 @@ class huobi extends Exchange {
             $params = $this->omit($params, 'account-id');
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol for ' . $methodType . ' orders');
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol for ' . $marketType . ' orders');
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
-            if ($methodType === 'future') {
+            if ($marketType === 'future') {
                 $method = 'contractPrivatePostApiV1ContractOpenorders';
                 $request['symbol'] = $market['settleId'];
-            } else if ($methodType === 'swap') {
+            } else if ($marketType === 'swap') {
                 if ($market['linear']) {
                     $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
                     if ($marginType === 'isolated') {
@@ -2524,7 +2967,7 @@ class huobi extends Exchange {
                     $method = 'contractPrivatePostSwapApiV1SwapOpenorders';
                 }
             } else {
-                throw new NotSupported($this->id . ' cancelOrder() does not support ' . $methodType . ' markets');
+                throw new NotSupported($this->id . ' fetchOpenOrders() does not support ' . $marketType . ' markets');
             }
             if ($limit !== null) {
                 $request['page_size'] = $limit;
@@ -2671,7 +3114,7 @@ class huobi extends Exchange {
         //         "order_id_str":"924660854912552960"
         //     }
         //
-        // linear swap cross margin fetchOrder
+        // contracts fetchOrder
         //
         //     {
         //         "business_type":"swap",
@@ -2706,6 +3149,65 @@ class huobi extends Exchange {
         //         "margin_mode":"cross",
         //         "is_tpsl":0,
         //         "real_profit":0
+        //     }
+        //
+        // contracts fetchOrder detailed
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => {
+        //             "symbol" => "BTC",
+        //             "contract_code" => "BTC-USDT",
+        //             "instrument_price" => 0,
+        //             "final_interest" => 0,
+        //             "adjust_value" => 0,
+        //             "lever_rate" => 10,
+        //             "direction" => "sell",
+        //             "offset" => "open",
+        //             "volume" => 1.000000000000000000,
+        //             "price" => 13059.800000000000000000,
+        //             "created_at" => 1603703614712,
+        //             "canceled_at" => 0,
+        //             "order_source" => "api",
+        //             "order_price_type" => "opponent",
+        //             "margin_frozen" => 0,
+        //             "profit" => 0,
+        //             "trades" => array(
+        //                 array(
+        //                     "trade_id" => 131560927,
+        //                     "trade_price" => 13059.800000000000000000,
+        //                     "trade_volume" => 1.000000000000000000,
+        //                     "trade_turnover" => 13.059800000000000000,
+        //                     "trade_fee" => -0.005223920000000000,
+        //                     "created_at" => 1603703614715,
+        //                     "role" => "taker",
+        //                     "fee_asset" => "USDT",
+        //                     "profit" => 0,
+        //                     "real_profit" => 0,
+        //                     "id" => "131560927-770334322963152896-1"
+        //                 }
+        //             ),
+        //             "total_page" => 1,
+        //             "current_page" => 1,
+        //             "total_size" => 1,
+        //             "liquidation_type" => "0",
+        //             "fee_asset" => "USDT",
+        //             "fee" => -0.005223920000000000,
+        //             "order_id" => 770334322963152896,
+        //             "order_id_str" => "770334322963152896",
+        //             "client_order_id" => 57012021045,
+        //             "order_type" => "1",
+        //             "status" => 6,
+        //             "trade_avg_price" => 13059.800000000000000000,
+        //             "trade_turnover" => 13.059800000000000000,
+        //             "trade_volume" => 1.000000000000000000,
+        //             "margin_asset" => "USDT",
+        //             "margin_mode" => "isolated",
+        //             "margin_account" => "BTC-USDT",
+        //             "real_profit" => 0,
+        //             "is_tpsl" => 0
+        //         ),
+        //         "ts" => 1603703678477
         //     }
         //
         $id = $this->safe_string_2($order, 'id', 'order_id_str');
@@ -2748,6 +3250,7 @@ class huobi extends Exchange {
         }
         $stopPrice = $this->safe_string($order, 'stop-price');
         $average = $this->safe_string($order, 'trade_avg_price');
+        $trades = $this->safe_value($order, 'trades');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2769,21 +3272,21 @@ class huobi extends Exchange {
             'remaining' => null,
             'status' => $status,
             'fee' => $fee,
-            'trades' => null,
+            'trades' => $trades,
         ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        list($methodType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
-        $method = $this->get_supported_mapping($methodType, array(
+        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'createSpotOrder',
             'swap' => 'createContractOrder',
             'future' => 'createContractOrder',
         ));
         if ($method === null) {
-            throw new NotSupported($this->id . ' createOrder does not support ' . $type . ' markets yet');
+            throw new NotSupported($this->id . ' createOrder does not support ' . $marketType . ' markets yet');
         }
         return $this->$method ($symbol, $type, $side, $amount, $price, $query);
     }
@@ -2828,6 +3331,10 @@ class huobi extends Exchange {
                 throw new NotSupported($this->id . 'createOrder() does not support ' . $type . ' orders');
             }
         }
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly) {
+            $orderType = 'limit-maker';
+        }
         $request['type'] = $side . '-' . $orderType;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if ($clientOrderId === null) {
@@ -2837,7 +3344,7 @@ class huobi extends Exchange {
         } else {
             $request['client-order-id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'client-order-id' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'client-order-id', 'postOnly' ));
         if (($orderType === 'market') && ($side === 'buy')) {
             if ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($price === null) {
@@ -2867,20 +3374,19 @@ class huobi extends Exchange {
         //
         //     array("status":"ok","data":"438398393065481")
         //
-        $timestamp = $this->milliseconds();
         $id = $this->safe_string($response, 'data');
         return array(
             'info' => $response,
             'id' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'lastTradeTimestamp' => null,
             'status' => null,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
+            'symbol' => null,
+            'type' => null,
+            'side' => null,
+            'price' => null,
+            'amount' => null,
             'filled' => null,
             'remaining' => null,
             'cost' => null,
@@ -2998,19 +3504,19 @@ class huobi extends Exchange {
             $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
         }
         $method = null;
-        if ($market['swap']) {
-            if ($market['linear']) {
-                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                if ($marginType === 'isolated') {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
-                } else if ($marginType === 'cross') {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
-                }
-            } else {
-                $method = 'contractPrivatePostSwapApiV1SwapOrder';
+        if ($market['linear']) {
+            $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+            if ($marginType === 'isolated') {
+                $method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
+            } else if ($marginType === 'cross') {
+                $method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
             }
-        } else if ($market['future']) {
-            $method = 'contractPrivatePostApiV1ContractOrder';
+        } else if ($market['inverse']) {
+            if ($market['swap']) {
+                $method = 'contractPrivatePostSwapApiV1SwapOrder';
+            } else if ($market['future']) {
+                $method = 'contractPrivatePostApiV1ContractOrder';
+            }
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -3031,8 +3537,8 @@ class huobi extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $methodType = null;
-        list($methodType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
         $request = array(
             // spot -----------------------------------------------------------
             // 'order-id' => 'id',
@@ -3046,7 +3552,8 @@ class huobi extends Exchange {
             // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         );
         $method = null;
-        if ($methodType === 'spot') {
+        $market = null;
+        if ($marketType === 'spot') {
             $clientOrderId = $this->safe_string_2($params, 'client-order-id', 'clientOrderId');
             $method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
             if ($clientOrderId === null) {
@@ -3058,25 +3565,25 @@ class huobi extends Exchange {
             }
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol for ' . $methodType . ' orders');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol for ' . $marketType . ' orders');
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
-            if ($methodType === 'future') {
-                $method = 'contractPrivatePostApiV1ContractCancel';
-            } else if ($methodType === 'swap') {
-                if ($market['linear']) {
-                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                    if ($marginType === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                    } else if ($marginType === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
-                    }
-                } else if ($market['inverse']) {
+            if ($market['linear']) {
+                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                if ($marginType === 'isolated') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
+                } else if ($marginType === 'cross') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
+                }
+            } else if ($market['inverse']) {
+                if ($market['future']) {
+                    $method = 'contractPrivatePostApiV1ContractCancel';
+                } else if ($market['swap']) {
                     $method = 'contractPrivatePostSwapApiV1SwapCancel';
                 }
             } else {
-                throw new NotSupported($this->id . ' cancelOrder() does not support ' . $methodType . ' markets');
+                throw new NotSupported($this->id . ' cancelOrder() does not support ' . $marketType . ' markets');
             }
             $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
             if ($clientOrderId === null) {
@@ -3106,7 +3613,7 @@ class huobi extends Exchange {
         //         "ts":1640504486089
         //     }
         //
-        return array_merge($this->parse_order($response), array(
+        return array_merge($this->parse_order($response, $market), array(
             'id' => $id,
             'status' => 'canceled',
         ));
@@ -3114,8 +3621,8 @@ class huobi extends Exchange {
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $methodType = null;
-        list($methodType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
         $request = array(
             // spot -----------------------------------------------------------
             'order-ids' => array(), // max 50 $ids
@@ -3127,7 +3634,7 @@ class huobi extends Exchange {
             // 'symbol' => $market['settleId'],
         );
         $method = null;
-        if ($methodType === 'spot') {
+        if ($marketType === 'spot') {
             $clientOrderIds = $this->safe_string_2($params, 'client-order-id', 'clientOrderId');
             $clientOrderIds = $this->safe_string_2($params, 'client-order-ids', 'clientOrderIds', $clientOrderIds);
             if ($clientOrderIds === null) {
@@ -3139,26 +3646,26 @@ class huobi extends Exchange {
             $method = 'spotPrivatePostV1OrderOrdersBatchcancel';
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol for ' . $methodType . ' orders');
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol for ' . $marketType . ' orders');
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
-            if ($methodType === 'future') {
-                $method = 'contractPrivatePostApiV1ContractCancel';
-                $request['symbol'] = $market['settleId'];
-            } else if ($methodType === 'swap') {
-                if ($market['linear']) {
-                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                    if ($marginType === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                    } else if ($marginType === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
-                    }
-                } else if ($market['inverse']) {
-                    $method = 'contractPrivatePostSwapApiV1SwapCancel';
+            if ($market['linear']) {
+                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                if ($marginType === 'isolated') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
+                } else if ($marginType === 'cross') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
                 }
-            } else {
-                throw new NotSupported($this->id . ' cancelOrders() does not support ' . $methodType . ' markets');
+            } else if ($market['inverse']) {
+                if ($market['future']) {
+                    $method = 'contractPrivatePostApiV1ContractCancel';
+                    $request['symbol'] = $market['settleId'];
+                } else if ($market['swap']) {
+                    $method = 'contractPrivatePostSwapApiV1SwapCancel';
+                } else {
+                    throw new NotSupported($this->id . ' cancelOrders() does not support ' . $marketType . ' markets');
+                }
             }
             $clientOrderIds = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
             $clientOrderIds = $this->safe_string_2($params, 'client_order_ids', 'clientOrderIds', $clientOrderIds);
@@ -3226,8 +3733,8 @@ class huobi extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         $this->load_markets();
-        $methodType = null;
-        list($methodType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
         $request = array(
             // spot -----------------------------------------------------------
             // 'account-id' => account['id'],
@@ -3244,7 +3751,7 @@ class huobi extends Exchange {
         );
         $market = null;
         $method = null;
-        if ($methodType === 'spot') {
+        if ($marketType === 'spot') {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
@@ -3252,26 +3759,26 @@ class huobi extends Exchange {
             $method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders';
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol for ' . $methodType . ' orders');
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol for ' . $marketType . ' orders');
             }
             $market = $this->market($symbol);
             $request['contract_code'] = $market['id'];
-            if ($methodType === 'future') {
-                $method = 'contractPrivatePostApiV1ContractCancelall';
-                $request['symbol'] = $market['settleId'];
-            } else if ($methodType === 'swap') {
-                if ($market['linear']) {
-                    $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
-                    if ($marginType === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
-                    } else if ($marginType === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
-                    }
-                } else if ($market['inverse']) {
-                    $method = 'contractPrivatePostSwapApiV1SwapCancelall';
+            if ($market['linear']) {
+                $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+                if ($marginType === 'isolated') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
+                } else if ($marginType === 'cross') {
+                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
                 }
-            } else {
-                throw new NotSupported($this->id . ' cancelOrders() does not support ' . $methodType . ' markets');
+            } else if ($market['inverse']) {
+                if ($marketType === 'future') {
+                    $method = 'contractPrivatePostApiV1ContractCancelall';
+                    $request['symbol'] = $market['settleId'];
+                } else if ($marketType === 'swap') {
+                    $method = 'contractPrivatePostSwapApiV1SwapCancelall';
+                } else {
+                    throw new NotSupported($this->id . ' cancelOrders() does not support ' . $marketType . ' markets');
+                }
             }
         }
         $response = $this->$method (array_merge($request, $params));
@@ -3550,14 +4057,21 @@ class huobi extends Exchange {
         if ($feeCost !== null) {
             $feeCost = abs($feeCost);
         }
+        $address = $this->safe_string($transaction, 'address');
+        $network = $this->safe_string_upper($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'address' => $this->safe_string($transaction, 'address'),
+            'network' => $network,
+            'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
@@ -4066,5 +4580,543 @@ class huobi extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
+        $method = null;
+        $request = array(
+            'type' => '30,31',
+        );
+        if ($market['linear']) {
+            $method = 'contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact';
+            //
+            // {
+            //   status => 'ok',
+            //   $data => array(
+            //     financial_record => array(
+            //       array(
+            //         id => '1320088022',
+            //         type => '30',
+            //         amount => '0.004732510000000000',
+            //         ts => '1641168019321',
+            //         contract_code => 'BTC-USDT',
+            //         asset => 'USDT',
+            //         margin_account => 'BTC-USDT',
+            //         face_margin_account => ''
+            //       ),
+            //     ),
+            //     remain_size => '0',
+            //     next_id => null
+            //   ),
+            //   ts => '1641189898425'
+            // }
+            if ($marginType === 'isolated') {
+                $request['margin_account'] = $market['id'];
+            } else {
+                $request['margin_account'] = $market['quote'];
+            }
+        } else {
+            if ($marketType === 'swap') {
+                $method = 'contractPrivatePostSwapApiV1SwapFinancialRecordExact';
+                $request['contract_code'] = $market['id'];
+            } else {
+                throw new ExchangeError($this->id . ' fetchFundingHistory() only makes sense for swap contracts');
+            }
+            //
+            // swap
+            //     {
+            //       status => 'ok',
+            //       $data => array(
+            //         financial_record => array(
+            //           array(
+            //             id => '1667436164',
+            //             $symbol => 'BTC',
+            //             type => '30',
+            //             amount => '3.9755491985E-8',
+            //             ts => '1641168097323',
+            //             contract_code => 'BTC-USD'
+            //           ),
+            //         ),
+            //         remain_size => '0',
+            //         next_id => null
+            //       ),
+            //       ts => '1641190296379'
+            //     }
+            //
+        }
+        $response = $this->$method (array_merge($request, $query));
+        $data = $this->safe_value($response, 'data', array());
+        $financialRecord = $this->safe_value($data, 'financial_record', array());
+        return $this->parse_incomes($financialRecord, $market, $since, $limit);
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
+        $method = null;
+        if ($market['linear']) {
+            $method = $this->get_supported_mapping($marginType, array(
+                'isolated' => 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
+                'cross' => 'contractPrivatePostLinearSwapCrossApiV1SwapSwitchLeverRate',
+            ));
+            //
+            //     {
+            //       status => 'ok',
+            //       data => array(
+            //         contract_code => 'BTC-USDT',
+            //         lever_rate => '100',
+            //         margin_mode => 'isolated'
+            //       ),
+            //       ts => '1641184710649'
+            //     }
+            //
+        } else {
+            $method = $this->get_supported_mapping($marketType, array(
+                'future' => 'contractPrivatePostApiV1ContractSwitchLeverRate',
+                'swap' => 'contractPrivatePostSwapApiV1SwapSwitchLeverRate',
+            ));
+            //
+            // future
+            //     {
+            //       status => 'ok',
+            //       data => array( $symbol => 'BTC', lever_rate => 5 ),
+            //       ts => 1641184578678
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //       status => 'ok',
+            //       data => array( contract_code => 'BTC-USD', lever_rate => '5' ),
+            //       ts => '1641184652979'
+            //     }
+            //
+        }
+        $request = array(
+            'lever_rate' => $leverage,
+        );
+        if ($marketType === 'future') {
+            $request['symbol'] = $market['settle'];
+        } else {
+            $request['contract_code'] = $market['id'];
+        }
+        $response = $this->$method (array_merge($request, $query));
+        return $response;
+    }
+
+    public function parse_income($income, $market = null) {
+        //
+        //     {
+        //       $id => '1667161118',
+        //       $symbol => 'BTC',
+        //       type => '31',
+        //       $amount => '-2.11306593188E-7',
+        //       ts => '1641139308983',
+        //       contract_code => 'BTC-USD'
+        //     }
+        //
+        $marketId = $this->safe_string($income, 'contract_code');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $amount = $this->safe_number($income, 'amount');
+        $timestamp = $this->safe_integer($income, 'ts');
+        $id = $this->safe_string($income, 'id');
+        $currencyId = $this->safe_string_2($income, 'symbol', 'asset');
+        $code = $this->safe_currency_code($currencyId);
+        return array(
+            'info' => $income,
+            'symbol' => $symbol,
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $id,
+            'amount' => $amount,
+        );
+    }
+
+    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
+        $result = array();
+        for ($i = 0; $i < count($incomes); $i++) {
+            $entry = $incomes[$i];
+            $parsed = $this->parse_income($entry, $market);
+            $result[] = $parsed;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit, 'timestamp');
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //       $symbol => 'BTC',
+        //       contract_code => 'BTC-USDT',
+        //       volume => '1.000000000000000000',
+        //       available => '1.000000000000000000',
+        //       frozen => '0E-18',
+        //       cost_open => '47162.000000000000000000',
+        //       cost_hold => '47151.300000000000000000',
+        //       profit_unreal => '0.007300000000000000',
+        //       profit_rate => '-0.000144183876850008',
+        //       lever_rate => '2',
+        //       position_margin => '23.579300000000000000',
+        //       direction => 'buy',
+        //       profit => '-0.003400000000000000',
+        //       last_price => '47158.6',
+        //       margin_asset => 'USDT',
+        //       margin_mode => 'isolated',
+        //       margin_account => 'BTC-USDT',
+        //       margin_balance => '24.973020070000000000',
+        //       margin_position => '23.579300000000000000',
+        //       margin_frozen => '0',
+        //       margin_available => '1.393720070000000000',
+        //       profit_real => '0E-18',
+        //       risk_rate => '1.044107779705080303',
+        //       withdraw_available => '1.386420070000000000000000000000000000',
+        //       liquidation_price => '22353.229148614609571788',
+        //       adjust_factor => '0.015000000000000000',
+        //       margin_static => '24.965720070000000000'
+        //     }
+        //
+        $market = $this->safe_market($this->safe_string($position, 'contract_code'));
+        $symbol = $market['symbol'];
+        $contracts = $this->safe_string($position, 'volume');
+        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSizeString = $this->number_to_string($contractSize);
+        $entryPrice = $this->safe_number($position, 'cost_hold');
+        $initialMargin = $this->safe_string($position, 'position_margin');
+        $rawSide = $this->safe_string($position, 'direction');
+        $side = ($rawSide === 'buy') ? 'long' : 'short';
+        $unrealizedProfit = $this->safe_number($position, 'profit_unreal');
+        $marginType = $this->safe_string($position, 'margin_mode');
+        $leverage = $this->safe_string($position, 'lever_rate');
+        $percentage = Precise::string_mul($this->safe_string($position, 'profit_rate'), '100');
+        $lastPrice = $this->safe_string($position, 'last_price');
+        $faceValue = Precise::string_mul($contracts, $contractSizeString);
+        $notional = null;
+        if ($market['linear']) {
+            $notional = Precise::string_mul($faceValue, $lastPrice);
+        } else {
+            $notional = Precise::string_div($faceValue, $lastPrice);
+            $marginType = 'cross';
+        }
+        $intialMarginPercentage = Precise::string_div($initialMargin, $notional);
+        $collateral = $this->safe_string($position, 'margin_balance');
+        $liquidationPrice = $this->safe_number($position, 'liquidation_price');
+        $adjustmentFactor = $this->safe_string($position, 'adjust_factor');
+        $maintenanceMarginPercentage = Precise::string_div($adjustmentFactor, $leverage);
+        $maintenanceMargin = Precise::string_mul($maintenanceMarginPercentage, $notional);
+        $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
+        return array(
+            'info' => $position,
+            'symbol' => $symbol,
+            'contracts' => $this->parse_number($contracts),
+            'contractSize' => $contractSize,
+            'entryPrice' => $entryPrice,
+            'collateral' => $this->parse_number($collateral),
+            'side' => $side,
+            'unrealizedProfit' => $unrealizedProfit,
+            'leverage' => $this->parse_number($leverage),
+            'percentage' => $this->parse_number($percentage),
+            'marginType' => $marginType,
+            'notional' => $this->parse_number($notional),
+            'markPrice' => null,
+            'liquidationPrice' => $liquidationPrice,
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => $this->parse_number($intialMarginPercentage),
+            'maintenanceMargin' => $this->parse_number($maintenanceMargin),
+            'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentage),
+            'marginRatio' => $this->parse_number($marginRatio),
+            'timestamp' => null,
+            'datetime' => null,
+        );
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+        $method = null;
+        if ($defaultSubType === 'linear') {
+            $method = $this->get_supported_mapping($marginType, array(
+                'isolated' => 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
+                'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
+            ));
+            //
+            //     {
+            //       status => 'ok',
+            //       $data => array(
+            //         {
+            //           symbol => 'BTC',
+            //           contract_code => 'BTC-USDT',
+            //           volume => '1.000000000000000000',
+            //           available => '1.000000000000000000',
+            //           frozen => '0E-18',
+            //           cost_open => '47162.000000000000000000',
+            //           cost_hold => '47162.000000000000000000',
+            //           profit_unreal => '0.047300000000000000',
+            //           profit_rate => '0.002005852169119206',
+            //           lever_rate => '2',
+            //           position_margin => '23.604650000000000000',
+            //           direction => 'buy',
+            //           profit => '0.047300000000000000',
+            //           last_price => '47209.3',
+            //           margin_asset => 'USDT',
+            //           margin_mode => 'isolated',
+            //           margin_account => 'BTC-USDT'
+            //         }
+            //       ),
+            //       ts => '1641108676768'
+            //     }
+            //
+        } else {
+            $method = $this->get_supported_mapping($marketType, array(
+                'future' => 'contractPrivatePostApiV1ContractPositionInfo',
+                'swap' => 'contractPrivatePostSwapApiV1SwapPositionInfo',
+            ));
+            //
+            // future
+            //     {
+            //       status => 'ok',
+            //       $data => array(
+            //         {
+            //           symbol => 'BTC',
+            //           contract_code => 'BTC220624',
+            //           contract_type => 'next_quarter',
+            //           volume => '1.000000000000000000',
+            //           available => '1.000000000000000000',
+            //           frozen => '0E-18',
+            //           cost_open => '49018.880000000009853343',
+            //           cost_hold => '49018.880000000009853343',
+            //           profit_unreal => '-8.62360608500000000000000000000000000000000000000E-7',
+            //           profit_rate => '-0.000845439023678622',
+            //           lever_rate => '2',
+            //           position_margin => '0.001019583964880634',
+            //           direction => 'sell',
+            //           profit => '-8.62360608500000000000000000000000000000000000000E-7',
+            //           last_price => '49039.61'
+            //         }
+            //       ),
+            //       ts => '1641109895199'
+            //     }
+            //
+            // swap
+            //     {
+            //       status => 'ok',
+            //       $data => array(
+            //         {
+            //           symbol => 'BTC',
+            //           contract_code => 'BTC-USD',
+            //           volume => '1.000000000000000000',
+            //           available => '1.000000000000000000',
+            //           frozen => '0E-18',
+            //           cost_open => '47150.000000000012353300',
+            //           cost_hold => '47150.000000000012353300',
+            //           profit_unreal => '0E-54',
+            //           profit_rate => '-7.86E-16',
+            //           lever_rate => '3',
+            //           position_margin => '0.000706963591375044',
+            //           direction => 'buy',
+            //           profit => '0E-54',
+            //           last_price => '47150'
+            //         }
+            //       ),
+            //       ts => '1641109636572'
+            //     }
+            //
+        }
+        $response = $this->$method ($query);
+        $data = $this->safe_value($response, 'data');
+        $timestamp = $this->safe_integer($response, 'ts');
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $position = $data[$i];
+            $parsed = $this->parse_position($position);
+            $result[] = array_merge($parsed, array(
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            ));
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function fetch_position($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
+        $method = null;
+        if ($market['linear']) {
+            $method = $this->get_supported_mapping($marginType, array(
+                'isolated' => 'contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo',
+                'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo',
+            ));
+            //
+            //     {
+            //       status => 'ok',
+            //       $data => array(
+            //         {
+            //           $positions => array(
+            //             {
+            //               $symbol => 'BTC',
+            //               contract_code => 'BTC-USDT',
+            //               volume => 1,
+            //               available => 1,
+            //               frozen => 0,
+            //               cost_open => 47027.1,
+            //               cost_hold => 47324.4,
+            //               profit_unreal => 0.1705,
+            //               profit_rate => -0.269631765513927,
+            //               lever_rate => 100,
+            //               position_margin => 0.471539,
+            //               direction => 'sell',
+            //               profit => -0.1268,
+            //               last_price => 47153.9,
+            //               margin_asset => 'USDT',
+            //               margin_mode => 'isolated',
+            //               margin_account => 'BTC-USDT'
+            //             }
+            //           ),
+            //           $symbol => 'BTC',
+            //           margin_balance => 8.01274699,
+            //           margin_position => 0.471539,
+            //           margin_frozen => 0,
+            //           margin_available => 7.54120799,
+            //           profit_real => 0,
+            //           profit_unreal => 0.1705,
+            //           risk_rate => 16.442755615124092,
+            //           withdraw_available => 7.37070799,
+            //           liquidation_price => 54864.89009448036,
+            //           lever_rate => 100,
+            //           adjust_factor => 0.55,
+            //           margin_static => 7.84224699,
+            //           contract_code => 'BTC-USDT',
+            //           margin_asset => 'USDT',
+            //           margin_mode => 'isolated',
+            //           margin_account => 'BTC-USDT'
+            //         }
+            //       ),
+            //       ts => 1641162539767
+            //     }
+            //
+        } else {
+            $method = $this->get_supported_mapping($marketType, array(
+                'future' => 'contractPrivatePostApiV1ContractAccountPositionInfo',
+                'swap' => 'contractPrivatePostSwapApiV1SwapAccountPositionInfo',
+            ));
+            // future
+            //     {
+            //       status => 'ok',
+            //       $data => array(
+            //         {
+            //           $symbol => 'BTC',
+            //           contract_code => 'BTC-USD',
+            //           margin_balance => 0.000752347253890835,
+            //           margin_position => 0.000705870726835087,
+            //           margin_frozen => 0,
+            //           margin_available => 0.000046476527055748,
+            //           profit_real => 0,
+            //           profit_unreal => -0.000004546248622,
+            //           risk_rate => 1.0508428311146076,
+            //           withdraw_available => 0.000046476527055748,
+            //           liquidation_price => 35017.91655851386,
+            //           lever_rate => 3,
+            //           adjust_factor => 0.015,
+            //           margin_static => 0.000756893502512835,
+            //           $positions => array(
+            //             {
+            //               $symbol => 'BTC',
+            //               contract_code => 'BTC-USD',
+            //               volume => 1,
+            //               available => 1,
+            //               frozen => 0,
+            //               cost_open => 47150.000000000015,
+            //               cost_hold => 47324.6,
+            //               profit_unreal => -0.000004546248622,
+            //               profit_rate => 0.00463757067530574,
+            //               lever_rate => 3,
+            //               position_margin => 0.000705870726835087,
+            //               direction => 'buy',
+            //               profit => 0.0000032785936199,
+            //               last_price => 47223
+            //             }
+            //           )
+            //         }
+            //       ),
+            //       ts => 1641162795228
+            //     }
+            //
+            // swap
+            //     {
+            //       status => 'ok',
+            //       $data => array(
+            //         {
+            //           $positions => array(
+            //             {
+            //               $symbol => 'BTC',
+            //               contract_code => 'BTC-USDT',
+            //               volume => 1,
+            //               available => 1,
+            //               frozen => 0,
+            //               cost_open => 47027.1,
+            //               cost_hold => 47324.4,
+            //               profit_unreal => 0.1705,
+            //               profit_rate => -0.269631765513927,
+            //               lever_rate => 100,
+            //               position_margin => 0.471539,
+            //               direction => 'sell',
+            //               profit => -0.1268,
+            //               last_price => 47153.9,
+            //               margin_asset => 'USDT',
+            //               margin_mode => 'isolated',
+            //               margin_account => 'BTC-USDT'
+            //             }
+            //           ),
+            //           $symbol => 'BTC',
+            //           margin_balance => 8.01274699,
+            //           margin_position => 0.471539,
+            //           margin_frozen => 0,
+            //           margin_available => 7.54120799,
+            //           profit_real => 0,
+            //           profit_unreal => 0.1705,
+            //           risk_rate => 16.442755615124092,
+            //           withdraw_available => 7.37070799,
+            //           liquidation_price => 54864.89009448036,
+            //           lever_rate => 100,
+            //           adjust_factor => 0.55,
+            //           margin_static => 7.84224699,
+            //           contract_code => 'BTC-USDT',
+            //           margin_asset => 'USDT',
+            //           margin_mode => 'isolated',
+            //           margin_account => 'BTC-USDT'
+            //         }
+            //       ),
+            //       ts => 1641162539767
+            //     }
+            //
+        }
+        $request = array(
+            'contract_code' => $market['id'],
+        );
+        $response = $this->$method (array_merge($request, $query));
+        $data = $this->safe_value($response, 'data');
+        $account = $this->safe_value($data, 0);
+        $omitted = $this->omit($account, array( 'positions' ));
+        $positions = $this->safe_value($account, 'positions');
+        $position = $this->safe_value($positions, 0);
+        $timestamp = $this->safe_integer($response, 'ts');
+        $parsed = $this->parse_position(array_merge($position, $omitted));
+        return array_merge($parsed, array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
     }
 }

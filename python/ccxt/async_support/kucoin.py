@@ -439,13 +439,6 @@ class kucoin(Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    async def load_time_difference(self, params={}):
-        response = await self.publicGetTimestamp(params)
-        after = self.milliseconds()
-        kucoinTime = self.safe_integer(response, 'data')
-        self.options['timeDifference'] = int(after - kucoinTime)
-        return self.options['timeDifference']
-
     async def fetch_time(self, params={}):
         response = await self.publicGetTimestamp(params)
         #
@@ -1440,10 +1433,13 @@ class kucoin(Exchange):
         request = {
             'symbol': market['id'],
         }
-        if since is not None:
-            request['startAt'] = int(math.floor(since / 1000))
-        if limit is not None:
-            request['pageSize'] = limit
+        # pagination is not supported on the exchange side anymore
+        # if since is not None:
+        #     request['startAt'] = int(math.floor(since / 1000))
+        # }
+        # if limit is not None:
+        #     request['pageSize'] = limit
+        # }
         response = await self.publicGetMarketHistories(self.extend(request, params))
         #
         #     {
@@ -1719,6 +1715,7 @@ class kucoin(Exchange):
             'info': transaction,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

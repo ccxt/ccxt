@@ -427,14 +427,6 @@ class kucoin extends Exchange {
         return $this->milliseconds();
     }
 
-    public function load_time_difference($params = array ()) {
-        $response = $this->publicGetTimestamp ($params);
-        $after = $this->milliseconds();
-        $kucoinTime = $this->safe_integer($response, 'data');
-        $this->options['timeDifference'] = intval($after - $kucoinTime);
-        return $this->options['timeDifference'];
-    }
-
     public function fetch_time($params = array ()) {
         $response = $this->publicGetTimestamp ($params);
         //
@@ -1488,12 +1480,13 @@ class kucoin extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($since !== null) {
-            $request['startAt'] = (int) floor($since / 1000);
-        }
-        if ($limit !== null) {
-            $request['pageSize'] = $limit;
-        }
+        // pagination is not supported on the exchange side anymore
+        // if ($since !== null) {
+        //     $request['startAt'] = (int) floor($since / 1000);
+        // }
+        // if ($limit !== null) {
+        //     $request['pageSize'] = $limit;
+        // }
         $response = $this->publicGetMarketHistories (array_merge($request, $params));
         //
         //     {
@@ -1791,6 +1784,7 @@ class kucoin extends Exchange {
             'info' => $transaction,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

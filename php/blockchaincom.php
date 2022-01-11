@@ -16,7 +16,7 @@ class blockchaincom extends Exchange {
             'id' => 'blockchaincom',
             'secret' => null,
             'name' => 'Blockchain.com',
-            'countries' => ['LX'],
+            'countries' => array( 'LX' ),
             'rateLimit' => 10000,
             'version' => 'v3',
             'has' => array(
@@ -109,34 +109,34 @@ class blockchaincom extends Exchange {
                     'tierBased' => true,
                     'percentage' => true,
                     'tiers' => array(
-                        'taker' => [
-                            [$this->parse_number('0'), $this->parse_number('0.004')],
-                            [$this->parse_number('10000'), $this->parse_number('0.0022')],
-                            [$this->parse_number('50000'), $this->parse_number('0.002')],
-                            [$this->parse_number('100000'), $this->parse_number('0.0018')],
-                            [$this->parse_number('500000'), $this->parse_number('0.0018')],
-                            [$this->parse_number('1000000'), $this->parse_number('0.0018')],
-                            [$this->parse_number('2500000'), $this->parse_number('0.0018')],
-                            [$this->parse_number('5000000'), $this->parse_number('0.0016')],
-                            [$this->parse_number('25000000'), $this->parse_number('0.0014')],
-                            [$this->parse_number('100000000'), $this->parse_number('0.0011')],
-                            [$this->parse_number('500000000'), $this->parse_number('0.0008')],
-                            [$this->parse_number('1000000000'), $this->parse_number('0.0006')],
-                        ],
-                        'maker' => [
-                            [$this->parse_number('0'), $this->parse_number('0.002')],
-                            [$this->parse_number('10000'), $this->parse_number('0.0012')],
-                            [$this->parse_number('50000'), $this->parse_number('0.001')],
-                            [$this->parse_number('100000'), $this->parse_number('0.0008')],
-                            [$this->parse_number('500000'), $this->parse_number('0.0007000000000000001')],
-                            [$this->parse_number('1000000'), $this->parse_number('0.0006')],
-                            [$this->parse_number('2500000'), $this->parse_number('0.0005')],
-                            [$this->parse_number('5000000'), $this->parse_number('0.0004')],
-                            [$this->parse_number('25000000'), $this->parse_number('0.0003')],
-                            [$this->parse_number('100000000'), $this->parse_number('0.0002')],
-                            [$this->parse_number('500000000'), $this->parse_number('0.0001')],
-                            [$this->parse_number('1000000000'), $this->parse_number('0')],
-                        ],
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.0022') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.0011') ),
+                            array( $this->parse_number('500000000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('1000000000'), $this->parse_number('0.0006') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0007000000000000001') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0.0003') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('500000000'), $this->parse_number('0.0001') ),
+                            array( $this->parse_number('1000000000'), $this->parse_number('0') ),
+                        ),
                     ),
                 ),
             ),
@@ -429,7 +429,7 @@ class blockchaincom extends Exchange {
             'ordType' => strtoupper($type), // LIMIT, MARKET, STOP, STOPLIMIT
             'clOrdId' => $clientOrderId,
         );
-        $params = $this->omit($params, ['clientOrderId', 'clOrdId']);
+        $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
         if ($request['ordType'] === 'LIMIT') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -606,7 +606,7 @@ class blockchaincom extends Exchange {
         $address = null;
         if ($rawAddress !== null) {
             // if a $tag or memo is used it is separated by a colon in the 'address' value
-            [$address, $tag] = explode(':', $rawAddress);
+            list($address, $tag) = explode(':', $rawAddress);
         }
         $result = array( 'info' => $response );
         $result['currency'] = $currency['code'];
@@ -681,6 +681,7 @@ class blockchaincom extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => $address,

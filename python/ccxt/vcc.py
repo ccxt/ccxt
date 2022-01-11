@@ -293,20 +293,7 @@ class vcc(Exchange):
             'taker': self.safe_number(response, 'takeLiquidityRate'),
         }
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetBalance(params)
-        #
-        #     {
-        #         "message":null,
-        #         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
-        #         "data":{
-        #             "vnd":{"balance":0,"available_balance":0},
-        #             "btc":{"balance":0,"available_balance":0},
-        #             "eth":{"balance":0,"available_balance":0},
-        #         },
-        #     }
-        #
+    def parse_balance(self, response):
         data = self.safe_value(response, 'data')
         result = {
             'info': response,
@@ -323,6 +310,22 @@ class vcc(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetBalance(params)
+        #
+        #     {
+        #         "message":null,
+        #         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
+        #         "data":{
+        #             "vnd":{"balance":0,"available_balance":0},
+        #             "btc":{"balance":0,"available_balance":0},
+        #             "eth":{"balance":0,"available_balance":0},
+        #         },
+        #     }
+        #
+        return self.parse_balance(response)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -719,13 +722,15 @@ class vcc(Exchange):
                 'cost': feeCost,
                 'currency': code,
             }
-        type = amount > 'deposit' if 0 else 'withdrawal'
+        type = 'deposit' if (amount > 0) else 'withdrawal'
+        network = self.safe_string(transaction, 'network')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

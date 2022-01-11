@@ -433,18 +433,7 @@ class timex(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.tradingGetBalances(params)
-        #
-        #     [
-        #         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
-        #         {"currency":"AUDT","totalBalance":"0","lockedBalance":"0"},
-        #         {"currency":"ETH","totalBalance":"0","lockedBalance":"0"},
-        #         {"currency":"TIME","totalBalance":"0","lockedBalance":"0"},
-        #         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
-        #     ]
-        #
+    def parse_balance(self, response):
         result = {
             'info': response,
             'timestamp': None,
@@ -459,6 +448,20 @@ class timex(Exchange):
             account['used'] = self.safe_string(balance, 'lockedBalance')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.tradingGetBalances(params)
+        #
+        #     [
+        #         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
+        #         {"currency":"AUDT","totalBalance":"0","lockedBalance":"0"},
+        #         {"currency":"ETH","totalBalance":"0","lockedBalance":"0"},
+        #         {"currency":"TIME","totalBalance":"0","lockedBalance":"0"},
+        #         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
+        #     ]
+        #
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

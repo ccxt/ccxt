@@ -9,8 +9,8 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 kraken = ccxt.kraken({
-    'apiKey': "hEvQNMDIeoCJbr7W/ZBb5CGOrx3G0lWF5B3zqa1JBxdZlEaL8EK+D0Mw",
-    'secret': "JaE9wI6Nwgh5oRxiHcVxurwzwBxwc05W/qv/k1srGg4s3EYuXPpNkLLM5NYbbWpM8rCyijIeDavRuqWbU0ZV9A==",
+    'apiKey': "YOUR_API_KEY",
+    'secret': "YOUR_SECRET",
     'verbose': True,  # switch it to False if you don't want the HTTP log
 })
 

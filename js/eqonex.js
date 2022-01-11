@@ -46,6 +46,7 @@ module.exports = class eqonex extends Exchange {
                 '6h': 5,
                 '1d': 6,
                 '7d': 7,
+                '1w': 7,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -298,6 +299,8 @@ module.exports = class eqonex extends Exchange {
             'precision': precision,
             'fee': fee,
             'active': active,
+            'deposit': undefined,
+            'withdraw': undefined,
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -364,7 +367,7 @@ module.exports = class eqonex extends Exchange {
         const low = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 3), market['precision']['price']));
         const close = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 4), market['precision']['price']));
         const volume = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 5), market['precision']['amount']));
-        return [timestamp, open, high, low, close, volume];
+        return [ timestamp, open, high, low, close, volume ];
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
@@ -550,6 +553,29 @@ module.exports = class eqonex extends Exchange {
         }, market);
     }
 
+    parseBalance (response) {
+        const positions = this.safeValue (response, 'positions', []);
+        const result = {
+            'info': response,
+        };
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const assetType = this.safeString (position, 'assetType');
+            if (assetType === 'ASSET') {
+                const currencyId = this.safeString (position, 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                const quantityString = this.safeString (position, 'quantity');
+                const availableQuantityString = this.safeString (position, 'availableQuantity');
+                const scale = this.safeInteger (position, 'quantity_scale');
+                const account = this.account ();
+                account['free'] = this.convertFromScale (availableQuantityString, scale);
+                account['total'] = this.convertFromScale (quantityString, scale);
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetPositions (params);
@@ -575,26 +601,7 @@ module.exports = class eqonex extends Exchange {
         //             },
         //         ]
         //     }
-        const positions = this.safeValue (response, 'positions', []);
-        const result = {
-            'info': response,
-        };
-        for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
-            const assetType = this.safeString (position, 'assetType');
-            if (assetType === 'ASSET') {
-                const currencyId = this.safeString (position, 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                const quantityString = this.safeString (position, 'quantity');
-                const availableQuantityString = this.safeString (position, 'availableQuantity');
-                const scale = this.safeInteger (position, 'quantity_scale');
-                const account = this.account ();
-                account['free'] = this.convertFromScale (availableQuantityString, scale);
-                account['total'] = this.convertFromScale (quantityString, scale);
-                result[code] = account;
-            }
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1120,6 +1127,7 @@ module.exports = class eqonex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': undefined,

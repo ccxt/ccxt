@@ -243,6 +243,8 @@ module.exports = class cex extends Exchange {
                 'code': code,
                 'name': id,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'precision': precision,
                 'fee': undefined,
                 'limits': {
@@ -354,9 +356,7 @@ module.exports = class cex extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+    parseBalance (response) {
         const result = { 'info': response };
         const ommited = [ 'username', 'timestamp' ];
         const balances = this.omit (response, ommited);
@@ -372,6 +372,12 @@ module.exports = class cex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostBalance (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

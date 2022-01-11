@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.65.38';
+$version = '1.67.1';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.65.38';
+    const VERSION = '1.67.1';
 
     public static $loop;
     public static $kernel;
@@ -325,5 +325,12 @@ class Exchange extends \ccxt\Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchTicker not supported yet');
         }
+    }
+
+    public function load_time_difference($params = array()) {
+        $server_time = yield $this->fetch_time($params);
+        $after = $this->milliseconds();
+        $this->options['timeDifference'] = $after - $server_time;
+        return $this->options['timeDifference'];
     }
 }

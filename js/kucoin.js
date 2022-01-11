@@ -425,14 +425,6 @@ module.exports = class kucoin extends Exchange {
         return this.milliseconds ();
     }
 
-    async loadTimeDifference (params = {}) {
-        const response = await this.publicGetTimestamp (params);
-        const after = this.milliseconds ();
-        const kucoinTime = this.safeInteger (response, 'data');
-        this.options['timeDifference'] = parseInt (after - kucoinTime);
-        return this.options['timeDifference'];
-    }
-
     async fetchTime (params = {}) {
         const response = await this.publicGetTimestamp (params);
         //
@@ -1486,12 +1478,13 @@ module.exports = class kucoin extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (since !== undefined) {
-            request['startAt'] = Math.floor (since / 1000);
-        }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
+        // pagination is not supported on the exchange side anymore
+        // if (since !== undefined) {
+        //     request['startAt'] = Math.floor (since / 1000);
+        // }
+        // if (limit !== undefined) {
+        //     request['pageSize'] = limit;
+        // }
         const response = await this.publicGetMarketHistories (this.extend (request, params));
         //
         //     {
@@ -1789,6 +1782,7 @@ module.exports = class kucoin extends Exchange {
             'info': transaction,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

@@ -43,7 +43,7 @@ const precisionConstants = {
 
 function numberToString (x) { // avoids scientific notation for too large and too small numbers
 
-    if (typeof x === 'string') return x
+    if (typeof x !== 'number') return x.toString ()
 
     const s = x.toString ()
     if (Math.abs (x) < 1.0) {

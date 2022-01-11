@@ -202,12 +202,7 @@ module.exports = class bithumb extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'currency': 'ALL',
-        };
-        const response = await this.privatePostInfoBalance (this.extend (request, params));
+    parseBalance (response) {
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data');
         const codes = Object.keys (this.currencies);
@@ -222,6 +217,15 @@ module.exports = class bithumb extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'currency': 'ALL',
+        };
+        const response = await this.privatePostInfoBalance (this.extend (request, params));
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

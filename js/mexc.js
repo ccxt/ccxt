@@ -19,6 +19,11 @@ module.exports = class mexc extends Exchange {
             'version': 'v2',
             'certified': true,
             'has': {
+                'spot': true,
+                'margin': undefined,
+                'swap': true,
+                'future': undefined,
+                'option': undefined,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -60,6 +65,7 @@ module.exports = class mexc extends Exchange {
                 '30m': '30m',
                 '1h': '1h',
                 '1d': '1d',
+                '1w': '1w',
                 '1M': '1M',
             },
             'urls': {
@@ -511,15 +517,14 @@ module.exports = class mexc extends Exchange {
                 'spot': false,
                 'margin': false,
                 'swap': true,
-                'futures': false,
+                'future': false,
                 'option': false,
-                'derivative': true,
                 'contract': true,
                 'linear': true,
                 'inverse': false,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.safeString (market, 'contractSize'),
+                'contractSize': this.safeNumber (market, 'contractSize'),
                 'active': (state === '0'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -609,7 +614,6 @@ module.exports = class mexc extends Exchange {
                 'future': false,
                 'option': false,
                 'active': (state === 'ENABLED'),
-                'derivative': false,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -1052,9 +1056,10 @@ module.exports = class mexc extends Exchange {
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe, timeframe);
         const request = {
             'symbol': market['id'],
-            'interval': timeframes[timeframe],
+            'interval': timeframeValue,
         };
         let method = undefined;
         if (market['spot']) {
@@ -1276,7 +1281,7 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        const rawNetwork = this.safeString (params, 'network');
+        const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
         const response = await this.fetchDepositAddressesByNetwork (code, params);
         const networks = this.safeValue (this.options, 'networks', {});
@@ -1301,7 +1306,8 @@ module.exports = class mexc extends Exchange {
             }
             return result;
         }
-        result = this.safeValue (response, network);
+        // TODO: add support for all aliases here
+        result = this.safeValue (response, rawNetwork);
         if (result === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
         }
@@ -1472,12 +1478,16 @@ module.exports = class mexc extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
-            'network': network,
             'status': status,
             'updated': updated,
             'fee': fee,
@@ -1561,10 +1571,15 @@ module.exports = class mexc extends Exchange {
             orderSide = 'ASK';
         }
         let orderType = type.toUpperCase ();
-        if (orderType === 'LIMIT') {
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            orderType = 'POST_ONLY';
+        } else if (orderType === 'LIMIT') {
             orderType = 'LIMIT_ORDER';
         } else if ((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL')) {
-            throw new InvalidOrder (this.id + ' createOrder does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
+            throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
+        } else {
+            throw new InvalidOrder (this.id + ' createOrder() allows limit orders only');
         }
         const request = {
             'symbol': market['id'],
@@ -1577,7 +1592,7 @@ module.exports = class mexc extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'type', 'clientOrderId', 'client_order_id' ]);
+        params = this.omit (params, [ 'type', 'clientOrderId', 'client_order_id', 'postOnly' ]);
         const response = await this.spotPrivatePostOrderPlace (this.extend (request, params));
         //
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -1595,7 +1610,10 @@ module.exports = class mexc extends Exchange {
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        if (type === 'limit') {
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            type = 2;
+        } else if (type === 'limit') {
             type = 1;
         } else if (type === 'market') {
             type = 6;
@@ -1636,7 +1654,7 @@ module.exports = class mexc extends Exchange {
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'externalOid' ]);
+        params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly' ]);
         const response = await this.contractPrivatePostOrderSubmit (this.extend (request, params));
         //
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}

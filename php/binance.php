@@ -32,51 +32,87 @@ class binance extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => null,
                 'CORS' => null,
+                'createDepositAddress' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'deposit' => null,
+                'fetchAccounts' => null,
+                'fetchAllTradingFees' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistory' => true,
                 'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchCanceledOrders' => null,
+                'fetchClosedOrder' => null,
                 'fetchClosedOrders' => 'emulated',
                 'fetchCurrencies' => true,
+                'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => null,
+                'fetchDepositAddressesByNetwork' => null,
                 'fetchDeposits' => true,
+                'fetchFundingFee' => null,
                 'fetchFundingFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
+                'fetchIsolatedPositions' => null,
+                'fetchL3OrderBook' => null,
+                'fetchLedger' => null,
+                'fetchLedgerEntry' => null,
+                'fetchLeverage' => null,
                 'fetchMarkets' => true,
+                'fetchMarketsByType' => null,
                 'fetchMarkOHLCV' => true,
+                'fetchMyBuys' => null,
+                'fetchMySells' => null,
                 'fetchMyTrades' => true,
+                'fetchNetworkDepositAddress' => null,
                 'fetchOHLCV' => true,
+                'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrderBooks' => null,
                 'fetchOrders' => true,
+                'fetchOrdersByState' => null,
+                'fetchOrdersByStatus' => null,
                 'fetchOrderTrades' => true,
+                'fetchPartiallyFilledOrders' => null,
+                'fetchPosition' => null,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTickersByType' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTradingLimits' => null,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
+                'fetchWithdrawAddress' => false,
+                'fetchWithdrawAddressesByNetwork' => false,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
+                'fetchWithdrawalWhitelist' => false,
+                'loadLeverageBrackets' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
+                'signIn' => false,
                 'transfer' => true,
+                'transferOut' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -139,9 +175,9 @@ class binance extends Exchange {
                 // the API structure below will need 3-layer apidefs
                 'sapi' => array(
                     'get' => array(
-                        'accountSnapshot' => 1,
                         'system/status' => 1,
                         // these endpoints require $this->apiKey
+                        'accountSnapshot' => 1,
                         'margin/asset' => 1,
                         'margin/pair' => 1,
                         'margin/allAssets' => 1,
@@ -175,6 +211,9 @@ class binance extends Exchange {
                         'margin/orderList' => 2,
                         'margin/allOrderList' => 10,
                         'margin/openOrderList' => 3,
+                        'margin/crossMarginData' => array( 'cost' => 1, 'noCoin' => 5 ),
+                        'margin/isolatedMarginData' => array( 'cost' => 1, 'noCoin' => 10 ),
+                        'margin/isolatedMarginTier' => 1,
                         'loan/income' => 1,
                         'fiat/orders' => 1,
                         'fiat/payments' => 1,
@@ -278,6 +317,12 @@ class binance extends Exchange {
                         'account/apiRestrictions' => 1,
                         // c2c / p2p
                         'c2c/orderMatch/listUserOrderHistory' => 1,
+                        // nft endpoints
+                        'nft/history/transactions' => 1,
+                        'nft/history/deposit' => 1,
+                        'nft/history/withdraw' => 1,
+                        'nft/user/getAsset' => 1,
+                        'pay/transactions' => 1,
                     ),
                     'post' => array(
                         'asset/dust' => 1,
@@ -883,56 +928,199 @@ class binance extends Exchange {
                     'Market is closed.' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1013,"msg":"Market is closed.")
                     'Too many requests. Please try again later.' => '\\ccxt\\DDoSProtection', // array("msg":"Too many requests. Please try again later.","success":false)
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
-                    '-1001' => '\\ccxt\\ExchangeNotAvailable', // 'Internal error; unable to process your request. Please try again.'
-                    '-1002' => '\\ccxt\\AuthenticationError', // 'You are not authorized to execute this request.'
+                    '-1001' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'")
+                    '-1002' => '\\ccxt\\AuthenticationError', // array("code":-1002,"msg":"'You are not authorized to execute this request.'")
                     '-1003' => '\\ccxt\\RateLimitExceeded', // array("code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.")
-                    '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                    '-1015' => '\\ccxt\\RateLimitExceeded', // 'Too many new orders; current limit is %s orders per %s.'
-                    '-1016' => '\\ccxt\\ExchangeNotAvailable', // 'This service is no longer available.',
-                    '-1020' => '\\ccxt\\BadRequest', // 'This operation is not supported.'
-                    '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
+                    '-1004' => '\\ccxt\\DDoSProtection', // array("code":-1004,"msg":"Server is busy, please wait and try again")
+                    '-1005' => '\\ccxt\\PermissionDenied', // array("code":-1005,"msg":"No such IP has been white listed")
+                    '-1006' => '\\ccxt\\BadResponse', // array("code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown.")
+                    '-1007' => '\\ccxt\\RequestTimeout', // array("code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown.")
+                    '-1010' => '\\ccxt\\BadResponse', // array("code":-1010,"msg":"ERROR_MSG_RECEIVED.")
+                    '-1011' => '\\ccxt\\PermissionDenied', // array("code":-1011,"msg":"This IP cannot access this route.")
+                    '-1013' => '\\ccxt\\InvalidOrder', // array("code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL")
+                    '-1014' => '\\ccxt\\InvalidOrder', // array("code":-1014,"msg":"Unsupported order combination.")
+                    '-1015' => '\\ccxt\\RateLimitExceeded', // array("code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'")
+                    '-1016' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1016,"msg":"'This service is no longer available.',")
+                    '-1020' => '\\ccxt\\BadRequest', // array("code":-1020,"msg":"'This operation is not supported.'")
+                    '-1021' => '\\ccxt\\InvalidNonce', // array("code":-1021,"msg":"'your time is ahead of server'")
                     '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
-                    '-1100' => '\\ccxt\\BadRequest', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                    '-1101' => '\\ccxt\\BadRequest', // Too many parameters; expected %s and received %s.
-                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty
-                    '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
-                    '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read, read 8 parameters but was sent 9
-                    '-1105' => '\\ccxt\\BadRequest', // Parameter %s was empty.
-                    '-1106' => '\\ccxt\\BadRequest', // Parameter %s sent when not required.
-                    '-1111' => '\\ccxt\\BadRequest', // Precision is over the maximum defined for this asset.
-                    '-1112' => '\\ccxt\\InvalidOrder', // No orders on book for symbol.
-                    '-1114' => '\\ccxt\\BadRequest', // TimeInForce parameter sent when not required.
-                    '-1115' => '\\ccxt\\BadRequest', // Invalid timeInForce.
-                    '-1116' => '\\ccxt\\BadRequest', // Invalid orderType.
-                    '-1117' => '\\ccxt\\BadRequest', // Invalid side.
-                    '-1118' => '\\ccxt\\BadRequest', // New client order ID was empty.
-                    '-1119' => '\\ccxt\\BadRequest', // Original client order ID was empty.
-                    '-1120' => '\\ccxt\\BadRequest', // Invalid interval.
-                    '-1121' => '\\ccxt\\BadSymbol', // Invalid symbol.
-                    '-1125' => '\\ccxt\\AuthenticationError', // This listenKey does not exist.
-                    '-1127' => '\\ccxt\\BadRequest', // More than %s hours between startTime and endTime.
-                    '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
-                    '-1130' => '\\ccxt\\BadRequest', // Data sent for paramter %s is not valid.
-                    '-1131' => '\\ccxt\\BadRequest', // recvWindow must be less than 60000
+                    '-1023' => '\\ccxt\\BadRequest', // array("code":-1023,"msg":"Start time is greater than end time.")
+                    '-1099' => '\\ccxt\\AuthenticationError', // array("code":-1099,"msg":"Not found, authenticated, or authorized")
+                    '-1100' => '\\ccxt\\BadRequest', // array("code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'")
+                    '-1101' => '\\ccxt\\BadRequest', // array("code":-1101,"msg":"Too many parameters; expected %s and received %s.")
+                    '-1102' => '\\ccxt\\BadRequest', // array("code":-1102,"msg":"Param %s or %s must be sent, but both were empty")
+                    '-1103' => '\\ccxt\\BadRequest', // array("code":-1103,"msg":"An unknown parameter was sent.")
+                    '-1104' => '\\ccxt\\BadRequest', // array("code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9")
+                    '-1105' => '\\ccxt\\BadRequest', // array("code":-1105,"msg":"Parameter %s was empty.")
+                    '-1106' => '\\ccxt\\BadRequest', // array("code":-1106,"msg":"Parameter %s sent when not required.")
+                    '-1108' => '\\ccxt\\BadRequest', // array("code":-1108,"msg":"Invalid asset.")
+                    '-1109' => '\\ccxt\\AuthenticationError', // array("code":-1109,"msg":"Invalid account.")
+                    '-1110' => '\\ccxt\\BadRequest', // array("code":-1110,"msg":"Invalid symbolType.")
+                    '-1111' => '\\ccxt\\BadRequest', // array("code":-1111,"msg":"Precision is over the maximum defined for this asset.")
+                    '-1112' => '\\ccxt\\InvalidOrder', // array("code":-1112,"msg":"No orders on book for symbol.")
+                    '-1113' => '\\ccxt\\BadRequest', // array("code":-1113,"msg":"Withdrawal amount must be negative.")
+                    '-1114' => '\\ccxt\\BadRequest', // array("code":-1114,"msg":"TimeInForce parameter sent when not required.")
+                    '-1115' => '\\ccxt\\BadRequest', // array("code":-1115,"msg":"Invalid timeInForce.")
+                    '-1116' => '\\ccxt\\BadRequest', // array("code":-1116,"msg":"Invalid orderType.")
+                    '-1117' => '\\ccxt\\BadRequest', // array("code":-1117,"msg":"Invalid side.")
+                    '-1118' => '\\ccxt\\BadRequest', // array("code":-1118,"msg":"New client order ID was empty.")
+                    '-1119' => '\\ccxt\\BadRequest', // array("code":-1119,"msg":"Original client order ID was empty.")
+                    '-1120' => '\\ccxt\\BadRequest', // array("code":-1120,"msg":"Invalid interval.")
+                    '-1121' => '\\ccxt\\BadSymbol', // array("code":-1121,"msg":"Invalid symbol.")
+                    '-1125' => '\\ccxt\\AuthenticationError', // array("code":-1125,"msg":"This listenKey does not exist.")
+                    '-1127' => '\\ccxt\\BadRequest', // array("code":-1127,"msg":"More than %s hours between startTime and endTime.")
+                    '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"array("code":-1128,"msg":"Combination of optional parameters invalid.")")
+                    '-1130' => '\\ccxt\\BadRequest', // array("code":-1130,"msg":"Data sent for paramter %s is not valid.")
+                    '-1131' => '\\ccxt\\BadRequest', // array("code":-1131,"msg":"recvWindow must be less than 60000")
+                    '-1136' => '\\ccxt\\BadRequest', // array("code":-1136,"msg":"Invalid newOrderRespType")
                     '-2008' => '\\ccxt\\AuthenticationError', // array("code":-2008,"msg":"Invalid Api-Key ID.")
-                    '-2010' => '\\ccxt\\ExchangeError', // generic error code for createOrder -> 'Account has insufficient balance for requested action.', array("code":-2010,"msg":"Rest API trading is not enabled."), etc...
-                    '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                    '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
-                    '-2014' => '\\ccxt\\AuthenticationError', // array( "code":-2014, "msg" => "API-key format invalid." )
-                    '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
+                    '-2010' => '\\ccxt\\ExchangeError', // array("code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', array("code":-2010,"msg":"Rest API trading is not enabled."), etc...")
+                    '-2011' => '\\ccxt\\OrderNotFound', // array("code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'")
+                    '-2013' => '\\ccxt\\OrderNotFound', // array("code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'")
+                    '-2014' => '\\ccxt\\AuthenticationError', // array("code":-2014,"msg":"API-key format invalid.")
+                    '-2015' => '\\ccxt\\AuthenticationError', // array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+                    '-2016' => '\\ccxt\\BadRequest', // array("code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead.")
+                    '-2018' => '\\ccxt\\InsufficientFunds', // array("code":-2018,"msg":"Balance is insufficient")
                     '-2019' => '\\ccxt\\InsufficientFunds', // array("code":-2019,"msg":"Margin is insufficient.")
+                    '-2020' => '\\ccxt\\OrderNotFillable', // array("code":-2020,"msg":"Unable to fill.")
+                    '-2021' => '\\ccxt\\OrderImmediatelyFillable', // array("code":-2021,"msg":"Order would immediately trigger.")
+                    '-2022' => '\\ccxt\\InvalidOrder', // array("code":-2022,"msg":"ReduceOnly Order is rejected.")
+                    '-2023' => '\\ccxt\\InsufficientFunds', // array(is_array(liquidation mode now.") && array_key_exists("code":-2023,"msg":"User, liquidation mode now."))
+                    '-2024' => '\\ccxt\\InsufficientFunds', // array("code":-2024,"msg":"Position is not sufficient.")
+                    '-2025' => '\\ccxt\\InvalidOrder', // array("code":-2025,"msg":"Reach max open order limit.")
+                    '-2026' => '\\ccxt\\InvalidOrder', // array("code":-2026,"msg":"This OrderType is not supported when reduceOnly.")
+                    '-2027' => '\\ccxt\\InvalidOrder', // array("code":-2027,"msg":"Exceeded the maximum allowable position at current leverage.")
+                    '-2028' => '\\ccxt\\InsufficientFunds', // array("code":-2028,"msg":"Leverage is smaller than permitted => insufficient margin balance")
+                    '-3000' => '\\ccxt\\ExchangeError', // array("code":-3000,"msg":"Internal server error.")
+                    '-3001' => '\\ccxt\\AuthenticationError', // array("code":-3001,"msg":"Please enable 2FA first.")
+                    '-3002' => '\\ccxt\\BadSymbol', // array("code":-3002,"msg":"We don't have this asset.")
+                    '-3003' => '\\ccxt\\BadRequest', // array("code":-3003,"msg":"Margin account does not exist.")
+                    '-3004' => '\\ccxt\\ExchangeError', // array("code":-3004,"msg":"Trade not allowed.")
                     '-3005' => '\\ccxt\\InsufficientFunds', // array("code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount.")
                     '-3006' => '\\ccxt\\InsufficientFunds', // array("code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount.")
+                    '-3007' => '\\ccxt\\ExchangeError', // array("code":-3007,"msg":"You have pending transaction, please try again later..")
                     '-3008' => '\\ccxt\\InsufficientFunds', // array("code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount.")
+                    '-3009' => '\\ccxt\\BadRequest', // array("code":-3009,"msg":"This asset are not allowed to transfer into margin account currently.")
                     '-3010' => '\\ccxt\\ExchangeError', // array("code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount.")
+                    '-3011' => '\\ccxt\\BadRequest', // array("code":-3011,"msg":"Your input date is invalid.")
+                    '-3012' => '\\ccxt\\ExchangeError', // array("code":-3012,"msg":"Borrow is banned for this asset.")
+                    '-3013' => '\\ccxt\\BadRequest', // array("code":-3013,"msg":"Borrow amount less than minimum borrow amount.")
+                    '-3014' => '\\ccxt\\AccountSuspended', // array("code":-3014,"msg":"Borrow is banned for this account.")
                     '-3015' => '\\ccxt\\ExchangeError', // array("code":-3015,"msg":"Repay amount exceeds borrow amount.")
-                    '-3022' => '\\ccxt\\AccountSuspended', // You account's trading is banned.
-                    '-4028' => '\\ccxt\\BadRequest', // array("code":-4028,"msg":"Leverage 100 is not valid")
+                    '-3016' => '\\ccxt\\BadRequest', // array("code":-3016,"msg":"Repay amount less than minimum repay amount.")
+                    '-3017' => '\\ccxt\\ExchangeError', // array("code":-3017,"msg":"This asset are not allowed to transfer into margin account currently.")
+                    '-3018' => '\\ccxt\\AccountSuspended', // array(is_array(has been banned for this account.") && array_key_exists("code":-3018,"msg":"Transferring, has been banned for this account."))
+                    '-3019' => '\\ccxt\\AccountSuspended', // array("code":-3019,"msg":"Transferring out has been banned for this account.")
                     '-3020' => '\\ccxt\\InsufficientFunds', // array("code":-3020,"msg":"Transfer out amount exceeds max amount.")
+                    '-3021' => '\\ccxt\\BadRequest', // array("code":-3021,"msg":"Margin account are not allowed to trade this trading pair.")
+                    '-3022' => '\\ccxt\\AccountSuspended', // array("code":-3022,"msg":"You account's trading is banned.")
+                    '-3023' => '\\ccxt\\BadRequest', // array("code":-3023,"msg":"You can't transfer out/place order under current margin level.")
+                    '-3024' => '\\ccxt\\ExchangeError', // array("code":-3024,"msg":"The unpaid debt is too small after this repayment.")
+                    '-3025' => '\\ccxt\\BadRequest', // array("code":-3025,"msg":"Your input date is invalid.")
+                    '-3026' => '\\ccxt\\BadRequest', // array("code":-3026,"msg":"Your input param is invalid.")
+                    '-3027' => '\\ccxt\\BadSymbol', // array("code":-3027,"msg":"Not a valid margin asset.")
+                    '-3028' => '\\ccxt\\BadSymbol', // array("code":-3028,"msg":"Not a valid margin pair.")
+                    '-3029' => '\\ccxt\\ExchangeError', // array("code":-3029,"msg":"Transfer failed.")
+                    '-3036' => '\\ccxt\\AccountSuspended', // array("code":-3036,"msg":"This account is not allowed to repay.")
+                    '-3037' => '\\ccxt\\ExchangeError', // array("code":-3037,"msg":"PNL is clearing. Wait a second.")
+                    '-3038' => '\\ccxt\\BadRequest', // array("code":-3038,"msg":"Listen key not found.")
                     '-3041' => '\\ccxt\\InsufficientFunds', // array("code":-3041,"msg":"Balance is not enough")
-                    '-5013' => '\\ccxt\\InsufficientFunds', // Asset transfer failed => insufficient balance"
-                    '-11008' => '\\ccxt\\InsufficientFunds', // array("code":-11008,"msg":"Exceeding the account's maximum borrowable limit.")
-                    '-4051' => '\\ccxt\\InsufficientFunds', // array("code":-4051,"msg":"Isolated balance insufficient.")
+                    '-3042' => '\\ccxt\\BadRequest', // array("code":-3042,"msg":"PriceIndex not available for this margin pair.")
+                    '-3043' => '\\ccxt\\BadRequest', // array(is_array(not allowed.") && array_key_exists("code":-3043,"msg":"Transferring, not allowed."))
+                    '-3044' => '\\ccxt\\DDoSProtection', // array("code":-3044,"msg":"System busy.")
+                    '-3045' => '\\ccxt\\ExchangeError', // array("code":-3045,"msg":"The system doesn't have enough asset now.")
+                    '-3999' => '\\ccxt\\ExchangeError', // array("code":-3999,"msg":"This function is only available for invited users.")
+                    '-4001 ' => '\\ccxt\\BadRequest', // array("code":-4001 ,"msg":"Invalid operation.")
+                    '-4002 ' => '\\ccxt\\BadRequest', // array("code":-4002 ,"msg":"Invalid get.")
+                    '-4003 ' => '\\ccxt\\BadRequest', // array("code":-4003 ,"msg":"Your input email is invalid.")
+                    '-4004' => '\\ccxt\\AuthenticationError', // array("code":-4004,"msg":"You don't login or auth.")
+                    '-4005 ' => '\\ccxt\\RateLimitExceeded', // array("code":-4005 ,"msg":"Too many new requests.")
+                    '-4006 ' => '\\ccxt\\BadRequest', // array("code":-4006 ,"msg":"Support main account only.")
+                    '-4007 ' => '\\ccxt\\BadRequest', // array("code":-4007 ,"msg":"Address validation is not passed.")
+                    '-4008 ' => '\\ccxt\\BadRequest', // array("code":-4008 ,"msg":"Address tag validation is not passed.")
+                    '-4010 ' => '\\ccxt\\BadRequest', // array("code":-4010 ,"msg":"White list mail has been confirmed.") // [TODO] possible bug => it should probably be "has not been confirmed"
+                    '-4011 ' => '\\ccxt\\BadRequest', // array("code":-4011 ,"msg":"White list mail is invalid.")
+                    '-4012 ' => '\\ccxt\\BadRequest', // array("code":-4012 ,"msg":"White list is not opened.")
+                    '-4013 ' => '\\ccxt\\AuthenticationError', // array("code":-4013 ,"msg":"2FA is not opened.")
+                    '-4014 ' => '\\ccxt\\PermissionDenied', // array("code":-4014 ,"msg":"Withdraw is not allowed within 2 min login.")
+                    '-4015 ' => '\\ccxt\\ExchangeError', // array("code":-4015 ,"msg":"Withdraw is limited.")
+                    '-4016 ' => '\\ccxt\\PermissionDenied', // array("code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited.")
+                    '-4017 ' => '\\ccxt\\PermissionDenied', // array("code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited.")
+                    '-4018' => '\\ccxt\\BadSymbol', // array("code":-4018,"msg":"We don't have this asset.")
+                    '-4019' => '\\ccxt\\BadSymbol', // array("code":-4019,"msg":"Current asset is not open for withdrawal.")
+                    '-4021' => '\\ccxt\\BadRequest', // array("code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s.")
+                    '-4022' => '\\ccxt\\BadRequest', // array("code":-4022,"msg":"Not less than the minimum pick-up quantity %s.")
+                    '-4023' => '\\ccxt\\ExchangeError', // array("code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount.")
+                    '-4024' => '\\ccxt\\InsufficientFunds', // array("code":-4024,"msg":"You don't have this asset.")
+                    '-4025' => '\\ccxt\\InsufficientFunds', // array("code":-4025,"msg":"The number of hold asset is less than zero.")
+                    '-4026' => '\\ccxt\\InsufficientFunds', // array("code":-4026,"msg":"You have insufficient balance.")
+                    '-4027' => '\\ccxt\\ExchangeError', // array("code":-4027,"msg":"Failed to obtain tranId.")
+                    '-4028' => '\\ccxt\\BadRequest', // array("code":-4028,"msg":"The amount of withdrawal must be greater than the Commission.")
+                    '-4029' => '\\ccxt\\BadRequest', // array("code":-4029,"msg":"The withdrawal record does not exist.")
+                    '-4030' => '\\ccxt\\ExchangeError', // array("code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs")
+                    '-4031' => '\\ccxt\\ExchangeError', // array("code":-4031,"msg":"Cancellation failed.")
+                    '-4032' => '\\ccxt\\ExchangeError', // array("code":-4032,"msg":"Withdraw verification exception.")
+                    '-4033' => '\\ccxt\\BadRequest', // array("code":-4033,"msg":"Illegal address.")
+                    '-4034' => '\\ccxt\\ExchangeError', // array("code":-4034,"msg":"The address is suspected of fake.")
+                    '-4035' => '\\ccxt\\PermissionDenied', // array("code":-4035,"msg":"This address is not on the whitelist. Please join and try again.")
+                    '-4036' => '\\ccxt\\BadRequest', // array("code":-4036,"msg":"The new address needs to be withdrawn in {0} hours.")
+                    '-4037' => '\\ccxt\\ExchangeError', // array("code":-4037,"msg":"Re-sending Mail failed.")
+                    '-4038' => '\\ccxt\\ExchangeError', // array("code":-4038,"msg":"Please try again in 5 minutes.")
+                    '-4039' => '\\ccxt\\BadRequest', // array("code":-4039,"msg":"The user does not exist.")
+                    '-4040' => '\\ccxt\\BadRequest', // array("code":-4040,"msg":"This address not charged.")
+                    '-4041' => '\\ccxt\\ExchangeError', // array("code":-4041,"msg":"Please try again in one minute.")
+                    '-4042' => '\\ccxt\\ExchangeError', // array("code":-4042,"msg":"This asset cannot get deposit address again.")
+                    '-4043' => '\\ccxt\\BadRequest', // array("code":-4043,"msg":"More than 100 recharge addresses were used in 24 hours.")
+                    '-4044' => '\\ccxt\\BadRequest', // array("code":-4044,"msg":"This is a blacklist country.")
+                    '-4045' => '\\ccxt\\ExchangeError', // array("code":-4045,"msg":"Failure to acquire assets.")
+                    '-4046' => '\\ccxt\\AuthenticationError', // array("code":-4046,"msg":"Agreement not confirmed.")
+                    '-4047' => '\\ccxt\\BadRequest', // array("code":-4047,"msg":"Time interval must be within 0-90 days")
+                    '-5001' => '\\ccxt\\BadRequest', // array("code":-5001,"msg":"Don't allow transfer to micro assets.")
+                    '-5002' => '\\ccxt\\InsufficientFunds', // array("code":-5002,"msg":"You have insufficient balance.")
+                    '-5003' => '\\ccxt\\InsufficientFunds', // array("code":-5003,"msg":"You don't have this asset.")
+                    '-5004' => '\\ccxt\\BadRequest', // array("code":-5004,"msg":"The residual balances of %s have exceeded 0.001BTC, Please re-choose.")
+                    '-5005' => '\\ccxt\\InsufficientFunds', // array("code":-5005,"msg":"The residual balances of %s is too low, Please re-choose.")
+                    '-5006' => '\\ccxt\\BadRequest', // array("code":-5006,"msg":"Only transfer once in 24 hours.")
+                    '-5007' => '\\ccxt\\BadRequest', // array("code":-5007,"msg":"Quantity must be greater than zero.")
+                    '-5008' => '\\ccxt\\InsufficientFunds', // array("code":-5008,"msg":"Insufficient amount of returnable assets.")
+                    '-5009' => '\\ccxt\\BadRequest', // array("code":-5009,"msg":"Product does not exist.")
+                    '-5010' => '\\ccxt\\ExchangeError', // array("code":-5010,"msg":"Asset transfer fail.")
+                    '-5011' => '\\ccxt\\BadRequest', // array("code":-5011,"msg":"future account not exists.")
+                    '-5012' => '\\ccxt\\ExchangeError', // array("code":-5012,"msg":"Asset transfer is in pending.")
+                    '-5013' => '\\ccxt\\InsufficientFunds', // array("code":-5013,"msg":"Asset transfer failed => insufficient balance"") // undocumented
+                    '-5021' => '\\ccxt\\BadRequest', // array("code":-5021,"msg":"This parent sub have no relation")
+                    '-6001' => '\\ccxt\\BadRequest', // array("code":-6001,"msg":"Daily product not exists.")
+                    '-6003' => '\\ccxt\\BadRequest', // array("code":-6003,"msg":"Product not exist or you don't have permission")
+                    '-6004' => '\\ccxt\\ExchangeError', // array("code":-6004,"msg":"Product not in purchase status")
+                    '-6005' => '\\ccxt\\InvalidOrder', // array("code":-6005,"msg":"Smaller than min purchase limit")
+                    '-6006' => '\\ccxt\\BadRequest', // array("code":-6006,"msg":"Redeem amount error")
+                    '-6007' => '\\ccxt\\BadRequest', // array(is_array(redeem time") && array_key_exists("code":-6007,"msg":"Not, redeem time"))
+                    '-6008' => '\\ccxt\\BadRequest', // array("code":-6008,"msg":"Product not in redeem status")
+                    '-6009' => '\\ccxt\\RateLimitExceeded', // array("code":-6009,"msg":"Request frequency too high")
+                    '-6011' => '\\ccxt\\BadRequest', // array("code":-6011,"msg":"Exceeding the maximum num allowed to purchase per user")
+                    '-6012' => '\\ccxt\\InsufficientFunds', // array("code":-6012,"msg":"Balance not enough")
+                    '-6013' => '\\ccxt\\ExchangeError', // array("code":-6013,"msg":"Purchasing failed")
+                    '-6014' => '\\ccxt\\BadRequest', // array("code":-6014,"msg":"Exceed up-limit allowed to purchased")
+                    '-6015' => '\\ccxt\\BadRequest', // array("code":-6015,"msg":"Empty request body")
+                    '-6016' => '\\ccxt\\BadRequest', // array("code":-6016,"msg":"Parameter err")
+                    '-6017' => '\\ccxt\\BadRequest', // array(is_array(whitelist") && array_key_exists("code":-6017,"msg":"Not, whitelist"))
+                    '-6018' => '\\ccxt\\BadRequest', // array("code":-6018,"msg":"Asset not enough")
+                    '-6019' => '\\ccxt\\AuthenticationError', // array("code":-6019,"msg":"Need confirm")
+                    '-6020' => '\\ccxt\\BadRequest', // array("code":-6020,"msg":"Project not exists")
+                    '-7001' => '\\ccxt\\BadRequest', // array("code":-7001,"msg":"Date range is not supported.")
+                    '-7002' => '\\ccxt\\BadRequest', // array("code":-7002,"msg":"Data request type is not supported.")
+                    '-10017' => '\\ccxt\\BadRequest', // array("code":-10017,"msg":"Repay amount should not be larger than liability.")
+                    '-11008' => '\\ccxt\\InsufficientFunds', // array("code":-11008,"msg":"Exceeding the account's maximum borrowable limit.") // undocumented
+                    '-12014' => '\\ccxt\\RateLimitExceeded', // array("code":-12014,"msg":"More than 1 request in 3 seconds")
+                    '-13000' => '\\ccxt\\BadRequest', // array("code":-13000,"msg":"Redeption of the token is forbiden now")
+                    '-13001' => '\\ccxt\\BadRequest', // array("code":-13001,"msg":"Exceeds individual 24h redemption limit of the token")
+                    '-13002' => '\\ccxt\\BadRequest', // array("code":-13002,"msg":"Exceeds total 24h redemption limit of the token")
+                    '-13003' => '\\ccxt\\BadRequest', // array("code":-13003,"msg":"Subscription of the token is forbiden now")
+                    '-13004' => '\\ccxt\\BadRequest', // array("code":-13004,"msg":"Exceeds individual 24h subscription limit of the token")
+                    '-13005' => '\\ccxt\\BadRequest', // array("code":-13005,"msg":"Exceeds total 24h subscription limit of the token")
+                    '-13006' => '\\ccxt\\InvalidOrder', // array("code":-13006,"msg":"Subscription amount is too small")
+                    '-13007' => '\\ccxt\\AuthenticationError', // array("code":-13007,"msg":"The Agreement is not signed")
+                    '100001003' => '\\ccxt\\BadRequest', // array("code":100001003,"msg":"Verification failed") // undocumented
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
@@ -971,13 +1159,6 @@ class binance extends Exchange {
         }
         $response = $this->$method ($query);
         return $this->safe_integer($response, 'serverTime');
-    }
-
-    public function load_time_difference($params = array ()) {
-        $serverTime = $this->fetch_time($params);
-        $after = $this->milliseconds();
-        $this->options['timeDifference'] = $after - $serverTime;
-        return $this->options['timeDifference'];
     }
 
     public function fetch_currencies($params = array ()) {
@@ -1112,6 +1293,8 @@ class binance extends Exchange {
                 'precision' => $precision,
                 'info' => $entry,
                 'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
                 'networks' => $networkList,
                 'fee' => $fee,
                 'fees' => $fees,
@@ -1321,7 +1504,7 @@ class binance extends Exchange {
             $contractSize = null;
             $fees = $this->fees;
             if ($future || $delivery) {
-                $contractSize = $this->safe_string($market, 'contractSize', '1');
+                $contractSize = $this->safe_number($market, 'contractSize', $this->parse_number('1'));
                 $fees = $this->fees[$type];
             }
             $maker = $fees['trading']['maker'];
@@ -3306,12 +3489,14 @@ class binance extends Exchange {
         $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $internal = $this->safe_integer($transaction, 'transferType', false);
         $internal = $internal ? true : false;
+        $network = $this->safe_string($transaction, 'network');
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -3419,7 +3604,7 @@ class binance extends Exchange {
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
             $entry = $incomes[$i];
-            $parsed = $this->parse_income ($entry, $market);
+            $parsed = $this->parse_income($entry, $market);
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
@@ -4126,7 +4311,7 @@ class binance extends Exchange {
             $code = ($this->options['defaultType'] === 'future') ? $market['quote'] : $market['base'];
             // sometimes not all the codes are correctly returned...
             if (is_array($balances) && array_key_exists($code, $balances)) {
-                $parsed = $this->parse_account_position (array_merge($position, array(
+                $parsed = $this->parse_account_position(array_merge($position, array(
                     'crossMargin' => $balances[$code]['crossMargin'],
                     'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
                 )), $market);
@@ -4189,6 +4374,7 @@ class binance extends Exchange {
         if (!$rational) {
             $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
         }
+        // as oppose to notionalValue
         $usdm = (is_array($position) && array_key_exists('notional', $position));
         $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -4243,6 +4429,8 @@ class binance extends Exchange {
         $percentage = null;
         $liquidationPriceStringRaw = null;
         $liquidationPrice = null;
+        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSizeString = $this->number_to_string($contractSize);
         if ($notionalFloat === 0.0) {
             $entryPrice = null;
         } else {
@@ -4271,7 +4459,7 @@ class binance extends Exchange {
             } else {
                 // calculate liquidation price
                 //
-                // $liquidationPrice = ($contracts * contractSize(±1 - mmp)) / (±1/entryPrice * $contracts * contractSize - $walletBalance)
+                // $liquidationPrice = ($contracts * $contractSize(±1 - mmp)) / (±1/entryPrice * $contracts * $contractSize - $walletBalance)
                 //
                 $onePlusMaintenanceMarginPercentageString = null;
                 $entryPriceSignString = $entryPriceString;
@@ -4281,7 +4469,7 @@ class binance extends Exchange {
                     $onePlusMaintenanceMarginPercentageString = Precise::string_sub('-1', $maintenanceMarginPercentageString);
                     $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
                 }
-                $size = Precise::string_mul($contractsStringAbs, $market['contractSize']);
+                $size = Precise::string_mul($contractsStringAbs, $contractSizeString);
                 $leftSide = Precise::string_mul($size, $onePlusMaintenanceMarginPercentageString);
                 $rightSide = Precise::string_sub(Precise::string_mul(Precise::string_div('1', $entryPriceSignString), $size), $walletBalance);
                 $liquidationPriceStringRaw = Precise::string_div($leftSide, $rightSide);
@@ -4317,7 +4505,7 @@ class binance extends Exchange {
             'leverage' => $this->parse_number($leverageString),
             'unrealizedPnl' => $unrealizedPnl,
             'contracts' => $contracts,
-            'contractSize' => $this->parse_number($market['contractSize']),
+            'contractSize' => $contractSize,
             'marginRatio' => $marginRatio,
             'liquidationPrice' => $liquidationPrice,
             'markPrice' => null,
@@ -4404,9 +4592,13 @@ class binance extends Exchange {
         }
         $entryPriceString = $this->safe_string($position, 'entryPrice');
         $entryPrice = $this->parse_number($entryPriceString);
+        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSizeString = $this->number_to_string($contractSize);
+        // as oppose to notionalValue
+        $linear = (is_array($position) && array_key_exists('notional', $position));
         if ($marginType === 'cross') {
             // calculate $collateral
-            if ($market['linear']) {
+            if ($linear) {
                 // walletBalance = ($liquidationPrice * (±1 . mmp) ± $entryPrice) * $contracts
                 $onePlusMaintenanceMarginPercentageString = null;
                 $entryPriceSignString = $entryPriceString;
@@ -4420,7 +4612,7 @@ class binance extends Exchange {
                 $leftSide = Precise::string_add($inner, $entryPriceSignString);
                 $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $market['precision']['quote']);
             } else {
-                // walletBalance = ($contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / $liquidationPrice)
+                // walletBalance = ($contracts * $contractSize) * (±1/entryPrice - (±1 - mmp) / $liquidationPrice)
                 $onePlusMaintenanceMarginPercentageString = null;
                 $entryPriceSignString = $entryPriceString;
                 if ($side === 'short') {
@@ -4429,7 +4621,7 @@ class binance extends Exchange {
                     $onePlusMaintenanceMarginPercentageString = Precise::string_sub('-1', $maintenanceMarginPercentageString);
                     $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
                 }
-                $leftSide = Precise::string_mul($contractsAbs, $market['contractSize']);
+                $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
                 $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
                 $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $market['precision']['base']);
             }
@@ -4466,7 +4658,7 @@ class binance extends Exchange {
             'info' => $position,
             'symbol' => $symbol,
             'contracts' => $contracts,
-            'contractSize' => $this->parse_number($market['contractSize']),
+            'contractSize' => $contractSize,
             'unrealizedPnl' => $unrealizedPnl,
             'leverage' => $this->parse_number($leverageString),
             'liquidationPrice' => $liquidationPrice,
@@ -4557,7 +4749,7 @@ class binance extends Exchange {
             throw new NotSupported($this->id . ' fetchPositions() supports linear and inverse contracts only');
         }
         $account = $this->$method ($query);
-        $result = $this->parse_account_positions ($account);
+        $result = $this->parse_account_positions($account);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
@@ -4639,7 +4831,7 @@ class binance extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_position_risk ($response[$i]);
+            $parsed = $this->parse_position_risk($response[$i]);
             $result[] = $parsed;
         }
         return $this->filter_by_array($result, 'symbol', $symbols, false);
@@ -4681,7 +4873,7 @@ class binance extends Exchange {
             throw NotSupported ($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
         }
         $response = $this->$method (array_merge($request, $params));
-        return $this->parse_incomes ($response, $market, $since, $limit);
+        return $this->parse_incomes($response, $market, $since, $limit);
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
@@ -4800,7 +4992,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } else if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
+        } else if (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
@@ -4907,7 +5099,9 @@ class binance extends Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
-        if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
+        if ((is_array($config) && array_key_exists('noCoin', $config)) && !(is_array($params) && array_key_exists('coin', $params))) {
+            return $config['noCoin'];
+        } else if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
             return $config['noSymbol'];
         } else if ((is_array($config) && array_key_exists('noPoolId', $config)) && !(is_array($params) && array_key_exists('poolId', $params))) {
             return $config['noPoolId'];

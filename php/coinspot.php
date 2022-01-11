@@ -7,7 +7,6 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 
 class coinspot extends Exchange {
@@ -73,7 +72,9 @@ class coinspot extends Exchange {
                 ),
             ),
             'markets' => array(
+                'ADA/AUD' => array( 'id' => 'ada', 'symbol' => 'ADA/AUD', 'base' => 'ADA', 'quote' => 'AUD', 'baseId' => 'ada', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true ),
                 'BTC/AUD' => array( 'id' => 'btc', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'baseId' => 'btc', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true ),
+                'BTC/USDT' => array( 'id' => 'btc', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'baseId' => 'btc', 'quoteId' => 'usdt', 'type' => 'spot', 'spot' => true ),
                 'ETH/AUD' => array( 'id' => 'eth', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD', 'baseId' => 'eth', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true ),
                 'XRP/AUD' => array( 'id' => 'xrp', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD', 'baseId' => 'xrp', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true ),
                 'LTC/AUD' => array( 'id' => 'ltc', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'baseId' => 'ltc', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true ),
@@ -96,26 +97,7 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
-        $response = $this->$method ($params);
-        //
-        // read-write api keys
-        //
-        //     ...
-        //
-        // read-only api keys
-        //
-        //     {
-        //         "status":"ok",
-        //         "balances":array(
-        //             {
-        //                 "LTC":array("balance":0.1,"audbalance":16.59,"rate":165.95)
-        //             }
-        //         )
-        //     }
-        //
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
         if (gettype($balances) === 'array' && count(array_filter(array_keys($balances), 'is_string')) == 0) {
@@ -142,6 +124,29 @@ class coinspot extends Exchange {
             }
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
+        $response = $this->$method ($params);
+        //
+        // read-write api keys
+        //
+        //     ...
+        //
+        // read-only api keys
+        //
+        //     {
+        //         "status":"ok",
+        //         "balances":array(
+        //             {
+        //                 "LTC":array("balance":0.1,"audbalance":16.59,"rate":165.95)
+        //             }
+        //         )
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -269,9 +274,6 @@ class coinspot extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!$this->apiKey) {
-            throw new AuthenticationError($this->id . ' requires apiKey for all requests');
-        }
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'private') {
             $this->check_required_credentials();

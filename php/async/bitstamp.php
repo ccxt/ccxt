@@ -210,6 +210,8 @@ class bitstamp extends Exchange {
                         'gala_address/',
                         'shib_withdrawal/',
                         'shib_address/',
+                        'amp_withdrawal/',
+                        'amp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -300,7 +302,7 @@ class bitstamp extends Exchange {
                     'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'Price is more than 20% below market price.' => '\\ccxt\\InvalidOrder',
-                    'Bitstamp.net is under scheduled maintenance.' => '\\ccxt\\OnMaintenance', // array( "error" => "Bitstamp.net is under scheduled maintenance. We'll be back soon." )
+                    "Bitstamp.net is under scheduled maintenance. We'll be back soon." => '\\ccxt\\OnMaintenance', // array( "error" => "Bitstamp.net is under scheduled maintenance. We'll be back soon." )
                     'Order could not be placed.' => '\\ccxt\\ExchangeNotAvailable', // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.' => '\\ccxt\\BadRequest',
                 ),
@@ -386,6 +388,8 @@ class bitstamp extends Exchange {
             'type' => $currencyType,
             'name' => $name,
             'active' => true,
+            'deposit' => null,
+            'withdraw' => null,
             'fee' => $this->safe_number($description['fees']['funding']['withdraw'], $code),
             'precision' => $precision,
             'limits' => array(
@@ -428,6 +432,20 @@ class bitstamp extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = yield $this->fetch_markets_from_cache($params);
+        //
+        //     array(
+        //         array(
+        //             "trading" => "Enabled",
+        //             "base_decimals" => 8,
+        //             "url_symbol" => "btcusd",
+        //             "name" => "BTC/USD",
+        //             "instant_and_market_orders" => "Enabled",
+        //             "minimum_order" => "20.0 USD",
+        //             "counter_decimals" => 2,
+        //             "description" => "Bitcoin / U.S. dollar"
+        //         ),
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -824,9 +842,29 @@ class bitstamp extends Exchange {
         return $this->parse_ohlcvs($ohlc, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currency($code);
+            $currencyId = $currency['id'];
+            $account = $this->account();
+            $account['free'] = $this->safe_string($response, $currencyId . '_available');
+            $account['used'] = $this->safe_string($response, $currencyId . '_reserved');
+            $account['total'] = $this->safe_string($response, $currencyId . '_balance');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
-        $balance = yield $this->privatePostBalance ($params);
+        $response = yield $this->privatePostBalance ($params);
         //
         //     {
         //         "aave_available" => "0.00000000",
@@ -845,23 +883,7 @@ class bitstamp extends Exchange {
         //         "batusd_fee" => "0.000",
         //     }
         //
-        $result = array(
-            'info' => $balance,
-            'timestamp' => null,
-            'datetime' => null,
-        );
-        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count($codes); $i++) {
-            $code = $codes[$i];
-            $currency = $this->currency($code);
-            $currencyId = $currency['id'];
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, $currencyId . '_available');
-            $account['used'] = $this->safe_string($balance, $currencyId . '_reserved');
-            $account['total'] = $this->safe_string($balance, $currencyId . '_balance');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
@@ -1240,6 +1262,7 @@ class bitstamp extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,
@@ -1401,7 +1424,7 @@ class bitstamp extends Exchange {
             if ($market === null) {
                 $market = $this->get_market_from_trade($item);
             }
-            $direction = $parsedTrade['side'] === 'buy' ? 'in' : 'out';
+            $direction = ($parsedTrade['side'] === 'buy') ? 'in' : 'out';
             return array(
                 'id' => $parsedTrade['id'],
                 'info' => $item,
@@ -1424,12 +1447,12 @@ class bitstamp extends Exchange {
             $direction = null;
             if (is_array($item) && array_key_exists('amount', $item)) {
                 $amount = $this->safe_number($item, 'amount');
-                $direction = $amount > 0 ? 'in' : 'out';
+                $direction = ($amount > 0) ? 'in' : 'out';
             } else if ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
                 $code = $parsedTransaction['currency'];
                 $currencyId = $this->safe_string($this->currencies_by_id, $code, $code);
                 $amount = $this->safe_number($item, $currencyId);
-                $direction = $amount > 0 ? 'in' : 'out';
+                $direction = ($amount > 0) ? 'in' : 'out';
             }
             return array(
                 'id' => $parsedTransaction['id'],

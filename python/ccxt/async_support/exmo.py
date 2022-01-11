@@ -510,6 +510,22 @@ class exmo(Exchange):
             self.safe_number(ohlcv, 'v'),
         ]
 
+    def parse_balance(self, response):
+        result = {'info': response}
+        free = self.safe_value(response, 'balances', {})
+        used = self.safe_value(response, 'reserved', {})
+        currencyIds = list(free.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            if currencyId in free:
+                account['free'] = self.safe_string(free, currencyId)
+            if currencyId in used:
+                account['used'] = self.safe_string(used, currencyId)
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostUserInfo(params)
@@ -525,20 +541,7 @@ class exmo(Exchange):
         #         },
         #     }
         #
-        result = {'info': response}
-        free = self.safe_value(response, 'balances', {})
-        used = self.safe_value(response, 'reserved', {})
-        currencyIds = list(free.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            if currencyId in free:
-                account['free'] = self.safe_string(free, currencyId)
-            if currencyId in used:
-                account['used'] = self.safe_string(used, currencyId)
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -1220,6 +1223,7 @@ class exmo(Exchange):
                     'currency': code,
                     'rate': None,
                 }
+        network = self.safe_string(transaction, 'provider')
         return {
             'info': transaction,
             'id': id,
@@ -1227,6 +1231,7 @@ class exmo(Exchange):
             'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amount,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

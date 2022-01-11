@@ -174,13 +174,6 @@ class currencycom extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function load_time_difference($params = array ()) {
-        $response = yield $this->publicGetTime ($params);
-        $after = $this->milliseconds();
-        $this->options['timeDifference'] = intval($after - $response['serverTime']);
-        return $this->options['timeDifference'];
-    }
-
     public function fetch_markets($params = array ()) {
         $response = yield $this->publicGetExchangeInfo ($params);
         //
@@ -265,10 +258,6 @@ class currencycom extends Exchange {
             }
             $filters = $this->safe_value($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
-            $precision = array(
-                'amount' => 1 / pow(1, $this->safe_integer($market, 'baseAssetPrecision')),
-                'price' => $this->safe_number($market, 'tickSize'),
-            );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'TRADING');
             $type = $this->safe_string_lower($market, 'marketType');
@@ -277,79 +266,110 @@ class currencycom extends Exchange {
             }
             $spot = ($type === 'spot');
             $margin = ($type === 'margin');
-            $entry = array(
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'type' => $type,
-                'spot' => $spot,
-                'margin' => $margin,
-                'info' => $market,
-                'active' => $active,
-                'precision' => $precision,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => -log10 ($precision['amount']),
-                        'max' => null,
-                    ),
-                ),
-            );
             $exchangeFee = $this->safe_number_2($market, 'exchangeFee', 'tradingFee');
             $makerFee = $this->safe_number($market, 'makerFee', $exchangeFee);
             $takerFee = $this->safe_number($market, 'takerFee', $exchangeFee);
+            $maker = null;
+            $taker = null;
             if ($makerFee !== null) {
-                $entry['maker'] = $makerFee / 100;
+                $maker = $makerFee / 100;
             }
             if ($takerFee !== null) {
-                $entry['taker'] = $takerFee / 100;
+                $taker = $takerFee / 100;
             }
+            $limitPriceMin = null;
+            $limitPriceMax = null;
+            $precisionPrice = $this->safe_number($market, 'tickSize');
             if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
-                $entry['precision']['price'] = $this->safe_number($filter, 'tickSize');
+                $precisionPrice = $this->safe_number($filter, 'tickSize');
                 // PRICE_FILTER reports zero values for $maxPrice
                 // since they updated $filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except null
-                $entry['limits']['price'] = array(
-                    'min' => $this->safe_number($filter, 'minPrice'),
-                    'max' => null,
-                );
+                $limitPriceMin = $this->safe_number($filter, 'minPrice');
                 $maxPrice = $this->safe_number($filter, 'maxPrice');
                 if (($maxPrice !== null) && ($maxPrice > 0)) {
-                    $entry['limits']['price']['max'] = $maxPrice;
+                    $limitPriceMax = $maxPrice;
                 }
             }
+            $precisionAmount = $this->parse_precision($this->safe_string($market, 'baseAssetPrecision'));
+            $limitAmount = array(
+                'min' => null,
+                'max' => null,
+            );
             if (is_array($filtersByType) && array_key_exists('LOT_SIZE', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
-                $entry['precision']['amount'] = $this->safe_number($filter, 'stepSize');
-                $entry['limits']['amount'] = array(
+                $precisionAmount = $this->safe_number($filter, 'stepSize');
+                $limitAmount = array(
                     'min' => $this->safe_number($filter, 'minQty'),
                     'max' => $this->safe_number($filter, 'maxQty'),
                 );
             }
+            $limitMarket = array(
+                'min' => null,
+                'max' => null,
+            );
             if (is_array($filtersByType) && array_key_exists('MARKET_LOT_SIZE', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'MARKET_LOT_SIZE', array());
-                $entry['limits']['market'] = array(
+                $limitMarket = array(
                     'min' => $this->safe_number($filter, 'minQty'),
                     'max' => $this->safe_number($filter, 'maxQty'),
                 );
             }
+            $costMin = null;
             if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
-                $entry['limits']['cost']['min'] = $this->safe_number($filter, 'minNotional');
+                $costMin = $this->safe_number($filter, 'minNotional');
             }
-            $result[] = $entry;
+            $result[] = array(
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
+                'type' => $type,
+                'spot' => $spot,
+                'margin' => $margin,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $taker,
+                'maker' => $maker,
+                'contractSize' => null,
+                'active' => $active,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $precisionAmount,
+                    'price' => $precisionPrice,
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => $limitAmount,
+                    'market' => $limitMarket,
+                    'price' => array(
+                        'min' => $limitPriceMin,
+                        'max' => $limitPriceMax,
+                    ),
+                    'cost' => array(
+                        'min' => $costMin,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
+            );
         }
         return $result;
     }

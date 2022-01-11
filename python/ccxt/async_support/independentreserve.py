@@ -136,12 +136,10 @@ class independentreserve(Exchange):
                 })
         return result
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        balances = await self.privatePostGetAccounts(params)
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
+    def parse_balance(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
             currencyId = self.safe_string(balance, 'CurrencyCode')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -149,6 +147,11 @@ class independentreserve(Exchange):
             account['total'] = self.safe_string(balance, 'TotalBalance')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privatePostGetAccounts(params)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

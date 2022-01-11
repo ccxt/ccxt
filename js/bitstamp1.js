@@ -181,21 +181,25 @@ module.exports = class bitstamp1 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        const balance = await this.privatePostBalance (params);
-        const result = { 'info': balance };
+    parseBalance (response) {
+        const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency (code);
             const currencyId = currency['id'];
             const account = this.account ();
-            account['free'] = this.safeString (balance, currencyId + '_available');
-            account['used'] = this.safeString (balance, currencyId + '_reserved');
-            account['total'] = this.safeString (balance, currencyId + '_balance');
+            account['free'] = this.safeString (response, currencyId + '_available');
+            account['used'] = this.safeString (response, currencyId + '_reserved');
+            account['total'] = this.safeString (response, currencyId + '_balance');
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        const response = await this.privatePostBalance (params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

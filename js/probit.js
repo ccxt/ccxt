@@ -377,20 +377,7 @@ module.exports = class probit extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalance (params);
-        //
-        //     {
-        //         data: [
-        //             {
-        //                 "currency_id":"XRP",
-        //                 "total":"100",
-        //                 "available":"0",
-        //             }
-        //         ]
-        //     }
-        //
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -407,6 +394,23 @@ module.exports = class probit extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         data: [
+        //             {
+        //                 "currency_id":"XRP",
+        //                 "total":"100",
+        //                 "available":"0",
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1163,6 +1167,7 @@ module.exports = class probit extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': address,
@@ -1174,6 +1179,7 @@ module.exports = class probit extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'updated': undefined,
             'fee': fee,
             'info': transaction,
         };

@@ -886,6 +886,26 @@ module.exports = class ndax extends Exchange {
         return result;
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'ProductId');
+            if (currencyId in this.currencies_by_id) {
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeString (balance, 'Amount');
+                account['used'] = this.safeString (balance, 'Hold');
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -929,23 +949,7 @@ module.exports = class ndax extends Exchange {
         //         },
         //     ]
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'ProductId');
-            if (currencyId in this.currencies_by_id) {
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['total'] = this.safeString (balance, 'Amount');
-                account['used'] = this.safeString (balance, 'Hold');
-                result[code] = account;
-            }
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     parseLedgerEntryType (type) {

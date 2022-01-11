@@ -199,6 +199,26 @@ module.exports = class btcturk extends Exchange {
         return result;
     }
 
+    parseBalance (response) {
+        const data = this.safeValue (response, 'data', []);
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const currencyId = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (entry, 'balance');
+            account['free'] = this.safeString (entry, 'free');
+            account['used'] = this.safeString (entry, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetUsersBalances (params);
@@ -218,23 +238,7 @@ module.exports = class btcturk extends Exchange {
         //       ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const currencyId = this.safeString (entry, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (entry, 'balance');
-            account['free'] = this.safeString (entry, 'free');
-            account['used'] = this.safeString (entry, 'locked');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

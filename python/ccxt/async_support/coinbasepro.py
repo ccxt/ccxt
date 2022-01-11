@@ -273,6 +273,8 @@ class coinbasepro(Exchange):
                 'type': self.safe_string(details, 'type'),
                 'name': name,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -395,9 +397,7 @@ class coinbasepro(Exchange):
             })
         return result
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetAccounts(params)
+    def parse_balance(self, response):
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -409,6 +409,11 @@ class coinbasepro(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetAccounts(params)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -1230,8 +1235,13 @@ class coinbasepro(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,

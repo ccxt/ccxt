@@ -97,9 +97,7 @@ module.exports = class btctradeua extends Exchange {
         return await this.privatePostAuth (params);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+    parseBalance (response) {
         const result = { 'info': response };
         const balances = this.safeValue (response, 'accounts');
         for (let i = 0; i < balances.length; i++) {
@@ -111,6 +109,12 @@ module.exports = class btctradeua extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostBalance (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

@@ -226,6 +226,8 @@ class bitstamp(Exchange):
                         'gala_address/',
                         'shib_withdrawal/',
                         'shib_address/',
+                        'amp_withdrawal/',
+                        'amp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -316,7 +318,7 @@ class bitstamp(Exchange):
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found': OrderNotFound,
                     'Price is more than 20% below market price.': InvalidOrder,
-                    'Bitstamp.net is under scheduled maintenance.': OnMaintenance,  # {"error": "Bitstamp.net is under scheduled maintenance. We'll be back soon."}
+                    "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance,  # {"error": "Bitstamp.net is under scheduled maintenance. We'll be back soon."}
                     'Order could not be placed.': ExchangeNotAvailable,  # Order could not be placed(perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.': BadRequest,
                 },
@@ -398,6 +400,8 @@ class bitstamp(Exchange):
             'type': currencyType,
             'name': name,
             'active': True,
+            'deposit': None,
+            'withdraw': None,
             'fee': self.safe_number(description['fees']['funding']['withdraw'], code),
             'precision': precision,
             'limits': {
@@ -437,6 +441,20 @@ class bitstamp(Exchange):
 
     def fetch_currencies(self, params={}):
         response = self.fetch_markets_from_cache(params)
+        #
+        #     [
+        #         {
+        #             "trading": "Enabled",
+        #             "base_decimals": 8,
+        #             "url_symbol": "btcusd",
+        #             "name": "BTC/USD",
+        #             "instant_and_market_orders": "Enabled",
+        #             "minimum_order": "20.0 USD",
+        #             "counter_decimals": 2,
+        #             "description": "Bitcoin / U.S. dollar"
+        #         },
+        #     ]
+        #
         result = {}
         for i in range(0, len(response)):
             market = response[i]
@@ -793,9 +811,27 @@ class bitstamp(Exchange):
         ohlc = self.safe_value(data, 'ohlc', [])
         return self.parse_ohlcvs(ohlc, market, timeframe, since, limit)
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currency(code)
+            currencyId = currency['id']
+            account = self.account()
+            account['free'] = self.safe_string(response, currencyId + '_available')
+            account['used'] = self.safe_string(response, currencyId + '_reserved')
+            account['total'] = self.safe_string(response, currencyId + '_balance')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
-        balance = self.privatePostBalance(params)
+        response = self.privatePostBalance(params)
         #
         #     {
         #         "aave_available": "0.00000000",
@@ -814,22 +850,7 @@ class bitstamp(Exchange):
         #         "batusd_fee": "0.000",
         #     }
         #
-        result = {
-            'info': balance,
-            'timestamp': None,
-            'datetime': None,
-        }
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currency(code)
-            currencyId = currency['id']
-            account = self.account()
-            account['free'] = self.safe_string(balance, currencyId + '_available')
-            account['used'] = self.safe_string(balance, currencyId + '_reserved')
-            account['total'] = self.safe_string(balance, currencyId + '_balance')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_trading_fee(self, symbol, params={}):
         self.load_markets()
@@ -1170,6 +1191,7 @@ class bitstamp(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -1322,7 +1344,7 @@ class bitstamp(Exchange):
             # try to deduce it from used keys
             if market is None:
                 market = self.get_market_from_trade(item)
-            direction = parsedTrade['side'] == 'in' if 'buy' else 'out'
+            direction = 'in' if (parsedTrade['side'] == 'buy') else 'out'
             return {
                 'id': parsedTrade['id'],
                 'info': item,
@@ -1345,12 +1367,12 @@ class bitstamp(Exchange):
             direction = None
             if 'amount' in item:
                 amount = self.safe_number(item, 'amount')
-                direction = amount > 'in' if 0 else 'out'
+                direction = 'in' if (amount > 0) else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
                 code = parsedTransaction['currency']
                 currencyId = self.safe_string(self.currencies_by_id, code, code)
                 amount = self.safe_number(item, currencyId)
-                direction = amount > 'in' if 0 else 'out'
+                direction = 'in' if (amount > 0) else 'out'
             return {
                 'id': parsedTransaction['id'],
                 'info': item,

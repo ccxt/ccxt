@@ -564,21 +564,7 @@ class hollaex(Exchange):
             self.safe_number(response, 'volume'),
         ]
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetUserBalance(params)
-        #
-        #     {
-        #         "updated_at": "2020-03-02T22:27:38.428Z",
-        #         "btc_balance": 0,
-        #         "btc_pending": 0,
-        #         "btc_available": 0,
-        #         "eth_balance": 0,
-        #         "eth_pending": 0,
-        #         "eth_available": 0,
-        #         # ...
-        #     }
-        #
+    def parse_balance(self, response):
         timestamp = self.parse8601(self.safe_string(response, 'updated_at'))
         result = {
             'info': response,
@@ -594,6 +580,23 @@ class hollaex(Exchange):
             account['total'] = self.safe_string(response, currencyId + '_balance')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetUserBalance(params)
+        #
+        #     {
+        #         "updated_at": "2020-03-02T22:27:38.428Z",
+        #         "btc_balance": 0,
+        #         "btc_pending": 0,
+        #         "btc_available": 0,
+        #         "eth_balance": 0,
+        #         "eth_pending": 0,
+        #         "eth_available": 0,
+        #         # ...
+        #     }
+        #
+        return self.parse_balance(response)
 
     async def fetch_open_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -1171,6 +1174,7 @@ class hollaex(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': addressFrom,
             'address': address,
             'addressTo': addressTo,

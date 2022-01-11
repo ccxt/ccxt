@@ -784,6 +784,22 @@ class stex(Exchange):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        balances = self.safe_value(response, 'data', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            code = self.safe_currency_code(self.safe_string(balance, 'currency_id'))
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'frozen_balance')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         # await self.load_accounts()
@@ -831,20 +847,7 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        balances = self.safe_value(response, 'data', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            code = self.safe_currency_code(self.safe_string(balance, 'currency_id'))
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'frozen_balance')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1517,12 +1520,14 @@ class stex(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        network = self.safe_string(withdrawalAddress, 'protocol_name')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'addressFrom': None,
             'address': address,
             'addressTo': address,

@@ -532,7 +532,9 @@ module.exports = class Exchange {
                     const path = value[k].trim ()
                     this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths)
                 }
-            } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
+            // the options HTTP method conflicts with the 'options' API url path
+            // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
+            } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i)) {
                 const endpoints = Object.keys (value);
                 for (let j = 0; j < endpoints.length; j++) {
                     const endpoint = endpoints[j]
@@ -1381,6 +1383,7 @@ module.exports = class Exchange {
             if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId]
             } else if (delimiter !== undefined) {
+                // * Will not work for swap and futures markets
                 const [ baseId, quoteId ] = marketId.split (delimiter)
                 const base = this.safeCurrencyCode (baseId)
                 const quote = this.safeCurrencyCode (quoteId)
@@ -1597,6 +1600,45 @@ module.exports = class Exchange {
             return this.totp (this.twofa)
         } else {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
+        }
+    }
+
+    getNetwork (network, code) {
+        network = network.toUpperCase ();
+        const aliases = {
+            'ETHEREUM': 'ETH',
+            'ETHER': 'ETH',
+            'ERC20': 'ETH',
+            'ETH': 'ETH',
+            'TRC20': 'TRX',
+            'TRON': 'TRX',
+            'TRX': 'TRX',
+            'BEP20': 'BSC',
+            'BSC': 'BSC',
+            'HRC20': 'HT',
+            'HECO': 'HT',
+            'SPL': 'SOL',
+            'SOL': 'SOL',
+            'TERRA': 'LUNA',
+            'LUNA': 'LUNA',
+            'POLYGON': 'MATIC',
+            'MATIC': 'MATIC',
+            'EOS': 'EOS',
+            'WAVES': 'WAVES',
+            'AVALANCHE': 'AVAX',
+            'AVAX': 'AVAX',
+            'QTUM': 'QTUM',
+            'CHZ': 'CHZ',
+            'NEO': 'NEO',
+            'ONT': 'ONT',
+            'RON': 'RON',
+        };
+        if (network === code) {
+            return network;
+        } else if (network in aliases) {
+            return aliases[network];
+        } else {
+            throw new NotSupported (this.id + ' network ' + network + ' is not yet supported');
         }
     }
 
@@ -2010,10 +2052,8 @@ module.exports = class Exchange {
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
-        let methodType = undefined;
-        if (methodOptions === undefined) {
-            methodType = defaultType;
-        } else {
+        let methodType = defaultType;
+        if (methodOptions !== undefined) {
             if (typeof methodOptions === 'string') {
                 methodType = methodOptions;
             } else {
@@ -2024,5 +2064,12 @@ module.exports = class Exchange {
         const type = this.safeString2 (params, 'defaultType', 'type', marketType);
         params = this.omit (params, [ 'defaultType', 'type' ]);
         return [ type, params ];
+    }
+
+    async loadTimeDifference (params = {}) {
+        const serverTime = await this.fetchTime (params);
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = after - serverTime;
+        return this.options['timeDifference'];
     }
 }

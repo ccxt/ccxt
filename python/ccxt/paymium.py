@@ -85,9 +85,7 @@ class paymium(Exchange):
             },
         })
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetUser(params)
+    def parse_balance(self, response):
         result = {'info': response}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
@@ -102,6 +100,11 @@ class paymium(Exchange):
                 account['used'] = self.safe_string(response, used)
                 result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetUser(params)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -305,12 +305,9 @@ class bitvavo extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'derivative' => false,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
                 'contractSize' => null,
                 'active' => ($status === 'trading'),
                 'expiry' => null,
@@ -399,6 +396,8 @@ class bitvavo extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdrawal,
                 'fee' => $this->safe_number($currency, 'withdrawalFee'),
                 'precision' => $precision,
                 'limits' => array(
@@ -730,18 +729,7 @@ class bitvavo extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privateGetBalance ($params);
-        //
-        //     array(
-        //         {
-        //             "symbol" => "BTC",
-        //             "available" => "1.57593193",
-        //             "inOrder" => "0.74832374"
-        //         }
-        //     )
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -757,6 +745,21 @@ class bitvavo extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetBalance ($params);
+        //
+        //     array(
+        //         {
+        //             "symbol" => "BTC",
+        //             "available" => "1.57593193",
+        //             "inOrder" => "0.74832374"
+        //         }
+        //     )
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

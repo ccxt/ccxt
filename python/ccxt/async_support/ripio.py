@@ -485,6 +485,18 @@ class ripio(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def parse_balance(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'symbol')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalancesExchangeBalances(params)
@@ -501,16 +513,7 @@ class ripio(Exchange):
         #         },
         #     ]
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'symbol')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

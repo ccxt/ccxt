@@ -658,24 +658,7 @@ class qtrade(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetBalancesAll(params)
-        #
-        #     {
-        #         "data":{
-        #             "balances": [
-        #                 {"balance": "100000000", "currency": "BCH"},
-        #                 {"balance": "99992435.78253015", "currency": "LTC"},
-        #                 {"balance": "99927153.76074182", "currency": "BTC"},
-        #             ],
-        #             "order_balances":[],
-        #             "limit_used":0,
-        #             "limit_remaining":4000,
-        #             "limit":4000
-        #         }
-        #     }
-        #
+    def parse_balance(self, response):
         data = self.safe_value(response, 'data', {})
         balances = self.safe_value(data, 'balances', [])
         result = {
@@ -700,6 +683,26 @@ class qtrade(Exchange):
             account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetBalancesAll(params)
+        #
+        #     {
+        #         "data":{
+        #             "balances": [
+        #                 {"balance": "100000000", "currency": "BCH"},
+        #                 {"balance": "99992435.78253015", "currency": "LTC"},
+        #                 {"balance": "99927153.76074182", "currency": "BTC"},
+        #             ],
+        #             "order_balances":[],
+        #             "limit_used":0,
+        #             "limit_remaining":4000,
+        #             "limit":4000
+        #         }
+        #     }
+        #
+        return self.parse_balance(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -1331,6 +1334,7 @@ class qtrade(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

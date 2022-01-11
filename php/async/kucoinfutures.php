@@ -16,7 +16,7 @@ class kucoinfutures extends kucoin {
     public function describe() {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'kucoinfutures',
-            'name' => 'Kucoin Futures',
+            'name' => 'KuCoin Futures',
             'countries' => array( 'SC' ),
             'rateLimit' => 75,
             'version' => 'v1',
@@ -25,6 +25,11 @@ class kucoinfutures extends kucoin {
             'comment' => 'Platform 2.0',
             'quoteJsonNumbers' => false,
             'has' => array(
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'future' => true,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
@@ -62,11 +67,11 @@ class kucoinfutures extends kucoin {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => null,
-                'loadTimeDifference' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
                 'transferOut' => true,
                 'withdraw' => null,
+                'addMargin' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg',
@@ -157,6 +162,7 @@ class kucoinfutures extends kucoin {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest', // Bad Request -- Invalid request format
@@ -289,14 +295,6 @@ class kucoinfutures extends kucoin {
         throw new BadRequest($this->id . ' has no method fetchAccounts');
     }
 
-    public function load_time_difference($params = array ()) {
-        $response = yield $this->futuresPublicGetTimestamp ($params);
-        $after = $this->milliseconds();
-        $kucoinTime = $this->safe_integer($response, 'data');
-        $this->options['timeDifference'] = intval($after - $kucoinTime);
-        return $this->options['timeDifference'];
-    }
-
     public function fetch_status($params = array ()) {
         $response = yield $this->futuresPublicGetStatus ($params);
         //
@@ -397,8 +395,8 @@ class kucoinfutures extends kucoin {
             $market = $data[$i];
             $id = $this->safe_string($market, 'symbol');
             $expiry = $this->safe_integer($market, 'expireDate');
-            $futures = $expiry ? true : false;
-            $swap = !$futures;
+            $future = $expiry ? true : false;
+            $swap = !$future;
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
             $settleId = $this->safe_string($market, 'settleCurrency');
@@ -407,9 +405,9 @@ class kucoinfutures extends kucoin {
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote . ':' . $settle;
             $type = 'swap';
-            if ($futures) {
+            if ($future) {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
-                $type = 'futures';
+                $type = 'future';
             }
             $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
             $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
@@ -418,9 +416,8 @@ class kucoinfutures extends kucoin {
             $quoteMaxSize = $this->parse_number($quoteMaxSizeString);
             $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             $inverse = $this->safe_value($market, 'isInverse');
-            // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
-            $amount = $this->safe_string($market, 'baseIncrement');
-            $price = $this->safe_string($market, 'priceIncrement');
+            $status = $this->safe_string($market, 'status');
+            $active = $status === 'Open';
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -434,35 +431,32 @@ class kucoinfutures extends kucoin {
                 'spot' => false,
                 'margin' => false,
                 'swap' => $swap,
-                'futures' => $futures,
+                'future' => $future,
                 'option' => false,
-                'active' => true,
-                'derivative' => true,
+                'active' => $active,
                 'contract' => true,
-                'linear' => $inverse !== true,
+                'linear' => !$inverse,
                 'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
                 'contractSize' => $this->parse_number(Precise::string_abs($this->safe_string($market, 'multiplier'))),
-                'expiry' => $this->parse_number($expiry),
+                'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
-                'strike' => null,
-                'optionType' => null,
                 'precision' => array(
-                    'amount' => $amount ? $this->precision_from_string($amount) : null,
-                    'price' => $price ? $this->precision_from_string($price) : null,
+                    'amount' => $this->safe_number($market, 'lotSize'),
+                    'price' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => $this->parse_number('1'),
-                        'max' => $this->safe_number($market, 'maxLeverage', 1),
+                        'min' => null,
+                        'max' => $this->safe_number($market, 'maxLeverage'),
                     ),
                     'amount' => array(
                         'min' => $baseMinSize,
                         'max' => $baseMaxSize,
                     ),
                     'price' => array(
-                        'min' => $price,
+                        'min' => null,
                         'max' => $this->parse_number(Precise::string_div($quoteMaxSizeString, $baseMinSizeString)),
                     ),
                     'cost' => array(
@@ -776,6 +770,7 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        yield $this->load_markets();
         $response = yield $this->futuresPrivateGetPositions ($params);
         //
         //    {
@@ -892,11 +887,13 @@ class kucoinfutures extends kucoin {
             $side = 'sell';
         }
         $notional = Precise::string_abs($this->safe_string($position, 'posCost'));
-        $initialMargin = $this->safe_string($position, 'posMargin');
+        $initialMargin = $this->safe_string($position, 'posInit');
         $initialMarginPercentage = Precise::string_div($initialMargin, $notional);
-        $leverage = Precise::string_div('1', $initialMarginPercentage);  // TODO => Not quite right
         // $marginRatio = Precise::string_div(maintenanceRate, collateral);
         $unrealisedPnl = $this->safe_string($position, 'unrealisedPnl');
+        $crossMode = $this->safe_value($position, 'crossMode');
+        // currently $crossMode is always set to false and only isolated positions are supported
+        $marginType = $crossMode ? 'cross' : 'isolated';
         return array(
             'info' => $position,
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -904,20 +901,20 @@ class kucoinfutures extends kucoin {
             'datetime' => $this->iso8601($timestamp),
             'initialMargin' => $this->parse_number($initialMargin),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
-            'maintenanceMargin' => $this->safe_number($position, 'maintMargin'),
-            'maintenanceMarginPercentage' => $this->safe_string($position, 'maintMarginReq'),
+            'maintenanceMargin' => $this->safe_number($position, 'posMaint'),
+            'maintenanceMarginPercentage' => $this->safe_number($position, 'maintMarginReq'),
             'entryPrice' => $this->safe_number($position, 'avgEntryPrice'),
             'notional' => $this->parse_number($notional),
-            'leverage' => $this->parse_number($leverage),
+            'leverage' => $this->safe_number($position, 'realLeverage'),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
-            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'contractSize' => $this->safe_value($market, 'contractSize'),
             //     realisedPnl => $position['realised_pnl'],
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
-            'collateral' => $this->safe_number($position, 'posInit'),
-            'marginType' => null,
+            'collateral' => $this->safe_number($position, 'maintMargin'),
+            'marginType' => $marginType,
             'side' => $side,
             'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
         );
@@ -929,12 +926,8 @@ class kucoinfutures extends kucoin {
         // required param, cannot be used twice
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
         $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
-        $leverage = $this->safe_number($params, 'leverage');
-        if (!$leverage) {
-            throw new ArgumentsRequired($this->id . ' createOrder requires $params->leverage');
-        }
         if ($amount < 1) {
-            throw new InvalidOrder('Minimum contract order size using ' . $this->id . ' is 1');
+            throw new InvalidOrder($this->id . ' createOrder() minimum contract order $amount is 1');
         }
         $preciseAmount = intval($this->amount_to_precision($symbol, $amount));
         $request = array(
@@ -943,6 +936,7 @@ class kucoinfutures extends kucoin {
             'symbol' => $market['id'],
             'type' => $type, // limit or $market
             'size' => $preciseAmount,
+            'leverage' => 1,
             // 'remark' => '', // optional remark for the order, length cannot exceed 100 utf8 characters
             // 'tradeType' => 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
             // limit orders ---------------------------------------------------
@@ -968,17 +962,17 @@ class kucoinfutures extends kucoin {
         );
         $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice) {
-            $request['stop'] = strtoupper($side) === 'BUY' ? 'down' : 'up';
+            $request['stop'] = ($side === 'buy') ? 'down' : 'up';
             $stopPriceType = $this->safe_string($params, 'stopPriceType');
             if (!$stopPriceType) {
-                throw new ArgumentsRequired($this->id . ' trigger orders require $params->stopPriceType to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
+                throw new ArgumentsRequired($this->id . ' createOrder() trigger orders require a $stopPriceType parameter to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
             }
         }
         $uppercaseType = strtoupper($type);
         $timeInForce = $this->safe_string($params, 'timeInForce');
         if ($uppercaseType === 'LIMIT') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' limit orders require the $price argument');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for limit orders');
             } else {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
@@ -990,13 +984,13 @@ class kucoinfutures extends kucoin {
         $postOnly = $this->safe_value($params, 'postOnly', false);
         $hidden = $this->safe_value($params, 'hidden');
         if ($postOnly && $hidden !== null) {
-            throw new BadRequest($this->id . ' createOrder cannot contain both $params->postOnly and $params->hidden');
+            throw new BadRequest($this->id . ' createOrder() does not support the $postOnly parameter together with a $hidden parameter');
         }
         $iceberg = $this->safe_value($params, 'iceberg');
         if ($iceberg) {
             $visibleSize = $this->safe_value($params, 'visibleSize');
             if ($visibleSize === null) {
-                throw new ArgumentsRequired($this->id . ' requires $params->visibleSize for $iceberg orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $visibleSize parameter for $iceberg orders');
             }
         }
         $params = $this->omit($params, 'timeInForce'); // Time in force only valid for limit orders, exchange error when gtc for $market orders
@@ -1012,15 +1006,15 @@ class kucoinfutures extends kucoin {
         $data = $this->safe_value($response, 'data', array());
         return array(
             'id' => $this->safe_string($data, 'orderId'),
-            'clientOrderId' => $clientOrderId,
+            'clientOrderId' => null,
             'timestamp' => null,
             'datetime' => null,
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $preciseAmount,
+            'symbol' => null,
+            'type' => null,
+            'side' => null,
+            'price' => null,
+            'amount' => null,
             'cost' => null,
             'average' => null,
             'filled' => null,
@@ -1028,10 +1022,10 @@ class kucoinfutures extends kucoin {
             'status' => null,
             'fee' => null,
             'trades' => null,
-            'timeInForce' => $timeInForce,
-            'postOnly' => $postOnly,
-            'stopPrice' => $stopPrice,
-            'info' => $data,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'stopPrice' => null,
+            'info' => $response,
         );
     }
 
@@ -1074,6 +1068,18 @@ class kucoinfutures extends kucoin {
         return $this->safe_value($response, 'data');
     }
 
+    public function add_margin($symbol, $amount, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $uuid = $this->uuid();
+        $request = array(
+            'symbol' => $market['id'],
+            'margin' => $amount,
+            'bizNo' => $uuid,
+        );
+        return yield $this->futuresPrivatePostPositionMarginDepositMargin (array_merge($request, $params));
+    }
+
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $request = array(
@@ -1109,14 +1115,15 @@ class kucoinfutures extends kucoin {
             $request['orderId'] = $id;
         }
         $response = yield $this->$method (array_merge($request, $params));
-        $market = $symbol !== null ? $this->market($symbol) : null;
+        $market = ($symbol !== null) ? $this->market($symbol) : null;
         $responseData = $this->safe_value($response, 'data');
         return $this->parse_order($responseData, $market);
     }
 
     public function parse_order($order, $market = null) {
         $marketId = $this->safe_string($order, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $orderId = $this->safe_string($order, 'id');
         $type = $this->safe_string($order, 'type');
         $timestamp = $this->safe_integer($order, 'createdAt');
@@ -1130,7 +1137,19 @@ class kucoinfutures extends kucoin {
         $feeCost = $this->safe_number($order, 'fee');
         $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string($order, 'dealSize');
-        $cost = $this->safe_string($order, 'dealFunds');
+        $rawCost = $this->safe_string_2($order, 'dealFunds', 'filledValue');
+        $leverage = $this->safe_string($order, 'leverage');
+        $cost = Precise::string_div($rawCost, $leverage);
+        $average = null;
+        if (Precise::string_gt($filled, '0')) {
+            if ($market['linear']) {
+                $average = Precise::string_div($rawCost, Precise::string_mul($market['contractSize'], $filled));
+            } else {
+                $average = Precise::string_div(Precise::string_mul($market['contractSize'], $filled), $rawCost);
+            }
+        }
+        // precision reported by their api is 8 d.p.
+        // $average = Precise::string_div($rawCost, Precise::string_mul($filled, $market['contractSize']));
         // bool
         $isActive = $this->safe_value($order, 'isActive', false);
         $cancelExist = $this->safe_value($order, 'cancelExist', false);
@@ -1144,7 +1163,7 @@ class kucoinfutures extends kucoin {
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return $this->safeOrder2 (array(
+        return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
             'symbol' => $symbol,
@@ -1164,7 +1183,7 @@ class kucoinfutures extends kucoin {
             'status' => $status,
             'info' => $order,
             'lastTradeTimestamp' => null,
-            'average' => null,
+            'average' => $average,
             'trades' => null,
         ), $market);
     }
@@ -1207,28 +1226,7 @@ class kucoinfutures extends kucoin {
         );
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        // only fetches one balance at a time
-        // by default it will only fetch the BTC balance of the futures $account
-        // you can send 'currency' in $params to fetch other currencies
-        // fetchBalance (array( 'type' => 'futures', 'currency' => 'USDT' ))
-        $response = yield $this->futuresPrivateGetAccountOverview ($params);
-        //
-        //     {
-        //         $code => '200000',
-        //         $data => {
-        //             accountEquity => 0.00005,
-        //             unrealisedPNL => 0,
-        //             marginBalance => 0.00005,
-        //             positionMargin => 0,
-        //             orderMargin => 0,
-        //             frozenFunds => 0,
-        //             availableBalance => 0.00005,
-        //             currency => 'XBT'
-        //         }
-        //     }
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1241,7 +1239,32 @@ class kucoinfutures extends kucoin {
         $account['free'] = $this->safe_string($data, 'availableBalance');
         $account['total'] = $this->safe_string($data, 'accountEquity');
         $result[$code] = $account;
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        // only fetches one balance at a time
+        // by default it will only fetch the BTC balance of the futures account
+        // you can send 'currency' in $params to fetch other currencies
+        // fetchBalance (array( 'type' => 'futures', 'currency' => 'USDT' ))
+        $response = yield $this->futuresPrivateGetAccountOverview ($params);
+        //
+        //     {
+        //         code => '200000',
+        //         data => {
+        //             accountEquity => 0.00005,
+        //             unrealisedPNL => 0,
+        //             marginBalance => 0.00005,
+        //             positionMargin => 0,
+        //             orderMargin => 0,
+        //             frozenFunds => 0,
+        //             availableBalance => 0.00005,
+        //             currency => 'XBT'
+        //         }
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

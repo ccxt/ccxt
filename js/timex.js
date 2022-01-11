@@ -434,18 +434,7 @@ module.exports = class timex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.tradingGetBalances (params);
-        //
-        //     [
-        //         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
-        //         {"currency":"AUDT","totalBalance":"0","lockedBalance":"0"},
-        //         {"currency":"ETH","totalBalance":"0","lockedBalance":"0"},
-        //         {"currency":"TIME","totalBalance":"0","lockedBalance":"0"},
-        //         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
-        //     ]
-        //
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -461,6 +450,21 @@ module.exports = class timex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.tradingGetBalances (params);
+        //
+        //     [
+        //         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
+        //         {"currency":"AUDT","totalBalance":"0","lockedBalance":"0"},
+        //         {"currency":"ETH","totalBalance":"0","lockedBalance":"0"},
+        //         {"currency":"TIME","totalBalance":"0","lockedBalance":"0"},
+        //         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
+        //     ]
+        //
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

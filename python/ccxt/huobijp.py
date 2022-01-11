@@ -910,14 +910,7 @@ class huobijp(Exchange):
             }
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        self.load_accounts()
-        method = self.options['fetchBalanceMethod']
-        request = {
-            'id': self.accounts[0]['id'],
-        }
-        response = getattr(self, method)(self.extend(request, params))
+    def parse_balance(self, response):
         balances = self.safe_value(response['data'], 'list', [])
         result = {'info': response}
         for i in range(0, len(balances)):
@@ -935,6 +928,16 @@ class huobijp(Exchange):
                 account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        self.load_accounts()
+        method = self.options['fetchBalanceMethod']
+        request = {
+            'id': self.accounts[0]['id'],
+        }
+        response = getattr(self, method)(self.extend(request, params))
+        return self.parse_balance(response)
 
     def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1399,14 +1402,21 @@ class huobijp(Exchange):
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             feeCost = abs(feeCost)
+        address = self.safe_string(transaction, 'address')
+        network = self.safe_string_upper(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
             'txid': self.safe_string(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': self.safe_string(transaction, 'address'),
+            'network': network,
+            'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,

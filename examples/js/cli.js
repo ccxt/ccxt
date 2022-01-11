@@ -118,7 +118,7 @@ function printSupportedExchanges () {
 
 //-----------------------------------------------------------------------------
 
- function printUsage () {
+function printUsage () {
     log ('This is an example of a basic command-line interface to all exchanges')
     log ('Usage: node', process.argv[1], 'id'.green, 'method'.yellow, '"param1" param2 "param3" param4 ...'.blue)
     log ('Examples:')
@@ -130,7 +130,7 @@ function printSupportedExchanges () {
     log ('--verbose         Print verbose output')
     log ('--debug           Print debugging output')
     log ('--poll            Repeat continuously in rate-limited mode')
-    log ("--no-send         Print the request but don't actually send it to the exchange (sets verbose and load-markets)")
+    log ('--no-send         Print the request but do not actually send it to the exchange (sets verbose and load-markets)')
     log ('--no-load-markets Do not pre-load markets (for debugging)')
     log ('--details         Print detailed fetch responses')
     log ('--no-table        Do not print the fetch response as a table')
@@ -138,6 +138,9 @@ function printSupportedExchanges () {
     log ('--iso8601         Print timestamps as ISO8601 datetimes')
     log ('--cors            use CORS proxy for debugging')
     log ('--sign-in         Call signIn() if any')
+    log ('--sandbox         Use the exchange sandbox if available, same as --testnet')
+    log ('--testnet         Use the exchange testnet if available, same as --sandbox')
+    log ('--test            Use the exchange testnet if available, same as --sandbox')
 }
 
 //-----------------------------------------------------------------------------

@@ -265,6 +265,8 @@ class delta(Exchange):
                 'name': self.safe_string(currency, 'name'),
                 'info': currency,  # the original payload
                 'active': active,
+                'deposit': depositsEnabled,
+                'withdraw': withdrawalsEnabled,
                 'fee': self.safe_number(currency, 'base_withdrawal_fee'),
                 'precision': 1 / math.pow(10, precision),
                 'limits': {
@@ -756,6 +758,21 @@ class delta(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
+    def parse_balance(self, response):
+        balances = self.safe_value(response, 'result', [])
+        result = {'info': response}
+        currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId', {})
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'asset_id')
+            currency = self.safe_value(currenciesByNumericId, currencyId)
+            code = currencyId if (currency is None) else currency['code']
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available_balance')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetWalletBalances(params)
@@ -780,19 +797,7 @@ class delta(Exchange):
         #         "success":true
         #     }
         #
-        balances = self.safe_value(response, 'result', [])
-        result = {'info': response}
-        currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId', {})
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'asset_id')
-            currency = self.safe_value(currenciesByNumericId, currencyId)
-            code = currencyId if (currency is None) else currency['code']
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'balance')
-            account['free'] = self.safe_string(balance, 'available_balance')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_position(self, symbol, params=None):
         await self.load_markets()

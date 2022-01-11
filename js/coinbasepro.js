@@ -255,6 +255,8 @@ module.exports = class coinbasepro extends Exchange {
                 'type': this.safeString (details, 'type'),
                 'name': name,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
@@ -383,9 +385,7 @@ module.exports = class coinbasepro extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccounts (params);
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -398,6 +398,12 @@ module.exports = class coinbasepro extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccounts (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1304,8 +1310,13 @@ module.exports = class coinbasepro extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,

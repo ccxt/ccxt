@@ -459,6 +459,32 @@ class liquid(Exchange):
             })
         return result
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        crypto = self.safe_value(response, 'crypto_accounts', [])
+        fiat = self.safe_value(response, 'fiat_accounts', [])
+        for i in range(0, len(crypto)):
+            balance = crypto[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserved_balance')
+            result[code] = account
+        for i in range(0, len(fiat)):
+            balance = fiat[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserved_balance')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetAccounts(params)
@@ -496,30 +522,7 @@ class liquid(Exchange):
         #         ]
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        crypto = self.safe_value(response, 'crypto_accounts', [])
-        fiat = self.safe_value(response, 'fiat_accounts', [])
-        for i in range(0, len(crypto)):
-            balance = crypto[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'reserved_balance')
-            result[code] = account
-        for i in range(0, len(fiat)):
-            balance = fiat[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'reserved_balance')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -1087,14 +1090,20 @@ class liquid(Exchange):
         amountString = self.safe_string(transaction, 'amount')
         feeCostString = self.safe_string(transaction, 'withdrawal_fee')
         amount = self.parse_number(Precise.string_sub(amountString, feeCostString))
+        network = self.safe_string(transaction, 'chain_name')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,

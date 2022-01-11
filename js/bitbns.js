@@ -358,25 +358,7 @@ module.exports = class bitbns extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.v1PostCurrentCoinBalanceEVERYTHING (params);
-        //
-        //     {
-        //         "data":{
-        //             "availableorderMoney":0,
-        //             "availableorderBTC":0,
-        //             "availableorderXRP":0,
-        //             "inorderMoney":0,
-        //             "inorderBTC":0,
-        //             "inorderXRP":0,
-        //             "inorderNEO":0,
-        //         },
-        //         "status":1,
-        //         "error":null,
-        //         "code":200
-        //     }
-        //
+    parseBalance (response) {
         const timestamp = undefined;
         const result = {
             'info': response,
@@ -401,6 +383,28 @@ module.exports = class bitbns extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v1PostCurrentCoinBalanceEVERYTHING (params);
+        //
+        //     {
+        //         "data":{
+        //             "availableorderMoney":0,
+        //             "availableorderBTC":0,
+        //             "availableorderXRP":0,
+        //             "inorderMoney":0,
+        //             "inorderBTC":0,
+        //             "inorderXRP":0,
+        //             "inorderNEO":0,
+        //         },
+        //         "status":1,
+        //         "error":null,
+        //         "code":200
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {
@@ -924,6 +928,7 @@ module.exports = class bitbns extends Exchange {
             'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': undefined,
             'addressTo': undefined,
             'addressFrom': undefined,

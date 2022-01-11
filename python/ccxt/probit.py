@@ -384,20 +384,7 @@ class probit(Exchange):
             }
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetBalance(params)
-        #
-        #     {
-        #         data: [
-        #             {
-        #                 "currency_id":"XRP",
-        #                 "total":"100",
-        #                 "available":"0",
-        #             }
-        #         ]
-        #     }
-        #
+    def parse_balance(self, response):
         result = {
             'info': response,
             'timestamp': None,
@@ -413,6 +400,22 @@ class probit(Exchange):
             account['free'] = self.safe_string(balance, 'available')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetBalance(params)
+        #
+        #     {
+        #         data: [
+        #             {
+        #                 "currency_id":"XRP",
+        #                 "total":"100",
+        #                 "available":"0",
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -1105,6 +1108,7 @@ class probit(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': address,
@@ -1116,6 +1120,7 @@ class probit(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'updated': None,
             'fee': fee,
             'info': transaction,
         }

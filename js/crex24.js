@@ -379,8 +379,12 @@ module.exports = class crex24 extends Exchange {
             const withdrawalPrecision = this.safeInteger (currency, 'withdrawalPrecision');
             const precision = Math.pow (10, -withdrawalPrecision);
             const address = this.safeValue (currency, 'BaseAddress');
-            const active = (currency['depositsAllowed'] && currency['withdrawalsAllowed'] && !currency['isDelisted']);
-            const type = currency['isFiat'] ? 'fiat' : 'crypto';
+            const deposit = this.safeValue (currency, 'depositsAllowed');
+            const withdraw = this.safeValue (currency, 'withdrawalsAllowed');
+            const delisted = this.safeValue (currency, 'isDelisted');
+            const active = deposit && withdraw && !delisted;
+            const fiat = this.safeValue (currency, 'isFiat');
+            const type = fiat ? 'fiat' : 'crypto';
             result[code] = {
                 'id': id,
                 'code': code,
@@ -389,6 +393,8 @@ module.exports = class crex24 extends Exchange {
                 'type': type,
                 'name': this.safeString (currency, 'name'),
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': this.safeNumber (currency, 'flatWithdrawalFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
@@ -453,6 +459,20 @@ module.exports = class crex24 extends Exchange {
         };
     }
 
+    parseBalance (response) {
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'reserved');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -469,17 +489,7 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'reserved');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1321,8 +1331,13 @@ module.exports = class crex24 extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,

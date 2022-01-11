@@ -5,6 +5,7 @@
 const { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const kucoin = require ('./kucoin.js');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,7 +13,7 @@ module.exports = class kucoinfutures extends kucoin {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',
-            'name': 'Kucoin Futures',
+            'name': 'KuCoin Futures',
             'countries': [ 'SC' ],
             'rateLimit': 75,
             'version': 'v1',
@@ -21,6 +22,11 @@ module.exports = class kucoinfutures extends kucoin {
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': false,
             'has': {
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': true,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
@@ -58,11 +64,11 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': undefined,
-                'loadTimeDifference': true,
                 'setMarginMode': false,
                 'transfer': true,
                 'transferOut': true,
                 'withdraw': undefined,
+                'addMargin': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg',
@@ -153,6 +159,7 @@ module.exports = class kucoinfutures extends kucoin {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '400': BadRequest, // Bad Request -- Invalid request format
@@ -285,14 +292,6 @@ module.exports = class kucoinfutures extends kucoin {
         throw new BadRequest (this.id + ' has no method fetchAccounts');
     }
 
-    async loadTimeDifference (params = {}) {
-        const response = await this.futuresPublicGetTimestamp (params);
-        const after = this.milliseconds ();
-        const kucoinTime = this.safeInteger (response, 'data');
-        this.options['timeDifference'] = parseInt (after - kucoinTime);
-        return this.options['timeDifference'];
-    }
-
     async fetchStatus (params = {}) {
         const response = await this.futuresPublicGetStatus (params);
         //
@@ -393,8 +392,8 @@ module.exports = class kucoinfutures extends kucoin {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
             const expiry = this.safeInteger (market, 'expireDate');
-            const futures = expiry ? true : false;
-            const swap = !futures;
+            const future = expiry ? true : false;
+            const swap = !future;
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
             const settleId = this.safeString (market, 'settleCurrency');
@@ -403,9 +402,9 @@ module.exports = class kucoinfutures extends kucoin {
             const settle = this.safeCurrencyCode (settleId);
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
-            if (futures) {
+            if (future) {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
-                type = 'futures';
+                type = 'future';
             }
             const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
             const baseMinSizeString = this.safeString (market, 'baseMinSize');
@@ -414,9 +413,8 @@ module.exports = class kucoinfutures extends kucoin {
             const quoteMaxSize = this.parseNumber (quoteMaxSizeString);
             const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
             const inverse = this.safeValue (market, 'isInverse');
-            // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            const amount = this.safeString (market, 'baseIncrement');
-            const price = this.safeString (market, 'priceIncrement');
+            const status = this.safeString (market, 'status');
+            const active = status === 'Open';
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -430,35 +428,32 @@ module.exports = class kucoinfutures extends kucoin {
                 'spot': false,
                 'margin': false,
                 'swap': swap,
-                'futures': futures,
+                'future': future,
                 'option': false,
-                'active': true,
-                'derivative': true,
+                'active': active,
                 'contract': true,
-                'linear': inverse !== true,
+                'linear': !inverse,
                 'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
                 'contractSize': this.parseNumber (Precise.stringAbs (this.safeString (market, 'multiplier'))),
-                'expiry': this.parseNumber (expiry),
+                'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
-                'strike': undefined,
-                'optionType': undefined,
                 'precision': {
-                    'amount': amount ? this.precisionFromString (amount) : undefined,
-                    'price': price ? this.precisionFromString (price) : undefined,
+                    'amount': this.safeNumber (market, 'lotSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.safeNumber (market, 'maxLeverage', 1),
+                        'min': undefined,
+                        'max': this.safeNumber (market, 'maxLeverage'),
                     },
                     'amount': {
                         'min': baseMinSize,
                         'max': baseMaxSize,
                     },
                     'price': {
-                        'min': price,
+                        'min': undefined,
                         'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
                     },
                     'cost': {
@@ -772,6 +767,7 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.futuresPrivateGetPositions (params);
         //
         //    {
@@ -888,11 +884,13 @@ module.exports = class kucoinfutures extends kucoin {
             side = 'sell';
         }
         const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
-        const initialMargin = this.safeString (position, 'posMargin');
+        const initialMargin = this.safeString (position, 'posInit');
         const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
-        const leverage = Precise.stringDiv ('1', initialMarginPercentage);  // TODO: Not quite right
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
+        const crossMode = this.safeValue (position, 'crossMode');
+        // currently crossMode is always set to false and only isolated positions are supported
+        const marginType = crossMode ? 'cross' : 'isolated';
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
@@ -900,20 +898,20 @@ module.exports = class kucoinfutures extends kucoin {
             'datetime': this.iso8601 (timestamp),
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
-            'maintenanceMargin': this.safeNumber (position, 'maintMargin'),
-            'maintenanceMarginPercentage': this.safeString (position, 'maintMarginReq'),
+            'maintenanceMargin': this.safeNumber (position, 'posMaint'),
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             'notional': this.parseNumber (notional),
-            'leverage': this.parseNumber (leverage),
+            'leverage': this.safeNumber (position, 'realLeverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeValue (market, 'contractSize'),
             //     realisedPnl: position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
-            'collateral': this.safeNumber (position, 'posInit'),
-            'marginType': undefined,
+            'collateral': this.safeNumber (position, 'maintMargin'),
+            'marginType': marginType,
             'side': side,
             'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
         };
@@ -925,12 +923,8 @@ module.exports = class kucoinfutures extends kucoin {
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
-        const leverage = this.safeNumber (params, 'leverage');
-        if (!leverage) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires params.leverage');
-        }
         if (amount < 1) {
-            throw new InvalidOrder ('Minimum contract order size using ' + this.id + ' is 1');
+            throw new InvalidOrder (this.id + ' createOrder() minimum contract order amount is 1');
         }
         const preciseAmount = parseInt (this.amountToPrecision (symbol, amount));
         const request = {
@@ -939,6 +933,7 @@ module.exports = class kucoinfutures extends kucoin {
             'symbol': market['id'],
             'type': type, // limit or market
             'size': preciseAmount,
+            'leverage': 1,
             // 'remark': '', // optional remark for the order, length cannot exceed 100 utf8 characters
             // 'tradeType': 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
             // limit orders ---------------------------------------------------
@@ -964,17 +959,17 @@ module.exports = class kucoinfutures extends kucoin {
         };
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice) {
-            request['stop'] = side.toUpperCase () === 'BUY' ? 'down' : 'up';
+            request['stop'] = (side === 'buy') ? 'down' : 'up';
             const stopPriceType = this.safeString (params, 'stopPriceType');
             if (!stopPriceType) {
-                throw new ArgumentsRequired (this.id + ' trigger orders require params.stopPriceType to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
+                throw new ArgumentsRequired (this.id + ' createOrder() trigger orders require a stopPriceType parameter to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
             }
         }
         const uppercaseType = type.toUpperCase ();
         let timeInForce = this.safeString (params, 'timeInForce');
         if (uppercaseType === 'LIMIT') {
             if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' limit orders require the price argument');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
             } else {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
@@ -986,13 +981,13 @@ module.exports = class kucoinfutures extends kucoin {
         const postOnly = this.safeValue (params, 'postOnly', false);
         const hidden = this.safeValue (params, 'hidden');
         if (postOnly && hidden !== undefined) {
-            throw new BadRequest (this.id + ' createOrder cannot contain both params.postOnly and params.hidden');
+            throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
         }
         const iceberg = this.safeValue (params, 'iceberg');
         if (iceberg) {
             const visibleSize = this.safeValue (params, 'visibleSize');
             if (visibleSize === undefined) {
-                throw new ArgumentsRequired (this.id + ' requires params.visibleSize for iceberg orders');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
         params = this.omit (params, 'timeInForce'); // Time in force only valid for limit orders, exchange error when gtc for market orders
@@ -1008,15 +1003,15 @@ module.exports = class kucoinfutures extends kucoin {
         const data = this.safeValue (response, 'data', {});
         return {
             'id': this.safeString (data, 'orderId'),
-            'clientOrderId': clientOrderId,
+            'clientOrderId': undefined,
             'timestamp': undefined,
             'datetime': undefined,
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': preciseAmount,
+            'symbol': undefined,
+            'type': undefined,
+            'side': undefined,
+            'price': undefined,
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': undefined,
@@ -1024,10 +1019,10 @@ module.exports = class kucoinfutures extends kucoin {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'stopPrice': stopPrice,
-            'info': data,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'stopPrice': undefined,
+            'info': response,
         };
     }
 
@@ -1070,6 +1065,18 @@ module.exports = class kucoinfutures extends kucoin {
         return this.safeValue (response, 'data');
     }
 
+    async addMargin (symbol, amount, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const uuid = this.uuid ();
+        const request = {
+            'symbol': market['id'],
+            'margin': amount,
+            'bizNo': uuid,
+        };
+        return await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
+    }
+
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -1105,14 +1112,15 @@ module.exports = class kucoinfutures extends kucoin {
             request['orderId'] = id;
         }
         const response = await this[method] (this.extend (request, params));
-        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const responseData = this.safeValue (response, 'data');
         return this.parseOrder (responseData, market);
     }
 
     parseOrder (order, market = undefined) {
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const orderId = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
@@ -1126,7 +1134,19 @@ module.exports = class kucoinfutures extends kucoin {
         const feeCost = this.safeNumber (order, 'fee');
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'dealSize');
-        const cost = this.safeString (order, 'dealFunds');
+        const rawCost = this.safeString2 (order, 'dealFunds', 'filledValue');
+        const leverage = this.safeString (order, 'leverage');
+        const cost = Precise.stringDiv (rawCost, leverage);
+        let average = undefined;
+        if (Precise.stringGt (filled, '0')) {
+            if (market['linear']) {
+                average = Precise.stringDiv (rawCost, Precise.stringMul (market['contractSize'], filled));
+            } else {
+                average = Precise.stringDiv (Precise.stringMul (market['contractSize'], filled), rawCost);
+            }
+        }
+        // precision reported by their api is 8 d.p.
+        // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
@@ -1140,7 +1160,7 @@ module.exports = class kucoinfutures extends kucoin {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
@@ -1160,7 +1180,7 @@ module.exports = class kucoinfutures extends kucoin {
             'status': status,
             'info': order,
             'lastTradeTimestamp': undefined,
-            'average': undefined,
+            'average': average,
             'trades': undefined,
         }, market);
     }
@@ -1203,6 +1223,22 @@ module.exports = class kucoinfutures extends kucoin {
         };
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const data = this.safeValue (response, 'data');
+        const currencyId = this.safeString (data, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'availableBalance');
+        account['total'] = this.safeString (data, 'accountEquity');
+        result[code] = account;
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         // only fetches one balance at a time
@@ -1225,19 +1261,7 @@ module.exports = class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const data = this.safeValue (response, 'data');
-        const currencyId = this.safeString (data, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['free'] = this.safeString (data, 'availableBalance');
-        account['total'] = this.safeString (data, 'accountEquity');
-        result[code] = account;
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

@@ -670,24 +670,7 @@ class qtrade extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetBalancesAll ($params);
-        //
-        //     {
-        //         "data":{
-        //             "balances" => array(
-        //                 array( "balance" => "100000000", "currency" => "BCH" ),
-        //                 array( "balance" => "99992435.78253015", "currency" => "LTC" ),
-        //                 array( "balance" => "99927153.76074182", "currency" => "BTC" ),
-        //             ),
-        //             "order_balances":array(),
-        //             "limit_used":0,
-        //             "limit_remaining":4000,
-        //             "limit":4000
-        //         }
-        //     }
-        //
+    public function parse_balance($response) {
         $data = $this->safe_value($response, 'data', array());
         $balances = $this->safe_value($data, 'balances', array());
         $result = array(
@@ -714,6 +697,27 @@ class qtrade extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetBalancesAll ($params);
+        //
+        //     {
+        //         "data":{
+        //             "balances" => array(
+        //                 array( "balance" => "100000000", "currency" => "BCH" ),
+        //                 array( "balance" => "99992435.78253015", "currency" => "LTC" ),
+        //                 array( "balance" => "99927153.76074182", "currency" => "BTC" ),
+        //             ),
+        //             "order_balances":array(),
+        //             "limit_used":0,
+        //             "limit_remaining":4000,
+        //             "limit":4000
+        //         }
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1369,6 +1373,7 @@ class qtrade extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,

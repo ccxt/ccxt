@@ -490,6 +490,20 @@ module.exports = class ripio extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseBalance (response) {
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetBalancesExchangeBalances (params);
@@ -506,17 +520,7 @@ module.exports = class ripio extends Exchange {
         //         },
         //     ]
         //
-        const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'symbol');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'locked');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

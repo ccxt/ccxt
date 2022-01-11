@@ -358,6 +358,29 @@ module.exports = class lbank extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const info = this.safeValue (response, 'info', {});
+        const free = this.safeValue (info, 'free', {});
+        const freeze = this.safeValue (info, 'freeze', {});
+        const asset = this.safeValue (info, 'asset', {});
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (free, currencyId);
+            account['used'] = this.safeString (freeze, currencyId);
+            account['total'] = this.safeString (asset, currencyId);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostUserInfo (params);
@@ -383,26 +406,7 @@ module.exports = class lbank extends Exchange {
         //         }
         //     }
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const info = this.safeValue (response, 'info', {});
-        const free = this.safeValue (info, 'free', {});
-        const freeze = this.safeValue (info, 'freeze', {});
-        const asset = this.safeValue (info, 'asset', {});
-        const currencyIds = Object.keys (free);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (free, currencyId);
-            account['used'] = this.safeString (freeze, currencyId);
-            account['total'] = this.safeString (asset, currencyId);
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     parseOrderStatus (status) {

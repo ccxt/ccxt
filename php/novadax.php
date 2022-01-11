@@ -555,23 +555,7 @@ class novadax extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetAccountGetBalance ($params);
-        //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             {
-        //                 "available" => "1.23",
-        //                 "balance" => "0.23",
-        //                 "currency" => "BTC",
-        //                 "hold" => "1"
-        //             }
-        //         ),
-        //         "message" => "Success"
-        //     }
-        //
+    public function parse_balance($response) {
         $data = $this->safe_value($response, 'data', array());
         $result = array(
             'info' => $response,
@@ -589,6 +573,26 @@ class novadax extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetAccountGetBalance ($params);
+        //
+        //     {
+        //         "code" => "A10000",
+        //         "data" => array(
+        //             {
+        //                 "available" => "1.23",
+        //                 "balance" => "0.23",
+        //                 "currency" => "BTC",
+        //                 "hold" => "1"
+        //             }
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1078,11 +1082,13 @@ class novadax extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
+        $network = $this->safe_string($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => $network,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

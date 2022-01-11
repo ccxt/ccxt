@@ -151,26 +151,26 @@ class bitmart extends Exchange {
                     'taker' => $this->parse_number('0.0025'),
                     'maker' => $this->parse_number('0.0025'),
                     'tiers' => array(
-                        'taker' => [
-                            [$this->parse_number('0'), $this->parse_number('0.0020')],
-                            [$this->parse_number('10'), $this->parse_number('0.18')],
-                            [$this->parse_number('50'), $this->parse_number('0.0016')],
-                            [$this->parse_number('250'), $this->parse_number('0.0014')],
-                            [$this->parse_number('1000'), $this->parse_number('0.0012')],
-                            [$this->parse_number('5000'), $this->parse_number('0.0010')],
-                            [$this->parse_number('25000'), $this->parse_number('0.0008')],
-                            [$this->parse_number('50000'), $this->parse_number('0.0006')],
-                        ],
-                        'maker' => [
-                            [$this->parse_number('0'), $this->parse_number('0.001')],
-                            [$this->parse_number('10'), $this->parse_number('0.0009')],
-                            [$this->parse_number('50'), $this->parse_number('0.0008')],
-                            [$this->parse_number('250'), $this->parse_number('0.0007')],
-                            [$this->parse_number('1000'), $this->parse_number('0.0006')],
-                            [$this->parse_number('5000'), $this->parse_number('0.0005')],
-                            [$this->parse_number('25000'), $this->parse_number('0.0004')],
-                            [$this->parse_number('50000'), $this->parse_number('0.0003')],
-                        ],
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.0020') ),
+                            array( $this->parse_number('10'), $this->parse_number('0.18') ),
+                            array( $this->parse_number('50'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('250'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('1000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('5000'), $this->parse_number('0.0010') ),
+                            array( $this->parse_number('25000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0006') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('10'), $this->parse_number('0.0009') ),
+                            array( $this->parse_number('50'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('250'), $this->parse_number('0.0007') ),
+                            array( $this->parse_number('1000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('5000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('25000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0003') ),
+                        ),
                     ),
                 ),
             ),
@@ -459,12 +459,9 @@ class bitmart extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'derivative' => false,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
                 'contractSize' => null,
                 'active' => true,
                 'expiry' => null,
@@ -612,13 +609,12 @@ class bitmart extends Exchange {
                 'swap' => $swap,
                 'future' => $future,
                 'option' => false,
-                'derivative' => true,
                 'contract' => true,
                 'linear' => null,
                 'inverse' => null,
                 'taker' => $this->safe_number($feeConfig, 'taker_fee'),
                 'maker' => $this->safe_number($feeConfig, 'maker_fee'),
-                'contractSize' => $this->safe_string($market, 'contract_size'),
+                'contractSize' => $this->safe_number($market, 'contract_size'),
                 'active' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
@@ -892,6 +888,8 @@ class bitmart extends Exchange {
                 'name' => $name,
                 'info' => $currency, // the original payload
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => null,
                 'precision' => null,
                 'limits' => array(
@@ -1449,6 +1447,23 @@ class bitmart extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $data = $this->safe_value($response, 'data', array());
+        $wallet = $this->safe_value_2($data, 'wallet', 'accounts', array());
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($wallet); $i++) {
+            $balance = $wallet[$i];
+            $currencyId = $this->safe_string_2($balance, 'id', 'currency');
+            $currencyId = $this->safe_string($balance, 'coin_code', $currencyId);
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string_2($balance, 'available', 'available_vol');
+            $account['used'] = $this->safe_string_2($balance, 'frozen', 'freeze_vol');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $method = null;
@@ -1481,7 +1496,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        // $account
+        // account
         //
         //     {
         //         "message":"OK",
@@ -1519,20 +1534,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $wallet = $this->safe_value_2($data, 'wallet', 'accounts', array());
-        $result = array( 'info' => $response );
-        for ($i = 0; $i < count($wallet); $i++) {
-            $balance = $wallet[$i];
-            $currencyId = $this->safe_string_2($balance, 'id', 'currency');
-            $currencyId = $this->safe_string($balance, 'coin_code', $currencyId);
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string_2($balance, 'available', 'available_vol');
-            $account['used'] = $this->safe_string_2($balance, 'frozen', 'freeze_vol');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_order($order, $market = null) {
@@ -2332,6 +2334,7 @@ class bitmart extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
             'addressFrom' => null,
             'addressTo' => null,

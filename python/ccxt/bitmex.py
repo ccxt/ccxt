@@ -32,6 +32,7 @@ class bitmex(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
@@ -278,7 +279,7 @@ class bitmex(Exchange):
             })
         return result
 
-    def parse_balance(self, response, type=None):
+    def parse_balance(self, response):
         #
         #     [
         #         {
@@ -766,6 +767,7 @@ class bitmex(Exchange):
             'txid': None,
             'timestamp': transactTime,
             'datetime': self.iso8601(transactTime),
+            'network': None,
             'addressFrom': addressFrom,
             'address': address,
             'addressTo': addressTo,
@@ -1325,7 +1327,7 @@ class bitmex(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         # https://github.com/ccxt/ccxt/issues/6507
-        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        clientOrderId = self.safe_value_2(params, 'clOrdID', 'clientOrderId')
         request = {}
         if clientOrderId is None:
             request['orderID'] = id
@@ -1339,6 +1341,9 @@ class bitmex(Exchange):
             if error.find('Unable to cancel order due to existing state') >= 0:
                 raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
         return self.parse_order(order)
+
+    def cancel_orders(self, ids, symbol=None, params={}):
+        return self.cancel_order(ids, symbol, params)
 
     def cancel_all_orders(self, symbol=None, params={}):
         self.load_markets()

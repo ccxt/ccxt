@@ -141,12 +141,10 @@ class independentreserve extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $balances = yield $this->privatePostGetAccounts ($params);
-        $result = array( 'info' => $balances );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -155,6 +153,12 @@ class independentreserve extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privatePostGetAccounts ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

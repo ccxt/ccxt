@@ -155,6 +155,27 @@ class buda(Exchange):
     def fetch_currency_info(self, currency, currencies=None):
         if not currencies:
             response = self.publicGetCurrencies()
+            #
+            #     {
+            #         "currencies":[
+            #             {
+            #                 "id":"BTC",
+            #                 "symbol":"฿",
+            #                 "managed":true,
+            #                 "input_decimals":8,
+            #                 "display_decimals":8,
+            #                 "timezone":"UTC",
+            #                 "deposit_minimum":["0.0","BTC"],
+            #                 "withdrawal_minimum":["0.00001","BTC"],
+            #                 "max_digits_for_decimals":6,
+            #                 "crypto":true,
+            #                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+            #                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+            #                 "amount_to_micro_multiplier":1000000000000
+            #             }
+            #         ]
+            #     }
+            #
             currencies = self.safe_value(response, 'currencies')
         for i in range(0, len(currencies)):
             currencyInfo = currencies[i]
@@ -217,22 +238,50 @@ class buda(Exchange):
 
     def fetch_currencies(self, params={}):
         response = self.publicGetCurrencies()
+        #
+        #     {
+        #         "currencies":[
+        #             {
+        #                 "id":"BTC",
+        #                 "symbol":"฿",
+        #                 "managed":true,
+        #                 "input_decimals":8,
+        #                 "display_decimals":8,
+        #                 "timezone":"UTC",
+        #                 "deposit_minimum":["0.0","BTC"],
+        #                 "withdrawal_minimum":["0.00001","BTC"],
+        #                 "max_digits_for_decimals":6,
+        #                 "crypto":true,
+        #                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+        #                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+        #                 "amount_to_micro_multiplier":1000000000000
+        #             }
+        #         ]
+        #     }
+        #
         currencies = response['currencies']
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            if not currency['managed']:
+            managed = self.safe_value(currency, 'managed', False)
+            if not managed:
                 continue
             id = self.safe_string(currency, 'id')
             code = self.safe_currency_code(id)
             precision = self.safe_number(currency, 'input_decimals')
             minimum = math.pow(10, -precision)
+            depositMinimum = self.safe_value(currency, 'deposit_minimum', [])
+            withdrawalMinimum = self.safe_value(currency, 'withdrawal_minimum', [])
+            minDeposit = self.safe_number(depositMinimum, 0)
+            minWithdraw = self.safe_number(withdrawalMinimum, 0)
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': None,
                 'active': True,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -241,11 +290,11 @@ class buda(Exchange):
                         'max': None,
                     },
                     'deposit': {
-                        'min': float(currency['deposit_minimum'][0]),
+                        'min': minDeposit,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': float(currency['withdrawal_minimum'][0]),
+                        'min': minWithdraw,
                     },
                 },
             }
@@ -419,9 +468,7 @@ class buda(Exchange):
         response = self.publicGetTvHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcv(response, market, timeframe, since, limit)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetBalances(params)
+    def parse_balance(self, response):
         result = {'info': response}
         balances = self.safe_value(response, 'balances')
         for i in range(0, len(balances)):
@@ -433,6 +480,11 @@ class buda(Exchange):
             account['total'] = self.safe_string(balance['amount'], 0)
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetBalances(params)
+        return self.parse_balance(response)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -662,7 +714,13 @@ class buda(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,

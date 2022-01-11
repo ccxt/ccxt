@@ -356,25 +356,7 @@ class bitbns(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.v1PostCurrentCoinBalanceEVERYTHING(params)
-        #
-        #     {
-        #         "data":{
-        #             "availableorderMoney":0,
-        #             "availableorderBTC":0,
-        #             "availableorderXRP":0,
-        #             "inorderMoney":0,
-        #             "inorderBTC":0,
-        #             "inorderXRP":0,
-        #             "inorderNEO":0,
-        #         },
-        #         "status":1,
-        #         "error":null,
-        #         "code":200
-        #     }
-        #
+    def parse_balance(self, response):
         timestamp = None
         result = {
             'info': response,
@@ -396,6 +378,27 @@ class bitbns(Exchange):
                     account['used'] = self.safe_string(data, 'inorder' + currencyId)
                     result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.v1PostCurrentCoinBalanceEVERYTHING(params)
+        #
+        #     {
+        #         "data":{
+        #             "availableorderMoney":0,
+        #             "availableorderBTC":0,
+        #             "availableorderXRP":0,
+        #             "inorderMoney":0,
+        #             "inorderBTC":0,
+        #             "inorderXRP":0,
+        #             "inorderNEO":0,
+        #         },
+        #         "status":1,
+        #         "error":null,
+        #         "code":200
+        #     }
+        #
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {
@@ -887,6 +890,7 @@ class bitbns(Exchange):
             'txid': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': None,
             'addressTo': None,
             'addressFrom': None,

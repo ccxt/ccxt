@@ -499,6 +499,8 @@ module.exports = class bibox extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
@@ -612,6 +614,24 @@ module.exports = class bibox extends Exchange {
         return result;
     }
 
+    parseBalance (response) {
+        const outerResult = this.safeValue (response, 'result');
+        const firstResult = this.safeValue (outerResult, 0, {});
+        const innerResult = this.safeValue (firstResult, 'result');
+        const result = { 'info': response };
+        const assetsList = this.safeValue (innerResult, 'assets_list', []);
+        for (let i = 0; i < assetsList.length; i++) {
+            const balance = assetsList[i];
+            const currencyId = this.safeString (balance, 'coin_symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'freeze');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'assets');
@@ -642,21 +662,7 @@ module.exports = class bibox extends Exchange {
         //         ]
         //     }
         //
-        const outerResult = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResult, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result');
-        const result = { 'info': response };
-        const assetsList = this.safeValue (innerResult, 'assets_list', []);
-        for (let i = 0; i < assetsList.length; i++) {
-            const balance = assetsList[i];
-            const currencyId = this.safeString (balance, 'coin_symbol');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'freeze');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -826,8 +832,13 @@ module.exports = class bibox extends Exchange {
             'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,

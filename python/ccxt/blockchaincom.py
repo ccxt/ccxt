@@ -575,7 +575,7 @@ class blockchaincom(Exchange):
         address = None
         if rawAddress is not None:
             # if a tag or memo is used it is separated by a colon in the 'address' value
-            [address, tag] = rawAddress.split(':')
+            address, tag = rawAddress.split(':')
         result = {'info': response}
         result['currency'] = currency['code']
         result['address'] = address
@@ -644,6 +644,7 @@ class blockchaincom(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': address,

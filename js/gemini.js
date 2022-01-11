@@ -625,9 +625,7 @@ module.exports = class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostV1Balances (params);
+    parseBalance (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -639,6 +637,12 @@ module.exports = class gemini extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostV1Balances (params);
+        return this.parseBalance (response);
     }
 
     parseOrder (order, market = undefined) {
@@ -822,8 +826,13 @@ module.exports = class gemini extends Exchange {
             'txid': this.safeString (transaction, 'txHash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': undefined, // or is it defined?
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
@@ -866,7 +875,7 @@ module.exports = class gemini extends Exchange {
             'network': networkId,
         };
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const results = this.parseDepositAddresses (response, [code], false, { 'network': networkCode, 'currency': code });
+        const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network');
     }
 

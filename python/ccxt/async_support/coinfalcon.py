@@ -304,9 +304,7 @@ class coinfalcon(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetUserAccounts(params)
+    def parse_balance(self, response):
         result = {'info': response}
         balances = self.safe_value(response, 'data')
         for i in range(0, len(balances)):
@@ -319,6 +317,11 @@ class coinfalcon(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetUserAccounts(params)
+        return self.parse_balance(response)
 
     def parse_order_status(self, status):
         statuses = {
@@ -596,8 +599,13 @@ class coinfalcon(Exchange):
             'txid': txid,
             'timestamp': None,
             'datetime': None,
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,

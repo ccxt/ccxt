@@ -249,6 +249,8 @@ class cex extends Exchange {
                 'code' => $code,
                 'name' => $id,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'precision' => $precision,
                 'fee' => null,
                 'limits' => array(
@@ -360,9 +362,7 @@ class cex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostBalance ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $ommited = array( 'username', 'timestamp' );
         $balances = $this->omit($response, $ommited);
@@ -378,6 +378,12 @@ class cex extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostBalance ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

@@ -30,6 +30,7 @@ module.exports = class deribit extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchHistoricalVolatility': true,
                 'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -501,13 +502,12 @@ module.exports = class deribit extends Exchange {
                     'swap': swap,
                     'future': future,
                     'option': option,
-                    'derivative': true,
                     'contract': true,
                     'linear': false,
                     'inverse': true,
                     'taker': this.safeNumber (market, 'taker_commission'),
                     'maker': this.safeNumber (market, 'maker_commission'),
-                    'contractSize': this.safeString (market, 'contract_size'),
+                    'contractSize': this.safeNumber (market, 'contract_size'),
                     'active': this.safeValue (market, 'is_active'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
@@ -540,6 +540,21 @@ module.exports = class deribit extends Exchange {
             }
         }
         return result;
+    }
+
+    parseBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const balance = this.safeValue (response, 'result', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (balance, 'available_funds');
+        account['used'] = this.safeString (balance, 'maintenance_margin');
+        account['total'] = this.safeString (balance, 'equity');
+        result[currencyCode] = account;
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -592,18 +607,7 @@ module.exports = class deribit extends Exchange {
         //         testnet: false
         //     }
         //
-        const result = {
-            'info': response,
-        };
-        const balance = this.safeValue (response, 'result', {});
-        const currencyId = this.safeString (balance, 'currency');
-        const currencyCode = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['free'] = this.safeString (balance, 'available_funds');
-        account['used'] = this.safeString (balance, 'maintenance_margin');
-        account['total'] = this.safeString (balance, 'equity');
-        result[currencyCode] = account;
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -724,7 +728,7 @@ module.exports = class deribit extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber2 (ticker, 'last_price', 'last');
         const stats = this.safeValue (ticker, 'stats', ticker);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -745,7 +749,7 @@ module.exports = class deribit extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (stats, 'volume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1681,6 +1685,69 @@ module.exports = class deribit extends Exchange {
         };
     }
 
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 404,
+        //         "result": {
+        //             "average_price": 0,
+        //             "delta": 0,
+        //             "direction": "buy",
+        //             "estimated_liquidation_price": 0,
+        //             "floating_profit_loss": 0,
+        //             "index_price": 3555.86,
+        //             "initial_margin": 0,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "leverage": 100,
+        //             "kind": "future",
+        //             "maintenance_margin": 0,
+        //             "mark_price": 3556.62,
+        //             "open_orders_margin": 0.000165889,
+        //             "realized_profit_loss": 0,
+        //             "settlement_price": 3555.44,
+        //             "size": 0,
+        //             "size_currency": 0,
+        //             "total_profit_loss": 0
+        //         }
+        //     }
+        //
+        const contract = this.safeString (position, 'instrument_name');
+        market = this.safeMarket (contract, market);
+        const size = this.safeString (position, 'size');
+        const side = this.safeString (position, 'direction');
+        const maintenanceRate = this.safeString (position, 'maintenance_margin');
+        const markPrice = this.safeString (position, 'mark_price');
+        const notionalString = Precise.stringMul (markPrice, size);
+        const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
+        const initialMarginString = this.safeString (position, 'initial_margin');
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const currentTime = this.milliseconds ();
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
+            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notionalString)),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
+            'entryPrice': this.safeString (position, 'average_price'),
+            'notional': this.parseNumber (notionalString),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),  // in USD for perpetuals on deribit
+            'contractSize': this.safeValue (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
+            'markPrice': markPrice,
+            'collateral': undefined,
+            'marginType': undefined,
+            'side': side,
+            'percentage': this.parseNumber (percentage),
+        };
+    }
+
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1714,8 +1781,16 @@ module.exports = class deribit extends Exchange {
         //         }
         //     }
         //
-        // todo unify parsePosition/parsePositions
         const result = this.safeValue (response, 'result');
+        return this.parsePosition (result);
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        // todo unify parsePositions
         return result;
     }
 
@@ -1756,8 +1831,46 @@ module.exports = class deribit extends Exchange {
         //         ]
         //     }
         //
-        // todo unify parsePosition/parsePositions
+        // response is returning an empty list for result
+        // todo unify parsePositions
         const result = this.safeValue (response, 'result', []);
+        const positions = this.parsePositions (result);
+        return this.filterByArray (positions, 'symbol', symbols, false);
+    }
+
+    async fetchHistoricalVolatility (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.publicGetGetHistoricalVolatility (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn": 1641515379467734,
+        //         "usOut": 1641515379468095,
+        //         "usDiff": 361,
+        //         "testnet": false
+        //     }
+        //
+        const volatilityResult = this.safeValue (response, 'result', {});
+        const result = [];
+        for (let i = 0; i < volatilityResult.length; i++) {
+            const timestamp = this.safeInteger (volatilityResult[i], 0);
+            const volatility = this.safeNumber (volatilityResult[i], 1);
+            result.push ({
+                'info': response,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'volatility': volatility,
+            });
+        }
         return result;
     }
 

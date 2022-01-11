@@ -99,9 +99,7 @@ class btctradeua extends Exchange {
         return $this->privatePostAuth ($params);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostBalance ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'accounts');
         for ($i = 0; $i < count($balances); $i++) {
@@ -113,6 +111,12 @@ class btctradeua extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostBalance ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

@@ -323,11 +323,9 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $balances = yield $this->privateGetBalances ($params);
-        $result = array( 'info' => $balances );
-        $indexed = $this->index_by($balances, 'currencySymbol');
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
+        $indexed = $this->index_by($response, 'currencySymbol');
         $currencyIds = is_array($indexed) ? array_keys($indexed) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
@@ -339,6 +337,12 @@ class bittrex extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetBalances ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -408,6 +412,8 @@ class bittrex extends Exchange {
                 'type' => $this->safe_string($currency, 'coinType'),
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => ($isActive === 'ONLINE'),
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(
@@ -982,8 +988,13 @@ class bittrex extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
             'status' => $status,
             'type' => $type,
             'updated' => $updated,

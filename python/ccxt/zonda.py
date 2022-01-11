@@ -401,9 +401,7 @@ class zonda(Exchange):
             return result
         return self.filter_by_symbol(result, symbol)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.v1_01PrivateGetBalancesBITBAYBalance(params)
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'balances')
         if balances is None:
             raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
@@ -417,6 +415,11 @@ class zonda(Exchange):
             account['free'] = self.safe_string(balance, 'availableFunds')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.v1_01PrivateGetBalancesBITBAYBalance(params)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -42,6 +42,7 @@ class hitbtc3(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': False,
+                'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -333,7 +334,6 @@ class hitbtc3(Exchange):
             marketType = self.safe_string(market, 'type')
             expiry = self.safe_integer(market, 'expiry')
             contract = (marketType == 'futures')
-            derivative = contract
             spot = (marketType == 'spot')
             marginTrading = self.safe_value(market, 'margin_trading', False)
             margin = spot and marginTrading
@@ -354,7 +354,7 @@ class hitbtc3(Exchange):
             linear = None
             inverse = None
             if contract:
-                contractSize = 1
+                contractSize = self.parse_number('1')
                 settleId = feeCurrencyId
                 settle = self.safe_currency_code(settleId)
                 linear = ((quote is not None) and (quote == settle))
@@ -385,9 +385,7 @@ class hitbtc3(Exchange):
                 'margin': margin,
                 'swap': swap,
                 'future': future,
-                'futures': future,  # deprecated, use future instead
                 'option': option,
-                'derivative': derivative,
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
@@ -550,6 +548,18 @@ class hitbtc3(Exchange):
             'network': None,
         }
 
+    def parse_balance(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(entry, 'available')
+            account['used'] = self.safe_string(entry, 'reserved')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
@@ -576,16 +586,7 @@ class hitbtc3(Exchange):
         #       ...
         #     ]
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            entry = response[i]
-            currencyId = self.safe_string(entry, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(entry, 'available')
-            account['used'] = self.safe_string(entry, 'reserved')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_ticker(self, symbol, params={}):
         response = await self.fetch_tickers([symbol], params)
@@ -906,6 +907,7 @@ class hitbtc3(Exchange):
             'txid': txhash,
             'code': code,
             'amount': amount,
+            'network': None,
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
@@ -1415,6 +1417,62 @@ class hitbtc3(Exchange):
             'info': response,
             'id': id,
         }
+
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        request = {
+            # all arguments are optional
+            # 'symbols': Comma separated list of symbol codes,
+            # 'sort': 'DESC' or 'ASC'
+            # 'from': 'Datetime or Number',
+            # 'till': 'Datetime or Number',
+            # 'limit': 100,
+            # 'offset': 0,
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbols'] = market['id']
+        if since is not None:
+            request['from'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetPublicFuturesHistoryFunding(self.extend(request, params))
+        #
+        #    {
+        #        "BTCUSDT_PERP": [
+        #            {
+        #                "timestamp": "2021-07-29T16:00:00.271Z",
+        #                "funding_rate": "0.0001",
+        #                "avg_premium_index": "0.000061858585213222",
+        #                "next_funding_time": "2021-07-30T00:00:00.000Z",
+        #                "interest_rate": "0.0001"
+        #            },
+        #            ...
+        #        ],
+        #        ...
+        #    }
+        #
+        contracts = list(response.keys())
+        rates = []
+        for i in range(0, len(contracts)):
+            marketId = contracts[i]
+            market = self.safe_market(marketId)
+            fundingRateData = response[marketId]
+            for i in range(0, len(fundingRateData)):
+                entry = fundingRateData[i]
+                symbol = self.safe_symbol(market['symbol'])
+                fundingRate = self.safe_number(entry, 'funding_rate')
+                datetime = self.safe_string(entry, 'timestamp')
+                rates.append({
+                    'info': entry,
+                    'symbol': symbol,
+                    'fundingRate': fundingRate,
+                    'timestamp': self.parse8601(datetime),
+                    'datetime': datetime,
+                })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #

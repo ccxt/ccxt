@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -69,7 +69,9 @@ module.exports = class coinspot extends Exchange {
                 },
             },
             'markets': {
+                'ADA/AUD': { 'id': 'ada', 'symbol': 'ADA/AUD', 'base': 'ADA', 'quote': 'AUD', 'baseId': 'ada', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
                 'BTC/AUD': { 'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
+                'BTC/USDT': { 'id': 'btc', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'baseId': 'btc', 'quoteId': 'usdt', 'type': 'spot', 'spot': true },
                 'ETH/AUD': { 'id': 'eth', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'baseId': 'eth', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
                 'XRP/AUD': { 'id': 'xrp', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'baseId': 'xrp', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
                 'LTC/AUD': { 'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud', 'type': 'spot', 'spot': true },
@@ -92,26 +94,7 @@ module.exports = class coinspot extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
-        const response = await this[method] (params);
-        //
-        // read-write api keys
-        //
-        //     ...
-        //
-        // read-only api keys
-        //
-        //     {
-        //         "status":"ok",
-        //         "balances":[
-        //             {
-        //                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
-        //             }
-        //         ]
-        //     }
-        //
+    parseBalance (response) {
         const result = { 'info': response };
         const balances = this.safeValue2 (response, 'balance', 'balances');
         if (Array.isArray (balances)) {
@@ -138,6 +121,29 @@ module.exports = class coinspot extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
+        const response = await this[method] (params);
+        //
+        // read-write api keys
+        //
+        //     ...
+        //
+        // read-only api keys
+        //
+        //     {
+        //         "status":"ok",
+        //         "balances":[
+        //             {
+        //                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -265,9 +271,6 @@ module.exports = class coinspot extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!this.apiKey) {
-            throw new AuthenticationError (this.id + ' requires apiKey for all requests');
-        }
         const url = this.urls['api'][api] + '/' + path;
         if (api === 'private') {
             this.checkRequiredCredentials ();

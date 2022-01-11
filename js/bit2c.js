@@ -102,9 +102,30 @@ module.exports = class bit2c extends Exchange {
         });
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const account = this.account ();
+            const currency = this.currency (code);
+            const uppercase = currency['id'].toUpperCase ();
+            if (uppercase in response) {
+                account['free'] = this.safeString (response, 'AVAILABLE_' + uppercase);
+                account['total'] = this.safeString (response, uppercase);
+            }
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const balance = await this.privateGetAccountBalanceV2 (params);
+        const response = await this.privateGetAccountBalanceV2 (params);
         //
         //     {
         //         "AVAILABLE_NIS": 0.0,
@@ -147,24 +168,7 @@ module.exports = class bit2c extends Exchange {
         //         }
         //     }
         //
-        const result = {
-            'info': balance,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const codes = Object.keys (this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const account = this.account ();
-            const currency = this.currency (code);
-            const uppercase = currency['id'].toUpperCase ();
-            if (uppercase in balance) {
-                account['free'] = this.safeString (balance, 'AVAILABLE_' + uppercase);
-                account['total'] = this.safeString (balance, uppercase);
-            }
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

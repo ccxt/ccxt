@@ -614,6 +614,23 @@ class bigone(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        balances = self.safe_value(response, 'data', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            symbol = self.safe_string(balance, 'asset_symbol')
+            code = self.safe_currency_code(symbol)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'locked_balance')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         type = self.safe_string(params, 'type', '')
@@ -630,21 +647,7 @@ class bigone(Exchange):
         #         ],
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        balances = self.safe_value(response, 'data', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            symbol = self.safe_string(balance, 'asset_symbol')
-            code = self.safe_currency_code(symbol)
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'locked_balance')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_order(self, order, market=None):
         #
@@ -1051,6 +1054,7 @@ class bigone(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
             'address': None,
             'addressTo': address,

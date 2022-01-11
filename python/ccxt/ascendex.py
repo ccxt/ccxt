@@ -27,6 +27,11 @@ class ascendex(Exchange):
             'certified': True,
             # new metainfo interface
             'has': {
+                'spot': True,
+                'margin': None,
+                'swap': True,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
@@ -378,6 +383,8 @@ class ascendex(Exchange):
                 'margin': margin,
                 'name': self.safe_string(currency, 'assetName'),
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': int(precision),
                 'limits': {
@@ -497,20 +504,18 @@ class ascendex(Exchange):
             }
             status = self.safe_string(market, 'status')
             active = (status == 'Normal')
-            type = 'swap' if (settle is not None) else 'spot'
-            spot = (type == 'spot')
-            swap = (type == 'swap')
+            spot = settle is None
+            swap = not spot
+            type = 'swap' if swap else 'spot'
             margin = self.safe_value(market, 'marginTradable', False)
-            contract = swap
-            derivative = contract
-            linear = True if contract else None
-            contractSize = 1 if contract else None
+            linear = True if swap else None
+            contractSize = self.parse_number('1') if swap else None
             minQty = self.safe_number(market, 'minQty')
             maxQty = self.safe_number(market, 'maxQty')
             minPrice = self.safe_number(market, 'tickSize')
             maxPrice = None
             symbol = base + '/' + quote
-            if contract:
+            if swap:
                 lotSizeFilter = self.safe_value(market, 'lotSizeFilter')
                 minQty = self.safe_number(lotSizeFilter, 'minQty')
                 maxQty = self.safe_number(lotSizeFilter, 'maxQty')
@@ -541,10 +546,9 @@ class ascendex(Exchange):
                 'future': False,
                 'option': False,
                 'active': active,
-                'derivative': derivative,
-                'contract': contract,
+                'contract': swap,
                 'linear': linear,
-                'inverse': not linear if contract else None,
+                'inverse': not linear if swap else None,
                 'taker': fee,
                 'maker': fee,
                 'contractSize': contractSize,
@@ -608,6 +612,22 @@ class ascendex(Exchange):
             },
         ]
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        balances = self.safe_value(response, 'data', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            code = self.safe_currency_code(self.safe_string(balance, 'asset'))
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'availableBalance')
+            account['total'] = self.safe_string(balance, 'totalBalance')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
@@ -670,20 +690,7 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        balances = self.safe_value(response, 'data', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            code = self.safe_currency_code(self.safe_string(balance, 'asset'))
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'availableBalance')
-            account['total'] = self.safe_string(balance, 'totalBalance')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -980,6 +987,37 @@ class ascendex(Exchange):
         #         "timestamp": 1573576916201
         #     }
         #
+        #     {
+        #         "ac": "FUTURES",
+        #         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #         "time": 1640819389454,
+        #         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
+        #         "seqNum": -1,
+        #         "orderType": "Limit",
+        #         "execInst": "NULL_VAL",
+        #         "side": "Buy",
+        #         "symbol": "BTC-PERP",
+        #         "price": "30000",
+        #         "orderQty": "0.002",
+        #         "stopPrice": "0",
+        #         "stopBy": "ref-px",
+        #         "status": "Ack",
+        #         "lastExecTime": 1640819389454,
+        #         "lastQty": "0",
+        #         "lastPx": "0",
+        #         "avgFilledPx": "0",
+        #         "cumFilledQty": "0",
+        #         "fee": "0",
+        #         "cumFee": "0",
+        #         "feeAsset": "",
+        #         "errorCode": "",
+        #         "posStopLossPrice": "0",
+        #         "posStopLossTrigger": "market",
+        #         "posTakeProfitPrice": "0",
+        #         "posTakeProfitTrigger": "market",
+        #         "liquidityInd": "n"
+        #      }
+        #
         # fetchOrder, fetchOpenOrders, fetchClosedOrders
         #
         #     {
@@ -1077,11 +1115,10 @@ class ascendex(Exchange):
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
-        defaultAccountCategory = self.safe_string(self.options, 'account-category', 'cash')
+        style, query = self.handle_market_type_and_params('createOrder', market, params)
         options = self.safe_value(self.options, 'createOrder', {})
-        accountCategory = self.safe_string(options, 'account-category', defaultAccountCategory)
-        accountCategory = self.safe_string(params, 'account-category', accountCategory)
-        params = self.omit(params, 'account-category')
+        accountCategories = self.safe_value(self.options, 'accountCategories', {})
+        accountCategory = self.safe_string(accountCategories, style, 'cash')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
@@ -1111,7 +1148,20 @@ class ascendex(Exchange):
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
                 params = self.omit(params, 'stopPrice')
-        response = self.v1PrivateAccountCategoryPostOrder(self.extend(request, params))
+        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryPostOrder')
+        method = self.get_supported_mapping(style, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupPostFuturesOrder',
+        })
+        if method == 'v1PrivateAccountCategoryPostOrder':
+            if accountCategory is not None:
+                request['category'] = accountCategory
+        else:
+            request['account-category'] = accountCategory
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # AccountCategoryPostOrder
         #
         #     {
         #         "code": 0,
@@ -1130,9 +1180,52 @@ class ascendex(Exchange):
         #         }
         #     }
         #
+        # AccountGroupPostFuturesOrder
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "meta": {
+        #                 "id": "",
+        #                 "action": "place-order",
+        #                 "respInst": "ACK"
+        #             },
+        #             "order": {
+        #                 "ac": "FUTURES",
+        #                 "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #                 "time": 1640819389454,
+        #                 "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
+        #                 "seqNum": -1,
+        #                 "orderType": "Limit",
+        #                 "execInst": "NULL_VAL",
+        #                 "side": "Buy",
+        #                 "symbol": "BTC-PERP",
+        #                 "price": "30000",
+        #                 "orderQty": "0.002",
+        #                 "stopPrice": "0",
+        #                 "stopBy": "ref-px",
+        #                 "status": "Ack",
+        #                 "lastExecTime": 1640819389454,
+        #                 "lastQty": "0",
+        #                 "lastPx": "0",
+        #                 "avgFilledPx": "0",
+        #                 "cumFilledQty": "0",
+        #                 "fee": "0",
+        #                 "cumFee": "0",
+        #                 "feeAsset": "",
+        #                 "errorCode": "",
+        #                 "posStopLossPrice": "0",
+        #                 "posStopLossTrigger": "market",
+        #                 "posTakeProfitPrice": "0",
+        #                 "posTakeProfitTrigger": "market",
+        #                 "liquidityInd": "n"
+        #             }
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        info = self.safe_value(data, 'info', {})
-        return self.parse_order(info, market)
+        order = self.safe_value_2(data, 'order', 'info', {})
+        return self.parse_order(order, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -1688,8 +1781,21 @@ class ascendex(Exchange):
         }
 
     def safe_network(self, networkId):
-        # TODO: parse network
-        return networkId
+        networksById = {
+            'TRC20': 'TRC20',
+            'ERC20': 'ERC20',
+            'GO20': 'GO20',
+            'BEP2': 'BEP2',
+            'BEP20(BSC)': 'BEP20',
+            'Bitcoin': 'BTC',
+            'Bitcoin ABC': 'BCH',
+            'Litecoin': 'LTC',
+            'Matic Network': 'MATIC',
+            'Solana': 'SOL',
+            'xDai': 'STAKE',
+            'Akash': 'AKT',
+        }
+        return self.safe_string(networksById, networkId, networkId)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
@@ -1857,6 +1963,7 @@ class ascendex(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

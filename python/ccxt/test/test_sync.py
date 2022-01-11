@@ -22,6 +22,7 @@ import ccxt  # noqa: E402
 from test_trade import test_trade  # noqa: E402
 from test_order import test_order  # noqa: E402
 from test_ohlcv import test_ohlcv  # noqa: E402
+from test_position import test_position  # noqa: E402
 from test_transaction import test_transaction  # noqa: E402
 
 # ------------------------------------------------------------------------------
@@ -260,6 +261,26 @@ def test_orders(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
+def test_positions(exchange, symbol):
+    if exchange.has['fetchPositions']:
+        skipped_exchanges = [
+        ]
+        if exchange.id in skipped_exchanges:
+            dump(green(exchange.id), green(symbol), 'fetch_positions() skipped')
+            return
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching positions...')
+        positions = exchange.fetch_positions()
+        for position in positions:
+            test_position(exchange, position, symbol, int(time.time() * 1000))
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(positions)), 'positions')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_positions() not supported')
+
+# ------------------------------------------------------------------------------
+
+
 def test_closed_orders(exchange, symbol):
     if exchange.has['fetchClosedOrders']:
         delay = int(exchange.rateLimit / 1000)
@@ -479,7 +500,7 @@ keys_local = os.path.join(keys_folder, 'keys.local.json')
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
 # load the api keys from config
-with open(keys_file) as file:
+with open(keys_file, encoding='utf8') as file:
     config = json.load(file)
 
 # instantiate all exchanges

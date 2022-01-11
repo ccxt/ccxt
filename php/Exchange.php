@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.65.38';
+$version = '1.67.1';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.65.38';
+    const VERSION = '1.67.1';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -115,6 +115,7 @@ class Exchange {
         'coinone',
         'coinspot',
         'crex24',
+        'cryptocom',
         'currencycom',
         'delta',
         'deribit',
@@ -170,6 +171,7 @@ class Exchange {
         'upbit',
         'vcc',
         'wavesexchange',
+        'wazirx',
         'whitebit',
         'xena',
         'yobit',
@@ -359,6 +361,7 @@ class Exchange {
         'signHash' => 'sign_hash',
         'signMessage' => 'sign_message',
         'signMessageString' => 'sign_message_string',
+        'getNetwork' => 'get_network',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeTrade' => 'safe_trade',
         'safeOrder' => 'safe_order',
@@ -370,6 +373,7 @@ class Exchange {
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
+        'loadTimeDifference' => 'load_time_difference',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1365,7 +1369,9 @@ class Exchange {
             $lowercase_method = mb_strtolower($key);
             $camelcase_method = static::capitalize($lowercase_method);
             if (static::is_associative($value)) {
-                if (preg_match('/^(?:get|post|put|delete|options|head|patch)$/i', $key)) {
+                // the options HTTP method conflicts with the 'options' API url path
+                // if (preg_match('/^(?:get|post|put|delete|options|head|patch)$/i', $key)) {
+                if (preg_match('/^(?:get|post|put|delete|head|patch)$/i', $key)) {
                     foreach ($value as $endpoint => $config) {
                         $path = trim($endpoint);
                         if (static::is_associative($config)) {
@@ -2656,6 +2662,17 @@ class Exchange {
         } else if (array_key_exists($function, static::$camelcase_methods)) {
             $underscore = static::$camelcase_methods[$function];
             return call_user_func_array(array($this, $underscore), $params);
+        } else if (!preg_match('/^[A-Z0-9_]+$/', $function)) {
+            $underscore = preg_replace_callback('/[a-z0-9][A-Z]/m', function ($x) {
+                return $x[0][0] . '_' . $x[0][1];
+            }, $function);
+            $underscore = strtolower($underscore);
+            if (method_exists($this, $underscore)) {
+                return call_user_func_array(array($this, $underscore), $params);
+            } else {
+                /* handle errors */
+                throw new ExchangeError($function . ' method not found');
+            }
         } else {
             /* handle errors */
             throw new ExchangeError($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
@@ -2866,7 +2883,11 @@ class Exchange {
 
     public static function number_to_string($x) {
         // avoids scientific notation for too large and too small numbers
+        $type = gettype($x);
         $s = (string) $x;
+        if (($type !== 'integer') && ($type !== 'double')) {
+            return $s;
+        }
         if (strpos($x, 'E') === false) {
             return $s;
         }
@@ -2970,6 +2991,45 @@ class Exchange {
             return $this->totp($this->twofa);
         } else {
             throw new ExchangeError($this->id . ' requires a non-empty value in $this->twofa property');
+        }
+    }
+
+    public function get_network($network, $code) {
+        $network = strtoupper($network);
+        $aliases = array(
+            'ETHEREUM' => 'ETH',
+            'ETHER' => 'ETH',
+            'ERC20' => 'ETH',
+            'ETH' => 'ETH',
+            'TRC20' => 'TRX',
+            'TRON' => 'TRX',
+            'TRX' => 'TRX',
+            'BEP20' => 'BSC',
+            'BSC' => 'BSC',
+            'HRC20' => 'HT',
+            'HECO' => 'HT',
+            'SPL' => 'SOL',
+            'SOL' => 'SOL',
+            'TERRA' => 'LUNA',
+            'LUNA' => 'LUNA',
+            'POLYGON' => 'MATIC',
+            'MATIC' => 'MATIC',
+            'EOS' => 'EOS',
+            'WAVES' => 'WAVES',
+            'AVALANCHE' => 'AVAX',
+            'AVAX' => 'AVAX',
+            'QTUM' => 'QTUM',
+            'CHZ' => 'CHZ',
+            'NEO' => 'NEO',
+            'ONT' => 'ONT',
+            'RON' => 'RON',
+        );
+        if ($network === $code) {
+            return $network;
+        } else if (is_array($aliases) && array_key_exists($network, $aliases)) {
+            return $aliases[$network];
+        } else {
+            throw new NotSupported($this->id . ' $network ' . $network . ' is not yet supported');
         }
     }
 
@@ -3482,6 +3542,7 @@ class Exchange {
     public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
         $default_type = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
         $method_options = $this->safe_value($this->options, $method_name);
+        $method_type = $default_type;
         if (isset($method_options)) {
             if (is_string($method_options)) {
                 $method_type = $method_options;
@@ -3489,9 +3550,16 @@ class Exchange {
                 $method_type = $this->safe_string_2($method_options, 'defaultType', 'type');
             }
         }
-        $market_type = isset($market) ? market['type'] : $method_type;
+        $market_type = isset($market) ? $market['type'] : $method_type;
         $type = $this->safe_string_2($params, 'defaultType', 'type', $market_type);
         $params = $this->omit($params, [ 'defaultType', 'type' ]);
         return array($type, $params);
+    }
+
+    public function load_time_difference($params = array()) {
+        $server_time = $this->fetch_time($params);
+        $after = $this->milliseconds();
+        $this->options['timeDifference'] = $after - $server_time;
+        return $this->options['timeDifference'];
     }
 }

@@ -639,22 +639,7 @@ class bigone extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $type = $this->safe_string($params, 'type', '');
-        $params = $this->omit($params, 'type');
-        $method = 'privateGet' . $this->capitalize($type) . 'Accounts';
-        $response = yield $this->$method ($params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":array(
-        //             array("asset_symbol":"NKC","balance":"0","locked_balance":"0"),
-        //             array("asset_symbol":"UBTC","balance":"0","locked_balance":"0"),
-        //             array("asset_symbol":"READ","balance":"0","locked_balance":"0"),
-        //         ),
-        //     }
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -671,6 +656,25 @@ class bigone extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $type = $this->safe_string($params, 'type', '');
+        $params = $this->omit($params, 'type');
+        $method = 'privateGet' . $this->capitalize($type) . 'Accounts';
+        $response = yield $this->$method ($params);
+        //
+        //     {
+        //         "code":0,
+        //         "data":array(
+        //             array("asset_symbol":"NKC","balance":"0","locked_balance":"0"),
+        //             array("asset_symbol":"UBTC","balance":"0","locked_balance":"0"),
+        //             array("asset_symbol":"READ","balance":"0","locked_balance":"0"),
+        //         ),
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function parse_order($order, $market = null) {
@@ -1106,6 +1110,7 @@ class bigone extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => null,
             'address' => null,
             'addressTo' => $address,

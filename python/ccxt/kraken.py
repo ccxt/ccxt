@@ -237,6 +237,12 @@ class kraken(Exchange):
                         'WithdrawCancel': 1,
                         'WithdrawInfo': 1,
                         'WithdrawStatus': 1,
+                        # staking
+                        'Stake': 1,
+                        'Unstake': 1,
+                        'Staking/Assets': 1,
+                        'Staking/Pending': 1,
+                        'Staking/Transactions': 1,
                     },
                 },
             },
@@ -1033,19 +1039,7 @@ class kraken(Exchange):
         lastTrade.append(lastTradeId)
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostBalance(params)
-        #
-        #     {
-        #         "error":[],
-        #         "result":{
-        #             "ZUSD":"58.8649",
-        #             "KFEE":"4399.43",
-        #             "XXBT":"0.0000034506",
-        #         }
-        #     }
-        #
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'result', {})
         result = {
             'info': response,
@@ -1060,6 +1054,21 @@ class kraken(Exchange):
             account['total'] = self.safe_string(balances, currencyId)
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privatePostBalance(params)
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "ZUSD":"58.8649",
+        #             "KFEE":"4399.43",
+        #             "XXBT":"0.0000034506",
+        #         }
+        #     }
+        #
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -1444,11 +1453,13 @@ class kraken(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = None
-        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId', id)
+        request = {
+            'txid': clientOrderId,  # order id or userref
+        }
+        params = self.omit(params, ['userref', 'clientOrderId'])
         try:
-            response = self.privatePostCancelOrder(self.extend({
-                'txid': clientOrderId or id,
-            }, params))
+            response = self.privatePostCancelOrder(self.extend(request, params))
         except Exception as e:
             if self.last_http_response:
                 if self.last_http_response.find('EOrder:Unknown order') >= 0:
@@ -1593,8 +1604,13 @@ class kraken(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'status': status,
             'type': type,
             'updated': None,

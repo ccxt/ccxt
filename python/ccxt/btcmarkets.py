@@ -254,6 +254,7 @@ class btcmarkets(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -349,9 +350,7 @@ class btcmarkets(Exchange):
         #
         return self.parse8601(self.safe_string(response, 'timestamp'))
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetAccountsMeBalances(params)
+    def parse_balance(self, response):
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -362,6 +361,11 @@ class btcmarkets(Exchange):
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetAccountsMeBalances(params)
+        return self.parse_balance(response)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

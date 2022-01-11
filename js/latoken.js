@@ -30,6 +30,7 @@ module.exports = class latoken extends Exchange {
                 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
             },
@@ -178,13 +179,6 @@ module.exports = class latoken extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'serverTime');
-    }
-
-    async loadTimeDifference (params = {}) {
-        const serverTime = await this.fetchTime (params);
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
     }
 
     async fetchMarkets (params = {}) {
@@ -803,7 +797,8 @@ module.exports = class latoken extends Exchange {
         let side = undefined;
         if (orderSide !== undefined) {
             const parts = orderSide.split ('_');
-            side = this.safeStringLower (parts, parts.length - 1);
+            const partsLength = parts.length;
+            side = this.safeStringLower (parts, partsLength - 1);
         }
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const price = this.safeString (order, 'price');
@@ -1124,6 +1119,7 @@ module.exports = class latoken extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': addressTo,

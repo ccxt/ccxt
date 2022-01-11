@@ -584,6 +584,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://bitbns.com/trade/#/api-trading/
           :alt: API Version 2
      
+   * - India
+     - .. image:: https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg
+          :target: https://wazirx.com
+          :alt: wazirx
+     
+     - wazirx
+     - `WazirX <https://wazirx.com>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.wazirx.com/#public-rest-api-for-wazirx
+          :alt: API Version 2
+     
    * - Indonesia
      - .. image:: https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg
           :target: https://coincheck.com
@@ -805,6 +816,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - Malta
+     - .. image:: https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg
+          :target: https://crypto.com/exch/5835vstech
+          :alt: cryptocom
+     
+     - cryptocom
+     - `Crypto.com <https://crypto.com/exch/5835vstech>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://exchange-docs.crypto.com/
+          :alt: API Version 2
+     
+   * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg
           :target: https://therocktrading.com
           :alt: therock
@@ -953,7 +975,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: kucoinfutures
      
      - kucoinfutures
-     - `Kucoin Futures <https://futures.kucoin.com/?rcode=E5wkqe>`__
+     - `KuCoin Futures <https://futures.kucoin.com/?rcode=E5wkqe>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.kucoin.com/futures
           :alt: API Version 1

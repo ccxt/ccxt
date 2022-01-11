@@ -888,6 +888,26 @@ class ndax extends Exchange {
         return $result;
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'ProductId');
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['total'] = $this->safe_string($balance, 'Amount');
+                $account['used'] = $this->safe_string($balance, 'Hold');
+                $result[$code] = $account;
+            }
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         yield $this->load_markets();
@@ -931,23 +951,7 @@ class ndax extends Exchange {
         //         ),
         //     )
         //
-        $result = array(
-            'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
-        );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
-            $currencyId = $this->safe_string($balance, 'ProductId');
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['total'] = $this->safe_string($balance, 'Amount');
-                $account['used'] = $this->safe_string($balance, 'Hold');
-                $result[$code] = $account;
-            }
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function parse_ledger_entry_type($type) {

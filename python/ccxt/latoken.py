@@ -41,6 +41,7 @@ class latoken(Exchange):
                 'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
             },
@@ -187,12 +188,6 @@ class latoken(Exchange):
         #     }
         #
         return self.safe_integer(response, 'serverTime')
-
-    def load_time_difference(self, params={}):
-        serverTime = self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
 
     def fetch_markets(self, params={}):
         currencies = self.fetch_currencies_from_cache(params)
@@ -778,7 +773,8 @@ class latoken(Exchange):
         side = None
         if orderSide is not None:
             parts = orderSide.split('_')
-            side = self.safe_string_lower(parts, len(parts) - 1)
+            partsLength = len(parts)
+            side = self.safe_string_lower(parts, partsLength - 1)
         type = self.parse_order_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'quantity')
@@ -1079,6 +1075,7 @@ class latoken(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': addressTo,

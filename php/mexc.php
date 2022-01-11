@@ -23,6 +23,11 @@ class mexc extends Exchange {
             'version' => 'v2',
             'certified' => true,
             'has' => array(
+                'spot' => true,
+                'margin' => null,
+                'swap' => true,
+                'future' => null,
+                'option' => null,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -64,6 +69,7 @@ class mexc extends Exchange {
                 '30m' => '30m',
                 '1h' => '1h',
                 '1d' => '1d',
+                '1w' => '1w',
                 '1M' => '1M',
             ),
             'urls' => array(
@@ -515,15 +521,14 @@ class mexc extends Exchange {
                 'spot' => false,
                 'margin' => false,
                 'swap' => true,
-                'futures' => false,
+                'future' => false,
                 'option' => false,
-                'derivative' => true,
                 'contract' => true,
                 'linear' => true,
                 'inverse' => false,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
-                'contractSize' => $this->safe_string($market, 'contractSize'),
+                'contractSize' => $this->safe_number($market, 'contractSize'),
                 'active' => ($state === '0'),
                 'expiry' => null,
                 'expiryDatetime' => null,
@@ -613,7 +618,6 @@ class mexc extends Exchange {
                 'future' => false,
                 'option' => false,
                 'active' => ($state === 'ENABLED'),
-                'derivative' => false,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -1056,9 +1060,10 @@ class mexc extends Exchange {
         $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'timeframes', array());
         $timeframes = $this->safe_value($options, $market['type'], array());
+        $timeframeValue = $this->safe_string($timeframes, $timeframe, $timeframe);
         $request = array(
             'symbol' => $market['id'],
-            'interval' => $timeframes[$timeframe],
+            'interval' => $timeframeValue,
         );
         $method = null;
         if ($market['spot']) {
@@ -1280,7 +1285,7 @@ class mexc extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        $rawNetwork = $this->safe_string($params, 'network');
+        $rawNetwork = $this->safe_string_upper($params, 'network');
         $params = $this->omit($params, 'network');
         $response = $this->fetch_deposit_addresses_by_network($code, $params);
         $networks = $this->safe_value($this->options, 'networks', array());
@@ -1305,7 +1310,8 @@ class mexc extends Exchange {
             }
             return $result;
         }
-        $result = $this->safe_value($response, $network);
+        // TODO => add support for all aliases here
+        $result = $this->safe_value($response, $rawNetwork);
         if ($result === null) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
         }
@@ -1476,12 +1482,16 @@ class mexc extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
-            'network' => $network,
             'status' => $status,
             'updated' => $updated,
             'fee' => $fee,
@@ -1565,10 +1575,15 @@ class mexc extends Exchange {
             $orderSide = 'ASK';
         }
         $orderType = strtoupper($type);
-        if ($orderType === 'LIMIT') {
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly) {
+            $orderType = 'POST_ONLY';
+        } else if ($orderType === 'LIMIT') {
             $orderType = 'LIMIT_ORDER';
         } else if (($orderType !== 'POST_ONLY') && ($orderType !== 'IMMEDIATE_OR_CANCEL')) {
-            throw new InvalidOrder($this->id . ' createOrder does not support ' . $type . ' order $type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
+            throw new InvalidOrder($this->id . ' createOrder() does not support ' . $type . ' order $type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
+        } else {
+            throw new InvalidOrder($this->id . ' createOrder() allows limit orders only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1581,7 +1596,7 @@ class mexc extends Exchange {
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'type', 'clientOrderId', 'client_order_id' ));
+        $params = $this->omit($params, array( 'type', 'clientOrderId', 'client_order_id', 'postOnly' ));
         $response = $this->spotPrivatePostOrderPlace (array_merge($request, $params));
         //
         //     array("code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4")
@@ -1599,7 +1614,10 @@ class mexc extends Exchange {
         if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
             throw new InvalidOrder($this->id . ' createSwapOrder() order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
         }
-        if ($type === 'limit') {
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if ($postOnly) {
+            $type = 2;
+        } else if ($type === 'limit') {
             $type = 1;
         } else if ($type === 'market') {
             $type = 6;
@@ -1640,7 +1658,7 @@ class mexc extends Exchange {
         if ($clientOrderId !== null) {
             $request['externalOid'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'externalOid' ));
+        $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly' ));
         $response = $this->contractPrivatePostOrderSubmit (array_merge($request, $params));
         //
         //     array("code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4")

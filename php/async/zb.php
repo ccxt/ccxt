@@ -281,14 +281,11 @@ class zb extends Exchange {
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
-                'futures' => false,
+                'future' => false,
                 'option' => false,
-                'derivative' => false,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
                 'contractSize' => null,
                 'active' => true,
                 'expiry' => null,
@@ -394,11 +391,7 @@ class zb extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privateGetGetAccountInfo ($params);
-        // todo => use this somehow
-        // $permissions = $response['result']['base'];
+    public function parse_balance($response) {
         $balances = $this->safe_value($response['result'], 'coins');
         $result = array(
             'info' => $response,
@@ -424,6 +417,14 @@ class zb extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetGetAccountInfo ($params);
+        // todo => use this somehow
+        // $permissions = $response['result']['base'];
+        return $this->parse_balance($response);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
@@ -1025,6 +1026,7 @@ class zb extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => $address,

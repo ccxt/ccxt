@@ -415,21 +415,7 @@ module.exports = class upbit extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccounts (params);
-        //
-        //     [ {          currency: "BTC",
-        //                   balance: "0.005",
-        //                    locked: "0.0",
-        //         avg_krw_buy_price: "7446000",
-        //                  modified:  false     },
-        //       {          currency: "ETH",
-        //                   balance: "0.1",
-        //                    locked: "0.0",
-        //         avg_krw_buy_price: "250000",
-        //                  modified:  false    }   ]
-        //
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -445,6 +431,24 @@ module.exports = class upbit extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccounts (params);
+        //
+        //     [ {          currency: "BTC",
+        //                   balance: "0.005",
+        //                    locked: "0.0",
+        //         avg_krw_buy_price: "7446000",
+        //                  modified:  false     },
+        //       {          currency: "ETH",
+        //                   balance: "0.1",
+        //                    locked: "0.0",
+        //         avg_krw_buy_price: "250000",
+        //                  modified:  false    }   ]
+        //
+        return this.parseBalance (response);
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
@@ -1074,8 +1078,13 @@ module.exports = class upbit extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'status': status,
             'type': type,
             'updated': updated,

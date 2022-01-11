@@ -289,14 +289,11 @@ class zb(Exchange):
                 'spot': True,
                 'margin': False,
                 'swap': False,
-                'futures': False,
+                'future': False,
                 'option': False,
-                'derivative': False,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': None,
-                'maker': None,
                 'contractSize': None,
                 'active': True,
                 'expiry': None,
@@ -397,11 +394,7 @@ class zb(Exchange):
             }
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetGetAccountInfo(params)
-        # todo: use self somehow
-        # permissions = response['result']['base']
+    def parse_balance(self, response):
         balances = self.safe_value(response['result'], 'coins')
         result = {
             'info': response,
@@ -426,6 +419,13 @@ class zb(Exchange):
             account['used'] = self.safe_string(balance, 'freez')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetGetAccountInfo(params)
+        # todo: use self somehow
+        # permissions = response['result']['base']
+        return self.parse_balance(response)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #
@@ -982,6 +982,7 @@ class zb(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': address,

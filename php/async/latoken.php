@@ -32,6 +32,7 @@ class latoken extends Exchange {
                 'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
             ),
@@ -180,13 +181,6 @@ class latoken extends Exchange {
         //     }
         //
         return $this->safe_integer($response, 'serverTime');
-    }
-
-    public function load_time_difference($params = array ()) {
-        $serverTime = yield $this->fetch_time($params);
-        $after = $this->milliseconds();
-        $this->options['timeDifference'] = $after - $serverTime;
-        return $this->options['timeDifference'];
     }
 
     public function fetch_markets($params = array ()) {
@@ -805,7 +799,8 @@ class latoken extends Exchange {
         $side = null;
         if ($orderSide !== null) {
             $parts = explode('_', $orderSide);
-            $side = $this->safe_string_lower($parts, strlen($parts) - 1);
+            $partsLength = is_array($parts) ? count($parts) : 0;
+            $side = $this->safe_string_lower($parts, $partsLength - 1);
         }
         $type = $this->parse_order_type($this->safe_string($order, 'type'));
         $price = $this->safe_string($order, 'price');
@@ -1126,6 +1121,7 @@ class latoken extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $addressTo,

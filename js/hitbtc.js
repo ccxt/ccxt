@@ -414,6 +414,8 @@ module.exports = class hitbtc extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': payin,
+                'withdraw': payout,
                 'fee': this.safeNumber (currency, 'payoutFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
@@ -463,6 +465,24 @@ module.exports = class hitbtc extends Exchange {
         return this.parseTradingFee (response, market);
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'reserved');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'trading');
@@ -481,21 +501,7 @@ module.exports = class hitbtc extends Exchange {
         //         {"currency":"DGTX","available":"0","reserved":"0"},
         //     ]
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'reserved');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -781,8 +787,13 @@ module.exports = class hitbtc extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,

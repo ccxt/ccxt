@@ -360,25 +360,7 @@ class bitbns extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->v1PostCurrentCoinBalanceEVERYTHING ($params);
-        //
-        //     {
-        //         "data":array(
-        //             "availableorderMoney":0,
-        //             "availableorderBTC":0,
-        //             "availableorderXRP":0,
-        //             "inorderMoney":0,
-        //             "inorderBTC":0,
-        //             "inorderXRP":0,
-        //             "inorderNEO":0,
-        //         ),
-        //         "status":1,
-        //         "error":null,
-        //         "code":200
-        //     }
-        //
+    public function parse_balance($response) {
         $timestamp = null;
         $result = array(
             'info' => $response,
@@ -403,6 +385,28 @@ class bitbns extends Exchange {
             }
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->v1PostCurrentCoinBalanceEVERYTHING ($params);
+        //
+        //     {
+        //         "data":array(
+        //             "availableorderMoney":0,
+        //             "availableorderBTC":0,
+        //             "availableorderXRP":0,
+        //             "inorderMoney":0,
+        //             "inorderBTC":0,
+        //             "inorderXRP":0,
+        //             "inorderNEO":0,
+        //         ),
+        //         "status":1,
+        //         "error":null,
+        //         "code":200
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function parse_order_status($status) {
@@ -926,6 +930,7 @@ class bitbns extends Exchange {
             'txid' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => null,
             'addressTo' => null,
             'addressFrom' => null,

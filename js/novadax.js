@@ -553,23 +553,7 @@ module.exports = class novadax extends Exchange {
         ];
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccountGetBalance (params);
-        //
-        //     {
-        //         "code": "A10000",
-        //         "data": [
-        //             {
-        //                 "available": "1.23",
-        //                 "balance": "0.23",
-        //                 "currency": "BTC",
-        //                 "hold": "1"
-        //             }
-        //         ],
-        //         "message": "Success"
-        //     }
-        //
+    parseBalance (response) {
         const data = this.safeValue (response, 'data', []);
         const result = {
             'info': response,
@@ -587,6 +571,26 @@ module.exports = class novadax extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountGetBalance (params);
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": [
+        //             {
+        //                 "available": "1.23",
+        //                 "balance": "0.23",
+        //                 "currency": "BTC",
+        //                 "hold": "1"
+        //             }
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1076,11 +1080,13 @@ module.exports = class novadax extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const network = this.safeString (transaction, 'chain');
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

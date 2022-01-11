@@ -383,8 +383,8 @@ class bitfinex2(bitfinex):
             spot = True
             if self.in_array(id, futuresMarketIds):
                 spot = False
-            futures = not spot
-            type = 'spot' if spot else 'futures'
+            future = not spot
+            type = 'spot' if spot else 'future'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -436,7 +436,7 @@ class bitfinex2(bitfinex):
                 'swap': False,
                 'spot': spot,
                 'margin': margin,
-                'futures': futures,
+                'future': future,
             })
         return result
 
@@ -566,6 +566,8 @@ class bitfinex2(bitfinex):
                 'type': type,
                 'name': name,
                 'active': True,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -1285,6 +1287,7 @@ class bitfinex2(bitfinex):
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
+            'COMPLETED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1393,6 +1396,7 @@ class bitfinex2(bitfinex):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
             'address': addressTo,  # self is actually the tag for XRP transfers(the address is missing)
             'addressTo': addressTo,

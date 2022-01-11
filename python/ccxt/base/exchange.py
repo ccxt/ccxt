@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.65.38'
+__version__ = '1.67.1'
 
 # -----------------------------------------------------------------------------
 
@@ -511,7 +511,9 @@ class Exchange(object):
             if isinstance(value, list):
                 for path in value:
                     self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths)
-            elif re.search(r'^(?:get|post|put|delete|options|head|patch)$', key, re.IGNORECASE) is not None:
+            # the options HTTP method conflicts with the 'options' API url path
+            # elif re.search(r'^(?:get|post|put|delete|options|head|patch)$', key, re.IGNORECASE) is not None:
+            elif re.search(r'^(?:get|post|put|delete|head|patch)$', key, re.IGNORECASE) is not None:
                 for [endpoint, config] in value.items():
                     path = endpoint.strip()
                     if isinstance(config, dict):
@@ -2213,6 +2215,43 @@ class Exchange(object):
         signature = self.signHash(message_hash[-64:], privateKey[-64:])
         return signature
 
+    def get_network(self, network, code):
+        network = network.upper()
+        aliases = {
+            'ETHEREUM': 'ETH',
+            'ETHER': 'ETH',
+            'ERC20': 'ETH',
+            'ETH': 'ETH',
+            'TRC20': 'TRX',
+            'TRON': 'TRX',
+            'TRX': 'TRX',
+            'BEP20': 'BSC',
+            'BSC': 'BSC',
+            'HRC20': 'HT',
+            'HECO': 'HT',
+            'SPL': 'SOL',
+            'SOL': 'SOL',
+            'TERRA': 'LUNA',
+            'LUNA': 'LUNA',
+            'POLYGON': 'MATIC',
+            'MATIC': 'MATIC',
+            'EOS': 'EOS',
+            'WAVES': 'WAVES',
+            'AVALANCHE': 'AVAX',
+            'AVAX': 'AVAX',
+            'QTUM': 'QTUM',
+            'CHZ': 'CHZ',
+            'NEO': 'NEO',
+            'ONT': 'ONT',
+            'RON': 'RON',
+        }
+        if network == code:
+            return network
+        elif network in aliases:
+            return aliases[network]
+        else:
+            raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
+
     def oath(self):
         if self.twofa is not None:
             return self.totp(self.twofa)
@@ -2626,10 +2665,8 @@ class Exchange(object):
     def handle_market_type_and_params(self, method_name, market=None, params={}):
         default_type = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
         method_options = self.safe_value(self.options, method_name)
-        method_type = None
-        if method_options is None:
-            method_type = default_type
-        else:
+        method_type = default_type
+        if method_options is not None:
             if isinstance(method_options, str):
                 method_type = method_options
             else:
@@ -2638,3 +2675,9 @@ class Exchange(object):
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
+
+    def load_time_difference(self, params={}):
+        server_time = self.fetch_time(params)
+        after = self.milliseconds()
+        self.options['timeDifference'] = after - server_time
+        return self.options['timeDifference']

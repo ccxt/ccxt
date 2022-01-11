@@ -553,6 +553,26 @@ class xena(Exchange):
         account = await self.find_account_by_type(type)
         return account['id']
 
+    def parse_balance(self, response):
+        result = {'info': response}
+        timestamp = None
+        balances = self.safe_value(response, 'balances', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            lastUpdateTime = self.safe_string(balance, 'lastUpdateTime')
+            lastUpdated = lastUpdateTime[0:13]
+            currentTimestamp = int(lastUpdated)
+            timestamp = currentTimestamp if (timestamp is None) else max(timestamp, currentTimestamp)
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'onHold')
+            result[code] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         await self.load_accounts()
@@ -576,24 +596,7 @@ class xena(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
-        timestamp = None
-        balances = self.safe_value(response, 'balances', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            lastUpdateTime = self.safe_string(balance, 'lastUpdateTime')
-            lastUpdated = lastUpdateTime[0:13]
-            currentTimestamp = int(lastUpdated)
-            timestamp = currentTimestamp if (timestamp is None) else max(timestamp, currentTimestamp)
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'onHold')
-            result[code] = account
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_trade(self, trade, market=None):
         #
@@ -1388,12 +1391,14 @@ class xena(Exchange):
         amount = self.safe_number(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         fee = None
+        network = self.safe_string(transaction, 'blockchain')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

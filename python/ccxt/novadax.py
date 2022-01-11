@@ -547,6 +547,24 @@ class novadax(Exchange):
             self.safe_number(ohlcv, volumeField),
         ]
 
+    def parse_balance(self, response):
+        data = self.safe_value(response, 'data', [])
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(data)):
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'hold')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetAccountGetBalance(params)
@@ -564,22 +582,7 @@ class novadax(Exchange):
         #         "message": "Success"
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        for i in range(0, len(data)):
-            balance = data[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'balance')
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'hold')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -1035,11 +1038,13 @@ class novadax(Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        network = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

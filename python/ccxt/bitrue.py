@@ -359,12 +359,6 @@ class bitrue(Exchange):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def load_time_difference(self, params={}):
-        serverTime = self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
-
     def safe_network(self, networkId):
         uppercaseNetworkId = networkId.upper()
         networksById = {
@@ -516,6 +510,8 @@ class bitrue(Exchange):
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': enableDeposit,
+                'withdraw': enableWithdraw,
                 'networks': networks,
                 'fee': self.safe_number(currency, 'withdrawFee'),
                 # 'fees': fees,
@@ -648,6 +644,24 @@ class bitrue(Exchange):
             result.append(entry)
         return result
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+        }
+        timestamp = self.safe_integer(response, 'updateTime')
+        balances = self.safe_value_2(response, 'balances', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'free')
+            account['used'] = self.safe_string(balance, 'locked')
+            result[code] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.v1PrivateGetAccount(params)
@@ -668,22 +682,7 @@ class bitrue(Exchange):
         #         "canDeposit":false
         #     }
         #
-        result = {
-            'info': response,
-        }
-        timestamp = self.safe_integer(response, 'updateTime')
-        balances = self.safe_value_2(response, 'balances', [])
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'asset')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'free')
-            account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

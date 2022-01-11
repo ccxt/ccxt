@@ -168,6 +168,7 @@ module.exports = class yobit extends Exchange {
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'SBTC': 'Super Bitcoin',
+                'SMC': 'SmartCoin',
                 'SOLO': 'SoloCoin',
                 'SUPER': 'SuperCoin',
                 'TTC': 'TittieCoin',
@@ -219,6 +220,28 @@ module.exports = class yobit extends Exchange {
         });
     }
 
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'return', {});
+        const timestamp = this.safeInteger (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const free = this.safeValue (balances, 'funds', {});
+        const total = this.safeValue (balances, 'funds_incl_orders', {});
+        const currencyIds = Object.keys (this.extend (free, total));
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (free, currencyId);
+            account['total'] = this.safeString (total, currencyId);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
@@ -247,25 +270,7 @@ module.exports = class yobit extends Exchange {
         //         }
         //     }
         //
-        const balances = this.safeValue (response, 'return', {});
-        const timestamp = this.safeInteger (balances, 'server_time');
-        const result = {
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        const free = this.safeValue (balances, 'funds', {});
-        const total = this.safeValue (balances, 'funds_incl_orders', {});
-        const currencyIds = Object.keys (this.extend (free, total));
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (free, currencyId);
-            account['total'] = this.safeString (total, currencyId);
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchMarkets (params = {}) {

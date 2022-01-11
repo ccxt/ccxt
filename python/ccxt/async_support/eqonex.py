@@ -50,6 +50,7 @@ class eqonex(Exchange):
                 '6h': 5,
                 '1d': 6,
                 '7d': 7,
+                '1w': 7,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -296,6 +297,8 @@ class eqonex(Exchange):
             'precision': precision,
             'fee': fee,
             'active': active,
+            'deposit': None,
+            'withdraw': None,
             'limits': {
                 'amount': {
                     'min': None,
@@ -532,6 +535,26 @@ class eqonex(Exchange):
             'fee': fee,
         }, market)
 
+    def parse_balance(self, response):
+        positions = self.safe_value(response, 'positions', [])
+        result = {
+            'info': response,
+        }
+        for i in range(0, len(positions)):
+            position = positions[i]
+            assetType = self.safe_string(position, 'assetType')
+            if assetType == 'ASSET':
+                currencyId = self.safe_string(position, 'symbol')
+                code = self.safe_currency_code(currencyId)
+                quantityString = self.safe_string(position, 'quantity')
+                availableQuantityString = self.safe_string(position, 'availableQuantity')
+                scale = self.safe_integer(position, 'quantity_scale')
+                account = self.account()
+                account['free'] = self.convert_from_scale(availableQuantityString, scale)
+                account['total'] = self.convert_from_scale(quantityString, scale)
+                result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetPositions(params)
@@ -557,24 +580,7 @@ class eqonex(Exchange):
         #             },
         #         ]
         #     }
-        positions = self.safe_value(response, 'positions', [])
-        result = {
-            'info': response,
-        }
-        for i in range(0, len(positions)):
-            position = positions[i]
-            assetType = self.safe_string(position, 'assetType')
-            if assetType == 'ASSET':
-                currencyId = self.safe_string(position, 'symbol')
-                code = self.safe_currency_code(currencyId)
-                quantityString = self.safe_string(position, 'quantity')
-                availableQuantityString = self.safe_string(position, 'availableQuantity')
-                scale = self.safe_integer(position, 'quantity_scale')
-                account = self.account()
-                account['free'] = self.convert_from_scale(availableQuantityString, scale)
-                account['total'] = self.convert_from_scale(quantityString, scale)
-                result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -1068,6 +1074,7 @@ class eqonex(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': None,

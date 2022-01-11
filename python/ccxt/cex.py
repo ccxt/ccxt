@@ -259,6 +259,8 @@ class cex(Exchange):
                 'code': code,
                 'name': id,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'precision': precision,
                 'fee': None,
                 'limits': {
@@ -364,9 +366,7 @@ class cex(Exchange):
             })
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostBalance(params)
+    def parse_balance(self, response):
         result = {'info': response}
         ommited = ['username', 'timestamp']
         balances = self.omit(response, ommited)
@@ -381,6 +381,11 @@ class cex(Exchange):
             code = self.safe_currency_code(currencyId)
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privatePostBalance(params)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -18,6 +18,11 @@ module.exports = class ascendex extends Exchange {
             'certified': true,
             // new metainfo interface
             'has': {
+                'spot': true,
+                'margin': undefined,
+                'swap': true,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
@@ -371,6 +376,8 @@ module.exports = class ascendex extends Exchange {
                 'margin': margin,
                 'name': this.safeString (currency, 'assetName'),
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': parseInt (precision),
                 'limits': {
@@ -492,20 +499,18 @@ module.exports = class ascendex extends Exchange {
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
-            const type = (settle !== undefined) ? 'swap' : 'spot';
-            const spot = (type === 'spot');
-            const swap = (type === 'swap');
+            const spot = settle === undefined;
+            const swap = !spot;
+            const type = swap ? 'swap' : 'spot';
             const margin = this.safeValue (market, 'marginTradable', false);
-            const contract = swap;
-            const derivative = contract;
-            const linear = contract ? true : undefined;
-            const contractSize = contract ? 1 : undefined;
+            const linear = swap ? true : undefined;
+            const contractSize = swap ? this.parseNumber ('1') : undefined;
             let minQty = this.safeNumber (market, 'minQty');
             let maxQty = this.safeNumber (market, 'maxQty');
             let minPrice = this.safeNumber (market, 'tickSize');
             let maxPrice = undefined;
             let symbol = base + '/' + quote;
-            if (contract) {
+            if (swap) {
                 const lotSizeFilter = this.safeValue (market, 'lotSizeFilter');
                 minQty = this.safeNumber (lotSizeFilter, 'minQty');
                 maxQty = this.safeNumber (lotSizeFilter, 'maxQty');
@@ -537,10 +542,9 @@ module.exports = class ascendex extends Exchange {
                 'future': false,
                 'option': false,
                 'active': active,
-                'derivative': derivative,
-                'contract': contract,
+                'contract': swap,
                 'linear': linear,
-                'inverse': contract ? !linear : undefined,
+                'inverse': swap ? !linear : undefined,
                 'taker': fee,
                 'maker': fee,
                 'contractSize': contractSize,
@@ -608,6 +612,24 @@ module.exports = class ascendex extends Exchange {
         ];
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const balances = this.safeValue (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'availableBalance');
+            account['total'] = this.safeString (balance, 'totalBalance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -671,21 +693,7 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const balances = this.safeValue (response, 'data', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'availableBalance');
-            account['total'] = this.safeString (balance, 'totalBalance');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -997,6 +1005,37 @@ module.exports = class ascendex extends Exchange {
         //         "timestamp": 1573576916201
         //     }
         //
+        //     {
+        //         "ac": "FUTURES",
+        //         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //         "time": 1640819389454,
+        //         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
+        //         "seqNum": -1,
+        //         "orderType": "Limit",
+        //         "execInst": "NULL_VAL",
+        //         "side": "Buy",
+        //         "symbol": "BTC-PERP",
+        //         "price": "30000",
+        //         "orderQty": "0.002",
+        //         "stopPrice": "0",
+        //         "stopBy": "ref-px",
+        //         "status": "Ack",
+        //         "lastExecTime": 1640819389454,
+        //         "lastQty": "0",
+        //         "lastPx": "0",
+        //         "avgFilledPx": "0",
+        //         "cumFilledQty": "0",
+        //         "fee": "0",
+        //         "cumFee": "0",
+        //         "feeAsset": "",
+        //         "errorCode": "",
+        //         "posStopLossPrice": "0",
+        //         "posStopLossTrigger": "market",
+        //         "posTakeProfitPrice": "0",
+        //         "posTakeProfitTrigger": "market",
+        //         "liquidityInd": "n"
+        //      }
+        //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
@@ -1098,11 +1137,10 @@ module.exports = class ascendex extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const [ style, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const options = this.safeValue (this.options, 'createOrder', {});
-        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
-        accountCategory = this.safeString (params, 'account-category', accountCategory);
-        params = this.omit (params, 'account-category');
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        const accountCategory = this.safeString (accountCategories, style, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
@@ -1136,7 +1174,22 @@ module.exports = class ascendex extends Exchange {
                 params = this.omit (params, 'stopPrice');
             }
         }
-        const response = await this.v1PrivateAccountCategoryPostOrder (this.extend (request, params));
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryPostOrder');
+        const method = this.getSupportedMapping (style, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupPostFuturesOrder',
+        });
+        if (method === 'v1PrivateAccountCategoryPostOrder') {
+            if (accountCategory !== undefined) {
+                request['category'] = accountCategory;
+            }
+        } else {
+            request['account-category'] = accountCategory;
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // AccountCategoryPostOrder
         //
         //     {
         //         "code": 0,
@@ -1155,9 +1208,52 @@ module.exports = class ascendex extends Exchange {
         //         }
         //     }
         //
+        // AccountGroupPostFuturesOrder
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "meta": {
+        //                 "id": "",
+        //                 "action": "place-order",
+        //                 "respInst": "ACK"
+        //             },
+        //             "order": {
+        //                 "ac": "FUTURES",
+        //                 "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //                 "time": 1640819389454,
+        //                 "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
+        //                 "seqNum": -1,
+        //                 "orderType": "Limit",
+        //                 "execInst": "NULL_VAL",
+        //                 "side": "Buy",
+        //                 "symbol": "BTC-PERP",
+        //                 "price": "30000",
+        //                 "orderQty": "0.002",
+        //                 "stopPrice": "0",
+        //                 "stopBy": "ref-px",
+        //                 "status": "Ack",
+        //                 "lastExecTime": 1640819389454,
+        //                 "lastQty": "0",
+        //                 "lastPx": "0",
+        //                 "avgFilledPx": "0",
+        //                 "cumFilledQty": "0",
+        //                 "fee": "0",
+        //                 "cumFee": "0",
+        //                 "feeAsset": "",
+        //                 "errorCode": "",
+        //                 "posStopLossPrice": "0",
+        //                 "posStopLossTrigger": "market",
+        //                 "posTakeProfitPrice": "0",
+        //                 "posTakeProfitTrigger": "market",
+        //                 "liquidityInd": "n"
+        //             }
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
-        const info = this.safeValue (data, 'info', {});
-        return this.parseOrder (info, market);
+        const order = this.safeValue2 (data, 'order', 'info', {});
+        return this.parseOrder (order, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1742,8 +1838,21 @@ module.exports = class ascendex extends Exchange {
     }
 
     safeNetwork (networkId) {
-        // TODO: parse network
-        return networkId;
+        const networksById = {
+            'TRC20': 'TRC20',
+            'ERC20': 'ERC20',
+            'GO20': 'GO20',
+            'BEP2': 'BEP2',
+            'BEP20 (BSC)': 'BEP20',
+            'Bitcoin': 'BTC',
+            'Bitcoin ABC': 'BCH',
+            'Litecoin': 'LTC',
+            'Matic Network': 'MATIC',
+            'Solana': 'SOL',
+            'xDai': 'STAKE',
+            'Akash': 'AKT',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1922,6 +2031,7 @@ module.exports = class ascendex extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

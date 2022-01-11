@@ -205,6 +205,8 @@ module.exports = class bitstamp extends Exchange {
                         'gala_address/',
                         'shib_withdrawal/',
                         'shib_address/',
+                        'amp_withdrawal/',
+                        'amp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -295,7 +297,7 @@ module.exports = class bitstamp extends Exchange {
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found': OrderNotFound,
                     'Price is more than 20% below market price.': InvalidOrder,
-                    'Bitstamp.net is under scheduled maintenance.': OnMaintenance, // { "error": "Bitstamp.net is under scheduled maintenance. We'll be back soon." }
+                    "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance, // { "error": "Bitstamp.net is under scheduled maintenance. We'll be back soon." }
                     'Order could not be placed.': ExchangeNotAvailable, // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.': BadRequest,
                 },
@@ -381,6 +383,8 @@ module.exports = class bitstamp extends Exchange {
             'type': currencyType,
             'name': name,
             'active': true,
+            'deposit': undefined,
+            'withdraw': undefined,
             'fee': this.safeNumber (description['fees']['funding']['withdraw'], code),
             'precision': precision,
             'limits': {
@@ -423,6 +427,20 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.fetchMarketsFromCache (params);
+        //
+        //     [
+        //         {
+        //             "trading": "Enabled",
+        //             "base_decimals": 8,
+        //             "url_symbol": "btcusd",
+        //             "name": "BTC/USD",
+        //             "instant_and_market_orders": "Enabled",
+        //             "minimum_order": "20.0 USD",
+        //             "counter_decimals": 2,
+        //             "description": "Bitcoin / U.S. dollar"
+        //         },
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -819,9 +837,29 @@ module.exports = class bitstamp extends Exchange {
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const currencyId = currency['id'];
+            const account = this.account ();
+            account['free'] = this.safeString (response, currencyId + '_available');
+            account['used'] = this.safeString (response, currencyId + '_reserved');
+            account['total'] = this.safeString (response, currencyId + '_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         //
         //     {
         //         "aave_available": "0.00000000",
@@ -840,23 +878,7 @@ module.exports = class bitstamp extends Exchange {
         //         "batusd_fee": "0.000",
         //     }
         //
-        const result = {
-            'info': balance,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const codes = Object.keys (this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currency = this.currency (code);
-            const currencyId = currency['id'];
-            const account = this.account ();
-            account['free'] = this.safeString (balance, currencyId + '_available');
-            account['used'] = this.safeString (balance, currencyId + '_reserved');
-            account['total'] = this.safeString (balance, currencyId + '_balance');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchTradingFee (symbol, params = {}) {
@@ -1235,6 +1257,7 @@ module.exports = class bitstamp extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -1396,7 +1419,7 @@ module.exports = class bitstamp extends Exchange {
             if (market === undefined) {
                 market = this.getMarketFromTrade (item);
             }
-            const direction = parsedTrade['side'] === 'buy' ? 'in' : 'out';
+            const direction = (parsedTrade['side'] === 'buy') ? 'in' : 'out';
             return {
                 'id': parsedTrade['id'],
                 'info': item,
@@ -1419,12 +1442,12 @@ module.exports = class bitstamp extends Exchange {
             let direction = undefined;
             if ('amount' in item) {
                 const amount = this.safeNumber (item, 'amount');
-                direction = amount > 0 ? 'in' : 'out';
+                direction = (amount > 0) ? 'in' : 'out';
             } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
                 const code = parsedTransaction['currency'];
                 const currencyId = this.safeString (this.currencies_by_id, code, code);
                 const amount = this.safeNumber (item, currencyId);
-                direction = amount > 0 ? 'in' : 'out';
+                direction = (amount > 0) ? 'in' : 'out';
             }
             return {
                 'id': parsedTransaction['id'],

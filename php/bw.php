@@ -594,6 +594,22 @@ class bw extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_balance($response) {
+        $data = $this->safe_value($response, 'datas', array());
+        $balances = $this->safe_value($data, 'list', array());
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currencyTypeId');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'amount');
+            $account['used'] = $this->safe_string($balance, 'freeze');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostExchangeFundControllerWebsiteFundcontrollerFindbypage ($params);
@@ -614,19 +630,7 @@ class bw extends Exchange {
         //         "resMsg" => array( "code" => "1", "message" => "success !" )
         //     }
         //
-        $data = $this->safe_value($response, 'datas', array());
-        $balances = $this->safe_value($data, 'list', array());
-        $result = array( 'info' => $response );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $currencyId = $this->safe_string($balance, 'currencyTypeId');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'amount');
-            $account['used'] = $this->safe_string($balance, 'freeze');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1065,6 +1069,7 @@ class bw extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => null,

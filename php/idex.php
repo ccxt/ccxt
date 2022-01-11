@@ -199,9 +199,8 @@ class idex extends Exchange {
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
-                'futures' => false,
+                'future' => false,
                 'option' => false,
-                'derivative' => false,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -601,6 +600,25 @@ class idex extends Exchange {
         return $result;
     }
 
+    public function parse_balance($response) {
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $currencyId = $this->safe_string($entry, 'asset');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['total'] = $this->safe_string($entry, 'quantity');
+            $account['free'] = $this->safe_string($entry, 'availableForTrade');
+            $account['used'] = $this->safe_string($entry, 'locked');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->check_required_credentials();
         $this->load_markets();
@@ -634,22 +652,7 @@ class idex extends Exchange {
                 throw $e;
             }
         }
-        $result = array(
-            'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
-        );
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $currencyId = $this->safe_string($entry, 'asset');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['total'] = $this->safe_string($entry, 'quantity');
-            $account['free'] = $this->safe_string($entry, 'availableForTrade');
-            $account['used'] = $this->safe_string($entry, 'locked');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1298,8 +1301,13 @@ class idex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => null,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,

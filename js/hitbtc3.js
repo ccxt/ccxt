@@ -22,6 +22,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': false,
+                'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -315,7 +316,6 @@ module.exports = class hitbtc3 extends Exchange {
             const marketType = this.safeString (market, 'type');
             const expiry = this.safeInteger (market, 'expiry');
             const contract = (marketType === 'futures');
-            const derivative = contract;
             const spot = (marketType === 'spot');
             const marginTrading = this.safeValue (market, 'margin_trading', false);
             const margin = spot && marginTrading;
@@ -336,7 +336,7 @@ module.exports = class hitbtc3 extends Exchange {
             let linear = undefined;
             let inverse = undefined;
             if (contract) {
-                contractSize = 1;
+                contractSize = this.parseNumber ('1');
                 settleId = feeCurrencyId;
                 settle = this.safeCurrencyCode (settleId);
                 linear = ((quote !== undefined) && (quote === settle));
@@ -369,9 +369,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'margin': margin,
                 'swap': swap,
                 'future': future,
-                'futures': future, // deprecated, use future instead
                 'option': option,
-                'derivative': derivative,
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
@@ -545,6 +543,20 @@ module.exports = class hitbtc3 extends Exchange {
         };
     }
 
+    parseBalance (response) {
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (entry, 'available');
+            account['used'] = this.safeString (entry, 'reserved');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
@@ -572,17 +584,7 @@ module.exports = class hitbtc3 extends Exchange {
         //       ...
         //     ]
         //
-        const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (entry, 'available');
-            account['used'] = this.safeString (entry, 'reserved');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -928,6 +930,7 @@ module.exports = class hitbtc3 extends Exchange {
             'txid': txhash,
             'code': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
@@ -1491,6 +1494,68 @@ module.exports = class hitbtc3 extends Exchange {
             'info': response,
             'id': id,
         };
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {
+            // all arguments are optional
+            // 'symbols': Comma separated list of symbol codes,
+            // 'sort': 'DESC' or 'ASC'
+            // 'from': 'Datetime or Number',
+            // 'till': 'Datetime or Number',
+            // 'limit': 100,
+            // 'offset': 0,
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbols'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetPublicFuturesHistoryFunding (this.extend (request, params));
+        //
+        //    {
+        //        "BTCUSDT_PERP": [
+        //            {
+        //                "timestamp": "2021-07-29T16:00:00.271Z",
+        //                "funding_rate": "0.0001",
+        //                "avg_premium_index": "0.000061858585213222",
+        //                "next_funding_time": "2021-07-30T00:00:00.000Z",
+        //                "interest_rate": "0.0001"
+        //            },
+        //            ...
+        //        ],
+        //        ...
+        //    }
+        //
+        const contracts = Object.keys (response);
+        const rates = [];
+        for (let i = 0; i < contracts.length; i++) {
+            const marketId = contracts[i];
+            const market = this.safeMarket (marketId);
+            const fundingRateData = response[marketId];
+            for (let i = 0; i < fundingRateData.length; i++) {
+                const entry = fundingRateData[i];
+                const symbol = this.safeSymbol (market['symbol']);
+                const fundingRate = this.safeNumber (entry, 'funding_rate');
+                const datetime = this.safeString (entry, 'timestamp');
+                rates.push ({
+                    'info': entry,
+                    'symbol': symbol,
+                    'fundingRate': fundingRate,
+                    'timestamp': this.parse8601 (datetime),
+                    'datetime': datetime,
+                });
+            }
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

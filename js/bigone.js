@@ -636,22 +636,7 @@ module.exports = class bigone extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const type = this.safeString (params, 'type', '');
-        params = this.omit (params, 'type');
-        const method = 'privateGet' + this.capitalize (type) + 'Accounts';
-        const response = await this[method] (params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {"asset_symbol":"NKC","balance":"0","locked_balance":"0"},
-        //             {"asset_symbol":"UBTC","balance":"0","locked_balance":"0"},
-        //             {"asset_symbol":"READ","balance":"0","locked_balance":"0"},
-        //         ],
-        //     }
-        //
+    parseBalance (response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -668,6 +653,25 @@ module.exports = class bigone extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const type = this.safeString (params, 'type', '');
+        params = this.omit (params, 'type');
+        const method = 'privateGet' + this.capitalize (type) + 'Accounts';
+        const response = await this[method] (params);
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {"asset_symbol":"NKC","balance":"0","locked_balance":"0"},
+        //             {"asset_symbol":"UBTC","balance":"0","locked_balance":"0"},
+        //             {"asset_symbol":"READ","balance":"0","locked_balance":"0"},
+        //         ],
+        //     }
+        //
+        return this.parseBalance (response);
     }
 
     parseOrder (order, market = undefined) {
@@ -1103,6 +1107,7 @@ module.exports = class bigone extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': undefined,
             'addressTo': address,

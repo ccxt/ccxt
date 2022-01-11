@@ -565,6 +565,28 @@ module.exports = class xena extends Exchange {
         return account['id'];
     }
 
+    parseBalance (response) {
+        const result = { 'info': response };
+        let timestamp = undefined;
+        const balances = this.safeValue (response, 'balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const lastUpdateTime = this.safeString (balance, 'lastUpdateTime');
+            const lastUpdated = lastUpdateTime.slice (0, 13);
+            const currentTimestamp = parseInt (lastUpdated);
+            timestamp = (timestamp === undefined) ? currentTimestamp : Math.max (timestamp, currentTimestamp);
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'onHold');
+            result[code] = account;
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -588,25 +610,7 @@ module.exports = class xena extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
-        let timestamp = undefined;
-        const balances = this.safeValue (response, 'balances', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const lastUpdateTime = this.safeString (balance, 'lastUpdateTime');
-            const lastUpdated = lastUpdateTime.slice (0, 13);
-            const currentTimestamp = parseInt (lastUpdated);
-            timestamp = (timestamp === undefined) ? currentTimestamp : Math.max (timestamp, currentTimestamp);
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'onHold');
-            result[code] = account;
-        }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1456,12 +1460,14 @@ module.exports = class xena extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const fee = undefined;
+        const network = this.safeString (transaction, 'blockchain');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

@@ -8,6 +8,7 @@ include_once 'vendor/autoload.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
 include_once 'test_ohlcv.php';
+include_once 'test_position.php';
 include_once 'test_transaction.php';
 
 function style($s, $style) {
@@ -141,6 +142,28 @@ function test_orders($exchange, $symbol) {
 }
 
 //-----------------------------------------------------------------------------
+
+function test_positions($exchange, $symbol) {
+    if ($exchange->has['fetchPositions']) {
+        $skipped_exchanges = array (
+        );
+        if (in_array($exchange->id, $skipped_exchanges)) {
+            dump(green($symbol), 'fetch_positions() skipped');
+            return;
+        }
+        dump(green($symbol), 'fetching positions...');
+        $positions = yield $exchange->fetch_positions();
+        foreach ($positions as $position) {
+            test_position($exchange, $position, $symbol, time() * 1000);
+        }
+        dump(green($symbol), 'fetched', green(count($positions)), 'positions');
+    } else {
+        dump(green($symbol), 'fetchPositions() not supported');
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 
 function test_closed_orders($exchange, $symbol) {
     if ($exchange->has['fetchClosedOrders']) {

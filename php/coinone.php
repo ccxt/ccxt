@@ -135,9 +135,7 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostAccountBalance ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $balances = $this->omit($response, array(
             'errorCode',
@@ -155,6 +153,12 @@ class coinone extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostAccountBalance ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

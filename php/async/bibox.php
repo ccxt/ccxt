@@ -504,6 +504,8 @@ class bibox extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
@@ -617,6 +619,24 @@ class bibox extends Exchange {
         return $result;
     }
 
+    public function parse_balance($response) {
+        $outerResult = $this->safe_value($response, 'result');
+        $firstResult = $this->safe_value($outerResult, 0, array());
+        $innerResult = $this->safe_value($firstResult, 'result');
+        $result = array( 'info' => $response );
+        $assetsList = $this->safe_value($innerResult, 'assets_list', array());
+        for ($i = 0; $i < count($assetsList); $i++) {
+            $balance = $assetsList[$i];
+            $currencyId = $this->safe_string($balance, 'coin_symbol');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'freeze');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $type = $this->safe_string($params, 'type', 'assets');
@@ -647,21 +667,7 @@ class bibox extends Exchange {
         //         )
         //     }
         //
-        $outerResult = $this->safe_value($response, 'result');
-        $firstResult = $this->safe_value($outerResult, 0, array());
-        $innerResult = $this->safe_value($firstResult, 'result');
-        $result = array( 'info' => $response );
-        $assetsList = $this->safe_value($innerResult, 'assets_list', array());
-        for ($i = 0; $i < count($assetsList); $i++) {
-            $balance = $assetsList[$i];
-            $currencyId = $this->safe_string($balance, 'coin_symbol');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'balance');
-            $account['used'] = $this->safe_string($balance, 'freeze');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -831,8 +837,13 @@ class bibox extends Exchange {
             'txid' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,

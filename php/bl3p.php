@@ -68,9 +68,7 @@ class bl3p extends Exchange {
         ));
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostGENMKTMoneyInfo ($params);
+    public function parse_balance($response) {
         $data = $this->safe_value($response, 'data', array());
         $wallets = $this->safe_value($data, 'wallets');
         $result = array( 'info' => $data );
@@ -88,6 +86,12 @@ class bl3p extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostGENMKTMoneyInfo ($params);
+        return $this->parse_balance($response);
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {

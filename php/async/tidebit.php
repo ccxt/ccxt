@@ -179,9 +179,7 @@ class tidebit extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privateGetMembersMe ($params);
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'accounts');
         $result = array( 'info' => $balances );
         for ($i = 0; $i < count($balances); $i++) {
@@ -194,6 +192,12 @@ class tidebit extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetMembersMe ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

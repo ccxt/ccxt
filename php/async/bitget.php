@@ -937,6 +937,8 @@ class bitget extends Exchange {
                 'type' => null,
                 'name' => null,
                 'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => null,
                 'limits' => array(
@@ -1758,7 +1760,7 @@ class bitget extends Exchange {
         } else if ($type === 'swap') {
             return $this->parse_swap_balance($response);
         }
-        throw new NotSupported($this->id . " fetchBalance does not support the '" . $type . "' $type (the $type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+        throw new NotSupported($this->id . " fetchBalance does not support the '" . $type . "' $type (the $type must be one of 'account', 'spot', or 'swap')");
     }
 
     public function parse_order_status($status) {
@@ -1898,7 +1900,7 @@ class bitget extends Exchange {
         // }
         // if (($type !== 'limit') && ($type !== 'market')) {
         //     if (is_array($order) && array_key_exists('pnl', $order)) {
-        //         $type = 'futures';
+        //         $type = 'future';
         //     } else {
         //         $type = 'swap';
         //     }
@@ -2568,6 +2570,7 @@ class bitget extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,

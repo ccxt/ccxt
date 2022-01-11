@@ -13,9 +13,13 @@ class ftxus extends ftx {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'ftxus',
             'name' => 'FTX US',
-            'countries' => ['US'],
+            'countries' => array( 'US' ),
             'certified' => false,
             'hostname' => 'ftx.us',
+            'has' => array(
+                'future' => false,
+                'swap' => false,
+            ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg',
                 'www' => 'https://ftx.us/',

@@ -147,24 +147,24 @@ module.exports = class bitmart extends Exchange {
                     'maker': this.parseNumber ('0.0025'),
                     'tiers': {
                         'taker': [
-                            [this.parseNumber ('0'), this.parseNumber ('0.0020')],
-                            [this.parseNumber ('10'), this.parseNumber ('0.18')],
-                            [this.parseNumber ('50'), this.parseNumber ('0.0016')],
-                            [this.parseNumber ('250'), this.parseNumber ('0.0014')],
-                            [this.parseNumber ('1000'), this.parseNumber ('0.0012')],
-                            [this.parseNumber ('5000'), this.parseNumber ('0.0010')],
-                            [this.parseNumber ('25000'), this.parseNumber ('0.0008')],
-                            [this.parseNumber ('50000'), this.parseNumber ('0.0006')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0020') ],
+                            [ this.parseNumber ('10'), this.parseNumber ('0.18') ],
+                            [ this.parseNumber ('50'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('250'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('5000'), this.parseNumber ('0.0010') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0006') ],
                         ],
                         'maker': [
-                            [this.parseNumber ('0'), this.parseNumber ('0.001')],
-                            [this.parseNumber ('10'), this.parseNumber ('0.0009')],
-                            [this.parseNumber ('50'), this.parseNumber ('0.0008')],
-                            [this.parseNumber ('250'), this.parseNumber ('0.0007')],
-                            [this.parseNumber ('1000'), this.parseNumber ('0.0006')],
-                            [this.parseNumber ('5000'), this.parseNumber ('0.0005')],
-                            [this.parseNumber ('25000'), this.parseNumber ('0.0004')],
-                            [this.parseNumber ('50000'), this.parseNumber ('0.0003')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('10'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('50'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('250'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('5000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0003') ],
                         ],
                     },
                 },
@@ -454,12 +454,9 @@ module.exports = class bitmart extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'derivative': false,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
                 'contractSize': undefined,
                 'active': true,
                 'expiry': undefined,
@@ -607,13 +604,12 @@ module.exports = class bitmart extends Exchange {
                 'swap': swap,
                 'future': future,
                 'option': false,
-                'derivative': true,
                 'contract': true,
                 'linear': undefined,
                 'inverse': undefined,
                 'taker': this.safeNumber (feeConfig, 'taker_fee'),
                 'maker': this.safeNumber (feeConfig, 'maker_fee'),
-                'contractSize': this.safeString (market, 'contract_size'),
+                'contractSize': this.safeNumber (market, 'contract_size'),
                 'active': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
@@ -887,6 +883,8 @@ module.exports = class bitmart extends Exchange {
                 'name': name,
                 'info': currency, // the original payload
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
@@ -1444,6 +1442,23 @@ module.exports = class bitmart extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseBalance (response) {
+        const data = this.safeValue (response, 'data', {});
+        const wallet = this.safeValue2 (data, 'wallet', 'accounts', []);
+        const result = { 'info': response };
+        for (let i = 0; i < wallet.length; i++) {
+            const balance = wallet[i];
+            let currencyId = this.safeString2 (balance, 'id', 'currency');
+            currencyId = this.safeString (balance, 'coin_code', currencyId);
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString2 (balance, 'available', 'available_vol');
+            account['used'] = this.safeString2 (balance, 'frozen', 'freeze_vol');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let method = undefined;
@@ -1514,20 +1529,7 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const wallet = this.safeValue2 (data, 'wallet', 'accounts', []);
-        const result = { 'info': response };
-        for (let i = 0; i < wallet.length; i++) {
-            const balance = wallet[i];
-            let currencyId = this.safeString2 (balance, 'id', 'currency');
-            currencyId = this.safeString (balance, 'coin_code', currencyId);
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString2 (balance, 'available', 'available_vol');
-            account['used'] = this.safeString2 (balance, 'frozen', 'freeze_vol');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     parseOrder (order, market = undefined) {
@@ -2327,6 +2329,7 @@ module.exports = class bitmart extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,

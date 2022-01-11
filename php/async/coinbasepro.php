@@ -260,6 +260,8 @@ class coinbasepro extends Exchange {
                 'type' => $this->safe_string($details, 'type'),
                 'name' => $name,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
@@ -388,9 +390,7 @@ class coinbasepro extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privateGetAccounts ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -403,6 +403,12 @@ class coinbasepro extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetAccounts ($params);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1309,8 +1315,13 @@ class coinbasepro extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,

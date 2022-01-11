@@ -240,7 +240,9 @@ module.exports = class digifinex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const depositStatus = this.safeValue (currency, 'deposit_status', 1);
             const withdrawStatus = this.safeValue (currency, 'withdraw_status', 1);
-            const active = depositStatus && withdrawStatus;
+            const deposit = depositStatus > 0;
+            const withdraw = withdrawStatus > 0;
+            const active = deposit && withdraw;
             const fee = this.safeNumber (currency, 'withdraw_fee_rate');
             if (code in result) {
                 if (Array.isArray (result[code]['info'])) {
@@ -256,6 +258,8 @@ module.exports = class digifinex extends Exchange {
                     'type': undefined,
                     'name': undefined,
                     'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
                     'fee': fee,
                     'precision': 8, // todo fix hardcoded value
                     'limits': {
@@ -425,6 +429,22 @@ module.exports = class digifinex extends Exchange {
         return result;
     }
 
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'list', []);
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['used'] = this.safeString (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'free');
+            account['total'] = this.safeString (balance, 'total');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -442,19 +462,7 @@ module.exports = class digifinex extends Exchange {
         //             }
         //         ]
         //     }
-        const balances = this.safeValue (response, 'list', []);
-        const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['used'] = this.safeString (balance, 'frozen');
-            account['free'] = this.safeString (balance, 'free');
-            account['total'] = this.safeString (balance, 'total');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1373,12 +1381,17 @@ module.exports = class digifinex extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
+        let network = this.safeString (transaction, 'chain');
+        if (network === '') {
+            network = undefined;
+        }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

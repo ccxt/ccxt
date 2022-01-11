@@ -125,22 +125,22 @@ module.exports = class delta extends Exchange {
                     'maker': 0.10 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.15 / 100],
-                            [100, 0.13 / 100],
-                            [250, 0.13 / 100],
-                            [1000, 0.1 / 100],
-                            [5000, 0.09 / 100],
-                            [10000, 0.075 / 100],
-                            [20000, 0.065 / 100],
+                            [ 0, 0.15 / 100 ],
+                            [ 100, 0.13 / 100 ],
+                            [ 250, 0.13 / 100 ],
+                            [ 1000, 0.1 / 100 ],
+                            [ 5000, 0.09 / 100 ],
+                            [ 10000, 0.075 / 100 ],
+                            [ 20000, 0.065 / 100 ],
                         ],
                         'maker': [
-                            [0, 0.1 / 100],
-                            [100, 0.1 / 100],
-                            [250, 0.09 / 100],
-                            [1000, 0.075 / 100],
-                            [5000, 0.06 / 100],
-                            [10000, 0.05 / 100],
-                            [20000, 0.05 / 100],
+                            [ 0, 0.1 / 100 ],
+                            [ 100, 0.1 / 100 ],
+                            [ 250, 0.09 / 100 ],
+                            [ 1000, 0.075 / 100 ],
+                            [ 5000, 0.06 / 100 ],
+                            [ 10000, 0.05 / 100 ],
+                            [ 20000, 0.05 / 100 ],
                         ],
                     },
                 },
@@ -258,6 +258,8 @@ module.exports = class delta extends Exchange {
                 'name': this.safeString (currency, 'name'),
                 'info': currency, // the original payload
                 'active': active,
+                'deposit': depositsEnabled,
+                'withdraw': withdrawalsEnabled,
                 'fee': this.safeNumber (currency, 'base_withdrawal_fee'),
                 'precision': 1 / Math.pow (10, precision),
                 'limits': {
@@ -773,6 +775,23 @@ module.exports = class delta extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'result', []);
+        const result = { 'info': response };
+        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'asset_id');
+            const currency = this.safeValue (currenciesByNumericId, currencyId);
+            const code = (currency === undefined) ? currencyId : currency['code'];
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
@@ -797,20 +816,7 @@ module.exports = class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const balances = this.safeValue (response, 'result', []);
-        const result = { 'info': response };
-        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'asset_id');
-            const currency = this.safeValue (currenciesByNumericId, currencyId);
-            const code = (currency === undefined) ? currencyId : currency['code'];
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'balance');
-            account['free'] = this.safeString (balance, 'available_balance');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchPosition (symbol, params = undefined) {

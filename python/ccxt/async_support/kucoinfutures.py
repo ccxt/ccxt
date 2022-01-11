@@ -15,6 +15,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -23,7 +24,7 @@ class kucoinfutures(kucoin):
     def describe(self):
         return self.deep_extend(super(kucoinfutures, self).describe(), {
             'id': 'kucoinfutures',
-            'name': 'Kucoin Futures',
+            'name': 'KuCoin Futures',
             'countries': ['SC'],
             'rateLimit': 75,
             'version': 'v1',
@@ -32,6 +33,11 @@ class kucoinfutures(kucoin):
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,
             'has': {
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': True,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
@@ -69,11 +75,11 @@ class kucoinfutures(kucoin):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': None,
-                'loadTimeDifference': True,
                 'setMarginMode': False,
                 'transfer': True,
                 'transferOut': True,
                 'withdraw': None,
+                'addMargin': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg',
@@ -164,6 +170,7 @@ class kucoinfutures(kucoin):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '400': BadRequest,  # Bad Request -- Invalid request format
@@ -294,13 +301,6 @@ class kucoinfutures(kucoin):
     async def fetch_accounts(self, params={}):
         raise BadRequest(self.id + ' has no method fetchAccounts')
 
-    async def load_time_difference(self, params={}):
-        response = await self.futuresPublicGetTimestamp(params)
-        after = self.milliseconds()
-        kucoinTime = self.safe_integer(response, 'data')
-        self.options['timeDifference'] = int(after - kucoinTime)
-        return self.options['timeDifference']
-
     async def fetch_status(self, params={}):
         response = await self.futuresPublicGetStatus(params)
         #
@@ -399,8 +399,8 @@ class kucoinfutures(kucoin):
             market = data[i]
             id = self.safe_string(market, 'symbol')
             expiry = self.safe_integer(market, 'expireDate')
-            futures = True if expiry else False
-            swap = not futures
+            future = True if expiry else False
+            swap = not future
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
             settleId = self.safe_string(market, 'settleCurrency')
@@ -409,9 +409,9 @@ class kucoinfutures(kucoin):
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
             type = 'swap'
-            if futures:
+            if future:
                 symbol = symbol + '-' + self.yymmdd(expiry, '')
-                type = 'futures'
+                type = 'future'
             baseMaxSize = self.safe_number(market, 'baseMaxSize')
             baseMinSizeString = self.safe_string(market, 'baseMinSize')
             quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
@@ -419,9 +419,8 @@ class kucoinfutures(kucoin):
             quoteMaxSize = self.parse_number(quoteMaxSizeString)
             quoteMinSize = self.safe_number(market, 'quoteMinSize')
             inverse = self.safe_value(market, 'isInverse')
-            # quoteIncrement = self.safe_number(market, 'quoteIncrement')
-            amount = self.safe_string(market, 'baseIncrement')
-            price = self.safe_string(market, 'priceIncrement')
+            status = self.safe_string(market, 'status')
+            active = status == 'Open'
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -435,35 +434,32 @@ class kucoinfutures(kucoin):
                 'spot': False,
                 'margin': False,
                 'swap': swap,
-                'futures': futures,
+                'future': future,
                 'option': False,
-                'active': True,
-                'derivative': True,
+                'active': active,
                 'contract': True,
-                'linear': inverse is not True,
+                'linear': not inverse,
                 'inverse': inverse,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.parse_number(Precise.string_abs(self.safe_string(market, 'multiplier'))),
-                'expiry': self.parse_number(expiry),
+                'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
-                'strike': None,
-                'optionType': None,
                 'precision': {
-                    'amount': self.precision_from_string(amount) if amount else None,
-                    'price': self.precision_from_string(price) if price else None,
+                    'amount': self.safe_number(market, 'lotSize'),
+                    'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': self.parse_number('1'),
-                        'max': self.safe_number(market, 'maxLeverage', 1),
+                        'min': None,
+                        'max': self.safe_number(market, 'maxLeverage'),
                     },
                     'amount': {
                         'min': baseMinSize,
                         'max': baseMaxSize,
                     },
                     'price': {
-                        'min': price,
+                        'min': None,
                         'max': self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString)),
                     },
                     'cost': {
@@ -755,6 +751,7 @@ class kucoinfutures(kucoin):
         return fees
 
     async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
         response = await self.futuresPrivateGetPositions(params)
         #
         #    {
@@ -867,11 +864,13 @@ class kucoinfutures(kucoin):
         elif Precise.string_lt(size, '0'):
             side = 'sell'
         notional = Precise.string_abs(self.safe_string(position, 'posCost'))
-        initialMargin = self.safe_string(position, 'posMargin')
+        initialMargin = self.safe_string(position, 'posInit')
         initialMarginPercentage = Precise.string_div(initialMargin, notional)
-        leverage = Precise.string_div('1', initialMarginPercentage)  # TODO: Not quite right
         # marginRatio = Precise.string_div(maintenanceRate, collateral)
         unrealisedPnl = self.safe_string(position, 'unrealisedPnl')
+        crossMode = self.safe_value(position, 'crossMode')
+        # currently crossMode is always set to False and only isolated positions are supported
+        marginType = 'cross' if crossMode else 'isolated'
         return {
             'info': position,
             'symbol': self.safe_string(market, 'symbol'),
@@ -879,20 +878,20 @@ class kucoinfutures(kucoin):
             'datetime': self.iso8601(timestamp),
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
-            'maintenanceMargin': self.safe_number(position, 'maintMargin'),
-            'maintenanceMarginPercentage': self.safe_string(position, 'maintMarginReq'),
+            'maintenanceMargin': self.safe_number(position, 'posMaint'),
+            'maintenanceMarginPercentage': self.safe_number(position, 'maintMarginReq'),
             'entryPrice': self.safe_number(position, 'avgEntryPrice'),
             'notional': self.parse_number(notional),
-            'leverage': self.parse_number(leverage),
+            'leverage': self.safe_number(position, 'realLeverage'),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(Precise.string_abs(size)),
-            'contractSize': self.safe_number(market, 'contractSize'),
+            'contractSize': self.safe_value(market, 'contractSize'),
             #     realisedPnl: position['realised_pnl'],
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
-            'collateral': self.safe_number(position, 'posInit'),
-            'marginType': None,
+            'collateral': self.safe_number(position, 'maintMargin'),
+            'marginType': marginType,
             'side': side,
             'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
         }
@@ -903,11 +902,8 @@ class kucoinfutures(kucoin):
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
         params = self.omit(params, ['clientOid', 'clientOrderId'])
-        leverage = self.safe_number(params, 'leverage')
-        if not leverage:
-            raise ArgumentsRequired(self.id + ' createOrder requires params.leverage')
         if amount < 1:
-            raise InvalidOrder('Minimum contract order size using ' + self.id + ' is 1')
+            raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
         preciseAmount = int(self.amount_to_precision(symbol, amount))
         request = {
             'clientOid': clientOrderId,
@@ -915,6 +911,7 @@ class kucoinfutures(kucoin):
             'symbol': market['id'],
             'type': type,  # limit or market
             'size': preciseAmount,
+            'leverage': 1,
             # 'remark': '',  # optional remark for the order, length cannot exceed 100 utf8 characters
             # 'tradeType': 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
             # limit orders ---------------------------------------------------
@@ -940,15 +937,15 @@ class kucoinfutures(kucoin):
         }
         stopPrice = self.safe_number(params, 'stopPrice')
         if stopPrice:
-            request['stop'] = side.upper() == 'down' if 'BUY' else 'up'
+            request['stop'] = 'down' if (side == 'buy') else 'up'
             stopPriceType = self.safe_string(params, 'stopPriceType')
             if not stopPriceType:
-                raise ArgumentsRequired(self.id + ' trigger orders require params.stopPriceType to be set to TP, IP or MP(Trade Price, Index Price or Mark Price)')
+                raise ArgumentsRequired(self.id + ' createOrder() trigger orders require a stopPriceType parameter to be set to TP, IP or MP(Trade Price, Index Price or Mark Price)')
         uppercaseType = type.upper()
         timeInForce = self.safe_string(params, 'timeInForce')
         if uppercaseType == 'LIMIT':
             if price is None:
-                raise ArgumentsRequired(self.id + ' limit orders require the price argument')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
             else:
                 request['price'] = self.price_to_precision(symbol, price)
             if timeInForce is not None:
@@ -957,12 +954,12 @@ class kucoinfutures(kucoin):
         postOnly = self.safe_value(params, 'postOnly', False)
         hidden = self.safe_value(params, 'hidden')
         if postOnly and hidden is not None:
-            raise BadRequest(self.id + ' createOrder cannot contain both params.postOnly and params.hidden')
+            raise BadRequest(self.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter')
         iceberg = self.safe_value(params, 'iceberg')
         if iceberg:
             visibleSize = self.safe_value(params, 'visibleSize')
             if visibleSize is None:
-                raise ArgumentsRequired(self.id + ' requires params.visibleSize for iceberg orders')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a visibleSize parameter for iceberg orders')
         params = self.omit(params, 'timeInForce')  # Time in force only valid for limit orders, exchange error when gtc for market orders
         response = await self.futuresPrivatePostOrders(self.extend(request, params))
         #
@@ -976,15 +973,15 @@ class kucoinfutures(kucoin):
         data = self.safe_value(response, 'data', {})
         return {
             'id': self.safe_string(data, 'orderId'),
-            'clientOrderId': clientOrderId,
+            'clientOrderId': None,
             'timestamp': None,
             'datetime': None,
             'lastTradeTimestamp': None,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': preciseAmount,
+            'symbol': None,
+            'type': None,
+            'side': None,
+            'price': None,
+            'amount': None,
             'cost': None,
             'average': None,
             'filled': None,
@@ -992,10 +989,10 @@ class kucoinfutures(kucoin):
             'status': None,
             'fee': None,
             'trades': None,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'stopPrice': stopPrice,
-            'info': data,
+            'timeInForce': None,
+            'postOnly': None,
+            'stopPrice': None,
+            'info': response,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -1034,6 +1031,17 @@ class kucoinfutures(kucoin):
         #
         return self.safe_value(response, 'data')
 
+    async def add_margin(self, symbol, amount, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        uuid = self.uuid()
+        request = {
+            'symbol': market['id'],
+            'margin': amount,
+            'bizNo': uuid,
+        }
+        return await self.futuresPrivatePostPositionMarginDepositMargin(self.extend(request, params))
+
     async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
@@ -1064,13 +1072,14 @@ class kucoinfutures(kucoin):
         else:
             request['orderId'] = id
         response = await getattr(self, method)(self.extend(request, params))
-        market = symbol is not self.market(symbol) if None else None
+        market = self.market(symbol) if (symbol is not None) else None
         responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 
     def parse_order(self, order, market=None):
         marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         orderId = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         timestamp = self.safe_integer(order, 'createdAt')
@@ -1084,7 +1093,17 @@ class kucoinfutures(kucoin):
         feeCost = self.safe_number(order, 'fee')
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'dealSize')
-        cost = self.safe_string(order, 'dealFunds')
+        rawCost = self.safe_string_2(order, 'dealFunds', 'filledValue')
+        leverage = self.safe_string(order, 'leverage')
+        cost = Precise.string_div(rawCost, leverage)
+        average = None
+        if Precise.string_gt(filled, '0'):
+            if market['linear']:
+                average = Precise.string_div(rawCost, Precise.string_mul(market['contractSize'], filled))
+            else:
+                average = Precise.string_div(Precise.string_mul(market['contractSize'], filled), rawCost)
+        # precision reported by their api is 8 d.p.
+        # average = Precise.string_div(rawCost, Precise.string_mul(filled, market['contractSize']))
         # bool
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
@@ -1098,7 +1117,7 @@ class kucoinfutures(kucoin):
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return self.safeOrder2({
+        return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
@@ -1118,7 +1137,7 @@ class kucoinfutures(kucoin):
             'status': status,
             'info': order,
             'lastTradeTimestamp': None,
-            'average': None,
+            'average': average,
             'trades': None,
         }, market)
 
@@ -1159,6 +1178,21 @@ class kucoinfutures(kucoin):
             'nextFundingDatetime': None,
         }
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        data = self.safe_value(response, 'data')
+        currencyId = self.safe_string(data, 'currency')
+        code = self.safe_currency_code(currencyId)
+        account = self.account()
+        account['free'] = self.safe_string(data, 'availableBalance')
+        account['total'] = self.safe_string(data, 'accountEquity')
+        result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         # only fetches one balance at a time
@@ -1181,19 +1215,7 @@ class kucoinfutures(kucoin):
         #         }
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        data = self.safe_value(response, 'data')
-        currencyId = self.safe_string(data, 'currency')
-        code = self.safe_currency_code(currencyId)
-        account = self.account()
-        account['free'] = self.safe_string(data, 'availableBalance')
-        account['total'] = self.safe_string(data, 'accountEquity')
-        result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         if (toAccount != 'spot' and toAccount != 'trade' and toAccount != 'trading') or (fromAccount != 'futures' and fromAccount != 'contract'):

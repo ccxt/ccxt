@@ -254,7 +254,9 @@ class digifinex(Exchange):
             code = self.safe_currency_code(id)
             depositStatus = self.safe_value(currency, 'deposit_status', 1)
             withdrawStatus = self.safe_value(currency, 'withdraw_status', 1)
-            active = depositStatus and withdrawStatus
+            deposit = depositStatus > 0
+            withdraw = withdrawStatus > 0
+            active = deposit and withdraw
             fee = self.safe_number(currency, 'withdraw_fee_rate')
             if code in result:
                 if isinstance(result[code]['info'], list):
@@ -269,6 +271,8 @@ class digifinex(Exchange):
                     'type': None,
                     'name': None,
                     'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
                     'fee': fee,
                     'precision': 8,  # todo fix hardcoded value
                     'limits': {
@@ -430,6 +434,20 @@ class digifinex(Exchange):
             })
         return result
 
+    def parse_balance(self, response):
+        balances = self.safe_value(response, 'list', [])
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['used'] = self.safe_string(balance, 'frozen')
+            account['free'] = self.safe_string(balance, 'free')
+            account['total'] = self.safe_string(balance, 'total')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
@@ -447,18 +465,7 @@ class digifinex(Exchange):
         #             }
         #         ]
         #     }
-        balances = self.safe_value(response, 'list', [])
-        result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['used'] = self.safe_string(balance, 'frozen')
-            account['free'] = self.safe_string(balance, 'free')
-            account['total'] = self.safe_string(balance, 'total')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -1319,12 +1326,16 @@ class digifinex(Exchange):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
+        network = self.safe_string(transaction, 'chain')
+        if network == '':
+            network = None
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

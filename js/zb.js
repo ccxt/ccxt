@@ -275,14 +275,11 @@ module.exports = class zb extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': false,
-                'futures': false,
+                'future': false,
                 'option': false,
-                'derivative': false,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
                 'contractSize': undefined,
                 'active': true,
                 'expiry': undefined,
@@ -388,11 +385,7 @@ module.exports = class zb extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetGetAccountInfo (params);
-        // todo: use this somehow
-        // let permissions = response['result']['base'];
+    parseBalance (response) {
         const balances = this.safeValue (response['result'], 'coins');
         const result = {
             'info': response,
@@ -418,6 +411,14 @@ module.exports = class zb extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetGetAccountInfo (params);
+        // todo: use this somehow
+        // let permissions = response['result']['base'];
+        return this.parseBalance (response);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -1019,6 +1020,7 @@ module.exports = class zb extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': address,

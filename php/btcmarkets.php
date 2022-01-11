@@ -262,6 +262,7 @@ class btcmarkets extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
             'addressTo' => $addressTo,
             'addressFrom' => $addressFrom,
@@ -362,9 +363,7 @@ class btcmarkets extends Exchange {
         return $this->parse8601($this->safe_string($response, 'timestamp'));
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetAccountsMeBalances ($params);
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -376,6 +375,12 @@ class btcmarkets extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetAccountsMeBalances ($params);
+        return $this->parse_balance($response);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

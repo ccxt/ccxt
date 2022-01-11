@@ -114,22 +114,22 @@ module.exports = class buda extends Exchange {
                     'maker': 0.004,  // 0.4%
                     'tiers': {
                         'taker': [
-                            [0, 0.008],  // 0.8%
-                            [2000, 0.007],  // 0.7%
-                            [20000, 0.006],  // 0.6%
-                            [100000, 0.005],  // 0.5%
-                            [500000, 0.004],  // 0.4%
-                            [2500000, 0.003],  // 0.3%
-                            [12500000, 0.002],  // 0.2%
+                            [ 0, 0.008 ],  // 0.8%
+                            [ 2000, 0.007 ],  // 0.7%
+                            [ 20000, 0.006 ],  // 0.6%
+                            [ 100000, 0.005 ],  // 0.5%
+                            [ 500000, 0.004 ],  // 0.4%
+                            [ 2500000, 0.003 ],  // 0.3%
+                            [ 12500000, 0.002 ],  // 0.2%
                         ],
                         'maker': [
-                            [0, 0.004],  // 0.4%
-                            [2000, 0.0035],  // 0.35%
-                            [20000, 0.003],  // 0.3%
-                            [100000, 0.0025],  // 0.25%
-                            [500000, 0.002],  // 0.2%
-                            [2500000, 0.0015],  // 0.15%
-                            [12500000, 0.001],  // 0.1%
+                            [ 0, 0.004 ],  // 0.4%
+                            [ 2000, 0.0035 ],  // 0.35%
+                            [ 20000, 0.003 ],  // 0.3%
+                            [ 100000, 0.0025 ],  // 0.25%
+                            [ 500000, 0.002 ],  // 0.2%
+                            [ 2500000, 0.0015 ],  // 0.15%
+                            [ 12500000, 0.001 ],  // 0.1%
                         ],
                     },
                 },
@@ -148,6 +148,27 @@ module.exports = class buda extends Exchange {
     async fetchCurrencyInfo (currency, currencies = undefined) {
         if (!currencies) {
             const response = await this.publicGetCurrencies ();
+            //
+            //     {
+            //         "currencies":[
+            //             {
+            //                 "id":"BTC",
+            //                 "symbol":"฿",
+            //                 "managed":true,
+            //                 "input_decimals":8,
+            //                 "display_decimals":8,
+            //                 "timezone":"UTC",
+            //                 "deposit_minimum":["0.0","BTC"],
+            //                 "withdrawal_minimum":["0.00001","BTC"],
+            //                 "max_digits_for_decimals":6,
+            //                 "crypto":true,
+            //                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+            //                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+            //                 "amount_to_micro_multiplier":1000000000000
+            //             }
+            //         ]
+            //     }
+            //
             currencies = this.safeValue (response, 'currencies');
         }
         for (let i = 0; i < currencies.length; i++) {
@@ -216,23 +237,51 @@ module.exports = class buda extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrencies ();
+        //
+        //     {
+        //         "currencies":[
+        //             {
+        //                 "id":"BTC",
+        //                 "symbol":"฿",
+        //                 "managed":true,
+        //                 "input_decimals":8,
+        //                 "display_decimals":8,
+        //                 "timezone":"UTC",
+        //                 "deposit_minimum":["0.0","BTC"],
+        //                 "withdrawal_minimum":["0.00001","BTC"],
+        //                 "max_digits_for_decimals":6,
+        //                 "crypto":true,
+        //                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+        //                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+        //                 "amount_to_micro_multiplier":1000000000000
+        //             }
+        //         ]
+        //     }
+        //
         const currencies = response['currencies'];
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            if (!currency['managed']) {
+            const managed = this.safeValue (currency, 'managed', false);
+            if (!managed) {
                 continue;
             }
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
             const precision = this.safeNumber (currency, 'input_decimals');
             const minimum = Math.pow (10, -precision);
+            const depositMinimum = this.safeValue (currency, 'deposit_minimum', []);
+            const withdrawalMinimum = this.safeValue (currency, 'withdrawal_minimum', []);
+            const minDeposit = this.safeNumber (depositMinimum, 0);
+            const minWithdraw = this.safeNumber (withdrawalMinimum, 0);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': undefined,
                 'active': true,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
@@ -241,11 +290,11 @@ module.exports = class buda extends Exchange {
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': parseFloat (currency['deposit_minimum'][0]),
+                        'min': minDeposit,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': parseFloat (currency['withdrawal_minimum'][0]),
+                        'min': minWithdraw,
                     },
                 },
             };
@@ -438,9 +487,7 @@ module.exports = class buda extends Exchange {
         return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalances (params);
+    parseBalance (response) {
         const result = { 'info': response };
         const balances = this.safeValue (response, 'balances');
         for (let i = 0; i < balances.length; i++) {
@@ -453,6 +500,12 @@ module.exports = class buda extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalances (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -705,7 +758,13 @@ module.exports = class buda extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,

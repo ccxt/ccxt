@@ -738,15 +738,7 @@ class whitebit(Exchange):
         }
         return self.v4PrivatePostOrderCancel(self.extend(request, params))
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.v4PrivatePostTradeAccountBalance(params)
-        #
-        #     {
-        #         "BTC": {"available": "0.123", "freeze": "1"},
-        #         "XMR": {"available": "3013", "freeze": "100"},
-        #     }
-        #
+    def parse_balance(self, response):
         balanceKeys = list(response.keys())
         result = {}
         for i in range(0, len(balanceKeys)):
@@ -758,6 +750,17 @@ class whitebit(Exchange):
             account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
         return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.v4PrivatePostTradeAccountBalance(params)
+        #
+        #     {
+        #         "BTC": {"available": "0.123", "freeze": "1"},
+        #         "XMR": {"available": "3013", "freeze": "100"},
+        #     }
+        #
+        return self.parse_balance(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -1112,7 +1115,8 @@ class whitebit(Exchange):
                     if errorObject is not None:
                         errorKey = list(errorObject.keys())[0]
                         errorMessageArray = self.safe_value(errorObject, errorKey, [])
-                        errorInfo = len(errorMessageArray) > errorMessageArray[0] if 0 else body
+                        errorMessageLength = len(errorMessageArray)
+                        errorInfo = errorMessageArray[0] if (errorMessageLength > 0) else body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
                 raise ExchangeError(feedback)

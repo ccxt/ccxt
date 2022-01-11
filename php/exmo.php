@@ -522,21 +522,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostUserInfo ($params);
-        //
-        //     {
-        //         "uid":131685,
-        //         "server_date":1628999600,
-        //         "balances":array(
-        //             "EXM":"0",
-        //             "USD":"0",
-        //             "EUR":"0",
-        //             "GBP":"0",
-        //         ),
-        //     }
-        //
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         $free = $this->safe_value($response, 'balances', array());
         $used = $this->safe_value($response, 'reserved', array());
@@ -554,6 +540,24 @@ class exmo extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostUserInfo ($params);
+        //
+        //     {
+        //         "uid":131685,
+        //         "server_date":1628999600,
+        //         "balances":array(
+        //             "EXM":"0",
+        //             "USD":"0",
+        //             "EUR":"0",
+        //             "GBP":"0",
+        //         ),
+        //     }
+        //
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1316,6 +1320,7 @@ class exmo extends Exchange {
                 );
             }
         }
+        $network = $this->safe_string($transaction, 'provider');
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1323,6 +1328,7 @@ class exmo extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
+            'network' => $network,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

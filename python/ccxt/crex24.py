@@ -385,8 +385,12 @@ class crex24(Exchange):
             withdrawalPrecision = self.safe_integer(currency, 'withdrawalPrecision')
             precision = math.pow(10, -withdrawalPrecision)
             address = self.safe_value(currency, 'BaseAddress')
-            active = (currency['depositsAllowed'] and currency['withdrawalsAllowed'] and not currency['isDelisted'])
-            type = 'fiat' if currency['isFiat'] else 'crypto'
+            deposit = self.safe_value(currency, 'depositsAllowed')
+            withdraw = self.safe_value(currency, 'withdrawalsAllowed')
+            delisted = self.safe_value(currency, 'isDelisted')
+            active = deposit and withdraw and not delisted
+            fiat = self.safe_value(currency, 'isFiat')
+            type = 'fiat' if fiat else 'crypto'
             result[code] = {
                 'id': id,
                 'code': code,
@@ -395,6 +399,8 @@ class crex24(Exchange):
                 'type': type,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': self.safe_number(currency, 'flatWithdrawalFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -454,6 +460,18 @@ class crex24(Exchange):
             'info': response,
         }
 
+    def parse_balance(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'reserved')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         request = {
@@ -470,16 +488,7 @@ class crex24(Exchange):
         #         }
         #     ]
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'reserved')
-            result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -1272,8 +1281,13 @@ class crex24(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,

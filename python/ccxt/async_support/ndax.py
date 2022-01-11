@@ -860,6 +860,23 @@ class ndax(Exchange):
             })
         return result
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'ProductId')
+            if currencyId in self.currencies_by_id:
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['total'] = self.safe_string(balance, 'Amount')
+                account['used'] = self.safe_string(balance, 'Hold')
+                result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
@@ -903,21 +920,7 @@ class ndax(Exchange):
         #         },
         #     ]
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'ProductId')
-            if currencyId in self.currencies_by_id:
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['total'] = self.safe_string(balance, 'Amount')
-                account['used'] = self.safe_string(balance, 'Hold')
-                result[code] = account
-        return self.safe_balance(result)
+        return self.parse_balance(response)
 
     def parse_ledger_entry_type(self, type):
         types = {

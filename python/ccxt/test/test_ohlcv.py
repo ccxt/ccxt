@@ -30,6 +30,5 @@ def test_ohlcv(exchange, ohlcv, symbol, now):
 
     if not exchange.in_array(exchange.id, skippedExchanges):
         assert(ohlcv[1] is None) or (ohlcv[2] is None) or (ohlcv[1] <= ohlcv[2]), 'open > high, ' + exchange.safe_string(ohlcv, 1, 'None') + ' > ' + exchange.safe_string(ohlcv, 2, 'None')  # open <= high
-
-    assert(ohlcv[3] is None) or (ohlcv[2] is None) or (ohlcv[3] <= ohlcv[2]), 'low > high, ' + exchange.safe_string(ohlcv, 2, 'None') + ' > ' + exchange.safe_string(ohlcv, 3, 'None')  # low <= high
-    assert(ohlcv[3] is None) or (ohlcv[4] is None) or (ohlcv[3] <= ohlcv[4]), 'low > close, ' + exchange.safe_string(ohlcv, 3, 'None') + ' > ' + exchange.safe_string(ohlcv, 4, 'None')  # low <= close
+        assert(ohlcv[3] is None) or (ohlcv[2] is None) or (ohlcv[3] <= ohlcv[2]), 'low > high, ' + exchange.safe_string(ohlcv, 2, 'None') + ' > ' + exchange.safe_string(ohlcv, 3, 'None')  # low <= high
+        assert(ohlcv[3] is None) or (ohlcv[4] is None) or (ohlcv[3] <= ohlcv[4]), 'low > close, ' + exchange.safe_string(ohlcv, 3, 'None') + ' > ' + exchange.safe_string(ohlcv, 4, 'None')  # low <= close
