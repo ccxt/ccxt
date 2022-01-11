@@ -911,10 +911,14 @@ class gateio extends Exchange {
             $currencyIdLower = $this->safe_string_lower($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $delisted = $this->safe_value($entry, 'delisted');
-            $withdraw_disabled = $this->safe_value($entry, 'withdraw_disabled');
-            $deposit_disabled = $this->safe_value($entry, 'disabled_disabled');
-            $trade_disabled = $this->safe_value($entry, 'trade_disabled');
-            $active = !($delisted && $withdraw_disabled && $deposit_disabled && $trade_disabled);
+            $withdrawDisabled = $this->safe_value($entry, 'withdraw_disabled', false);
+            $depositDisabled = $this->safe_value($entry, 'deposit_disabled', false);
+            $tradeDisabled = $this->safe_value($entry, 'trade_disabled', false);
+            $withdrawEnabled = !$withdrawDisabled;
+            $depositEnabled = !$depositDisabled;
+            $tradeEnabled = !$tradeDisabled;
+            $listed = !$delisted;
+            $active = $listed && $tradeEnabled && $withdrawEnabled && $depositEnabled;
             $result[$code] = array(
                 'id' => $currencyId,
                 'lowerCaseId' => $currencyIdLower,
@@ -923,6 +927,8 @@ class gateio extends Exchange {
                 'precision' => $amountPrecision,
                 'info' => $entry,
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => null,
                 'fees' => array(),
                 'limits' => $this->limits,
