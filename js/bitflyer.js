@@ -226,7 +226,7 @@ module.exports = class bitflyer extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume_by_product'),
             'quoteVolume': undefined,
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
