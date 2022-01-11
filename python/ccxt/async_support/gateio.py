@@ -909,10 +909,14 @@ class gateio(Exchange):
             currencyIdLower = self.safe_string_lower(entry, 'currency')
             code = self.safe_currency_code(currencyId)
             delisted = self.safe_value(entry, 'delisted')
-            withdraw_disabled = self.safe_value(entry, 'withdraw_disabled')
-            deposit_disabled = self.safe_value(entry, 'disabled_disabled')
-            trade_disabled = self.safe_value(entry, 'trade_disabled')
-            active = not (delisted and withdraw_disabled and deposit_disabled and trade_disabled)
+            withdrawDisabled = self.safe_value(entry, 'withdraw_disabled', False)
+            depositDisabled = self.safe_value(entry, 'deposit_disabled', False)
+            tradeDisabled = self.safe_value(entry, 'trade_disabled', False)
+            withdrawEnabled = not withdrawDisabled
+            depositEnabled = not depositDisabled
+            tradeEnabled = not tradeDisabled
+            listed = not delisted
+            active = listed and tradeEnabled and withdrawEnabled and depositEnabled
             result[code] = {
                 'id': currencyId,
                 'lowerCaseId': currencyIdLower,
@@ -921,6 +925,8 @@ class gateio(Exchange):
                 'precision': amountPrecision,
                 'info': entry,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': None,
                 'fees': [],
                 'limits': self.limits,
