@@ -21,7 +21,8 @@ class whitebit extends Exchange {
             'countries' => array( 'EE' ),
             'rateLimit' => 500,
             'has' => array(
-                'cancelOrder' => null,
+                'fetchDepositAddress' => true,
+                'cancelOrder' => true,
                 'CORS' => null,
                 'createDepositAddress' => null,
                 'createLimitOrder' => null,

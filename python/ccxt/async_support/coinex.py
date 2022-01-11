@@ -26,6 +26,7 @@ class coinex(Exchange):
             'countries': ['CN'],
             'rateLimit': 1000,
             'has': {
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,

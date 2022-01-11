@@ -21,6 +21,7 @@ class stex extends Exchange {
             'certified' => false,
             // new metainfo interface
             'has' => array(
+                'fetchClosedOrder' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,

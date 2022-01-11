@@ -38,6 +38,7 @@ class cdax(Exchange):
             'hostname': 'cdax.io',
             'pro': False,
             'has': {
+                'fetchAccounts': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,

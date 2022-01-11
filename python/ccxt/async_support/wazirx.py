@@ -48,7 +48,7 @@ class wazirx(Exchange):
                 'fetchOrders': True,
                 'fetchOrderBook': True,
                 'fetchPositions': False,
-                'fetchStatus': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,

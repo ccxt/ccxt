@@ -21,6 +21,7 @@ class kuna extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
+                'fetchL3OrderBook' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createOrder' => true,

@@ -28,6 +28,7 @@ class huobijp extends Exchange {
             'hostname' => 'api-cloud.huobi.co.jp',
             'pro' => true,
             'has' => array(
+                'fetchAccounts' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,

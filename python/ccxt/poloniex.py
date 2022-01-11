@@ -33,6 +33,7 @@ class poloniex(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'fetchPosition': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,

@@ -42,7 +42,7 @@ class wazirx extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchPositions' => false,
-                'fetchStatus' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
