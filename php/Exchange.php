@@ -1244,8 +1244,6 @@ class Exchange {
             'fetchTradingLimits' => null,
             'fetchTransactions' => null,
             'fetchTransfers' => null,
-            'fetchWithdrawAddress' => null,
-            'fetchWithdrawAddressesByNetwork' => null,
             'fetchWithdrawal' => null,
             'fetchWithdrawals' => null,
             'loadLeverageBrackets' => null,

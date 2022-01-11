@@ -129,8 +129,6 @@ module.exports = class Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
-                'fetchWithdrawAddress': undefined,
-                'fetchWithdrawAddressesByNetwork': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'loadLeverageBrackets': undefined,
