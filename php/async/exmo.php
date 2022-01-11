@@ -1321,6 +1321,7 @@ class exmo extends Exchange {
                 );
             }
         }
+        $network = $this->safe_string($transaction, 'provider');
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1328,6 +1329,7 @@ class exmo extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
+            'network' => $network,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

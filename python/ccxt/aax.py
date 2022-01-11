@@ -119,7 +119,7 @@ class aax(Exchange):
                 'fetchWithdrawAddress': None,
                 'fetchWithdrawAddressesByNetwork': None,
                 'fetchWithdrawal': None,
-                'fetchWithdrawals': None,
+                'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'loadLeverageBrackets': None,
                 'reduceMargin': None,
@@ -202,6 +202,7 @@ class aax(Exchange):
                         'account/balances',  # Get Account Balances
                         'account/deposit/address',  # undocumented
                         'account/deposits',  # Get account deposits history
+                        'account/withdraws',  # Get account withdrawals history
                         'spot/trades',  # Retrieve trades details for a spot order
                         'spot/openOrders',  # Retrieve spot open orders
                         'spot/orders',  # Retrieve historical spot orders
@@ -588,6 +589,8 @@ class aax(Exchange):
             fee = self.safe_number(currency, 'withdrawFee')
             visible = self.safe_value(currency, 'visible')
             active = (enableWithdraw and enableDeposit and visible)
+            deposit = (enableDeposit and visible)
+            withdraw = (enableWithdraw and visible)
             network = self.safe_string(currency, 'network')
             result[code] = {
                 'id': id,
@@ -596,6 +599,8 @@ class aax(Exchange):
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
                 'network': network,
                 'limits': {
@@ -1868,16 +1873,80 @@ class aax(Exchange):
         #     "message": "success",
         #     "ts": 1573561743499
         # }
-        deposits = self.safe_value(response, 'data', [])
-        return self.parse_transactions(deposits, code, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, code, since, limit)
 
-    def parse_transaction_status(self, status):
-        statuses = {
-            '1': 'pending',
-            '2': 'ok',
-            '3': 'failed',
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # status Not required : "0: Under Review, 1: Manual Review, 2: On Chain, 3: Review Failed, 4: On Chain, 5: Completed, 6: Failed"
+            # currency: Not required -  String Currency
+            # startTime Not required Integer Default: 30 days from current timestamp.
+            # endTime Not required Integer Default: present timestamp.
+            # Note difference between endTime and startTime must be 90 days or less
         }
-        return self.safe_string(statuses, status, status)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            startTime = int(since / 1000)
+            request['startTime'] = startTime
+            request['endTime'] = self.sum(startTime, 90 * 24 * 60 * 60)  # Only allows a 90 day window between start and end
+        response = self.privateGetAccountWithdraws(self.extend(request, params))
+        # {
+        #     "code":1,
+        #     "data": [
+        #       {
+        #            "currency":"USDT",
+        #            "network":"USDT",
+        #            "quantity":"19.000000000000",
+        #            "fee":"0.10000"
+        #            "txHash":"75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        #            "address":"1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        #            "addressTag": "",
+        #            "status":"2",
+        #            "createdTime":"2021-01-08T19:45:01.354Z",
+        #            "updatedTime":"2021-01-08T20:03:05.000Z",
+        #       }
+        #  ]
+        #     "message":"success",
+        #     "ts":1573561743499
+        #  }
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, code, since, limit)
+
+    def parse_transaction_status_by_type(self, status, type=None):
+        statuses = {
+            'deposit': {
+                '1': 'pending',
+                '2': 'ok',
+                '3': 'failed',
+            },
+            'withdrawal': {
+                '0': 'pending',  # under review
+                '1': 'pending',  # manual review
+                '2': 'pending',  # on chain
+                '3': 'failed',  # failed
+                '4': 'pending',  # on chain
+                '5': 'ok',      # completed
+                '6': 'failed',  # failed
+            },
+        }
+        return self.safe_string(self.safe_value(statuses, type, {}), status, status)
+
+    def parse_address_by_type(self, address, tag, type=None):
+        addressFrom = None
+        addressTo = None
+        tagFrom = None
+        tagTo = None
+        if type == 'deposit':
+            addressFrom = address
+            tagFrom = tag
+        elif type == 'withdrawal':
+            addressTo = address
+            tagTo = tag
+        return [addressFrom, tagFrom, addressTo, tagTo]
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -1894,34 +1963,55 @@ class aax(Exchange):
         #         "updatedTime": "2021-01-08T20:03:05.000Z",
         #     }
         #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "currency":"USDT",
+        #         "network":"USDT",
+        #         "quantity":"19.000000000000",
+        #         "fee":"0.10000"
+        #         "txHash":"75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        #         "address":"1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        #         "addressTag": "",
+        #         "status":"2",
+        #         "createdTime":"2021-01-08T19:45:01.354Z",
+        #         "updatedTime":"2021-01-08T20:03:05.000Z",
+        #      }
+        #
+        fee = self.safe_string(transaction, 'fee')
+        type = 'withdrawal'
+        if fee is None:
+            type = 'deposit'
         code = self.safe_currency_code(self.safe_string(transaction, 'currency'))
         txid = self.safe_string(transaction, 'txHash')
         address = self.safe_string(transaction, 'address')
-        type = 'deposit'
+        tag = self.safe_string(transaction, 'addressTag')  # withdrawals only
+        addressFrom, tagFrom, addressTo, tagTo = self.parse_address_by_type(address, tag, type)
         amountString = self.safe_string(transaction, 'quantity')
         timestamp = self.parse8601(self.safe_string(transaction, 'createdTime'))
         updated = self.parse8601(self.safe_string(transaction, 'updatedTime'))
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        tag = self.safe_string(transaction, 'addressTag')  # withdrawals only
+        status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
+        network = self.safe_string(transaction, 'network')
         return {
             'id': None,
             'info': transaction,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'addressFrom': address,
+            'network': network,
+            'addressFrom': addressFrom,
             'address': address,
-            'addressTo': None,
+            'addressTo': addressTo,
             'amount': self.parse_number(amountString),
             'type': type,
             'currency': code,
             'status': status,
             'updated': updated,
-            'tagFrom': tag,
+            'tagFrom': tagFrom,
             'tag': tag,
-            'tagTo': None,
+            'tagTo': tagTo,
             'comment': None,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_funding_rate(self, symbol, params={}):

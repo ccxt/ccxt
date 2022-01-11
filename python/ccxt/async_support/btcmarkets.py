@@ -254,6 +254,7 @@ class btcmarkets(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,

@@ -1391,12 +1391,14 @@ class xena(Exchange):
         amount = self.safe_number(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         fee = None
+        network = self.safe_string(transaction, 'blockchain')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

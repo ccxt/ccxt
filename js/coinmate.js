@@ -346,7 +346,7 @@ module.exports = class coinmate extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (item, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // deposits
         //
@@ -381,17 +381,18 @@ module.exports = class coinmate extends Exchange {
         //         destinationTag: null
         //     }
         //
-        const timestamp = this.safeInteger (item, 'timestamp');
-        const amount = this.safeNumber (item, 'amount');
-        const fee = this.safeNumber (item, 'fee');
-        const txid = this.safeString (item, 'txid');
-        const address = this.safeString (item, 'destination');
-        const tag = this.safeString (item, 'destinationTag');
-        const currencyId = this.safeString (item, 'amountCurrency');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const amount = this.safeNumber (transaction, 'amount');
+        const fee = this.safeNumber (transaction, 'fee');
+        const txid = this.safeString (transaction, 'txid');
+        const address = this.safeString (transaction, 'destination');
+        const tag = this.safeString (transaction, 'destinationTag');
+        const currencyId = this.safeString (transaction, 'amountCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const type = this.safeStringLower (item, 'transferType');
-        const status = this.parseTransactionStatus (this.safeString (item, 'transferStatus'));
-        const id = this.safeString (item, 'transactionId');
+        const type = this.safeStringLower (transaction, 'transferType');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'transferStatus'));
+        const id = this.safeString (transaction, 'transactionId');
+        const network = this.safeString (transaction, 'walletType');
         return {
             'id': id,
             'timestamp': timestamp,
@@ -400,14 +401,19 @@ module.exports = class coinmate extends Exchange {
             'amount': amount,
             'type': type,
             'txid': txid,
+            'network': network,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'status': status,
             'fee': {
                 'cost': fee,
                 'currency': code,
             },
-            'info': item,
+            'info': transaction,
         };
     }
 
@@ -427,8 +433,8 @@ module.exports = class coinmate extends Exchange {
             request['timestampFrom'] = since;
         }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
-        const items = response['data'];
-        return this.parseTrades (items, undefined, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, undefined, since, limit);
     }
 
     parseTrade (trade, market = undefined) {

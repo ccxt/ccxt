@@ -1776,8 +1776,9 @@ class deribit(Exchange):
         #
         # response is returning an empty list for result
         # todo unify parsePositions
-        result = self.parse_positions(response)
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        result = self.safe_value(response, 'result', [])
+        positions = self.parse_positions(result)
+        return self.filter_by_array(positions, 'symbol', symbols, False)
 
     def fetch_historical_volatility(self, code, params={}):
         self.load_markets()

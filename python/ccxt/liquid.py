@@ -1090,14 +1090,20 @@ class liquid(Exchange):
         amountString = self.safe_string(transaction, 'amount')
         feeCostString = self.safe_string(transaction, 'withdrawal_fee')
         amount = self.parse_number(Precise.string_sub(amountString, feeCostString))
+        network = self.safe_string(transaction, 'chain_name')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,

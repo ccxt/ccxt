@@ -205,6 +205,8 @@ module.exports = class bytetrade extends Exchange {
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'precision': amountPrecision,
                 'fee': undefined,
                 'limits': {

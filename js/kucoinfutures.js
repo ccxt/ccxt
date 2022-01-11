@@ -923,12 +923,8 @@ module.exports = class kucoinfutures extends kucoin {
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
-        const leverage = this.safeNumber (params, 'leverage');
-        if (!leverage) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires params.leverage');
-        }
         if (amount < 1) {
-            throw new InvalidOrder ('Minimum contract order size using ' + this.id + ' is 1');
+            throw new InvalidOrder (this.id + ' createOrder() minimum contract order amount is 1');
         }
         const preciseAmount = parseInt (this.amountToPrecision (symbol, amount));
         const request = {
@@ -937,6 +933,7 @@ module.exports = class kucoinfutures extends kucoin {
             'symbol': market['id'],
             'type': type, // limit or market
             'size': preciseAmount,
+            'leverage': 1,
             // 'remark': '', // optional remark for the order, length cannot exceed 100 utf8 characters
             // 'tradeType': 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
             // limit orders ---------------------------------------------------
@@ -965,14 +962,14 @@ module.exports = class kucoinfutures extends kucoin {
             request['stop'] = (side === 'buy') ? 'down' : 'up';
             const stopPriceType = this.safeString (params, 'stopPriceType');
             if (!stopPriceType) {
-                throw new ArgumentsRequired (this.id + ' trigger orders require params.stopPriceType to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
+                throw new ArgumentsRequired (this.id + ' createOrder() trigger orders require a stopPriceType parameter to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
             }
         }
         const uppercaseType = type.toUpperCase ();
         let timeInForce = this.safeString (params, 'timeInForce');
         if (uppercaseType === 'LIMIT') {
             if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' limit orders require the price argument');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
             } else {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
@@ -984,13 +981,13 @@ module.exports = class kucoinfutures extends kucoin {
         const postOnly = this.safeValue (params, 'postOnly', false);
         const hidden = this.safeValue (params, 'hidden');
         if (postOnly && hidden !== undefined) {
-            throw new BadRequest (this.id + ' createOrder cannot contain both params.postOnly and params.hidden');
+            throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
         }
         const iceberg = this.safeValue (params, 'iceberg');
         if (iceberg) {
             const visibleSize = this.safeValue (params, 'visibleSize');
             if (visibleSize === undefined) {
-                throw new ArgumentsRequired (this.id + ' requires params.visibleSize for iceberg orders');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
         params = this.omit (params, 'timeInForce'); // Time in force only valid for limit orders, exchange error when gtc for market orders

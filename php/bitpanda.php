@@ -348,6 +348,8 @@ class bitpanda extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
             );
         }
         return $result;
@@ -1172,6 +1174,7 @@ class bitpanda extends Exchange {
             'id' => $id,
             'currency' => $currency['code'],
             'amount' => $amount,
+            'network' => null,
             'address' => $addressTo,
             'addressFrom' => null,
             'addressTo' => $addressTo,

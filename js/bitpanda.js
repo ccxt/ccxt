@@ -345,6 +345,8 @@ module.exports = class bitpanda extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
             });
         }
         return result;
@@ -1169,6 +1171,7 @@ module.exports = class bitpanda extends Exchange {
             'id': id,
             'currency': currency['code'],
             'amount': amount,
+            'network': undefined,
             'address': addressTo,
             'addressFrom': undefined,
             'addressTo': addressTo,

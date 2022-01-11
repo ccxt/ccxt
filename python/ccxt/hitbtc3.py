@@ -907,6 +907,7 @@ class hitbtc3(Exchange):
             'txid': txhash,
             'code': code,
             'amount': amount,
+            'network': None,
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,

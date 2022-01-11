@@ -566,6 +566,8 @@ class bitfinex2(bitfinex):
                 'type': type,
                 'name': name,
                 'active': True,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -1394,6 +1396,7 @@ class bitfinex2(bitfinex):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
             'address': addressTo,  # self is actually the tag for XRP transfers(the address is missing)
             'addressTo': addressTo,

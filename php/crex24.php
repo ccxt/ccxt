@@ -387,8 +387,12 @@ class crex24 extends Exchange {
             $withdrawalPrecision = $this->safe_integer($currency, 'withdrawalPrecision');
             $precision = pow(10, -$withdrawalPrecision);
             $address = $this->safe_value($currency, 'BaseAddress');
-            $active = ($currency['depositsAllowed'] && $currency['withdrawalsAllowed'] && !$currency['isDelisted']);
-            $type = $currency['isFiat'] ? 'fiat' : 'crypto';
+            $deposit = $this->safe_value($currency, 'depositsAllowed');
+            $withdraw = $this->safe_value($currency, 'withdrawalsAllowed');
+            $delisted = $this->safe_value($currency, 'isDelisted');
+            $active = $deposit && $withdraw && !$delisted;
+            $fiat = $this->safe_value($currency, 'isFiat');
+            $type = $fiat ? 'fiat' : 'crypto';
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -397,6 +401,8 @@ class crex24 extends Exchange {
                 'type' => $type,
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'fee' => $this->safe_number($currency, 'flatWithdrawalFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array(
@@ -1333,8 +1339,13 @@ class crex24 extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,

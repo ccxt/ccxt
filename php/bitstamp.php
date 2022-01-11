@@ -209,6 +209,8 @@ class bitstamp extends Exchange {
                         'gala_address/',
                         'shib_withdrawal/',
                         'shib_address/',
+                        'amp_withdrawal/',
+                        'amp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -385,6 +387,8 @@ class bitstamp extends Exchange {
             'type' => $currencyType,
             'name' => $name,
             'active' => true,
+            'deposit' => null,
+            'withdraw' => null,
             'fee' => $this->safe_number($description['fees']['funding']['withdraw'], $code),
             'precision' => $precision,
             'limits' => array(
@@ -427,6 +431,20 @@ class bitstamp extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = $this->fetch_markets_from_cache($params);
+        //
+        //     array(
+        //         array(
+        //             "trading" => "Enabled",
+        //             "base_decimals" => 8,
+        //             "url_symbol" => "btcusd",
+        //             "name" => "BTC/USD",
+        //             "instant_and_market_orders" => "Enabled",
+        //             "minimum_order" => "20.0 USD",
+        //             "counter_decimals" => 2,
+        //             "description" => "Bitcoin / U.S. dollar"
+        //         ),
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -1243,6 +1261,7 @@ class bitstamp extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,

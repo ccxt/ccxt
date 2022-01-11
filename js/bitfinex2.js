@@ -560,6 +560,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 'type': type,
                 'name': name,
                 'active': true,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -1470,6 +1472,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': addressTo, // this is actually the tag for XRP transfers (the address is missing)
             'addressTo': addressTo,

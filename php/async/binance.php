@@ -1294,6 +1294,8 @@ class binance extends Exchange {
                 'precision' => $precision,
                 'info' => $entry,
                 'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
                 'networks' => $networkList,
                 'fee' => $fee,
                 'fees' => $fees,
@@ -3488,12 +3490,14 @@ class binance extends Exchange {
         $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $internal = $this->safe_integer($transaction, 'transferType', false);
         $internal = $internal ? true : false;
+        $network = $this->safe_string($transaction, 'network');
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -3601,7 +3605,7 @@ class binance extends Exchange {
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
             $entry = $incomes[$i];
-            $parsed = $this->parse_income ($entry, $market);
+            $parsed = $this->parse_income($entry, $market);
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
@@ -4308,7 +4312,7 @@ class binance extends Exchange {
             $code = ($this->options['defaultType'] === 'future') ? $market['quote'] : $market['base'];
             // sometimes not all the codes are correctly returned...
             if (is_array($balances) && array_key_exists($code, $balances)) {
-                $parsed = $this->parse_account_position (array_merge($position, array(
+                $parsed = $this->parse_account_position(array_merge($position, array(
                     'crossMargin' => $balances[$code]['crossMargin'],
                     'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
                 )), $market);
@@ -4746,7 +4750,7 @@ class binance extends Exchange {
             throw new NotSupported($this->id . ' fetchPositions() supports linear and inverse contracts only');
         }
         $account = yield $this->$method ($query);
-        $result = $this->parse_account_positions ($account);
+        $result = $this->parse_account_positions($account);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
@@ -4828,7 +4832,7 @@ class binance extends Exchange {
         $response = yield $this->$method (array_merge($request, $params));
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_position_risk ($response[$i]);
+            $parsed = $this->parse_position_risk($response[$i]);
             $result[] = $parsed;
         }
         return $this->filter_by_array($result, 'symbol', $symbols, false);
@@ -4870,7 +4874,7 @@ class binance extends Exchange {
             throw NotSupported ($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
         }
         $response = yield $this->$method (array_merge($request, $params));
-        return $this->parse_incomes ($response, $market, $since, $limit);
+        return $this->parse_incomes($response, $market, $since, $limit);
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {

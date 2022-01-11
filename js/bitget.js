@@ -933,6 +933,8 @@ module.exports = class bitget extends Exchange {
                 'type': undefined,
                 'name': undefined,
                 'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
@@ -2564,6 +2566,7 @@ module.exports = class bitget extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

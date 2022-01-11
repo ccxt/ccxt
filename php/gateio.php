@@ -1521,9 +1521,8 @@ class gateio extends Exchange {
         // :param $params->type => spot, $margin, crossMargin, $swap or $future
         // :param $params->settle => Settle currency (usdt or btc) for perpetual $swap and $future
         $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $swap = $type === 'swap';
         $future = $type === 'future';
         $method = $this->get_supported_mapping($type, array(
@@ -1964,30 +1963,26 @@ class gateio extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $amountString = $this->safe_string_2($trade, 'amount', 'size');
         $priceString = $this->safe_string($trade, 'price');
-        $costString = Precise::string_abs(Precise::string_mul($amountString, $priceString));
-        $price = $this->parse_number($priceString);
-        $cost = $this->parse_number($costString);
         $contractSide = Precise::string_lt($amountString, '0') ? 'sell' : 'buy';
         $amountString = Precise::string_abs($amountString);
-        $amount = $this->parse_number($amountString);
         $side = $this->safe_string($trade, 'side', $contractSide);
         $orderId = $this->safe_string($trade, 'order_id');
         $gtFee = $this->safe_string($trade, 'gt_fee');
         $feeCurrency = null;
-        $feeCost = null;
+        $feeCostString = null;
         if ($gtFee === '0') {
             $feeCurrency = $this->safe_string($trade, 'fee_currency');
-            $feeCost = $this->safe_number($trade, 'fee');
+            $feeCostString = $this->safe_string($trade, 'fee');
         } else {
             $feeCurrency = 'GT';
-            $feeCost = $this->parse_number($gtFee);
+            $feeCostString = $gtFee;
         }
         $fee = array(
-            'cost' => $feeCost,
+            'cost' => $feeCostString,
             'currency' => $feeCurrency,
         );
         $takerOrMaker = $this->safe_string($trade, 'role');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -1997,11 +1992,11 @@ class gateio extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -2143,12 +2138,18 @@ class gateio extends Exchange {
             'txid' => $txid,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'status' => $status,
             'type' => $type,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'updated' => null,
             'fee' => $fee,
         );
     }

@@ -243,6 +243,8 @@ module.exports = class cex extends Exchange {
                 'code': code,
                 'name': id,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'precision': precision,
                 'fee': undefined,
                 'limits': {

@@ -940,6 +940,8 @@ class bitget(Exchange):
                 'type': None,
                 'name': None,
                 'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': None,
                 'limits': {
@@ -2460,6 +2462,7 @@ class bitget(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

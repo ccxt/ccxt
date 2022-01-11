@@ -259,6 +259,8 @@ class cex(Exchange):
                 'code': code,
                 'name': id,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'precision': precision,
                 'fee': None,
                 'limits': {

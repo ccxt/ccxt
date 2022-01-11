@@ -262,6 +262,7 @@ class btcmarkets extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
             'addressTo' => $addressTo,
             'addressFrom' => $addressFrom,

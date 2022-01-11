@@ -210,6 +210,8 @@ class bytetrade extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'precision' => $amountPrecision,
                 'fee' => null,
                 'limits' => array(

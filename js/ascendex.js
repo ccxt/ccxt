@@ -376,6 +376,8 @@ module.exports = class ascendex extends Exchange {
                 'margin': margin,
                 'name': this.safeString (currency, 'assetName'),
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': parseInt (precision),
                 'limits': {
@@ -2029,6 +2031,7 @@ module.exports = class ascendex extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

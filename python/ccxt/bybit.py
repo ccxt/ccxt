@@ -283,6 +283,7 @@ class bybit(Exchange):
                             'stop-order/replace',
                             'position/set-auto-add-margin',
                             'position/switch-isolated',
+                            'position/switch-mode',
                             'tpsl/switch-mode',
                             'position/add-margin',
                             'position/set-leverage',
@@ -1505,7 +1506,8 @@ class bybit(Exchange):
                     method = 'futuresPrivatePostStopOrderCreate'
                 request['stop_px'] = float(self.price_to_precision(symbol, stopPx))
                 request['base_price'] = float(self.price_to_precision(symbol, basePrice))
-                params = self.omit(params, ['stop_px', 'stopPrice', 'base_price'])
+                request['trigger_by'] = 'LastPrice'
+                params = self.omit(params, ['stop_px', 'stopPrice', 'base_price', 'trigger_by'])
         elif basePrice is not None:
             raise ArgumentsRequired(self.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order')
         response = getattr(self, method)(self.extend(request, params))
@@ -2215,6 +2217,7 @@ class bybit(Exchange):
             'txid': self.safe_string(transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': None,
             'addressFrom': None,

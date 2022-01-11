@@ -254,7 +254,9 @@ class digifinex(Exchange):
             code = self.safe_currency_code(id)
             depositStatus = self.safe_value(currency, 'deposit_status', 1)
             withdrawStatus = self.safe_value(currency, 'withdraw_status', 1)
-            active = depositStatus and withdrawStatus
+            deposit = depositStatus > 0
+            withdraw = withdrawStatus > 0
+            active = deposit and withdraw
             fee = self.safe_number(currency, 'withdraw_fee_rate')
             if code in result:
                 if isinstance(result[code]['info'], list):
@@ -269,6 +271,8 @@ class digifinex(Exchange):
                     'type': None,
                     'name': None,
                     'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
                     'fee': fee,
                     'precision': 8,  # todo fix hardcoded value
                     'limits': {
@@ -1322,12 +1326,16 @@ class digifinex(Exchange):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
+        network = self.safe_string(transaction, 'chain')
+        if network == '':
+            network = None
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

@@ -413,6 +413,8 @@ class hitbtc(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': payin,
+                'withdraw': payout,
                 'fee': self.safe_number(currency, 'payoutFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -759,8 +761,13 @@ class hitbtc(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,

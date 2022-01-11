@@ -1460,12 +1460,14 @@ module.exports = class xena extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const fee = undefined;
+        const network = this.safeString (transaction, 'blockchain');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

@@ -100,7 +100,7 @@ module.exports = class aax extends Exchange {
                 'fetchWithdrawAddress': undefined,
                 'fetchWithdrawAddressesByNetwork': undefined,
                 'fetchWithdrawal': undefined,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'loadLeverageBrackets': undefined,
                 'reduceMargin': undefined,
@@ -183,6 +183,7 @@ module.exports = class aax extends Exchange {
                         'account/balances', // Get Account Balances
                         'account/deposit/address', // undocumented
                         'account/deposits', // Get account deposits history
+                        'account/withdraws', // Get account withdrawals history
                         'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
                         'spot/orders', // Retrieve historical spot orders
@@ -577,6 +578,8 @@ module.exports = class aax extends Exchange {
             const fee = this.safeNumber (currency, 'withdrawFee');
             const visible = this.safeValue (currency, 'visible');
             const active = (enableWithdraw && enableDeposit && visible);
+            const deposit = (enableDeposit && visible);
+            const withdraw = (enableWithdraw && visible);
             const network = this.safeString (currency, 'network');
             result[code] = {
                 'id': id,
@@ -585,6 +588,8 @@ module.exports = class aax extends Exchange {
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
                 'network': network,
                 'limits': {
@@ -1936,17 +1941,86 @@ module.exports = class aax extends Exchange {
         //     "message": "success",
         //     "ts": 1573561743499
         // }
-        const deposits = this.safeValue (response, 'data', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, code, since, limit);
     }
 
-    parseTransactionStatus (status) {
-        const statuses = {
-            '1': 'pending',
-            '2': 'ok',
-            '3': 'failed',
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // status Not required : "0: Under Review, 1: Manual Review, 2: On Chain, 3: Review Failed, 4: On Chain, 5: Completed, 6: Failed"
+            // currency: Not required -  String Currency
+            // startTime Not required Integer Default: 30 days from current timestamp.
+            // endTime Not required Integer Default: present timestamp.
+            // Note difference between endTime and startTime must be 90 days or less
         };
-        return this.safeString (statuses, status, status);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            const startTime = parseInt (since / 1000);
+            request['startTime'] = startTime;
+            request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
+        }
+        const response = await this.privateGetAccountWithdraws (this.extend (request, params));
+        // {
+        //     "code":1,
+        //     "data": [
+        //       {
+        //            "currency":"USDT",
+        //            "network":"USDT",
+        //            "quantity":"19.000000000000",
+        //            "fee":"0.10000"
+        //            "txHash":"75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //            "address":"1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //            "addressTag": "",
+        //            "status":"2",
+        //            "createdTime":"2021-01-08T19:45:01.354Z",
+        //            "updatedTime":"2021-01-08T20:03:05.000Z",
+        //       }
+        //  ]
+        //     "message":"success",
+        //     "ts":1573561743499
+        //  }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, code, since, limit);
+    }
+
+    parseTransactionStatusByType (status, type = undefined) {
+        const statuses = {
+            'deposit': {
+                '1': 'pending',
+                '2': 'ok',
+                '3': 'failed',
+            },
+            'withdrawal': {
+                '0': 'pending', // under review
+                '1': 'pending', // manual review
+                '2': 'pending', // on chain
+                '3': 'failed',  // failed
+                '4': 'pending', // on chain
+                '5': 'ok',      // completed
+                '6': 'failed',  // failed
+            },
+        };
+        return this.safeString (this.safeValue (statuses, type, {}), status, status);
+    }
+
+    parseAddressByType (address, tag, type = undefined) {
+        let addressFrom = undefined;
+        let addressTo = undefined;
+        let tagFrom = undefined;
+        let tagTo = undefined;
+        if (type === 'deposit') {
+            addressFrom = address;
+            tagFrom = tag;
+        } else if (type === 'withdrawal') {
+            addressTo = address;
+            tagTo = tag;
+        }
+        return [ addressFrom, tagFrom, addressTo, tagTo ];
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -1964,34 +2038,56 @@ module.exports = class aax extends Exchange {
         //         "updatedTime": "2021-01-08T20:03:05.000Z",
         //     }
         //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "currency":"USDT",
+        //         "network":"USDT",
+        //         "quantity":"19.000000000000",
+        //         "fee":"0.10000"
+        //         "txHash":"75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address":"1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "addressTag": "",
+        //         "status":"2",
+        //         "createdTime":"2021-01-08T19:45:01.354Z",
+        //         "updatedTime":"2021-01-08T20:03:05.000Z",
+        //      }
+        //
+        const fee = this.safeString (transaction, 'fee');
+        let type = 'withdrawal';
+        if (fee === undefined) {
+            type = 'deposit';
+        }
         const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
         const txid = this.safeString (transaction, 'txHash');
         const address = this.safeString (transaction, 'address');
-        const type = 'deposit';
+        const tag = this.safeString (transaction, 'addressTag'); // withdrawals only
+        const [ addressFrom, tagFrom, addressTo, tagTo ] = this.parseAddressByType (address, tag, type);
         const amountString = this.safeString (transaction, 'quantity');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdTime'));
         const updated = this.parse8601 (this.safeString (transaction, 'updatedTime'));
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const tag = this.safeString (transaction, 'addressTag'); // withdrawals only
+        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        const network = this.safeString (transaction, 'network');
         return {
             'id': undefined,
             'info': transaction,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'addressFrom': address,
+            'network': network,
+            'addressFrom': addressFrom,
             'address': address,
-            'addressTo': undefined,
+            'addressTo': addressTo,
             'amount': this.parseNumber (amountString),
             'type': type,
             'currency': code,
             'status': status,
             'updated': updated,
-            'tagFrom': tag,
+            'tagFrom': tagFrom,
             'tag': tag,
-            'tagTo': undefined,
+            'tagTo': tagTo,
             'comment': undefined,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 

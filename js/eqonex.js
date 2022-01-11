@@ -298,6 +298,8 @@ module.exports = class eqonex extends Exchange {
             'precision': precision,
             'fee': fee,
             'active': active,
+            'deposit': undefined,
+            'withdraw': undefined,
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -1124,6 +1126,7 @@ module.exports = class eqonex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': undefined,

@@ -931,6 +931,7 @@ class bitbns extends Exchange {
             'txid' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => null,
             'addressTo' => null,
             'addressFrom' => null,

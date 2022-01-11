@@ -69,6 +69,7 @@ class mexc extends Exchange {
                 '30m' => '30m',
                 '1h' => '1h',
                 '1d' => '1d',
+                '1w' => '1w',
                 '1M' => '1M',
             ),
             'urls' => array(
@@ -1059,9 +1060,10 @@ class mexc extends Exchange {
         $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'timeframes', array());
         $timeframes = $this->safe_value($options, $market['type'], array());
+        $timeframeValue = $this->safe_string($timeframes, $timeframe, $timeframe);
         $request = array(
             'symbol' => $market['id'],
-            'interval' => $timeframes[$timeframe],
+            'interval' => $timeframeValue,
         );
         $method = null;
         if ($market['spot']) {
@@ -1480,12 +1482,16 @@ class mexc extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
-            'network' => $network,
             'status' => $status,
             'updated' => $updated,
             'fee' => $fee,

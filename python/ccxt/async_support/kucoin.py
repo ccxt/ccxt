@@ -1715,6 +1715,7 @@ class kucoin(Exchange):
             'info': transaction,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': address,
             'addressFrom': None,
