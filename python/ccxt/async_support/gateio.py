@@ -2363,8 +2363,16 @@ class gateio(Exchange):
             rawStatus = self.safe_string(order, 'status')
             side = self.safe_string(order, 'side')
         status = self.parse_order_status(rawStatus)
-        type = self.safe_string(order, 'type')
         timeInForce = self.safe_string_upper_2(order, 'time_in_force', 'tif')
+        if timeInForce == 'POC':
+            timeInForce = 'PO'
+        type = self.safe_string(order, 'type')
+        if type is None:
+            # response for swaps doesn't include the type information
+            if timeInForce == 'PO' or timeInForce == 'GTC' or timeInForce == 'IOC' or timeInForce == 'FOK':
+                type = 'limit'
+            else:
+                type = 'market'
         fees = []
         gtFee = self.safe_number(order, 'gt_fee')
         if gtFee:

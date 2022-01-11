@@ -221,13 +221,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.67.2/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.67.2/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.67.3/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.67.3/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.67.2/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.67.3/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:

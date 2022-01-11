@@ -2457,8 +2457,19 @@ class gateio extends Exchange {
             $side = $this->safe_string($order, 'side');
         }
         $status = $this->parse_order_status($rawStatus);
-        $type = $this->safe_string($order, 'type');
         $timeInForce = $this->safe_string_upper_2($order, 'time_in_force', 'tif');
+        if ($timeInForce === 'POC') {
+            $timeInForce = 'PO';
+        }
+        $type = $this->safe_string($order, 'type');
+        if ($type === null) {
+            // response for swaps doesn't include the $type information
+            if ($timeInForce === 'PO' || $timeInForce === 'GTC' || $timeInForce === 'IOC' || $timeInForce === 'FOK') {
+                $type = 'limit';
+            } else {
+                $type = 'market';
+            }
+        }
         $fees = array();
         $gtFee = $this->safe_number($order, 'gt_fee');
         if ($gtFee) {
