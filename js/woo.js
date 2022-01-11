@@ -1111,7 +1111,7 @@ module.exports = class woo extends Exchange {
             request['pageSize'] = limit;
         }
         const transactionType = this.safeString (params, 'type');
-        params = this.omit (params, 'type'); // conflict! we need to change 'type' param for spot/futures into 'exchangeType'
+        params = this.omit (params, 'type');
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
