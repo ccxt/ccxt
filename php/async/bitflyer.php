@@ -210,7 +210,7 @@ class bitflyer extends Exchange {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_number($ticker, 'ltp');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -231,7 +231,7 @@ class bitflyer extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'volume_by_product'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
