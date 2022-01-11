@@ -605,16 +605,10 @@ module.exports = class bybit extends Exchange {
         if (percentage !== undefined) {
             percentage *= 100;
         }
-        let change = undefined;
-        let average = undefined;
-        if ((last !== undefined) && (open !== undefined)) {
-            change = last - open;
-            average = this.sum (open, last) / 2;
-        }
         const baseVolume = this.safeNumber (ticker, 'turnover_24h');
         const quoteVolume = this.safeNumber (ticker, 'volume_24h');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -629,13 +623,13 @@ module.exports = class bybit extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
-            'average': average,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
