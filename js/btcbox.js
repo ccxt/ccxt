@@ -115,10 +115,7 @@ module.exports = class btcbox extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const last = this.safeNumber (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
@@ -141,7 +138,7 @@ module.exports = class btcbox extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
