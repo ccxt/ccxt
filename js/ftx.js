@@ -373,6 +373,7 @@ module.exports = class ftx extends Exchange {
                     'BSC': 'bsc',
                 },
             },
+            'subaccount': undefined,
         });
     }
 
@@ -2209,7 +2210,7 @@ module.exports = class ftx extends Exchange {
         const signOptions = this.safeValue (this.options, 'sign', {});
         const headerPrefix = this.safeString (signOptions, this.hostname, 'FTX');
         const subaccountField = headerPrefix + '-SUBACCOUNT';
-        const chosenSubaccount = this.safeString2 (params, subaccountField, 'subaccount');
+        let chosenSubaccount = this.safeString2 (params, subaccountField, 'subaccount');
         if (chosenSubaccount !== undefined) {
             params = this.omit (params, [ subaccountField, 'subaccount' ]);
         }
@@ -2237,6 +2238,9 @@ module.exports = class ftx extends Exchange {
             headers[headerPrefix + '-KEY'] = this.apiKey;
             headers[headerPrefix + '-TS'] = timestamp;
             headers[headerPrefix + '-SIGN'] = signature;
+            if (chosenSubaccount === undefined) {
+                chosenSubaccount = this.subaccount;
+            }
             if (chosenSubaccount !== undefined) {
                 headers[subaccountField] = chosenSubaccount;
             }
