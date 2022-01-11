@@ -2814,7 +2814,7 @@ module.exports = class gateio extends Exchange {
             'to': toId,
             'amount': truncated,
         };
-        if ((toId === 'future') || (toId === 'delivery')) {
+        if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
             request['settle'] = currency['lowerCaseId'];
         }
         const response = await this.privateWalletPostTransfers (this.extend (request, params));
