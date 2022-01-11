@@ -448,10 +448,11 @@ module.exports = class bittrex extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString (ticker, 'updatedAt'));
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const percentage = this.safeNumber (ticker, 'percentChange');
         const last = this.safeNumber (ticker, 'lastTradeRate');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -472,7 +473,7 @@ module.exports = class bittrex extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
