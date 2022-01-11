@@ -1,7 +1,6 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
-
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadSymbol, RateLimitExceeded, BadRequest } = require ('./base/errors');
 const Precise = require ('./base/Precise');
@@ -1452,7 +1451,7 @@ module.exports = class bibox extends Exchange {
         let url = this.implodeHostname (this.urls['api']) + '/' + version + '/' + path;
         const v1 = (version === 'v1');
         const json_params = v1 ? this.json ([ params ]) : this.json (params);
-        headers = { 'Content-Type': 'application/json' };
+        headers = { 'content-type': 'application/json' };
         if (api === 'public') {
             if (method !== 'GET') {
                 body = v1 ? { 'cmds': json_params } : { 'body': json_params };
@@ -1461,17 +1460,20 @@ module.exports = class bibox extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const sign = this.hmac (this.encode (json_params), this.encode (this.secret), 'md5');
             if (version === 'v3' || version === 'v3.1') {
-                headers['bibox-api-key'] = this.apikey;
+                const timestamp = this.milliseconds ();
+                const strToSign = '' + timestamp + this.json (json_params); // 3. This is the string that needs to be signed
+                const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'md5').toString ();
+                headers['bibox-api-key'] = this.apiKey;
                 headers['bibox-api-sign'] = sign;
-                headers['bibox-timestamp'] = this.milliseconds ();
+                headers['bibox-timestamp'] = timestamp;
                 if (method === 'GET') {
                     url += '?' + this.urlencode (params);
                 } else {
-                    body = { 'body': json_params };
+                    body = json_params;
                 }
             } else {
+                const sign = this.hmac (this.encode (json_params), this.encode (this.secret), 'md5');
                 body = {
                     'apikey': this.apiKey,
                     'sign': sign,
