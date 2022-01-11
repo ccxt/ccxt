@@ -97,7 +97,7 @@ if (settings && settings.skip) {
 
 //-----------------------------------------------------------------------------
 async function testWithTitle (methodName, exchange, secondParam = undefined, thirdParam = undefined) {
-    console.log ("<<< ", methodName ,">>>")
+    console.log ('<<< ', methodName , ' | ', secondParam, ' | ', thirdParam, ' | ', ' >>>')
     if (secondParam === undefined) {
         return await tests[methodName] (exchange)
     } else if (thirdParam === undefined) {
