@@ -7,31 +7,59 @@ const log = require('ololog').configure({ locate: false })
 require('ansicolor').nice
 
 async function b4yTest () {
-        let apiUrl = 'https://www.bit4you.io/api';
-
+        // let exchange2 = new ccxt.coinbase();
+        // const res = await exchange2.fetchMarkets();
+        // console.log(res)
         let exchange = new ccxt.bit4you({
-            'token': '8ced29c268b38e2f03336de8a3e51118382c4271', //bearer token : need to sign on bit4you
+            'token': '90f33d938595e0c18aac1641ab9a60f4baaeef24', // bearer token : need to sign on bit4you
             'enableRateLimit': true,
-            urls: {
-                'api': {
-                    'public': apiUrl,
-                    'private': apiUrl,
-                    'v1': apiUrl
-                }
-            }
         })
 
-        console.log(await exchange.fetchOrderBook('BTC-USDT'))
+        // fetchOrderBook
+        // console.log(await exchange.fetchOrderBook('BTC-USDT'))
 
-        // try {
-        //     // fetch account balance from the exchange
-        //     let balance = await exchange.fetchMarkets()
-        //     console.log (balance)
-            
+        // fetchMarkets
+        console.log(await exchange.fetchStatus())
+        
+        // fetchCurrencies
+        // console.log(await exchange.loadMarkets())
 
-        // } catch (e) {
-        //     console.error('error:',e)
-        // }
+        // fetchMyTrades
+        // console.log(await exchange.fetchMyTrades({simulation:false}))
+
+        // fetchBalance
+        // console.log(await exchange.fetchBalance())
+
+        // createOrder
+        // symbol, type, side, amount, price = undefined, params = {}
+        // console.log(await exchange.createOrder('SHIB-USDT','market','sell',100))
+        // console.log(await exchange.createOrder('AVAX-USDT','market','buy',80))
+        // console.log(await exchange.createOrder('LTC-USDT','market','sell',34.10))
+
+        
+        // cancelOrder
+        // console.log(await exchange.cancelOrder('0d2eb5951c18ba130c74947cdcb1c8fb9fe26732', null, {simulation: true}))
+
+        // fetchOpenOrders
+        // console.log(await exchange.fetchOpenOrders(null,null,null,{}))
+
+        // fetchOrders
+        // console.log(await exchange.fetchOrders("BTC-USDT",null,null,{}))
+        
+        // fetchClosedOrders
+        // console.log(await exchange.fetchClosedOrders(null,null,null,{}))
+
+        // witdraw
+        // console.log(await exchange.withdraw("ADA",null,null,{simulation: true}))
+
+        // fetchTransactions
+        // console.log('--- Start ---')
+        // console.log(await exchange.fetchTransactions())
+        
+        
+        // console.log('--- Start ---')
+        // console.log(await exchange.fetchMyTrades())
+        
 
     };
 
