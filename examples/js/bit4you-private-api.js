@@ -10,8 +10,9 @@ async function b4yTest () {
         // let exchange2 = new ccxt.coinbase();
         // const res = await exchange2.fetchMarkets();
         // console.log(res)
+        const token = 'here your token',
         let exchange = new ccxt.bit4you({
-            'token': '90f33d938595e0c18aac1641ab9a60f4baaeef24', // bearer token : need to sign on bit4you
+            'token': token', // bearer token : need to sign on bit4you
             'enableRateLimit': true,
         })
 
