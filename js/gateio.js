@@ -2454,15 +2454,15 @@ module.exports = class gateio extends Exchange {
         const status = this.parseOrderStatus (rawStatus);
         let timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
         if (timeInForce === 'POC') {
-            timeInForce = 'PO'
+            timeInForce = 'PO';
         }
         let type = this.safeString (order, 'type');
         if (type === undefined) {
             // response for swaps doesn't include the type information
             if (timeInForce === 'PO' || timeInForce === 'GTC' || timeInForce === 'IOC' || timeInForce === 'FOK') {
-                type = 'limit'
+                type = 'limit';
             } else {
-                type = 'market'
+                type = 'market';
             }
         }
         const fees = [];
