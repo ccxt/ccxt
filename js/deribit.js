@@ -344,6 +344,9 @@ module.exports = class deribit extends Exchange {
                 'fetchBalance': {
                     'code': 'BTC',
                 },
+                'fetchPositions': {
+                    'code': 'BTC',
+                },
             },
         });
     }
@@ -1793,11 +1796,14 @@ module.exports = class deribit extends Exchange {
         return result;
     }
 
-    async fetchPositions (code = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a currency code argument');
-        }
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        let code = undefined;
+        if (symbols === undefined) {
+            code = this.codeFromOptions ('fetchPositions', params);
+        } else {
+            code = this.safeSymbol (symbols);
+        }
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
