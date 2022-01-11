@@ -32,7 +32,6 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchPartiallyFilledOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchBalance': true,
                 'createOrder': true,
