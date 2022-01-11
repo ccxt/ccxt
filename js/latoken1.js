@@ -30,7 +30,7 @@ module.exports = class latoken1 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrdersByStatus': true,
                 'fetchTicker': true,

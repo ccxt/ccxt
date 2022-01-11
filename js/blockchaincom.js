@@ -18,6 +18,7 @@ module.exports = class blockchaincom extends Exchange {
             'rateLimit': 10000,
             'version': 'v3',
             'has': {
+                'fetchDepositAddress': true,
                 'CORS': false,
                 'fetchTrades': false,
                 'fetchOHLCV': false,
