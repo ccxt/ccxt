@@ -565,9 +565,7 @@ module.exports = class gateio extends Exchange {
     async fetchMarkets (params = {}) {
         // :param params['type']: 'spot', 'margin', 'future' or 'delivery'
         // :param params['settle']: The quote currency
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         const spot = (type === 'spot');
         const margin = (type === 'margin');
         const future = (type === 'future');
@@ -1491,9 +1489,8 @@ module.exports = class gateio extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
@@ -1861,6 +1858,9 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         //
@@ -2553,8 +2553,8 @@ module.exports = class gateio extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
         if (symbol === undefined && (type === 'spot') || type === 'margin' || type === 'cross_margin') {
             const request = {
                 // 'page': 1,
