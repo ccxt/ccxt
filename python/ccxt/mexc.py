@@ -1088,7 +1088,7 @@ class mexc(Exchange):
             data = self.safe_value(response, 'data', [])
             parse_data = self.parse_ohlcvs(data, market, timeframe, since, limit)
             if timeframe_change_flag :
-                parse_data = self.build_ohlcv_revert(parse_data,old_timeframe)
+                parse_data = self.build_ohlcv_revert(parse_data,old_timeframe, since, limit)
 
             return parse_data
         elif market['swap']:
