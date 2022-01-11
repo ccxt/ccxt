@@ -2707,7 +2707,7 @@ class gateio(Exchange):
             'to': toId,
             'amount': truncated,
         }
-        if (toId == 'future') or (toId == 'delivery'):
+        if (toId == 'futures') or (toId == 'delivery') or (fromId == 'futures') or (fromId == 'delivery'):
             request['settle'] = currency['lowerCaseId']
         response = await self.privateWalletPostTransfers(self.extend(request, params))
         #
