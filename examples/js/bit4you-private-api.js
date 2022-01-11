@@ -12,7 +12,7 @@ async function b4yTest () {
         // console.log(res)
         const token = 'bearer token here';
         let exchange = new ccxt.bit4you({
-            'token': token, // bearer token : need to sign on bit4you
+            'token': token, // bearer token : need to sign on www.bit4you.io
             'enableRateLimit': true,
             'simulation': false // to active demo mode set on true - default (false)
         })
@@ -32,7 +32,7 @@ async function b4yTest () {
         // console.log(await exchange.fetchMyTrades())
 
         // fetchBalance
-        // console.log(await exchange.fetchBalance())
+        // console.log(await exchange.fetchTransactions())
 
         // createOrder
         // symbol, type, side, amount, price = undefined, params = {}
@@ -62,8 +62,7 @@ async function b4yTest () {
         
         
         // console.log('--- Start ---')
-        // console.log(await exchange.fetchMyTrades())
-        
+        // console.log(await exchange.fetchMyTrades()) 
 
     };
 

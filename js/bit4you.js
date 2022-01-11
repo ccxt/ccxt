@@ -79,7 +79,6 @@ module.exports = class bit4you extends Exchange {
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchStatus': true,
                 'fetchOpenOrders': true,
@@ -107,7 +106,6 @@ module.exports = class bit4you extends Exchange {
                         'wallet/balances',
                         'wallet/blockchain-history',
                         'wallet/send',
-                        'portfolio/list',
                         'portfolio/history',
                         'portfolio/open-orders',
                         'order/info',
@@ -236,16 +234,6 @@ module.exports = class bit4you extends Exchange {
                 parsedData[info] = obj;
             }
             return parsedData;
-        } catch (error) {
-            return error;
-        }
-    }
-
-    async fetchMyTrades (params = {}) {
-        const request = params;
-        try {
-            const response = await this.privatePostPortfolioList (this.extend (request, params));
-            return response || [];
         } catch (error) {
             return error;
         }
