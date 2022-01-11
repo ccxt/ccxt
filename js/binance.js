@@ -42,7 +42,7 @@ module.exports = class binance extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
