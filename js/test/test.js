@@ -96,15 +96,25 @@ if (settings && settings.skip) {
 }
 
 //-----------------------------------------------------------------------------
+async function testWithTitle (methodName, exchange, secondParam = undefined, thirdParam = undefined) {
+    console.log ("<<< ", methodName ,">>>")
+    if (secondParam === undefined) {
+        return await tests[methodName] (exchange)
+    } else if (thirdParam === undefined) {
+        return await tests[methodName] (exchange, secondParam)
+    } else {
+        return await tests[methodName] (exchange, secondParam, thirdParam)
+    }
+}
 
 async function testSymbol (exchange, symbol) {
 
-    await tests['loadMarkets'] (exchange)
-    await tests['fetchCurrencies'] (exchange)
-    await tests['fetchTicker']  (exchange, symbol)
-    await tests['fetchTickers'] (exchange, symbol)
-    await tests['fetchOHLCV']   (exchange, symbol)
-    await tests['fetchTrades']  (exchange, symbol)
+    await testWithTitle ('loadMarkets', exchange);
+    await testWithTitle ('fetchCurrencies', exchange);
+    await testWithTitle ('fetchTicker', exchange, symbol);
+    await testWithTitle ('fetchTickers', exchange, symbol);
+    await testWithTitle ('fetchOHLCV', exchange, symbol);
+    await testWithTitle ('fetchTrades', exchange, symbol);
 
     if (exchange.id === 'coinbase') {
 
@@ -112,9 +122,9 @@ async function testSymbol (exchange, symbol) {
 
     } else {
 
-        await tests['fetchOrderBook']   (exchange, symbol)
-        await tests['fetchL2OrderBook'] (exchange, symbol)
-        await tests['fetchOrderBooks']  (exchange)
+        await testWithTitle ('fetchOrderBook', exchange, symbol);
+        await testWithTitle ('fetchL2OrderBook', exchange, symbol);
+        await testWithTitle ('fetchOrderBooks', exchange);
     }
 }
 
@@ -269,35 +279,36 @@ async function testExchange (exchange) {
     // if (exchange.urls['test'])
     //    exchange.urls['api'] = exchange.urls['test']
 
-    const balance = await tests['fetchBalance'] (exchange)
+    
+    const balance = await testWithTitle ('fetchBalance', exchange)
 
-    await tests['fetchFundingFees']  (exchange)
-    await tests['fetchTradingFees']  (exchange)
-    await tests['fetchStatus'] (exchange)
+    await testWithTitle ('fetchFundingFees', exchange)
+    await testWithTitle ('fetchTradingFees', exchange)
+    await testWithTitle ('fetchStatus', exchange)
 
-    await tests['fetchOrders']       (exchange, symbol)
-    await tests['fetchOpenOrders']   (exchange, symbol)
-    await tests['fetchClosedOrders'] (exchange, symbol)
-    await tests['fetchMyTrades']     (exchange, symbol)
+    await testWithTitle ('fetchOrders', exchange, symbol)
+    await testWithTitle ('fetchOpenOrders', exchange, symbol)
+    await testWithTitle ('fetchClosedOrders', exchange, symbol)
+    await testWithTitle ('fetchMyTrades', exchange, symbol)
 
-    await tests['fetchPositions']    (exchange, symbol)
+    await testWithTitle ('fetchPositions', exchange, symbol)
 
     if ('fetchLedger' in tests) {
-        await tests['fetchLedger'] (exchange, code)
+        await testWithTitle ('fetchLedger', exchange, code)
     }
 
-    await tests['fetchTransactions'] (exchange, code)
-    await tests['fetchDeposits']     (exchange, code)
-    await tests['fetchWithdrawals']  (exchange, code)
-    await tests['fetchBorrowRate']   (exchange, code)
-    await tests['fetchBorrowRates']  (exchange)
+    await testWithTitle ('fetchTransactions', exchange, code)
+    await testWithTitle ('fetchDeposits', exchange, code)
+    await testWithTitle ('fetchWithdrawals', exchange, code)
+    await testWithTitle ('fetchBorrowRate', exchange, code)
+    await testWithTitle ('fetchBorrowRates', exchange)
 
     if (exchange.extendedTest) {
 
-        await tests['InvalidNonce']      (exchange, symbol)
-        await tests['OrderNotFound']     (exchange, symbol)
-        await tests['InvalidOrder']      (exchange, symbol)
-        await tests['InsufficientFunds'] (exchange, symbol, balance) // danger zone - won't execute with non-empty balance
+        await testWithTitle ('InvalidNonce', exchange, symbol)
+        await testWithTitle ('OrderNotFound', exchange, symbol)
+        await testWithTitle ('InvalidOrder', exchange, symbol)
+        await testWithTitle ('InsufficientFunds', exchange, symbol, balance) // danger zone - won't execute with non-empty balance
     }
 
     // try {
