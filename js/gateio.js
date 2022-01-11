@@ -2456,7 +2456,7 @@ module.exports = class gateio extends Exchange {
         if (timeInForce === 'POC') {
             timeInForce = 'PO'
         }
-        const type = this.safeString (order, 'type');
+        let type = this.safeString (order, 'type');
         if (type === undefined) {
             // response for swaps doesn't include the type information
             if (timeInForce === 'PO' || timeInForce === 'GTC' || timeInForce === 'IOC' || timeInForce === 'FOK') {
