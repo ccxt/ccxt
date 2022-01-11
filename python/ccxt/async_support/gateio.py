@@ -579,9 +579,7 @@ class gateio(Exchange):
     async def fetch_markets(self, params={}):
         # :param params['type']: 'spot', 'margin', 'future' or 'delivery'
         # :param params['settle']: The quote currency
-        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
+        type, query = self.handle_market_type_and_params('fetchMarkets', None, params)
         spot = (type == 'spot')
         margin = (type == 'margin')
         future = (type == 'future')
@@ -1468,9 +1466,8 @@ class gateio(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(type, {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
@@ -1814,6 +1811,8 @@ class gateio(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         #
@@ -2452,8 +2451,8 @@ class gateio(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchOpenOrders', None, params)
         if symbol is None and (type == 'spot') or type == 'margin' or type == 'cross_margin':
             request = {
                 # 'page': 1,

@@ -570,9 +570,7 @@ class gateio extends Exchange {
     public function fetch_markets($params = array ()) {
         // :param $params['type'] => 'spot', 'margin', 'future' or 'delivery'
         // :param $params['settle'] => The $quote currency
-        $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
+        list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
         $spot = ($type === 'spot');
         $margin = ($type === 'margin');
         $future = ($type === 'future');
@@ -1496,9 +1494,8 @@ class gateio extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'publicSpotGetTickers',
             'margin' => 'publicSpotGetTickers',
@@ -1866,6 +1863,9 @@ class gateio extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         //
@@ -2558,8 +2558,8 @@ class gateio extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchOpenOrders', null, $params);
         if ($symbol === null && ($type === 'spot') || $type === 'margin' || $type === 'cross_margin') {
             $request = array(
                 // 'page' => 1,
