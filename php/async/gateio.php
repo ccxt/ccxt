@@ -66,7 +66,6 @@ class gateio extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrdersByStatus' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -319,6 +318,7 @@ class gateio extends Exchange {
                 '8h' => '8h',
                 '1d' => '1d',
                 '7d' => '7d',
+                '1w' => '7d',
             ),
             // copied from gateiov2
             'commonCurrencies' => array(
@@ -570,9 +570,7 @@ class gateio extends Exchange {
     public function fetch_markets($params = array ()) {
         // :param $params['type'] => 'spot', 'margin', 'future' or 'delivery'
         // :param $params['settle'] => The $quote currency
-        $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
+        list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
         $spot = ($type === 'spot');
         $margin = ($type === 'margin');
         $future = ($type === 'future');
@@ -911,10 +909,14 @@ class gateio extends Exchange {
             $currencyIdLower = $this->safe_string_lower($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $delisted = $this->safe_value($entry, 'delisted');
-            $withdraw_disabled = $this->safe_value($entry, 'withdraw_disabled');
-            $deposit_disabled = $this->safe_value($entry, 'disabled_disabled');
-            $trade_disabled = $this->safe_value($entry, 'trade_disabled');
-            $active = !($delisted && $withdraw_disabled && $deposit_disabled && $trade_disabled);
+            $withdrawDisabled = $this->safe_value($entry, 'withdraw_disabled', false);
+            $depositDisabled = $this->safe_value($entry, 'deposit_disabled', false);
+            $tradeDisabled = $this->safe_value($entry, 'trade_disabled', false);
+            $withdrawEnabled = !$withdrawDisabled;
+            $depositEnabled = !$depositDisabled;
+            $tradeEnabled = !$tradeDisabled;
+            $listed = !$delisted;
+            $active = $listed && $tradeEnabled && $withdrawEnabled && $depositEnabled;
             $result[$code] = array(
                 'id' => $currencyId,
                 'lowerCaseId' => $currencyIdLower,
@@ -923,6 +925,8 @@ class gateio extends Exchange {
                 'precision' => $amountPrecision,
                 'info' => $entry,
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => null,
                 'fees' => array(),
                 'limits' => $this->limits,
@@ -1490,9 +1494,8 @@ class gateio extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'publicSpotGetTickers',
             'margin' => 'publicSpotGetTickers',
@@ -1522,9 +1525,8 @@ class gateio extends Exchange {
         // :param $params->type => spot, $margin, crossMargin, $swap or $future
         // :param $params->settle => Settle currency (usdt or btc) for perpetual $swap and $future
         yield $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $swap = $type === 'swap';
         $future = $type === 'future';
         $method = $this->get_supported_mapping($type, array(
@@ -1861,6 +1863,9 @@ class gateio extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
         yield $this->load_markets();
         $market = $this->market($symbol);
         //
@@ -2452,8 +2457,19 @@ class gateio extends Exchange {
             $side = $this->safe_string($order, 'side');
         }
         $status = $this->parse_order_status($rawStatus);
-        $type = $this->safe_string($order, 'type');
         $timeInForce = $this->safe_string_upper_2($order, 'time_in_force', 'tif');
+        if ($timeInForce === 'POC') {
+            $timeInForce = 'PO';
+        }
+        $type = $this->safe_string($order, 'type');
+        if ($type === null) {
+            // response for swaps doesn't include the $type information
+            if ($timeInForce === 'PO' || $timeInForce === 'GTC' || $timeInForce === 'IOC' || $timeInForce === 'FOK') {
+                $type = 'limit';
+            } else {
+                $type = 'market';
+            }
+        }
         $fees = array();
         $gtFee = $this->safe_number($order, 'gt_fee');
         if ($gtFee) {
@@ -2542,8 +2558,8 @@ class gateio extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchOpenOrders', null, $params);
         if ($symbol === null && ($type === 'spot') || $type === 'margin' || $type === 'cross_margin') {
             $request = array(
                 // 'page' => 1,
@@ -2814,7 +2830,7 @@ class gateio extends Exchange {
             'to' => $toId,
             'amount' => $truncated,
         );
-        if (($toId === 'future') || ($toId === 'delivery')) {
+        if (($toId === 'futures') || ($toId === 'delivery') || ($fromId === 'futures') || ($fromId === 'delivery')) {
             $request['settle'] = $currency['lowerCaseId'];
         }
         $response = yield $this->privateWalletPostTransfers (array_merge($request, $params));

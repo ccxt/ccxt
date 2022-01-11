@@ -24,6 +24,7 @@ class ndax(Exchange):
             'rateLimit': 1000,
             'pro': True,
             'has': {
+                'withdraw': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,

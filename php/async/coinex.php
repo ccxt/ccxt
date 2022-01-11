@@ -19,6 +19,7 @@ class coinex extends Exchange {
             'countries' => array( 'CN' ),
             'rateLimit' => 1000,
             'has' => array(
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,

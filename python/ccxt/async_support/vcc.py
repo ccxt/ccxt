@@ -30,6 +30,7 @@ class vcc(Exchange):
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'fetchTradingFee': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,

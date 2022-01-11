@@ -28,6 +28,8 @@ class delta(Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'fetchPositions': True,
+                'fetchPosition': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,

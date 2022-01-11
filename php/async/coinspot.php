@@ -18,7 +18,7 @@ class coinspot extends Exchange {
             'countries' => array( 'AU' ), // Australia
             'rateLimit' => 1000,
             'has' => array(
-                'cancelOrder' => null,
+                'cancelOrder' => true,
                 'CORS' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,

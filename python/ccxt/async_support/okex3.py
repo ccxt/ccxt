@@ -47,6 +47,8 @@ class okex3(Exchange):
             'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro': True,
             'has': {
+                'fetchPositions': True,
+                'fetchPosition': True,
                 'cancelOrder': True,
                 'CORS': None,
                 'createOrder': True,

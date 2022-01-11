@@ -208,6 +208,8 @@ class bytetrade(Exchange):
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'precision': amountPrecision,
                 'fee': None,
                 'limits': {

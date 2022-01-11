@@ -22,6 +22,8 @@ class upbit extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
+                'fetchDepositAddresses' => true,
+                'fetchCanceledOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => true,
                 'createDepositAddress' => true,

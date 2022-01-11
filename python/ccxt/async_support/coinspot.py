@@ -18,7 +18,7 @@ class coinspot(Exchange):
             'countries': ['AU'],  # Australia
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': None,
+                'cancelOrder': True,
                 'CORS': None,
                 'createMarketOrder': None,
                 'createOrder': True,

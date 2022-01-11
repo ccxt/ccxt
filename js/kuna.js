@@ -17,6 +17,7 @@ module.exports = class kuna extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'fetchL3OrderBook': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createOrder': true,

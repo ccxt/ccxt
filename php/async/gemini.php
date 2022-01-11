@@ -22,6 +22,7 @@ class gemini extends Exchange {
             'rateLimit' => 1500, // 200 for private API
             'version' => 'v1',
             'has' => array(
+                'fetchDepositAddressesByNetwork' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createDepositAddress' => true,

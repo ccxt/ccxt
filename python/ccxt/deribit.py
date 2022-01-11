@@ -35,6 +35,7 @@ class deribit(Exchange):
             # 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit': 50,
             'has': {
+                'fetchPosition': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': True,

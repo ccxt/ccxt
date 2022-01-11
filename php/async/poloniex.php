@@ -21,6 +21,7 @@ class poloniex extends Exchange {
             'certified' => false,
             'pro' => true,
             'has' => array(
+                'fetchPosition' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,

@@ -20,6 +20,7 @@ class eqonex(Exchange):
             'countries': ['US', 'SG'],  # United States, Singapore
             'rateLimit': 10,
             'has': {
+                'fetchTradingLimits': True,
                 'cancelOrder': True,
                 'CORS': None,
                 'createOrder': True,
@@ -50,6 +51,7 @@ class eqonex(Exchange):
                 '6h': 5,
                 '1d': 6,
                 '7d': 7,
+                '1w': 7,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -296,6 +298,8 @@ class eqonex(Exchange):
             'precision': precision,
             'fee': fee,
             'active': active,
+            'deposit': None,
+            'withdraw': None,
             'limits': {
                 'amount': {
                     'min': None,

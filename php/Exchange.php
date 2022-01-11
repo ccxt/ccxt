@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.66.88';
+$version = '1.67.11';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.66.88';
+    const VERSION = '1.67.11';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -170,6 +170,7 @@ class Exchange {
         'upbit',
         'vcc',
         'wavesexchange',
+        'wazirx',
         'whitebit',
         'xena',
         'yobit',
@@ -1243,8 +1244,6 @@ class Exchange {
             'fetchTradingLimits' => null,
             'fetchTransactions' => null,
             'fetchTransfers' => null,
-            'fetchWithdrawAddress' => null,
-            'fetchWithdrawAddressesByNetwork' => null,
             'fetchWithdrawal' => null,
             'fetchWithdrawals' => null,
             'loadLeverageBrackets' => null,

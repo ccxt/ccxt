@@ -23,6 +23,7 @@ class blockchaincom(Exchange):
             'rateLimit': 10000,
             'version': 'v3',
             'has': {
+                'fetchDepositAddress': True,
                 'CORS': False,
                 'fetchTrades': False,
                 'fetchOHLCV': False,
@@ -36,7 +37,6 @@ class blockchaincom(Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchPartiallyFilledOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchBalance': True,
                 'createOrder': True,

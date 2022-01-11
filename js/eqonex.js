@@ -16,6 +16,7 @@ module.exports = class eqonex extends Exchange {
             'countries': [ 'US', 'SG' ], // United States, Singapore
             'rateLimit': 10,
             'has': {
+                'fetchTradingLimits': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createOrder': true,
@@ -46,6 +47,7 @@ module.exports = class eqonex extends Exchange {
                 '6h': 5,
                 '1d': 6,
                 '7d': 7,
+                '1w': 7,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -298,6 +300,8 @@ module.exports = class eqonex extends Exchange {
             'precision': precision,
             'fee': fee,
             'active': active,
+            'deposit': undefined,
+            'withdraw': undefined,
             'limits': {
                 'amount': {
                     'min': undefined,

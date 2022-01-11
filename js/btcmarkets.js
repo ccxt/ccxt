@@ -477,21 +477,9 @@ module.exports = class btcmarkets extends Exchange {
         //         "timestamp":"2020-08-09T18:28:23.280000Z"
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'marketId');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const last = this.safeNumber (ticker, 'lastPrice');
         const baseVolume = this.safeNumber (ticker, 'volume24h');
@@ -520,7 +508,7 @@ module.exports = class btcmarkets extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

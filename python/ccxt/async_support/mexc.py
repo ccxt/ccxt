@@ -51,13 +51,11 @@ class mexc(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
-                'fetchMarketsByType': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrdersByState': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
@@ -78,6 +76,7 @@ class mexc(Exchange):
                 '30m': '30m',
                 '1h': '1h',
                 '1d': '1d',
+                '1w': '1w',
                 '1M': '1M',
             },
             'urls': {
@@ -1029,9 +1028,10 @@ class mexc(Exchange):
         market = self.market(symbol)
         options = self.safe_value(self.options, 'timeframes', {})
         timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe, timeframe)
         request = {
             'symbol': market['id'],
-            'interval': timeframes[timeframe],
+            'interval': timeframeValue,
         }
         method = None
         if market['spot']:

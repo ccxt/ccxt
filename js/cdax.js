@@ -23,6 +23,7 @@ module.exports = class cdax extends Exchange {
             'hostname': 'cdax.io',
             'pro': false,
             'has': {
+                'fetchAccounts': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,

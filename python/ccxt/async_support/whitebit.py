@@ -29,7 +29,8 @@ class whitebit(Exchange):
             'countries': ['EE'],
             'rateLimit': 500,
             'has': {
-                'cancelOrder': None,
+                'fetchDepositAddress': True,
+                'cancelOrder': True,
                 'CORS': None,
                 'createDepositAddress': None,
                 'createLimitOrder': None,

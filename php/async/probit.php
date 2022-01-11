@@ -23,6 +23,7 @@ class probit extends Exchange {
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea
             'rateLimit' => 50, // ms
             'has' => array(
+                'fetchDepositAddresses' => true,
                 'cancelOrder' => true,
                 'CORS' => true,
                 'createMarketOrder' => true,

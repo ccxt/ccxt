@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.66.88'
+__version__ = '1.67.11'
 
 # -----------------------------------------------------------------------------
 
@@ -321,8 +321,6 @@ class Exchange(object):
         'fetchTradingLimits': None,
         'fetchTransactions': None,
         'fetchTransfers': None,
-        'fetchWithdrawAddress': None,
-        'fetchWithdrawAddressesByNetwork': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
         'loadLeverageBrackets': None,

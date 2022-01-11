@@ -17,6 +17,7 @@ module.exports = class bitflyer extends Exchange {
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
             'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
+                'fetchPositions': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createOrder': true,
@@ -226,7 +227,7 @@ module.exports = class bitflyer extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume_by_product'),
             'quoteVolume': undefined,
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

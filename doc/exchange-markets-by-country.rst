@@ -584,6 +584,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://bitbns.com/trade/#/api-trading/
           :alt: API Version 2
      
+   * - India
+     - .. image:: https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg
+          :target: https://wazirx.com
+          :alt: wazirx
+     
+     - wazirx
+     - `WazirX <https://wazirx.com>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.wazirx.com/#public-rest-api-for-wazirx
+          :alt: API Version 2
+     
    * - Indonesia
      - .. image:: https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg
           :target: https://coincheck.com

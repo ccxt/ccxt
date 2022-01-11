@@ -20,6 +20,7 @@ class xena extends Exchange {
             'countries' => array( 'VC', 'UK' ),
             'rateLimit' => 100,
             'has' => array(
+                'fetchAccounts' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
