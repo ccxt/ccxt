@@ -15,7 +15,7 @@ module.exports = class woo extends Exchange {
             'id': 'woo',
             'name': 'Woo',
             'countries': [ 'KY' ], // Cayman Islands
-            'rateLimit': 1000, // No defaults known
+            'rateLimit': 100,
             'version': 'v1',
             'certified': false,
             'hostname': 'woo.org',
@@ -23,16 +23,16 @@ module.exports = class woo extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'cancelAllOrders': undefined,
-                'createMarketOrder': undefined,
+                'cancelAllOrders': false,
+                'createMarketOrder': false,
                 'fetchBalance': true,
-                'fetchCanceledOrders': undefined,
-                'fetchClosedOrder': undefined,
-                'fetchClosedOrders': undefined,
+                'fetchCanceledOrders': false,
+                'fetchClosedOrder': false,
+                'fetchClosedOrders': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingRateHistory': undefined,
+                'fetchFundingRateHistory': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -40,23 +40,23 @@ module.exports = class woo extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchOpenOrder': undefined,
-                'fetchOpenOrders': undefined,
-                'fetchPosition': undefined,
-                'fetchPositions': undefined,
-                'fetchStatus': undefined,
-                'fetchTicker': undefined,
-                'fetchTickers': undefined,
-                'fetchTime': undefined,
+                'fetchOpenOrder': false,
+                'fetchOpenOrders': false,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchStatus': false,
+                'fetchTicker': false,
+                'fetchTickers': false,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTransfers': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'addMargin': undefined,
-                'reduceMargin': undefined,
-                'setLeverage': undefined,
+                'deposit': false,
+                'withdraw': false,
+                'addMargin': false,
+                'reduceMargin': false,
+                'setLeverage': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -108,13 +108,14 @@ module.exports = class woo extends Exchange {
                             'kline': 1,
                             'client/trade/:tid': 1, // implicit
                             'order/{oid}/trades': 1,
+                            'client/trades': 1,
                             'client/info': 60,
                             'asset/deposit': 120,
-                            'asset/history': 120,
-                            'token_interest': 120, // implicit
-                            'token_interest/:token': 120, // implicit
-                            'interest/history': 120, // implicit
-                            'interest/repay': 120, // implicit
+                            'asset/history': 60,
+                            'token_interest': 60, // implicit
+                            'token_interest/:token': 60, // implicit
+                            'interest/history': 60, // implicit
+                            'interest/repay': 60, // implicit
                         },
                         'post': {
                             'order': 5, // Limit: 2 requests per 1 second per symbol
@@ -956,13 +957,11 @@ module.exports = class woo extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-        }
-        const request = {};
-        if (symbol !== undefined) {
-            request['symbol'] = symbol;
+            request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['start_t'] = since;
@@ -1083,7 +1082,7 @@ module.exports = class woo extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'transaction_type': 'BALANCE',
+            'type': 'BALANCE',
             'token_side': 'DEPOSIT',
         };
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
@@ -1091,7 +1090,7 @@ module.exports = class woo extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'transaction_type': 'BALANCE',
+            'type': 'BALANCE',
             'token_side': 'WITHDRAW',
         };
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
@@ -1111,11 +1110,11 @@ module.exports = class woo extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const transactionType = this.safeString (params, 'transaction_type');
+        const transactionType = this.safeString (params, 'type');
+        params = this.omit (params, 'type'); // conflict! we need to change 'type' param for spot/futures into 'exchangeType'
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        params = this.omit (params, 'type'); // conflict! we need to change 'type' param for spot/futures into 'exchangeType'
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransactions', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetAssetHistory',
