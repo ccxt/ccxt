@@ -274,7 +274,7 @@ module.exports = class coinex extends Exchange {
         }
         ticker = this.safeValue (ticker, 'ticker', {});
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -295,7 +295,7 @@ module.exports = class coinex extends Exchange {
             'baseVolume': this.safeNumber2 (ticker, 'vol', 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
