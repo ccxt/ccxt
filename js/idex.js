@@ -308,8 +308,7 @@ module.exports = class idex extends Exchange {
         //   sequence: 3902
         // }
         const marketId = this.safeString (ticker, 'market');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol (marketId, market, '-');
         const baseVolume = this.safeNumber (ticker, 'baseVolume');
         const quoteVolume = this.safeNumber (ticker, 'quoteVolume');
         const timestamp = this.safeInteger (ticker, 'time');
@@ -323,7 +322,11 @@ module.exports = class idex extends Exchange {
         if (percentage !== undefined) {
             percentage = 1 + percentage / 100;
         }
-        return this.safeTicker ({
+        let change = undefined;
+        if ((close !== undefined) && (open !== undefined)) {
+            change = close - open;
+        }
+        return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -338,13 +341,13 @@ module.exports = class idex extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': undefined,
+            'change': change,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        };
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
