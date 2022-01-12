@@ -1801,8 +1801,16 @@ module.exports = class deribit extends Exchange {
         let code = undefined;
         if (symbols === undefined) {
             code = this.codeFromOptions ('fetchPositions', params);
+        } else if (typeof symbols === 'string') {
+            code = symbols;
         } else {
-            code = this.safeSymbol (symbols);
+            if (Array.isArray (symbols)) {
+                const length = symbols.length;
+                if (length !== 1) {
+                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+                }
+                code = symbols[0];
+            }
         }
         const currency = this.currency (code);
         const request = {
