@@ -816,15 +816,10 @@ class bybit(Exchange):
         percentage = self.safe_number(ticker, 'price_24h_pcnt')
         if percentage is not None:
             percentage *= 100
-        change = None
-        average = None
-        if (last is not None) and (open is not None):
-            change = last - open
-            average = self.sum(open, last) / 2
         baseVolume = self.safe_number(ticker, 'turnover_24h')
         quoteVolume = self.safe_number(ticker, 'volume_24h')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -839,13 +834,13 @@ class bybit(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
+            'change': None,
             'percentage': percentage,
-            'average': average,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
