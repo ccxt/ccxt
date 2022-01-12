@@ -474,6 +474,8 @@ module.exports = class hitbtc3 extends Exchange {
                     'network': network,
                     'fee': fee,
                     'active': active,
+                    'deposit': payinEnabled,
+                    'withdraw': payoutEnabled,
                     'precision': precision,
                     'limits': {
                         'withdraw': {
