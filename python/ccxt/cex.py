@@ -454,10 +454,8 @@ class cex(Exchange):
         bid = self.safe_number(ticker, 'bid')
         ask = self.safe_number(ticker, 'ask')
         last = self.safe_number(ticker, 'last')
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        return {
+        symbol = self.safe_symbol(None, market)
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -478,7 +476,7 @@ class cex(Exchange):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
