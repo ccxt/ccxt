@@ -916,6 +916,8 @@ module.exports = class huobijp extends Exchange {
                 // 'transfer': undefined,
                 'name': name,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': undefined, // todo need to fetch from fee endpoint
                 'precision': precision,
                 'limits': {
