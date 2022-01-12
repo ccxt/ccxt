@@ -255,6 +255,8 @@ module.exports = class vcc extends Exchange {
                 'code': code,
                 'name': this.safeString (currency, 'name'),
                 'active': active,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
                 'precision': this.safeInteger (currency, 'decimal'),
                 'limits': {
