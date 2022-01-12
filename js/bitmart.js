@@ -733,7 +733,7 @@ module.exports = class bitmart extends Exchange {
         }
         average = this.safeNumber (ticker, 'avg_price', average);
         const price = this.safeValue (ticker, 'depth_price', ticker);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -754,7 +754,7 @@ module.exports = class bitmart extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
