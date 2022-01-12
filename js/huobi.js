@@ -2230,7 +2230,9 @@ module.exports = class huobi extends Exchange {
                 maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
                 const withdraw = this.safeString (chain, 'withdrawStatus');
                 const deposit = this.safeString (chain, 'depositStatus');
-                const active = (withdraw === 'allowed') && (deposit === 'allowed');
+                const withdrawEnabled = (withdraw === 'allowed');
+                const depositEnabled = (deposit === 'allowed');
+                const active = withdrawEnabled && depositEnabled;
                 let precision = this.safeString (chain, 'withdrawPrecision');
                 if (precision !== undefined) {
                     precision = this.parseNumber ('1e-' + precision);
@@ -2248,6 +2250,8 @@ module.exports = class huobi extends Exchange {
                         },
                     },
                     'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
                     'fee': fee,
                     'precision': precision,
                 };
@@ -2259,6 +2263,8 @@ module.exports = class huobi extends Exchange {
                 'code': code,
                 'id': currencyId,
                 'active': currencyActive,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': (networkLength <= 1) ? fee : undefined,
                 'name': undefined,
                 'limits': {
