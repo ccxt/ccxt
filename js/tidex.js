@@ -162,11 +162,9 @@ module.exports = class tidex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const visible = this.safeValue (currency, 'visible');
             let active = visible === true;
-            const withdrawEnable = this.safeValue (currency, 'withdrawEnable');
-            const depositEnable = this.safeValue (currency, 'depositEnable');
-            const canWithdraw = withdrawEnable === true;
-            const canDeposit = depositEnable === true;
-            if (!canWithdraw || !canDeposit) {
+            const withdrawEnable = this.safeValue (currency, 'withdrawEnable', true);
+            const depositEnable = this.safeValue (currency, 'depositEnable', true);
+            if (!withdrawEnable || !depositEnable) {
                 active = false;
             }
             const name = this.safeString (currency, 'name');
@@ -176,16 +174,16 @@ module.exports = class tidex extends Exchange {
                 'code': code,
                 'name': name,
                 'active': active,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
+                'deposit': depositEnable,
+                'withdraw': withdrawEnable,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
-                        'active': canWithdraw,
+                        'active': withdrawEnable,
                         'fee': fee,
                     },
                     'deposit': {
-                        'active': canDeposit,
+                        'active': depositEnable,
                         'fee': this.parseNumber ('0'),
                     },
                 },
