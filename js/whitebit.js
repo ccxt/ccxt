@@ -301,6 +301,8 @@ module.exports = class whitebit extends Exchange {
                 'info': currency, // the original payload
                 'name': undefined, // see the comment above
                 'active': active,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
