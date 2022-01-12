@@ -607,12 +607,9 @@ module.exports = class exmo extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'updated');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const last = this.safeNumber (ticker, 'last_trade');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -633,7 +630,7 @@ module.exports = class exmo extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': this.safeNumber (ticker, 'vol_curr'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
