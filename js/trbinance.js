@@ -20,6 +20,8 @@ module.exports = class trbinance extends Exchange {
             'has': {
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
@@ -64,6 +66,7 @@ module.exports = class trbinance extends Exchange {
                         'trades',
                         'aggTrades',
                         'klines',
+                        'ticker/24hr',
                     ],
                 },
                 'private': {
@@ -426,12 +429,20 @@ module.exports = class trbinance extends Exchange {
             };
         }
         let takerOrMaker = undefined;
-        if ('isBuyerMaker' in trade) {
-            takerOrMaker = trade['isBuyerMaker'] ? 'maker' : 'taker';
+        if ('m' in trade) {
+            if (trade['m']) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
         }
-        // if ('maker' in trade) {
-        //     takerOrMaker = trade['maker'] ? 'maker' : 'taker';
-        // }
+        if ('maker' in trade) {
+            if (trade['maker']) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -455,21 +466,83 @@ module.exports = class trbinance extends Exchange {
         const request = {
             // 'symbol': market['id'],
             'symbol': market['base'] + market['quote'], // Symbol needs to be without underscore for the endpoint
+            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
+            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+            // 'limit': 500,     // default = 500, maximum = 1000
         };
+        const defaultType = this.safeString2 (this.options, 'fetchTrades', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        let defaultMethod = undefined;
+        if (type === 'future') {
+            defaultMethod = 'fapiPublicGetAggTrades';
+        } else if (type === 'delivery') {
+            defaultMethod = 'dapiPublicGetAggTrades';
+        } else {
+            defaultMethod = 'publicGetAggTrades';
+        }
+        let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
+        if (method === 'publicGetAggTrades') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+                request['endTime'] = this.sum (since, 3600000);
+            }
+            if (type === 'future') {
+                method = 'fapiPublicGetAggTrades';
+            } else if (type === 'delivery') {
+                method = 'dapiPublicGetAggTrades';
+            }
+        } else if (method === 'publicGetHistoricalTrades') {
+            if (type === 'future') {
+                method = 'fapiPublicGetHistoricalTrades';
+            } else if (type === 'delivery') {
+                method = 'dapiPublicGetHistoricalTrades';
+            }
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default: 500
         }
-        const response = await this.publicGetTrades (this.extend (request, params));
+        // Notes:
+        // - default limit (500) applies only if no other parameters set, trades up
+        //   to the maximum limit may be returned to satisfy other parameters
+        // - if both limit and time window is set and time window contains more
+        //   trades than the limit then the last trades from the window are returned
+        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
+        //   which is different from actual trade id
+        // - setting both fromId and time window results in error
+        const response = await this[method] (this.extend (request, query));
         //
-        //  [
-        //    {"id":1211494273,"price":"46410.42000000","qty":"0.00084000","quoteQty":"38.98475280","time":1641391959076,"isBuyerMaker":false,"isBestMatch":true},
-        //    {"id":1211494274,"price":"46410.42000000","qty":"0.00084000","quoteQty":"38.98475280","time":1641391959278,"isBuyerMaker":false,"isBestMatch":true},
-        //    {"id":1211494275,"price":"46410.41000000","qty":"0.00061000","quoteQty":"28.31035010","time":1641391959289,"isBuyerMaker":true,"isBestMatch":true},
-        //    {"id":1211494276,"price":"46410.42000000","qty":"0.00084000","quoteQty":"38.98475280","time":1641391959357,"isBuyerMaker":false,"isBestMatch":true},
-        //    {"id":1211494277,"price":"46410.42000000","qty":"0.00084000","quoteQty":"38.98475280","time":1641391959483,"isBuyerMaker":false,"isBestMatch":true},
-        //  ]
+        // aggregate trades
+        //
+        //     [
+        //         {
+        //             "a": 26129,         // Aggregate tradeId
+        //             "p": "0.01633102",  // Price
+        //             "q": "4.70443515",  // Quantity
+        //             "f": 27781,         // First tradeId
+        //             "l": 27781,         // Last tradeId
+        //             "T": 1498793709153, // Timestamp
+        //             "m": true,          // Was the buyer the maker?
+        //             "M": true           // Was the trade the best price match?
+        //         }
+        //     ]
+        //
+        // recent public trades and historical public trades
+        //
+        //     [
+        //         {
+        //             "id": 28457,
+        //             "price": "4.00000100",
+        //             "qty": "12.00000000",
+        //             "time": 1499865549590,
+        //             "isBuyerMaker": true,
+        //             "isBestMatch": true
+        //         }
+        //     ]
         //
         // const data = this.safeValue (response, []);
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -527,6 +600,129 @@ module.exports = class trbinance extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         symbol: 'ETHBTC',
+        //         priceChange: '0.00068700',
+        //         priceChangePercent: '2.075',
+        //         weightedAvgPrice: '0.03342681',
+        //         prevClosePrice: '0.03310300',
+        //         lastPrice: '0.03378900',
+        //         lastQty: '0.07700000',
+        //         bidPrice: '0.03378900',
+        //         bidQty: '7.16800000',
+        //         askPrice: '0.03379000',
+        //         askQty: '24.00000000',
+        //         openPrice: '0.03310200',
+        //         highPrice: '0.03388900',
+        //         lowPrice: '0.03306900',
+        //         volume: '205478.41000000',
+        //         quoteVolume: '6868.48826294',
+        //         openTime: 1601469986932,
+        //         closeTime: 1601556386932,
+        //         firstId: 196098772,
+        //         lastId: 196186315,
+        //         count: 87544
+        //     }
+        //
+        // coinm
+        //     {
+        //         baseVolume: '214549.95171161',
+        //         closeTime: '1621965286847',
+        //         count: '1283779',
+        //         firstId: '152560106',
+        //         highPrice: '39938.3',
+        //         lastId: '153843955',
+        //         lastPrice: '37993.4',
+        //         lastQty: '1',
+        //         lowPrice: '36457.2',
+        //         openPrice: '37783.4',
+        //         openTime: '1621878840000',
+        //         pair: 'BTCUSD',
+        //         priceChange: '210.0',
+        //         priceChangePercent: '0.556',
+        //         symbol: 'BTCUSD_PERP',
+        //         volume: '81990451',
+        //         weightedAvgPrice: '38215.08713747'
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'closeTime');
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeNumber (ticker, 'lastPrice');
+        const isCoinm = ('baseVolume' in ticker);
+        let baseVolume = undefined;
+        let quoteVolume = undefined;
+        if (isCoinm) {
+            baseVolume = this.safeNumber (ticker, 'baseVolume');
+            quoteVolume = this.safeNumber (ticker, 'volume');
+        } else {
+            baseVolume = this.safeNumber (ticker, 'volume');
+            quoteVolume = this.safeNumber (ticker, 'quoteVolume');
+        }
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeNumber (ticker, 'highPrice'),
+            'low': this.safeNumber (ticker, 'lowPrice'),
+            'bid': this.safeNumber (ticker, 'bidPrice'),
+            'bidVolume': this.safeNumber (ticker, 'bidQty'),
+            'ask': this.safeNumber (ticker, 'askPrice'),
+            'askVolume': this.safeNumber (ticker, 'askQty'),
+            'vwap': this.safeNumber (ticker, 'weightedAvgPrice'),
+            'open': this.safeNumber (ticker, 'openPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': this.safeNumber (ticker, 'prevClosePrice'), // previous day close
+            'change': this.safeNumber (ticker, 'priceChange'),
+            'percentage': this.safeNumber (ticker, 'priceChangePercent'),
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'].replace ('_', ''),
+        };
+        let method = 'publicGetTicker24hr';
+        if (market['linear']) {
+            method = 'fapiPublicGetTicker24hr';
+        } else if (market['inverse']) {
+            method = 'dapiPublicGetTicker24hr';
+        }
+        const response = await this[method] (this.extend (request, params));
+        if (Array.isArray (response)) {
+            const firstTicker = this.safeValue (response, 0, {});
+            return this.parseTicker (firstTicker, market);
+        }
+        return this.parseTicker (response, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        let defaultMethod = undefined;
+        if (type === 'future') {
+            defaultMethod = 'fapiPublicGetTicker24hr';
+        } else if (type === 'delivery') {
+            defaultMethod = 'dapiPublicGetTicker24hr';
+        } else {
+            defaultMethod = 'publicGetTicker24hr';
+        }
+        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
+        const response = await this[method] (query);
+        return this.parseTickers (response, symbols);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + this.version + '/' + path;
         if (api === 'public') {
@@ -534,13 +730,19 @@ module.exports = class trbinance extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        if (api === 'public' && path === 'trades') {
+        if (api === 'public' && path === 'aggTrades') {
             url = this.urls['api']['public3'] + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         }
         if (api === 'public' && path === 'klines') {
+            url = this.urls['api']['public3'] + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        }
+        if (api === 'public' && path === 'ticker/24hr') {
             url = this.urls['api']['public3'] + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
