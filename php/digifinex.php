@@ -586,7 +586,7 @@ class digifinex extends Exchange {
         $timestamp = $this->safe_timestamp($ticker, 'date');
         $last = $this->safe_number($ticker, 'last');
         $percentage = $this->safe_number($ticker, 'change');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -607,7 +607,7 @@ class digifinex extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => $this->safe_number($ticker, 'base_vol'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {
