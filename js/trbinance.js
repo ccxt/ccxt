@@ -24,7 +24,7 @@ module.exports = class trbinance extends Exchange {
                 'fetchCurrencies': false,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
-                'fetchOrderBooks': undefined,
+                'fetchOrderBooks': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
