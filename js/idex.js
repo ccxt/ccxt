@@ -586,6 +586,8 @@ module.exports = class idex extends Exchange {
                 'type': undefined,
                 'name': name,
                 'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': parseInt (precisionString),
                 'limits': {
