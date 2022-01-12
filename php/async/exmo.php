@@ -612,9 +612,12 @@ class exmo extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'updated');
-        $symbol = $this->safe_symbol(null, $market);
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $last = $this->safe_number($ticker, 'last_trade');
-        return $this->safe_ticker(array(
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -635,7 +638,7 @@ class exmo extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => $this->safe_number($ticker, 'vol_curr'),
             'info' => $ticker,
-        ), $market);
+        );
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
