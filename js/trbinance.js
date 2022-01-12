@@ -18,8 +18,13 @@ module.exports = class trbinance extends Exchange {
             'rateLimit': 1500,
             'version': 'v1',
             'has': {
+                'CORS': undefined,
+                'publicAPI': true,
+                'privateAPI': false,
+                'fetchCurrencies': false,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
