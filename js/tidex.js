@@ -176,6 +176,8 @@ module.exports = class tidex extends Exchange {
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
