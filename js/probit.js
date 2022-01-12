@@ -357,6 +357,8 @@ module.exports = class probit extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': !depositSuspended,
+                'withdraw': !withdrawalSuspended,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
