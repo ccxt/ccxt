@@ -254,6 +254,8 @@ module.exports = class hollaex extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
