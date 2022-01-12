@@ -235,6 +235,8 @@ module.exports = class latoken1 extends Exchange {
                 'info': currency,
                 'name': code,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {

@@ -312,7 +312,8 @@ class idex extends Exchange {
         //   sequence => 3902
         // }
         $marketId = $this->safe_string($ticker, 'market');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $baseVolume = $this->safe_number($ticker, 'baseVolume');
         $quoteVolume = $this->safe_number($ticker, 'quoteVolume');
         $timestamp = $this->safe_integer($ticker, 'time');
@@ -326,11 +327,7 @@ class idex extends Exchange {
         if ($percentage !== null) {
             $percentage = 1 . $percentage / 100;
         }
-        $change = null;
-        if (($close !== null) && ($open !== null)) {
-            $change = $close - $open;
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -345,13 +342,13 @@ class idex extends Exchange {
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

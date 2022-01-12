@@ -308,7 +308,8 @@ module.exports = class idex extends Exchange {
         //   sequence: 3902
         // }
         const marketId = this.safeString (ticker, 'market');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const baseVolume = this.safeNumber (ticker, 'baseVolume');
         const quoteVolume = this.safeNumber (ticker, 'quoteVolume');
         const timestamp = this.safeInteger (ticker, 'time');
@@ -343,7 +344,7 @@ module.exports = class idex extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

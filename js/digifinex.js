@@ -603,7 +603,7 @@ module.exports = class digifinex extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': this.safeNumber (ticker, 'base_vol'),
             'info': ticker,
-        });
+        }, market);
     }
 
     parseTrade (trade, market = undefined) {
